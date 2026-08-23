@@ -45,7 +45,11 @@ final readonly class WatchRuns
             }
         }
         $detectLeaks = $arguments->has('detect-leaks');
-        $storage = StorageLayout::resolve($resolved->storage, $workingDirectory);
+        $storage = StorageLayout::resolve(
+            $resolved->storage,
+            $workingDirectory,
+            $resolved->suiteSelection->stateIdentity(),
+        );
         $warning = $detectLeaks ? LeakDetector::environmentWarning() : null;
         if ($warning !== null) {
             $this->console->err($this->console->stderrStyle($arguments->has('no-ansi'))->warn($warning) . "\n");

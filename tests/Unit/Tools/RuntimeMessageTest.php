@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Tools;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class RuntimeMessageTest
 {
@@ -18,9 +18,9 @@ final readonly class RuntimeMessageTest
     {
         [$root, $script] = $this->toolSandbox('coverage-missing', 'coverage-gate.php');
         $summary = $root . '/summary.md';
-        $result = Subprocess::run(
+        $result = PhpSubprocess::run(
             $root,
-            [\PHP_BINARY, $script],
+            [$script],
             ['GITHUB_STEP_SUMMARY' => $summary],
         );
 
@@ -42,9 +42,9 @@ final readonly class RuntimeMessageTest
     {
         [$root, $script] = $this->toolSandbox('coverage-summary-write', 'coverage-gate.php');
         $summaryDirectory = $this->tempDirectory->subdirectory('coverage-summary-write/summary');
-        $result = Subprocess::run(
+        $result = PhpSubprocess::run(
             $root,
-            [\PHP_BINARY, $script],
+            [$script],
             ['GITHUB_STEP_SUMMARY' => $summaryDirectory],
         );
 
@@ -58,7 +58,7 @@ final readonly class RuntimeMessageTest
     public function phpStanExtractionReportsMissingAndExtractedSourcesExactly(): void
     {
         [$missingRoot, $missingScript] = $this->toolSandbox('phpstan-missing', 'extract-phpstan-api.php');
-        $missing = Subprocess::run($missingRoot, [\PHP_BINARY, $missingScript]);
+        $missing = PhpSubprocess::run($missingRoot, [$missingScript]);
 
         Expect::that($missing->exitCode)->toBe(0);
         Expect::that($missing->stdout)->toBe(
@@ -68,10 +68,9 @@ final readonly class RuntimeMessageTest
         [$successRoot, $successScript] = $this->toolSandbox('phpstan-success', 'extract-phpstan-api.php');
         $pharPath = $successRoot . '/vendor/phpstan/phpstan/phpstan.phar';
         \mkdir(\dirname($pharPath), 0o777, true);
-        $builder = Subprocess::run(
+        $builder = PhpSubprocess::run(
             $successRoot,
             [
-                \PHP_BINARY,
                 '-d',
                 'phar.readonly=0',
                 '-r',
@@ -88,7 +87,7 @@ final readonly class RuntimeMessageTest
 
         Expect::that($builder->exitCode)->toBe(0);
 
-        $success = Subprocess::run($successRoot, [\PHP_BINARY, $successScript]);
+        $success = PhpSubprocess::run($successRoot, [$successScript]);
         $target = \realpath($successRoot) . '/.phpstan-api-stubs';
 
         Expect::that($success->exitCode)->toBe(0);
@@ -112,8 +111,7 @@ final readonly class RuntimeMessageTest
             . "to each available worker before the test run starts in parallel.\n",
         );
         $script = $this->repositoryRoot() . '/tools/prose-check.php';
-        $sentence = Subprocess::run($root, [
-            \PHP_BINARY,
+        $sentence = PhpSubprocess::run($root, [
             $script,
             'check',
             '--root=' . $root,
@@ -125,8 +123,7 @@ final readonly class RuntimeMessageTest
         );
 
         \file_put_contents($root . '/sample.md', "# Sample\n\nThe worker stops.\n");
-        $removedOption = Subprocess::run($root, [
-            \PHP_BINARY,
+        $removedOption = PhpSubprocess::run($root, [
             $script,
             'check',
             '--root=' . $root,
@@ -141,7 +138,7 @@ final readonly class RuntimeMessageTest
     public function memoryGateReportsMissingSamplesAndTheFinalMeasurementsExactly(): void
     {
         [$missingRoot, $missingScript] = $this->toolSandbox('memory-missing', 'memory-gate.php');
-        $missing = Subprocess::run($missingRoot, [\PHP_BINARY, $missingScript]);
+        $missing = PhpSubprocess::run($missingRoot, [$missingScript]);
 
         Expect::that($missing->exitCode)->toBe(1);
         Expect::that($missing->stderr)->toContain(
@@ -165,7 +162,7 @@ final readonly class RuntimeMessageTest
             PHP,
         );
 
-        $success = Subprocess::run($successRoot, [\PHP_BINARY, $successScript]);
+        $success = PhpSubprocess::run($successRoot, [$successScript]);
 
         Expect::that($success->exitCode)->toBe(0);
         Expect::that($success->stdout)->toContain(
@@ -180,8 +177,7 @@ final readonly class RuntimeMessageTest
         [$root, $script] = $this->toolSandbox('memory-directory', 'memory-gate.php');
         $blockedTemp = $root . '/not-a-directory';
         \file_put_contents($blockedTemp, 'blocked');
-        $result = Subprocess::run($root, [
-            \PHP_BINARY,
+        $result = PhpSubprocess::run($root, [
             '-d',
             'sys_temp_dir=' . $blockedTemp,
             $script,
@@ -198,8 +194,7 @@ final readonly class RuntimeMessageTest
         [$blockedRoot, $blockedScript] = $this->toolSandbox('benchmark-directory', 'benchmark.php');
         $blockedTemp = $blockedRoot . '/not-a-directory';
         \file_put_contents($blockedTemp, 'blocked');
-        $directoryFailure = Subprocess::run($blockedRoot, [
-            \PHP_BINARY,
+        $directoryFailure = PhpSubprocess::run($blockedRoot, [
             '-d',
             'sys_temp_dir=' . $blockedTemp,
             $blockedScript,
@@ -221,10 +216,9 @@ final readonly class RuntimeMessageTest
         \chmod($fakeBin . '/composer', 0o700);
         $benchmarkTemp = $this->tempDirectory->subdirectory('benchmark-composer/temp');
         $path = \getenv('PATH');
-        $composerFailure = Subprocess::run(
+        $composerFailure = PhpSubprocess::run(
             $this->repositoryRoot(),
             [
-                \PHP_BINARY,
                 '-d',
                 'sys_temp_dir=' . $benchmarkTemp,
                 $this->repositoryRoot() . '/tools/benchmark.php',

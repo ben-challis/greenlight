@@ -16,7 +16,7 @@ use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Doubles\ProxyStorageContract;
 use Greenlight\Tests\Support\FilesystemRestriction;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class ProxyStorageTest
 {
@@ -152,8 +152,7 @@ final readonly class ProxyStorageTest
     private function generatedProxyFileName(string $directory): string
     {
         $root = \dirname(__DIR__, 3);
-        $result = Subprocess::run($root, [
-            \PHP_BINARY,
+        $result = PhpSubprocess::run($root, [
             '-r',
             <<<'PHP'
             require $argv[1];

@@ -7,6 +7,7 @@ namespace Greenlight\Execution\Adapter;
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Config\WorkerConfiguration;
 use Greenlight\Coverage\Collection\CoverageSettings;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\EventSink;
 use Greenlight\Execution\ExecutionAdapter;
@@ -72,6 +73,7 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
 
     /**
      * @throws AttachmentError
+     * @throws CoverageError
      * @throws ExecutionFailed
      * @throws ReportGenerationFailed
      */
@@ -106,6 +108,7 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
                         : InitialWorkerAssignment::Progressive,
                     generatedCodeDirectory: $context->storage->generatedCodeDirectory,
                     temporaryDirectory: $context->storage->temporaryDirectory,
+                    testCoverageStore: $context->testCoverageStore,
                 ),
             );
 

@@ -57,8 +57,7 @@ final readonly class ProseCheckRuleProbe
 
     private static function run(string $root): ProcessResult
     {
-        return Subprocess::run($root, [
-            \PHP_BINARY,
+        return PhpSubprocess::run($root, [
             \dirname(__DIR__, 2) . '/tools/prose-check.php',
             'check',
             '--root=' . $root,

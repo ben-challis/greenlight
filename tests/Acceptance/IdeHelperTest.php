@@ -9,7 +9,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class IdeHelperTest
 {
@@ -31,7 +31,7 @@ final readonly class IdeHelperTest
             ->toContain('@method Expectation<T> toHaveDigestLength(int $length)')
             ->toContain('abstract class TemporalExpectation');
 
-        $lint = Subprocess::run($root, [\PHP_BINARY, '-l', $target]);
+        $lint = PhpSubprocess::run($root, ['-l', $target]);
         Expect::that($lint->exitCode)->because('writes a lintable helper and skips when nothing is configured')->toBe(0);
 
         $result = GreenlightCli::run(FixturePath::get('ListTestsConfig'), ['ide-helper', '--output=' . $target . '.none']);

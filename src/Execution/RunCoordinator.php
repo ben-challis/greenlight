@@ -7,6 +7,7 @@ namespace Greenlight\Execution;
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\StorageLayout;
+use Greenlight\Coverage\Attribution\TestCoverageStore;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Plan\ExecutionPlan;
@@ -52,6 +53,7 @@ final readonly class RunCoordinator
         ExecutionAdapter $execution,
         array $priorityClasses = [],
         array $classSeconds = [],
+        ?TestCoverageStore $testCoverageStore = null,
     ): RunResult {
         $seed = $configuration->order->seed;
         $classSeconds = $configuration->order->isRandomized() ? [] : $classSeconds;
@@ -62,6 +64,7 @@ final readonly class RunCoordinator
             $classSeconds,
         );
         $topology = $execution->topology($plan, $classSeconds);
+        $testCoverageStore?->registerPlan($plan);
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);
         $artifacts = ArtifactStore::open(
@@ -90,7 +93,7 @@ final readonly class RunCoordinator
                 $summary = new ResultSummary();
                 $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
 
-                return new RunResult($summary, 0, $durationSeconds, $seed);
+                return new RunResult($summary, 0, $durationSeconds, $seed, runId: $runId);
             }
 
             $fixtures = IntegrationFixtureManager::provision(
@@ -118,6 +121,7 @@ final readonly class RunCoordinator
                         $fixtures,
                         $classSeconds,
                         $storage,
+                        $testCoverageStore,
                     ),
                 );
                 $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
@@ -135,6 +139,7 @@ final readonly class RunCoordinator
                     $seed,
                     $outcome->coverage,
                     $outcome->leaks,
+                    $runId,
                 );
             } catch (\Throwable $failure) {
                 $cleanupFailures = $fixtures->close();

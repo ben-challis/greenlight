@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Execution;
 
 use Greenlight\Artifact\AttachmentError;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\EventSink;
 use Greenlight\Reporting\ReportGenerationFailed;
@@ -26,6 +27,7 @@ interface ExecutionAdapter
 
     /**
      * @throws AttachmentError
+     * @throws CoverageError
      * @throws ExecutionFailed
      * @throws ReportGenerationFailed
      */

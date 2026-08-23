@@ -61,6 +61,26 @@ final class CliError extends \RuntimeException
         return new self('--filter requires a pattern.');
     }
 
+    /** @param non-empty-list<non-empty-string> $names */
+    public static function unknownSuites(array $names): self
+    {
+        return new self(\sprintf(
+            'Unknown %s %s. Use --list-suites to list configured suites.',
+            \count($names) === 1 ? 'suite' : 'suites',
+            self::quotedList($names),
+        ));
+    }
+
+    /** @param non-empty-list<non-empty-string> $tags */
+    public static function unknownSuiteTags(array $tags): self
+    {
+        return new self(\sprintf(
+            'Unknown suite %s %s. Use --list-suites to list configured suite tags.',
+            \count($tags) === 1 ? 'tag' : 'tags',
+            self::quotedList($tags),
+        ));
+    }
+
     public static function malformedShard(string $raw): self
     {
         return new self(\sprintf('--shard requires <n>/<m>, such as 1/4. Received "%s".', $raw));
@@ -158,5 +178,30 @@ final class CliError extends \RuntimeException
             'Do not use --repeat or --repeat-until-failure with %s. Run Greenlight separately for each required report.',
             \implode(' or ', $outputs),
         ));
+    }
+
+    public static function exactTestFileUnreadable(string $path, ?string $cause = null): self
+    {
+        return new self(\sprintf(
+            'Exact test ID file "%s" could not be read%s.',
+            $path,
+            $cause === null ? '' : ': ' . $cause,
+        ));
+    }
+
+    public static function exactTestFileEmpty(string $path): self
+    {
+        return new self(\sprintf('Exact test ID file "%s" contains no test IDs.', $path));
+    }
+
+    public static function coverageOptionsConflict(): self
+    {
+        return new self('--no-coverage cannot be combined with options that enable or require coverage.');
+    }
+
+    /** @param non-empty-list<non-empty-string> $values */
+    private static function quotedList(array $values): string
+    {
+        return \implode(', ', \array_map(static fn(string $value): string => '"' . $value . '"', $values));
     }
 }

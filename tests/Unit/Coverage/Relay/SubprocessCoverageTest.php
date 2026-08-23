@@ -19,8 +19,8 @@ use Greenlight\Tests\Fixture\Coverage\AvailableFakeDriver;
 use Greenlight\Tests\Fixture\Coverage\RecordingFakeDriver;
 use Greenlight\Tests\Fixture\Coverage\UnavailableFakeDriver;
 use Greenlight\Tests\Support\CoverageJson;
+use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\SourceOnlyPhp;
-use Greenlight\Tests\Support\Subprocess;
 
 final readonly class SubprocessCoverageTest
 {
@@ -61,7 +61,7 @@ final readonly class SubprocessCoverageTest
             ->toBe(7);
 
         $root = \dirname(__DIR__, 4);
-        $result = Subprocess::run($root, SourceOnlyPhp::command(
+        $result = PhpSubprocess::run($root, SourceOnlyPhp::command(
             $root . '/src',
             <<<'PHP'
             $blocker = $argv[1];

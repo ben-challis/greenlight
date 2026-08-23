@@ -62,7 +62,7 @@ final class GreenlightConfigTest
             ->workers(count: 8)
             ->resourceLimit('postgres', 3)
             ->resourceLimit('payments-sandbox')
-            ->coverage(static fn(CoverageBuilder $coverage) => $coverage->include('src')->driver('pcov')->export('lcov', 'coverage/lcov.info'))
+            ->coverage(static fn(CoverageBuilder $coverage) => $coverage->include('src')->driver('pcov')->export('lcov', 'coverage/lcov.info')->perTest('coverage/tests.jsonl'))
             ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts
                 ->directory('build/evidence')
                 ->maxAttachmentsPerTest(10)
@@ -91,6 +91,7 @@ final class GreenlightConfigTest
         Expect::that($coverage->driver)->because('builds a fully configured run')->toBe('pcov');
         Expect::that($coverage->exports[0]->format)->because('builds a fully configured run')->toBe('lcov');
         Expect::that($coverage->exports[0]->target)->because('builds a fully configured run')->toBe('coverage/lcov.info');
+        Expect::that($coverage->perTestTarget)->because('builds a fully configured run')->toBe('coverage/tests.jsonl');
         Expect::that($configuration->execution->plugins)->because('builds a fully configured run')->toHaveCount(1);
         Expect::that($configuration->execution->plugins[0]->pluginClass)->because('builds a fully configured run')->toBe(ConfigRunSubscriber::class);
         Expect::that($configuration->execution->stopAfterFailures)->because('builds a fully configured run')->toBe(1);

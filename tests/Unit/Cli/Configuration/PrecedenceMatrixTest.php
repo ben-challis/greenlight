@@ -134,7 +134,11 @@ final class PrecedenceMatrixTest
             config: static fn(GreenlightConfig $c) => $c->coverage(static fn(CoverageBuilder $coverage) => $coverage
                 ->minimumPercentage(90.0)
                 ->maximumUncoveredLines(10)),
-            cli: new CliOverrides(coverage: new CoverageOverrides(95.5, 2, true)),
+            cli: new CliOverrides(coverage: new CoverageOverrides(
+                minimumPercentage: 95.5,
+                maximumUncoveredLines: 2,
+                requireDriver: true,
+            )),
         );
 
         Expect::that($resolved->coverage?->minimumPercentage)
@@ -156,6 +160,34 @@ final class PrecedenceMatrixTest
         Expect::that($resolved->coverage?->minimumPercentage)
             ->because('a command-line coverage gate needs coverage collection')
             ->toBe(80.0);
+    }
+
+    #[Test]
+    public function coveragePrecedenceKeepsConfiguredExportsAndAppliesCommandLineChanges(): void
+    {
+        $resolved = $this->resolve(
+            config: static fn(GreenlightConfig $c) => $c->coverage(static fn(CoverageBuilder $coverage) => $coverage
+                ->include('src')
+                ->driver('pcov')
+                ->export('json', 'coverage.json')
+                ->perTest('configured.jsonl')),
+            cli: new CliOverrides(coverage: new CoverageOverrides(
+                includePaths: ['packages/core'],
+                perTestTarget: 'command-line.jsonl',
+            )),
+        );
+
+        Expect::that($resolved->coverage?->includePaths)->toBe(['src', 'packages/core']);
+        Expect::that($resolved->coverage?->driver)->toBe('pcov');
+        Expect::that($resolved->coverage?->exports)->toHaveCount(1);
+        Expect::that($resolved->coverage?->perTestTarget)->toBe('command-line.jsonl');
+
+        $disabled = $this->resolve(
+            config: static fn(GreenlightConfig $c) => $c->coverage(static fn(CoverageBuilder $coverage) => $coverage->include('src')),
+            cli: new CliOverrides(coverage: new CoverageOverrides(disabled: true)),
+        );
+
+        Expect::that($disabled->coverage)->toBeNull();
     }
 
     #[Test]

@@ -119,7 +119,7 @@ PHPDoc:
 - `@param non-empty-string ...$paths`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L42)
 
 ### `driver()`
 
@@ -132,7 +132,7 @@ PHPDoc:
 - `@param non-empty-string $driver`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L63)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L68)
 
 ### `minimumPercentage()`
 
@@ -146,7 +146,7 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L79)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L84)
 
 ### `maximumUncoveredLines()`
 
@@ -161,7 +161,7 @@ PHPDoc:
 - `@param int<0, max> $lines`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L100)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L105)
 
 ### `requireDriver()`
 
@@ -171,7 +171,7 @@ Fails the run when the selected coverage driver is not available.
 public function requireDriver(bool $required = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L112)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L117)
 
 ### `export()`
 
@@ -185,7 +185,22 @@ PHPDoc:
 - `@param non-empty-string $target`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L125)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L130)
+
+### `perTest()`
+
+Writes a versioned map of the source lines that each test covers.
+
+```php
+public function perTest(string $target): self
+```
+
+PHPDoc:
+
+- `@param non-empty-string $target`
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L152)
 
 ## `GreenlightConfig`
 
@@ -197,7 +212,7 @@ Collects the configuration that `greenlight.php` returns.
 final class GreenlightConfig
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L14)
 
 ### `create()`
 
@@ -205,12 +220,12 @@ final class GreenlightConfig
 public static function create(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L73)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L78)
 
 ### `paths()`
 
-Sets the top-level test-discovery directories. Greenlight combines these
-paths with the paths from all named suites.
+Sets the base test-discovery directories. Greenlight combines these
+paths with all suite paths when the command has no suite selector.
 
 ```php
 public function paths(array $tests): self
@@ -221,11 +236,12 @@ PHPDoc:
 - `@param non-empty-list<non-empty-string> $tests`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L86)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L91)
 
 ### `suite()`
 
-Declares a named suite. Greenlight adds its paths to test discovery.
+Declares a named suite. Greenlight adds its paths to default discovery
+and makes the suite available to CLI selectors.
 
 The configurator receives a `SuiteBuilder`. It must add at least one path
 with `in()`. Greenlight ignores its return value, which permits short
@@ -241,7 +257,7 @@ PHPDoc:
 - `@param callable(SuiteBuilder): mixed $configurator`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L143)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L149)
 
 ### `workers()`
 
@@ -256,7 +272,7 @@ PHPDoc:
 - `@param positive-int|'auto' $count`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L167)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L173)
 
 ### `resourceLimit()`
 
@@ -275,7 +291,7 @@ PHPDoc:
 - `@param positive-int $limit`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L185)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L191)
 
 ### `coverage()`
 
@@ -287,7 +303,7 @@ PHPDoc:
 
 - `@param callable(CoverageBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L213)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L219)
 
 ### `watch()`
 
@@ -299,7 +315,7 @@ PHPDoc:
 
 - `@param callable(WatchBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L226)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L232)
 
 ### `artifacts()`
 
@@ -311,7 +327,7 @@ PHPDoc:
 
 - `@param callable(ArtifactBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L238)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L244)
 
 ### `storage()`
 
@@ -326,7 +342,7 @@ PHPDoc:
 
 - `@param callable(StorageBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L253)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L259)
 
 ### `failOnDeprecation()`
 
@@ -342,15 +358,27 @@ PHPDoc:
 
 - `@see self::ignoreDeprecationsMatching()`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L269)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L275)
 
 ### `failOnNotice()`
+
+Fails an otherwise passed test if captured output contains a notice.
 
 ```php
 public function failOnNotice(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L276)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L283)
+
+### `failOnWarning()`
+
+Fails an otherwise passed test if captured output contains a warning.
+
+```php
+public function failOnWarning(bool $enabled = true): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L291)
 
 ### `failOnRisky()`
 
@@ -362,7 +390,18 @@ expectations.
 public function failOnRisky(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L288)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L303)
+
+### `failOnSkipped()`
+
+Fails the run if its final summary contains a skipped test. The test
+keeps its skipped outcome and reason.
+
+```php
+public function failOnSkipped(bool $enabled = true): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L314)
 
 ### `ignoreDeprecationsMatching()`
 
@@ -379,7 +418,7 @@ PHPDoc:
 - `@param non-empty-string ...$patterns`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L304)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L330)
 
 ### `plugins()`
 
@@ -392,7 +431,7 @@ PHPDoc:
 - `@param \Closure(): Plugin ...$plugins`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L325)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L351)
 
 ### `failFast()`
 
@@ -400,7 +439,7 @@ PHPDoc:
 public function failFast(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L342)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L368)
 
 ### `randomizeOrder()`
 
@@ -410,7 +449,7 @@ If the seed is null, Greenlight selects and prints a seed when it resolves the c
 public function randomizeOrder(?int $seed = null): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L350)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L376)
 
 ## `InvalidConfiguration`
 

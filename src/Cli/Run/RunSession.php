@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Cli\Run;
 
 use Greenlight\Artifact\AttachmentError;
+use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Configuration\LoadedConfiguration;
 use Greenlight\Cli\Coverage\CoverageSession;
 use Greenlight\Cli\Coverage\CoverageSettingsResolver;
@@ -19,6 +20,7 @@ use Greenlight\Cli\WorkerCapacity\CpuCores;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\StorageLayout;
 use Greenlight\Config\WorkerConfiguration;
+use Greenlight\Coverage\Attribution\TestCoverageStore;
 use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
@@ -33,6 +35,7 @@ use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\RunCoordinator;
 use Greenlight\Execution\RunResult;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReportGenerationFailed;
@@ -77,6 +80,7 @@ final readonly class RunSession
     /**
      * @param list<non-empty-string> $priorityClasses
      * @return list<non-empty-string>
+     * @throws CoverageError
      * @throws ReportGenerationFailed
      */
     public function watchAttempt(Reporter $reporter, array $priorityClasses): array
@@ -122,75 +126,121 @@ final readonly class RunSession
     {
         $resolved = $this->configuration->resolved;
         $workers = $resolved->workers->count->fixed ?? CpuCores::count();
-        $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $this->workingDirectory);
-        $coverageSession = CoverageSession::open(
-            $coverageSettings,
-            $workers !== 1 && $this->workerBin !== false && !SubprocessCoverage::requested(),
-            StorageLayout::resolve($resolved->storage, $this->workingDirectory)->temporaryDirectory,
-        );
+        $testCoverageStore = null;
+        $reporterFinished = false;
 
         try {
+            $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $this->workingDirectory);
+            $storage = StorageLayout::resolve($resolved->storage, $this->workingDirectory);
+            $testCoverageStore = $coverageSettings?->perTest === true
+                ? TestCoverageStore::open($storage->temporaryDirectory)
+                : null;
+            $coverageSession = CoverageSession::open(
+                $coverageSettings,
+                $workers !== 1 && $this->workerBin !== false && !SubprocessCoverage::requested(),
+                $storage->temporaryDirectory,
+            );
+
             try {
-                $run = $this->coordinate($reporter, $failedTap, $priorityClasses, $classSeconds, $workers, $coverageSettings);
-            } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
-                $reporter->finish();
-                $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
-                $interruptExit = $this->shutdown->exitCode();
-                if ($interruptExit !== null) {
-                    $this->console->err("Interrupted. Integration fixture teardown was attempted before exit.\n");
-                }
+                try {
+                    $run = $this->coordinate($reporter, $failedTap, $priorityClasses, $classSeconds, $workers, $coverageSettings, $testCoverageStore);
+                } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
+                    $reporter->finish();
+                    $reporterFinished = true;
+                    $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
+                    $interruptExit = $this->shutdown->exitCode();
+                    if ($interruptExit !== null) {
+                        $this->console->err("Interrupted. Integration fixture teardown was attempted before exit.\n");
+                    }
 
-                return $interruptExit ?? 1;
+                    return $interruptExit ?? 1;
+                }
+                $coverage = $coverageSession->finish($run->coverage);
+            } finally {
+                $coverageSession->close();
             }
-            $coverage = $coverageSession->finish($run->coverage);
-        } finally {
-            $coverageSession->close();
-        }
 
-        if ($coverage instanceof CoverageMap) {
-            $coverage = new IgnoreFilter()->apply($coverage);
-        }
-        $reporter->finish();
-        $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
-        $interruptExit = $this->shutdown->exitCode();
-        if ($interruptExit !== null) {
-            $this->console->err("Interrupted. The summary includes only tests that finished before shutdown.\n");
+            if ($coverage instanceof CoverageMap) {
+                $coverage = new IgnoreFilter()->apply($coverage);
+            }
+            $reporter->finish();
+            $reporterFinished = true;
+            $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
+            $interruptExit = $this->shutdown->exitCode();
+            if ($interruptExit !== null) {
+                $this->console->err("Interrupted. The summary includes only tests that finished before shutdown.\n");
 
-            return $interruptExit;
-        }
-        if ($run->plannedTests === 0) {
-            $this->console->err("Greenlight found no tests. Check the configuration, test paths, and filters.\n");
+                return $interruptExit;
+            }
+            if ($run->plannedTests === 0) {
+                $this->console->err("Greenlight found no tests. Check the configuration, test paths, and filters.\n");
 
-            return 1;
-        }
-        $coverageConfig = $resolved->coverage;
-        if ($coverageConfig instanceof CoverageConfiguration) {
-            if (!$coverage instanceof CoverageMap) {
-                if ($coverageConfig->requiresCoverageResult()) {
-                    $this->console->err("Coverage is required, but no worker collected it. Install pcov or enable Xdebug with coverage mode.\n");
-
-                    return 1;
-                }
-
-                $this->console->err("No worker collected the requested coverage. Install pcov or enable Xdebug with coverage mode.\n");
-            } elseif (!new CoverageWriter($this->console, $this->coverageOutputOnStderr)->write(
-                $coverageConfig,
-                $coverage,
-                $this->workingDirectory,
-                $this->coverageOutputOnStderr
-                    ? $this->console->stderrStyle($this->arguments->has('no-ansi'))
-                    : $this->console->stdoutStyle($this->arguments->has('no-ansi')),
-            )) {
                 return 1;
             }
-        }
-        if ($run->leaks !== []) {
-            $this->console->err(SummaryFormat::leaks($run->leaks, $this->console->stderrStyle($this->arguments->has('no-ansi'))));
+            $coverageConfig = $resolved->coverage;
+            if ($coverageConfig instanceof CoverageConfiguration) {
+                if (!$coverage instanceof CoverageMap) {
+                    if ($coverageConfig->requiresCoverageResult()) {
+                        $this->console->err("Coverage is required, but no worker collected it. Install pcov or enable Xdebug with coverage mode.\n");
+
+                        return 1;
+                    }
+
+                    $this->console->err("No worker collected the requested coverage. Install pcov or enable Xdebug with coverage mode.\n");
+                } elseif (!new CoverageWriter($this->console, $this->coverageOutputOnStderr)->write(
+                    $coverageConfig,
+                    $coverage,
+                    $this->workingDirectory,
+                    $this->coverageOutputOnStderr
+                        ? $this->console->stderrStyle($this->arguments->has('no-ansi'))
+                        : $this->console->stdoutStyle($this->arguments->has('no-ansi')),
+                )) {
+                    return 1;
+                }
+            }
+            if ($run->leaks !== []) {
+                $this->console->err(SummaryFormat::leaks($run->leaks, $this->console->stderrStyle($this->arguments->has('no-ansi'))));
+
+                return 1;
+            }
+
+            if (!$resolved->execution->runPolicy->accepts($run->summary)) {
+                if ($run->summary->isSuccessful()) {
+                    $this->console->err(\sprintf(
+                        "Greenlight failed because the fail-on-skipped policy found %d skipped %s.\n",
+                        $run->summary->skipped,
+                        $run->summary->skipped === 1 ? 'test' : 'tests',
+                    ));
+                }
+
+                return 1;
+            }
+
+            if ($testCoverageStore instanceof TestCoverageStore
+                && $coverageConfig?->perTestTarget !== null
+                && $coverage instanceof CoverageMap
+            ) {
+                $root = ErrorTrap::run(fn() => \realpath($this->workingDirectory));
+                $testCoverageStore->write(
+                    ConfigurationLoader::absolutePath($coverageConfig->perTestTarget, $this->workingDirectory),
+                    $root === false ? $this->workingDirectory : $root,
+                    $run->runId,
+                    $coverage,
+                );
+            }
+
+            return 0;
+        } catch (CoverageError $error) {
+            if (!$reporterFinished) {
+                $reporter->finish();
+            }
+
+            $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
 
             return 1;
+        } finally {
+            $testCoverageStore?->close();
         }
-
-        return $run->summary->isSuccessful() ? 0 : 1;
     }
 
     /**
@@ -198,12 +248,13 @@ final readonly class RunSession
      * @param array<string, float> $classSeconds
      * @param positive-int $workers
      * @throws AttachmentError
+     * @throws CoverageError
      * @throws DiscoveryError
      * @throws IntegrationFixtureError
      * @throws ExecutionFailed
      * @throws ReportGenerationFailed
      */
-    private function coordinate(Reporter $reporter, EventSink $sink, array $priorityClasses, array $classSeconds, int $workers, ?CoverageSettings $coverageSettings): RunResult
+    private function coordinate(Reporter $reporter, EventSink $sink, array $priorityClasses, array $classSeconds, int $workers, ?CoverageSettings $coverageSettings, ?TestCoverageStore $testCoverageStore = null): RunResult
     {
         $resolved = $this->configuration->resolved;
 
@@ -215,6 +266,7 @@ final readonly class RunSession
             $this->adapter($resolved->workers, $workers, $coverageSettings, $reporter),
             $priorityClasses,
             $classSeconds,
+            $testCoverageStore,
         );
     }
 

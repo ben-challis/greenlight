@@ -8,14 +8,21 @@ use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Internal\Text\DecimalInteger;
 
-/** Contains validated command-line coverage overrides.
+/** Contains validated command-line coverage changes.
  *
  * @internal
  */
 final readonly class CoverageOverrides
 {
-    /** @param int<0, max>|null $maximumUncoveredLines */
+    /**
+     * @param list<non-empty-string> $includePaths
+     * @param non-empty-string|null $perTestTarget
+     * @param int<0, max>|null $maximumUncoveredLines
+     */
     public function __construct(
+        public array $includePaths = [],
+        public ?string $perTestTarget = null,
+        public bool $disabled = false,
         public ?float $minimumPercentage = null,
         public ?int $maximumUncoveredLines = null,
         public bool $requireDriver = false,
@@ -23,7 +30,9 @@ final readonly class CoverageOverrides
 
     public function enablesCoverage(): bool
     {
-        return $this->minimumPercentage !== null
+        return $this->includePaths !== []
+            || $this->perTestTarget !== null
+            || $this->minimumPercentage !== null
             || $this->maximumUncoveredLines !== null
             || $this->requireDriver;
     }
@@ -31,6 +40,26 @@ final readonly class CoverageOverrides
     /** @throws CliError */
     public static function fromArguments(ParsedArguments $arguments): self
     {
+        $includePaths = [];
+
+        foreach ($arguments->values('coverage-include') as $path) {
+            if ($path === '') {
+                throw CliError::optionRequiresValue('coverage-include');
+            }
+
+            $includePaths[] = $path;
+        }
+
+        $perTestTarget = null;
+
+        if ($arguments->has('coverage-map')) {
+            $perTestTarget = $arguments->value('coverage-map');
+
+            if ($perTestTarget === null || $perTestTarget === '') {
+                throw CliError::optionRequiresValue('coverage-map');
+            }
+        }
+
         $minimumPercentage = null;
 
         if ($arguments->has('minimum-coverage')) {
@@ -54,10 +83,19 @@ final readonly class CoverageOverrides
             }
         }
 
-        return new self(
-            $minimumPercentage,
-            $maximumUncoveredLines,
-            $arguments->has('require-coverage-driver'),
+        $overrides = new self(
+            includePaths: $includePaths,
+            perTestTarget: $perTestTarget,
+            disabled: $arguments->has('no-coverage'),
+            minimumPercentage: $minimumPercentage,
+            maximumUncoveredLines: $maximumUncoveredLines,
+            requireDriver: $arguments->has('require-coverage-driver'),
         );
+
+        if ($overrides->disabled && $overrides->enablesCoverage()) {
+            throw CliError::coverageOptionsConflict();
+        }
+
+        return $overrides;
     }
 }

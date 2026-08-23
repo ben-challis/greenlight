@@ -31,6 +31,7 @@ final class PlanFormatterTest
                     ->requireDriver()
                     ->minimumPercentage(95.25)
                     ->maximumUncoveredLines(3)
+                    ->perTest('build/test-coverage.jsonl')
                     ->export('json', 'build/coverage.json'))
                 ->build(),
             new CliOverrides(),
@@ -61,7 +62,7 @@ final class PlanFormatterTest
                   coverage driver required: yes
                   minimum coverage: 95.25%
                   maximum uncovered lines: 3
-                  coverage exports: json -> build/coverage.json
+                  coverage exports: json -> build/coverage.json, per-test -> build/test-coverage.jsonl
 
                 PLAN,
         );

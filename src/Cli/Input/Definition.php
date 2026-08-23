@@ -59,11 +59,16 @@ final readonly class Definition
           --resource-limit=<name>=<n>
                              Set a named resource limit. You can repeat this option.
           --bail[=<n>]       Stop after <n> failures (default 1)
+          --suite=<name>     Select a named suite. You can repeat this option.
+          --suite-tag=<tag>  Select suites with this tag. You can repeat this option.
           --group=<name>     Run only this group. You can repeat this option.
           --filter=<pattern> Run only tests with a matching test ID. Use a
                              substring or a full match with * wildcards.
                              You can repeat this option.
           --test-id=<id>     Run only this exact test ID. You can repeat this option.
+          --test-id-file=<path>
+                             Read exact test IDs from a newline-delimited file.
+                             You can repeat this option.
           --exclude-group=<name>     Skip tests in this group. You can repeat this option.
           --exclude-class=<pattern>  Skip classes that match this pattern.
                              Matching is case-sensitive. Use a substring or * wildcards.
@@ -93,6 +98,12 @@ final readonly class Definition
                              Built-ins: tty, plain, junit, jsonl, github, teamcity.
                              You can repeat this option.
           --artifacts-dir=<path> Persistent directory for retained test attachments
+          --coverage-map=<path>
+                             Write versioned per-test coverage JSONL.
+          --coverage-include=<path>
+                             Add a source root for command-line coverage.
+                             You can repeat this option.
+          --no-coverage      Disable configured coverage for this run.
           --watch            Run selected tests at startup and after file changes.
                              Enter reruns them. q quits with exit code 0.
           --detect-leaks     Verify collection of each test instance. Leaks fail the run.
@@ -103,7 +114,9 @@ final readonly class Definition
                              Use plain append-only output.
           --fail-on-deprecation  Fail passed tests that captured a deprecation
           --fail-on-notice   Fail passed tests that captured a notice
+          --fail-on-warning  Fail passed tests that captured a warning
           --fail-on-risky    Fail passed tests that verified no expectations
+          --fail-on-skipped  Fail the run if its final summary contains a skipped test
           --profile          Add a run profile after the summary. It contains worker
                              utilization, boot latency, makespan spread, and slow classes.
                              It also extends the slow-test list.
@@ -144,9 +157,12 @@ final readonly class Definition
             new OptionSpec('workers', OptionValue::Required),
             new OptionSpec('resource-limit', OptionValue::Required, repeatable: true),
             new OptionSpec('bail', OptionValue::Optional),
+            new OptionSpec('suite', OptionValue::Required, repeatable: true),
+            new OptionSpec('suite-tag', OptionValue::Required, repeatable: true),
             new OptionSpec('group', OptionValue::Required, repeatable: true),
             new OptionSpec('filter', OptionValue::Required, repeatable: true),
             new OptionSpec('test-id', OptionValue::Required, repeatable: true),
+            new OptionSpec('test-id-file', OptionValue::Required, repeatable: true),
             new OptionSpec('exclude-group', OptionValue::Required, repeatable: true),
             new OptionSpec('exclude-class', OptionValue::Required, repeatable: true),
             new OptionSpec('exclude-method', OptionValue::Required, repeatable: true),
@@ -154,13 +170,17 @@ final readonly class Definition
             new OptionSpec('list-tests'), new OptionSpec('list-groups'), new OptionSpec('list-suites'),
             new OptionSpec('repeat', OptionValue::Required), new OptionSpec('repeat-until-failure'),
             new OptionSpec('failed'), new OptionSpec('shard', OptionValue::Required),
-            new OptionSpec('fail-on-deprecation'), new OptionSpec('fail-on-notice'), new OptionSpec('fail-on-risky'),
+            new OptionSpec('fail-on-deprecation'), new OptionSpec('fail-on-notice'), new OptionSpec('fail-on-warning'),
+            new OptionSpec('fail-on-risky'), new OptionSpec('fail-on-skipped'),
             new OptionSpec('seed', OptionValue::Required),
             new OptionSpec('reporter', OptionValue::Required, repeatable: true),
             new OptionSpec('artifacts-dir', OptionValue::Required),
             new OptionSpec('minimum-coverage', OptionValue::Required),
             new OptionSpec('maximum-uncovered-lines', OptionValue::Required),
             new OptionSpec('require-coverage-driver'),
+            new OptionSpec('coverage-map', OptionValue::Required),
+            new OptionSpec('coverage-include', OptionValue::Required, repeatable: true),
+            new OptionSpec('no-coverage'),
             new OptionSpec('baseline', OptionValue::Required), new OptionSpec('current', OptionValue::Required),
             new OptionSpec('baseline-root', OptionValue::Required), new OptionSpec('current-root', OptionValue::Required),
             new OptionSpec('input-root', OptionValue::Required, repeatable: true),

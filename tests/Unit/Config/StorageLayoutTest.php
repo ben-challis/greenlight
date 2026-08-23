@@ -55,4 +55,21 @@ final readonly class StorageLayoutTest
             ->because('relative area overrides MUST resolve against the initial working directory')
             ->toBe('/project/build/runtime');
     }
+
+    #[Test]
+    public function suiteIdentitySeparatesRunStateWithoutMovingOtherStorage(): void
+    {
+        $layout = StorageLayout::resolve(
+            new StorageConfiguration(rootDirectory: '.greenlight'),
+            '/project',
+            'suites-123456789abc',
+        );
+
+        Expect::that($layout->runStateFile)
+            ->because('suite selections MUST have separate failure and timing state')
+            ->toBe('/project/.greenlight/state/run-state-suites-123456789abc.json');
+        Expect::that($layout->cacheDirectory)
+            ->because('suite selections MUST keep the configured discovery-cache directory')
+            ->toBe('/project/.greenlight/cache');
+    }
 }

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Configuration;
 
+use Greenlight\Cli\Input\CliError;
 use Greenlight\Config\Configuration;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\ExecutionConfiguration;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\WorkerConfiguration;
 use Greenlight\Result\ResultPolicy;
+use Greenlight\Result\RunPolicy;
 
 /**
  * Applies settings in this order:
@@ -28,6 +30,7 @@ final class ConfigurationResolver
     /** @codeCoverageIgnore */
     private function __construct() {}
 
+    /** @throws CliError */
     public static function resolve(Configuration $configuration, CliOverrides $overrides): ResolvedConfiguration
     {
         $executionOverrides = $overrides->execution;
@@ -37,23 +40,42 @@ final class ConfigurationResolver
             $artifacts = $artifacts->withDirectory($executionOverrides->artifactsDirectory);
         }
 
-        $coverage = $configuration->coverage;
         $coverageOverrides = $overrides->coverage;
+        $coverage = $configuration->coverage;
+        $configuredIncludes = $coverage instanceof CoverageConfiguration ? $coverage->includePaths : [];
+        $configuredDriver = $coverage instanceof CoverageConfiguration ? $coverage->driver : null;
+        $configuredExports = $coverage instanceof CoverageConfiguration ? $coverage->exports : [];
+        $configuredMinimum = $coverage instanceof CoverageConfiguration ? $coverage->minimumPercentage : null;
+        $configuredMaximum = $coverage instanceof CoverageConfiguration ? $coverage->maximumUncoveredLines : null;
+        $configuredRequireDriver = $coverage instanceof CoverageConfiguration && $coverage->requireDriver;
+        $configuredPerTestTarget = $coverage instanceof CoverageConfiguration ? $coverage->perTestTarget : null;
 
-        if ($coverageOverrides->enablesCoverage()) {
-            $coverage ??= new CoverageConfiguration([], null, []);
+        if ($coverageOverrides->disabled) {
+            $coverage = null;
+        } elseif ($coverage instanceof CoverageConfiguration
+            || $coverageOverrides->enablesCoverage()
+        ) {
             $coverage = new CoverageConfiguration(
-                $coverage->includePaths,
-                $coverage->driver,
-                $coverage->exports,
-                $coverageOverrides->minimumPercentage ?? $coverage->minimumPercentage,
-                $coverageOverrides->maximumUncoveredLines ?? $coverage->maximumUncoveredLines,
-                $coverage->requireDriver || $coverageOverrides->requireDriver,
+                [
+                    ...$configuredIncludes,
+                    ...$coverageOverrides->includePaths,
+                ],
+                $configuredDriver,
+                $configuredExports,
+                $coverageOverrides->minimumPercentage ?? $configuredMinimum,
+                $coverageOverrides->maximumUncoveredLines ?? $configuredMaximum,
+                $configuredRequireDriver || $coverageOverrides->requireDriver,
+                $coverageOverrides->perTestTarget ?? $configuredPerTestTarget,
             );
         }
 
         return new ResolvedConfiguration(
             discovery: $configuration->discovery,
+            suiteSelection: SuiteSelectionResolver::resolve(
+                $configuration->discovery,
+                $overrides->suiteNames,
+                $overrides->suiteTags,
+            ),
             workers: new WorkerConfiguration(
                 count: $executionOverrides->workers ?? $configuration->workers->count,
                 resourceLimits: \array_replace($configuration->workers->resourceLimits, $executionOverrides->resourceLimits),
@@ -63,8 +85,12 @@ final class ConfigurationResolver
                 policy: new ResultPolicy(
                     $configuration->execution->policy->failOnDeprecation || $executionOverrides->policy->failOnDeprecation,
                     $configuration->execution->policy->failOnNotice || $executionOverrides->policy->failOnNotice,
+                    $configuration->execution->policy->failOnWarning || $executionOverrides->policy->failOnWarning,
                     $configuration->execution->policy->ignoreDeprecations,
                     $configuration->execution->policy->failOnRisky || $executionOverrides->policy->failOnRisky,
+                ),
+                runPolicy: new RunPolicy(
+                    $configuration->execution->runPolicy->failOnSkipped || $executionOverrides->runPolicy->failOnSkipped,
                 ),
                 stopAfterFailures: $executionOverrides->stopAfterFailures ?? $configuration->execution->stopAfterFailures,
                 artifacts: $artifacts,

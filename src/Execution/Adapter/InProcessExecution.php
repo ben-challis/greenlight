@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution\Adapter;
 
+use Greenlight\Coverage\Attribution\CollectingTestCoverageSink;
 use Greenlight\Coverage\Collection\CoverageCollector;
 use Greenlight\Coverage\Collection\CoverageSettings;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\EventSink;
 use Greenlight\Execution\Artifact\PublishingEventSink;
@@ -15,9 +17,9 @@ use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\ExecutionOutcome;
 use Greenlight\Execution\ExecutionTopology;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
-use Greenlight\Execution\Worker\DefaultServices;
 use Greenlight\Execution\Worker\HarnessServiceDisposal;
 use Greenlight\Execution\Worker\LeakDetector;
+use Greenlight\Execution\Worker\StandardHarnessPlugin;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Execution\Worker\WorkerError;
 use Greenlight\Internal\Process\EnvironmentBackup;
@@ -47,7 +49,10 @@ final readonly class InProcessExecution implements ExecutionAdapter
         return new ExecutionTopology(1, 1);
     }
 
-    /** @throws ExecutionFailed */
+    /**
+     * @throws CoverageError
+     * @throws ExecutionFailed
+     */
     #[\Override]
     public function execute(
         ExecutionPlan $plan,
@@ -55,25 +60,28 @@ final readonly class InProcessExecution implements ExecutionAdapter
         ExecutionContext $context,
     ): ExecutionOutcome {
         $execution = $context->execution;
-        $plugins = WorkerPluginRuntime::fromDefinitions($execution->plugins);
         $resources = $context->fixtures->forChannel(1);
+        $bootstrap = new WorkerBootstrapContext(
+            'in-process',
+            new TestChannel(1),
+            $resources,
+        );
+        $plugins = WorkerPluginRuntime::fromDefinitions($execution->plugins, [
+            new StandardHarnessPlugin(
+                $resources,
+                $bootstrap->channel,
+                $context->storage->generatedCodeDirectory,
+                $context->storage->temporaryDirectory,
+            ),
+        ]);
         $channelEnvironment = EnvironmentBackup::capture('GREENLIGHT_CHANNEL');
         \putenv('GREENLIGHT_CHANNEL=1');
 
         try {
             try {
-                $definitions = DefaultServices::definitions(
-                    $resources,
-                    $context->storage->generatedCodeDirectory,
-                    $context->storage->temporaryDirectory,
-                );
                 $scopes = $plugins->prepareWorker(
-                    new WorkerBootstrapContext(
-                        'in-process',
-                        new TestChannel(1),
-                        $resources,
-                    ),
-                    $definitions,
+                    $bootstrap,
+                    [],
                 );
             } catch (\Throwable $failure) {
                 $detail = ThrowableDetail::fromThrowable($failure);
@@ -87,18 +95,32 @@ final readonly class InProcessExecution implements ExecutionAdapter
                 );
             }
 
+            $coverageUnavailable = null;
             $collector = $this->coverageSettings instanceof CoverageSettings
-                ? CoverageCollector::create($this->coverageSettings)
+                ? CoverageCollector::create($this->coverageSettings, static function (string $reason) use (&$coverageUnavailable): void {
+                    $coverageUnavailable = $reason;
+                })
+                : null;
+
+            if ($this->coverageSettings?->perTest === true && !$collector instanceof CoverageCollector) {
+                throw CoverageError::requiredDriverUnavailable($coverageUnavailable ?? 'no coverage driver is available');
+            }
+
+            $testCoverage = $this->coverageSettings?->perTest === true
+                ? new CollectingTestCoverageSink($context->testCoverageStore)
                 : null;
             $collectingCoverage = $collector instanceof CoverageCollector;
-            $collector?->start();
+
+            if ($this->coverageSettings?->perTest !== true) {
+                $collector?->start();
+            }
 
             try {
                 try {
                     $outcome = $plugins->runWorker(fn() => HarnessServiceDisposal::runAndClose(
                         $scopes,
                         fn() => new Worker(
-                            $definitions,
+                            [],
                             $plugins,
                             $this->detectLeaks ? new LeakDetector() : null,
                             'in-process',
@@ -110,6 +132,8 @@ final readonly class InProcessExecution implements ExecutionAdapter
                             $execution->stopAfterFailures,
                             $this->shutdown instanceof GracefulShutdown ? $this->shutdown->requested(...) : null,
                             $scopes,
+                            perTestCoverage: $this->coverageSettings?->perTest === true ? $collector : null,
+                            testCoverageSink: $testCoverage,
                         ),
                     ));
                 } catch (WorkerError $failure) {
@@ -125,7 +149,9 @@ final readonly class InProcessExecution implements ExecutionAdapter
                 }
 
                 $collectingCoverage = false;
-                $coverage = $collector?->stop();
+                $coverage = $this->coverageSettings?->perTest === true
+                    ? $testCoverage?->coverage()
+                    : $collector?->stop();
             } catch (\Throwable $failure) {
                 if ($collectingCoverage) {
                     try {

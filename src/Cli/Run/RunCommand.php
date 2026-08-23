@@ -96,6 +96,12 @@ final readonly class RunCommand
             return self::EXIT_USAGE;
         }
 
+        if ($arguments->has('watch') && $resolved->coverage?->perTestTarget !== null) {
+            $this->printError('Per-test coverage is not available in watch mode.', $arguments->has('no-ansi'));
+
+            return self::EXIT_USAGE;
+        }
+
         if ($arguments->has('dry-run')) {
             ($this->out)(PlanFormatter::format($resolved, $configFile, $workingDirectory));
 
@@ -152,7 +158,11 @@ final readonly class RunCommand
                 return new WatchRuns($this->console)->run($arguments, $workingDirectory, $workerBin, $configuration, $shutdown, $reporterCatalog, $reporterOutputs, $reporter);
             }
 
-            $storage = StorageLayout::resolve($resolved->storage, $workingDirectory);
+            $storage = StorageLayout::resolve(
+                $resolved->storage,
+                $workingDirectory,
+                $resolved->suiteSelection->stateIdentity(),
+            );
             $state = RunState::forFile($storage->runStateFile);
             $previousFailures = $state->failedTests();
 

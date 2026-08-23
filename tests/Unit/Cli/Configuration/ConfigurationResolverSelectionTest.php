@@ -13,6 +13,7 @@ use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Expect\Expect;
 use Greenlight\Result\ResultPolicy;
+use Greenlight\Result\RunPolicy;
 use Greenlight\Test\TestExclusions;
 use Greenlight\Test\TestInclusions;
 use Greenlight\Test\TestSelection;
@@ -54,7 +55,7 @@ final readonly class ConfigurationResolverSelectionTest
     }
 
     /**
-     * @param array{bool, bool, bool} $expected
+     * @param array{bool, bool, bool, bool, bool} $expected
      */
     #[Test]
     #[DataSet('failurePolicyOverrides')]
@@ -73,24 +74,38 @@ final readonly class ConfigurationResolverSelectionTest
         Expect::that($policy->failOnRisky)
             ->because('the risky-test policy flag MUST map to failOnRisky')
             ->toBe($expected[2]);
+        Expect::that($policy->failOnWarning)
+            ->because('the warning policy flag MUST map to failOnWarning')
+            ->toBe($expected[3]);
+        Expect::that($this->resolve($overrides)->execution->runPolicy->failOnSkipped)
+            ->because('the skipped-test policy flag MUST map to failOnSkipped')
+            ->toBe($expected[4]);
     }
 
     /**
-     * @return iterable<string, array{CliOverrides, array{bool, bool, bool}}>
+     * @return iterable<string, array{CliOverrides, array{bool, bool, bool, bool, bool}}>
      */
     public static function failurePolicyOverrides(): iterable
     {
         yield 'deprecation' => [
             new CliOverrides(execution: new ExecutionOverrides(policy: new ResultPolicy(failOnDeprecation: true))),
-            [true, false, false],
+            [true, false, false, false, false],
         ];
         yield 'notice' => [
             new CliOverrides(execution: new ExecutionOverrides(policy: new ResultPolicy(failOnNotice: true))),
-            [false, true, false],
+            [false, true, false, false, false],
         ];
         yield 'risky' => [
             new CliOverrides(execution: new ExecutionOverrides(policy: new ResultPolicy(failOnRisky: true))),
-            [false, false, true],
+            [false, false, true, false, false],
+        ];
+        yield 'warning' => [
+            new CliOverrides(execution: new ExecutionOverrides(policy: new ResultPolicy(failOnWarning: true))),
+            [false, false, false, true, false],
+        ];
+        yield 'skipped' => [
+            new CliOverrides(execution: new ExecutionOverrides(runPolicy: new RunPolicy(failOnSkipped: true))),
+            [false, false, false, false, true],
         ];
     }
 

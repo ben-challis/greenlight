@@ -32,6 +32,11 @@ final class CliOverridesTest
         Expect::that($overrides->repeat->untilFailure)->because('absent flags mean no overrides')->toBe(false);
         Expect::that($overrides->execution->artifactsDirectory)->because('absent flags mean no overrides')->toBe(null);
         Expect::that($overrides->execution->resourceLimits)->because('absent flags mean no overrides')->toBe([]);
+        Expect::that($overrides->coverage->includePaths)->because('absent flags mean no overrides')->toBe([]);
+        Expect::that($overrides->coverage->perTestTarget)->because('absent flags mean no overrides')->toBe(null);
+        Expect::that($overrides->coverage->disabled)->because('absent flags mean no overrides')->toBeFalse();
+        Expect::that($overrides->suiteNames)->because('absent flags mean no overrides')->toBe([]);
+        Expect::that($overrides->suiteTags)->because('absent flags mean no overrides')->toBe([]);
     }
 
     #[Test]
@@ -103,6 +108,8 @@ final class CliOverridesTest
             'workers' => ['4'],
             'bail' => ['3'],
             'group' => ['slow', 'io'],
+            'suite' => ['unit', 'acceptance'],
+            'suite-tag' => ['fast', 'io'],
             'seed' => ['0'],
             'test-id' => ['App\ExampleTest::one', 'App\ExampleTest::two'],
             'artifacts-dir' => ['build/evidence'],
@@ -110,11 +117,15 @@ final class CliOverridesTest
             'minimum-coverage' => ['95.25'],
             'maximum-uncovered-lines' => ['0'],
             'require-coverage-driver' => [null],
+            'coverage-include' => ['src', 'packages/core'],
+            'coverage-map' => ['build/test-coverage.jsonl'],
         ]));
 
         Expect::that($overrides->execution->workers?->fixed)->because('extracts typed values')->toBe(4);
         Expect::that($overrides->execution->stopAfterFailures)->because('extracts typed values')->toBe(3);
         Expect::that($overrides->selection->include->groups)->because('extracts typed values')->toBe(['slow', 'io']);
+        Expect::that($overrides->suiteNames)->because('extracts typed values')->toBe(['unit', 'acceptance']);
+        Expect::that($overrides->suiteTags)->because('extracts typed values')->toBe(['fast', 'io']);
         Expect::that($overrides->seed)->because('extracts typed values')->toBe(0);
         Expect::that($overrides->selection->include->exactIds)->because('extracts typed values')->toBe(['App\ExampleTest::one', 'App\ExampleTest::two']);
         Expect::that($overrides->execution->artifactsDirectory)->because('extracts typed values')->toBe('build/evidence');
@@ -126,6 +137,9 @@ final class CliOverridesTest
         Expect::that($overrides->coverage->minimumPercentage)->because('extracts typed values')->toBe(95.25);
         Expect::that($overrides->coverage->maximumUncoveredLines)->because('extracts typed values')->toBe(0);
         Expect::that($overrides->coverage->requireDriver)->because('extracts typed values')->toBeTrue();
+        Expect::that($overrides->coverage->includePaths)->toBe(['src', 'packages/core']);
+        Expect::that($overrides->coverage->perTestTarget)->toBe('build/test-coverage.jsonl');
+        Expect::that($overrides->coverage->disabled)->toBeFalse();
     }
 
     #[Test]
@@ -157,6 +171,26 @@ final class CliOverridesTest
             '-1',
             '--maximum-uncovered-lines requires a nonnegative integer. Received "-1".',
         ];
+    }
+
+    #[Test]
+    public function noCoverageRejectsCommandLineCoverageSettings(): void
+    {
+        Expect::that(static fn(): CliOverrides => CliOverrides::fromArguments(new ParsedArguments('run', [
+            'no-coverage' => [null],
+            'coverage-map' => ['coverage.jsonl'],
+        ])))->toThrow(
+            CliError::class,
+            message: '--no-coverage cannot be combined with options that enable or require coverage.',
+        );
+
+        Expect::that(static fn(): CliOverrides => CliOverrides::fromArguments(new ParsedArguments('run', [
+            'no-coverage' => [null],
+            'minimum-coverage' => ['90'],
+        ])))->toThrow(
+            CliError::class,
+            message: '--no-coverage cannot be combined with options that enable or require coverage.',
+        );
     }
 
     #[Test]

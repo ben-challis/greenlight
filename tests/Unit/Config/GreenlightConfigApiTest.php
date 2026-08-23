@@ -35,6 +35,8 @@ final class GreenlightConfigApiTest
             'failOnDeprecation',
             'failOnNotice',
             'failOnRisky',
+            'failOnSkipped',
+            'failOnWarning',
             'ignoreDeprecationsMatching',
             'paths',
             'plugins',

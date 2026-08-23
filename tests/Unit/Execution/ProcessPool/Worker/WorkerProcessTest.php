@@ -15,7 +15,7 @@ use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class WorkerProcessTest
 {
@@ -31,8 +31,7 @@ final readonly class WorkerProcessTest
         $root = \dirname(__DIR__, 5);
         $address = 'unix://' . $this->tempDirectory->path() . '/missing-worker.sock';
 
-        $result = Subprocess::run($root, [
-            \PHP_BINARY,
+        $result = PhpSubprocess::run($root, [
             '-r',
             <<<'PHP'
             require $argv[1];
@@ -83,8 +82,7 @@ final readonly class WorkerProcessTest
     {
         $root = \dirname(__DIR__, 5);
         $missingConfig = $this->tempDirectory->path() . '/missing-config.php';
-        $server = Subprocess::start($root, [
-            \PHP_BINARY,
+        $server = PhpSubprocess::start($root, [
             '-r',
             <<<'PHP'
             require $argv[1];
@@ -246,8 +244,7 @@ final readonly class WorkerProcessTest
     private function runScenario(string $scenario, string $environmentChannel = '1'): array
     {
         $root = \dirname(__DIR__, 5);
-        $server = Subprocess::start($root, [
-            \PHP_BINARY,
+        $server = PhpSubprocess::start($root, [
             '-r',
             <<<'PHP'
             require $argv[1];

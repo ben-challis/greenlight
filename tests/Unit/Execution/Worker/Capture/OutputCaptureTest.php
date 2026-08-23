@@ -11,7 +11,7 @@ use Greenlight\Execution\Worker\OutputCapture;
 use Greenlight\Expect\Expect;
 use Greenlight\Result\DiagnosticSeverity;
 use Greenlight\Test\Cleanup;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class OutputCaptureTest
 {
@@ -368,8 +368,7 @@ final readonly class OutputCaptureTest
     public function aNonRemovableNestedBufferDoesNotHangStop(): void
     {
         $root = \dirname(__DIR__, 5);
-        $process = Subprocess::start($root, [
-            \PHP_BINARY,
+        $process = PhpSubprocess::start($root, [
             '-r',
             <<<'PHP_WRAP'
             require $argv[1];

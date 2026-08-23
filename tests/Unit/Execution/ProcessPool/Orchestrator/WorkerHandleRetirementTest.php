@@ -13,6 +13,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Tests\Support\ConnectedStreamPair;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class WorkerHandleRetirementTest
 {
@@ -69,7 +70,7 @@ final readonly class WorkerHandleRetirementTest
     private function handle(string $script): array
     {
         $process = \proc_open(
-            [\PHP_BINARY, '-r', $script],
+            PhpSubprocess::command(['-r', $script]),
             [
                 0 => ['pipe', 'r'],
                 1 => ['pipe', 'w'],

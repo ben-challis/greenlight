@@ -7,6 +7,7 @@ namespace Greenlight\Config;
 use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Result\ResultPolicy;
+use Greenlight\Result\RunPolicy;
 use Greenlight\Test\ResourceName;
 
 /** Collects the configuration that `greenlight.php` returns. */
@@ -43,7 +44,11 @@ final class GreenlightConfig
 
     private bool $failOnNotice = false;
 
+    private bool $failOnWarning = false;
+
     private bool $failOnRisky = false;
+
+    private bool $failOnSkipped = false;
 
     /**
      * @var list<non-empty-string>
@@ -76,8 +81,8 @@ final class GreenlightConfig
     }
 
     /**
-     * Sets the top-level test-discovery directories. Greenlight combines these
-     * paths with the paths from all named suites.
+     * Sets the base test-discovery directories. Greenlight combines these
+     * paths with all suite paths when the command has no suite selector.
      *
      * @param non-empty-list<non-empty-string> $tests
      *
@@ -129,7 +134,8 @@ final class GreenlightConfig
     }
 
     /**
-     * Declares a named suite. Greenlight adds its paths to test discovery.
+     * Declares a named suite. Greenlight adds its paths to default discovery
+     * and makes the suite available to CLI selectors.
      *
      * The configurator receives a `SuiteBuilder`. It must add at least one path
      * with `in()`. Greenlight ignores its return value, which permits short
@@ -273,9 +279,18 @@ final class GreenlightConfig
         return $this;
     }
 
+    /** Fails an otherwise passed test if captured output contains a notice. */
     public function failOnNotice(bool $enabled = true): self
     {
         $this->failOnNotice = $enabled;
+
+        return $this;
+    }
+
+    /** Fails an otherwise passed test if captured output contains a warning. */
+    public function failOnWarning(bool $enabled = true): self
+    {
+        $this->failOnWarning = $enabled;
 
         return $this;
     }
@@ -288,6 +303,17 @@ final class GreenlightConfig
     public function failOnRisky(bool $enabled = true): self
     {
         $this->failOnRisky = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Fails the run if its final summary contains a skipped test. The test
+     * keeps its skipped outcome and reason.
+     */
+    public function failOnSkipped(bool $enabled = true): self
+    {
+        $this->failOnSkipped = $enabled;
 
         return $this;
     }
@@ -396,9 +422,11 @@ final class GreenlightConfig
                 policy: new ResultPolicy(
                     $this->failOnDeprecation,
                     $this->failOnNotice,
+                    $this->failOnWarning,
                     $this->ignoreDeprecations,
                     $this->failOnRisky,
                 ),
+                runPolicy: new RunPolicy($this->failOnSkipped),
                 stopAfterFailures: $this->failFast ? 1 : null,
                 artifacts: $this->artifacts->toConfiguration(),
             ),

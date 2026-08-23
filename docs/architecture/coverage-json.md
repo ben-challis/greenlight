@@ -3,6 +3,10 @@
 `Greenlight\Coverage\Export\JsonExporter` produces the Greenlight JSON coverage
 export. `JsonExporter::import()` imports it.
 
+This format describes aggregate coverage. The
+[per-test coverage JSONL format](test-coverage-jsonl.md) preserves which test
+covered each line.
+
 The coverage difference command also uses this format:
 
 ```sh id="x3l9w8"
@@ -161,6 +165,9 @@ input contains it.
 
 The command rejects malformed documents and unsupported versions. Without root
 options, each file path must be an absolute version 1 path.
+
+The command accepts only aggregate coverage JSON version 1. Per-test coverage
+JSONL is a separate format and is not a merge input.
 
 For different roots, give one `--input-root` for each input. Give one
 `--project-root` for the output. Greenlight removes each applicable input root

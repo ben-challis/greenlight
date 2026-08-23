@@ -39,6 +39,14 @@ final readonly class ConfigurationLoader
         }
 
         $selection = $overrides->selection;
+        $fileIds = $this->testIdsFromFiles($arguments, $workingDirectory);
+
+        if ($fileIds !== []) {
+            $selection = $selection->withExactIds(\array_values(\array_unique([
+                ...$selection->include->exactIds,
+                ...$fileIds,
+            ])));
+        }
 
         if ($selection->exclude->paths !== []) {
             $selection = $selection->withExcludedPaths($this->resolvedPathPrefixes($selection->exclude->paths, $workingDirectory));
@@ -47,6 +55,8 @@ final readonly class ConfigurationLoader
         $resolved = ConfigurationResolver::resolve($builder->build(), new CliOverrides(
             execution: $overrides->execution,
             selection: $selection,
+            suiteNames: $overrides->suiteNames,
+            suiteTags: $overrides->suiteTags,
             seed: $overrides->seed,
             repeat: $overrides->repeat,
             coverage: $overrides->coverage,
@@ -79,10 +89,7 @@ final readonly class ConfigurationLoader
     /** @return list<non-empty-string> */
     public static function directories(ResolvedConfiguration $configuration, string $workingDirectory): array
     {
-        $paths = $configuration->discovery->paths;
-        foreach ($configuration->discovery->suites as $suite) {
-            $paths = [...$paths, ...$suite->paths];
-        }
+        $paths = $configuration->suiteSelection->paths($configuration->discovery);
         $directories = [];
         foreach ($paths as $path) {
             $absolute = self::absolutePath($path, $workingDirectory);
@@ -96,6 +103,46 @@ final readonly class ConfigurationLoader
     public static function absolutePath(string $path, string $workingDirectory): string
     {
         return \str_starts_with($path, '/') ? $path : \rtrim($workingDirectory, '/') . '/' . $path;
+    }
+
+    /**
+     * @return list<non-empty-string>
+     * @throws CliError
+     */
+    private function testIdsFromFiles(ParsedArguments $arguments, string $workingDirectory): array
+    {
+        $ids = [];
+
+        foreach ($arguments->values('test-id-file') as $file) {
+            if ($file === '') {
+                throw CliError::optionRequiresValue('test-id-file');
+            }
+
+            $path = self::absolutePath($file, $workingDirectory);
+            $lines = ErrorTrap::run(static fn() => \file($path, \FILE_IGNORE_NEW_LINES), $warning);
+
+            if (!\is_array($lines)) {
+                throw CliError::exactTestFileUnreadable($path, $warning);
+            }
+
+            $fileIds = [];
+
+            foreach ($lines as $line) {
+                $id = \trim($line);
+
+                if ($id !== '') {
+                    $fileIds[$id] = true;
+                }
+            }
+
+            if ($fileIds === []) {
+                throw CliError::exactTestFileEmpty($path);
+            }
+
+            $ids += $fileIds;
+        }
+
+        return \array_keys($ids);
     }
 
 }

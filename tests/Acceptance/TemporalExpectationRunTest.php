@@ -27,6 +27,7 @@ final readonly class TemporalExpectationRunTest
 
         use Greenlight\Attribute\Test;
         use Greenlight\Expect\Expect;
+        use Greenlight\Tests\Support\PhpSubprocess;
 
         final class AsynchronousAdapterTest
         {
@@ -40,8 +41,7 @@ final readonly class TemporalExpectationRunTest
                 }
 
                 \unlink($marker);
-                $process = \proc_open([
-                    \PHP_BINARY,
+                $process = \proc_open(PhpSubprocess::command([
                     '-r',
                     <<<'PHP'
                     fwrite(STDOUT, "ready\n");
@@ -52,7 +52,7 @@ final readonly class TemporalExpectationRunTest
                     }
                     PHP,
                     $marker,
-                ], [
+                ]), [
                     ['pipe', 'r'],
                     ['pipe', 'w'],
                 ], $pipes);

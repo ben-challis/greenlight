@@ -31,6 +31,7 @@ use Greenlight\Tests\Fixture\Lifecycle\Bail\AaTest;
 use Greenlight\Tests\Fixture\Lifecycle\Bail\BbTest;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\NativeOrchestrator;
+use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\PlanEntryFixture;
 use Greenlight\Tests\Support\ScriptedWorkerTransport;
 
@@ -44,7 +45,7 @@ final class OrchestratorTest
         // socket. It represents a worker that cannot complete interpreter
         // startup on a machine without available resources.
         $orchestrator = NativeOrchestrator::create(
-            workerCommand: [\PHP_BINARY, '-r', 'fwrite(STDERR, "booting, honest"); sleep(60);'],
+            workerCommand: PhpSubprocess::command(['-r', 'fwrite(STDERR, "booting, honest"); sleep(60);']),
             workingDirectory: \sys_get_temp_dir(),
             connectDeadlineSeconds: 0.5,
         );
@@ -59,7 +60,7 @@ final class OrchestratorTest
         $missingDirectory = \sys_get_temp_dir()
             . '/greenlight-missing-' . \bin2hex(\random_bytes(8));
         $orchestrator = NativeOrchestrator::create(
-            workerCommand: [\PHP_BINARY, 'bin/greenlight'],
+            workerCommand: PhpSubprocess::command(['bin/greenlight']),
             workingDirectory: $missingDirectory,
         );
 
@@ -87,7 +88,7 @@ final class OrchestratorTest
                 [, , $address, $workerId, $token] = $argv;
                 $socket = stream_socket_client($address);
                 $json = json_encode([
-                    'v' => 3,
+                    'v' => 4,
                     't' => 'hello',
                     'p' => [
                         'workerId' => $workerId,
@@ -106,7 +107,7 @@ final class OrchestratorTest
             \var_export($root . '/vendor/autoload.php', true),
         );
         $orchestrator = NativeOrchestrator::create(
-            workerCommand: [\PHP_BINARY, '-r', $script],
+            workerCommand: PhpSubprocess::command(['-r', $script]),
             workingDirectory: $root,
         );
         $sink = new CollectingEventSink();
@@ -134,7 +135,7 @@ final class OrchestratorTest
             DisconnectBeforeAssignmentWorker::class,
         );
         $orchestrator = NativeOrchestrator::create(
-            workerCommand: [\PHP_BINARY, '-r', $bootstrap],
+            workerCommand: PhpSubprocess::command(['-r', $bootstrap]),
             workingDirectory: $root,
         );
         $sink = new CollectingEventSink();
@@ -167,14 +168,14 @@ final class OrchestratorTest
         $script = <<<'PHP'
             [, , $address, $workerId, $token] = $argv;
             $socket = stream_socket_client($address);
-            $json = json_encode(['v' => 3, 't' => 'hello', 'p' => ['workerId' => $workerId, 'token' => $token, 'pid' => getmypid()]]);
+            $json = json_encode(['v' => 4, 't' => 'hello', 'p' => ['workerId' => $workerId, 'token' => $token, 'pid' => getmypid()]]);
             fwrite($socket, pack('N', strlen($json)) . $json);
             fflush($socket);
             sleep(60);
             PHP;
 
         $orchestrator = NativeOrchestrator::create(
-            workerCommand: [\PHP_BINARY, '-r', $script],
+            workerCommand: PhpSubprocess::command(['-r', $script]),
             workingDirectory: \sys_get_temp_dir(),
             progressDeadlineSeconds: 0.5,
         );
@@ -250,7 +251,7 @@ final class OrchestratorTest
         $root = \dirname(__DIR__, 5);
         $sink = new CollectingEventSink();
         $orchestrator = NativeOrchestrator::create(
-            workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
+            workerCommand: PhpSubprocess::command([$root . '/bin/greenlight']),
             workingDirectory: $root,
             stopAfterFailures: 1,
         );
@@ -284,7 +285,7 @@ final class OrchestratorTest
         $root = \dirname(__DIR__, 5);
         $sink = new CollectingEventSink();
         $orchestrator = NativeOrchestrator::create(
-            workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
+            workerCommand: PhpSubprocess::command([$root . '/bin/greenlight']),
             workingDirectory: $root,
         );
 
@@ -312,7 +313,7 @@ final class OrchestratorTest
         $root = \dirname(__DIR__, 5);
         $sink = new CollectingEventSink();
         $orchestrator = NativeOrchestrator::create(
-            workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
+            workerCommand: PhpSubprocess::command([$root . '/bin/greenlight']),
             workingDirectory: $root,
         );
 
@@ -348,7 +349,7 @@ final class OrchestratorTest
         $root = \dirname(__DIR__, 5);
         $sink = new CollectingEventSink();
         $orchestrator = NativeOrchestrator::create(
-            workerCommand: [\PHP_BINARY, $root . '/bin/greenlight'],
+            workerCommand: PhpSubprocess::command([$root . '/bin/greenlight']),
             workingDirectory: $root,
         );
 

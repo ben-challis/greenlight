@@ -9,7 +9,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Signal\SystemSignalOperations;
 use Greenlight\Expect\Expect;
 use Greenlight\Test\Cleanup;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class SystemSignalOperationsTest
 {
@@ -51,8 +51,7 @@ final readonly class SystemSignalOperationsTest
     public function availabilityRequiresEveryPcntlFunction(string $function): void
     {
         $root = \dirname(__DIR__, 4);
-        $result = Subprocess::run($root, [
-            \PHP_BINARY,
+        $result = PhpSubprocess::run($root, [
             '-d',
             'disable_functions=' . $function,
             '-r',

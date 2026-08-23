@@ -16,30 +16,34 @@ final readonly class PolicyTest
     public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
-    public function deprecationAndNoticePoliciesFlipPassedTests(): void
+    public function diagnosticPoliciesFlipPassedTests(): void
     {
         $project = $this->writeProject();
         // Without flags, all tests pass. Greenlight records deprecations but
         // does not make them fatal.
         $result = $this->run($project, '--filter=DiagnosticProbeTest');
-        Expect::that($result->exitCode)->because('deprecation and notice policies change passed tests to failed')->toBe(0);
-        Expect::that($result->output())->toContain('3 tests, 3 passed')
+        Expect::that($result->exitCode)->because('diagnostic policies change passed tests to failed')->toBe(0);
+        Expect::that($result->output())->toContain('4 tests, 4 passed')
         // Each test uses one matcher. The summary contains those expectations
         // after transfer from the worker.
-            ->toContain('3 expectations');
+            ->toContain('4 expectations');
         $result = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-deprecation');
-        Expect::that($result->exitCode)->because('deprecation and notice policies change passed tests to failed')->toBe(1);
-        Expect::that($result->output())->toContain('3 tests, 2 passed, 1 failed')
+        Expect::that($result->exitCode)->because('diagnostic policies change passed tests to failed')->toBe(1);
+        Expect::that($result->output())->toContain('4 tests, 3 passed, 1 failed')
             ->toContain('deprecation policy changed this test from passed to failed')
             ->toContain('old api is deprecated')
         // The result change MUST NOT remove verified expectations.
-            ->toContain('3 expectations')
+            ->toContain('4 expectations')
         // The deprecation in the allow list does not fail the test.
             ->toContain('PASS PolicyProbe\DiagnosticProbeTest::ignorableDeprecation');
         $result = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-notice');
-        Expect::that($result->exitCode)->because('deprecation and notice policies change passed tests to failed')->toBe(1);
+        Expect::that($result->exitCode)->because('diagnostic policies change passed tests to failed')->toBe(1);
         Expect::that($result->output())->toContain('notice policy changed this test from passed to failed')
             ->toContain('a probe notice');
+        $result = $this->run($project, '--filter=DiagnosticProbeTest', '--fail-on-warning');
+        Expect::that($result->exitCode)->because('diagnostic policies change passed tests to failed')->toBe(1);
+        Expect::that($result->output())->toContain('warning policy changed this test from passed to failed')
+            ->toContain('a probe warning');
     }
 
     #[Test]
@@ -63,6 +67,83 @@ final readonly class PolicyTest
         Expect::that($result->exitCode)->because('risky tests warn by default and fail under the flag')->toBe(1);
         Expect::that($result->output())->toContain('3 tests, 2 passed, 1 failed')
             ->toContain('fail-on-risky policy changed this test from passed to failed');
+    }
+
+    #[Test]
+    public function skippedPolicyFailsTheRunAndPreservesReporterOutcomes(): void
+    {
+        $project = $this->writeProject();
+        $result = GreenlightCli::run($project->directory, [
+            'run',
+            '--workers=1',
+            '--filter=SkipProbeTest',
+            '--bail=1',
+            '--fail-on-skipped',
+            '--reporter=plain',
+            '--reporter=junit=reports/junit.xml',
+            '--reporter=jsonl=reports/events.jsonl',
+            '--reporter=teamcity=reports/teamcity.txt',
+            '--reporter=github=reports/github.txt',
+        ]);
+
+        Expect::that($result->exitCode)
+            ->because('the skipped policy MUST fail the run without changing skipped results')
+            ->toBe(1);
+        Expect::that($result->output())
+            ->toContain('SKIP PolicyProbe\SkipProbeTest::skips')
+            ->toContain('2 tests, 1 passed, 1 skipped')
+            ->toContain('integration service is unavailable')
+            ->toContain('fail-on-skipped policy found 1 skipped test');
+
+        $junit = (string) \file_get_contents($project->path('reports/junit.xml'));
+        Expect::that($junit)
+            ->because('JUnit MUST retain the skipped testcase')
+            ->toContain('failures="0"')
+            ->toContain('skipped="1"')
+            ->toContain('<skipped message="integration service is unavailable"/>');
+
+        $jsonl = (string) \file_get_contents($project->path('reports/events.jsonl'));
+        Expect::that($jsonl)
+            ->because('JSONL MUST retain skipped result and summary fields')
+            ->toContain('"outcome":"skipped"')
+            ->toContain('"summary":{"passed":1,"failed":0,"errored":0,"skipped":1}');
+
+        $teamCity = (string) \file_get_contents($project->path('reports/teamcity.txt'));
+        Expect::that($teamCity)
+            ->because('TeamCity MUST retain its ignored-test message')
+            ->toContain("##teamcity[testIgnored name='PolicyProbe\\SkipProbeTest::skips' message='integration service is unavailable'");
+
+        Expect::that((string) \file_get_contents($project->path('reports/github.txt')))
+            ->because('GitHub MUST NOT misreport a skipped test as a failed test')
+            ->toBe('');
+    }
+
+    #[Test]
+    public function skippedPolicyWorksAcrossWorkersAndRepeatMode(): void
+    {
+        $project = $this->writeProject();
+        $parallel = $this->run(
+            $project,
+            '--workers=2',
+            '--filter=SkipProbeTest',
+            '--fail-on-skipped',
+        );
+
+        Expect::that($parallel->exitCode)
+            ->because('the run policy MUST use the final process-pool summary')
+            ->toBe(1);
+        Expect::that($parallel->output())->toContain('2 tests, 1 passed, 1 skipped');
+
+        $repeated = $this->run(
+            $project,
+            '--filter=SkipProbeTest',
+            '--fail-on-skipped',
+            '--repeat=2',
+        );
+        Expect::that($repeated->exitCode)
+            ->because('each iteration with a skipped test MUST fail repeat mode')
+            ->toBe(1);
+        Expect::that($repeated->output())->toContain('Repeat: failed iterations: 1, 2');
     }
 
     private function run(AcceptanceProject $project, string ...$flags): ProcessResult
@@ -104,6 +185,40 @@ final readonly class PolicyTest
                 public function triggersNotice(): void
                 {
                     \trigger_error('a probe notice', \E_USER_NOTICE);
+                    Expect::that(true)->toBeTrue();
+                }
+
+                #[Test]
+                public function triggersWarning(): void
+                {
+                    \trigger_error('a probe warning', \E_USER_WARNING);
+                    Expect::that(true)->toBeTrue();
+                }
+            }
+            PHP);
+
+        $project->writeFile('tests/SkipProbeTest.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace PolicyProbe;
+
+            use Greenlight\Attribute\Test;
+            use Greenlight\Expect\Expect;
+            use Greenlight\Test\SkipTest;
+
+            final class SkipProbeTest
+            {
+                #[Test]
+                public function skips(): never
+                {
+                    throw new SkipTest('integration service is unavailable');
+                }
+
+                #[Test]
+                public function stillRunsAfterTheSkip(): void
+                {
                     Expect::that(true)->toBeTrue();
                 }
             }
@@ -157,6 +272,7 @@ final readonly class PolicyTest
 
             require_once __DIR__ . '/tests/DiagnosticProbeTest.php';
             require_once __DIR__ . '/tests/RiskyProbeTest.php';
+            require_once __DIR__ . '/tests/SkipProbeTest.php';
 
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])

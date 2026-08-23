@@ -92,7 +92,10 @@ final readonly class TestDiscoverer
             }
         }
 
-        return new ExecutionPlan($flat, $seed);
+        $plan = new ExecutionPlan($flat, $seed);
+        $this->assertExactIdsMatched($selection, $plan);
+
+        return $plan;
     }
 
     /**
@@ -152,17 +155,40 @@ final readonly class TestDiscoverer
             );
 
             if ($rows === []) {
-                $entries[] = new PlanEntry($definition);
+                $entries[] = new PlanEntry($definition, sourceFile: $file);
 
                 continue;
             }
 
             foreach (\array_keys($rows) as $key) {
-                $entries[] = new PlanEntry($definition, (string) $key);
+                $entries[] = new PlanEntry($definition, (string) $key, $file);
             }
         }
 
         return $entries;
+    }
+
+    /** @throws DiscoveryError */
+    private function assertExactIdsMatched(TestSelection $selection, ExecutionPlan $plan): void
+    {
+        if ($selection->include->exactIds === []) {
+            return;
+        }
+
+        $found = [];
+
+        foreach ($plan->entries as $entry) {
+            $found[(string) $entry->id] = true;
+        }
+
+        $missing = \array_values(\array_filter(
+            $selection->include->exactIds,
+            static fn(string $id): bool => !isset($found[$id]),
+        ));
+
+        if ($missing !== []) {
+            throw DiscoveryError::exactTestsNotFound($missing);
+        }
     }
 
     /**
