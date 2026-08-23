@@ -83,15 +83,16 @@ final readonly class ProfileReportCommand
 
     private function writeUnsupportedVersion(EventCodecFailed $failure): int
     {
-        $version = $failure->jsonVersion;
-
-        if ($version === null) {
+        if ($failure->jsonVersion === null) {
             return $this->writeInputError(
                 'The input is not a JSONL event stream. A line does not contain an event envelope.',
             );
         }
 
-        return $this->writeInputError(\sprintf('The input uses unsupported JSONL version %d.', $version));
+        return $this->writeInputError(\sprintf(
+            'The input uses unsupported JSONL version %d.',
+            $failure->jsonVersion,
+        ));
     }
 
     private function writeInvalidEvent(EventCodecFailed $failure, bool $noAnsi): int
