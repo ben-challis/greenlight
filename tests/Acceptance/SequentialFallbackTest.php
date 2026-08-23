@@ -19,9 +19,7 @@ final readonly class SequentialFallbackTest
     #[DataSet('unavailableParallelCapabilities')]
     public function unavailableParallelCapabilitiesFallBackToInProcess(string $function): void
     {
-        // An isolated project prevents a conflict with another acceptance
-        // test in the same directory.
-        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'sequential-fallback');
+        $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'sequential-fallback');
         $result = GreenlightCli::run(
             $project->directory,
             ['run', '--workers=4', '--reporter=plain'],
@@ -31,7 +29,7 @@ final readonly class SequentialFallbackTest
         Expect::that($result->exitCode)
             ->because(\sprintf('the runner uses in-process execution when PHP disables %s', $function))
             ->toBe(0);
-        Expect::that($result->output())->toContain('7 tests, 7 passed')
+        Expect::that($result->output())->toContain('1 test, 1 passed')
             ->not()->toContain($function);
     }
 

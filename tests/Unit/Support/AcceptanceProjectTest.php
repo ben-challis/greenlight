@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Support;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\GreenlightConfig;
+use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
@@ -168,5 +169,35 @@ final readonly class AcceptanceProjectTest
         Expect::that($builder->build()->discovery->paths)->because('project with discovery basic tests targets the shared fixture')->toBe([
             \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic',
         ]);
+    }
+
+    #[Test]
+    public function passingProjectPresetsHaveSmallSuitesAndDeterministicNamespaces(): void
+    {
+        $one = AcceptanceProject::createWithOnePassingTest($this->workspace, 'one-passing-test');
+        $two = AcceptanceProject::createWithTwoPassingTests($this->workspace, 'two-passing-tests');
+        $sameOne = AcceptanceProject::createWithOnePassingTest($this->workspace, 'one-passing-test');
+        $oneConfiguration = require $one->path('greenlight.php');
+        $twoConfiguration = require $two->path('greenlight.php');
+        $discoverer = new TestDiscoverer();
+
+        Expect::that($oneConfiguration)
+            ->because('the one-test preset MUST generate a Greenlight configuration')
+            ->toBeInstanceOf(GreenlightConfig::class);
+        Expect::that($twoConfiguration)
+            ->because('the two-test preset MUST generate a Greenlight configuration')
+            ->toBeInstanceOf(GreenlightConfig::class);
+        Expect::that($discoverer->discover($oneConfiguration->build()->discovery->paths)->classes())
+            ->because('the one-test preset MUST contain one generated test class')
+            ->toBe($one->testClasses());
+        Expect::that($discoverer->discover($twoConfiguration->build()->discovery->paths)->classes())
+            ->because('the two-test preset MUST contain two generated test classes')
+            ->toBe($two->testClasses());
+        Expect::that($one->testClasses())
+            ->because('the same project name MUST produce the same test namespace')
+            ->toBe($sameOne->testClasses());
+        Expect::that(\array_intersect($one->testClasses(), $two->testClasses()))
+            ->because('different project names MUST produce unique test namespaces')
+            ->toBe([]);
     }
 }

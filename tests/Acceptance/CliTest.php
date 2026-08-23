@@ -73,10 +73,10 @@ final readonly class CliTest
     #[Test]
     public function runExecutesAPassingSuiteAndExitsZero(): void
     {
-        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'cli');
+        $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'cli-run');
         $result = GreenlightCli::run($project->directory, ['run']);
         Expect::that($result->exitCode)->because('run executes a passing suite and exits zero')->toBe(0);
-        Expect::that($result->output())->because('run executes a passing suite and exits zero')->toContain('7 tests, 7 passed');
+        Expect::that($result->output())->because('run executes a passing suite and exits zero')->toContain('1 test, 1 passed');
         Expect::that($result->output())->because('run executes a passing suite and exits zero')->not()->toContain('alpha:one');
     }
 
@@ -87,11 +87,11 @@ final readonly class CliTest
         // output with or without the flag. This verifies the flags and the
         // no-escape contract. TerminalCapabilitiesTest and TtyReporterTest
         // verify terminal behavior.
-        $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'cli');
+        $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'cli-output-flags');
         $result = GreenlightCli::run($project->directory, ['run', '--no-ansi', '--verbose']);
         Expect::that($result->exitCode)->because('no ANSI and verbose are accepted and output stays escape free')->toBe(0);
         Expect::that($result->output())->because('no ANSI and verbose are accepted and output stays escape free')->not()->toContain("\x1b[");
-        Expect::that($result->output())->because('no ANSI and verbose are accepted and output stays escape free')->toContain('7 tests, 7 passed');
+        Expect::that($result->output())->because('no ANSI and verbose are accepted and output stays escape free')->toContain('1 test, 1 passed');
     }
 
     #[Test]

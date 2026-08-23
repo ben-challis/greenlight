@@ -25,7 +25,7 @@ final readonly class ApplicationReporterStreamTest
     public function runReportersUseTheConfiguredOutputStream(): void
     {
         $this->environment->unset('GREENLIGHT_CHANNEL');
-        $project = AcceptanceProject::createWithDiscoveryBasicTests(
+        $project = AcceptanceProject::createWithOnePassingTest(
             $this->tempDirectory,
             'application-reporter-stream',
         );
@@ -49,7 +49,7 @@ final readonly class ApplicationReporterStreamTest
         Expect::that($output)
             ->because('the configured output stream MUST receive the complete run report')
             ->toContain('Greenlight ' . Application::VERSION)
-            ->toContain('7 tests, 7 passed');
+            ->toContain('1 test, 1 passed');
         Expect::that($errors)
             ->toBe('');
     }
@@ -60,7 +60,7 @@ final readonly class ApplicationReporterStreamTest
         $this->environment->unset('GREENLIGHT_CHANNEL');
         $this->environment->set('CI', 'true');
         $this->environment->unset('NO_COLOR');
-        $project = AcceptanceProject::createWithDiscoveryBasicTests(
+        $project = AcceptanceProject::createWithOnePassingTest(
             $this->tempDirectory,
             'application-ansi-output',
         );
