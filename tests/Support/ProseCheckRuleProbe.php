@@ -8,32 +8,51 @@ use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 
 /**
- * Checks one invalid prose sample and its valid equivalent.
+ * Checks named invalid prose samples and their valid counterparts.
  *
  * @internal
  */
 final readonly class ProseCheckRuleProbe
 {
+    /**
+     * @param non-empty-array<non-empty-string, array{
+     *     rule: non-empty-string,
+     *     invalid: non-empty-string,
+     *     valid: non-empty-string
+     * }> $cases
+     */
     public static function assertBlocks(
         TemporaryDirectory $tempDirectory,
-        string $rule,
-        string $invalid,
-        string $valid,
+        array $cases,
     ): void {
-        $files = ProjectFiles::create($tempDirectory, 'blocking-' . $rule . '/project');
-        $root = $files->directory;
+        \ksort($cases);
 
-        $files->write('sample.md', "# Sample\n\n" . $invalid . "\n");
+        $invalidFiles = ProjectFiles::create($tempDirectory, 'blocking-rules/invalid-project');
+        $validFiles = ProjectFiles::create($tempDirectory, 'blocking-rules/valid-project');
 
-        $invalidResult = self::run($root);
-        Expect::that($invalidResult->exitCode)->because('blocking rules reject invalid prose and accept the valid counterpart')->toBe(1);
-        Expect::that($invalidResult->output())->toContain($rule);
+        foreach ($cases as $name => $case) {
+            $filename = $name . '.md';
+            $invalidFiles->write($filename, "# Sample\n\n" . $case['invalid'] . "\n");
+            $validFiles->write($filename, "# Sample\n\n" . $case['valid'] . "\n");
+        }
 
-        $files->write('sample.md', "# Sample\n\n" . $valid . "\n");
+        $invalidResult = self::run($invalidFiles->directory);
+        Expect::that($invalidResult->exitCode)->because('blocking rules reject all invalid prose cases')->toBe(1);
 
-        $validResult = self::run($root);
-        Expect::that($validResult->exitCode)->because('blocking rules reject invalid prose and accept the valid counterpart')->toBe(0);
-        Expect::that($validResult->output())->not()->toContain($rule);
+        foreach ($cases as $name => $case) {
+            Expect::that($invalidResult->output())
+                ->because('reports each rule with its invalid case filename')
+                ->toContain($name . '.md:3: ' . $case['rule'] . ':');
+        }
+
+        $validResult = self::run($validFiles->directory);
+        Expect::that($validResult->exitCode)->because('blocking rules accept all valid prose cases')->toBe(0);
+
+        foreach (\array_keys($cases) as $name) {
+            Expect::that($validResult->output())
+                ->because('reports no diagnostic for each valid case filename')
+                ->not()->toContain($name . '.md:');
+        }
     }
 
     private static function run(string $root): ProcessResult

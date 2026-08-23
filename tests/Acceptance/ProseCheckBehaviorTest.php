@@ -714,64 +714,40 @@ final readonly class ProseCheckBehaviorTest
     }
 
     #[Test]
-    public function excludesSharedFixtureDirectories(): void
+    public function excludesFixturesCachesDependenciesAndNestedWorktrees(): void
     {
-        $root = $this->workspace('fixture-exclusion');
+        $root = $this->workspace('ignored-path-exclusions');
+        $invalid = "The worker doesn't use the configured colour; it stops.\n";
+
         $this->write(
             $root,
             'tests/Fixture/Invalid.php',
-            "<?php\n\n// The worker doesn't use the configured colour; it stops.\n",
+            "<?php\n\n// " . $invalid,
         );
-
-        $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('excludes shared fixture directories')->toBe(0);
-    }
-
-    #[Test]
-    public function excludesGeneratedAnalysisFiles(): void
-    {
-        $root = $this->workspace('tool-cache-exclusion');
         $this->write(
             $root,
             'build/cache/phpstan/cache.php',
-            "<?php\n\n// The worker doesn't use the configured colour; it stops.\n",
+            "<?php\n\n// " . $invalid,
         );
         $this->write(
             $root,
             'build/docs-php/example/snippet.php',
-            "<?php\n\n// The worker doesn't use the configured colour; it stops.\n",
+            "<?php\n\n// " . $invalid,
         );
-
-        $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('excludes generated analysis files')->toBe(0);
-    }
-
-    #[Test]
-    public function excludesDependenciesAtAnyDirectoryDepth(): void
-    {
-        $root = $this->workspace('dependency-exclusion');
-        $invalid = "The worker doesn't use the configured colour; it stops.\n";
         $this->write($root, 'vendor/package/README.md', $invalid);
         $this->write($root, 'website/node_modules/package/README.md', $invalid);
         $this->write($root, 'packages/example/vendor/package/README.md', $invalid);
         $this->write($root, 'packages/example/node_modules/package/README.md', $invalid);
-
-        $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('excludes dependencies at all directory depths')->toBe(0);
-    }
-
-    #[Test]
-    public function excludesNestedClaudeWorktrees(): void
-    {
-        $root = $this->workspace('nested-worktree-exclusion');
         $this->write(
             $root,
             '.claude/worktrees/example/README.md',
-            "The worker doesn't use the configured colour; it stops.\n",
+            $invalid,
         );
 
         $result = $this->run('check', $root);
-        Expect::that($result->exitCode)->because('excludes nested Claude worktrees')->toBe(0);
+        Expect::that($result->exitCode)
+            ->because('excludes fixture, cache, dependency, and nested worktree paths')
+            ->toBe(0);
     }
 
     #[Test]

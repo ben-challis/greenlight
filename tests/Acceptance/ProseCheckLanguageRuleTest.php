@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
-use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\Test;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\ProseCheckRuleProbe;
@@ -14,27 +13,49 @@ final readonly class ProseCheckLanguageRuleTest
     public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
-    #[DataRow(['semicolon', 'The worker stops; the orchestrator continues.', 'The worker stops. The orchestrator continues.'], 'semicolon')]
-    #[DataRow(['contraction', "The worker doesn't stop.", 'The worker does not stop.'], 'contraction')]
-    #[DataRow(['contraction', 'The worker doesn’t stop.', 'The worker does not stop.'], 'Unicode contraction')]
-    #[DataRow(['contraction', "Let's start the worker.", 'Start the worker.'], 'additional contraction')]
-    #[DataRow(['contraction', "Here's why that should've worked.", 'Here is why that should have worked.'], 'missing forms')]
-    #[DataRow(['contraction', "There'll be capacity, so that'll work.", 'There will be capacity, so that will work.'], 'future forms')]
-    #[DataRow([
-        'sentence-length',
-        'The orchestrator collects every selected test class from the configured directories and sends one complete assignment to each available worker before the test run starts in parallel.',
-        'The orchestrator collects every selected test class from the configured directories and sends one complete assignment to each available worker before the test run starts.',
-    ], 'sentence length')]
-    #[DataRow([
-        'paragraph-length',
-        'A worker starts. It reads the configuration. It runs tests. It records results. It sends events. It releases resources. It stops.',
-        'A worker starts. It reads the configuration. It runs tests. It records results. It sends events. It stops.',
-    ], 'paragraph length')]
-    public function blockingRulesRejectInvalidProseAndAcceptTheValidCounterpart(
-        string $rule,
-        string $invalid,
-        string $valid,
-    ): void {
-        ProseCheckRuleProbe::assertBlocks($this->tempDirectory, $rule, $invalid, $valid);
+    public function blockingRulesRejectInvalidProseAndAcceptValidCounterparts(): void
+    {
+        ProseCheckRuleProbe::assertBlocks($this->tempDirectory, [
+            'semicolon' => [
+                'rule' => 'semicolon',
+                'invalid' => 'The worker stops; the orchestrator continues.',
+                'valid' => 'The worker stops. The orchestrator continues.',
+            ],
+            'contraction' => [
+                'rule' => 'contraction',
+                'invalid' => "The worker doesn't stop.",
+                'valid' => 'The worker does not stop.',
+            ],
+            'unicode-contraction' => [
+                'rule' => 'contraction',
+                'invalid' => 'The worker doesn’t stop.',
+                'valid' => 'The worker does not stop.',
+            ],
+            'additional-contraction' => [
+                'rule' => 'contraction',
+                'invalid' => "Let's start the worker.",
+                'valid' => 'Start the worker.',
+            ],
+            'missing-forms' => [
+                'rule' => 'contraction',
+                'invalid' => "Here's why that should've worked.",
+                'valid' => 'Here is why that should have worked.',
+            ],
+            'future-forms' => [
+                'rule' => 'contraction',
+                'invalid' => "There'll be capacity, so that'll work.",
+                'valid' => 'There will be capacity, so that will work.',
+            ],
+            'sentence-length' => [
+                'rule' => 'sentence-length',
+                'invalid' => 'The orchestrator collects every selected test class from the configured directories and sends one complete assignment to each available worker before the test run starts in parallel.',
+                'valid' => 'The orchestrator collects every selected test class from the configured directories and sends one complete assignment to each available worker before the test run starts.',
+            ],
+            'paragraph-length' => [
+                'rule' => 'paragraph-length',
+                'invalid' => 'A worker starts. It reads the configuration. It runs tests. It records results. It sends events. It releases resources. It stops.',
+                'valid' => 'A worker starts. It reads the configuration. It runs tests. It records results. It sends events. It stops.',
+            ],
+        ]);
     }
 }
