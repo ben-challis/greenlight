@@ -162,7 +162,7 @@ final readonly class RunCommand
 
             if ($arguments->has('failed')) {
                 if ($previousFailures === null) {
-                    $this->printError('--failed requires state from a previous run. Run Greenlight once without --failed.', $arguments->has('no-ansi'));
+                    $this->printError(CliError::failedRequiresState()->getMessage(), $arguments->has('no-ansi'));
 
                     return self::EXIT_USAGE;
                 }

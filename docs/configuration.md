@@ -670,6 +670,16 @@ Greenlight resolves relative prefixes from the current directory. Repeatable.
 
 Prints the selected test IDs. It does not run them.
 
+Use `--format=json` to write the version 1 test discovery manifest. The
+[manifest reference](architecture/test-manifest.md) defines its schema, order,
+metadata, compatibility rules, and exit codes.
+
+### `--format=<format>`
+
+Sets `list-tests` output to `text` or `json`. The default is `text`.
+
+Use this option only with `list-tests` or `run --list-tests`.
+
 ### `--list-groups`
 
 Prints each selected group and its test count. It does not run tests.

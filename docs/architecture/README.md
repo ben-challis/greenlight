@@ -144,9 +144,9 @@ implementation classes.
 
 ### Output
 
-Human reporters control presentation. Each JSONL and coverage JSON format has
-a version. The worker protocol is internal. Before you change an output shape,
-read [compatibility](compatibility.md).
+Human reporters control presentation. JSONL, coverage JSON, and the test
+manifest have versions. The worker protocol is internal. Before you change an
+output shape, read [compatibility](compatibility.md).
 
 The internal event codec owns event tags, tagged payload validation, and event
 construction. It also owns JSONL encoding and decoding. The worker protocol,
@@ -175,6 +175,7 @@ JSONL reporter, and `profile:report` use this codec through their own seams.
 - [Orchestrator-owned integration fixtures](orchestrator-integration-fixtures.md)
 - [Artifact storage](artifacts.md)
 - [JSONL reporter schema](jsonl.md)
+- [Test discovery manifest](test-manifest.md)
 - [Coverage JSON schema](coverage-json.md)
 - [Temporal expectations](temporal-expectations.md)
 - [Infection support decision](mutation-testing.md)

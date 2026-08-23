@@ -48,6 +48,13 @@ final readonly class CommandDispatcher
             return 0;
         }
         $command = $arguments->command ?? 'run';
+        if ($arguments->has('format')
+            && $command !== 'list-tests'
+            && ($command !== 'run' || !$arguments->has('list-tests'))
+        ) {
+            $this->console->error(CliError::formatRequiresTestListing()->getMessage(), $arguments->has('no-ansi'));
+            return 64;
+        }
         if ($command === 'list-tests' || ($command === 'run' && !$arguments->has('dry-run') && ($arguments->has('list-tests') || $arguments->has('list-groups') || $arguments->has('list-suites')))) {
             return new ListCommand($this->console)->run($arguments, $workingDirectory);
         }
