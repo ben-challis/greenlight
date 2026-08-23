@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Symfony;
 
 use Greenlight\Harness\Scope;
+use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
-use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
@@ -82,9 +82,10 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     /**
      * @param class-string $type
      * @param list<object> $attributes
+     * @throws ServiceResolutionFailed
      */
     #[\Override]
-    public function resolve(string $type, array $attributes): ServiceResolution
+    public function resolve(string $type, array $attributes): ?object
     {
         $id = $type;
 
@@ -98,24 +99,24 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             $container = $this->container();
 
             if (!$container->has($id)) {
-                return $id !== $type
-                    ? ServiceResolution::failed(SymfonyBridgeError::unknownServiceId($id, $type))
-                    : ServiceResolution::unhandled();
+                if ($id !== $type) {
+                    throw SymfonyBridgeError::unknownServiceId($id, $type);
+                }
+
+                return null;
             }
 
             $service = $container->get($id);
 
             if (!$service instanceof $type) {
-                return ServiceResolution::failed(
-                    SymfonyBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service)),
-                );
+                throw SymfonyBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service));
             }
 
-            return ServiceResolution::resolved($service);
+            return $service;
         } catch (ServiceResolutionFailed $error) {
-            return ServiceResolution::failed($error);
+            throw $error;
         } catch (\Throwable $cause) {
-            return ServiceResolution::failed(SymfonyBridgeError::serviceResolutionFailed($id, $type, $cause));
+            throw SymfonyBridgeError::serviceResolutionFailed($id, $type, $cause);
         }
     }
 

@@ -87,7 +87,7 @@ final readonly class LaravelRunTest
 
             use Greenlight\Attribute\Test;
             use Greenlight\Expect\Expect;
-            use Greenlight\Laravel\Service;
+            use Greenlight\Harness\Service;
             use Greenlight\Tests\Fixture\Laravel\Greeter;
             use Greenlight\Tests\Fixture\Laravel\NamedGreeter;
             use Greenlight\Tests\Fixture\Laravel\VisitCounter;

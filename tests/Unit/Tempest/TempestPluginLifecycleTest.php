@@ -12,7 +12,6 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
-use Greenlight\Harness\ServiceResolution;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Result\TestResult;
@@ -60,7 +59,7 @@ final class TempestPluginLifecycleTest
         $expected = new TaggedProbeImplementation();
         $kernel->container->singleton(TaggedProbe::class, $expected, 'preferred');
 
-        Expect::that($plugin->resolve(TaggedProbe::class, [new Tag('preferred')])->value())
+        Expect::that($plugin->resolve(TaggedProbe::class, [new Tag('preferred')]))
             ->because('the Tempest Tag attribute MUST select the tagged container binding')
             ->toBe($expected);
     }
@@ -69,7 +68,7 @@ final class TempestPluginLifecycleTest
     public function fallbackResolverRunsBeforeTerminalTempestResolver(): void
     {
         $answer = new TaggedProbeImplementation();
-        $fallback = new ServiceResolverProbe(ServiceResolution::resolved($answer));
+        $fallback = new ServiceResolverProbe($answer);
         $resolvers = new PluginRegistry([$this->plugin(), $fallback])->serviceResolvers();
         $scopes = new HarnessScopes(new HarnessRegistry(), $resolvers);
 
@@ -85,7 +84,7 @@ final class TempestPluginLifecycleTest
         $plugin = $this->plugin();
         $this->kernel($plugin);
 
-        Expect::that(static fn(): ?object => $plugin->resolve(MissingProbe::class, [])->value())
+        Expect::that(static fn(): object => $plugin->resolve(MissingProbe::class, []))
             ->toThrow(
                 TempestBridgeError::class,
                 matching: '/^The Tempest container could not resolve the parameter type "'
@@ -100,7 +99,7 @@ final class TempestPluginLifecycleTest
         $missingRoot = $this->tempDirectory->path() . '/missing-resolution-root';
         $plugin = new TempestPlugin($missingRoot);
 
-        Expect::that(static fn(): ?object => $plugin->resolve(MissingProbe::class, [])->value())
+        Expect::that(static fn(): object => $plugin->resolve(MissingProbe::class, []))
             ->toThrow(
                 TempestBridgeError::class,
                 matching: '/^TempestPlugin could not boot the application at "'
@@ -130,7 +129,7 @@ final class TempestPluginLifecycleTest
         $kernel = $this->kernel($plugin);
         $kernel->container->singleton(MissingProbe::class, new \stdClass());
 
-        Expect::that(static fn(): ?object => $plugin->resolve(MissingProbe::class, [])->value())
+        Expect::that(static fn(): object => $plugin->resolve(MissingProbe::class, []))
             ->toThrow(
                 TempestBridgeError::class,
                 message: 'The Tempest container returned "stdClass" for the parameter type "'

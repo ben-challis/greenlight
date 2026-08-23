@@ -8,7 +8,6 @@ use Greenlight\Event\Event;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\RetryPolicy;
 use Greenlight\Doubles\Fake;
-use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\BeforeTestSubscriber;
@@ -28,9 +27,9 @@ class FakeCapabilityPlugin implements AfterTestSubscriber, BeforeTestSubscriber,
     public function onRunEvent(Event $event): void {}
 
     #[\Override]
-    public function resolve(string $type, array $attributes): ServiceResolution
+    public function resolve(string $type, array $attributes): ?object
     {
-        return ServiceResolution::unhandled();
+        return null;
     }
 
     #[\Override]

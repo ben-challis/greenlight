@@ -9,7 +9,6 @@ use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
-use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\TerminalServiceResolver;
@@ -68,9 +67,9 @@ final class PluginRegistryHarnessPriorityTest
             }
 
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): ?object
             {
-                return ServiceResolution::failed(new class ('Terminal failure.') extends ServiceResolutionFailed {});
+                throw new class ('Terminal failure.') extends ServiceResolutionFailed {};
             }
         };
         $fallback = new class implements Fake, Plugin, Prioritized, ServiceResolver {
@@ -81,9 +80,9 @@ final class PluginRegistryHarnessPriorityTest
             }
 
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): ?object
             {
-                return ServiceResolution::unhandled();
+                return null;
             }
         };
 

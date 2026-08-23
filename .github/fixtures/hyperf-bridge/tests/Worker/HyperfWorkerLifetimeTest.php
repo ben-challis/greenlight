@@ -10,7 +10,7 @@ use App\NamedGreeter;
 use App\VisitCounter;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Hyperf\Service;
+use Greenlight\Harness\Service;
 use Hyperf\Context\Context;
 use Hyperf\Contract\ApplicationInterface;
 use Hyperf\Coroutine\Coroutine;

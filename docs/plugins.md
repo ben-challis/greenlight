@@ -485,7 +485,7 @@ In `Greenlight\Harness`.
 
 <!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
 ```php
-public function resolve(string $type, array $attributes): ServiceResolution;
+public function resolve(string $type, array $attributes): ?object;
 ```
 
 A service resolver is a fallback source for a constructor parameter type.
@@ -494,16 +494,15 @@ Registered harness services always take precedence. If no service matches,
 Greenlight calls resolvers in registration order. Each call receives the
 declared parameter type and the attribute instances.
 
-Return `ServiceResolution::unhandled()` when the resolver does not support the
-type. Greenlight then calls the next resolver.
+Return `null` when the resolver does not support the type. Greenlight then
+calls the next resolver.
 
-Return `ServiceResolution::resolved($service)` when the resolver supplies the
-service. The service MUST have the requested type.
+Return the service object when the resolver supplies it. The service MUST have
+the requested type.
 
-Return `ServiceResolution::failed($error)` when the resolver handles the
-request but cannot supply a valid service. The error MUST be a
-`ServiceResolutionFailed`. Greenlight stops the resolver chain and exposes the
-public `ServiceResolutionFailed` contract.
+Throw `ServiceResolutionFailed` when the resolver handles the request but
+cannot supply a valid service. Greenlight stops the resolver chain and exposes
+the public exception contract.
 
 An explicit service ID or tag means that the applicable resolver handles the
 request. A missing explicit service is a failed result, not an unhandled
@@ -511,8 +510,8 @@ result. A container operation failure is also a failed result.
 
 Implement `TerminalServiceResolver` when a resolver handles every request.
 Greenlight places one terminal resolver after all fallback-capable resolvers.
-A terminal resolver MUST NOT return an unhandled result. Greenlight rejects a
-resolver chain that has an item after a terminal resolver.
+A terminal resolver MUST NOT return `null`. Greenlight rejects a resolver
+chain that has an item after a terminal resolver.
 
 The resolver owns each object that it returns. Harness scopes do not track or
 call disposal methods on these objects.

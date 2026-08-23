@@ -91,15 +91,16 @@ PHPDoc:
 
 ```php
 [\Override]
-public function resolve(string $type, array $attributes): ServiceResolution
+public function resolve(string $type, array $attributes): ?object
 ```
 
 PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
+- `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L87)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L88)
 
 ### `onWorkerBootstrap()`
 
@@ -112,7 +113,7 @@ PHPDoc:
 
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L124)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L125)
 
 ### `runWorker()`
 
@@ -128,7 +129,7 @@ PHPDoc:
 - `@return T`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L181)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L182)
 
 ### `runTestAttempt()`
 
@@ -144,45 +145,7 @@ PHPDoc:
 - `@return T`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L225)
-
-## `Hyperf\Service`
-
-Namespace: `Greenlight\Hyperf`
-
-Use this attribute when a parameter type does not select one container ID.
-The service must have the declared type.
-
-```php
-#[\Attribute(\Attribute::TARGET_PARAMETER)]
-final readonly class Service
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/Service.php#L12)
-
-### `$id`
-
-```php
-public string $id;
-```
-
-PHPDoc:
-
-- `@var non-empty-string`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/Service.php#L15)
-
-### `__construct()`
-
-```php
-public function __construct(string $id)
-```
-
-PHPDoc:
-
-- `@throws \InvalidArgumentException`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/Service.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L226)
 
 ## `LaravelPlugin`
 
@@ -233,15 +196,16 @@ PHPDoc:
 
 ```php
 [\Override]
-public function resolve(string $type, array $attributes): ServiceResolution
+public function resolve(string $type, array $attributes): ?object
 ```
 
 PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
+- `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L86)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L87)
 
 ### `afterTest()`
 
@@ -250,45 +214,7 @@ PHPDoc:
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L122)
-
-## `Laravel\Service`
-
-Namespace: `Greenlight\Laravel`
-
-Use when the parameter type is not a unique container binding. The resolved
-service must still satisfy the declared type.
-
-```php
-#[\Attribute(\Attribute::TARGET_PARAMETER)]
-final readonly class Service
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/Service.php#L12)
-
-### `$id`
-
-```php
-public string $id;
-```
-
-PHPDoc:
-
-- `@var non-empty-string`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/Service.php#L17)
-
-### `__construct()`
-
-```php
-public function __construct(string $id)
-```
-
-PHPDoc:
-
-- `@throws \InvalidArgumentException`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/Service.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L123)
 
 ## `Psr11Plugin`
 
@@ -341,15 +267,16 @@ PHPDoc:
 
 ```php
 [\Override]
-public function resolve(string $type, array $attributes): ServiceResolution
+public function resolve(string $type, array $attributes): ?object
 ```
 
 PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
+- `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L92)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L93)
 
 ### `afterTest()`
 
@@ -362,45 +289,7 @@ PHPDoc:
 
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L139)
-
-## `Psr11\Service`
-
-Namespace: `Greenlight\Psr11`
-
-Selects a PSR-11 service ID that differs from the parameter type. The
-resolved service must still have the declared type.
-
-```php
-#[\Attribute(\Attribute::TARGET_PARAMETER)]
-final readonly class Service
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Service.php#L12)
-
-### `$id`
-
-```php
-public string $id;
-```
-
-PHPDoc:
-
-- `@var non-empty-string`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Service.php#L17)
-
-### `__construct()`
-
-```php
-public function __construct(string $id)
-```
-
-PHPDoc:
-
-- `@throws \InvalidArgumentException`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Service.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L140)
 
 ## `HttpHarness`
 
@@ -623,44 +512,6 @@ public function refactor(Node $node): ?Node
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L176)
 
-## `Symfony\Service`
-
-Namespace: `Greenlight\Symfony`
-
-If the parameter type is not a unique container ID, use `#[Service]`. The
-resolved service must have the declared type.
-
-```php
-#[\Attribute(\Attribute::TARGET_PARAMETER)]
-final readonly class Service
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/Service.php#L12)
-
-### `$id`
-
-```php
-public string $id;
-```
-
-PHPDoc:
-
-- `@var non-empty-string`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/Service.php#L17)
-
-### `__construct()`
-
-```php
-public function __construct(string $id)
-```
-
-PHPDoc:
-
-- `@throws \InvalidArgumentException`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/Service.php#L22)
-
 ## `SymfonyPlugin`
 
 Namespace: `Greenlight\Symfony`
@@ -717,15 +568,16 @@ PHPDoc:
 
 ```php
 [\Override]
-public function resolve(string $type, array $attributes): ServiceResolution
+public function resolve(string $type, array $attributes): ?object
 ```
 
 PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
+- `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L86)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L87)
 
 ### `afterTest()`
 
@@ -734,7 +586,7 @@ PHPDoc:
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L122)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L123)
 
 ## `TempestPlugin`
 
@@ -752,7 +604,7 @@ by `GREENLIGHT_CHANNEL`.
 final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, TerminalServiceResolver, WorkerBootstrapSubscriber
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L38)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L37)
 
 ### `__construct()`
 
@@ -770,7 +622,7 @@ PHPDoc:
 - `@param list<DiscoveryLocation> $discoveryLocations Additional locations for Tempest discovery.`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L51)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L50)
 
 ### `onWorkerBootstrap()`
 
@@ -779,7 +631,7 @@ PHPDoc:
 public function onWorkerBootstrap(WorkerBootstrapContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L65)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L64)
 
 ### `services()`
 
@@ -792,19 +644,20 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L74)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L73)
 
 ### `resolve()`
 
 ```php
 [\Override]
-public function resolve(string $type, array $attributes): ServiceResolution
+public function resolve(string $type, array $attributes): object
 ```
 
 PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
+- `@throws ServiceResolutionFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L87)
 
@@ -815,7 +668,7 @@ PHPDoc:
 public function beforeTest(TestContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L115)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L113)
 
 ### `afterTest()`
 
@@ -828,4 +681,4 @@ PHPDoc:
 
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L128)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L126)

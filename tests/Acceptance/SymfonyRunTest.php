@@ -97,7 +97,7 @@ final readonly class SymfonyRunTest
 
             use Greenlight\Attribute\Test;
             use Greenlight\Expect\Expect;
-            use Greenlight\Symfony\Service;
+            use Greenlight\Harness\Service;
             use Greenlight\Tests\Fixture\Symfony\Greeter;
             use Greenlight\Tests\Fixture\Symfony\NamedGreeter;
             use Greenlight\Tests\Fixture\Symfony\VisitCounter;

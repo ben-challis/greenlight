@@ -67,6 +67,44 @@ case PerWorker = 'per-worker';
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Scope.php#L16)
 
+## `Service`
+
+Namespace: `Greenlight\Harness`
+
+Selects a container service ID that differs from the parameter type. The
+resolved service must have the declared type.
+
+```php
+#[\Attribute(\Attribute::TARGET_PARAMETER)]
+final readonly class Service
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L12)
+
+### `$id`
+
+```php
+public string $id;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L15)
+
+### `__construct()`
+
+```php
+public function __construct(string $id)
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L18)
+
 ## `ServiceDefinition`
 
 Namespace: `Greenlight\Harness`
@@ -127,95 +165,6 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L26)
 
-## `ServiceResolution`
-
-Namespace: `Greenlight\Harness`
-
-Reports whether a service resolver handled, resolved, or failed one request.
-Each state contains only the data that applies to that state.
-
-```php
-final readonly class ServiceResolution
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L11)
-
-### `unhandled()`
-
-```php
-public static function unhandled(): self
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L18)
-
-### `resolved()`
-
-```php
-public static function resolved(object $service): self
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L23)
-
-### `failed()`
-
-```php
-public static function failed(ServiceResolutionFailed $error): self
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L28)
-
-### `isUnhandled()`
-
-```php
-public function isUnhandled(): bool
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L33)
-
-### `isResolved()`
-
-```php
-public function isResolved(): bool
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L38)
-
-### `isFailed()`
-
-```php
-public function isFailed(): bool
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L43)
-
-### `service()`
-
-```php
-public function service(): object
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L48)
-
-### `error()`
-
-```php
-public function error(): ServiceResolutionFailed
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L54)
-
-### `value()`
-
-```php
-public function value(): ?object
-```
-
-PHPDoc:
-
-- `@throws ServiceResolutionFailed if the resolver failed`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L63)
-
 ## `ServiceResolutionFailed`
 
 Namespace: `Greenlight\Harness`
@@ -234,9 +183,9 @@ This type does not declare public members.
 
 Namespace: `Greenlight\Harness`
 
-Greenlight calls service resolvers in registration order. An unhandled
-result asks Greenlight to call the next resolver. A resolved result must
-contain the requested type. A failed result stops resolution.
+Greenlight calls service resolvers in registration order. A null result asks
+Greenlight to call the next resolver. An object must have the requested
+type. A `ServiceResolutionFailed` exception stops resolution.
 
 Objects from a service resolver do not belong to a harness service scope.
 Greenlight does not dispose them. The source of an object controls its
@@ -251,15 +200,16 @@ interface ServiceResolver
 ### `resolve()`
 
 ```php
-public function resolve(string $type, array $attributes): ServiceResolution;
+public function resolve(string $type, array $attributes): ?object;
 ```
 
 PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
+- `@throws ServiceResolutionFailed when the resolver handles the request but cannot supply a valid service`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L23)
 
 ## `TerminalServiceResolver`
 
@@ -268,23 +218,25 @@ Namespace: `Greenlight\Harness`
 Identifies a resolver that handles every request. Greenlight places one
 terminal resolver after all fallback-capable resolvers.
 
-A terminal resolver MUST return a resolved or failed result.
+A terminal resolver MUST return an object or throw
+`ServiceResolutionFailed`.
 
 ```php
 interface TerminalServiceResolver extends ServiceResolver
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/TerminalServiceResolver.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/TerminalServiceResolver.php#L14)
 
 ### `resolve()`
 
 ```php
-public function resolve(string $type, array $attributes): ServiceResolution;
+public function resolve(string $type, array $attributes): ?object;
 ```
 
 PHPDoc:
 
 - `@param class-string $type`
 - `@param list<object> $attributes`
+- `@throws ServiceResolutionFailed when the resolver handles the request but cannot supply a valid service`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L23)

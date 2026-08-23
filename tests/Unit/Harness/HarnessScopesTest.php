@@ -13,7 +13,6 @@ use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
-use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\TerminalServiceResolver;
@@ -50,11 +49,11 @@ final class HarnessScopesTest
             public bool $consulted = false;
 
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): object
             {
                 $this->consulted = true;
 
-                return ServiceResolution::resolved(new \ArrayObject(['fallback']));
+                return new \ArrayObject(['fallback']);
             }
         };
 
@@ -81,12 +80,12 @@ final class HarnessScopesTest
             public array $attributes = [];
 
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): object
             {
                 $this->type = $type;
                 $this->attributes = $attributes;
 
-                return ServiceResolution::resolved(new \ArrayObject());
+                return new \ArrayObject();
             }
         };
         $marker = new \stdClass();
@@ -104,9 +103,9 @@ final class HarnessScopesTest
     {
         $passing = new class implements ServiceResolver {
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): ?object
             {
-                return ServiceResolution::unhandled();
+                return null;
             }
         };
         $answer = new \ArrayObject(['answered']);
@@ -117,9 +116,9 @@ final class HarnessScopesTest
             public function __construct(private \ArrayObject $answer) {}
 
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): object
             {
-                return ServiceResolution::resolved($this->answer);
+                return $this->answer;
             }
         };
 
@@ -144,9 +143,9 @@ final class HarnessScopesTest
             public function __construct(private Disposable $service) {}
 
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): object
             {
-                return ServiceResolution::resolved($this->service);
+                return $this->service;
             }
         };
         $scopes = new HarnessScopes(new HarnessRegistry(), [$resolver]);
@@ -168,9 +167,9 @@ final class HarnessScopesTest
     {
         $resolver = new class implements ServiceResolver {
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): object
             {
-                return ServiceResolution::resolved(new \stdClass());
+                return new \stdClass();
             }
         };
         $scopes = new HarnessScopes(new HarnessRegistry(), [$resolver]);
@@ -185,9 +184,9 @@ final class HarnessScopesTest
     {
         $resolver = new class implements ServiceResolver {
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): ?object
             {
-                return ServiceResolution::unhandled();
+                return null;
             }
         };
         $scopes = new HarnessScopes(new HarnessRegistry(), [$resolver]);
@@ -215,20 +214,20 @@ final class HarnessScopesTest
             public function __construct(private ServiceResolutionFailed $failure) {}
 
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): ?object
             {
-                return ServiceResolution::failed($this->failure);
+                throw $this->failure;
             }
         };
         $later = new class implements ServiceResolver {
             public bool $consulted = false;
 
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): object
             {
                 $this->consulted = true;
 
-                return ServiceResolution::resolved(new \ArrayObject());
+                return new \ArrayObject();
             }
         };
         $scopes = new HarnessScopes(new HarnessRegistry(), [$failing, $later]);
@@ -242,11 +241,11 @@ final class HarnessScopesTest
         }
 
         Expect::that($error)
-            ->because('a failed result MUST expose the public service resolution failure contract')
+            ->because('a resolver failure MUST expose the public service resolution failure contract')
             ->toBeInstanceOf(ServiceResolutionFailed::class);
         Expect::that($error)->toBe($failure);
         Expect::that($later->consulted)
-            ->because('Greenlight MUST NOT call a resolver after a failed result')
+            ->because('Greenlight MUST NOT call a resolver after a failure')
             ->toBeFalse();
     }
 
@@ -255,16 +254,16 @@ final class HarnessScopesTest
     {
         $terminal = new class implements TerminalServiceResolver {
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): ?object
             {
-                return ServiceResolution::failed(new class ('Terminal failure.') extends ServiceResolutionFailed {});
+                throw new class ('Terminal failure.') extends ServiceResolutionFailed {};
             }
         };
         $fallback = new class implements ServiceResolver {
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): ?object
             {
-                return ServiceResolution::unhandled();
+                return null;
             }
         };
 
@@ -274,20 +273,20 @@ final class HarnessScopesTest
     }
 
     #[Test]
-    public function aTerminalResolverCannotReturnUnhandled(): void
+    public function aTerminalResolverCannotReturnNull(): void
     {
         $terminal = new class implements TerminalServiceResolver {
             #[\Override]
-            public function resolve(string $type, array $attributes): ServiceResolution
+            public function resolve(string $type, array $attributes): ?object
             {
-                return ServiceResolution::unhandled();
+                return null;
             }
         };
         $scopes = new HarnessScopes(new HarnessRegistry(), [$terminal]);
 
         Expect::that(static fn(): object => $scopes->resolve(\ArrayObject::class, 'test'))
             ->because('a terminal resolver MUST handle every request')
-            ->toThrow(\LogicException::class, matching: '/Terminal service resolver .* returned an unhandled result/');
+            ->toThrow(\LogicException::class, matching: '/Terminal service resolver .* returned null/');
     }
 
     #[Test]

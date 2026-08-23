@@ -147,7 +147,7 @@ Use `#[Service]` when the parameter type does not select the necessary ID:
 
 <!-- php-example {"example":"hyperf-example-05","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
-use Greenlight\Hyperf\Service;
+use Greenlight\Harness\Service;
 
 public function __construct(
     #[Service('payments.client')] private PaymentClient $client,
