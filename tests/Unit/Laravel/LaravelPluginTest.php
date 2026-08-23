@@ -228,6 +228,18 @@ final class LaravelPluginTest
     }
 
     #[Test]
+    public function aClosureThatDoesNotReturnAnApplicationFailsLoudly(): void
+    {
+        $plugin = $this->track(new LaravelPlugin(
+            static fn(): \stdClass => new \stdClass(), // @phpstan-ignore argument.type (This test deliberately supplies an invalid application factory.)
+        ));
+
+        Expect::that(static function () use ($plugin): void {
+            $plugin->resolve(Greeter::class, [])->value();
+        })->toThrow(LaravelBridgeError::class, matching: '/returned "stdClass".*Application::configure/s');
+    }
+
+    #[Test]
     public function anApplicationWithoutAConsoleKernelFailsLoudly(): void
     {
         $plugin = $this->track(new LaravelPlugin(
