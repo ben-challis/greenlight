@@ -28,6 +28,59 @@ final class WatchBuilderTest
     }
 
     #[Test]
+    public function accumulatesWatchInputsPatternsAndAFileLimit(): void
+    {
+        $configuration = new WatchBuilder()
+            ->paths('templates', 'config/app.yaml')
+            ->paths('migrations')
+            ->include('**/*.twig', '**/*.yaml')
+            ->include('**/*.sql')
+            ->exclude('build/**', 'var/greenlight/**')
+            ->maximumFiles(500)
+            ->toConfiguration();
+
+        Expect::that($configuration->paths)->toBe(['templates', 'config/app.yaml', 'migrations']);
+        Expect::that($configuration->includePatterns)->toBe(['**/*.twig', '**/*.yaml', '**/*.sql']);
+        Expect::that($configuration->excludePatterns)->toBe(['build/**', 'var/greenlight/**']);
+        Expect::that($configuration->maximumFiles)->toBe(500);
+    }
+
+    #[Test]
+    public function rejectsAnEmptyWatchPath(): void
+    {
+        Expect::that(static fn(): WatchBuilder => new WatchBuilder()->paths(''))
+            ->toThrow(InvalidConfiguration::class, message: 'Watch paths cannot contain an empty string.');
+    }
+
+    #[Test]
+    public function rejectsAnEmptyIncludePattern(): void
+    {
+        Expect::that(static fn(): WatchBuilder => new WatchBuilder()->include(''))
+            ->toThrow(InvalidConfiguration::class, message: 'Watch include patterns cannot contain an empty string.');
+    }
+
+    #[Test]
+    public function rejectsAnEmptyExcludePattern(): void
+    {
+        Expect::that(static fn(): WatchBuilder => new WatchBuilder()->exclude(''))
+            ->toThrow(InvalidConfiguration::class, message: 'Watch exclude patterns cannot contain an empty string.');
+    }
+
+    #[Test]
+    public function rejectsANullByteInAWatchPath(): void
+    {
+        Expect::that(static fn(): WatchBuilder => new WatchBuilder()->paths("templates\0private"))
+            ->toThrow(InvalidConfiguration::class, message: 'Watch paths cannot contain a null byte.');
+    }
+
+    #[Test]
+    public function rejectsANonPositiveFileLimit(): void
+    {
+        Expect::that(static fn(): WatchBuilder => new WatchBuilder()->maximumFiles(0))
+            ->toThrow(InvalidConfiguration::class, message: 'The watch file limit must be at least 1, got 0.');
+    }
+
+    #[Test]
     #[DataSet('nonPositiveDebounces')]
     public function theDebounceMustBePositive(int $milliseconds): void
     {

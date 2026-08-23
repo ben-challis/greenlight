@@ -249,6 +249,19 @@ Watch mode combines rapid save events. The default delay is 200 ms.
 
 Use the `watch()` configuration builder to change this delay.
 
+The builder can also watch non-PHP inputs:
+
+<!-- php-example {"example":"getting-started-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
+->watch(fn ($watch) => $watch
+    ->paths('templates', 'config')
+    ->include('**/*.twig', '**/*.yaml')
+    ->exclude('build/**', 'coverage/**'))
+```
+
+Relative paths and patterns use the command working directory. Exclusions have
+precedence and can prevent runs that generated artifacts would cause.
+
 ## Configure workers
 
 Tests run in parallel worker processes by default.

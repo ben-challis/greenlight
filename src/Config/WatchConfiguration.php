@@ -12,11 +12,32 @@ final readonly class WatchConfiguration
      */
     public int $debounceMilliseconds;
 
+    /** @var list<non-empty-string> */
+    public array $paths;
+
+    /** @var list<non-empty-string> */
+    public array $includePatterns;
+
+    /** @var list<non-empty-string> */
+    public array $excludePatterns;
+
+    /** @var positive-int */
+    public int $maximumFiles;
+
     /**
+     * @param array<mixed> $paths
+     * @param array<mixed> $includePatterns
+     * @param array<mixed> $excludePatterns
+     *
      * @throws InvalidConfiguration
      */
-    public function __construct(int $debounceMilliseconds = 200)
-    {
+    public function __construct(
+        int $debounceMilliseconds = 200,
+        array $paths = [],
+        array $includePatterns = [],
+        array $excludePatterns = [],
+        int $maximumFiles = 100_000,
+    ) {
         if ($debounceMilliseconds < 1) {
             throw new InvalidConfiguration(\sprintf(
                 'The watch debounce must be at least 1 millisecond, got %d.',
@@ -24,6 +45,41 @@ final readonly class WatchConfiguration
             ));
         }
 
+        if ($maximumFiles < 1) {
+            throw new InvalidConfiguration(\sprintf('The watch file limit must be at least 1, got %d.', $maximumFiles));
+        }
+
         $this->debounceMilliseconds = $debounceMilliseconds;
+        $this->paths = $this->validate($paths, 'Watch paths');
+        $this->includePatterns = $this->validate($includePatterns, 'Watch include patterns');
+        $this->excludePatterns = $this->validate($excludePatterns, 'Watch exclude patterns');
+        $this->maximumFiles = $maximumFiles;
+    }
+
+    /**
+     * @param array<mixed> $values
+     * @return list<non-empty-string>
+     * @throws InvalidConfiguration
+     */
+    private function validate(array $values, string $name): array
+    {
+        if (!\array_is_list($values)) {
+            throw new InvalidConfiguration($name . ' must be a list.');
+        }
+
+        $validated = [];
+        foreach ($values as $value) {
+            if (!\is_string($value) || $value === '') {
+                throw new InvalidConfiguration($name . ' must contain non-empty strings.');
+            }
+
+            if (\str_contains($value, "\0")) {
+                throw new InvalidConfiguration($name . ' cannot contain a null byte.');
+            }
+
+            $validated[] = $value;
+        }
+
+        return $validated;
     }
 }
