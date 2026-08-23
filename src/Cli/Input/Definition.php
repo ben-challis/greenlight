@@ -56,6 +56,8 @@ final readonly class Definition
           --resource-limit=<name>=<n>
                              Set a named resource limit. You can repeat this option.
           --bail[=<n>]       Stop after <n> failures (default 1)
+          --suite=<name>     Select a named suite. You can repeat this option.
+          --suite-tag=<tag>  Select suites with this tag. You can repeat this option.
           --group=<name>     Run only this group. You can repeat this option.
           --filter=<pattern> Run only tests with a matching test ID. Use a
                              substring or a full match with * wildcards.
@@ -124,6 +126,8 @@ final readonly class Definition
             new OptionSpec('workers', OptionValue::Required),
             new OptionSpec('resource-limit', OptionValue::Required, repeatable: true),
             new OptionSpec('bail', OptionValue::Optional),
+            new OptionSpec('suite', OptionValue::Required, repeatable: true),
+            new OptionSpec('suite-tag', OptionValue::Required, repeatable: true),
             new OptionSpec('group', OptionValue::Required, repeatable: true),
             new OptionSpec('filter', OptionValue::Required, repeatable: true),
             new OptionSpec('test-id', OptionValue::Required, repeatable: true),

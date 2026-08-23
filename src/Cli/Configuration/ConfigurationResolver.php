@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Configuration;
 
+use Greenlight\Cli\Input\CliError;
 use Greenlight\Config\Configuration;
 use Greenlight\Config\ExecutionConfiguration;
 use Greenlight\Config\ResolvedConfiguration;
@@ -27,6 +28,7 @@ final class ConfigurationResolver
     /** @codeCoverageIgnore */
     private function __construct() {}
 
+    /** @throws CliError */
     public static function resolve(Configuration $configuration, CliOverrides $overrides): ResolvedConfiguration
     {
         $executionOverrides = $overrides->execution;
@@ -38,6 +40,11 @@ final class ConfigurationResolver
 
         return new ResolvedConfiguration(
             discovery: $configuration->discovery,
+            suiteSelection: SuiteSelectionResolver::resolve(
+                $configuration->discovery,
+                $overrides->suiteNames,
+                $overrides->suiteTags,
+            ),
             workers: new WorkerConfiguration(
                 count: $executionOverrides->workers ?? $configuration->workers->count,
                 resourceLimits: \array_replace($configuration->workers->resourceLimits, $executionOverrides->resourceLimits),

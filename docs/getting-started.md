@@ -236,7 +236,7 @@ vendor/bin/greenlight run --watch
 ```
 
 Watch mode runs all selected tests at startup and after each file change. It
-watches configured test paths and coverage include paths.
+watches effective test paths and coverage include paths.
 
 Classes that failed in the previous watch iteration run first.
 
