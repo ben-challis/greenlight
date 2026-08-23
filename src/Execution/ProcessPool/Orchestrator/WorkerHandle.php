@@ -7,6 +7,7 @@ namespace Greenlight\Execution\ProcessPool\Orchestrator;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Text\Utf8;
+use Greenlight\Result\CapturedOutput;
 
 /**
  * Owns one native worker process, its protocol channel, and diagnostics.
@@ -16,6 +17,7 @@ use Greenlight\Internal\Text\Utf8;
 final class WorkerHandle
 {
     private const int MAX_DIAGNOSTIC_BYTES = 65_536;
+    private const int MAX_CAPTURE_BYTES = 1_048_576;
 
     public ?SocketChannel $channel = null;
 
@@ -27,6 +29,13 @@ final class WorkerHandle
 
     /** @var array{string, string} */
     private array $diagnosticCarry = ['', ''];
+
+    private bool $outputCaptureActive = false;
+    private bool $outputCaptureEnabled = false;
+    private string $capturedStdout = '';
+    private string $capturedStderr = '';
+    private bool $capturedStdoutTruncated = false;
+    private bool $capturedStderrTruncated = false;
 
     public readonly float $spawnedAt;
 
@@ -165,6 +174,14 @@ final class WorkerHandle
                     continue;
                 }
 
+                if ($this->outputCaptureActive) {
+                    if ($this->outputCaptureEnabled) {
+                        $this->appendCaptured($index, $bytes);
+                    }
+
+                    continue;
+                }
+
                 [$complete, $this->diagnosticCarry[$index]] = $this->completeUtf8Prefix(
                     $this->diagnosticCarry[$index] . $bytes,
                 );
@@ -182,6 +199,65 @@ final class WorkerHandle
                 }
             }
         });
+    }
+
+    public function startOutputCapture(bool $enabled): void
+    {
+        $this->drainPipes();
+        $this->outputCaptureActive = true;
+        $this->outputCaptureEnabled = $enabled;
+        $this->capturedStdout = '';
+        $this->capturedStderr = '';
+        $this->capturedStdoutTruncated = false;
+        $this->capturedStderrTruncated = false;
+    }
+
+    public function finishOutputCapture(): ?CapturedOutput
+    {
+        $this->drainPipes();
+
+        if (!$this->outputCaptureActive) {
+            return null;
+        }
+
+        $this->outputCaptureActive = false;
+
+        if (!$this->outputCaptureEnabled) {
+            $this->outputCaptureEnabled = false;
+
+            return null;
+        }
+
+        $this->outputCaptureEnabled = false;
+
+        return CapturedOutput::fromProcessDescriptors(
+            $this->capturedStdout,
+            $this->capturedStderr,
+            $this->capturedStdoutTruncated,
+            $this->capturedStderrTruncated,
+        );
+    }
+
+    private function appendCaptured(int $index, string $bytes): void
+    {
+        $property = $index === 0 ? 'capturedStdout' : 'capturedStderr';
+        $truncatedProperty = $index === 0 ? 'capturedStdoutTruncated' : 'capturedStderrTruncated';
+        $remaining = self::MAX_CAPTURE_BYTES - \strlen($this->{$property});
+
+        if ($remaining <= 0) {
+            $this->{$truncatedProperty} = $bytes !== '' || $this->{$truncatedProperty};
+
+            return;
+        }
+
+        if (\strlen($bytes) > $remaining) {
+            $this->{$property} .= \substr($bytes, 0, $remaining);
+            $this->{$truncatedProperty} = true;
+
+            return;
+        }
+
+        $this->{$property} .= $bytes;
     }
 
     /**

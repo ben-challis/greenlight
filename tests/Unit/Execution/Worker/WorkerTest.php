@@ -9,6 +9,7 @@ use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Execution\Worker\LeakDetector;
+use Greenlight\Execution\Worker\OutputSilencer;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\Scope;
@@ -169,6 +170,47 @@ final class WorkerTest
         Expect::that(TraceLog::drain())
             ->because('a cleanup failure MUST NOT prevent later callbacks')
             ->toBe(['first cleanup', 'failing cleanup', 'last cleanup']);
+    }
+
+    #[Test]
+    public function cleanupExpectationFailuresRemainSecondaryToTheTestError(): void
+    {
+        [, $results] = $this->runFixture('CleanupExpectationAfterError');
+
+        Expect::that($results[0]->outcome)->toBe(Outcome::Errored);
+        Expect::that($results[0]->error?->message)->toBe('test broke first');
+        Expect::that($results[0]->failures)->toHaveCount(1);
+        Expect::that($results[0]->failures[0]->expected)->toBe("'expected'");
+        Expect::that($results[0]->failures[0]->actual)->toBe("'actual'");
+    }
+
+    #[Test]
+    public function outputSilencerStartupFailuresAreContainedDuringClassClose(): void
+    {
+        $silencer = new OutputSilencer();
+        $silencer->start();
+        $silencer->stop();
+        $registered = new \ReflectionProperty(OutputSilencer::class, 'registered');
+        $registered->setValue(null, false);
+
+        try {
+            [, $results] = $this->runFixture('Captured');
+        } finally {
+            $registered->setValue(null, true);
+        }
+
+        $last = \array_pop($results);
+
+        if (!$last instanceof TestResult) {
+            throw new \RuntimeException('The output-silencer fixture produced no test result.');
+        }
+
+        Expect::that($last->outcome)
+            ->because('a class-close silencer failure MUST become a contained test error')
+            ->toBe(Outcome::Errored);
+        Expect::that($last->error?->message)
+            ->toBe('Output capture cannot attach to STDOUT and STDERR. '
+                . 'Use process-pool execution for descriptor capture.');
     }
 
     #[Test]

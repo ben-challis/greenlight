@@ -119,6 +119,11 @@ final class ProtocolError extends WireCommunicationFailed
         ));
     }
 
+    public static function attemptNotAcknowledged(): self
+    {
+        return new self('Worker did not receive an output-capture acknowledgement for its test attempt.');
+    }
+
     public static function workerNeverConnected(string $workerId, float $deadlineSeconds, string $diagnostics): self
     {
         $message = \sprintf(

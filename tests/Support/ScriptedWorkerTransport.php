@@ -12,6 +12,7 @@ use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
+use Greenlight\Result\CapturedOutput;
 
 /**
  * Runs deterministic worker scripts through the orchestrator transport seam.
@@ -164,6 +165,15 @@ final class ScriptedWorkerTransport implements Fake, WorkerTransport
     public function diagnostics(string $workerId): string
     {
         return '';
+    }
+
+    #[\Override]
+    public function startOutputCapture(string $workerId, bool $enabled): void {}
+
+    #[\Override]
+    public function finishOutputCapture(string $workerId): ?CapturedOutput
+    {
+        return null;
     }
 
     #[\Override]

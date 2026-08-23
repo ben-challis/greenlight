@@ -122,6 +122,26 @@ final readonly class TestResult
         return $this->with(attempts: $attempts);
     }
 
+    /** @internal */
+    public function withOutput(?CapturedOutput $output): self
+    {
+        return new self(
+            $this->id,
+            $this->outcome,
+            $this->durationSeconds,
+            $this->memoryDeltaBytes,
+            $this->attempts,
+            $this->failures,
+            $this->error,
+            $this->skipReason,
+            $this->transformations,
+            $output,
+            $this->risky,
+            $this->expectations,
+            $this->attachments,
+        );
+    }
+
     /**
      * Returns the same result with an error and the specified detail.
      *

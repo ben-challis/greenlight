@@ -8,7 +8,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
@@ -54,6 +53,8 @@ final readonly class WorkerFailureContainmentTest
                 {
                     static $attempt = 0;
                     ++$attempt;
+                    \fwrite(\STDOUT, 'attempt-' . $attempt . "\n");
+                    \fwrite(\STDERR, 'error-' . $attempt . "\n");
 
                     if ($attempt === 1) {
                         throw new \RuntimeException('retry me');
@@ -78,6 +79,8 @@ final readonly class WorkerFailureContainmentTest
         Expect::that($result->exitCode)->because('a crash on a retry preserves the attempt count')->toBe(1);
         Expect::that($finished->result->outcome)->toBe(Outcome::Errored);
         Expect::that($finished->result->attempts)->toBe(2);
+        Expect::that($finished->result->output?->stdout)->toBe("attempt-1\nattempt-2\n");
+        Expect::that($finished->result->output?->stderr)->toBe("error-1\nerror-2\n");
     }
 
     #[Test]
@@ -139,18 +142,12 @@ final readonly class WorkerFailureContainmentTest
             ->because('The diagnostic hard timeout did not emit TestFinished.')
             ->toBeInstanceOf(TestFinished::class);
 
-        $failure = $finished->result->failures[0] ?? null;
-
-        Expect::that($failure)
-            ->because('The diagnostic hard timeout did not report a failure.')
-            ->toBeInstanceOf(FailureDetail::class);
-
         Expect::that($result->exitCode)
             ->because('a hard timeout MUST fail the run')
             ->toBe(1);
-        Expect::that($failure->message)
-            ->because('a hard timeout MUST preserve the worker diagnostic output')
-            ->toContain("Worker output:\nThe timed-out worker emitted diagnostics.");
+        Expect::that($finished->result->output?->stderr)
+            ->because('a hard timeout MUST retain output with its test result')
+            ->toBe("The timed-out worker emitted diagnostics.\n");
     }
 
     /**

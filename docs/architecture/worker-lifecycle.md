@@ -39,20 +39,31 @@ connects as a client.
 Each message is a length-prefixed JSON frame: a 4-byte big-endian length
 followed by the JSON body. Frames are capped at 8 MiB. Greenlight rejects
 oversized or malformed frames as protocol errors. The JSON envelope contains a
-protocol version (`v`, currently `3`), a type tag, and the payload. Greenlight
+protocol version (`v`, currently `4`), a type tag, and the payload. Greenlight
 also rejects unknown versions and tags.
 
-The [version 3 schema](../../resources/schema/worker-protocol-v3.schema.json)
+The [version 4 schema](../../resources/schema/worker-protocol-v4.schema.json)
 specifies each envelope and payload that Greenlight sends.
 
 The socket carries all protocol data. The native adapter closes worker stdin
-after process start. It drains stdout and stderr into a small bounded buffer.
-The orchestrator requests this output for a crash report. Test results never
-travel over stdio, so test output cannot corrupt the protocol.
+after process start. Worker standard output and standard error are data pipes,
+not protocol channels. Thus, test output cannot become a protocol frame.
+
+Before each attempt, the worker sends `attempt-started`. The orchestrator then
+starts bounded capture on both process descriptors and sends `attempt-ready`.
+The worker does not start test code before this acknowledgement. When the
+orchestrator receives `TestFinished`, it drains and closes the capture window
+before it emits the event. This handshake gives each synchronous descriptor
+write a deterministic owner.
+
+Each stream has an independent 1 MiB limit and truncation flag. The adapter
+retains raw bytes up to the limit. It converts the data to valid UTF-8 before it
+adds the data to a result. If capture is disabled, the adapter drains and
+discards both streams during the attempt.
 
 ## The messages
 
-Nine message types cross the socket:
+Ten message types cross the socket:
 
 | Tag | Direction | Payload |
 | --- | --- | --- |
@@ -61,7 +72,8 @@ Nine message types cross the socket:
 | `ready` | worker to orchestrator | bootstrap acknowledgement |
 | `assign` | orchestrator to worker | a plan slice (test classes to run), remaining failure allowance, coverage settings, leak detection flag, result policy, artifact session and limits |
 | `event` | worker to orchestrator | one test event: class started, test started, test finished, class finished |
-| `attempt-started` | worker to orchestrator | active test ID and attempt number for a crash report |
+| `attempt-started` | worker to orchestrator | active test ID, attempt number, and capture setting |
+| `attempt-ready` | orchestrator to worker | output-capture acknowledgement |
 | `done` | worker to orchestrator | result summary, peak memory, coverage, detected leaks |
 | `drain` | orchestrator to worker | no payload (request for a clean worker exit) |
 | `fatal` | worker to orchestrator | details of a throwable that the worker could not contain |
@@ -304,9 +316,27 @@ stateDiagram-v2
 ### Crashes
 
 If a worker dies mid-assignment, the orchestrator reports its in-flight test as
-errored and attaches the tail of the worker's stderr. It returns the rest of the
-assignment to the queue. It does not re-queue the crashed test because a test
-that kills its process would kill each replacement in turn.
+errored. It drains the active output window and adds its standard output and
+standard error to the result. It returns the rest of the assignment to the
+queue. It does not re-queue the crashed test because a test that kills its
+process would kill each replacement in turn.
+
+The capture window starts before constructor injection. It contains attempt
+runners, test subscribers, hooks, the test method, and cleanup. It also contains
+test-scope disposal, retry decisions, and class-scope disposal that belongs to
+the test. Output from a failed attempt remains in the result after a later
+attempt passes.
+
+Output from a child process is attributable only when the child
+inherits the worker descriptors and completes before the capture window closes.
+A background child that writes after this boundary produces worker diagnostics.
+Greenlight does not assign that output to a completed test.
+
+An in-process run cannot redirect native process descriptors without also
+redirecting reporter output. It uses PHP stream filters instead. This method
+captures `echo`, `print`, diagnostics, and writes through PHP's `STDOUT` and
+`STDERR` resources. It does not capture output from inherited child processes.
+The public `OutputCaptureCapability` value makes this limit explicit.
 
 ### Timeouts
 

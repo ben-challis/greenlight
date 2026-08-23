@@ -13,14 +13,15 @@ Namespace: `Greenlight\Result`
 When output is too long, Greenlight keeps the first part. This part usually
 identifies the cause. The last part usually contains repeated information.
 
-Greenlight converts captured standard output to valid UTF-8 before it adds
-the output to a test result.
+Greenlight keeps at most 1 MiB from each standard stream and 1,000
+diagnostics. It converts captured stream data to valid UTF-8 before it adds
+the data to a test result.
 
 ```php
 final readonly class CapturedOutput
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L19)
 
 ### `$diagnostics`
 
@@ -32,7 +33,7 @@ PHPDoc:
 
 - `@var list<Diagnostic>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L28)
 
 ### `$stdout`
 
@@ -40,7 +41,7 @@ PHPDoc:
 public string $stdout
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L36)
 
 ### `$stdoutTruncated`
 
@@ -48,7 +49,7 @@ public string $stdout
 public bool $stdoutTruncated
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L38)
 
 ### `$diagnosticsTruncated`
 
@@ -56,7 +57,31 @@ public bool $stdoutTruncated
 public bool $diagnosticsTruncated
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L34)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L39)
+
+### `$stderr`
+
+```php
+public string $stderr
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L40)
+
+### `$stderrTruncated`
+
+```php
+public bool $stderrTruncated
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L41)
+
+### `$capability`
+
+```php
+public OutputCaptureCapability $capability
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L42)
 
 ### `__construct()`
 
@@ -66,6 +91,9 @@ public function __construct(
     array $diagnostics = [],
     public bool $stdoutTruncated = false,
     public bool $diagnosticsTruncated = false,
+    public string $stderr = '',
+    public bool $stderrTruncated = false,
+    public OutputCaptureCapability $capability = OutputCaptureCapability::Buffered,
 )
 ```
 
@@ -74,7 +102,7 @@ PHPDoc:
 - `@param array<mixed> $diagnostics`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L35)
 
 ## `Diagnostic`
 
@@ -366,6 +394,49 @@ PHPDoc:
 - `@throws \InvalidArgumentException`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutcomeTransformation.php#L21)
+
+## `OutputCaptureCapability`
+
+Namespace: `Greenlight\Result`
+
+Identifies the stream writes that Greenlight could capture for a result.
+
+`Buffered` contains PHP output-buffer content and diagnostics only.
+`PhpStreams` also contains writes through the PHP `STDOUT` and `STDERR`
+resources.
+
+`ProcessDescriptors` also contains safely attributed writes from child
+processes that inherited the worker descriptors.
+
+```php
+enum OutputCaptureCapability: string
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutputCaptureCapability.php#L17)
+
+### `Buffered`
+
+```php
+case Buffered = 'buffered';
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutputCaptureCapability.php#L19)
+
+### `PhpStreams`
+
+```php
+case PhpStreams = 'php-streams';
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutputCaptureCapability.php#L20)
+
+### `ProcessDescriptors`
+
+```php
+case ProcessDescriptors = 'process-descriptors';
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutputCaptureCapability.php#L21)
 
 ## `ResultSummary`
 

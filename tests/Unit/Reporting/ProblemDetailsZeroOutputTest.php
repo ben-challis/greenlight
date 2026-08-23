@@ -27,6 +27,6 @@ final class ProblemDetailsZeroOutputTest
 
         Expect::that(ProblemDetails::render($result))
             ->because('captured output MUST preserve the string "0"')
-            ->toBe("  captured output:\n    0\n");
+            ->toBe("  captured standard output:\n    0\n");
     }
 }

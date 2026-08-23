@@ -15,6 +15,7 @@ use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Result\CapturedOutput;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
@@ -45,11 +46,12 @@ final readonly class Worker
         private ?LeakDetector $leakDetector = null,
         private string $workerId = '',
         private ?ArtifactStore $artifactStore = null,
+        private OutputRouting $outputRouting = OutputRouting::CapturePhpStreams,
     ) {}
 
     /**
      * @param \Closure(): bool|null $drainRequested polled between tests
-     * @param \Closure(TestId, positive-int): void|null $attemptStarted reports retry progress for crash containment
+     * @param \Closure(TestId, positive-int, bool): void|null $attemptStarted reports retry progress and output capture
      *
      * @throws WorkerError
      */
@@ -100,8 +102,11 @@ final readonly class Worker
                         $this->leakDetector,
                         $this->artifactStore,
                         $attemptStarted,
+                        $this->outputRouting,
                     );
                     $result = $executor->execute($entry);
+                } catch (AttemptStartFailed $failure) {
+                    throw $failure;
                 } catch (\Throwable $threw) {
                     $result = new TestResult(
                         $entry->id,
@@ -120,7 +125,7 @@ final readonly class Worker
                 $drainReached = $drainRequested instanceof \Closure && $drainRequested();
 
                 if ($index === $lastIndex || $failureLimitReached || $drainReached) {
-                    $result = HarnessServiceDisposal::applyToTest($result, $scopes->closeClass());
+                    $result = $this->closeClassScope($result, $scopes, $entry->definition->execution->capture);
                 }
 
                 $summary = $summary->add($result->outcome);
@@ -161,5 +166,48 @@ final readonly class Worker
         }
 
         return HarnessServiceDisposal::runAndClose($scopes, static fn(): WorkerRunOutcome => $outcome);
+    }
+
+    private function closeClassScope(TestResult $result, HarnessScopes $scopes, bool $captureEnabled): TestResult
+    {
+        if ($this->outputRouting === OutputRouting::ForwardToProcess) {
+            return HarnessServiceDisposal::applyToTest($result, $scopes->closeClass());
+        }
+
+        $capture = $captureEnabled ? new OutputCapture() : null;
+        $silencer = $captureEnabled ? null : new OutputSilencer();
+
+        try {
+            $capture?->start();
+            $silencer?->start();
+        } catch (\Throwable $threw) {
+            return HarnessServiceDisposal::applyToTest(
+                $result->erroredBy(ThrowableDetail::fromThrowable($threw)),
+                $scopes->closeClass(),
+            );
+        }
+
+        $output = null;
+        $stopFailure = null;
+
+        try {
+            $result = HarnessServiceDisposal::applyToTest($result, $scopes->closeClass());
+        } finally {
+            try {
+                try {
+                    $output = $capture?->stop();
+                } catch (\Throwable $threw) {
+                    $stopFailure = $threw;
+                }
+            } finally {
+                $silencer?->stop();
+            }
+        }
+
+        $result = $result->withOutput(CapturedOutput::merge($result->output, $output));
+
+        return $stopFailure instanceof \Throwable
+            ? $result->erroredBy(ThrowableDetail::fromThrowable($stopFailure))
+            : $result;
     }
 }

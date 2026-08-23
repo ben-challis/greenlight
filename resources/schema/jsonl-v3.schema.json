@@ -297,12 +297,15 @@
             "required": ["stdout", "diagnostics", "stdoutTruncated", "diagnosticsTruncated"],
             "properties": {
                 "stdout": {"type": "string"},
+                "stderr": {"type": "string"},
                 "diagnostics": {
                     "type": "array",
                     "items": {"$ref": "#/definitions/diagnostic"}
                 },
                 "stdoutTruncated": {"type": "boolean"},
-                "diagnosticsTruncated": {"type": "boolean"}
+                "stderrTruncated": {"type": "boolean"},
+                "diagnosticsTruncated": {"type": "boolean"},
+                "capability": {"enum": ["buffered", "php-streams", "process-descriptors"]}
             }
         },
         "diagnostic": {

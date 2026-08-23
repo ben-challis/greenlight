@@ -13,6 +13,7 @@ use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptReady;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Bootstrap;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
@@ -25,6 +26,7 @@ use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
 use Greenlight\Execution\Worker\ChannelEnvironment;
 use Greenlight\Execution\Worker\HarnessServiceDisposal;
 use Greenlight\Execution\Worker\LeakDetector;
+use Greenlight\Execution\Worker\OutputRouting;
 use Greenlight\Execution\Worker\ResultPolicyPlugin;
 use Greenlight\Execution\Worker\StandardHarnessPlugin;
 use Greenlight\Execution\Worker\Worker;
@@ -265,14 +267,21 @@ final readonly class WorkerProcess
                 $leakDetector,
                 $workerId,
                 $artifactStore,
+                OutputRouting::ForwardToProcess,
             )->run(
                 $message->slice,
                 new SocketEventSink($channel),
                 $message->stopAfterFailures,
                 static fn(): bool => $channel->poll() instanceof Drain,
                 $scopes,
-                static function (TestId $id, int $attempt) use ($channel): void {
-                    $channel->send(new AttemptStarted($id, $attempt));
+                static function (TestId $id, int $attempt, bool $capture) use ($channel): void {
+                    $channel->send(new AttemptStarted($id, $attempt, $capture));
+
+                    $ready = $channel->receive(self::RECEIVE_POLL_SECONDS);
+
+                    if (!$ready instanceof AttemptReady) {
+                        throw ProtocolError::attemptNotAcknowledged();
+                    }
                 },
             );
 

@@ -88,7 +88,7 @@ final class OrchestratorTest
                 [, , $address, $workerId, $token] = $argv;
                 $socket = stream_socket_client($address);
                 $json = json_encode([
-                    'v' => 3,
+                    'v' => 4,
                     't' => 'hello',
                     'p' => [
                         'workerId' => $workerId,
@@ -168,7 +168,7 @@ final class OrchestratorTest
         $script = <<<'PHP'
             [, , $address, $workerId, $token] = $argv;
             $socket = stream_socket_client($address);
-            $json = json_encode(['v' => 3, 't' => 'hello', 'p' => ['workerId' => $workerId, 'token' => $token, 'pid' => getmypid()]]);
+            $json = json_encode(['v' => 4, 't' => 'hello', 'p' => ['workerId' => $workerId, 'token' => $token, 'pid' => getmypid()]]);
             fwrite($socket, pack('N', strlen($json)) . $json);
             fflush($socket);
             sleep(60);
@@ -298,12 +298,11 @@ final class OrchestratorTest
         Expect::that($results)
             ->toHaveCount(1);
         Expect::that($results[0]->error?->message)
-            ->because('the synthetic error MUST preserve the worker diagnostic output')
-            ->toBe(
-                "Worker \"w-1\" crashed during this test: the worker process exited unexpectedly.\n"
-                . "Worker output:\nThe worker emitted crash diagnostics.",
-            );
+            ->toBe('Worker "w-1" crashed during this test: the worker process exited unexpectedly.');
         Expect::that($results[0]->error?->class)->toBe(WorkerError::class);
+        Expect::that($results[0]->output?->stderr)
+            ->because('the synthetic result MUST preserve worker standard error')
+            ->toBe("The worker emitted crash diagnostics.\n");
     }
 
     #[Test]
@@ -344,7 +343,7 @@ final class OrchestratorTest
 
     #[Test]
     #[Timeout(30.0)]
-    public function crashedWorkerKeepsACompleteUnicodeDiagnosticTail(): void
+    public function crashedWorkerKeepsCompleteUnicodeDiagnosticOutput(): void
     {
         $root = \dirname(__DIR__, 5);
         $sink = new CollectingEventSink();
@@ -363,12 +362,11 @@ final class OrchestratorTest
             ->because('a worker crash MUST produce one synthetic test result')
             ->toHaveCount(1);
         Expect::that($results[0]->error?->message)
-            ->because('the diagnostic tail MUST contain only complete Unicode characters within its byte limit')
-            ->toBe(
-                "Worker \"w-1\" crashed during this test: the worker process exited unexpectedly.\n"
-                . "Worker output:\n"
-                . \str_repeat('y', 2046),
-            );
+            ->toBe('Worker "w-1" crashed during this test: the worker process exited unexpectedly.');
+        Expect::that($results[0]->output?->stderr)
+            ->because('captured standard error MUST contain complete Unicode characters')
+            ->toBe('xx€' . \str_repeat('y', 2046));
+        Expect::that($results[0]->output?->stderrTruncated)->toBeFalse();
     }
 
     private function plan(): ExecutionPlan

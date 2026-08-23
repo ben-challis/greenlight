@@ -7,6 +7,7 @@ namespace Greenlight\Execution\ProcessPool\Orchestrator;
 use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
+use Greenlight\Result\CapturedOutput;
 
 /**
  * Controls worker processes and carries protocol messages for an orchestrator.
@@ -57,6 +58,12 @@ interface WorkerTransport
 
     /** @param non-empty-string $workerId */
     public function diagnostics(string $workerId): string;
+
+    /** @param non-empty-string $workerId */
+    public function startOutputCapture(string $workerId, bool $enabled): void;
+
+    /** @param non-empty-string $workerId */
+    public function finishOutputCapture(string $workerId): ?CapturedOutput;
 
     public function close(): void;
 }

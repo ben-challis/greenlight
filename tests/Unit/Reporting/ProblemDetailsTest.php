@@ -35,15 +35,23 @@ final class ProblemDetailsTest
             transformations: [
                 new OutcomeTransformation('quarantine', Outcome::Passed, Outcome::Failed),
             ],
-            output: new CapturedOutput("first line\nsecond line\n", stdoutTruncated: true),
+            output: new CapturedOutput(
+                "first line\nsecond line\n",
+                stdoutTruncated: true,
+                stderr: "error line\n",
+                stderrTruncated: true,
+            ),
         );
 
         $expected = <<<'TXT'
               after 3 attempts
               outcome changed from passed to failed by quarantine
-              captured output:
+              captured standard output:
                 first line
                 second line
+                (truncated)
+              captured standard error:
+                error line
                 (truncated)
             TXT;
 
@@ -90,7 +98,7 @@ final class ProblemDetailsTest
               expected: 42
               actual: 41
               at FailureTest.php:12
-              captured output:
+              captured standard output:
                 captured
               warning: careful at FailureTest.php:13
               attachments:
@@ -125,6 +133,25 @@ final class ProblemDetailsTest
                 "  warning: first warning at FailureTest.php:13\n"
                 . "  additional diagnostics omitted\n",
             );
+    }
+
+    #[Test]
+    public function emptyTruncatedStreamsStillReportTheirLimits(): void
+    {
+        $result = new TestResult(
+            new TestId('Acme\\FailureTest', 'reportsEmptyTruncatedStreams'),
+            Outcome::Failed,
+            0.1,
+            0,
+            output: new CapturedOutput('', stdoutTruncated: true, stderrTruncated: true),
+        );
+
+        Expect::that(ProblemDetails::render($result))->toBe(
+            "  captured standard output:\n"
+            . "    (truncated)\n"
+            . "  captured standard error:\n"
+            . "    (truncated)\n",
+        );
     }
 
     #[Test]

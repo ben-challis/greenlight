@@ -236,6 +236,7 @@ When present, it has this shape:
 ```json id="w4mt8a"
 {
     "stdout": "...",
+    "stderr": "...",
     "diagnostics": [
         {
             "severity": "warning",
@@ -245,13 +246,19 @@ When present, it has this shape:
         }
     ],
     "stdoutTruncated": false,
-    "diagnosticsTruncated": false
+    "stderrTruncated": false,
+    "diagnosticsTruncated": false,
+    "capability": "process-descriptors"
 }
 ```
 
 `severity` is one of `notice`, `warning`, or `deprecation`.
 
-The two output flags show that output capture reached its size limit.
+The three output flags show that output capture reached its size limit.
+`capability` is `buffered`, `php-streams`, or `process-descriptors`. Readers of
+version 3 MUST accept output objects that do not have `stderr`,
+`stderrTruncated`, or `capability`. These additive fields do not change the
+JSONL version.
 
 ### risky
 

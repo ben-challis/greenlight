@@ -19,20 +19,33 @@ bool $capture = true
 
 Marks a public method as a test.
 
-Greenlight enables output capture by default. It records output from PHP's
-output buffer, such as `echo` and `print`. It also records notices, warnings,
-and deprecations from the test. Reporters can associate this output with its
-test.
+Greenlight enables output capture by default. It records `echo`, `print`, PHP
+diagnostics, and direct writes to the PHP `STDOUT` and `STDERR` resources. It
+keeps standard output and standard error separate. The limit is 1 MiB for each
+stream and 1,000 diagnostics for each test. A result has a separate truncation
+flag for each limit.
 
-Direct writes to the `STDOUT` and `STDERR` stream resources bypass PHP's output
-buffer. Greenlight does not capture these writes. They can also interfere with
-terminal output. Do not use these resources for test diagnostics. Use test
-attachments to retain diagnostic content. See [test
-attachments](attachments.md).
+In a process-pool run, Greenlight captures the worker process descriptors. It
+also captures writes from a child process that inherits these descriptors and
+finishes inside the active test boundary. In an in-process run, Greenlight can
+capture only writes that use the PHP stream resources. It cannot capture writes
+from an inherited child process. The result's `capability` value identifies the
+capture method. See [Result API](api-results.md#outputcapturecapability).
+
+If PHP cannot install its required stream filters, Greenlight reports a capture
+error for the test. It does not report that direct-write capture succeeded.
+
+The capture boundary starts before constructor injection. It contains attempt
+runners, test subscribers, hooks, the test method, and cleanup callbacks. It
+also contains test-scope disposal and retry decisions. The boundary contains
+class-scope disposal that Greenlight assigns to the test. Greenlight retains
+output from a failed attempt when it retries the test.
 
 Set `capture: false` only when a test needs to control PHP's output buffer or
 error handler itself. With capture disabled, Greenlight does not record output
-or diagnostics for that test.
+or diagnostics for that test. Greenlight discards direct stream writes while
+the test is active. Thus, these writes cannot corrupt reporter or protocol
+output.
 
 <!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php

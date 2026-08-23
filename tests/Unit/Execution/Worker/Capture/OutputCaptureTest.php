@@ -8,8 +8,11 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Worker\CaptureError;
 use Greenlight\Execution\Worker\OutputCapture;
+use Greenlight\Execution\Worker\OutputRouting;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\CapturedOutput;
 use Greenlight\Result\DiagnosticSeverity;
+use Greenlight\Result\OutputCaptureCapability;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\PhpSubprocess;
 
@@ -36,6 +39,60 @@ final readonly class OutputCaptureTest
         Expect::that($captured->stdout)->because('echo inside the window is captured and does not reach the outer stream')->toBe('hello from the test');
         Expect::that($captured->stdoutTruncated)->toBeFalse();
         Expect::that($leaked)->toBe('');
+    }
+
+    #[Test]
+    public function directPhpStreamWritesRemainSeparateAndOrderedWithBufferedOutput(): void
+    {
+        $captured = $this->standaloneCapture(<<<'PHP_WRAP'
+            $capture = new Greenlight\Execution\Worker\OutputCapture();
+            $capture->start();
+            fwrite(STDOUT, 'stdout-a');
+            fwrite(STDERR, 'stderr-a');
+            echo '-echo';
+            fwrite(STDERR, '-stderr-b');
+            fwrite(STDOUT, '-stdout-b');
+            PHP_WRAP);
+
+        Expect::that($captured->stdout)->toBe('stdout-a-echo-stdout-b');
+        Expect::that($captured->stderr)->toBe('stderr-a-stderr-b');
+        Expect::that($captured->stdoutTruncated)->toBeFalse();
+        Expect::that($captured->stderrTruncated)->toBeFalse();
+        Expect::that($captured->capability)->toBe(OutputCaptureCapability::PhpStreams);
+    }
+
+    #[Test]
+    public function standardStreamsHaveIndependentStrictByteBounds(): void
+    {
+        $captured = $this->standaloneCapture(<<<'PHP_WRAP'
+            $capture = new Greenlight\Execution\Worker\OutputCapture(maxStdoutBytes: 4, maxStderrBytes: 3);
+            $capture->start();
+            fwrite(STDOUT, '12345');
+            fwrite(STDERR, 'abc');
+            PHP_WRAP);
+
+        Expect::that($captured->stdout)->toBe('1234');
+        Expect::that($captured->stderr)->toBe('abc');
+        Expect::that($captured->stdoutTruncated)->toBeTrue();
+        Expect::that($captured->stderrTruncated)->toBeFalse();
+    }
+
+    #[Test]
+    public function binaryBytesInDirectStreamsAreScrubbedWithoutExceedingTheBounds(): void
+    {
+        $captured = $this->standaloneCapture(<<<'PHP_WRAP'
+            $capture = new Greenlight\Execution\Worker\OutputCapture(maxStdoutBytes: 4, maxStderrBytes: 4);
+            $capture->start();
+            fwrite(STDOUT, "a\xFFb");
+            fwrite(STDERR, "c\xFFd");
+            PHP_WRAP);
+
+        Expect::that($captured->stdout)->toBe("a\u{FFFD}");
+        Expect::that($captured->stderr)->toBe("c\u{FFFD}");
+        Expect::that(\strlen($captured->stdout))->toBeLessThan(5);
+        Expect::that(\strlen($captured->stderr))->toBeLessThan(5);
+        Expect::that($captured->stdoutTruncated)->toBeTrue();
+        Expect::that($captured->stderrTruncated)->toBeTrue();
     }
 
     #[Test]
@@ -351,6 +408,38 @@ final readonly class OutputCaptureTest
     }
 
     #[Test]
+    public function snapshotWithoutStartingThrows(): void
+    {
+        Expect::that(static fn(): CapturedOutput => new OutputCapture()->snapshot())
+            ->toThrow(CaptureError::class, '/not active.*start\(\)/');
+    }
+
+    #[Test]
+    public function duplicateFilterRegistrationRestoresTheErrorHandler(): void
+    {
+        $capture = new OutputCapture();
+        $capture->start();
+        $capture->stop();
+        $registered = new \ReflectionProperty(OutputCapture::class, 'streamFilterRegistered');
+        $baselineHandler = $this->activeErrorHandler();
+        $registered->setValue(null, false);
+
+        try {
+            Expect::that(static fn() => new OutputCapture()->start())
+                ->toThrow(
+                    CaptureError::class,
+                    message: 'Output capture cannot attach to STDOUT and STDERR. '
+                        . 'Use process-pool execution for descriptor capture.',
+                );
+            Expect::that($this->activeErrorHandler())
+                ->because('a filter setup failure MUST restore the previous error handler')
+                ->toBe($baselineHandler);
+        } finally {
+            $registered->setValue(null, true);
+        }
+    }
+
+    #[Test]
     public function startingTwiceThrows(): void
     {
         $capture = new OutputCapture();
@@ -402,22 +491,60 @@ final readonly class OutputCaptureTest
     public function nonPositiveBoundsAreRejected(
         int $maxStdoutBytes,
         int $maxDiagnostics,
+        int $maxStderrBytes,
         string $message,
     ): void {
-        Expect::that(static fn(): OutputCapture => new OutputCapture($maxStdoutBytes, $maxDiagnostics))
+        Expect::that(static fn(): OutputCapture => new OutputCapture(
+            $maxStdoutBytes,
+            $maxDiagnostics,
+            $maxStderrBytes,
+            OutputRouting::CapturePhpStreams,
+        ))
             ->because('output capture bounds MUST be positive')
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }
 
     /**
-     * @return iterable<string, array{int, int, non-empty-string}>
+     * @return iterable<string, array{int, int, int, non-empty-string}>
      */
     public static function nonPositiveBounds(): iterable
     {
-        yield 'zero stdout bound' => [0, 1, 'Stdout bound must be at least 1 byte, got 0.'];
-        yield 'negative stdout bound' => [-1, 1, 'Stdout bound must be at least 1 byte, got -1.'];
-        yield 'zero diagnostics bound' => [1, 0, 'Diagnostics bound must be at least 1 entry, got 0.'];
-        yield 'negative diagnostics bound' => [1, -1, 'Diagnostics bound must be at least 1 entry, got -1.'];
+        yield 'zero stdout bound' => [0, 1, 1, 'Stdout bound must be at least 1 byte, got 0.'];
+        yield 'negative stdout bound' => [-1, 1, 1, 'Stdout bound must be at least 1 byte, got -1.'];
+        yield 'zero diagnostics bound' => [1, 0, 1, 'Diagnostics bound must be at least 1 entry, got 0.'];
+        yield 'negative diagnostics bound' => [1, -1, 1, 'Diagnostics bound must be at least 1 entry, got -1.'];
+        yield 'zero stderr bound' => [1, 1, 0, 'Stderr bound must be at least 1 byte, got 0.'];
+        yield 'negative stderr bound' => [1, 1, -1, 'Stderr bound must be at least 1 byte, got -1.'];
+    }
+
+    private function standaloneCapture(string $setup): CapturedOutput
+    {
+        $root = \dirname(__DIR__, 5);
+        $process = PhpSubprocess::run($root, [
+            '-r',
+            \sprintf(
+                "require \$argv[1];\n%s\n\$captured = \$capture->stop();\necho json_encode(\$captured->toWire(), JSON_THROW_ON_ERROR);",
+                $setup,
+            ),
+            $root . '/vendor/autoload.php',
+        ]);
+        $payload = \json_decode($process->stdout, true, flags: \JSON_THROW_ON_ERROR);
+
+        if (!\is_array($payload)) {
+            throw new \RuntimeException('The capture subprocess did not return a wire payload.');
+        }
+
+        $wire = [];
+
+        foreach ($payload as $key => $value) {
+            if (!\is_string($key)) {
+                throw new \RuntimeException('The capture subprocess returned an invalid wire payload.');
+            }
+
+            $wire[$key] = $value;
+        }
+
+        return CapturedOutput::fromWire($wire);
     }
 
     /** @return (callable(int, string, string, int): bool)|null */

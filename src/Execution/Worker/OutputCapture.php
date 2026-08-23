@@ -10,11 +10,9 @@ use Greenlight\Internal\Text\Utf8;
 use Greenlight\Result\CapturedOutput;
 use Greenlight\Result\Diagnostic;
 use Greenlight\Result\DiagnosticSeverity;
+use Greenlight\Result\OutputCaptureCapability;
 
 /**
- * Direct writes to stream resources bypass output capture. Examples include
- * fwrite(STDERR, ...) and fwrite(STDOUT, ...).
- *
  * If output is too long, Greenlight keeps the first part. This part usually
  * contains useful error information. The final part frequently contains
  * repeated information. Greenlight removes a partial multibyte character at
@@ -25,10 +23,20 @@ use Greenlight\Result\DiagnosticSeverity;
 final class OutputCapture
 {
     private const int DEFAULT_MAX_STDOUT_BYTES = 1_048_576;
+    private const int DEFAULT_MAX_STDERR_BYTES = 1_048_576;
     private const int DEFAULT_MAX_DIAGNOSTICS = 1_000;
+    private const string STREAM_FILTER = 'greenlight.output-capture';
 
-    private string $stdout = '';
-    private bool $stdoutTruncated = false;
+    private static bool $streamFilterRegistered = false;
+
+    private OutputStreamBuffer $stdout;
+    private OutputStreamBuffer $stderr;
+
+    /** @var resource|null */
+    private mixed $stdoutFilter = null;
+
+    /** @var resource|null */
+    private mixed $stderrFilter = null;
 
     /** @var list<Diagnostic> */
     private array $diagnostics = [];
@@ -44,6 +52,8 @@ final class OutputCapture
     public function __construct(
         private readonly int $maxStdoutBytes = self::DEFAULT_MAX_STDOUT_BYTES,
         private readonly int $maxDiagnostics = self::DEFAULT_MAX_DIAGNOSTICS,
+        private readonly int $maxStderrBytes = self::DEFAULT_MAX_STDERR_BYTES,
+        private readonly OutputRouting $routing = OutputRouting::CapturePhpStreams,
     ) {
         if ($maxStdoutBytes < 1) {
             throw new \InvalidArgumentException(\sprintf('Stdout bound must be at least 1 byte, got %d.', $maxStdoutBytes));
@@ -52,6 +62,13 @@ final class OutputCapture
         if ($maxDiagnostics < 1) {
             throw new \InvalidArgumentException(\sprintf('Diagnostics bound must be at least 1 entry, got %d.', $maxDiagnostics));
         }
+
+        if ($maxStderrBytes < 1) {
+            throw new \InvalidArgumentException(\sprintf('Stderr bound must be at least 1 byte, got %d.', $maxStderrBytes));
+        }
+
+        $this->stdout = new OutputStreamBuffer($maxStdoutBytes);
+        $this->stderr = new OutputStreamBuffer($maxStderrBytes);
     }
 
     /**
@@ -66,8 +83,8 @@ final class OutputCapture
             throw CaptureError::alreadyStarted();
         }
 
-        $this->stdout = '';
-        $this->stdoutTruncated = false;
+        $this->stdout = new OutputStreamBuffer($this->maxStdoutBytes);
+        $this->stderr = new OutputStreamBuffer($this->maxStderrBytes);
         $this->diagnostics = [];
         $this->diagnosticsTruncated = false;
         $this->bufferClosed = false;
@@ -87,6 +104,10 @@ final class OutputCapture
         $this->errorHandler = $handler;
         \set_error_handler($handler);
 
+        if ($this->routing === OutputRouting::CapturePhpStreams) {
+            $this->attachStreamFilters();
+        }
+
         \ob_start($this->handleChunk(...), 1);
         $this->bufferLevel = \ob_get_level();
     }
@@ -95,6 +116,10 @@ final class OutputCapture
     {
         if (($phase & \PHP_OUTPUT_HANDLER_FINAL) !== 0) {
             $this->bufferClosed = true;
+        }
+
+        if ($this->routing === OutputRouting::ForwardToProcess) {
+            return $chunk;
         }
 
         return $this->appendChunk($chunk);
@@ -121,6 +146,7 @@ final class OutputCapture
             $removed = ErrorTrap::run(static fn() => \ob_end_flush());
 
             if (!$removed || \ob_get_level() >= $previousLevel) {
+                $this->removeStreamFilters();
                 $this->restoreErrorHandler();
 
                 throw CaptureError::nestedBufferCannotBeRemoved();
@@ -128,27 +154,53 @@ final class OutputCapture
         }
 
         if (!$this->bufferClosed && \ob_get_level() === $level) {
-            \ob_end_clean();
+            if ($this->routing === OutputRouting::ForwardToProcess) {
+                \ob_end_flush();
+            } else {
+                \ob_end_clean();
+            }
         }
 
+        $this->removeStreamFilters();
         $this->restoreErrorHandler();
 
-        $scrubbedStdout = Utf8::scrub($this->stdout);
-        $boundedStdout = Utf8::headBytes($scrubbedStdout, $this->maxStdoutBytes);
-        $this->stdoutTruncated = $this->stdoutTruncated
-            || \strlen($boundedStdout) < \strlen($scrubbedStdout);
+        $captured = $this->snapshot();
 
-        $captured = new CapturedOutput(
-            $boundedStdout,
-            $this->diagnostics,
-            $this->stdoutTruncated,
-            $this->diagnosticsTruncated,
-        );
-
-        $this->stdout = '';
+        $this->stdout = new OutputStreamBuffer($this->maxStdoutBytes);
+        $this->stderr = new OutputStreamBuffer($this->maxStderrBytes);
         $this->diagnostics = [];
 
         return $captured;
+    }
+
+    /**
+     * Returns the output recorded so far without closing the capture window.
+     *
+     * @internal
+     * @throws CaptureError when no capture window is active
+     */
+    public function snapshot(): CapturedOutput
+    {
+        if ($this->bufferLevel === null && !$this->bufferClosed) {
+            throw CaptureError::notStarted();
+        }
+
+        $scrubbedStdout = Utf8::scrub($this->stdout->bytes);
+        $scrubbedStderr = Utf8::scrub($this->stderr->bytes);
+        $boundedStdout = Utf8::headBytes($scrubbedStdout, $this->maxStdoutBytes);
+        $boundedStderr = Utf8::headBytes($scrubbedStderr, $this->maxStderrBytes);
+
+        return new CapturedOutput(
+            $boundedStdout,
+            $this->diagnostics,
+            $this->stdout->truncated || \strlen($boundedStdout) < \strlen($scrubbedStdout),
+            $this->diagnosticsTruncated,
+            $boundedStderr,
+            $this->stderr->truncated || \strlen($boundedStderr) < \strlen($scrubbedStderr),
+            $this->routing === OutputRouting::CapturePhpStreams
+                ? OutputCaptureCapability::PhpStreams
+                : OutputCaptureCapability::Buffered,
+        );
     }
 
     /**
@@ -158,20 +210,7 @@ final class OutputCapture
      */
     private function appendChunk(string $chunk): string
     {
-        if ($this->stdoutTruncated || $chunk === '') {
-            return '';
-        }
-
-        $combined = $this->stdout . $chunk;
-
-        if (\strlen($combined) <= $this->maxStdoutBytes) {
-            $this->stdout = $combined;
-
-            return '';
-        }
-
-        $this->stdout = Utf8::headBytes($combined, $this->maxStdoutBytes);
-        $this->stdoutTruncated = true;
+        $this->stdout->append($chunk);
 
         return '';
     }
@@ -197,5 +236,56 @@ final class OutputCapture
         }
 
         ErrorHandlerStack::remove($handler);
+    }
+
+    /** @throws CaptureError */
+    private function attachStreamFilters(): void
+    {
+        if (!self::$streamFilterRegistered
+            && !\stream_filter_register(self::STREAM_FILTER, CapturedStreamFilter::class)
+        ) {
+            $this->restoreErrorHandler();
+
+            throw CaptureError::streamFilterUnavailable('STDOUT and STDERR');
+        }
+
+        self::$streamFilterRegistered = true;
+
+        $stdoutFilter = ErrorTrap::run(
+            fn() => \stream_filter_append(\STDOUT, self::STREAM_FILTER, \STREAM_FILTER_WRITE, $this->stdout),
+        );
+
+        if (!\is_resource($stdoutFilter)) {
+            $this->restoreErrorHandler();
+
+            throw CaptureError::streamFilterUnavailable('STDOUT');
+        }
+
+        $this->stdoutFilter = $stdoutFilter;
+
+        $stderrFilter = ErrorTrap::run(
+            fn() => \stream_filter_append(\STDERR, self::STREAM_FILTER, \STREAM_FILTER_WRITE, $this->stderr),
+        );
+
+        if (!\is_resource($stderrFilter)) {
+            $this->removeStreamFilters();
+            $this->restoreErrorHandler();
+
+            throw CaptureError::streamFilterUnavailable('STDERR');
+        }
+
+        $this->stderrFilter = $stderrFilter;
+    }
+
+    private function removeStreamFilters(): void
+    {
+        foreach (['stderrFilter', 'stdoutFilter'] as $property) {
+            $filter = $this->{$property};
+            $this->{$property} = null;
+
+            if (\is_resource($filter)) {
+                ErrorTrap::run(static fn() => \stream_filter_remove($filter));
+            }
+        }
     }
 }

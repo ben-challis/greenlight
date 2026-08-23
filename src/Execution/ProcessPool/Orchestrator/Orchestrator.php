@@ -17,6 +17,7 @@ use Greenlight\Event\WorkerTiming;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptReady;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Bootstrap;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
@@ -30,6 +31,7 @@ use Greenlight\Execution\Worker\WorkerError;
 use Greenlight\Internal\Text\Utf8;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
+use Greenlight\Result\CapturedOutput;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
@@ -599,6 +601,18 @@ final class Orchestrator
      */
     private function onEvent(WorkerState $handle, Event $event, EventSink $sink): void
     {
+        if ($event instanceof TestFinished) {
+            $event = new TestFinished(
+                $event->result->withOutput(CapturedOutput::merge(
+                    $event->result->output,
+                    $handle->capturedOutput,
+                    $this->transport->finishOutputCapture($handle->workerId),
+                )),
+                $event->occurredAt,
+            );
+            $handle->capturedOutput = null;
+        }
+
         if ($event instanceof TestFinished && $this->configuration->artifactStore instanceof ArtifactStore) {
             $event = new TestFinished(
                 $this->configuration->artifactStore->publish($event->result),
@@ -656,6 +670,12 @@ final class Orchestrator
         }
 
         $handle->inFlightAttempt = $message->attempt;
+        $handle->capturedOutput = CapturedOutput::merge(
+            $handle->capturedOutput,
+            $this->transport->finishOutputCapture($handle->workerId),
+        );
+        $this->transport->startOutputCapture($handle->workerId, $message->capture);
+        $this->transport->send($handle->workerId, new AttemptReady());
     }
 
     /**
@@ -843,6 +863,12 @@ final class Orchestrator
     private function recordSyntheticResult(WorkerState $handle, EventSink $sink, TestResult $result): void
     {
         $result = $result->withAttempts(\max($result->attempts, $handle->inFlightAttempt));
+        $result = $result->withOutput(CapturedOutput::merge(
+            $result->output,
+            $handle->capturedOutput,
+            $this->transport->finishOutputCapture($handle->workerId),
+        ));
+        $handle->capturedOutput = null;
 
         if ($this->configuration->artifactStore instanceof ArtifactStore) {
             $result = $this->configuration->artifactStore->recover($result);

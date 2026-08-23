@@ -70,14 +70,30 @@ final class ProblemDetails
 
         $captured = $result->output;
 
-        if ($captured instanceof CapturedOutput && $captured->stdout !== '') {
-            $lines[] = '  captured output:';
+        if ($captured instanceof CapturedOutput && ($captured->stdout !== '' || $captured->stdoutTruncated)) {
+            $lines[] = '  captured standard output:';
 
-            foreach (\explode("\n", \rtrim($captured->stdout, "\n")) as $capturedLine) {
-                $lines[] = '    ' . $capturedLine;
+            if ($captured->stdout !== '') {
+                foreach (\explode("\n", \rtrim($captured->stdout, "\n")) as $capturedLine) {
+                    $lines[] = '    ' . $capturedLine;
+                }
             }
 
             if ($captured->stdoutTruncated) {
+                $lines[] = '    (truncated)';
+            }
+        }
+
+        if ($captured instanceof CapturedOutput && ($captured->stderr !== '' || $captured->stderrTruncated)) {
+            $lines[] = '  captured standard error:';
+
+            if ($captured->stderr !== '') {
+                foreach (\explode("\n", \rtrim($captured->stderr, "\n")) as $capturedLine) {
+                    $lines[] = '    ' . $capturedLine;
+                }
+            }
+
+            if ($captured->stderrTruncated) {
                 $lines[] = '    (truncated)';
             }
         }

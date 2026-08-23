@@ -236,6 +236,7 @@ final readonly class WorkerProcessTest
     {
         yield 'assignment before bootstrap' => ['assignment-before-bootstrap'];
         yield 'duplicate bootstrap' => ['duplicate-bootstrap'];
+        yield 'missing attempt acknowledgement' => ['attempt-not-acknowledged'];
     }
 
     /**
@@ -342,6 +343,36 @@ final readonly class WorkerProcessTest
                     || $fatal->detail->message !== 'Worker received bootstrap more than once.'
                 ) {
                     exit(6);
+                }
+
+                exit(0);
+            }
+
+            if ($scenario === 'attempt-not-acknowledged') {
+                $channel->send(new Greenlight\Execution\ProcessPool\Protocol\Messages\Assign(
+                    new Greenlight\Discovery\Plan\ExecutionPlan([
+                        Greenlight\Tests\Support\PlanEntryFixture::create(
+                            Greenlight\Tests\Fixture\Execution\Worker\OptionalConstructorProbe::class,
+                            'usesDeclaredDefault',
+                        ),
+                    ]),
+                ));
+
+                do {
+                    $started = $channel->receive(2.0);
+                } while ($started instanceof Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope);
+
+                if (!$started instanceof Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted) {
+                    exit(7);
+                }
+
+                $channel->send(new Greenlight\Execution\ProcessPool\Protocol\Messages\Drain());
+                $fatal = $channel->receive(2.0);
+
+                if (!$fatal instanceof Greenlight\Execution\ProcessPool\Protocol\Messages\Fatal
+                    || $fatal->detail->message !== 'Worker did not receive an output-capture acknowledgement for its test attempt.'
+                ) {
+                    exit(8);
                 }
 
                 exit(0);

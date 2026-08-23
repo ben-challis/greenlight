@@ -19,6 +19,7 @@ use Greenlight\Execution\ProcessPool\Protocol\JsonFrameCodec;
 use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\MessageRegistry;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptReady;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Bootstrap;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
@@ -116,13 +117,13 @@ final class WorkerProtocolSchemaTest
             ['data', 'result', 'attachments'],
         ]);
 
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'bootstrap', 'p' => $bootstrapPayload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 4, 't' => 'bootstrap', 'p' => $bootstrapPayload])))
             ->because('the schema MUST accept compatible bootstrap payloads')
             ->toBe([]);
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'assign', 'p' => $assignPayload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 4, 't' => 'assign', 'p' => $assignPayload])))
             ->because('the schema MUST accept compatible assignment payloads')
             ->toBe([]);
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'event', 'p' => $eventPayload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 4, 't' => 'event', 'p' => $eventPayload])))
             ->because('the schema MUST accept compatible test result payloads')
             ->toBe([]);
     }
@@ -133,7 +134,7 @@ final class WorkerProtocolSchemaTest
         $payload = $this->messages()['assign']->toWire();
         $payload['futureProtocolField'] = true;
 
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'assign', 'p' => $payload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 4, 't' => 'assign', 'p' => $payload])))
             ->because('a protocol change MUST update the schema')
             ->not()
             ->toBe([]);
@@ -251,6 +252,7 @@ final class WorkerProtocolSchemaTest
             'drain' => new Drain(),
             'event' => new EventEnvelope(new TestFinished($result, 1_780_000_000.5)),
             'attempt-started' => new AttemptStarted($id, 2),
+            'attempt-ready' => new AttemptReady(),
             'done' => new Done(
                 new ResultSummary(passed: 2, failed: 1),
                 123_456,
@@ -403,7 +405,7 @@ final class WorkerProtocolSchemaTest
 
     private function schemaPath(): string
     {
-        return \dirname(__DIR__, 5) . '/resources/schema/worker-protocol-v3.schema.json';
+        return \dirname(__DIR__, 5) . '/resources/schema/worker-protocol-v4.schema.json';
     }
 
     /**

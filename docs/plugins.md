@@ -578,6 +578,11 @@ final class FlakyQuarantine implements AfterTestSubscriber
 `afterTest()` receives the finished result and must return a result, either the
 same one or a replacement.
 
+In a process-pool run, this worker-side callback sees buffered output and PHP
+diagnostics collected before the callback. Native descriptor output is not in
+the result until the orchestrator receives `TestFinished`. Orchestrator-side
+event subscribers and reporters receive the complete captured output.
+
 Use `TestResult::withOutcome()` for each outcome change. This method records the
 plugin that changed the result. If a plugin changes the outcome without a
 transformation-log entry, Greenlight reports an error and names the plugin.
@@ -639,6 +644,10 @@ contains the complete test ID.
 The result contains metadata for the attachments from that attempt. A decider
 can inspect names, kinds, sizes, and media types. It cannot read the attachment
 content.
+
+The result contains buffered output and PHP diagnostics from the attempt. In a
+process-pool run, native descriptor output is not in this worker-side result.
+The orchestrator adds it to the final result.
 
 The built-in `#[Retry]` attribute uses this interface.
 

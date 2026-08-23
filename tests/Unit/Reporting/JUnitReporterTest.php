@@ -9,6 +9,7 @@ use Greenlight\Event\RunFinished;
 use Greenlight\Event\TestFinished;
 use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
+use Greenlight\Result\CapturedOutput;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
@@ -286,5 +287,32 @@ final class JUnitReporterTest
                 . "actual: actual\u{FFFD}\u{FFFD}\n"
                 . "at /project/tests/\u{FFFD}\u{FFFD}Test.php:12",
             );
+    }
+
+    #[Test]
+    public function capturedStreamsUseSeparateJunitElementsWithTruncationMarkers(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new JUnitReporter($output);
+        $reporter->onEvent(new TestFinished(new TestResult(
+            new TestId('Acme\OutputTest', 'fails'),
+            Outcome::Failed,
+            0.001,
+            0,
+            output: new CapturedOutput(
+                'stdout',
+                stdoutTruncated: true,
+                stderr: 'stderr',
+                stderrTruncated: true,
+            ),
+        ), 1.0));
+        $reporter->finish();
+        $document = \simplexml_load_string($output->buffer());
+
+        Expect::that($document)->toBeInstanceOf(\SimpleXMLElement::class);
+        Expect::that((string) SimpleXml::xpath($document, '//system-out')[0])
+            ->toBe("stdout\n[Greenlight: standard output truncated]");
+        Expect::that((string) SimpleXml::xpath($document, '//system-err')[0])
+            ->toBe("stderr\n[Greenlight: standard error truncated]");
     }
 }

@@ -30,4 +30,12 @@ final class CaptureError extends \LogicException
     {
         return new self('Output capture cannot stop because a nested output buffer cannot be removed.');
     }
+
+    public static function streamFilterUnavailable(string $stream): self
+    {
+        return new self(\sprintf(
+            'Output capture cannot attach to %s. Use process-pool execution for descriptor capture.',
+            $stream,
+        ));
+    }
 }

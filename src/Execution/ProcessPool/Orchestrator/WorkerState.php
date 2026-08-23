@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Result\CapturedOutput;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Test\TestId;
 
@@ -45,6 +46,8 @@ final class WorkerState
     /** @var non-negative-int */
     public int $inFlightAttempt = 0;
 
+    public ?CapturedOutput $capturedOutput = null;
+
     public readonly WorkerTimingRecorder $timing;
 
     public float $lastProgressAt;
@@ -72,6 +75,7 @@ final class WorkerState
         $this->finished = [];
         $this->inFlight = null;
         $this->inFlightAttempt = 0;
+        $this->capturedOutput = null;
     }
 
     public function finishAssignment(): void
@@ -82,6 +86,7 @@ final class WorkerState
         $this->isolatedAssignment = false;
         $this->inFlight = null;
         $this->inFlightAttempt = 0;
+        $this->capturedOutput = null;
     }
 
     public function isFresh(): bool

@@ -8,6 +8,7 @@ use Greenlight\Event\Event;
 use Greenlight\Event\RunFinished;
 use Greenlight\Event\TestFinished;
 use Greenlight\Internal\Text\Utf8;
+use Greenlight\Result\CapturedOutput;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
@@ -257,12 +258,38 @@ final class JUnitReporter implements Reporter
             $writer->endElement();
         }
 
-        if ($result->attachments !== []) {
+        $captured = $result->output;
+        $systemOut = $captured instanceof CapturedOutput ? $captured->stdout : '';
+        $attachmentOutput = \implode("\n", \array_map(
+            static fn($attachment): string => '[[ATTACHMENT|' . $attachment->path . ']]',
+            $result->attachments,
+        ));
+
+        if ($captured?->stdoutTruncated === true) {
+            $systemOut .= ($systemOut === '' || \str_ends_with($systemOut, "\n") ? '' : "\n")
+                . '[Greenlight: standard output truncated]';
+        }
+
+        if ($attachmentOutput !== '') {
+            $systemOut .= ($systemOut === '' || \str_ends_with($systemOut, "\n") ? '' : "\n") . $attachmentOutput;
+        }
+
+        if ($systemOut !== '') {
             $writer->startElement('system-out');
-            $writer->text($this->xml(\implode("\n", \array_map(
-                static fn($attachment): string => '[[ATTACHMENT|' . $attachment->path . ']]',
-                $result->attachments,
-            ))));
+            $writer->text($this->xml($systemOut));
+            $writer->endElement();
+        }
+
+        if ($captured instanceof CapturedOutput && ($captured->stderr !== '' || $captured->stderrTruncated)) {
+            $systemErr = $captured->stderr;
+
+            if ($captured->stderrTruncated) {
+                $systemErr .= ($systemErr === '' || \str_ends_with($systemErr, "\n") ? '' : "\n")
+                    . '[Greenlight: standard error truncated]';
+            }
+
+            $writer->startElement('system-err');
+            $writer->text($this->xml($systemErr));
             $writer->endElement();
         }
 

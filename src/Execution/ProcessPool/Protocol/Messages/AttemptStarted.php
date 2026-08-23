@@ -29,6 +29,7 @@ final readonly class AttemptStarted implements Message
     public function __construct(
         public TestId $id,
         int $attempt,
+        public bool $capture = true,
     ) {
         if ($attempt < 1) {
             throw new \InvalidArgumentException(\sprintf(
@@ -52,6 +53,7 @@ final readonly class AttemptStarted implements Message
         return [
             'id' => $this->id->toWire(),
             'attempt' => $this->attempt,
+            'capture' => $this->capture,
         ];
     }
 
@@ -61,6 +63,7 @@ final readonly class AttemptStarted implements Message
         return new self(
             TestId::fromWire(Wire::map($payload, 'id')),
             \max(1, Wire::int($payload, 'attempt')),
+            Wire::bool($payload, 'capture'),
         );
     }
 }

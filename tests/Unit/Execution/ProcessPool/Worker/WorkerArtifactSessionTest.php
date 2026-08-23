@@ -104,6 +104,10 @@ final readonly class WorkerArtifactSessionTest
                     $finished = $message->event;
                 }
 
+                if ($message instanceof Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted) {
+                    $channel->send(new Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptReady());
+                }
+
                 if ($message instanceof Greenlight\Execution\ProcessPool\Protocol\Messages\Done) {
                     $done = $message;
                 }

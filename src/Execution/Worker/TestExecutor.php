@@ -20,6 +20,7 @@ use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\UnresolvableService;
 use Greenlight\Plugin\TestContext;
+use Greenlight\Result\CapturedOutput;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
@@ -57,7 +58,7 @@ use Greenlight\Test\TestId;
 final readonly class TestExecutor
 {
     /**
-     * @param \Closure(TestId, positive-int): void|null $attemptStarted
+     * @param \Closure(TestId, positive-int, bool): void|null $attemptStarted
      */
     public function __construct(
         private HarnessScopes $scopes,
@@ -66,6 +67,7 @@ final readonly class TestExecutor
         private ?LeakDetector $leakDetector = null,
         private ?ArtifactStore $artifactStore = null,
         private ?\Closure $attemptStarted = null,
+        private OutputRouting $outputRouting = OutputRouting::CapturePhpStreams,
     ) {}
 
     /**
@@ -104,58 +106,85 @@ final readonly class TestExecutor
 
         $attempt = 0;
         $retainedAttachments = [];
+        $retainedOutput = null;
         $artifactBudget = new TestArtifactBudget();
 
         do {
             ++$attempt;
 
+            $capture = $definition->execution->capture
+                ? new OutputCapture(routing: $this->outputRouting)
+                : null;
+            $silencer = !$definition->execution->capture
+                && $this->outputRouting === OutputRouting::CapturePhpStreams
+                    ? new OutputSilencer()
+                    : null;
+
             if ($this->attemptStarted instanceof \Closure) {
-                ($this->attemptStarted)($entry->id, $attempt);
+                try {
+                    ($this->attemptStarted)($entry->id, $attempt, $capture instanceof OutputCapture);
+                } catch (\Throwable $failure) {
+                    throw new AttemptStartFailed($failure);
+                }
             }
+
+            $capture?->start();
+            $silencer?->start();
+            $retry = false;
+            $retryFailed = false;
+            $attemptOutput = null;
 
             try {
-                [$result, $cause, $attachments] = $this->runTestAttempt(
-                    fn(): array => $this->attempt($entry, $attempt, $artifactBudget),
-                );
-            } catch (\Throwable $threw) {
-                $cause = $threw;
-                $attachments = null;
-                $result = new TestResult(
-                    $entry->id,
-                    Outcome::Errored,
-                    0.0,
-                    0,
-                    $attempt,
-                    error: ThrowableDetail::fromThrowable($threw),
-                );
+                try {
+                    [$result, $cause, $attachments] = $this->runTestAttempt(
+                        fn(): array => $this->attempt($entry, $attempt, $artifactBudget, $capture, $retainedOutput),
+                    );
+                } catch (\Throwable $threw) {
+                    $cause = $threw;
+                    $attachments = null;
+                    $result = new TestResult(
+                        $entry->id,
+                        Outcome::Errored,
+                        0.0,
+                        0,
+                        $attempt,
+                        error: ThrowableDetail::fromThrowable($threw),
+                    );
+                }
+
+                if ($attachments instanceof StagedAttachments) {
+                    $result = $result->withAttachments($attachments->collected());
+                }
+
+                if (!$result->outcome->isSuccessful()) {
+                    try {
+                        $retry = $this->plugins->shouldRetry($definition->retry, $result, $attempt, $cause);
+                    } catch (\Throwable $threw) {
+                        $result = $result->erroredBy(ThrowableDetail::fromThrowable($threw));
+                        $retryFailed = true;
+                    }
+                }
+            } finally {
+                try {
+                    $attemptOutput = $capture?->stop();
+                } finally {
+                    $silencer?->stop();
+                }
             }
 
-            if ($attachments instanceof StagedAttachments) {
-                $result = $result->withAttachments($attachments->collected());
-            }
-
-            if ($result->outcome->isSuccessful()) {
-                $sealed = $attachments?->seal() ?? [];
-
-                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
-            }
-
-            try {
-                $retry = $this->plugins->shouldRetry($definition->retry, $result, $attempt, $cause);
-            } catch (\Throwable $threw) {
-                $result = $result->erroredBy(ThrowableDetail::fromThrowable($threw));
-                $sealed = $attachments?->seal() ?? [];
-
-                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
-            }
-
+            $result = $result->withOutput(CapturedOutput::merge($retainedOutput, $attemptOutput));
             $sealed = $attachments?->seal() ?? [];
 
-            if (!$retry) {
+            if ($result->outcome->isSuccessful()) {
+                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
+            }
+
+            if (!$retry || $retryFailed) {
                 return $result->withAttachments([...$retainedAttachments, ...$sealed]);
             }
 
             $retainedAttachments = [...$retainedAttachments, ...$sealed];
+            $retainedOutput = $result->output;
         } while (true);
     }
 
@@ -176,8 +205,13 @@ final readonly class TestExecutor
      * @throws CaptureError
      * @throws AttachmentError
      */
-    private function attempt(PlanEntry $entry, int $attempt, TestArtifactBudget $artifactBudget): array
-    {
+    private function attempt(
+        PlanEntry $entry,
+        int $attempt,
+        TestArtifactBudget $artifactBudget,
+        ?OutputCapture $capture,
+        ?CapturedOutput $retainedOutput,
+    ): array {
         $definition = $entry->definition;
         $execution = $definition->execution;
         ExpectationCounter::reset();
@@ -188,16 +222,13 @@ final readonly class TestExecutor
         $cause = null;
         $error = null;
         $skipReason = null;
-        $captured = null;
         $context = null;
-        $capture = $execution->capture ? new OutputCapture() : null;
         $stagedAttachments = $this->artifactStore?->forAttempt($entry->id, $attempt, $artifactBudget);
         $attachments = $stagedAttachments ?? new UnavailableAttachments();
         $cleanup = new Cleanup();
         $disposalFailures = [];
         $memoryBefore = \memory_get_usage(true);
         $startedAt = \hrtime(true);
-        $capture?->start();
         ExpectationRuntime::enterAttempt(
             $execution->timeoutSeconds === null
                 ? null
@@ -262,44 +293,40 @@ final readonly class TestExecutor
             $error = ThrowableDetail::fromThrowable($threw);
         } finally {
             try {
-                $captured = $capture?->stop();
-            } finally {
                 try {
-                    try {
-                        $cleanup->close();
-                    } catch (CleanupFailed $cleanupFailed) {
-                        foreach ($cleanupFailed->failures as $cleanupFailure) {
-                            if (!$cause instanceof \Throwable) {
-                                $cause = $cleanupFailure;
-                                $skipReason = null;
-
-                                if ($cleanupFailure instanceof ExpectationFailed) {
-                                    $failures = $cleanupFailure->details;
-                                } else {
-                                    $error = ThrowableDetail::fromThrowable($cleanupFailure);
-                                }
-
-                                continue;
-                            }
+                    $cleanup->close();
+                } catch (CleanupFailed $cleanupFailed) {
+                    foreach ($cleanupFailed->failures as $cleanupFailure) {
+                        if (!$cause instanceof \Throwable) {
+                            $cause = $cleanupFailure;
+                            $skipReason = null;
 
                             if ($cleanupFailure instanceof ExpectationFailed) {
-                                $failures = [...$failures, ...$cleanupFailure->details];
-
-                                continue;
+                                $failures = $cleanupFailure->details;
+                            } else {
+                                $error = ThrowableDetail::fromThrowable($cleanupFailure);
                             }
 
-                            $failures[] = new FailureDetail(\sprintf(
-                                'Cleanup callback caused an error: %s',
-                                $cleanupFailure->getMessage(),
-                            ));
+                            continue;
                         }
+
+                        if ($cleanupFailure instanceof ExpectationFailed) {
+                            $failures = [...$failures, ...$cleanupFailure->details];
+
+                            continue;
+                        }
+
+                        $failures[] = new FailureDetail(\sprintf(
+                            'Cleanup callback caused an error: %s',
+                            $cleanupFailure->getMessage(),
+                        ));
                     }
+                }
+            } finally {
+                try {
+                    $disposalFailures = $this->scopes->closeTest();
                 } finally {
-                    try {
-                        $disposalFailures = $this->scopes->closeTest();
-                    } finally {
-                        ExpectationRuntime::leaveAttempt();
-                    }
+                    ExpectationRuntime::leaveAttempt();
                 }
             }
         }
@@ -334,7 +361,7 @@ final readonly class TestExecutor
             $failures,
             $error,
             $skipReason,
-            output: $captured,
+            output: CapturedOutput::merge($retainedOutput, $capture?->snapshot()),
             expectations: ExpectationCounter::count(),
         );
 

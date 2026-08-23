@@ -6,6 +6,7 @@ namespace Greenlight\Execution\ProcessPool\Protocol;
 
 use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptReady;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Bootstrap;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
@@ -27,7 +28,7 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
  */
 final class MessageRegistry
 {
-    private const int VERSION = 3;
+    private const int VERSION = 4;
 
     /**
      * @var array<non-empty-string, class-string<Message>>
@@ -40,6 +41,7 @@ final class MessageRegistry
         'drain' => Drain::class,
         'event' => EventEnvelope::class,
         'attempt-started' => AttemptStarted::class,
+        'attempt-ready' => AttemptReady::class,
         'done' => Done::class,
         'fatal' => Fatal::class,
     ];

@@ -9,6 +9,7 @@ use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
+use Greenlight\Result\CapturedOutput;
 
 /**
  * Owns native worker processes, sockets, diagnostics, poll operations, and retirement.
@@ -244,6 +245,21 @@ final class NativeWorkerTransport implements WorkerTransport
         $handle->drainPipes();
 
         return $handle->diagnostics;
+    }
+
+    #[\Override]
+    public function startOutputCapture(string $workerId, bool $enabled): void
+    {
+        $handle = $this->workers[$workerId] ?? null;
+        $handle?->startOutputCapture($enabled);
+    }
+
+    #[\Override]
+    public function finishOutputCapture(string $workerId): ?CapturedOutput
+    {
+        $handle = $this->workers[$workerId] ?? null;
+
+        return $handle?->finishOutputCapture();
     }
 
     #[\Override]

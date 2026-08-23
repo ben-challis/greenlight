@@ -37,6 +37,7 @@ final class WorkerMessageWireTest
         $attempt = AttemptStarted::fromWire([
             'id' => new TestId('App\ExampleTest', 'checksValue')->toWire(),
             'attempt' => $number,
+            'capture' => true,
         ]);
 
         Expect::that($attempt->attempt)
