@@ -694,7 +694,7 @@ public function __construct(
 
 PHPDoc:
 
-- `@param string|\Closure(): KernelInterface $kernel A kernel class name that Greenlight constructs as new $kernel($env, $debug), or a closure that constructs the kernel. Use a closure for other constructor requirements.`
+- `@param class-string<KernelInterface>|\Closure(): KernelInterface $kernel A kernel class name that Greenlight constructs as new $kernel($env, $debug), or a closure that constructs the kernel. Use a closure for other constructor requirements.`
 - `@param non-empty-string $env`
 - `@param bool $resetBetweenTests For a container without stateful services, use false to disable resets. Tests on one worker then share all service instances.`
 

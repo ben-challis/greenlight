@@ -193,12 +193,19 @@ final class SymfonyPluginTest
         $plugin = new SymfonyPlugin(static fn(): KernelInterface => new FixtureKernel('test', true));
 
         Expect::that($plugin->resolve(Greeter::class, [])->value())->because('a closure factory boots the kernel it produces')->toBeInstanceOf(Greeter::class);
+
+        $invalid = new SymfonyPlugin(static fn(): object => new \stdClass()); // @phpstan-ignore argument.type (This test deliberately supplies an invalid factory result.)
+
+        Expect::that(static fn(): object => ($invalid->services()[0]->factory)())->toThrow(
+            SymfonyBridgeError::class,
+            matching: '/returned "stdClass".*KernelInterface/',
+        );
     }
 
     #[Test]
     public function aClassThatIsNotAKernelFailsLoudly(): void
     {
-        $plugin = new SymfonyPlugin(\ArrayObject::class);
+        $plugin = new SymfonyPlugin(\ArrayObject::class); // @phpstan-ignore argument.type (This test deliberately supplies an invalid kernel class.)
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, [])->value();

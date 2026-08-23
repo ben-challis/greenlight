@@ -70,6 +70,14 @@ final class SymfonyBridgeError extends ServiceResolutionFailed
         ));
     }
 
+    public static function notAKernelFromFactory(string $actual): self
+    {
+        return new self(\sprintf(
+            'The Symfony kernel factory returned "%s". Return an instance of Symfony\Component\HttpKernel\KernelInterface.',
+            $actual,
+        ));
+    }
+
     public static function serviceResolutionFailed(string $id, string $type, \Throwable $previous): self
     {
         return new self(
