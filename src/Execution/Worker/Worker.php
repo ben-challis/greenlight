@@ -12,8 +12,8 @@ use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\TestStarted;
 use Greenlight\Execution\Artifact\ArtifactStore;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
+use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultPolicy;
@@ -37,8 +37,11 @@ use Greenlight\Test\TestId;
  */
 final readonly class Worker
 {
+    /**
+     * @param list<ServiceDefinition> $definitions
+     */
     public function __construct(
-        private HarnessRegistry $registry,
+        private array $definitions,
         private PluginRegistry $plugins = new PluginRegistry([]),
         private ?LeakDetector $leakDetector = null,
         private string $workerId = '',
@@ -64,7 +67,7 @@ final readonly class Worker
         // remain available when one worker runs multiple assignments. The
         // owner closes the worker scope at exit.
         $ownScopes = !$scopes instanceof HarnessScopes;
-        $scopes ??= new HarnessScopes($this->registry, $this->plugins->serviceResolvers());
+        $scopes ??= new HarnessScopes($this->definitions, $this->plugins->serviceResolvers());
         $summary = new ResultSummary();
         $drained = false;
         $stopped = false;

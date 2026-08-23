@@ -36,7 +36,7 @@ final readonly class SandboxLifecycleTest
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
 
-        $outcome = new Worker(DefaultServices::registry(), PluginRegistry::forWorker([]))
+        $outcome = new Worker(DefaultServices::definitions(), PluginRegistry::forWorker([]))
             ->run($plan, $sink);
 
         $tempPath = null;

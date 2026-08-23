@@ -13,9 +13,8 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationExtension;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Harness\Disposable;
-use Greenlight\Harness\HarnessRegistry;
+use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
-use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 
@@ -24,28 +23,22 @@ final class HarnessIntegrationTest
     #[Test]
     public function registeredAsAPerTestServiceItVerifiesAtScopeClose(): void
     {
-        $registry = new HarnessRegistry([
+        $scopes = new HarnessScopes([
             new ServiceDefinition(Doubles::class, Scope::PerTest, static fn(): Doubles => new Doubles()),
         ]);
+        $scopes->openTest();
 
-        $definition = $registry->find(Doubles::class);
-
-        Expect::that($definition)
-            ->because('HarnessRegistry::find() MUST return the Doubles ServiceDefinition.')
-            ->toBeInstanceOf(ServiceDefinition::class);
-
-        $container = new ScopeContainer();
-        $doubles = $container->get($definition);
+        $doubles = $scopes->resolve(Doubles::class, self::class);
 
         Expect::that($doubles)
-            ->because('ScopeContainer::get() MUST return Doubles.')
+            ->because('HarnessScopes::resolve() MUST return Doubles.')
             ->toBeInstanceOf(Doubles::class);
 
         $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->once();
         });
 
-        $failures = $container->dispose();
+        $failures = $scopes->closeTest();
 
         Expect::that($failures)->because('registered as a per test service it verifies at scope close')->toHaveCount(1);
         Expect::that($failures[0])->toBeInstanceOf(ExpectationFailed::class);

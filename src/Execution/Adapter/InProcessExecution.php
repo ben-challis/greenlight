@@ -87,7 +87,7 @@ final readonly class InProcessExecution implements ExecutionAdapter
             try {
                 try {
                     $outcome = $plugins->runWorker(fn() => new Worker(
-                        DefaultServices::registry(
+                        DefaultServices::definitions(
                             $plugins,
                             $resources,
                             $context->storage->generatedCodeDirectory,

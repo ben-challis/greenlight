@@ -13,6 +13,7 @@ use Greenlight\Execution\Worker\WorkerError;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Expectation;
 use Greenlight\Expect\ExpectationFailed;
+use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Plugin\AfterTestSubscriber;
@@ -61,7 +62,7 @@ final readonly class PluginTest
         };
         $plugins = PluginRegistry::forWorker([$provider]);
 
-        Expect::that(static fn() => DefaultServices::registry($plugins))
+        Expect::that(static fn(): HarnessScopes => new HarnessScopes(DefaultServices::definitions($plugins)))
             ->because('plugin services MUST not replace Greenlight-owned defaults')
             ->toThrow(
                 \LogicException::class,
@@ -442,7 +443,7 @@ final readonly class PluginTest
         $sink = new CollectingEventSink();
         $registry = PluginRegistry::forWorker($plugins);
 
-        $outcome = new Worker(DefaultServices::registry($registry), $registry)->run($plan, $sink);
+        $outcome = new Worker(DefaultServices::definitions($registry), $registry)->run($plan, $sink);
 
         return [$outcome->summary, $sink->results()];
     }

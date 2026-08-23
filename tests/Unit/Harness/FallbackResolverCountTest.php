@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Harness;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\UnresolvableService;
@@ -39,7 +38,7 @@ final class FallbackResolverCountTest
                 return null;
             }
         };
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$first, $second]);
+        $scopes = new HarnessScopes([], [$first, $second]);
 
         Expect::that(static fn(): object => $scopes->resolve(
             \ArrayObject::class,

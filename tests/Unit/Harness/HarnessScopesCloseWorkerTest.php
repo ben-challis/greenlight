@@ -8,7 +8,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\Disposable;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
@@ -25,13 +24,13 @@ final class HarnessScopesCloseWorkerTest
                 throw new \RuntimeException('worker disposal failed');
             }
         };
-        $scopes = new HarnessScopes(new HarnessRegistry([
+        $scopes = new HarnessScopes([
             new ServiceDefinition(
                 $workerService::class,
                 Scope::PerWorker,
                 static fn() => $workerService,
             ),
-        ]));
+        ]);
 
         $scopes->resolve($workerService::class, 'test');
         $failures = $scopes->closeWorker();

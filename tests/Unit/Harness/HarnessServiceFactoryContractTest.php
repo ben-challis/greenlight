@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Harness;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
@@ -22,13 +21,13 @@ final class HarnessServiceFactoryContractTest
     {
         $factory = static fn(): mixed => $value;
         /** @var \Closure(): \Countable $factory */
-        $scopes = new HarnessScopes(new HarnessRegistry([
+        $scopes = new HarnessScopes([
             new ServiceDefinition(
                 \Countable::class,
                 Scope::PerWorker,
                 $factory,
             ),
-        ]));
+        ]);
 
         Expect::that(static fn(): object => $scopes->resolve(\Countable::class, 'probe'))
             ->because('a harness factory contract error MUST identify a non-object value')
@@ -85,12 +84,12 @@ final class HarnessServiceFactoryContractTest
      */
     private function scopesFor(string $type): HarnessScopes
     {
-        return new HarnessScopes(new HarnessRegistry([
+        return new HarnessScopes([
             new ServiceDefinition(
                 $type,
                 Scope::PerWorker,
                 static fn(): object => new \stdClass(),
             ),
-        ]));
+        ]);
     }
 }

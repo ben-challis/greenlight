@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Symfony;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\Service;
@@ -72,7 +71,7 @@ final class SymfonyPluginTest
     {
         $answer = new \ArrayObject();
         $later = new ServiceResolverProbe($answer);
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$this->plugin(), $later]);
+        $scopes = new HarnessScopes([], [$this->plugin(), $later]);
 
         Expect::that($scopes->resolve(\ArrayObject::class, 'test'))
             ->because('an unknown Symfony type MUST fall through to the next resolver')
@@ -84,7 +83,7 @@ final class SymfonyPluginTest
     public function anUnknownExplicitServiceStopsTheResolverChain(): void
     {
         $later = new ServiceResolverProbe(new Greeter());
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$this->plugin(), $later]);
+        $scopes = new HarnessScopes([], [$this->plugin(), $later]);
 
         Expect::that(static fn(): object => $scopes->resolve(
             Greeter::class,
@@ -192,12 +191,19 @@ final class SymfonyPluginTest
         $plugin = new SymfonyPlugin(static fn(): KernelInterface => new FixtureKernel('test', true));
 
         Expect::that($plugin->resolve(Greeter::class, []))->because('a closure factory boots the kernel it produces')->toBeInstanceOf(Greeter::class);
+
+        $invalid = new SymfonyPlugin(static fn(): object => new \stdClass()); // @phpstan-ignore argument.type (This test deliberately supplies an invalid factory result.)
+
+        Expect::that(static fn(): object => ($invalid->services()[0]->factory)())->toThrow(
+            SymfonyBridgeError::class,
+            matching: '/returned "stdClass".*KernelInterface/',
+        );
     }
 
     #[Test]
     public function aClassThatIsNotAKernelFailsLoudly(): void
     {
-        $plugin = new SymfonyPlugin(\ArrayObject::class);
+        $plugin = new SymfonyPlugin(\ArrayObject::class); // @phpstan-ignore argument.type (This test deliberately supplies an invalid kernel class.)
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, []);

@@ -10,7 +10,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\TestContext;
@@ -70,7 +69,7 @@ final class TempestPluginLifecycleTest
         $answer = new TaggedProbeImplementation();
         $fallback = new ServiceResolverProbe($answer);
         $resolvers = new PluginRegistry([$this->plugin(), $fallback])->serviceResolvers();
-        $scopes = new HarnessScopes(new HarnessRegistry(), $resolvers);
+        $scopes = new HarnessScopes([], $resolvers);
 
         Expect::that($scopes->resolve(TaggedProbe::class, 'test'))
             ->because('a fallback resolver MUST run before the terminal Tempest resolver')

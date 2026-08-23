@@ -58,7 +58,7 @@ final readonly class AfterTestSubscriberIsolationTest
         $sink = new CollectingEventSink();
         $plugins = PluginRegistry::forWorker([$observer, $broken]);
 
-        new Worker(DefaultServices::registry($plugins), $plugins)->run($plan, $sink);
+        new Worker(DefaultServices::definitions($plugins), $plugins)->run($plan, $sink);
 
         Expect::that($calls->getArrayCopy())
             ->because('an afterTest() failure MUST NOT stop later subscribers')

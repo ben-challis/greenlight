@@ -177,7 +177,7 @@ PHPDoc:
 - `@param non-empty-string $env`
 - `@param bool $refreshBetweenTests Set to false only when no service carries state; tests on one worker then share one unreset application for the worker lifetime.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L49)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L47)
 
 ### `services()`
 
@@ -190,7 +190,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L70)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L74)
 
 ### `resolve()`
 
@@ -205,7 +205,7 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L87)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L91)
 
 ### `afterTest()`
 
@@ -214,7 +214,7 @@ PHPDoc:
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L123)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L127)
 
 ## `Psr11Plugin`
 
@@ -315,7 +315,7 @@ public function __construct(
 
 PHPDoc:
 
-- `@param RequestHandlerInterface|\Closure(): mixed $handler`
+- `@param RequestHandlerInterface|\Closure(): RequestHandlerInterface $handler`
 - `@param null|\Closure(RequestHandlerInterface): void $release`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L29)
@@ -427,7 +427,7 @@ public function __construct(
 
 PHPDoc:
 
-- `@param RequestHandlerInterface|\Closure(): mixed $handler A handler or a factory that returns a handler.`
+- `@param RequestHandlerInterface|\Closure(): RequestHandlerInterface $handler A handler or a factory that returns a handler.`
 - `@param null|\Closure(RequestHandlerInterface): void $release A callback that releases the active handler when its scope closes.`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L27)
@@ -545,7 +545,7 @@ public function __construct(
 
 PHPDoc:
 
-- `@param string|\Closure(): KernelInterface $kernel A kernel class name that Greenlight constructs as new $kernel($env, $debug), or a closure that constructs the kernel. Use a closure for other constructor requirements.`
+- `@param class-string<KernelInterface>|\Closure(): KernelInterface $kernel A kernel class name that Greenlight constructs as new $kernel($env, $debug), or a closure that constructs the kernel. Use a closure for other constructor requirements.`
 - `@param non-empty-string $env`
 - `@param bool $resetBetweenTests For a container without stateful services, use false to disable resets. Tests on one worker then share all service instances.`
 

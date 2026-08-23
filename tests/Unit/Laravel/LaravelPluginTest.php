@@ -12,7 +12,6 @@ use Greenlight\Condition\ClassAvailable;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Expect\Expect;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\Service;
@@ -113,7 +112,7 @@ final class LaravelPluginTest
     {
         $answer = new \ArrayObject();
         $later = new ServiceResolverProbe($answer);
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$this->plugin(), $later]);
+        $scopes = new HarnessScopes([], [$this->plugin(), $later]);
 
         Expect::that($scopes->resolve(\ArrayObject::class, 'test'))
             ->because('an unbound Laravel type MUST fall through to the next resolver')
@@ -125,7 +124,7 @@ final class LaravelPluginTest
     public function anUnknownExplicitBindingStopsTheResolverChain(): void
     {
         $later = new ServiceResolverProbe(new Greeter());
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$this->plugin(), $later]);
+        $scopes = new HarnessScopes([], [$this->plugin(), $later]);
 
         Expect::that(static fn(): object => $scopes->resolve(
             Greeter::class,
@@ -220,6 +219,18 @@ final class LaravelPluginTest
     public function aBootstrapThatDoesNotReturnAnApplicationFailsLoudly(): void
     {
         $plugin = $this->track(new LaravelPlugin($this->fixtureDir() . '/bootstrap-invalid.php'));
+
+        Expect::that(static function () use ($plugin): void {
+            $plugin->resolve(Greeter::class, []);
+        })->toThrow(LaravelBridgeError::class, matching: '/returned "stdClass".*Application::configure/s');
+    }
+
+    #[Test]
+    public function aClosureThatDoesNotReturnAnApplicationFailsLoudly(): void
+    {
+        $plugin = $this->track(new LaravelPlugin(
+            static fn(): \stdClass => new \stdClass(), // @phpstan-ignore argument.type (This test deliberately supplies an invalid application factory.)
+        ));
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, []);

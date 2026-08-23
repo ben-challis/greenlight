@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Psr11;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\Service;
@@ -53,7 +52,7 @@ final readonly class Psr11PluginTest
     {
         $answer = new Greeter();
         $later = new ServiceResolverProbe($answer);
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$this->plugin([]), $later]);
+        $scopes = new HarnessScopes([], [$this->plugin([]), $later]);
 
         Expect::that($scopes->resolve(Greeter::class, 'test'))
             ->because('an unknown PSR-11 type MUST fall through to the next resolver')
@@ -65,7 +64,7 @@ final readonly class Psr11PluginTest
     public function anUnknownExplicitServiceStopsTheResolverChain(): void
     {
         $later = new ServiceResolverProbe(new Greeter());
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$this->plugin([]), $later]);
+        $scopes = new HarnessScopes([], [$this->plugin([]), $later]);
 
         Expect::that(static fn(): object => $scopes->resolve(
             Greeter::class,
