@@ -17,7 +17,6 @@ use Greenlight\Test\TestId;
  * The expectations value counts each matcher in a chain separately. It counts
  * each mock expectation when disposal verifies it. Stubs do not add to the
  * count. An unsuccessful result contains the count at the time of the abort.
- * Old wire payloads without this field decode to zero.
  */
 final readonly class TestResult
 {
@@ -245,6 +244,9 @@ final readonly class TestResult
 
     /**
      * @internal
+     *
+     * Worker protocol payloads from before the expectation count was added
+     * decode to zero.
      *
      * @param array<string, mixed> $payload
      * @throws WireCommunicationFailed

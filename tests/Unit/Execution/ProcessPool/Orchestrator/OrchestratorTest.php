@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestStarted;
 use Greenlight\Execution\ProcessPool\Orchestrator\Orchestrator;

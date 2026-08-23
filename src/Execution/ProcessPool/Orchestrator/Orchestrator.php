@@ -6,8 +6,8 @@ namespace Greenlight\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Coverage\CoverageMap;
-use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
+use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Event\Event;
 use Greenlight\Event\EventSink;
 use Greenlight\Event\TestFinished;

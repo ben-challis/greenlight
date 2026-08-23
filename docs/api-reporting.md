@@ -40,8 +40,8 @@ Namespace: `Greenlight\Reporting`
 Converts the run event stream to an output format.
 
 A reporter receives each event in stream order. The stream contains run,
-suite, test-class, test, and worker events. Greenlight calls `finish()` one
-time after the final event.
+test-class, test, and worker events. Greenlight calls `finish()` one time
+after the final event.
 
 ```php
 interface Reporter
@@ -135,30 +135,17 @@ final class ReportGenerationFailed extends \RuntimeException
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReportGenerationFailed.php#L10)
 
-### `writeFailed()`
+### `because()`
+
+Creates a failure for a reporter implementation.
 
 ```php
-public static function writeFailed(?\Throwable $previous = null): self
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReportGenerationFailed.php#L17)
-
-### `unmappedEvent()`
-
-```php
-public static function unmappedEvent(string $eventClass): self
+public static function because(string $reason, ?\Throwable $previous = null): self
 ```
 
 PHPDoc:
 
-- `@param class-string $eventClass`
+- `@param non-empty-string $reason`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReportGenerationFailed.php#L25)
-
-### `xmlUnavailable()`
-
-```php
-public static function xmlUnavailable(): self
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReportGenerationFailed.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReportGenerationFailed.php#L24)

@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerHandle;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerState;
 use Greenlight\Expect\Expect;

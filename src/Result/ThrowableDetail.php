@@ -8,7 +8,7 @@ use Greenlight\Internal\Text\Utf8;
 use Greenlight\Internal\Wire\Wire;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 
-/** Limits stack frames so a deep trace cannot make the wire payload too large. */
+/** Greenlight records at most 32 stack frames when it creates this value. */
 final readonly class ThrowableDetail
 {
     private const int MAX_STACK_FRAMES = 32;
@@ -93,6 +93,9 @@ final readonly class ThrowableDetail
 
     /**
      * @internal
+     *
+     * The frame limit prevents a deep trace from making the wire payload
+     * too large.
      *
      * @return array<string, mixed>
      */

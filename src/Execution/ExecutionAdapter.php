@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Execution;
 
 use Greenlight\Artifact\AttachmentError;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\EventSink;
-use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
-use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
 
 /**
@@ -28,9 +26,8 @@ interface ExecutionAdapter
 
     /**
      * @throws AttachmentError
-     * @throws ProtocolError
+     * @throws ExecutionFailed
      * @throws ReportGenerationFailed
-     * @throws WireCommunicationFailed
      */
     public function execute(
         ExecutionPlan $plan,

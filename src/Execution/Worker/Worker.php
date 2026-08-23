@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution\Worker;
 
-use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
+use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Event\EventSink;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;

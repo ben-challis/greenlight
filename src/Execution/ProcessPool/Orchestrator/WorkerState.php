@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution\ProcessPool\Orchestrator;
 
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Test\TestId;
 

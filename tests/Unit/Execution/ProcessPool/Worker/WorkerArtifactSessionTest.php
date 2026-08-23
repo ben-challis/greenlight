@@ -78,8 +78,8 @@ final readonly class WorkerArtifactSessionTest
                 $artifactRoot . '/public',
             );
             $channel->send(new Greenlight\Execution\ProcessPool\Protocol\Messages\Assign(
-                new Greenlight\Discovery\ExecutionPlan([
-                    new Greenlight\Discovery\PlanEntry(
+                new Greenlight\Discovery\Plan\ExecutionPlan([
+                    new Greenlight\Discovery\Plan\PlanEntry(
                         new Greenlight\Test\TestDefinition(
                             $class,
                             'recordsEvidence',

@@ -134,7 +134,7 @@ export const docSections = [
       {
         id: 'api-test-contracts',
         title: 'Test contracts API',
-        description: 'This reference lists test definitions, policies, skip signals, and wire contracts.',
+        description: 'This reference lists test definitions, policies, and skip signals.',
       },
       {
         id: 'api-expectations',

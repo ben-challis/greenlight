@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\WorkerSpawned;
 use Greenlight\Event\WorkerTiming;
 use Greenlight\Execution\ProcessPool\Orchestrator\InitialWorkerAssignment;

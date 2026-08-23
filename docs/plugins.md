@@ -48,7 +48,7 @@ worker capabilities on its worker-local instance.
 
 ### ReporterProvider
 
-Orchestrator-side.
+Command-side.
 
 A `ReporterProvider` adds named reporter factories to `--reporter`. Return one
 `ReporterDefinition` for each name.
@@ -105,8 +105,13 @@ final event, or after a contained run error.
 If a provider or factory throws, Greenlight reports the name and stops the
 command. An invalid factory result also stops the command before test execution.
 
-If a reporter callback throws `ReportGenerationFailed`, Greenlight stops that callback.
-Later reporters do not receive the event or finish signal from that callback.
+If a reporter cannot render or deliver its output, it MUST throw
+`ReportGenerationFailed::because()`. The reason MUST NOT be empty. If an
+original error is available, pass it as the second argument. For example, use
+`ReportGenerationFailed::because('the custom template is invalid', $error)`.
+
+Greenlight propagates this error and stops the command. Later reporters do not
+receive the event or finish signal from that callback.
 
 Shell completions suggest the built-in names. A configured name remains valid
 when it does not occur in the suggestions.

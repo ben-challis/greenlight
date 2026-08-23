@@ -6,15 +6,15 @@ namespace Greenlight\Execution\Adapter;
 
 use Greenlight\Coverage\Collection\CoverageCollector;
 use Greenlight\Coverage\Collection\CoverageSettings;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\EventSink;
 use Greenlight\Execution\Artifact\PublishingEventSink;
 use Greenlight\Execution\ExecutionAdapter;
 use Greenlight\Execution\ExecutionContext;
+use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\ExecutionOutcome;
 use Greenlight\Execution\ExecutionTopology;
 use Greenlight\Execution\Plugin\PluginInstances;
-use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\Worker\DefaultServices;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Execution\Worker\Worker;
@@ -46,7 +46,7 @@ final readonly class InProcessExecution implements ExecutionAdapter
         return new ExecutionTopology(1, 1);
     }
 
-    /** @throws ProtocolError */
+    /** @throws ExecutionFailed */
     #[\Override]
     public function execute(
         ExecutionPlan $plan,
@@ -69,7 +69,7 @@ final readonly class InProcessExecution implements ExecutionAdapter
             } catch (\Throwable $failure) {
                 $detail = ThrowableDetail::fromThrowable($failure);
 
-                throw ProtocolError::workerFatal(
+                throw ExecutionFailed::workerFatal(
                     'in-process',
                     $detail->message,
                     $detail->file,
@@ -107,7 +107,7 @@ final readonly class InProcessExecution implements ExecutionAdapter
                 } catch (WorkerError $failure) {
                     $detail = ThrowableDetail::fromThrowable($failure);
 
-                    throw ProtocolError::workerFatal(
+                    throw ExecutionFailed::workerFatal(
                         'in-process',
                         $detail->message,
                         $detail->file,

@@ -7,10 +7,11 @@ namespace Greenlight\Execution\Adapter;
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Config\WorkerConfiguration;
 use Greenlight\Coverage\Collection\CoverageSettings;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\EventSink;
 use Greenlight\Execution\ExecutionAdapter;
 use Greenlight\Execution\ExecutionContext;
+use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\ExecutionOutcome;
 use Greenlight\Execution\ExecutionTopology;
 use Greenlight\Execution\Plugin\PluginInstances;
@@ -20,6 +21,7 @@ use Greenlight\Execution\ProcessPool\Orchestrator\NativeWorkerTransport;
 use Greenlight\Execution\ProcessPool\Orchestrator\Orchestrator;
 use Greenlight\Execution\ProcessPool\Orchestrator\OrchestratorConfiguration;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceScheduler;
+use Greenlight\Execution\ProcessPool\Orchestrator\WorkerTransport;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
@@ -46,6 +48,7 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
         private bool $detectLeaks = false,
         private ?GracefulShutdown $shutdown = null,
         private ?Ticking $ticker = null,
+        private ?WorkerTransport $transport = null,
     ) {
         if ($workerCount < 1) {
             throw new \InvalidArgumentException('Process-pool execution requires at least one worker.');
@@ -69,8 +72,8 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
 
     /**
      * @throws AttachmentError
+     * @throws ExecutionFailed
      * @throws ReportGenerationFailed
-     * @throws WireCommunicationFailed
      */
     #[\Override]
     public function execute(
@@ -78,34 +81,38 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
         EventSink $sink,
         ExecutionContext $context,
     ): ExecutionOutcome {
-        $execution = $context->execution;
-        $orchestrator = new Orchestrator(
-            NativeWorkerTransport::listen(
-                $this->workerCommand,
-                $this->workingDirectory,
-                $context->storage->temporaryDirectory,
-            ),
-            new OrchestratorConfiguration(
-                stopAfterFailures: $execution->stopAfterFailures,
-                coverageSettings: $this->coverageSettings,
-                configFile: $this->configFile,
-                detectLeaks: $this->detectLeaks,
-                policy: $execution->policy->isNoOp() ? null : $execution->policy,
-                shutdown: $this->shutdown,
-                ticker: $this->ticker,
-                artifactStore: $context->artifacts,
-                artifactConfiguration: $execution->artifacts,
-                integrationFixtures: $context->fixtures,
-                resourceLimits: $this->workers->resourceLimits,
-                initialWorkerAssignment: PluginInstances::hasWorkerBootstrapSubscribers($execution->plugins)
-                    ? InitialWorkerAssignment::AfterAllReady
-                    : InitialWorkerAssignment::Progressive,
-                generatedCodeDirectory: $context->storage->generatedCodeDirectory,
-                temporaryDirectory: $context->storage->temporaryDirectory,
-            ),
-        );
+        try {
+            $execution = $context->execution;
+            $orchestrator = new Orchestrator(
+                $this->transport ?? NativeWorkerTransport::listen(
+                    $this->workerCommand,
+                    $this->workingDirectory,
+                    $context->storage->temporaryDirectory,
+                ),
+                new OrchestratorConfiguration(
+                    stopAfterFailures: $execution->stopAfterFailures,
+                    coverageSettings: $this->coverageSettings,
+                    configFile: $this->configFile,
+                    detectLeaks: $this->detectLeaks,
+                    policy: $execution->policy->isNoOp() ? null : $execution->policy,
+                    shutdown: $this->shutdown,
+                    ticker: $this->ticker,
+                    artifactStore: $context->artifacts,
+                    artifactConfiguration: $execution->artifacts,
+                    integrationFixtures: $context->fixtures,
+                    resourceLimits: $this->workers->resourceLimits,
+                    initialWorkerAssignment: PluginInstances::hasWorkerBootstrapSubscribers($execution->plugins)
+                        ? InitialWorkerAssignment::AfterAllReady
+                        : InitialWorkerAssignment::Progressive,
+                    generatedCodeDirectory: $context->storage->generatedCodeDirectory,
+                    temporaryDirectory: $context->storage->temporaryDirectory,
+                ),
+            );
 
-        $summary = $orchestrator->run($plan, $sink, $this->workerCount, $context->classSeconds);
+            $summary = $orchestrator->run($plan, $sink, $this->workerCount, $context->classSeconds);
+        } catch (WireCommunicationFailed $failure) {
+            throw ExecutionFailed::processPool($failure);
+        }
 
         return new ExecutionOutcome(
             $summary,

@@ -8,8 +8,8 @@ use Greenlight\Cli\Configuration\LoadedConfiguration;
 use Greenlight\Config\StorageLayout;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
-use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanShard;
+use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Discovery\Plan\PlanShard;
 use Greenlight\Discovery\TestDiscoverer;
 
 /**
@@ -21,7 +21,9 @@ final readonly class SelectionDiscovery
 {
     public function __construct(private LoadedConfiguration $configuration, private string $workingDirectory) {}
 
-    /** @throws DiscoveryError */
+    /**
+     * @throws DiscoveryError
+     */
     public function plan(): ExecutionPlan
     {
         $resolved = $this->configuration->resolved;

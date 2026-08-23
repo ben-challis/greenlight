@@ -9,9 +9,9 @@ use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\StorageLayout;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\DiscoveryError;
-use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanOrder;
-use Greenlight\Discovery\PlanShard;
+use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Discovery\Plan\PlanOrder;
+use Greenlight\Discovery\Plan\PlanShard;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Event\EventSink;
 use Greenlight\Event\RunFinished;
@@ -20,10 +20,8 @@ use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Plugin\IntegrationFixtureProviderAdapter;
 use Greenlight\Execution\Plugin\PluginEventSink;
 use Greenlight\Execution\Plugin\PluginInstances;
-use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\IntegrationFixture\IntegrationFixtureManager;
-use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Test\TestSelection;
@@ -45,9 +43,8 @@ final readonly class RunCoordinator
      * @throws DiscoveryError
      * @throws AttachmentError
      * @throws IntegrationFixtureError
-     * @throws ProtocolError
+     * @throws ExecutionFailed
      * @throws ReportGenerationFailed
-     * @throws WireCommunicationFailed
      */
     public function run(
         ResolvedConfiguration $configuration,
@@ -121,7 +118,6 @@ final readonly class RunCoordinator
                         $configuration->execution,
                         $artifacts,
                         $fixtures,
-                        $orchestratorPlugins,
                         $classSeconds,
                         $storage,
                     ),

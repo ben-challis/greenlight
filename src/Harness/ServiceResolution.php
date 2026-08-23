@@ -11,39 +11,38 @@ namespace Greenlight\Harness;
 final readonly class ServiceResolution
 {
     private function __construct(
-        private ServiceResolutionStatus $status,
         private ?object $service = null,
         private ?ServiceResolutionFailed $error = null,
     ) {}
 
     public static function unhandled(): self
     {
-        return new self(ServiceResolutionStatus::Unhandled);
+        return new self();
     }
 
     public static function resolved(object $service): self
     {
-        return new self(ServiceResolutionStatus::Resolved, service: $service);
+        return new self(service: $service);
     }
 
     public static function failed(ServiceResolutionFailed $error): self
     {
-        return new self(ServiceResolutionStatus::Failed, error: $error);
+        return new self(error: $error);
     }
 
     public function isUnhandled(): bool
     {
-        return $this->status === ServiceResolutionStatus::Unhandled;
+        return $this->service === null && !$this->error instanceof ServiceResolutionFailed;
     }
 
     public function isResolved(): bool
     {
-        return $this->status === ServiceResolutionStatus::Resolved;
+        return $this->service !== null;
     }
 
     public function isFailed(): bool
     {
-        return $this->status === ServiceResolutionStatus::Failed;
+        return $this->error instanceof ServiceResolutionFailed;
     }
 
     public function service(): object
@@ -69,12 +68,4 @@ final readonly class ServiceResolution
 
         return $this->service;
     }
-}
-
-/** @internal */
-enum ServiceResolutionStatus
-{
-    case Unhandled;
-    case Resolved;
-    case Failed;
 }

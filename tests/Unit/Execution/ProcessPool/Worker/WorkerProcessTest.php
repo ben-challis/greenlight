@@ -289,7 +289,7 @@ final readonly class WorkerProcessTest
 
             if ($scenario === 'assignment-before-bootstrap') {
                 $channel->send(new Greenlight\Execution\ProcessPool\Protocol\Messages\Assign(
-                    new Greenlight\Discovery\ExecutionPlan([]),
+                    new Greenlight\Discovery\Plan\ExecutionPlan([]),
                 ));
                 $fatal = $channel->receive(2.0);
 
@@ -352,7 +352,7 @@ final readonly class WorkerProcessTest
 
             if ($scenario === 'empty-assignment') {
                 $channel->send(new Greenlight\Execution\ProcessPool\Protocol\Messages\Assign(
-                    new Greenlight\Discovery\ExecutionPlan([]),
+                    new Greenlight\Discovery\Plan\ExecutionPlan([]),
                 ));
                 $done = $channel->receive(2.0);
 

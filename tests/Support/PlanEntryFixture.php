@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Discovery\PlanEntry;
+use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Test\SchedulingPolicy;
 use Greenlight\Test\TestDefinition;
 

@@ -9,9 +9,9 @@ use Greenlight\Internal\Wire\Wire;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
- * Greenlight converts the message and file to valid UTF-8 before the
- * diagnostic crosses the wire. These values originate in user code.
- * The line number is greater than zero.
+ * Greenlight converts the message and file to valid UTF-8 before it adds the
+ * diagnostic to a test result. These values originate in user code. The line
+ * number is greater than zero.
  */
 final readonly class Diagnostic
 {
@@ -38,6 +38,9 @@ final readonly class Diagnostic
 
     /**
      * @internal
+     *
+     * The worker protocol accepts only valid UTF-8 text. Scrub values from
+     * user code when Greenlight encodes the diagnostic for transport.
      *
      * @return array<string, mixed>
      */

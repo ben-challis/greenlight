@@ -6,8 +6,8 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Protocol;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
+use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Event\TestFinished;
 use Greenlight\Execution\Artifact\ArtifactSession;
 use Greenlight\Execution\ProcessPool\Protocol\FrameBuffer;

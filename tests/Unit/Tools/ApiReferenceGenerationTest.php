@@ -106,6 +106,10 @@ final readonly class ApiReferenceGenerationTest
             ->not()->toContain('WireSerializable');
         Expect::that($this->reference('api-reporting.md'))
             ->toContain('## `ReportGenerationFailed`')
+            ->toContain('### `because()`')
+            ->not()->toContain('### `writeFailed()`')
+            ->not()->toContain('### `unmappedEvent()`')
+            ->not()->toContain('### `xmlUnavailable()`')
             ->not()->toContain('ReportingError');
     }
 

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
+use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Execution\ProcessPool\Orchestrator\Distributor;
 use Greenlight\Execution\ProcessPool\Orchestrator\SchedulingUnit;
 use Greenlight\Expect\Expect;
