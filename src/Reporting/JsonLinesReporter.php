@@ -32,11 +32,16 @@ final readonly class JsonLinesReporter implements Reporter
         try {
             $line = EventCodec::encodeJsonLine($event);
         } catch (EventCodecFailed $failure) {
-            if ($failure->kind === EventCodecFailureKind::UnmappedEvent) {
-                throw ReportGenerationFailed::unmappedEvent($event::class);
-            }
-
-            throw ReportGenerationFailed::eventEncodingFailed($failure);
+            throw match ($failure->kind) {
+                EventCodecFailureKind::UnmappedEvent => ReportGenerationFailed::unmappedEvent($event::class),
+                EventCodecFailureKind::UnknownEvent,
+                EventCodecFailureKind::MalformedTaggedPayload,
+                EventCodecFailureKind::MalformedJson,
+                EventCodecFailureKind::MalformedJsonEnvelope,
+                EventCodecFailureKind::UnsupportedJsonVersion,
+                EventCodecFailureKind::InvalidEventPayload,
+                EventCodecFailureKind::JsonEncodingFailed => ReportGenerationFailed::eventEncodingFailed($failure),
+            };
         }
 
         $this->output->write($line);

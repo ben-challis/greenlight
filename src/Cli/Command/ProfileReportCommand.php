@@ -45,38 +45,13 @@ final readonly class ProfileReportCommand
             try {
                 $aggregator->onEvent(EventCodec::decodeJsonLine($line));
             } catch (EventCodecFailed $failure) {
-                if ($failure->kind === EventCodecFailureKind::UnknownEvent) {
+                $exitCode = $this->handleCodecFailure($failure, $arguments->has('no-ansi'));
+
+                if ($exitCode === null) {
                     continue;
                 }
 
-                if ($failure->kind === EventCodecFailureKind::MalformedJson) {
-                    $this->console->err("The input is not a JSONL event stream. A line is not valid JSON.\n");
-                    return 1;
-                }
-
-                if ($failure->kind === EventCodecFailureKind::UnsupportedJsonVersion) {
-                    $version = $failure->jsonVersion;
-
-                    if ($version === null) {
-                        $this->console->err("The input is not a JSONL event stream. A line does not contain an event envelope.\n");
-                        return 1;
-                    }
-
-                    $this->console->err(\sprintf("The input uses unsupported JSONL version %d.\n", $version));
-                    return 1;
-                }
-
-                if ($failure->kind === EventCodecFailureKind::InvalidEventPayload) {
-                    $this->console->error(\sprintf(
-                        'Greenlight could not decode a "%s" event: %s',
-                        $failure->eventIdentifier,
-                        $failure->getMessage(),
-                    ), $arguments->has('no-ansi'));
-                    return 1;
-                }
-
-                $this->console->err("The input is not a JSONL event stream. A line does not contain an event envelope.\n");
-                return 1;
+                return $exitCode;
             }
         }
         $report = $aggregator->render(new Style($this->console->capabilities($arguments->has('no-ansi'), $arguments->has('ansi'))->color));
@@ -86,5 +61,54 @@ final readonly class ProfileReportCommand
         }
         $this->console->out(\ltrim($report, "\n"));
         return 0;
+    }
+
+    private function handleCodecFailure(EventCodecFailed $failure, bool $noAnsi): ?int
+    {
+        return match ($failure->kind) {
+            EventCodecFailureKind::UnknownEvent => null,
+            EventCodecFailureKind::MalformedJson => $this->writeInputError(
+                'The input is not a JSONL event stream. A line is not valid JSON.',
+            ),
+            EventCodecFailureKind::UnsupportedJsonVersion => $this->writeUnsupportedVersion($failure),
+            EventCodecFailureKind::InvalidEventPayload => $this->writeInvalidEvent($failure, $noAnsi),
+            EventCodecFailureKind::UnmappedEvent,
+            EventCodecFailureKind::MalformedTaggedPayload,
+            EventCodecFailureKind::MalformedJsonEnvelope,
+            EventCodecFailureKind::JsonEncodingFailed => $this->writeInputError(
+                'The input is not a JSONL event stream. A line does not contain an event envelope.',
+            ),
+        };
+    }
+
+    private function writeUnsupportedVersion(EventCodecFailed $failure): int
+    {
+        $version = $failure->jsonVersion;
+
+        if ($version === null) {
+            return $this->writeInputError(
+                'The input is not a JSONL event stream. A line does not contain an event envelope.',
+            );
+        }
+
+        return $this->writeInputError(\sprintf('The input uses unsupported JSONL version %d.', $version));
+    }
+
+    private function writeInvalidEvent(EventCodecFailed $failure, bool $noAnsi): int
+    {
+        $this->console->error(\sprintf(
+            'Greenlight could not decode a "%s" event: %s',
+            $failure->eventIdentifier,
+            $failure->getMessage(),
+        ), $noAnsi);
+
+        return 1;
+    }
+
+    private function writeInputError(string $message): int
+    {
+        $this->console->err($message . "\n");
+
+        return 1;
     }
 }

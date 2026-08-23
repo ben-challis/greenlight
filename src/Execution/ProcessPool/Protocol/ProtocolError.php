@@ -64,11 +64,16 @@ final class ProtocolError extends WireCommunicationFailed
 
     public static function eventCodecFailed(EventCodecFailed $failure): self
     {
-        if (\in_array($failure->kind, [EventCodecFailureKind::UnmappedEvent, EventCodecFailureKind::UnknownEvent], true)) {
-            return self::unknownEvent($failure->eventIdentifier ?? 'unknown');
-        }
-
-        return new self($failure->getMessage(), $failure);
+        return match ($failure->kind) {
+            EventCodecFailureKind::UnmappedEvent,
+            EventCodecFailureKind::UnknownEvent => self::unknownEvent($failure->eventIdentifier ?? 'unknown'),
+            EventCodecFailureKind::MalformedTaggedPayload,
+            EventCodecFailureKind::MalformedJson,
+            EventCodecFailureKind::MalformedJsonEnvelope,
+            EventCodecFailureKind::UnsupportedJsonVersion,
+            EventCodecFailureKind::InvalidEventPayload,
+            EventCodecFailureKind::JsonEncodingFailed => new self($failure->getMessage(), $failure),
+        };
     }
 
     public static function duplicateBootstrap(): self
