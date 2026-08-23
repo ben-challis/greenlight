@@ -61,6 +61,26 @@ final class CliError extends \RuntimeException
         return new self('--filter requires a pattern.');
     }
 
+    /** @param non-empty-list<non-empty-string> $names */
+    public static function unknownSuites(array $names): self
+    {
+        return new self(\sprintf(
+            'Unknown %s %s. Use --list-suites to list configured suites.',
+            \count($names) === 1 ? 'suite' : 'suites',
+            self::quotedList($names),
+        ));
+    }
+
+    /** @param non-empty-list<non-empty-string> $tags */
+    public static function unknownSuiteTags(array $tags): self
+    {
+        return new self(\sprintf(
+            'Unknown suite %s %s. Use --list-suites to list configured suite tags.',
+            \count($tags) === 1 ? 'tag' : 'tags',
+            self::quotedList($tags),
+        ));
+    }
+
     public static function malformedShard(string $raw): self
     {
         return new self(\sprintf('--shard requires <n>/<m>, such as 1/4. Received "%s".', $raw));
@@ -151,5 +171,11 @@ final class CliError extends \RuntimeException
     public static function coverageOptionsConflict(): self
     {
         return new self('--no-coverage cannot be combined with --coverage-map or --coverage-include.');
+    }
+
+    /** @param non-empty-list<non-empty-string> $values */
+    private static function quotedList(array $values): string
+    {
+        return \implode(', ', \array_map(static fn(string $value): string => '"' . $value . '"', $values));
     }
 }

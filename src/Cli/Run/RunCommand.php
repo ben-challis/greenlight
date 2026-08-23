@@ -158,7 +158,11 @@ final readonly class RunCommand
                 return new WatchRuns($this->console)->run($arguments, $workingDirectory, $workerBin, $configuration, $shutdown, $reporterCatalog, $reporterOutputs, $reporter);
             }
 
-            $storage = StorageLayout::resolve($resolved->storage, $workingDirectory);
+            $storage = StorageLayout::resolve(
+                $resolved->storage,
+                $workingDirectory,
+                $resolved->suiteSelection->stateIdentity(),
+            );
             $state = RunState::forFile($storage->runStateFile);
             $previousFailures = $state->failedTests();
 

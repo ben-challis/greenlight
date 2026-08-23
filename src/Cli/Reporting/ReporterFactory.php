@@ -12,18 +12,11 @@ use Greenlight\Cli\Output\TerminalRowsResolver;
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\ReporterProvider;
 use Greenlight\Reporting\CompositeReporter;
-use Greenlight\Reporting\GithubReporter;
-use Greenlight\Reporting\JsonLinesReporter;
-use Greenlight\Reporting\JUnitReporter;
-use Greenlight\Reporting\Output;
-use Greenlight\Reporting\PlainReporter;
 use Greenlight\Reporting\Profile\ProfileReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReporterDefinition;
 use Greenlight\Reporting\RunHeader;
 use Greenlight\Reporting\Style;
-use Greenlight\Reporting\TeamCityReporter;
-use Greenlight\Reporting\TtyReporter;
 
 /**
  * Builds the reporter catalog and fresh reporters for one command.
@@ -45,29 +38,17 @@ final readonly class ReporterFactory
         $prefix = \rtrim($workingDirectory, '/') . '/';
         $displayedConfig = \str_starts_with($configFile, $prefix) ? \substr($configFile, \strlen($prefix)) : $configFile;
         $header = new RunHeader($version, $displayedConfig, $seed, workerFallback: $workerFallback);
-        $profile = $arguments->has('profile');
-        $definitions = [
-            new ReporterDefinition('tty', static function (Output $output) use ($capabilities, $header, $profile, $arguments): Reporter {
-                $selectedCapabilities = $output instanceof ReporterOutput ? $output->capabilities : $capabilities;
+        $definitions = [];
+        $bundled = PluginDefinition::fromFactory(
+            fn(): BundledReporters => new BundledReporters(
+                $capabilities,
+                $header,
+                $arguments,
+                TerminalRowsResolver::resolve(),
+            ),
+        );
 
-                return new TtyReporter(
-                    $output,
-                    $selectedCapabilities->color,
-                    $selectedCapabilities->interactive,
-                    $header,
-                    extendedSlowTests: $profile,
-                    verbose: $arguments->has('verbose'),
-                    terminalRows: TerminalRowsResolver::resolve(),
-                );
-            }),
-            new ReporterDefinition('plain', static fn(Output $output): Reporter => new PlainReporter($output, $header, extendedSlowTests: $profile)),
-            new ReporterDefinition('junit', static fn(Output $output): Reporter => new JUnitReporter($output)),
-            new ReporterDefinition('jsonl', static fn(Output $output): Reporter => new JsonLinesReporter($output)),
-            new ReporterDefinition('github', static fn(Output $output): Reporter => new GithubReporter($output)),
-            new ReporterDefinition('teamcity', static fn(Output $output): Reporter => new TeamCityReporter($output)),
-        ];
-
-        foreach ($plugins as $pluginDefinition) {
+        foreach ([$bundled, ...$plugins] as $pluginDefinition) {
             if (!$pluginDefinition->supports(ReporterProvider::class)) {
                 continue;
             }

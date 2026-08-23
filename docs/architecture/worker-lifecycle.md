@@ -169,8 +169,9 @@ worker-side instances. Thus, plugin properties cannot transfer data between
 the two sides in any worker mode. A repeat iteration and a watch rerun are new
 selected runs and construct new instances.
 
-Configured suites add named paths and descriptive tags to discovery. They do
-not add boundaries to the execution plan or event stream.
+Configured suites add named and tagged path groups to discovery. CLI selectors
+can choose a union of these groups. Suites do not add boundaries to the
+execution plan or event stream.
 
 The default scheduling unit contains the selected non-isolated tests from one
 class. `#[AllowParallel]` changes each selected test or data set into a pooled

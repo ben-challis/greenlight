@@ -26,6 +26,10 @@ final readonly class CliOverrides
     public function __construct(
         public ExecutionOverrides $execution = new ExecutionOverrides(),
         public TestSelection $selection = new TestSelection(),
+        /** @var list<non-empty-string> */
+        public array $suiteNames = [],
+        /** @var list<non-empty-string> */
+        public array $suiteTags = [],
         public ?int $seed = null,
         public RepeatConfiguration $repeat = new RepeatConfiguration(),
         public CoverageOverrides $coverage = new CoverageOverrides(),
@@ -194,6 +198,8 @@ final readonly class CliOverrides
                 exclude: new TestExclusions($excludeGroups, $excludeClasses, $excludeMethods, $excludePaths),
                 shard: $shard,
             ),
+            suiteNames: self::nonEmptyValues($arguments, 'suite'),
+            suiteTags: self::nonEmptyValues($arguments, 'suite-tag'),
             seed: $seed,
             repeat: new RepeatConfiguration($repeat, $repeatUntilFailure),
             coverage: new CoverageOverrides($coverageIncludes, $coverageMap, $arguments->has('no-coverage')),

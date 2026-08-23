@@ -17,6 +17,7 @@ final class TerminalRowsResolver
     /** @codeCoverageIgnore */
     private function __construct() {}
 
+    /** @return positive-int */
     public static function resolve(): int
     {
         $lines = self::positiveRows(\getenv('LINES'));

@@ -76,8 +76,8 @@ final class GreenlightConfig
     }
 
     /**
-     * Sets the top-level test-discovery directories. Greenlight combines these
-     * paths with the paths from all named suites.
+     * Sets the base test-discovery directories. Greenlight combines these
+     * paths with all suite paths when the command has no suite selector.
      *
      * @param non-empty-list<non-empty-string> $tests
      *
@@ -129,7 +129,8 @@ final class GreenlightConfig
     }
 
     /**
-     * Declares a named suite. Greenlight adds its paths to test discovery.
+     * Declares a named suite. Greenlight adds its paths to default discovery
+     * and makes the suite available to CLI selectors.
      *
      * The configurator receives a `SuiteBuilder`. It must add at least one path
      * with `in()`. Greenlight ignores its return value, which permits short

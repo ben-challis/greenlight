@@ -55,6 +55,8 @@ final readonly class ConfigurationLoader
         $resolved = ConfigurationResolver::resolve($builder->build(), new CliOverrides(
             execution: $overrides->execution,
             selection: $selection,
+            suiteNames: $overrides->suiteNames,
+            suiteTags: $overrides->suiteTags,
             seed: $overrides->seed,
             repeat: $overrides->repeat,
             coverage: $overrides->coverage,
@@ -87,10 +89,7 @@ final readonly class ConfigurationLoader
     /** @return list<non-empty-string> */
     public static function directories(ResolvedConfiguration $configuration, string $workingDirectory): array
     {
-        $paths = $configuration->discovery->paths;
-        foreach ($configuration->discovery->suites as $suite) {
-            $paths = [...$paths, ...$suite->paths];
-        }
+        $paths = $configuration->suiteSelection->paths($configuration->discovery);
         $directories = [];
         foreach ($paths as $path) {
             $absolute = self::absolutePath($path, $workingDirectory);

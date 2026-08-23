@@ -15,6 +15,7 @@ final readonly class ResolvedConfiguration
 {
     public function __construct(
         public DiscoveryConfiguration $discovery,
+        public SuiteSelection $suiteSelection,
         public WorkerConfiguration $workers,
         public ExecutionConfiguration $execution,
         public RunOrder $order,

@@ -46,11 +46,14 @@ Every builder method returns `$this`. Thus, you can chain method calls.
 
 Default: `['tests']`.
 
-Sets the top-level directories that Greenlight scans.
+Sets the base directories that Greenlight scans.
 
 Paths must be non-empty strings. The list itself must not be empty.
 
-Each run also scans every path from `suite()`.
+Without a suite selector, each run also scans every path from `suite()`.
+
+An explicit suite selector excludes these base paths. This rule prevents the
+default `paths(['tests'])` value from scanning tests outside selected suites.
 
 ### `suite(string $name, callable $configurator): self`
 
@@ -60,9 +63,19 @@ Declares a named suite. Greenlight gives a `SuiteBuilder` to the configurator.
 The configurator must add at least one path. Greenlight ignores its return
 value. Thus, you can use an arrow function.
 
-Each run includes every named suite. Suite names and tags are descriptive. A
-suite does not create a selection or execution boundary. It does not cause
-lifecycle events. The `--dry-run` and `--list-suites` options print suites.
+Without a suite selector, each run includes every named suite. This behavior is
+compatible with configurations that use suites only to add paths.
+
+Use `--suite=<name>` or `--suite-tag=<tag>` to select suites. Repeat either
+option to select a union. A suite is selected if its name or one of its tags
+matches a selector.
+
+An explicit selection scans only paths from selected suites. It does not scan
+base `paths()`. Test filters and sharding apply after this path selection.
+
+A suite does not create an execution or lifecycle boundary. Coverage include
+paths are global and do not belong to a suite. A selected coverage run measures
+all configured coverage include paths.
 
 A second declaration with the same suite name causes an error.
 
@@ -76,6 +89,8 @@ A second declaration with the same suite name causes an error.
 
 * `in(string ...$paths): self` adds directories to the suite. Required.
 * `tag(string ...$tags): self` adds tags to the suite. Optional.
+
+Suite names and tags use case-sensitive exact matching.
 
 ### `workers(int|string $count = 'auto'): self`
 
@@ -346,8 +361,10 @@ Use separate areas when their retention or trust requirements differ:
     ->temporaryDirectory('/var/tmp/greenlight'))
 ```
 
-The state directory contains `run-state.json`. This file has the failed test
-IDs and class durations from the previous run.
+The state directory contains `run-state.json` for a run without suite
+selectors. An explicit suite selection uses a file with a canonical suite-set
+suffix. Each file has failed test IDs and class durations from the previous
+matching run.
 
 Do not share one state directory between concurrent shards. Each shard writes
 one complete snapshot and can replace data from another shard.
@@ -545,6 +562,22 @@ Stops after `<n>` failures.
 
 Bare `--bail` means `--bail=1`.
 
+### `--suite=<name>`
+
+Selects the configured suite with this exact name.
+
+Repeatable. Greenlight creates one union from all `--suite` and `--suite-tag`
+values. An unknown name is a usage error.
+
+If you use a suite selector, Greenlight excludes base `paths()` from discovery.
+
+### `--suite-tag=<tag>`
+
+Selects each configured suite with this exact tag.
+
+Repeatable. An unknown tag is a usage error. Use `--list-suites` to see the
+configured names and tags.
+
 ### `--group=<name>`
 
 Runs only tests in the given group.
@@ -631,7 +664,8 @@ Prints each selected group and its test count. It does not run tests.
 
 ### `--list-suites`
 
-Prints the configured named suites. It does not discover or run tests.
+Prints all configured named suites and their tags. It does not discover or run
+tests. Suite selectors do not hide entries from this catalog.
 
 ### `--repeat=<n>`
 
@@ -774,8 +808,9 @@ combined with `--coverage-map` or `--coverage-include`.
 
 Starts with a complete run, then reruns all selected tests after a file change.
 
-Greenlight watches all configured test paths and coverage include paths. After
-a change, classes that failed in the previous watch iteration run first.
+Greenlight watches the effective test paths and all coverage include paths. An
+explicit suite selection limits the effective test paths to selected suites.
+After a change, classes that failed in the previous watch iteration run first.
 
 Watch mode does not publish coverage totals or coverage exports.
 Per-test coverage cannot be combined with watch mode.
@@ -917,9 +952,10 @@ behavior and exits immediately.
 
 Greenlight caches discovery results per file under the system temp directory.
 
-The cache key includes the file path, mtime, and size. Greenlight can reuse
-discovery data for an unchanged file in the next run. If the cache data is
-uncertain, Greenlight parses the file again.
+The cache identity includes the effective discovery paths. The cache key for
+each entry includes the file path, mtime, and size. Greenlight can reuse data
+for an unchanged file. If the cache data is uncertain, Greenlight parses the
+file again.
 
 Watch mode benefits most because every iteration rediscovers the suite.
 
