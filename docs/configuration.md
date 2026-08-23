@@ -1067,10 +1067,6 @@ artifact later with:
 greenlight profile:report --input=<file>
 ```
 
-### `--input=<path>`
-
-Sets the JSONL input file for `profile:report`.
-
 ### `--output=<path>`
 
 Changes the file written by `ide-helper`.
