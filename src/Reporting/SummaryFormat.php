@@ -16,7 +16,8 @@ final class SummaryFormat
     /** @codeCoverageIgnore */
     private function __construct() {}
 
-    public static function tests(ResultSummary $summary, int $expectations, Style $style): string
+    /** @param non-negative-int $retriedPasses */
+    public static function tests(ResultSummary $summary, int $expectations, Style $style, int $retriedPasses = 0): string
     {
         $parts = [Plural::count($summary->total(), 'test')];
 
@@ -33,6 +34,10 @@ final class SummaryFormat
 
         if ($summary->skipped > 0) {
             $parts[] = $style->warn(\sprintf('%d skipped', $summary->skipped));
+        }
+
+        if ($retriedPasses > 0) {
+            $parts[] = $style->warn(\sprintf('%d passed after retry', $retriedPasses));
         }
 
         $parts[] = Plural::count($expectations, 'expectation');
@@ -88,6 +93,26 @@ final class SummaryFormat
                 $lines[] = \sprintf('    … and %d more', \count($results) - self::MAX_IDS_PER_GROUP);
             }
         }
+
+        return \implode("\n", $lines) . "\n";
+    }
+
+    /**
+     * @param list<TestResult> $retriedPasses
+     */
+    public static function retriedPasses(array $retriedPasses, Style $style): string
+    {
+        if ($retriedPasses === []) {
+            return '';
+        }
+
+        $lines = ["\n" . $style->warn('Passed after retry:')];
+
+        foreach ($retriedPasses as $result) {
+            $lines[] = \sprintf('  %s (%d attempts)', $result->id, $result->attempts);
+        }
+
+        $lines[] = 'These results are evidence of instability.';
 
         return \implode("\n", $lines) . "\n";
     }

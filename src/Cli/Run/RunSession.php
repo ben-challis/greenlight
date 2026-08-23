@@ -86,7 +86,7 @@ final readonly class RunSession
         $coverageSettings = CoverageSettingsResolver::resolve($this->configuration->resolved->coverage, $this->workingDirectory);
 
         try {
-            $this->coordinate($reporter, $tap, $priorityClasses, $classSeconds, $workers, $coverageSettings);
+            $run = $this->coordinate($reporter, $tap, $priorityClasses, $classSeconds, $workers, $coverageSettings);
         } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
             $reporter->finish();
             $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
@@ -96,6 +96,7 @@ final readonly class RunSession
 
         $reporter->finish();
         $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
+        $this->reportRunPolicyFailure($run, $failedTap);
 
         return $tap->failedClasses();
     }
@@ -176,19 +177,38 @@ final readonly class RunSession
             return 1;
         }
 
-        if (!$resolved->execution->runPolicy->accepts($run->summary)) {
-            if ($run->summary->isSuccessful()) {
-                $this->console->err(\sprintf(
-                    "Greenlight failed because the fail-on-skipped policy found %d skipped %s.\n",
-                    $run->summary->skipped,
-                    $run->summary->skipped === 1 ? 'test' : 'tests',
-                ));
-            }
+        if (!$resolved->execution->runPolicy->accepts($run->summary, $failedTap->retriedPasses())) {
+            $this->reportRunPolicyFailure($run, $failedTap);
 
             return 1;
         }
 
         return 0;
+    }
+
+    private function reportRunPolicyFailure(RunResult $run, FailedTestsTap $tap): void
+    {
+        if (!$run->summary->isSuccessful()) {
+            return;
+        }
+
+        $policy = $this->configuration->resolved->execution->runPolicy;
+
+        if ($policy->failOnSkipped && $run->summary->skipped > 0) {
+            $this->console->err(\sprintf(
+                "Greenlight failed because the fail-on-skipped policy found %d skipped %s.\n",
+                $run->summary->skipped,
+                $run->summary->skipped === 1 ? 'test' : 'tests',
+            ));
+        }
+
+        if ($policy->failOnRetriedPass && $tap->retriedPasses() > 0) {
+            $this->console->err(\sprintf(
+                "Greenlight failed because the fail-on-retried-pass policy found %d %s that passed after retry.\n",
+                $tap->retriedPasses(),
+                $tap->retriedPasses() === 1 ? 'test' : 'tests',
+            ));
+        }
     }
 
     /**

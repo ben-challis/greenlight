@@ -29,7 +29,7 @@ final class PlainReporterTest
             PASS Acme\CalculatorTest::multipliesIntegers[large numbers] (0.340s)
             ERROR Acme\NetworkTest::connects (0.005s)
             SKIP Acme\NetworkTest::pings (0.000s)
-            PASS Acme\NetworkTest::retriesFlakyEndpoint (0.150s) (attempts: 3)
+            PASS Acme\NetworkTest::retriesFlakyEndpoint (0.150s) (passed after 3 attempts)
 
             FAIL Acme\CalculatorTest::subtractsIntegers
               Failed asserting that two values are equal.
@@ -42,12 +42,16 @@ final class PlainReporterTest
                 Acme\NetworkTest::connect at /project/tests/NetworkTest.php:17
               at /project/tests/NetworkTest.php:17
 
-            6 tests, 3 passed, 1 failed, 1 errored, 1 skipped, 11 expectations
+            6 tests, 3 passed, 1 failed, 1 errored, 1 skipped, 1 passed after retry, 11 expectations
             Time: 1.234s
             Workers: 2 spawned
 
             Skipped:
               Acme\NetworkTest::pings (Requires ext-redis.)
+
+            Passed after retry:
+              Acme\NetworkTest::retriesFlakyEndpoint (3 attempts)
+            These results are evidence of instability.
             TXT;
 
         Expect::that($output->buffer())->because('canned stream renders the golden output')->toBe($expected . "\n");

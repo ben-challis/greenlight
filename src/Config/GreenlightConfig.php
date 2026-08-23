@@ -50,6 +50,8 @@ final class GreenlightConfig
 
     private bool $failOnSkipped = false;
 
+    private bool $failOnRetriedPass = false;
+
     /**
      * @var list<non-empty-string>
      */
@@ -319,6 +321,17 @@ final class GreenlightConfig
     }
 
     /**
+     * Fails the run if a test passes after retry. The test keeps its passed
+     * outcome and attempt count.
+     */
+    public function failOnRetriedPass(bool $enabled = true): self
+    {
+        $this->failOnRetriedPass = $enabled;
+
+        return $this;
+    }
+
+    /**
      * Exempts deprecation messages from `failOnDeprecation()`. A pattern matches
      * part of a message without case sensitivity. A pattern that contains "*"
      * or "?" matches the complete message. Multiple calls add patterns.
@@ -426,7 +439,10 @@ final class GreenlightConfig
                     $this->ignoreDeprecations,
                     $this->failOnRisky,
                 ),
-                runPolicy: new RunPolicy($this->failOnSkipped),
+                runPolicy: new RunPolicy(
+                    failOnSkipped: $this->failOnSkipped,
+                    failOnRetriedPass: $this->failOnRetriedPass,
+                ),
                 stopAfterFailures: $this->failFast ? 1 : null,
                 artifacts: $this->artifacts->toConfiguration(),
             ),

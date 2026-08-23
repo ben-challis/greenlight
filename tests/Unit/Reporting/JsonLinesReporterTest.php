@@ -87,6 +87,25 @@ final class JsonLinesReporterTest
     }
 
     #[Test]
+    public function aRetriedPassUsesTheExistingAttemptsField(): void
+    {
+        $output = new BufferOutput();
+        CannedStream::feed(new JsonLinesReporter($output));
+
+        $retried = \array_values(\array_filter(
+            \explode("\n", \rtrim($output->buffer(), "\n")),
+            static fn(string $line): bool => \str_contains($line, 'retriesFlakyEndpoint'),
+        ));
+
+        Expect::that($retried)
+            ->because('JSONL MUST retain retry evidence without a schema change')
+            ->toHaveCount(2);
+        Expect::that($retried[1])
+            ->toContain('"outcome":"passed"')
+            ->toContain('"attempts":3');
+    }
+
+    #[Test]
     public function anUnmappedEventIsRejected(): void
     {
         $reporter = new JsonLinesReporter(new BufferOutput());

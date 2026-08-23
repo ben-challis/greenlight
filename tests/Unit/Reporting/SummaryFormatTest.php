@@ -22,13 +22,14 @@ final class SummaryFormatTest
             new ResultSummary(passed: 2, failed: 1, errored: 1, skipped: 1),
             7,
             new Style(ansi: false),
+            retriedPasses: 1,
         );
 
         Expect::that($line)
             ->because(
                 'the final summary shows each test outcome and the expectation count',
             )
-            ->toBe('5 tests, 2 passed, 1 failed, 1 errored, 1 skipped, 7 expectations');
+            ->toBe('5 tests, 2 passed, 1 failed, 1 errored, 1 skipped, 1 passed after retry, 7 expectations');
     }
 
     #[Test]
@@ -61,6 +62,28 @@ final class SummaryFormatTest
             . "\n"
             . "  App\BetaTest::two (no reason given)\n",
         );
+    }
+
+    #[Test]
+    public function retriedPassesListAttemptsAndInstabilityEvidence(): void
+    {
+        $block = SummaryFormat::retriedPasses([
+            new TestResult(
+                new TestId('App\RetryTest', 'passes'),
+                Outcome::Passed,
+                0.1,
+                0,
+                attempts: 2,
+            ),
+        ], new Style(ansi: false));
+
+        Expect::that($block)
+            ->because('retried passes MUST retain their test IDs and attempt counts')
+            ->toBe(
+                "\nPassed after retry:\n"
+                . "  App\\RetryTest::passes (2 attempts)\n"
+                . "These results are evidence of instability.\n",
+            );
     }
 
     #[Test]

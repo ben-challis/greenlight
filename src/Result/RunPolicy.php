@@ -11,10 +11,16 @@ namespace Greenlight\Result;
  */
 final readonly class RunPolicy
 {
-    public function __construct(public bool $failOnSkipped = false) {}
+    public function __construct(
+        public bool $failOnSkipped = false,
+        public bool $failOnRetriedPass = false,
+    ) {}
 
-    public function accepts(ResultSummary $summary): bool
+    /** @param non-negative-int $retriedPasses */
+    public function accepts(ResultSummary $summary, int $retriedPasses = 0): bool
     {
-        return $summary->isSuccessful() && (!$this->failOnSkipped || $summary->skipped === 0);
+        return $summary->isSuccessful()
+            && (!$this->failOnSkipped || $summary->skipped === 0)
+            && (!$this->failOnRetriedPass || $retriedPasses === 0);
     }
 }

@@ -143,6 +143,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | harness service | Technical noun | An object that the harness supplies to a test constructor |
 | Hyperf bridge | Technical noun | The component that connects the Greenlight harness to a Hyperf application, container, and coroutine runtime |
 | integration fixture | Technical noun | External infrastructure that the orchestrator owns for one run |
+| instability | Technical noun | Test behavior that can produce different outcomes without a relevant code change |
 | hook | Technical noun | A method or subscriber callback that runs before or after a test |
 | interaction | Technical noun | One call from code under test to a double |
 | Laravel bridge | Technical noun | The component that connects the Greenlight harness to a Laravel application and container |
@@ -177,6 +178,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | resource limit | Technical noun | A limit on concurrent access to a named resource |
 | result policy | Technical noun | A rule that can change a test result after execution |
 | retention | Technical noun | The rule that determines if Greenlight publishes an attachment |
+| retried pass | Technical noun | A successful terminal result that used more than one test attempt |
 | retry decider | Technical noun | A plugin that determines if Greenlight starts another test attempt |
 | risky test | Technical noun | A passed test that verifies no expectations and has no `#[NoExpectations]` attribute |
 | run | Technical noun | One execution of a selected test suite |

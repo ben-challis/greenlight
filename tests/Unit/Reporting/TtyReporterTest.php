@@ -74,6 +74,37 @@ final class TtyReporterTest
     }
 
     #[Test]
+    public function retriedPassesRemainVisibleInTheWindowAndFinalSummary(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new TtyReporter($output, color: false, cursor: true);
+
+        $reporter->onEvent(new RunStarted('run-1', 1, 1, 1.0));
+        $reporter->onEvent(new TestClassStarted('App\RetryTest', 1.0));
+        $reporter->onEvent(new TestFinished(new TestResult(
+            new TestId('App\RetryTest', 'passes'),
+            Outcome::Passed,
+            0.01,
+            0,
+            attempts: 2,
+        ), 1.1));
+        $reporter->onEvent(new TestClassFinished('App\RetryTest', 1.2));
+        $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.3));
+        $reporter->finish();
+
+        $terminal = new TerminalEmulator();
+        $terminal->write($output->buffer());
+        $screen = $terminal->screen();
+
+        Expect::that($screen)
+            ->because('interactive output MUST retain retried-pass evidence after the live window closes')
+            ->toContain('↻ App\RetryTest (1 test, 1 passed after retry, 0.010s)')
+            ->toContain('1 test, 1 passed, 1 passed after retry, 0 expectations')
+            ->toContain("Passed after retry:\n  App\\RetryTest::passes (2 attempts)")
+            ->toContain('These results are evidence of instability.');
+    }
+
+    #[Test]
     public function concurrentAssignmentsForOneClassShareOneLiveEntry(): void
     {
         $output = new BufferOutput();

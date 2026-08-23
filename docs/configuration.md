@@ -310,6 +310,36 @@ records that iteration as failed. `--repeat-until-failure` stops after it.
 
 Also available as `--fail-on-skipped`.
 
+### `failOnRetriedPass(bool $enabled = true): self`
+
+Default: off.
+
+Fails a run if one or more tests pass after retry.
+
+The run policy does not change the passed outcome. It keeps the attempt count
+and attachments from failed attempts.
+
+The `tty` reporter keeps each affected class in interactive output. The `tty`
+and `plain` reporters list each retried pass after the summary.
+
+JUnit uses the Surefire-compatible `flakyFailure` element. JSONL uses the
+existing `attempts` field. TeamCity uses numeric test metadata. GitHub creates a
+warning annotation.
+
+A retried pass does not count toward `--bail`. Plugins determine the terminal
+outcome before Greenlight evaluates the policy.
+
+The policy evaluates only tests in the selected shard. Repeat mode records an
+affected iteration as failed. `--repeat-until-failure` stops after it.
+
+Watch mode reports the policy failure after each affected run. The watch
+process continues, and `q` keeps its documented exit code.
+
+A retried pass is evidence of instability. It does not prove that a test has
+permanent flaky behavior.
+
+Also available as `--fail-on-retried-pass`.
+
 ### `plugins(Closure ...$plugins): self`
 
 Default: none.
@@ -856,6 +886,10 @@ Enables the risky-test policy for this run.
 ### `--fail-on-skipped`
 
 Enables the skipped-test run policy for this run.
+
+### `--fail-on-retried-pass`
+
+Enables the retried-pass run policy for this run.
 
 ### `--profile`
 

@@ -47,6 +47,7 @@ final readonly class TeamCityReporterTest
             ##teamcity[testIgnored name='Acme\NetworkTest::pings' message='Requires ext-redis.' flowId='Acme\NetworkTest']
             ##teamcity[testFinished name='Acme\NetworkTest::pings' duration='0' flowId='Acme\NetworkTest']
             ##teamcity[testStarted name='Acme\NetworkTest::retriesFlakyEndpoint' flowId='Acme\NetworkTest']
+            ##teamcity[testMetadata testName='Acme\NetworkTest::retriesFlakyEndpoint' name='greenlight.attempts' type='number' value='3' flowId='Acme\NetworkTest']
             ##teamcity[testFinished name='Acme\NetworkTest::retriesFlakyEndpoint' duration='150' flowId='Acme\NetworkTest']
             ##teamcity[testSuiteFinished name='Acme\NetworkTest' flowId='Acme\NetworkTest']
             TXT;

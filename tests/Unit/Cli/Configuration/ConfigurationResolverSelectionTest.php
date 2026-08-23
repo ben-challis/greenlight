@@ -55,7 +55,7 @@ final readonly class ConfigurationResolverSelectionTest
     }
 
     /**
-     * @param array{bool, bool, bool, bool, bool} $expected
+     * @param array{bool, bool, bool, bool, bool, bool} $expected
      */
     #[Test]
     #[DataSet('failurePolicyOverrides')]
@@ -80,32 +80,39 @@ final readonly class ConfigurationResolverSelectionTest
         Expect::that($this->resolve($overrides)->execution->runPolicy->failOnSkipped)
             ->because('the skipped-test policy flag MUST map to failOnSkipped')
             ->toBe($expected[4]);
+        Expect::that($this->resolve($overrides)->execution->runPolicy->failOnRetriedPass)
+            ->because('the retried-pass policy flag MUST map to failOnRetriedPass')
+            ->toBe($expected[5]);
     }
 
     /**
-     * @return iterable<string, array{CliOverrides, array{bool, bool, bool, bool, bool}}>
+     * @return iterable<string, array{CliOverrides, array{bool, bool, bool, bool, bool, bool}}>
      */
     public static function failurePolicyOverrides(): iterable
     {
         yield 'deprecation' => [
             new CliOverrides(execution: new ExecutionOverrides(policy: new ResultPolicy(failOnDeprecation: true))),
-            [true, false, false, false, false],
+            [true, false, false, false, false, false],
         ];
         yield 'notice' => [
             new CliOverrides(execution: new ExecutionOverrides(policy: new ResultPolicy(failOnNotice: true))),
-            [false, true, false, false, false],
+            [false, true, false, false, false, false],
         ];
         yield 'risky' => [
             new CliOverrides(execution: new ExecutionOverrides(policy: new ResultPolicy(failOnRisky: true))),
-            [false, false, true, false, false],
+            [false, false, true, false, false, false],
         ];
         yield 'warning' => [
             new CliOverrides(execution: new ExecutionOverrides(policy: new ResultPolicy(failOnWarning: true))),
-            [false, false, false, true, false],
+            [false, false, false, true, false, false],
         ];
         yield 'skipped' => [
             new CliOverrides(execution: new ExecutionOverrides(runPolicy: new RunPolicy(failOnSkipped: true))),
-            [false, false, false, false, true],
+            [false, false, false, false, true, false],
+        ];
+        yield 'retried pass' => [
+            new CliOverrides(execution: new ExecutionOverrides(runPolicy: new RunPolicy(failOnRetriedPass: true))),
+            [false, false, false, false, false, true],
         ];
     }
 

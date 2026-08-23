@@ -45,6 +45,12 @@ final class GithubReporter implements Reporter
         $result = $event->result;
         $this->hasAttachments = $this->hasAttachments || $result->attachments !== [];
 
+        if ($result->outcome === Outcome::Passed && $result->attempts > 1) {
+            $this->writeWarning($result);
+
+            return;
+        }
+
         if ($result->outcome === Outcome::Failed) {
             $this->writeFailures($result);
 
@@ -130,6 +136,22 @@ final class GithubReporter implements Reporter
         }
 
         $this->write($error->file, $error->line, $message);
+    }
+
+    /**
+     * @throws ReportGenerationFailed
+     */
+    private function writeWarning(TestResult $result): void
+    {
+        $this->output->write(
+            '::warning title=Passed after retry::'
+            . $this->escapeData(\sprintf(
+                '%s passed after %d attempts. This result is evidence of instability.',
+                $result->id,
+                $result->attempts,
+            ))
+            . "\n",
+        );
     }
 
     /**

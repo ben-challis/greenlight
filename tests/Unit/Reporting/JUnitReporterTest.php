@@ -47,7 +47,9 @@ final class JUnitReporterTest
                 <testcase name="pings" classname="Acme\NetworkTest" assertions="0" time="0.000000">
                   <skipped message="Requires ext-redis.">Requires ext-redis.</skipped>
                 </testcase>
-                <testcase name="retriesFlakyEndpoint" classname="Acme\NetworkTest" assertions="3" time="0.150000"/>
+                <testcase name="retriesFlakyEndpoint" classname="Acme\NetworkTest" assertions="3" time="0.150000">
+                  <flakyFailure type="retry" message="Passed after 3 attempts.">Greenlight recorded a successful terminal result after retry.</flakyFailure>
+                </testcase>
               </testsuite>
             </testsuites>
             TXT;
@@ -74,6 +76,7 @@ final class JUnitReporterTest
         Expect::that(SimpleXml::xpath($document, '//failure'))->toHaveCount(1);
         Expect::that(SimpleXml::xpath($document, '//error'))->toHaveCount(1);
         Expect::that(SimpleXml::xpath($document, '//skipped'))->toHaveCount(1);
+        Expect::that(SimpleXml::xpath($document, '//flakyFailure'))->toHaveCount(1);
     }
 
     #[Test]

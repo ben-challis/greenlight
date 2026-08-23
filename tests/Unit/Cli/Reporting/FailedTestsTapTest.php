@@ -38,6 +38,8 @@ final readonly class FailedTestsTapTest
             ->toBe([]);
         Expect::that($tap->classSeconds())
             ->toBe([]);
+        Expect::that($tap->retriedPasses())
+            ->toBe(0);
     }
 
     #[Test]
@@ -48,6 +50,7 @@ final readonly class FailedTestsTapTest
         $events = [
             new TestClassStarted('App\AlphaTest', 10.0, 'worker-1'),
             $this->finished('App\AlphaTest', 'passes', Outcome::Passed, 1.0),
+            $this->finished('App\AlphaTest', 'passesAfterRetry', Outcome::Passed, 1.5, attempts: 2),
             new TestClassStarted('App\BetaTest', 20.0, 'worker-2'),
             $this->finished('App\AlphaTest', 'fails', Outcome::Failed, 2.0),
             new TestClassFinished('App\AlphaTest', 14.0, 'worker-1'),
@@ -56,7 +59,7 @@ final readonly class FailedTestsTapTest
             new TestClassStarted('App\AlphaTest', 30.0, 'worker-1', isolated: true),
             $this->finished('App\AlphaTest', 'fails', Outcome::Failed, 8.0),
             new TestClassFinished('App\AlphaTest', 33.5, 'worker-1'),
-            $this->finished('App\BetaTest', 'skips', Outcome::Skipped, 16.0),
+            $this->finished('App\BetaTest', 'skips', Outcome::Skipped, 16.0, attempts: 2),
         ];
 
         foreach ($events as $event) {
@@ -78,6 +81,9 @@ final readonly class FailedTestsTapTest
         Expect::that($inner->events)
             ->because('the tap MUST forward every event unchanged')
             ->toBe($events);
+        Expect::that($tap->retriedPasses())
+            ->because('the tap MUST count only passed tests that used retry')
+            ->toBe(1);
     }
 
     #[Test]
@@ -149,9 +155,10 @@ final readonly class FailedTestsTapTest
         string $method,
         Outcome $outcome,
         float $duration,
+        int $attempts = 1,
     ): TestFinished {
         return new TestFinished(
-            new TestResult(new TestId($class, $method), $outcome, $duration, 0),
+            new TestResult(new TestId($class, $method), $outcome, $duration, 0, attempts: $attempts),
             1.0,
         );
     }

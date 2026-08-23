@@ -183,6 +183,14 @@ final class JUnitReporter implements Reporter
             $writer->writeAttribute('file', $this->xml($sourceFile));
         }
 
+        if ($result->outcome === Outcome::Passed && $result->attempts > 1) {
+            $writer->startElement('flakyFailure');
+            $writer->writeAttribute('type', 'retry');
+            $writer->writeAttribute('message', \sprintf('Passed after %d attempts.', $result->attempts));
+            $writer->text('Greenlight recorded a successful terminal result after retry.');
+            $writer->endElement();
+        }
+
         if ($result->outcome === Outcome::Failed) {
             if ($result->failures === []) {
                 $writer->startElement('failure');
