@@ -53,6 +53,7 @@ final readonly class CommandDispatcher
         }
         return match ($command) {
             'run' => new RunCommand($this->console, $this->version)->run($arguments, $workingDirectory, $binPath),
+            'coverage:merge' => new CoverageMergeCommand($this->console)->run($arguments, $workingDirectory),
             'coverage:diff' => new CoverageDiffCommand($this->console)->run($arguments, $workingDirectory),
             'profile:report' => new ProfileReportCommand($this->console)->run($arguments, $workingDirectory),
             'ide-helper' => new IdeHelperCommand($this->console)->run($arguments, $workingDirectory),

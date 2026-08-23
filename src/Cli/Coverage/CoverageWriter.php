@@ -38,7 +38,17 @@ final readonly class CoverageWriter
                 $this->console->err(\sprintf("Unknown coverage export format \"%s\".\n", $export->format));
                 return false;
             }
-            $files = $exporter->export($coverage);
+            try {
+                $files = $exporter->export($coverage);
+            } catch (\Throwable $error) {
+                $this->console->err(\sprintf(
+                    "Greenlight could not create the \"%s\" coverage export: %s\n",
+                    $export->format,
+                    $error->getMessage(),
+                ));
+
+                return false;
+            }
             $target = ConfigurationLoader::absolutePath($export->target, $workingDirectory);
             if (\count($files) === 1) {
                 ErrorTrap::run(static fn() => \mkdir(\dirname($target), 0o777, true));

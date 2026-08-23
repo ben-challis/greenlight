@@ -45,4 +45,22 @@ final class ProjectRootNormalizerTest
                 message: 'Coverage path "/dependency/A.php" is not below project root "/project".',
             );
     }
+
+    #[Test]
+    public function relocationUsesTheTargetRootAndKeepsLineSets(): void
+    {
+        $relocated = ProjectRootNormalizer::relocate(
+            new CoverageMap([new FileCoverage('/old/worktree/src/A.php', [2], [3])]),
+            '/old/worktree',
+            '/new/worktree/',
+        );
+
+        Expect::that($relocated->toWire())
+            ->because('relocation MUST change only the project root')
+            ->toBe([
+                'files' => [
+                    '/new/worktree/src/A.php' => [[2], [3]],
+                ],
+            ]);
+    }
 }

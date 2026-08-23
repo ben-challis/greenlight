@@ -20,6 +20,7 @@ final readonly class Definition
     public const array COMMAND_DESCRIPTIONS = [
         'run' => 'Find and run tests (default)',
         'list-tests' => 'List each found test ID, one per line',
+        'coverage:merge' => 'Merge coverage JSON exports',
         'coverage:diff' => 'Compare two coverage JSON exports',
         'profile:report' => 'Create a run profile from a saved JSONL stream',
         'ide-helper' => 'Write the IDE autocomplete helper for extension matchers',
@@ -41,6 +42,8 @@ final readonly class Definition
         Commands:
           run            Find and run tests (default)
           list-tests     List each found test ID, one per line
+          coverage:merge Merge coverage JSON exports. Repeat --input for each
+                         source and --export for each output.
           coverage:diff  Compare two coverage JSON exports. Fail if total coverage
                          decreases or a line becomes newly uncovered.
           profile:report Create a run profile from a saved JSONL stream (--input)
@@ -110,6 +113,13 @@ final readonly class Definition
                              Fail if more than n executable lines are uncovered.
           --require-coverage-driver
                              Fail if no configured coverage driver is available.
+          --input=<path>     Read an input file. Repeat for coverage:merge.
+          --export=<format>=<path>
+                             Write merged coverage. Repeat for more formats.
+          --input-root=<path>
+                             Set one source root. Repeat once for each input.
+          --project-root=<path>
+                             Set the project root for merged coverage paths.
           --baseline-root=<path>
                              Set the baseline project root for coverage:diff.
           --current-root=<path>
@@ -153,9 +163,12 @@ final readonly class Definition
             new OptionSpec('require-coverage-driver'),
             new OptionSpec('baseline', OptionValue::Required), new OptionSpec('current', OptionValue::Required),
             new OptionSpec('baseline-root', OptionValue::Required), new OptionSpec('current-root', OptionValue::Required),
+            new OptionSpec('input-root', OptionValue::Required, repeatable: true),
+            new OptionSpec('project-root', OptionValue::Required),
+            new OptionSpec('export', OptionValue::Required, repeatable: true),
             new OptionSpec('watch'), new OptionSpec('detect-leaks'), new OptionSpec('dry-run'),
             new OptionSpec('ansi'), new OptionSpec('no-ansi'), new OptionSpec('verbose'), new OptionSpec('profile'),
-            new OptionSpec('input', OptionValue::Required), new OptionSpec('output', OptionValue::Required),
+            new OptionSpec('input', OptionValue::Required, repeatable: true), new OptionSpec('output', OptionValue::Required),
             new OptionSpec('help', short: 'h'), new OptionSpec('version', short: 'V'),
         ];
     }
