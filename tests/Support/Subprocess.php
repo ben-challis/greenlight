@@ -197,6 +197,22 @@ final class Subprocess
         }
     }
 
+    /**
+     * @throws \RuntimeException when the signal cannot be sent
+     */
+    public function signalProcessGroup(int $signal): void
+    {
+        if (!\function_exists('posix_kill')) {
+            throw new \RuntimeException('Could not send a process-group signal without POSIX support.');
+        }
+
+        $status = \proc_get_status($this->process);
+
+        if (!\posix_kill(-$status['pid'], $signal)) {
+            throw new \RuntimeException(\sprintf('Could not send signal %d to the process group.', $signal));
+        }
+    }
+
     /** @throws \RuntimeException when output cannot be read */
     public function complete(): ProcessResult
     {

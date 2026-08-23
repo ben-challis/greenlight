@@ -49,6 +49,7 @@ final readonly class WorkerProcess
 
     public function __construct(
         private float $receivePollSeconds = self::RECEIVE_POLL_SECONDS,
+        private bool $isolateProcessGroup = false,
     ) {}
 
     /**
@@ -59,6 +60,12 @@ final readonly class WorkerProcess
      */
     public function run(string $address, string $workerId, string $token): int
     {
+        // Keep the worker and its subprocesses outside the terminal process group.
+        // Thus, terminal SIGINT reaches only the orchestrator.
+        if ($this->isolateProcessGroup && \function_exists('posix_setpgid')) {
+            ErrorTrap::run(static fn() => \posix_setpgid(0, 0));
+        }
+
         // The terminal sends Ctrl+C to the complete process group. Workers
         // ignore SIGINT. Thus, the orchestrator can control an orderly drain.
         // Crash containment does not report active tests as crashes from SIGINT.
