@@ -100,7 +100,10 @@ final readonly class PolicyTest
             ->because('JUnit MUST retain the skipped testcase')
             ->toContain('failures="0"')
             ->toContain('skipped="1"')
-            ->toContain('<skipped message="integration service is unavailable"/>');
+            ->toContain(
+                '<skipped message="integration service is unavailable">'
+                . 'integration service is unavailable</skipped>',
+            );
 
         $jsonl = (string) \file_get_contents($project->path('reports/events.jsonl'));
         Expect::that($jsonl)

@@ -39,8 +39,10 @@ final class JUnitPartialDiffTest
             <testsuites name="greenlight" tests="1" failures="1" errors="0" skipped="0" time="0.001000">
               <testsuite name="Acme\PartialDiffTest" tests="1" failures="1" errors="0" skipped="0" assertions="0" time="0.001000">
                 <testcase name="reports" classname="Acme\PartialDiffTest" assertions="0" time="0.001000">
-                  <failure type="failure" message="expected only">expected: </failure>
-                  <failure type="failure" message="actual only">actual: </failure>
+                  <failure type="failure" message="expected only">expected only
+            expected: </failure>
+                  <failure type="failure" message="actual only">actual only
+            actual: </failure>
                 </testcase>
               </testsuite>
             </testsuites>

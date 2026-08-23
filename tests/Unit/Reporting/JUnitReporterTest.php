@@ -31,7 +31,8 @@ final class JUnitReporterTest
               <testsuite name="Acme\CalculatorTest" tests="3" failures="1" errors="0" skipped="0" assertions="7" time="0.372000">
                 <testcase name="addsIntegers" classname="Acme\CalculatorTest" assertions="2" time="0.012000"/>
                 <testcase name="subtractsIntegers" classname="Acme\CalculatorTest" assertions="1" time="0.020000">
-                  <failure type="failure" message="Failed asserting that two values are equal.">expected: 2
+                  <failure type="failure" message="Failed asserting that two values are equal.">Failed asserting that two values are equal.
+            expected: 2
             actual: 3
             at /project/tests/CalculatorTest.php:42</failure>
                 </testcase>
@@ -39,11 +40,12 @@ final class JUnitReporterTest
               </testsuite>
               <testsuite name="Acme\NetworkTest" tests="3" failures="0" errors="1" skipped="1" assertions="4" time="0.155000">
                 <testcase name="connects" classname="Acme\NetworkTest" assertions="1" time="0.005000">
-                  <error type="RuntimeException" message="Connection refused.">Acme\NetworkTest::connect at /project/tests/NetworkTest.php:17
+                  <error type="RuntimeException" message="Connection refused.">Connection refused.
+            Acme\NetworkTest::connect at /project/tests/NetworkTest.php:17
             at /project/tests/NetworkTest.php:17</error>
                 </testcase>
                 <testcase name="pings" classname="Acme\NetworkTest" assertions="0" time="0.000000">
-                  <skipped message="Requires ext-redis."/>
+                  <skipped message="Requires ext-redis.">Requires ext-redis.</skipped>
                 </testcase>
                 <testcase name="retriesFlakyEndpoint" classname="Acme\NetworkTest" assertions="3" time="0.150000"/>
               </testsuite>
@@ -112,6 +114,74 @@ final class JUnitReporterTest
             ->toBe('first failure');
         Expect::that((string) $failures[1]['message'])
             ->toBe('second failure');
+        Expect::that((string) $failures[0])
+            ->because('each failure element contains its primary diagnostic')
+            ->toBe('first failure');
+        Expect::that((string) $failures[1])
+            ->toBe('second failure');
+    }
+
+    #[Test]
+    public function loadableTestMethodsIncludeTheirSourceFile(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new JUnitReporter($output);
+        $reporter->onEvent(new TestFinished(new TestResult(
+            new TestId(self::class, __FUNCTION__),
+            Outcome::Passed,
+            0.001,
+            1,
+        ), 1.0));
+
+        $reporter->finish();
+        $document = \simplexml_load_string($output->buffer());
+
+        Expect::that($document)
+            ->because('the source-file attribute MUST preserve valid JUnit XML')
+            ->toBeInstanceOf(\SimpleXMLElement::class);
+
+        $case = SimpleXml::xpath($document, '/testsuites/testsuite/testcase')[0];
+
+        Expect::that((string) $case['file'])
+            ->because('a loadable test method MUST identify its source file')
+            ->toBe(__FILE__);
+    }
+
+    #[Test]
+    public function unavailableSourceMetadataDoesNotStopReportGeneration(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new JUnitReporter($output);
+        $reporter->onEvent(new TestFinished(new TestResult(
+            new TestId('Acme\\UnavailableSourceTest', 'runs'),
+            Outcome::Passed,
+            0.001,
+            0,
+        ), 1.0));
+        $reporter->onEvent(new TestFinished(new TestResult(
+            new TestId(self::class, 'unavailableMethod'),
+            Outcome::Passed,
+            0.001,
+            0,
+        ), 1.1));
+
+        $reporter->finish();
+        $document = \simplexml_load_string($output->buffer());
+
+        Expect::that($document)
+            ->because('unavailable source metadata MUST preserve valid JUnit XML')
+            ->toBeInstanceOf(\SimpleXMLElement::class);
+
+        $cases = SimpleXml::xpath($document, '/testsuites/testsuite/testcase');
+
+        Expect::that(SimpleXml::attributes($cases[0]))
+            ->because('an unavailable test class MUST omit the optional source file')
+            ->not()
+            ->toHaveKey('file');
+        Expect::that(SimpleXml::attributes($cases[1]))
+            ->because('an unavailable test method MUST omit the optional source file')
+            ->not()
+            ->toHaveKey('file');
     }
 
     #[Test]
@@ -169,21 +239,21 @@ final class JUnitReporterTest
     }
 
     #[Test]
-    public function forbiddenXmlCharactersAreReplacedInNamesAndDiagnostics(): void
+    public function invalidTextIsReplacedInNamesAndDiagnostics(): void
     {
         $output = new BufferOutput();
         $reporter = new JUnitReporter($output);
         $result = new TestResult(
-            new TestId('Acme\XmlTest', 'fails', "case\x01"),
+            new TestId('Acme\XmlTest', 'fails', "case\x01\xFF"),
             Outcome::Failed,
             0.001,
             0,
             failures: [
                 new FailureDetail(
-                    "message\x02",
-                    "expected\x03",
-                    "actual\x04",
-                    new SourceLocation("/project/tests/\x05Test.php", 12),
+                    "message\x02\xFF",
+                    "expected\x03\xFF",
+                    "actual\x04\xFF",
+                    new SourceLocation("/project/tests/\x05\xFFTest.php", 12),
                 ),
             ],
         );
@@ -200,17 +270,18 @@ final class JUnitReporterTest
         $failure = SimpleXml::xpath($case, 'failure')[0];
 
         Expect::that((string) $case['name'])
-            ->because('forbidden characters in test names are replaced')
-            ->toBe("fails[case\u{FFFD}]");
+            ->because('invalid text in test names is replaced')
+            ->toBe("fails[case\u{FFFD}\u{FFFD}]");
         Expect::that((string) $failure['message'])
-            ->because('forbidden characters in diagnostic attributes are replaced')
-            ->toBe("message\u{FFFD}");
+            ->because('invalid text in diagnostic attributes is replaced')
+            ->toBe("message\u{FFFD}\u{FFFD}");
         Expect::that((string) $failure)
-            ->because('forbidden characters in diagnostic text are replaced')
+            ->because('invalid text in diagnostic content is replaced')
             ->toBe(
-                "expected: expected\u{FFFD}\n"
-                . "actual: actual\u{FFFD}\n"
-                . "at /project/tests/\u{FFFD}Test.php:12",
+                "message\u{FFFD}\u{FFFD}\n"
+                . "expected: expected\u{FFFD}\u{FFFD}\n"
+                . "actual: actual\u{FFFD}\u{FFFD}\n"
+                . "at /project/tests/\u{FFFD}\u{FFFD}Test.php:12",
             );
     }
 }
