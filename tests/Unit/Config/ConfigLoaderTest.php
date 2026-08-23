@@ -84,9 +84,12 @@ final class ConfigLoaderTest
         )->because('a restricted configuration file causes a configuration error')
             ->toThrow(ConfigFileError::class);
 
-        Expect::that([$directoryWarning, $fileWarning])
-            ->because('restricted configuration paths MUST not leak engine diagnostics')
-            ->toBe([null, null]);
+        Expect::that($directoryWarning)
+            ->because('a restricted configuration directory MUST not leak engine diagnostics')
+            ->toBeNull();
+        Expect::that($fileWarning)
+            ->because('a restricted configuration file MUST not leak engine diagnostics')
+            ->toBeNull();
     }
 
     #[Test]
