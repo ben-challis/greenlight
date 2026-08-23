@@ -33,6 +33,7 @@ use Greenlight\Test\TestSelection;
 use Greenlight\Tests\Fixture\Plugins\RecordingRunSubscriber;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\FixturePath;
+use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\ScriptedWorkerTransport;
 
 final readonly class RunCoordinatorTest
@@ -93,7 +94,7 @@ final readonly class RunCoordinatorTest
             [$fixtureDirectory],
             $sink,
             new ProcessPoolExecution(
-                [\PHP_BINARY, $root . '/bin/greenlight'],
+                PhpSubprocess::command([$root . '/bin/greenlight']),
                 $this->tempDirectory->path(),
                 2,
                 $resolved->workers,
@@ -123,7 +124,7 @@ final readonly class RunCoordinatorTest
             [FixturePath::get('DiscoveryBasic')],
             new CollectingEventSink(),
             new ProcessPoolExecution(
-                [\PHP_BINARY, \dirname(__DIR__, 3) . '/bin/greenlight'],
+                PhpSubprocess::command([\dirname(__DIR__, 3) . '/bin/greenlight']),
                 $this->tempDirectory->path(),
                 2,
                 $resolved->workers,

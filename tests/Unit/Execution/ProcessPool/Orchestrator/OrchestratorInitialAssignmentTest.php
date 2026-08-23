@@ -15,6 +15,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\NativeOrchestrator;
+use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\PlanEntryFixture;
 
 final readonly class OrchestratorInitialAssignmentTest
@@ -200,7 +201,7 @@ final readonly class OrchestratorInitialAssignmentTest
         );
 
         return NativeOrchestrator::create(
-            workerCommand: [\PHP_BINARY, '-r', $script],
+            workerCommand: PhpSubprocess::command(['-r', $script]),
             workingDirectory: $directory,
             resourceLimits: ['database' => 1],
             initialWorkerAssignment: $assignment,

@@ -7,8 +7,8 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\ProcessResult;
-use Greenlight\Tests\Support\Subprocess;
 
 final readonly class WorkflowShellCheckTest
 {
@@ -104,8 +104,7 @@ final readonly class WorkflowShellCheckTest
 
     private function run(string $root): ProcessResult
     {
-        return Subprocess::run($root, [
-            \PHP_BINARY,
+        return PhpSubprocess::run($root, [
             \dirname(__DIR__, 2) . '/tools/workflow-shell-check.php',
             'workflow.yml',
         ]);

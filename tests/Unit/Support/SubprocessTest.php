@@ -10,8 +10,8 @@ use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\SkipTest;
+use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\ProcessResult;
-use Greenlight\Tests\Support\Subprocess;
 
 final readonly class SubprocessTest
 {
@@ -23,10 +23,9 @@ final readonly class SubprocessTest
     #[Test]
     public function runCapturesTheResultAndHonorsItsExecutionContext(): void
     {
-        $result = Subprocess::run(
+        $result = PhpSubprocess::run(
             $this->workspace->path(),
             [
-                \PHP_BINARY,
                 '-r',
                 <<<'PHP'
                 fwrite(STDOUT, getcwd() . "\r\n" . getenv('GREENLIGHT_SUBPROCESS_PROBE') . "\r\n");
@@ -53,10 +52,9 @@ final readonly class SubprocessTest
     #[Test]
     public function runDrainsLargeOutputsFromBothStreams(): void
     {
-        $result = Subprocess::run(
+        $result = PhpSubprocess::run(
             $this->workspace->path(),
             [
-                \PHP_BINARY,
                 '-r',
                 <<<'PHP'
                 fwrite(STDOUT, str_repeat('o', 131072));
@@ -72,10 +70,9 @@ final readonly class SubprocessTest
     #[Test]
     public function interactiveProcessAcceptsInputAndReturnsItsFinalResult(): void
     {
-        $process = Subprocess::start(
+        $process = PhpSubprocess::start(
             $this->workspace->path(),
             [
-                \PHP_BINARY,
                 '-r',
                 <<<'PHP'
                 fwrite(STDOUT, "ready\n");
@@ -103,10 +100,9 @@ final readonly class SubprocessTest
     public function interactiveProcessReceivesTheCompleteInput(): void
     {
         $input = \str_repeat('payload', 131_072);
-        $process = Subprocess::start(
+        $process = PhpSubprocess::start(
             $this->workspace->path(),
             [
-                \PHP_BINARY,
                 '-r',
                 <<<'PHP'
                 $input = stream_get_contents(STDIN);
@@ -129,9 +125,9 @@ final readonly class SubprocessTest
     #[Test]
     public function readStdoutUntilReportsAProcessThatAlreadyExited(): void
     {
-        $process = Subprocess::start(
+        $process = PhpSubprocess::start(
             $this->workspace->path(),
-            [\PHP_BINARY, '-r', 'fwrite(STDERR, "failed\n"); exit(9);'],
+            ['-r', 'fwrite(STDERR, "failed\n"); exit(9);'],
         );
         $this->cleanup->defer($process->terminate(...));
 
@@ -147,9 +143,9 @@ final readonly class SubprocessTest
     #[Test]
     public function waitReportsWhenTheProcessMissesItsDeadline(): void
     {
-        $process = Subprocess::start(
+        $process = PhpSubprocess::start(
             $this->workspace->path(),
-            [\PHP_BINARY, '-r', 'usleep(2_000_000);'],
+            ['-r', 'usleep(2_000_000);'],
         );
         $this->cleanup->defer($process->terminate(...));
 
@@ -161,10 +157,9 @@ final readonly class SubprocessTest
     #[DataSet('nonFiniteTimeouts')]
     public function deadlineOperationsRejectNonFiniteTimeouts(string $operation, float $timeoutSeconds): void
     {
-        $process = Subprocess::start(
+        $process = PhpSubprocess::start(
             $this->workspace->path(),
             [
-                \PHP_BINARY,
                 '-r',
                 $operation === 'wait' ? 'exit(0);' : 'fwrite(STDOUT, "ready");',
             ],
@@ -202,10 +197,9 @@ final readonly class SubprocessTest
             throw new SkipTest('The pcntl extension is not available.');
         }
 
-        $process = Subprocess::start(
+        $process = PhpSubprocess::start(
             $this->workspace->path(),
             [
-                \PHP_BINARY,
                 '-r',
                 <<<'PHP'
                 $pid = pcntl_fork();

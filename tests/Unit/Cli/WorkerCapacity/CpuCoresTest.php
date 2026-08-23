@@ -17,9 +17,9 @@ use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Cli\WorkerCapacity\FakeCpuCoreCounter;
 use Greenlight\Tests\Fixture\Cli\WorkerCapacity\FakeNumberOfCpuCoreNotFound;
+use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\ProcessResult;
 use Greenlight\Tests\Support\SourceOnlyPhp;
-use Greenlight\Tests\Support\Subprocess;
 
 final readonly class CpuCoresTest
 {
@@ -120,7 +120,7 @@ final readonly class CpuCoresTest
     {
         $root = \dirname(__DIR__, 4);
 
-        return Subprocess::run($root, SourceOnlyPhp::command(
+        return PhpSubprocess::run($root, SourceOnlyPhp::command(
             $root . '/src',
             <<<'PHP'
             if (class_exists(\Fidry\CpuCoreCounter\CpuCoreCounter::class)) {

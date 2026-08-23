@@ -8,7 +8,7 @@ use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ExtensionLoaded;
 use Greenlight\Expect\Expect;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final class XdebugDriverIniFallbackTest
 {
@@ -17,8 +17,7 @@ final class XdebugDriverIniFallbackTest
     public function availabilityUsesTheIniModeWhenXdebugInfoIsDisabled(): void
     {
         $root = \dirname(__DIR__, 4);
-        $result = Subprocess::run($root, [
-            \PHP_BINARY,
+        $result = PhpSubprocess::run($root, [
             '-d',
             'xdebug.mode=coverage',
             '-d',

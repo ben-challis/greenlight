@@ -14,7 +14,7 @@ use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Sandbox\TemporaryDirectoryError;
 use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Support\FilesystemRestriction;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final class TemporaryDirectoryTest
 {
@@ -68,10 +68,9 @@ final class TemporaryDirectoryTest
 
         try {
             $root = \dirname(__DIR__, 3);
-            $result = Subprocess::run(
+            $result = PhpSubprocess::run(
                 $root,
                 [
-                    \PHP_BINARY,
                     '-r',
                     <<<'PHP'
                         require $argv[1];

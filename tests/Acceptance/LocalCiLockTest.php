@@ -8,7 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class LocalCiLockTest
 {
@@ -27,26 +27,24 @@ final readonly class LocalCiLockTest
             'GREENLIGHT_LOCAL_CI_LOCK_DIRECTORY' => $lockDirectory,
             'GREENLIGHT_LOCAL_CI_MAX_PARALLELISM' => '1',
         ];
-        $first = Subprocess::start(
+        $first = PhpSubprocess::start(
             $this->tempDirectory->path(),
-            $this->lockCommand([
-                \PHP_BINARY,
+            $this->lockCommand(PhpSubprocess::command([
                 '-r',
                 'fwrite(STDOUT, "ready\\n"); fflush(STDOUT); fgets(STDIN);',
-            ]),
+            ])),
             $environment,
         );
         $this->cleanup->defer($first->terminate(...));
 
         $first->readStdoutUntil('ready', 2.0);
-        $second = Subprocess::start(
+        $second = PhpSubprocess::start(
             $this->tempDirectory->path(),
-            $this->lockCommand([
-                \PHP_BINARY,
+            $this->lockCommand(PhpSubprocess::command([
                 '-r',
                 'file_put_contents($argv[1], "started");',
                 $startedMarker,
-            ]),
+            ])),
             $environment,
         );
         $this->cleanup->defer($second->terminate(...));
@@ -67,9 +65,9 @@ final readonly class LocalCiLockTest
     {
         $invalidLockDirectory = $this->tempDirectory->path() . '/not-a-directory';
         \file_put_contents($invalidLockDirectory, 'file');
-        $result = Subprocess::run(
+        $result = PhpSubprocess::run(
             $this->tempDirectory->path(),
-            $this->lockCommand([\PHP_BINARY, '-r', 'exit(7);']),
+            $this->lockCommand(PhpSubprocess::command(['-r', 'exit(7);'])),
             [
                 'CI' => 'true',
                 'GREENLIGHT_LOCAL_CI_LOCK_DIRECTORY' => $invalidLockDirectory,
@@ -87,21 +85,20 @@ final readonly class LocalCiLockTest
             'GREENLIGHT_LOCAL_CI_LOCK_DIRECTORY' => $this->tempDirectory->subdirectory('two-locks'),
             'GREENLIGHT_LOCAL_CI_MAX_PARALLELISM' => '2',
         ];
-        $first = Subprocess::start(
+        $first = PhpSubprocess::start(
             $this->tempDirectory->path(),
-            $this->lockCommand([
-                \PHP_BINARY,
+            $this->lockCommand(PhpSubprocess::command([
                 '-r',
                 'fwrite(STDOUT, "ready\\n"); fflush(STDOUT); fgets(STDIN);',
-            ]),
+            ])),
             $environment,
         );
         $this->cleanup->defer($first->terminate(...));
 
         $first->readStdoutUntil('ready', 2.0);
-        $second = Subprocess::run(
+        $second = PhpSubprocess::run(
             $this->tempDirectory->path(),
-            $this->lockCommand([\PHP_BINARY, '-r', 'exit(9);']),
+            $this->lockCommand(PhpSubprocess::command(['-r', 'exit(9);'])),
             $environment,
         );
 
@@ -120,7 +117,6 @@ final readonly class LocalCiLockTest
     private function lockCommand(array $command): array
     {
         return [
-            \PHP_BINARY,
             \dirname(__DIR__, 2) . '/tools/local-ci-lock.php',
             '--',
             ...$command,

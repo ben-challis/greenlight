@@ -6,8 +6,8 @@ namespace Greenlight\Tests\Unit\Tempest;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\SourceOnlyPhp;
-use Greenlight\Tests\Support\Subprocess;
 
 final readonly class TempestFrameworkUnavailableTest
 {
@@ -16,7 +16,7 @@ final readonly class TempestFrameworkUnavailableTest
     {
         $root = \dirname(__DIR__, 3);
 
-        $result = Subprocess::run($root, SourceOnlyPhp::command(
+        $result = PhpSubprocess::run($root, SourceOnlyPhp::command(
             $root . '/src',
             <<<'PHP'
             if (class_exists(\Tempest\Core\FrameworkKernel::class)) {

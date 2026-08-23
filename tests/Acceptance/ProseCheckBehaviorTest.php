@@ -7,9 +7,9 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\ProcessResult;
 use Greenlight\Tests\Support\ProjectFiles;
-use Greenlight\Tests\Support\Subprocess;
 
 final readonly class ProseCheckBehaviorTest
 {
@@ -755,8 +755,7 @@ final readonly class ProseCheckBehaviorTest
     {
         $root = $this->workspace('removed-baseline');
         $this->write($root, 'sample.md', "The worker stops.\n");
-        $result = Subprocess::run($root, [
-            \PHP_BINARY,
+        $result = PhpSubprocess::run($root, [
             \dirname(__DIR__, 2) . '/tools/prose-check.php',
             'check',
             '--root=' . $root,
@@ -779,8 +778,7 @@ final readonly class ProseCheckBehaviorTest
 
     private function run(string $command, string $root): ProcessResult
     {
-        return Subprocess::run($root, [
-            \PHP_BINARY,
+        return PhpSubprocess::run($root, [
             \dirname(__DIR__, 2) . '/tools/prose-check.php',
             $command,
             '--root=' . $root,

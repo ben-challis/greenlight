@@ -44,7 +44,6 @@ final readonly class SourceOnlyPhp
         array $arguments = [],
     ): array {
         return [
-            \PHP_BINARY,
             '-n',
             ...$phpOptions,
             '-r',

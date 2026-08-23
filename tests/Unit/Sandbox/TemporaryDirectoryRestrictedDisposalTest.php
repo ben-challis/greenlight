@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Sandbox;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class TemporaryDirectoryRestrictedDisposalTest
 {
@@ -17,8 +17,7 @@ final readonly class TemporaryDirectoryRestrictedDisposalTest
     public function restrictedRootDisposalFailsWithoutEngineDiagnostics(): void
     {
         $root = \dirname(__DIR__, 3);
-        $result = Subprocess::run($root, [
-            \PHP_BINARY,
+        $result = PhpSubprocess::run($root, [
             '-r',
             <<<'PHP'
                 require $argv[1];

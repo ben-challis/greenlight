@@ -72,10 +72,9 @@ final readonly class RectorProbe
 
         $files->write('rector.php', self::rectorConfig($directory, $configuration));
 
-        $result = Subprocess::run(
+        $result = PhpSubprocess::run(
             $root,
             [
-                \PHP_BINARY,
                 $root . '/vendor/bin/rector',
                 'process',
                 '--config',

@@ -12,7 +12,7 @@ use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
-use Greenlight\Tests\Support\Subprocess;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class WorkerProcessFatalSendFailureTest
 {
@@ -31,8 +31,7 @@ final readonly class WorkerProcessFatalSendFailureTest
         $config = $temporaryDirectory . '/failing-config.php';
         $ready = $temporaryDirectory . '/failing-config-ready';
         $release = $temporaryDirectory . '/failing-config-release';
-        $server = Subprocess::start($root, [
-            \PHP_BINARY,
+        $server = PhpSubprocess::start($root, [
             '-r',
             <<<'PHP'
             require $argv[1];
