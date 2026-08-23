@@ -17,9 +17,9 @@ use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\ExecutionOutcome;
 use Greenlight\Execution\ExecutionTopology;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
-use Greenlight\Execution\Worker\DefaultServices;
 use Greenlight\Execution\Worker\HarnessServiceDisposal;
 use Greenlight\Execution\Worker\LeakDetector;
+use Greenlight\Execution\Worker\StandardHarnessPlugin;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Execution\Worker\WorkerError;
 use Greenlight\Internal\Process\EnvironmentBackup;
@@ -60,25 +60,28 @@ final readonly class InProcessExecution implements ExecutionAdapter
         ExecutionContext $context,
     ): ExecutionOutcome {
         $execution = $context->execution;
-        $plugins = WorkerPluginRuntime::fromDefinitions($execution->plugins);
         $resources = $context->fixtures->forChannel(1);
+        $bootstrap = new WorkerBootstrapContext(
+            'in-process',
+            new TestChannel(1),
+            $resources,
+        );
+        $plugins = WorkerPluginRuntime::fromDefinitions($execution->plugins, [
+            new StandardHarnessPlugin(
+                $resources,
+                $bootstrap->channel,
+                $context->storage->generatedCodeDirectory,
+                $context->storage->temporaryDirectory,
+            ),
+        ]);
         $channelEnvironment = EnvironmentBackup::capture('GREENLIGHT_CHANNEL');
         \putenv('GREENLIGHT_CHANNEL=1');
 
         try {
             try {
-                $definitions = DefaultServices::definitions(
-                    $resources,
-                    $context->storage->generatedCodeDirectory,
-                    $context->storage->temporaryDirectory,
-                );
                 $scopes = $plugins->prepareWorker(
-                    new WorkerBootstrapContext(
-                        'in-process',
-                        new TestChannel(1),
-                        $resources,
-                    ),
-                    $definitions,
+                    $bootstrap,
+                    [],
                 );
             } catch (\Throwable $failure) {
                 $detail = ThrowableDetail::fromThrowable($failure);
@@ -117,7 +120,7 @@ final readonly class InProcessExecution implements ExecutionAdapter
                     $outcome = $plugins->runWorker(fn() => HarnessServiceDisposal::runAndClose(
                         $scopes,
                         fn() => new Worker(
-                            $definitions,
+                            [],
                             $plugins,
                             $this->detectLeaks ? new LeakDetector() : null,
                             'in-process',

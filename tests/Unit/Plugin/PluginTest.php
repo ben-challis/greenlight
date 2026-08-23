@@ -9,8 +9,8 @@ use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Doubles\Fake;
 use Greenlight\Execution\Plugin\PluginRuntimeError;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
-use Greenlight\Execution\Worker\DefaultServices;
 use Greenlight\Execution\Worker\HarnessServiceDisposal;
+use Greenlight\Execution\Worker\StandardHarnessPlugin;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Expectation;
@@ -63,11 +63,14 @@ final readonly class PluginTest
                 ];
             }
         };
-        $plugins = WorkerPluginRuntime::fromPlugins([$provider]);
+        $bootstrap = new WorkerBootstrapContext('test-worker', new TestChannel(1), new IntegrationResources());
+        $plugins = WorkerPluginRuntime::fromPlugins([$provider], [
+            new StandardHarnessPlugin(channel: $bootstrap->channel),
+        ]);
 
         Expect::that(static fn() => $plugins->prepareWorker(
-            new WorkerBootstrapContext('test-worker', new TestChannel(1), new IntegrationResources()),
-            DefaultServices::definitions(),
+            $bootstrap,
+            [],
         ))
             ->because('plugin services MUST not replace Greenlight-owned defaults')
             ->toThrow(
@@ -447,15 +450,17 @@ final readonly class PluginTest
         $directory = FixturePath::get($fixture);
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
-        $runtime = WorkerPluginRuntime::fromPlugins($plugins);
-        $definitions = DefaultServices::definitions();
+        $bootstrap = new WorkerBootstrapContext('test-worker', new TestChannel(1), new IntegrationResources());
+        $runtime = WorkerPluginRuntime::fromPlugins($plugins, [
+            new StandardHarnessPlugin(channel: $bootstrap->channel),
+        ]);
         $scopes = $runtime->prepareWorker(
-            new WorkerBootstrapContext('test-worker', new TestChannel(1), new IntegrationResources()),
-            $definitions,
+            $bootstrap,
+            [],
         );
         $outcome = HarnessServiceDisposal::runAndClose(
             $scopes,
-            static fn() => new Worker($definitions, $runtime)->run($plan, $sink, scopes: $scopes),
+            static fn() => new Worker([], $runtime)->run($plan, $sink, scopes: $scopes),
         );
 
         return [$outcome->summary, $sink->results()];

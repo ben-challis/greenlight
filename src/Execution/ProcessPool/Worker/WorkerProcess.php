@@ -24,13 +24,12 @@ use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
 use Greenlight\Execution\Worker\ChannelEnvironment;
-use Greenlight\Execution\Worker\DefaultServices;
 use Greenlight\Execution\Worker\HarnessServiceDisposal;
 use Greenlight\Execution\Worker\LeakDetector;
+use Greenlight\Execution\Worker\StandardHarnessPlugin;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Execution\Worker\WorkerError;
 use Greenlight\Harness\HarnessScopes;
-use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Plugin\WorkerBootstrapContext;
@@ -138,24 +137,27 @@ final readonly class WorkerProcess
                 $pluginDefinitions = $message->configFile === null
                     ? []
                     : new ConfigLoader()->loadFile($message->configFile)->build()->execution->plugins;
-                $plugins = WorkerPluginRuntime::fromDefinitions($pluginDefinitions);
-                $definitions = DefaultServices::definitions(
+                $bootstrap = new WorkerBootstrapContext(
+                    $workerId,
+                    new TestChannel($message->channel),
                     $message->resources,
-                    $message->generatedCodeDirectory,
-                    $message->temporaryDirectory,
                 );
-                $scopes = $plugins->prepareWorker(
-                    new WorkerBootstrapContext(
-                        $workerId,
-                        new TestChannel($message->channel),
+                $plugins = WorkerPluginRuntime::fromDefinitions($pluginDefinitions, [
+                    new StandardHarnessPlugin(
                         $message->resources,
+                        $bootstrap->channel,
+                        $message->generatedCodeDirectory,
+                        $message->temporaryDirectory,
                     ),
-                    $definitions,
+                ]);
+                $scopes = $plugins->prepareWorker(
+                    $bootstrap,
+                    [],
                 );
 
                 $finalMessage = $plugins->runWorker(fn(): ?Message => HarnessServiceDisposal::runAndClose(
                     $scopes,
-                    fn(): ?Message => $this->runAssignments($channel, $plugins, $definitions, $scopes, $workerId),
+                    fn(): ?Message => $this->runAssignments($channel, $plugins, $scopes, $workerId),
                 ));
 
                 if ($finalMessage instanceof Message) {
@@ -187,13 +189,10 @@ final readonly class WorkerProcess
      * @throws ProtocolError
      * @throws CoverageError
      * @throws WorkerError
-     *
-     * @param list<ServiceDefinition> $definitions
      */
     private function runAssignments(
         SocketChannel $channel,
         WorkerPluginRuntime $plugins,
-        array $definitions,
         HarnessScopes $scopes,
         string $workerId,
     ): ?Message {
@@ -263,7 +262,7 @@ final readonly class WorkerProcess
             $leakDetector = $message->detectLeaks ? new LeakDetector() : null;
 
             $outcome = new Worker(
-                $definitions,
+                [],
                 $plugins,
                 $leakDetector,
                 $workerId,

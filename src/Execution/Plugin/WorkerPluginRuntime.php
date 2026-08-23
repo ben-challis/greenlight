@@ -51,11 +51,13 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
 
     /**
      * @param list<PluginDefinition> $definitions
+     * @param list<Plugin> $bundledPlugins
      */
-    public static function fromDefinitions(array $definitions): self
+    public static function fromDefinitions(array $definitions, array $bundledPlugins = []): self
     {
         return new self([
             new AttributeRetryDecider(),
+            ...$bundledPlugins,
             ...self::createOwned($definitions, self::CAPABILITIES),
         ]);
     }
@@ -66,10 +68,11 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
      * @internal
      *
      * @param list<Plugin> $plugins
+     * @param list<Plugin> $bundledPlugins
      */
-    public static function fromPlugins(array $plugins): self
+    public static function fromPlugins(array $plugins, array $bundledPlugins = []): self
     {
-        return new self([new AttributeRetryDecider(), ...$plugins]);
+        return new self([new AttributeRetryDecider(), ...$bundledPlugins, ...$plugins]);
     }
 
     /**
