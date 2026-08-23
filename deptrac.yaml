@@ -346,7 +346,7 @@ deptrac:
     Cli: [CliCommand, CliOutput, Coverage, CoverageRelay, ExecutionProcessProtocol, ExecutionProcessWorker, InternalWire, Reporting]
     CliInput: []
     CliConfiguration: [CliInput, Config, InternalPhp, InternalText, Result, Test]
-    CliDiscovery: [CliConfiguration, Config, Discovery, DiscoveryPlan]
+    CliDiscovery: [CliConfiguration, CliInput, CliState, Config, Discovery, DiscoveryPlan, Test]
     CliOutput: [InternalPhp, InternalText, Reporting]
     CliReporting: [CliInput, CliOutput, Event, InternalPhp, Plugin, Reporting, ReportingProfile]
     CliCoverage: [CliConfiguration, CliOutput, Config, Coverage, CoverageCollection, CoverageExport, CoverageRelay, InternalFilesystem, InternalPhp, Reporting]

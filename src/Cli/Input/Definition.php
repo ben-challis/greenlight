@@ -28,6 +28,7 @@ final readonly class Definition
 
     /** @var array<non-empty-string, list<non-empty-string>> */
     public const array COMPLETION_VALUES = [
+        'format' => ['text', 'json'],
         'reporter' => self::BUILT_IN_REPORTERS,
         'workers' => ['auto'],
     ];
@@ -75,6 +76,7 @@ final readonly class Definition
                              working directory. You can repeat this option.
           --failed           Run only tests that failed or had an error in the previous run
           --list-tests       Print the selected test IDs. Do not run the tests.
+          --format=<format>  Set list-tests output to text or json (default text)
           --list-groups      Print each selected group and its test count
           --list-suites      Print the configured suites
           --repeat=<n>       Run the selected tests n times in separate runs.
@@ -138,6 +140,7 @@ final readonly class Definition
             new OptionSpec('exclude-method', OptionValue::Required, repeatable: true),
             new OptionSpec('exclude-path', OptionValue::Required, repeatable: true),
             new OptionSpec('list-tests'), new OptionSpec('list-groups'), new OptionSpec('list-suites'),
+            new OptionSpec('format', OptionValue::Required),
             new OptionSpec('repeat', OptionValue::Required), new OptionSpec('repeat-until-failure'),
             new OptionSpec('failed'), new OptionSpec('shard', OptionValue::Required),
             new OptionSpec('fail-on-deprecation'), new OptionSpec('fail-on-notice'), new OptionSpec('fail-on-warning'),

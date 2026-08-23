@@ -61,6 +61,24 @@ final class CliError extends \RuntimeException
         return new self('--filter requires a pattern.');
     }
 
+    public static function unknownTestListFormat(string $format): self
+    {
+        return new self(\sprintf(
+            'Unknown list-tests format "%s". Select text or json.',
+            $format,
+        ));
+    }
+
+    public static function formatRequiresTestListing(): self
+    {
+        return new self('Use --format only with list-tests or run --list-tests.');
+    }
+
+    public static function failedRequiresState(): self
+    {
+        return new self('--failed requires state from a previous run. Run Greenlight once without --failed.');
+    }
+
     /** @param non-empty-list<non-empty-string> $names */
     public static function unknownSuites(array $names): self
     {

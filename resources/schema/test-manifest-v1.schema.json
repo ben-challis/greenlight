@@ -1,0 +1,138 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/test-manifest-v1.schema.json",
+    "title": "Greenlight test discovery manifest (version 1)",
+    "description": "One selected test plan from list-tests --format=json. Prose reference: docs/architecture/test-manifest.md.",
+    "type": "object",
+    "required": ["version", "order", "shard", "tests"],
+    "properties": {
+        "version": {
+            "enum": [1]
+        },
+        "order": {
+            "$ref": "#/definitions/order"
+        },
+        "shard": {
+            "oneOf": [
+                {"type": "null"},
+                {"$ref": "#/definitions/shard"}
+            ]
+        },
+        "tests": {
+            "type": "array",
+            "items": {"$ref": "#/definitions/test"}
+        }
+    },
+    "definitions": {
+        "order": {
+            "type": "object",
+            "required": ["tests", "completion", "seed"],
+            "properties": {
+                "tests": {
+                    "enum": ["plan"]
+                },
+                "completion": {
+                    "enum": ["not-applicable"]
+                },
+                "seed": {
+                    "type": ["integer", "null"],
+                    "minimum": 0
+                }
+            }
+        },
+        "shard": {
+            "type": "object",
+            "required": ["index", "count"],
+            "properties": {
+                "index": {"type": "integer", "minimum": 1},
+                "count": {"type": "integer", "minimum": 1}
+            }
+        },
+        "test": {
+            "type": "object",
+            "required": [
+                "id",
+                "class",
+                "method",
+                "dataSetKey",
+                "source",
+                "groups",
+                "suites",
+                "skip",
+                "retry",
+                "timeoutSeconds",
+                "captureOutput",
+                "noExpectations",
+                "resources",
+                "isolated",
+                "allowParallel"
+            ],
+            "properties": {
+                "id": {"type": "string", "minLength": 1},
+                "class": {"type": "string", "minLength": 1},
+                "method": {"type": "string", "minLength": 1},
+                "dataSetKey": {"type": ["string", "null"]},
+                "source": {"$ref": "#/definitions/source"},
+                "groups": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {"type": "string", "minLength": 1}
+                },
+                "suites": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {"type": "string", "minLength": 1}
+                },
+                "skip": {"$ref": "#/definitions/skip"},
+                "retry": {"$ref": "#/definitions/retry"},
+                "timeoutSeconds": {
+                    "oneOf": [
+                        {"type": "null"},
+                        {"type": "number", "minimum": 0, "exclusiveMinimum": true}
+                    ]
+                },
+                "captureOutput": {"type": "boolean"},
+                "noExpectations": {"type": "boolean"},
+                "resources": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {"type": "string", "minLength": 1}
+                },
+                "isolated": {"type": "boolean"},
+                "allowParallel": {"type": "boolean"}
+            }
+        },
+        "source": {
+            "type": "object",
+            "required": ["file", "line"],
+            "properties": {
+                "file": {
+                    "description": "The absolute path of the file that declares the test method.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "line": {
+                    "description": "The source line of the test method declaration.",
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "skip": {
+            "type": "object",
+            "required": ["present", "condition"],
+            "properties": {
+                "present": {"type": "boolean"},
+                "condition": {"type": ["string", "null"]}
+            }
+        },
+        "retry": {
+            "type": "object",
+            "required": ["additionalAttempts", "onlyOn"],
+            "properties": {
+                "additionalAttempts": {"type": "integer", "minimum": 0},
+                "onlyOn": {"type": ["string", "null"]}
+            }
+        }
+    }
+}

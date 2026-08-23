@@ -11,6 +11,7 @@ Only documented interfaces and versioned formats have compatibility promises.
 | Documented attributes, configuration builders, expectations, fixtures, doubles, attachments, conditions, and plugin interfaces | Public PHP interface |
 | Documented CLI commands, options, exit meanings, and configuration-file shape | Public command interface |
 | JSONL reporter | Public, versioned data interface |
+| Test discovery manifest | Public, versioned data interface |
 | Coverage JSON export | Public, versioned data interface |
 | JUnit, TeamCity, and GitHub output | External integration interfaces |
 | Classes or members marked `@internal` | Internal implementation |
@@ -169,6 +170,7 @@ These public formats intentionally report absolute paths:
 
 - Coverage JSON keys
 - Failure and diagnostic source locations in JSONL
+- Test discovery manifest source locations
 - Published attachment paths and the run artifact directory
 
 Absolute paths help users find files on the source machine. These paths also
