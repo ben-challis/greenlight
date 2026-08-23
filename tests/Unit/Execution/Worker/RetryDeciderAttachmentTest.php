@@ -9,9 +9,9 @@ use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Doubles\Fake;
 use Greenlight\Execution\Artifact\ArtifactStore;
+use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Expect\Expect;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Plugin\RetryDecider;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
@@ -56,7 +56,7 @@ final readonly class RetryDeciderAttachmentTest
 
         new Worker(
             [],
-            PluginRegistry::forWorker([$decider]),
+            WorkerPluginRuntime::fromPlugins([$decider]),
             artifactStore: $store,
         )->run($plan, $sink);
 

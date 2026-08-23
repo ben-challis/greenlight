@@ -13,7 +13,6 @@ use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Execution\Worker\WorkerError;
 use Greenlight\Expect\Expect;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
@@ -76,7 +75,7 @@ final readonly class ConditionEvaluationTest
         ]);
         $sink = new CollectingEventSink();
 
-        new Worker([], PluginRegistry::forWorker([]))
+        new Worker([])
             ->run($plan, $sink);
 
         $result = $sink->results()[0];
@@ -125,7 +124,7 @@ final readonly class ConditionEvaluationTest
         $plan = new TestDiscoverer()->discover([$directory]);
         $sink = new CollectingEventSink();
 
-        $outcome = new Worker([], PluginRegistry::forWorker([]))
+        $outcome = new Worker([])
             ->run($plan, $sink);
 
         return [$outcome->summary, $sink->results()];

@@ -5,29 +5,29 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Execution\Plugin;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Execution\Plugin\IntegrationFixtureProviderAdapter;
+use Greenlight\Execution\Plugin\OrchestratorPluginRuntime;
 use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\IntegrationFixtureDefinition;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\IntegrationFixture\IntegrationFixtureManager;
 use Greenlight\Plugin\IntegrationFixtureProvider;
-use Greenlight\Plugin\PluginRegistry;
 use Greenlight\Tests\Fixture\Plugins\FakeIntegrationFixtureProvider;
+use Greenlight\Tests\Support\CollectingEventSink;
 
-final readonly class IntegrationFixtureProviderAdapterTest
+final readonly class OrchestratorPluginRuntimeFixtureTest
 {
     #[Test]
-    public function definitionsInvokesProvidersInRegistryOrder(): void
+    public function fixtureDefinitionsInvokeProvidersInRegistrationOrder(): void
     {
         $first = new IntegrationFixtureDefinition('first', static function (): void {});
         $second = new IntegrationFixtureDefinition('second', static function (): void {});
-        $plugins = PluginRegistry::orchestratorSide([
+        $runtime = OrchestratorPluginRuntime::fromPlugins([
             new FakeIntegrationFixtureProvider([$first]),
             new FakeIntegrationFixtureProvider([$second]),
-        ]);
+        ], new CollectingEventSink());
 
-        Expect::that([...IntegrationFixtureProviderAdapter::definitions($plugins)])
-            ->because('the adapter MUST retain integration fixture provider order')
+        Expect::that([...$runtime->fixtureDefinitions()])
+            ->because('the runtime MUST retain integration fixture provider order')
             ->toBe([$first, $second]);
     }
 
@@ -45,15 +45,16 @@ final readonly class IntegrationFixtureProviderAdapterTest
             }
         };
 
-        Expect::that(fn(): array => [...IntegrationFixtureProviderAdapter::definitions(
-            PluginRegistry::orchestratorSide([$provider]),
-        )])->toThrow(static function (IntegrationFixtureError $error) use ($failure, $provider): void {
-            Expect::that($error->getMessage())->toBe(\sprintf(
-                'Integration fixture provider "%s" failed: provider exploded.',
-                $provider::class,
-            ));
-            Expect::that($error->getPrevious())->toBe($failure);
-        });
+        $runtime = OrchestratorPluginRuntime::fromPlugins([$provider], new CollectingEventSink());
+
+        Expect::that(fn(): array => [...$runtime->fixtureDefinitions()])
+            ->toThrow(static function (IntegrationFixtureError $error) use ($failure, $provider): void {
+                Expect::that($error->getMessage())->toBe(\sprintf(
+                    'Integration fixture provider "%s" failed: provider exploded.',
+                    $provider::class,
+                ));
+                Expect::that($error->getPrevious())->toBe($failure);
+            });
     }
 
     #[Test]
@@ -62,9 +63,9 @@ final readonly class IntegrationFixtureProviderAdapterTest
         $provider = new FakeIntegrationFixtureProvider([]);
         new \ReflectionProperty($provider, 'definitions')->setValue($provider, [new \stdClass()]);
 
-        Expect::that(fn(): array => [...IntegrationFixtureProviderAdapter::definitions(
-            PluginRegistry::orchestratorSide([$provider]),
-        )])
+        $runtime = OrchestratorPluginRuntime::fromPlugins([$provider], new CollectingEventSink());
+
+        Expect::that(fn(): array => [...$runtime->fixtureDefinitions()])
             ->because('integration fixture providers MUST return fixture definitions')
             ->toThrow(
                 IntegrationFixtureError::class,
@@ -87,7 +88,7 @@ final readonly class IntegrationFixtureProviderAdapterTest
                 throw $this->failure;
             }
         };
-        $plugins = PluginRegistry::orchestratorSide([
+        $runtime = OrchestratorPluginRuntime::fromPlugins([
             new FakeIntegrationFixtureProvider([
                 new IntegrationFixtureDefinition('database', static function (): void {}),
             ]),
@@ -95,10 +96,10 @@ final readonly class IntegrationFixtureProviderAdapterTest
                 new IntegrationFixtureDefinition('database', static function (): void {}),
             ]),
             $laterProvider,
-        ]);
+        ], new CollectingEventSink());
 
         Expect::that(fn() => IntegrationFixtureManager::provision(
-            IntegrationFixtureProviderAdapter::definitions($plugins),
+            $runtime->fixtureDefinitions(),
             'run-duplicate',
             1,
             1,
