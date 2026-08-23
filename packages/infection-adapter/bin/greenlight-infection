@@ -1,0 +1,110 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$composerProxyAutoloader = $GLOBALS['_composer_autoload_path'] ?? null;
+$inheritedAutoloader = \getenv('GREENLIGHT_INFECTION_AUTOLOAD');
+$autoloaders = [
+    \is_string($inheritedAutoloader) ? $inheritedAutoloader : '',
+    \is_string($composerProxyAutoloader) ? $composerProxyAutoloader : '',
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+    __DIR__ . '/../../../vendor/autoload.php',
+];
+
+foreach ($autoloaders as $autoloader) {
+    if ($autoloader !== '' && \is_file($autoloader)) {
+        require $autoloader;
+        \putenv('GREENLIGHT_INFECTION_AUTOLOAD=' . $autoloader);
+        break;
+    }
+}
+
+if (!\class_exists(\Greenlight\Cli\Application::class)
+    || !\class_exists(\Greenlight\InfectionAdapter\CoverageXmlWriter::class)
+) {
+    \fwrite(\STDERR, "Could not locate the Greenlight Infection adapter autoloader.\n");
+
+    exit(1);
+}
+
+$rawArguments = $_SERVER['argv'] ?? [];
+$arguments = [];
+
+foreach (\is_array($rawArguments) ? \array_slice($rawArguments, 1) : [] as $argument) {
+    if (\is_string($argument)) {
+        $arguments[] = $argument;
+    }
+}
+
+if (\in_array('--infection-no-tests', $arguments, true)) {
+    \fwrite(\STDOUT, "No Greenlight tests cover this mutation.\n");
+
+    exit(0);
+}
+
+$coverageXml = null;
+$original = \getenv('GREENLIGHT_INFECTION_ORIGINAL');
+$mutant = \getenv('GREENLIGHT_INFECTION_MUTANT');
+$greenlightArguments = [];
+
+foreach ($arguments as $argument) {
+    if (\str_starts_with($argument, '--infection-coverage-xml=')) {
+        $coverageXml = \substr($argument, \strlen('--infection-coverage-xml='));
+    } elseif (\str_starts_with($argument, '--infection-original=')) {
+        $original = \substr($argument, \strlen('--infection-original='));
+    } elseif (\str_starts_with($argument, '--infection-mutant=')) {
+        $mutant = \substr($argument, \strlen('--infection-mutant='));
+    } else {
+        $greenlightArguments[] = $argument;
+    }
+}
+
+if (\is_string($original) && $original !== '' && \is_string($mutant) && $mutant !== '') {
+    $canonicalOriginal = \realpath($original);
+    $canonicalMutant = \realpath($mutant);
+    $original = $canonicalOriginal === false ? $original : $canonicalOriginal;
+    $mutant = $canonicalMutant === false ? $mutant : $canonicalMutant;
+    \putenv('GREENLIGHT_INFECTION_ORIGINAL=' . $original);
+    \putenv('GREENLIGHT_INFECTION_MUTANT=' . $mutant);
+    \Infection\StreamWrapper\IncludeInterceptor::intercept($original, $mutant);
+    \Infection\StreamWrapper\IncludeInterceptor::enable();
+}
+
+$workingDirectory = \getcwd();
+
+if ($workingDirectory === false) {
+    \fwrite(\STDERR, "Could not determine the current working directory.\n");
+
+    exit(1);
+}
+
+$exit = \Greenlight\Cli\Application::forStreams()->run($greenlightArguments, $workingDirectory, __FILE__);
+
+if ($exit === 0 && $coverageXml !== null) {
+    $coverageMap = null;
+
+    foreach ($greenlightArguments as $argument) {
+        if (\str_starts_with($argument, '--coverage-map=')) {
+            $coverageMap = \substr($argument, \strlen('--coverage-map='));
+            break;
+        }
+    }
+
+    if ($coverageMap === null) {
+        \fwrite(\STDERR, "The Infection wrapper was not given a Greenlight coverage map target.\n");
+
+        exit(1);
+    }
+
+    try {
+        new \Greenlight\InfectionAdapter\CoverageXmlWriter()->write($coverageMap, $coverageXml);
+    } catch (\Throwable $error) {
+        \fwrite(\STDERR, "Could not convert Greenlight coverage for Infection: {$error->getMessage()}\n");
+
+        exit(1);
+    }
+}
+
+exit($exit);

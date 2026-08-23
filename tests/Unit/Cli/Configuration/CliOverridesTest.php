@@ -32,6 +32,9 @@ final class CliOverridesTest
         Expect::that($overrides->repeat->untilFailure)->because('absent flags mean no overrides')->toBe(false);
         Expect::that($overrides->execution->artifactsDirectory)->because('absent flags mean no overrides')->toBe(null);
         Expect::that($overrides->execution->resourceLimits)->because('absent flags mean no overrides')->toBe([]);
+        Expect::that($overrides->coverage->includePaths)->because('absent flags mean no overrides')->toBe([]);
+        Expect::that($overrides->coverage->perTestTarget)->because('absent flags mean no overrides')->toBe(null);
+        Expect::that($overrides->coverage->disabled)->because('absent flags mean no overrides')->toBeFalse();
     }
 
     #[Test]
@@ -107,6 +110,8 @@ final class CliOverridesTest
             'test-id' => ['App\ExampleTest::one', 'App\ExampleTest::two'],
             'artifacts-dir' => ['build/evidence'],
             'resource-limit' => ['postgres=3', 'payments-sandbox=1', 'cache.primary_1=2'],
+            'coverage-include' => ['src', 'packages/core'],
+            'coverage-map' => ['build/test-coverage.jsonl'],
         ]));
 
         Expect::that($overrides->execution->workers?->fixed)->because('extracts typed values')->toBe(4);
@@ -120,6 +125,21 @@ final class CliOverridesTest
             'payments-sandbox' => 1,
             'cache.primary_1' => 2,
         ]);
+        Expect::that($overrides->coverage->includePaths)->toBe(['src', 'packages/core']);
+        Expect::that($overrides->coverage->perTestTarget)->toBe('build/test-coverage.jsonl');
+        Expect::that($overrides->coverage->disabled)->toBeFalse();
+    }
+
+    #[Test]
+    public function noCoverageRejectsCommandLineCoverageSettings(): void
+    {
+        Expect::that(static fn(): CliOverrides => CliOverrides::fromArguments(new ParsedArguments('run', [
+            'no-coverage' => [null],
+            'coverage-map' => ['coverage.jsonl'],
+        ])))->toThrow(
+            CliError::class,
+            message: '--no-coverage cannot be combined with --coverage-map or --coverage-include.',
+        );
     }
 
     #[Test]

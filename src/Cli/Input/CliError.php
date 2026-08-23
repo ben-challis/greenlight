@@ -133,4 +133,23 @@ final class CliError extends \RuntimeException
             \implode(' or ', $outputs),
         ));
     }
+
+    public static function exactTestFileUnreadable(string $path, ?string $cause = null): self
+    {
+        return new self(\sprintf(
+            'Exact test ID file "%s" could not be read%s.',
+            $path,
+            $cause === null ? '' : ': ' . $cause,
+        ));
+    }
+
+    public static function exactTestFileEmpty(string $path): self
+    {
+        return new self(\sprintf('Exact test ID file "%s" contains no test IDs.', $path));
+    }
+
+    public static function coverageOptionsConflict(): self
+    {
+        return new self('--no-coverage cannot be combined with --coverage-map or --coverage-include.');
+    }
 }

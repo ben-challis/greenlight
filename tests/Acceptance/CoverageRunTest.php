@@ -8,12 +8,14 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Relay\SubprocessCoverage;
 use Greenlight\Expect\Expect;
+use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 use Greenlight\Tests\Support\SimpleXml;
+use JsonSchema\Validator;
 
 final readonly class CoverageRunTest
 {
@@ -68,6 +70,79 @@ final readonly class CoverageRunTest
         Expect::that($result->exitCode)->because('missing driver warns without failing the run')->toBe(0);
         Expect::that($result->output())->toContain('No worker collected the requested coverage');
         Expect::that(\is_dir($project->path('coverage-out')))->toBeFalse();
+    }
+
+    #[Test]
+    #[DataSet('perTestWorkerCounts')]
+    public function writesVersionedPerTestCoverageThroughEachExecutionAdapter(int $workers): void
+    {
+        $project = $this->writeProject();
+        $target = $project->path('coverage-out/per-test.jsonl');
+        $result = $this->runIn(
+            $project,
+            ['run', '--workers=' . $workers, '--reporter=plain', '--coverage-map=coverage-out/per-test.jsonl'],
+            'coverage',
+        );
+
+        Expect::that($result->exitCode)
+            ->because('the process pool MUST publish per-test coverage after a successful run. Output: ' . $result->output())
+            ->toBe(0);
+
+        $lines = \file($target, \FILE_IGNORE_NEW_LINES | \FILE_SKIP_EMPTY_LINES);
+
+        if (!\is_array($lines)) {
+            Fail::because('The per-test coverage artifact MUST be readable.');
+        }
+
+        $types = [];
+        $records = [];
+        $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/test-coverage-jsonl-v1.schema.json'];
+
+        foreach ($lines as $line) {
+            $decoded = \json_decode($line, false, flags: \JSON_THROW_ON_ERROR);
+            $validator = new Validator();
+            $validator->validate($decoded, $schema);
+            Expect::that($validator->isValid())->because('each per-test coverage record MUST match version 1')->toBeTrue();
+
+            /** @var array<string, mixed> $record */
+            $record = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
+            $types[] = $record['type'];
+            $records[] = $record;
+        }
+
+        Expect::that($types)->toContain('meta')->toContain('test')->toContain('coverage')->toContain('source');
+
+        $tests = \array_values(\array_filter($records, static fn(array $record): bool => $record['type'] === 'test'));
+        $coverage = \array_values(\array_filter($records, static fn(array $record): bool => $record['type'] === 'coverage'));
+
+        Expect::that($tests)->toHaveCount(1);
+        Expect::that($tests[0]['renderedId'])->toBe('Greenlight\Tests\Fixture\CoverageSuite\MathTest::addsTwoIntegers');
+        Expect::that($tests[0]['file'])->toEndWith('/tests/Fixture/CoverageSuite/MathTest.php');
+        Expect::that($coverage)->not()->toBe([]);
+        Expect::that($coverage[0]['file'])->toEndWith('/tests/Fixture/CoverageLib/Math.php');
+    }
+
+    /** @return iterable<string, array{positive-int}> */
+    public static function perTestWorkerCounts(): iterable
+    {
+        yield 'in-process' => [1];
+        yield 'process pool' => [2];
+    }
+
+    #[Test]
+    #[DataSet('perTestWorkerCounts')]
+    public function missingDriverFailsRequiredPerTestCoverage(int $workers): void
+    {
+        $project = $this->writeProject();
+        $result = $this->runIn(
+            $project,
+            ['run', '--workers=' . $workers, '--reporter=plain', '--coverage-map=coverage-out/per-test.jsonl'],
+            'off',
+        );
+
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())->toContain('Per-test coverage requires an available coverage driver');
+        Expect::that(\is_file($project->path('coverage-out/per-test.jsonl')))->toBeFalse();
     }
 
     #[Test]

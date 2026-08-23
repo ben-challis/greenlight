@@ -6,6 +6,7 @@ namespace Greenlight\Execution;
 
 use Greenlight\Config\ExecutionConfiguration;
 use Greenlight\Config\StorageLayout;
+use Greenlight\Coverage\Attribution\TestCoverageStore;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\IntegrationFixture\ProvisionedIntegrationFixtures;
 
@@ -25,5 +26,6 @@ final readonly class ExecutionContext
         public ProvisionedIntegrationFixtures $fixtures,
         public array $classSeconds,
         public StorageLayout $storage,
+        public ?TestCoverageStore $testCoverageStore = null,
     ) {}
 }

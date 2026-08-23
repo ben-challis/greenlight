@@ -20,5 +20,6 @@ final readonly class CoverageSettings
     public function __construct(
         public array $includePaths,
         public ?string $driver = null,
+        public bool $perTest = false,
     ) {}
 }

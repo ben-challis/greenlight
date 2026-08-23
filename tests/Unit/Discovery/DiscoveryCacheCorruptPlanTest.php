@@ -22,7 +22,7 @@ final readonly class DiscoveryCacheCorruptPlanTest
         $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
         \file_put_contents($source, '<?php');
         \file_put_contents($cacheFile, \json_encode([
-            'version' => 4,
+            'version' => 5,
             'files' => [
                 $source => [
                     'mtime' => \filemtime($source),

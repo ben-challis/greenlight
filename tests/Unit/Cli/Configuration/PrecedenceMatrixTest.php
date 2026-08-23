@@ -7,8 +7,10 @@ namespace Greenlight\Tests\Unit\Cli\Configuration;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Configuration\CliOverrides;
 use Greenlight\Cli\Configuration\ConfigurationResolver;
+use Greenlight\Cli\Configuration\CoverageOverrides;
 use Greenlight\Cli\Configuration\ExecutionOverrides;
 use Greenlight\Config\ArtifactBuilder;
+use Greenlight\Config\CoverageBuilder;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\WorkerCount;
@@ -123,6 +125,31 @@ final class PrecedenceMatrixTest
         );
 
         Expect::that($resolved->workers->resourceLimits)->because('resource limit precedence merges by name')->toBe(['postgres' => 1, 'redis' => 2]);
+    }
+
+    #[Test]
+    public function coveragePrecedenceKeepsConfiguredExportsAndAppliesCommandLineChanges(): void
+    {
+        $resolved = $this->resolve(
+            config: static fn(GreenlightConfig $c) => $c->coverage(static fn(CoverageBuilder $coverage) => $coverage
+                ->include('src')
+                ->driver('pcov')
+                ->export('json', 'coverage.json')
+                ->perTest('configured.jsonl')),
+            cli: new CliOverrides(coverage: new CoverageOverrides(['packages/core'], 'command-line.jsonl')),
+        );
+
+        Expect::that($resolved->coverage?->includePaths)->toBe(['src', 'packages/core']);
+        Expect::that($resolved->coverage?->driver)->toBe('pcov');
+        Expect::that($resolved->coverage?->exports)->toHaveCount(1);
+        Expect::that($resolved->coverage?->perTestTarget)->toBe('command-line.jsonl');
+
+        $disabled = $this->resolve(
+            config: static fn(GreenlightConfig $c) => $c->coverage(static fn(CoverageBuilder $coverage) => $coverage->include('src')),
+            cli: new CliOverrides(coverage: new CoverageOverrides(disabled: true)),
+        );
+
+        Expect::that($disabled->coverage)->toBeNull();
     }
 
     #[Test]

@@ -23,7 +23,7 @@ use Greenlight\Internal\Php\ErrorTrap;
  */
 final class DiscoveryCache
 {
-    private const int VERSION = 4;
+    private const int VERSION = 5;
 
     /**
      * @var array<string, DiscoveryCacheEntry>

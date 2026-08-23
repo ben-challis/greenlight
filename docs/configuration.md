@@ -158,12 +158,16 @@ accumulate.
   Supported formats are `json`, `lcov`, `clover`, `cobertura`, and `html`.
   `$target` is a file path, or a directory for multi-file formats such as
   `html`. Repeatable.
+* `perTest(string $target): self` writes a versioned JSONL map from test IDs to
+  covered source lines. It starts and stops the coverage driver around each
+  test.
 
 <!-- php-example {"example":"configuration-example-05","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 ->coverage(fn ($c) => $c
     ->include('src')
     ->driver('pcov')
+    ->perTest('coverage/test-map.jsonl')
     ->export('lcov', 'coverage/lcov.info')
     ->export('html', 'coverage/html'))
 ```
@@ -174,6 +178,11 @@ each coverage export.
 If no worker can collect coverage because neither pcov nor Xdebug coverage mode
 is available, Greenlight warns on stderr. That warning does not fail the run by
 itself.
+
+Per-test coverage requires at least one include path and an available coverage
+driver. Missing either requirement fails the run. Greenlight publishes the map
+only when the run passes without leaks or interruption. See the
+[per-test coverage schema](architecture/test-coverage-jsonl.md).
 
 The workers are not the only measured processes. In a parallel run, the
 orchestrator collects its own coverage. Thus, the export includes code that
@@ -569,6 +578,17 @@ greenlight run \
 Repeatable. Multiple exact test IDs and `--filter` patterns form a union.
 Exclusions have precedence.
 
+Greenlight fails if discovery cannot find a requested exact ID.
+
+### `--test-id-file=<path>`
+
+Reads exact rendered test IDs from a text file, one per line. Blank lines are
+ignored and duplicate IDs are collapsed. An unreadable or empty file is a
+usage error. An ID that discovery cannot find fails the run.
+
+Use this option for tools that already have Greenlight IDs, including the
+Infection adapter. It avoids command-line length limits.
+
 ### `--exclude-group=<name>`
 
 Excludes tests in the given group.
@@ -735,6 +755,21 @@ Sets the baseline coverage JSON file for `coverage:diff`.
 
 Sets the current coverage JSON file for `coverage:diff`.
 
+### `--coverage-map=<path>`
+
+Writes per-test coverage to the given path as versioned JSONL. Supply at least
+one `--coverage-include=<path>` unless the configuration already has an include
+path.
+
+### `--coverage-include=<path>`
+
+Adds a coverage include path for this run. Repeatable.
+
+### `--no-coverage`
+
+Disables configured aggregate and per-test coverage for this run. It cannot be
+combined with `--coverage-map` or `--coverage-include`.
+
 ### `--watch`
 
 Starts with a complete run, then reruns all selected tests after a file change.
@@ -743,6 +778,7 @@ Greenlight watches all configured test paths and coverage include paths. After
 a change, classes that failed in the previous watch iteration run first.
 
 Watch mode does not publish coverage totals or coverage exports.
+Per-test coverage cannot be combined with watch mode.
 
 In watch mode:
 

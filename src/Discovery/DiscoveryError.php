@@ -103,4 +103,14 @@ final class DiscoveryError extends \RuntimeException
     {
         return new self($cause->getMessage(), $cause);
     }
+
+    /** @param non-empty-list<non-empty-string> $ids */
+    public static function exactTestsNotFound(array $ids): self
+    {
+        return new self(\sprintf(
+            'Greenlight did not find the requested exact test %s: %s.',
+            \count($ids) === 1 ? 'ID' : 'IDs',
+            \implode(', ', $ids),
+        ));
+    }
 }

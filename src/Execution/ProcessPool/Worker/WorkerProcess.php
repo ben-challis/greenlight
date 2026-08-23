@@ -8,6 +8,7 @@ use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Coverage\Collection\CoverageCollector;
 use Greenlight\Coverage\Collection\CoverageSettings;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Execution\Artifact\ArtifactSession;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
@@ -184,6 +185,7 @@ final readonly class WorkerProcess
      *
      * @throws WireCommunicationFailed
      * @throws ProtocolError
+     * @throws CoverageError
      * @throws WorkerError
      *
      * @param list<ServiceDefinition> $definitions
@@ -223,15 +225,23 @@ final readonly class WorkerProcess
             }
 
             $collector = null;
+            $coverageUnavailable = null;
 
             if ($message->coverageInclude !== null) {
                 // A collector cannot observe the code that creates it. The
                 // coverage acceptance tests exercise this bootstrap path.
                 // @codeCoverageIgnoreStart
                 $collector = CoverageCollector::create(
-                    new CoverageSettings($message->coverageInclude, $message->coverageDriver),
+                    new CoverageSettings($message->coverageInclude, $message->coverageDriver, $message->coveragePerTest),
+                    static function (string $reason) use (&$coverageUnavailable): void {
+                        $coverageUnavailable = $reason;
+                    },
                 );
                 // @codeCoverageIgnoreEnd
+            }
+
+            if ($message->coveragePerTest && !$collector instanceof CoverageCollector) {
+                throw CoverageError::requiredDriverUnavailable($coverageUnavailable ?? 'no coverage driver is available');
             }
 
             if (!$artifactStore instanceof ArtifactStore
@@ -244,7 +254,11 @@ final readonly class WorkerProcess
                 );
             }
 
-            $collector?->start();
+            $testCoverage = $message->coveragePerTest ? new SocketTestCoverageSink($channel) : null;
+
+            if (!$message->coveragePerTest) {
+                $collector?->start();
+            }
 
             $leakDetector = $message->detectLeaks ? new LeakDetector() : null;
 
@@ -264,9 +278,11 @@ final readonly class WorkerProcess
                 static function (TestId $id, int $attempt) use ($channel): void {
                     $channel->send(new AttemptStarted($id, $attempt));
                 },
+                $message->coveragePerTest ? $collector : null,
+                $testCoverage,
             );
 
-            $coverage = $collector?->stop();
+            $coverage = $message->coveragePerTest ? $testCoverage?->coverage() : $collector?->stop();
 
             $done = new Done(
                 $outcome->summary,

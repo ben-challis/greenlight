@@ -3,6 +3,10 @@
 `Greenlight\Coverage\Export\JsonExporter` produces the Greenlight JSON coverage
 export. `JsonExporter::import()` imports it.
 
+This format describes aggregate coverage. The
+[per-test coverage JSONL format](test-coverage-jsonl.md) preserves which test
+covered each line.
+
 The coverage difference command also uses this format:
 
 ```sh id="x3l9w8"

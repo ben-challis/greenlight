@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Artifact\AttachmentError;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
+use Greenlight\Coverage\FileCoverage;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Event\Event;
@@ -19,6 +21,7 @@ use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Bootstrap;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\CoverageChunk;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
@@ -166,6 +169,7 @@ final class Orchestrator
      *
      * @throws ProtocolError
      * @throws AttachmentError
+     * @throws CoverageError
      * @throws WireCommunicationFailed
      * @throws ReportGenerationFailed
      */
@@ -285,6 +289,7 @@ final class Orchestrator
 
     /**
      * @throws AttachmentError
+     * @throws CoverageError
      * @throws WireCommunicationFailed
      * @throws ProtocolError
      */
@@ -299,9 +304,10 @@ final class Orchestrator
 
     /**
      * @param list<WorkerTransportEvent> $events
-     * @throws WireCommunicationFailed
      * @throws AttachmentError
+     * @throws CoverageError
      * @throws ProtocolError
+     * @throws WireCommunicationFailed
      */
     private function processTransportEvents(array $events, EventSink $sink): void
     {
@@ -484,6 +490,7 @@ final class Orchestrator
                 $lease->unit->plan,
                 $this->configuration->coverageSettings?->includePaths,
                 $this->configuration->coverageSettings?->driver,
+                $this->configuration->coverageSettings?->perTest === true,
                 $this->configuration->detectLeaks,
                 $this->configuration->policy,
                 $this->configuration->artifactStore?->session(),
@@ -502,6 +509,7 @@ final class Orchestrator
 
     /**
      * @throws AttachmentError
+     * @throws CoverageError
      * @throws WireCommunicationFailed
      * @throws ProtocolError
      */
@@ -511,6 +519,11 @@ final class Orchestrator
             $this->onEvent($handle, $message->event, $sink);
         } elseif ($message instanceof AttemptStarted) {
             $this->onAttemptStarted($handle, $message);
+        } elseif ($message instanceof CoverageChunk) {
+            $this->configuration->testCoverageStore?->record(
+                $message->test,
+                new CoverageMap([new FileCoverage($message->file, $message->lines, [])]),
+            );
         } elseif ($message instanceof Ready) {
             if ($handle->ready) {
                 throw ProtocolError::malformedFrame(\sprintf(
