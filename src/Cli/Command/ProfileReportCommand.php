@@ -27,7 +27,7 @@ final readonly class ProfileReportCommand
     {
         $inputs = $arguments->values('input');
         $input = $inputs[0] ?? null;
-        if (\count($inputs) !== 1 || $input === '') {
+        if (\count($inputs) !== 1 || $input === null || $input === '') {
             $this->console->err("profile:report requires --input=<path to a JSONL stream>.\n");
             return 64;
         }
