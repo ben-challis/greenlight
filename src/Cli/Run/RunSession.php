@@ -6,6 +6,7 @@ namespace Greenlight\Cli\Run;
 
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Cli\Configuration\LoadedConfiguration;
+use Greenlight\Cli\Coverage\CoveragePluginRuntime;
 use Greenlight\Cli\Coverage\CoverageSession;
 use Greenlight\Cli\Coverage\CoverageSettingsResolver;
 use Greenlight\Cli\Coverage\CoverageWriter;
@@ -22,7 +23,6 @@ use Greenlight\Config\WorkerConfiguration;
 use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
-use Greenlight\Coverage\Ignore\IgnoreFilter;
 use Greenlight\Coverage\Relay\SubprocessCoverage;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Event\EventSink;
@@ -147,11 +147,12 @@ final readonly class RunSession
             $coverageSession->close();
         }
 
-        if ($coverage instanceof CoverageMap) {
-            $coverage = new IgnoreFilter()->apply($coverage);
-        }
         $reporter->finish();
         $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
+        if ($coverage instanceof CoverageMap) {
+            $coverage = CoveragePluginRuntime::fromDefinitions($resolved->execution->plugins)
+                ->transform($coverage);
+        }
         $interruptExit = $this->shutdown->exitCode();
         if ($interruptExit !== null) {
             $this->console->err("Interrupted. The summary includes only tests that finished before shutdown.\n");

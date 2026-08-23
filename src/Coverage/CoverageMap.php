@@ -12,14 +12,13 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
  * The map sorts files by path. Thus, identical coverage always has identical
  * serialized data.
  *
- * merge() is commutative, associative, and idempotent. Thus, the orchestrator
+ * `merge()` is commutative, associative, and idempotent. Thus, the orchestrator
  * can merge worker payloads in all arrival orders. It does not require a final
  * merge operation at the end of a run.
  *
  * The wire payload is compact. Under "files", each path maps to a two-item
  * list. The covered line list is first. The uncovered line list is second.
  *
- * @internal
  */
 final readonly class CoverageMap
 {
@@ -106,7 +105,11 @@ final readonly class CoverageMap
         return $this->coveredLineTotal() / $executable * 100.0;
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
 
@@ -116,6 +119,8 @@ final readonly class CoverageMap
     }
 
     /**
+     * @internal
+     *
      * @param array<string, mixed> $payload
      * @throws WireCommunicationFailed
      */

@@ -127,6 +127,11 @@ export const docSections = [
         description: 'This reference lists attachment values, retention rules, and attachment operations.',
       },
       {
+        id: 'api-coverage',
+        title: 'Coverage API',
+        description: 'This reference lists coverage maps and per-file line coverage values.',
+      },
+      {
         id: 'api-events',
         title: 'Event API',
         description: 'This reference lists the events that plugins and reporters receive during a run.',

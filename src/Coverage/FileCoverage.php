@@ -7,9 +7,8 @@ namespace Greenlight\Coverage;
 /**
  * The class stores both sets as sorted unique lists with no common members.
  * If a line is in both inputs, the covered input has priority. This rule
- * makes merge() commutative, associative, and idempotent.
+ * makes `merge()` commutative, associative, and idempotent.
  *
- * @internal
  */
 final readonly class FileCoverage
 {

@@ -11,6 +11,7 @@ Use the task guides for workflows and examples. Use these pages for exact signat
 - [Attributes and conditions API](api-attributes.md) — This reference lists the attributes and conditions that control test discovery and execution.
 - [Configuration API](api-configuration.md) — This reference lists the builders that configure Greenlight runs.
 - [Artifact API](api-artifacts.md) — This reference lists attachment values, retention rules, and attachment operations.
+- [Coverage API](api-coverage.md) — This reference lists coverage maps and per-file line coverage values.
 - [Event API](api-events.md) — This reference lists the events that plugins and reporters receive during a run.
 - [Result API](api-results.md) — This reference lists test outcomes, diagnostics, failure details, and result values.
 - [Test contracts API](api-test-contracts.md) — This reference lists test definitions, policies, and skip signals.
