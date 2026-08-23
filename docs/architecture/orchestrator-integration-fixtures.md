@@ -58,9 +58,9 @@ stderr. A worker receives only its own channel overlay.
 
 After a worker sends `hello`, the orchestrator replies with a `bootstrap`
 message that contains the channel, config path, and resources. The worker loads
-its plugin definitions, creates its worker-side instances, calls
-`WorkerBootstrapSubscriber`, builds the harness registry, and then replies with
-`ready`.
+its plugin definitions and creates its worker-side instances. It calls
+`WorkerBootstrapSubscriber`, builds the harness service scopes, and then replies
+with `ready`.
 
 When a configured plugin implements `WorkerBootstrapSubscriber`, the
 orchestrator waits for every initial worker to report `ready` before it assigns

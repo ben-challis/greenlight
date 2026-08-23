@@ -28,8 +28,8 @@ use Greenlight\Execution\Worker\HarnessServiceDisposal;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Execution\Worker\WorkerError;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
+use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Plugin\PluginRegistry;
@@ -144,17 +144,17 @@ final readonly class WorkerProcess
                     new TestChannel($message->channel),
                     $message->resources,
                 ));
-                $registry = DefaultServices::registry(
+                $definitions = DefaultServices::definitions(
                     $plugins,
                     $message->resources,
                     $message->generatedCodeDirectory,
                     $message->temporaryDirectory,
                 );
-                $scopes = new HarnessScopes($registry, $plugins->serviceResolvers());
+                $scopes = new HarnessScopes($definitions, $plugins->serviceResolvers());
 
                 $finalMessage = $plugins->runWorker(fn(): ?Message => HarnessServiceDisposal::runAndClose(
                     $scopes,
-                    fn(): ?Message => $this->runAssignments($channel, $plugins, $registry, $scopes, $workerId),
+                    fn(): ?Message => $this->runAssignments($channel, $plugins, $definitions, $scopes, $workerId),
                 ));
 
                 if ($finalMessage instanceof Message) {
@@ -185,11 +185,13 @@ final readonly class WorkerProcess
      * @throws WireCommunicationFailed
      * @throws ProtocolError
      * @throws WorkerError
+     *
+     * @param list<ServiceDefinition> $definitions
      */
     private function runAssignments(
         SocketChannel $channel,
         PluginRegistry $plugins,
-        HarnessRegistry $registry,
+        array $definitions,
         HarnessScopes $scopes,
         string $workerId,
     ): ?Message {
@@ -247,7 +249,7 @@ final readonly class WorkerProcess
             $leakDetector = $message->detectLeaks ? new LeakDetector() : null;
 
             $outcome = new Worker(
-                $registry,
+                $definitions,
                 $plugins,
                 $leakDetector,
                 $workerId,

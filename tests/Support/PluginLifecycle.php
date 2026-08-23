@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Result\Outcome;
@@ -20,7 +19,7 @@ final class PluginLifecycle
             new \stdClass(),
             new TestId('Fixture', 'probe'),
             new TestDefinition('Fixture', 'probe'),
-            new HarnessScopes(new HarnessRegistry()),
+            new HarnessScopes(),
         );
     }
 

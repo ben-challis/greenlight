@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Psr15;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Psr15\HttpHarness;
@@ -143,6 +142,6 @@ final class Psr15PluginTest
 
     private function scopes(Psr15Plugin $plugin): HarnessScopes
     {
-        return new HarnessScopes(new HarnessRegistry($plugin->services()));
+        return new HarnessScopes($plugin->services());
     }
 }

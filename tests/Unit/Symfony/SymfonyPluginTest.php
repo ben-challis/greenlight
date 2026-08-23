@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Symfony;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Harness\HarnessRegistry;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceResolution;
@@ -73,7 +72,7 @@ final class SymfonyPluginTest
     {
         $answer = new \ArrayObject();
         $later = new ServiceResolverProbe(ServiceResolution::resolved($answer));
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$this->plugin(), $later]);
+        $scopes = new HarnessScopes([], [$this->plugin(), $later]);
 
         Expect::that($scopes->resolve(\ArrayObject::class, 'test'))
             ->because('an unknown Symfony type MUST fall through to the next resolver')
@@ -85,7 +84,7 @@ final class SymfonyPluginTest
     public function anUnknownExplicitServiceStopsTheResolverChain(): void
     {
         $later = new ServiceResolverProbe(ServiceResolution::resolved(new Greeter()));
-        $scopes = new HarnessScopes(new HarnessRegistry(), [$this->plugin(), $later]);
+        $scopes = new HarnessScopes([], [$this->plugin(), $later]);
 
         Expect::that(static fn(): object => $scopes->resolve(
             Greeter::class,
