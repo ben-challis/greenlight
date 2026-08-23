@@ -140,7 +140,7 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             return $this->kernel;
         }
 
-        $kernel = $this->createKernel();
+        $kernel = ($this->factory)();
 
         if (!$kernel instanceof KernelInterface) {
             throw SymfonyBridgeError::notAKernelFromFactory(\get_debug_type($kernel));
@@ -171,11 +171,6 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
         $this->kernel = $kernel;
 
         return $kernel;
-    }
-
-    private function createKernel(): mixed
-    {
-        return ($this->factory)();
     }
 
     /**
