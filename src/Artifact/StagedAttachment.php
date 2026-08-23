@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Artifact;
 
-use Greenlight\Wire\Wire;
+use Greenlight\Internal\Wire\Wire;
 
 /**
  * Attachment metadata with its private worker-to-orchestrator coordinate.
@@ -54,6 +54,7 @@ final readonly class StagedAttachment extends Attachment
         );
     }
 
+    /** @internal */
     #[\Override]
     public function toWire(): array
     {
@@ -63,6 +64,7 @@ final readonly class StagedAttachment extends Attachment
         ];
     }
 
+    /** @internal */
     #[\Override]
     public static function fromWire(array $payload): static
     {

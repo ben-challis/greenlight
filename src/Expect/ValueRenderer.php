@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
-use Greenlight\Wire\Utf8;
+use Greenlight\Internal\Text\Utf8;
 
 /**
  * Produces bounded, single-line failure values. The renderer converts the

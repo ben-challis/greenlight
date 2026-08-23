@@ -7,8 +7,9 @@ namespace Greenlight\Execution\ProcessPool\Protocol;
 use Greenlight\Attribute\CoverageIgnore;
 use Greenlight\Event\Event;
 use Greenlight\Event\EventTags;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireCommunicationFailed;
+use Greenlight\Event\WireEvent;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /** @internal */
 final class EventRegistry
@@ -22,6 +23,10 @@ final class EventRegistry
      */
     public static function toTagged(Event $event): array
     {
+        if (!$event instanceof WireEvent) {
+            throw ProtocolError::unknownEvent($event::class);
+        }
+
         $tag = EventTags::tagFor($event);
 
         if ($tag === null) {
@@ -37,7 +42,7 @@ final class EventRegistry
      * @throws ProtocolError
      * @throws WireCommunicationFailed
      */
-    public static function fromTagged(array $tagged): Event
+    public static function fromTagged(array $tagged): WireEvent
     {
         $tag = Wire::nonEmptyString($tagged, 'event');
         $class = EventTags::classFor($tag);

@@ -6,7 +6,7 @@ namespace Greenlight\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
 use Greenlight\Internal\Php\ErrorTrap;
-use Greenlight\Wire\Utf8;
+use Greenlight\Internal\Text\Utf8;
 
 /**
  * Owns one native worker process, its protocol channel, and diagnostics.

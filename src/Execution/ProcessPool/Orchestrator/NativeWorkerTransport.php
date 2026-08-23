@@ -8,7 +8,7 @@ use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
 use Greenlight\Internal\Php\ErrorTrap;
-use Greenlight\Wire\WireCommunicationFailed;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Owns native worker processes, sockets, diagnostics, poll operations, and retirement.

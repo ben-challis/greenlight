@@ -54,26 +54,26 @@ public.
 
 | Module group | Responsibility | Permitted dependencies |
 | --- | --- | --- |
-| `Wire`, `Internal/Text`, `Internal/Process`, `Internal/Php` | Worker-protocol operations and focused internal utilities | Nothing |
+| `Internal/Wire`, `Internal/Text`, `Internal/Process`, `Internal/Php` | Worker-protocol operations and focused internal utilities | Nothing |
 | `Internal/Filesystem` | Atomic file operations | `Internal/Php` |
-| `Artifact` | Attachment values and operations | `Wire` |
-| `Test` | Test definitions, policies, and cleanup controls | `Wire`, `Internal/Text` |
+| `Artifact` | Attachment values and operations | `Internal/Wire` |
+| `Test` | Test definitions, policies, and cleanup controls | `Internal/Wire`, `Internal/Text` |
 | `Condition` | Conditions that control test execution | `Internal/Process` |
-| `Result` | Test outcomes, diagnostics, and result values | `Artifact`, `Test`, `Wire`, `Internal/Text` |
-| `Event` | Events that describe the run lifecycle | `Result`, `Test`, `Wire` |
+| `Result` | Test outcomes, diagnostics, and result values | `Artifact`, `Test`, `Internal/Wire`, `Internal/Text` |
+| `Event` | Events that describe the run lifecycle | `Result`, `Test`, `Internal/Wire` |
 | `Attribute` | User test metadata | `Condition`, `Test` |
 | `Config` | Public builders and focused immutable configuration values | Public contracts, internal utilities, `Plugin` |
 | `Expect` | Immediate and temporal expectations | Public contracts, internal PHP utilities, `Plugin` |
 | `Harness` | Harness service scopes and resolution | Nothing |
-| `IntegrationFixture` | Fixture definitions, resources, provisioning, and cleanup | `Wire` |
+| `IntegrationFixture` | Fixture definitions, resources, provisioning, and cleanup | `Internal/Wire` |
 | `Plugin` | Extension interfaces and plugin capability groups | Public contracts, `IntegrationFixture`, and `Reporting` |
 | `Doubles`, `Sandbox` | Test-author tools that use harness scopes | Lower test-author modules |
 | `Discovery` | PHP declaration discovery and execution plans | Public contracts, internal utilities, `Attribute` |
 | `Capture` | Bounded output capture | Public contracts and internal utilities |
-| `Coverage` | Line-coverage values and errors | `Wire` |
+| `Coverage` | Line-coverage values and errors | `Internal/Wire` |
 | `Coverage/Collection` | Coverage drivers and raw coverage collection | `Coverage` |
 | `Coverage/Diff` | Baseline coverage comparison | `Coverage` |
-| `Coverage/Export` | Coverage export formats | `Coverage`, `Wire`, and internal PHP utilities |
+| `Coverage/Export` | Coverage export formats | `Coverage`, `Internal/Wire`, and internal PHP utilities |
 | `Coverage/Ignore` | Source ignore directives and filtering | `Coverage` and internal PHP utilities |
 | `Coverage/Relay` | Coverage transfer from child CLI processes | Coverage modules and internal PHP utilities |
 | `Reporting` | Event consumers and output formats | Public contracts and internal PHP utilities |
@@ -91,7 +91,7 @@ public.
 | `Cli/Signal`, `Cli/State`, `Cli/Watch`, `Cli/WorkerCapacity` | Local runtime adapters and persisted run policy | Focused internal utilities |
 | `Cli/Command`, `Cli/Run` | Closed command dispatch and run lifecycle orchestration | Lower CLI modules and engine modules |
 | `Documentation` | Build-time validation of documentation examples | Nothing |
-| `PhpStan`, `Rector`, `Symfony`, `Laravel`, `Hyperf`, `Psr`, `Psr15`, `Tempest` | Optional adapters for external tools and frameworks | Their Greenlight interfaces and development-only frameworks |
+| `PhpStan`, `Rector`, `Symfony`, `Laravel`, `Hyperf`, `Psr11`, `Psr15`, `Tempest` | Optional adapters for external tools and frameworks | Their Greenlight interfaces and development-only frameworks |
 
 Dependencies point from modules near the bottom of the table to modules near
 the top. Modules near the top do not depend on the `Execution` or `Cli` modules.

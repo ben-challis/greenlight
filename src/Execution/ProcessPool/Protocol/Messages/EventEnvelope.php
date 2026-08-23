@@ -8,7 +8,7 @@ use Greenlight\Event\Event;
 use Greenlight\Execution\ProcessPool\Protocol\EventRegistry;
 use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
-use Greenlight\Wire\WireCommunicationFailed;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Sends one execution event from a worker to the orchestrator.

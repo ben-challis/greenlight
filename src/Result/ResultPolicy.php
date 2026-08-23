@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Result;
 
 use Greenlight\Internal\Text\Wildcard;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * CI rules that can change a passed test to a failed test.
@@ -28,7 +28,7 @@ use Greenlight\Wire\WireSerializable;
  *
  * @internal
  */
-final readonly class ResultPolicy implements WireSerializable
+final readonly class ResultPolicy
 {
     /**
      * @var list<non-empty-string>
@@ -113,7 +113,7 @@ final readonly class ResultPolicy implements WireSerializable
         );
     }
 
-    #[\Override]
+    /** @return array<string, mixed> */
     public function toWire(): array
     {
         return [
@@ -124,7 +124,10 @@ final readonly class ResultPolicy implements WireSerializable
         ];
     }
 
-    #[\Override]
+    /**
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         $patterns = [];

@@ -57,7 +57,7 @@ A `ReporterProvider` adds named reporter factories to `--reporter`. Return one
 ```php
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Plugin\ReporterProvider;
-use Greenlight\Reporting\Output\Output;
+use Greenlight\Reporting\Output;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReporterDefinition;
 

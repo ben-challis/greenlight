@@ -9,11 +9,11 @@ use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Event\EventTags;
 use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Internal\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ProfileAggregator;
 use Greenlight\Reporting\Style;
-use Greenlight\Wire\InvalidWirePayload;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Creates a profile report from a saved JSONL event stream.

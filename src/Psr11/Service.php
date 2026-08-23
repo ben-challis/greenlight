@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Psr;
+namespace Greenlight\Psr11;
 
 /**
  * Selects a PSR-11 service ID that differs from the parameter type. The

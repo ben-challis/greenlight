@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Test;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Wire\InvalidWirePayload;
 use Greenlight\Test\DataProvider;
 use Greenlight\Test\ExecutionPolicy;
 use Greenlight\Test\RetryPolicy;
@@ -14,7 +15,6 @@ use Greenlight\Test\SchedulingPolicy;
 use Greenlight\Test\SkipPolicy;
 use Greenlight\Test\TestDefinition;
 use Greenlight\Tests\Support\JsonWire;
-use Greenlight\Wire\InvalidWirePayload;
 
 final class TestDefinitionTest
 {

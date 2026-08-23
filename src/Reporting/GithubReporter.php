@@ -7,11 +7,10 @@ namespace Greenlight\Reporting;
 use Greenlight\Event\Event;
 use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestFinished;
-use Greenlight\Reporting\Output\Output;
+use Greenlight\Internal\Text\Utf8;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
-use Greenlight\Wire\Utf8;
 
 /**
  * Writes GitHub Actions workflow commands for test failures and errors.

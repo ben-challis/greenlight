@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Result;
 
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /** Records the source of a plugin change to a test outcome. */
-final readonly class OutcomeTransformation implements WireSerializable
+final readonly class OutcomeTransformation
 {
     /**
      * @var non-empty-string
@@ -30,7 +30,11 @@ final readonly class OutcomeTransformation implements WireSerializable
         $this->transformedBy = $transformedBy;
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -40,7 +44,12 @@ final readonly class OutcomeTransformation implements WireSerializable
         ];
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         return new self(

@@ -32,22 +32,10 @@ final class EventRegistryTest
     {
         $event = new class implements Event, Fake {
             public float $occurredAt = 1.0;
-
-            #[\Override]
-            public function toWire(): array
-            {
-                return ['occurredAt' => $this->occurredAt];
-            }
-
-            #[\Override]
-            public static function fromWire(array $payload): static
-            {
-                throw new \LogicException('Not deserializable.');
-            }
         };
 
         Expect::that(static fn(): array => EventRegistry::toTagged($event))
-            ->because('an event class needs a stable protocol tag')
+            ->because('a custom event only needs the public event interface and cannot cross the worker protocol')
             ->toThrow(
                 ProtocolError::class,
                 message: \sprintf('Unknown event type "%s".', $event::class),

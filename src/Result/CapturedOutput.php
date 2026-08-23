@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Result;
 
-use Greenlight\Wire\Utf8;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Text\Utf8;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * When output is too long, Greenlight keeps the first part. This part usually
@@ -14,7 +14,7 @@ use Greenlight\Wire\WireSerializable;
  *
  * Greenlight converts standard output to valid UTF-8 before it crosses the wire.
  */
-final readonly class CapturedOutput implements WireSerializable
+final readonly class CapturedOutput
 {
     /**
      * @var list<Diagnostic>
@@ -47,7 +47,11 @@ final readonly class CapturedOutput implements WireSerializable
         $this->diagnostics = $validatedDiagnostics;
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -61,7 +65,12 @@ final readonly class CapturedOutput implements WireSerializable
         ];
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         $diagnostics = [];

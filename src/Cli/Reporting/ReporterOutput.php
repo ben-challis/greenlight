@@ -6,8 +6,8 @@ namespace Greenlight\Cli\Reporting;
 
 use Greenlight\Cli\Output\TerminalCapabilities;
 use Greenlight\Internal\Php\ErrorTrap;
-use Greenlight\Reporting\Output\Output;
-use Greenlight\Reporting\Output\StreamOutput;
+use Greenlight\Reporting\Output;
+use Greenlight\Reporting\StreamOutput;
 
 /**
  * Supplies one reporter destination and its terminal capabilities.

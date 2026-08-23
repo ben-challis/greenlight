@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Test;
 
-use Greenlight\Wire\InvalidWirePayload;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireCommunicationFailed;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Defines the static reason or condition that skips a test.
  */
-final readonly class SkipPolicy implements WireSerializable
+final readonly class SkipPolicy
 {
     /**
      * @var list<scalar|null>
@@ -59,7 +58,11 @@ final readonly class SkipPolicy implements WireSerializable
         $this->arguments = $validated;
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -69,8 +72,12 @@ final readonly class SkipPolicy implements WireSerializable
         ];
     }
 
-    /** @throws WireCommunicationFailed */
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         $reason = Wire::nullableString($payload, 'reason');

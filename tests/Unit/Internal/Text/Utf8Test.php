@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Wire;
+namespace Greenlight\Tests\Unit\Internal\Text;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Text\Utf8;
 use Greenlight\Result\Diagnostic;
 use Greenlight\Result\DiagnosticSeverity;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Tests\Support\JsonWire;
-use Greenlight\Wire\Utf8;
 
 final class Utf8Test
 {

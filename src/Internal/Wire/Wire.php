@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Wire;
+namespace Greenlight\Internal\Wire;
 
 /**
- * Reads typed values from wire payloads.
+ * Reads typed values from internal wire payloads.
  *
  * Each reader throws InvalidWirePayload with the applicable key. Thus, its
  * message identifies the protocol error.

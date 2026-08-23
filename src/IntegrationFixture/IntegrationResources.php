@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\IntegrationFixture;
 
-use Greenlight\Wire\InvalidWirePayload;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * The integration fixtures visible to one worker channel.
@@ -15,7 +15,7 @@ use Greenlight\Wire\WireSerializable;
  * cannot inspect credentials allocated to another concurrent lane.
  * Fixture IDs must remain string keys in PHP maps.
  */
-final readonly class IntegrationResources implements WireSerializable
+final readonly class IntegrationResources
 {
     /**
      * @param array<non-empty-string, FixtureResource> $fixtures
@@ -57,7 +57,11 @@ final readonly class IntegrationResources implements WireSerializable
         ));
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         $fixtures = [];
@@ -69,7 +73,12 @@ final readonly class IntegrationResources implements WireSerializable
         return ['fixtures' => $fixtures];
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         $raw = Wire::map($payload, 'fixtures');

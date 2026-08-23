@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\IntegrationFixture;
 
-use Greenlight\Wire\InvalidWirePayload;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * JSON-safe information exposed by one orchestrator-owned integration fixture.
@@ -14,7 +14,7 @@ use Greenlight\Wire\WireSerializable;
  * Ordinary values and secrets are kept separate so debug output can redact
  * credentials. Secrets are strings and require an explicit `reveal()` call.
  */
-final readonly class FixtureResource implements WireSerializable
+final readonly class FixtureResource
 {
     private const int MAX_DEPTH = 16;
 
@@ -169,7 +169,11 @@ final readonly class FixtureResource implements WireSerializable
         );
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -178,7 +182,12 @@ final readonly class FixtureResource implements WireSerializable
         ];
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         $values = Wire::map($payload, 'values');

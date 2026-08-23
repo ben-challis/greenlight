@@ -16,7 +16,7 @@ identifies the cause. The last part usually contains repeated information.
 Greenlight converts standard output to valid UTF-8 before it crosses the wire.
 
 ```php
-final readonly class CapturedOutput implements WireSerializable
+final readonly class CapturedOutput
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L17)
@@ -75,24 +75,6 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L29)
 
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L50)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/CapturedOutput.php#L64)
-
 ## `Diagnostic`
 
 Namespace: `Greenlight\Result`
@@ -102,7 +84,7 @@ diagnostic crosses the wire. These values originate in user code.
 The line number is greater than zero.
 
 ```php
-final readonly class Diagnostic implements WireSerializable
+final readonly class Diagnostic
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L16)
@@ -159,24 +141,6 @@ PHPDoc:
 - `@throws \InvalidArgumentException`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L26)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L39)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L50)
 
 ## `DiagnosticSeverity`
 
@@ -235,7 +199,7 @@ Expected and actual are strings that the worker renders. Live values never
 cross the process boundary.
 
 ```php
-final readonly class FailureDetail implements WireSerializable
+final readonly class FailureDetail
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/FailureDetail.php#L14)
@@ -292,24 +256,6 @@ PHPDoc:
 - `@throws \InvalidArgumentException`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/FailureDetail.php#L24)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/FailureDetail.php#L37)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/FailureDetail.php#L48)
 
 ## `Outcome`
 
@@ -371,7 +317,7 @@ Namespace: `Greenlight\Result`
 Records the source of a plugin change to a test outcome.
 
 ```php
-final readonly class OutcomeTransformation implements WireSerializable
+final readonly class OutcomeTransformation
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutcomeTransformation.php#L11)
@@ -420,24 +366,6 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutcomeTransformation.php#L21)
 
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutcomeTransformation.php#L33)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/OutcomeTransformation.php#L43)
-
 ## `ResultSummary`
 
 Namespace: `Greenlight\Result`
@@ -445,7 +373,7 @@ Namespace: `Greenlight\Result`
 Aggregate outcome counts for a run.
 
 ```php
-final readonly class ResultSummary implements WireSerializable
+final readonly class ResultSummary
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L11)
@@ -543,30 +471,12 @@ public function isSuccessful(): bool
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L82)
 
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L107)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L118)
-
 ## `SourceLocation`
 
 Namespace: `Greenlight\Result`
 
 ```php
-final readonly class SourceLocation implements WireSerializable, \Stringable
+final readonly class SourceLocation implements \Stringable
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L10)
@@ -616,24 +526,6 @@ public function __toString(): string
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L39)
 
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L45)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L54)
-
 ## `TestResult`
 
 Namespace: `Greenlight\Result`
@@ -647,7 +539,7 @@ count. An unsuccessful result contains the count at the time of the abort.
 Old wire payloads without this field decode to zero.
 
 ```php
-final readonly class TestResult implements WireSerializable
+final readonly class TestResult
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L22)
@@ -805,24 +697,6 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L75)
 
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L216)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L242)
-
 ## `ThrowableDetail`
 
 Namespace: `Greenlight\Result`
@@ -830,7 +704,7 @@ Namespace: `Greenlight\Result`
 Limits stack frames so a deep trace cannot make the wire payload too large.
 
 ```php
-final readonly class ThrowableDetail implements WireSerializable
+final readonly class ThrowableDetail
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L12)
@@ -913,21 +787,3 @@ public static function fromThrowable(\Throwable $throwable): self
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L60)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L94)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L106)

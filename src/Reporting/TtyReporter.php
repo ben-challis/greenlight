@@ -97,7 +97,7 @@ final class TtyReporter implements Reporter, Ticking
     private readonly int $windowCapacity;
 
     public function __construct(
-        private readonly Output\Output $output,
+        private readonly Output $output,
         bool $color,
         private readonly bool $cursor,
         private readonly ?RunHeader $header = null,

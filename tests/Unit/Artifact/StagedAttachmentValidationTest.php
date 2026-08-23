@@ -10,7 +10,7 @@ use Greenlight\Artifact\StagedAttachment;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\InvalidWirePayload;
 
 final class StagedAttachmentValidationTest
 {

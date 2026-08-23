@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Greenlight\Result;
 
-use Greenlight\Wire\Utf8;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Text\Utf8;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /** Limits stack frames so a deep trace cannot make the wire payload too large. */
-final readonly class ThrowableDetail implements WireSerializable
+final readonly class ThrowableDetail
 {
     private const int MAX_STACK_FRAMES = 32;
 
@@ -91,7 +91,11 @@ final readonly class ThrowableDetail implements WireSerializable
         );
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -103,7 +107,12 @@ final readonly class ThrowableDetail implements WireSerializable
         ];
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         return new self(

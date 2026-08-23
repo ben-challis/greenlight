@@ -9,7 +9,6 @@ use Greenlight\Event\RunFinished;
 use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\WorkerSpawned;
-use Greenlight\Reporting\Output\Output;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 

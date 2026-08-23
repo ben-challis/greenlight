@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Support\Psr;
+namespace Greenlight\Tests\Support\Psr11;
 
 use Psr\Container\ContainerInterface;
 

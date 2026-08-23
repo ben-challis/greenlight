@@ -6,7 +6,7 @@ namespace Greenlight\Reporting;
 
 use Greenlight\Event\Event;
 use Greenlight\Event\EventTags;
-use Greenlight\Reporting\Output\Output;
+use Greenlight\Event\WireEvent;
 
 /**
  * Writes one JSON object for each event when the event arrives.
@@ -25,7 +25,7 @@ final readonly class JsonLinesReporter implements Reporter
     public function __construct(private Output $output) {}
 
     /**
-     * @return array<non-empty-string, class-string<Event>>
+     * @return array<non-empty-string, class-string<WireEvent>>
      */
     public static function tags(): array
     {
@@ -38,6 +38,10 @@ final readonly class JsonLinesReporter implements Reporter
     #[\Override]
     public function onEvent(Event $event): void
     {
+        if (!$event instanceof WireEvent) {
+            throw ReportGenerationFailed::unmappedEvent($event::class);
+        }
+
         $tag = EventTags::tagFor($event);
 
         if ($tag === null) {

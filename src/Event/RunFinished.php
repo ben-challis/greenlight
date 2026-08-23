@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Event;
 
+use Greenlight\Internal\Wire\Wire;
 use Greenlight\Result\ResultSummary;
-use Greenlight\Wire\Wire;
 
-final readonly class RunFinished implements Event
+final readonly class RunFinished implements WireEvent
 {
     /**
      * @var non-empty-string
@@ -45,6 +45,7 @@ final readonly class RunFinished implements Event
         $this->runId = $runId;
     }
 
+    /** @internal */
     #[\Override]
     public function toWire(): array
     {
@@ -59,6 +60,7 @@ final readonly class RunFinished implements Event
         ];
     }
 
+    /** @internal */
     #[\Override]
     public static function fromWire(array $payload): static
     {

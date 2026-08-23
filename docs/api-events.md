@@ -13,10 +13,10 @@ Namespace: `Greenlight\Event`
 Defines an event that can occur in the run lifecycle.
 
 ```php
-interface Event extends WireSerializable
+interface Event
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/Event.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/Event.php#L8)
 
 ### `$occurredAt`
 
@@ -26,7 +26,7 @@ Returns a Unix timestamp with microsecond precision.
 public float $occurredAt { get; }
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/Event.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/Event.php#L13)
 
 ## `RunFinished`
 
@@ -100,24 +100,6 @@ PHPDoc:
 - `@throws \InvalidArgumentException`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L22)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L48)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L62)
 
 ## `RunStarted`
 
@@ -199,24 +181,6 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunStarted.php#L29)
 
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunStarted.php#L63)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunStarted.php#L75)
-
 ## `TestClassFinished`
 
 Namespace: `Greenlight\Event`
@@ -271,24 +235,6 @@ PHPDoc:
 - `@throws \InvalidArgumentException`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassFinished.php#L22)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassFinished.php#L38)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassFinished.php#L48)
 
 ## `TestClassStarted`
 
@@ -354,24 +300,6 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassStarted.php#L22)
 
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassStarted.php#L39)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassStarted.php#L50)
-
 ## `TestFinished`
 
 Namespace: `Greenlight\Event`
@@ -406,24 +334,6 @@ public function __construct(public TestResult $result, public float $occurredAt)
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L12)
 
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L19)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L28)
-
 ## `TestStarted`
 
 Namespace: `Greenlight\Event`
@@ -457,24 +367,6 @@ public function __construct(public TestId $id, public float $occurredAt)
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L12)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L19)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L28)
 
 ## `WorkerSpawned`
 
@@ -534,24 +426,6 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerSpawned.php#L24)
 
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerSpawned.php#L45)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerSpawned.php#L55)
-
 ## `WorkerTiming`
 
 Namespace: `Greenlight\Event`
@@ -563,7 +437,7 @@ endpoints. Idle durations contain only states that the orchestrator can
 distinguish.
 
 ```php
-final readonly class WorkerTiming implements WireSerializable
+final readonly class WorkerTiming
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L17)
@@ -678,21 +552,3 @@ PHPDoc:
 - `@throws \InvalidArgumentException`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L28)
-
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L67)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerTiming.php#L84)

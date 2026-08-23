@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Greenlight\Artifact;
 
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Fixed metadata for one retained test attachment.
  *
  * @phpstan-consistent-constructor
  */
-readonly class Attachment implements WireSerializable
+readonly class Attachment
 {
     public function __construct(
         public string $name,
@@ -36,7 +36,11 @@ readonly class Attachment implements WireSerializable
         }
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -51,7 +55,12 @@ readonly class Attachment implements WireSerializable
         ];
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         return new static(

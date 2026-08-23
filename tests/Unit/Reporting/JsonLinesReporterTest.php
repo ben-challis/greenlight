@@ -91,21 +91,10 @@ final class JsonLinesReporterTest
 
         $event = new class implements Event {
             public float $occurredAt = 1.0;
-
-            #[\Override]
-            public function toWire(): array
-            {
-                return ['occurredAt' => $this->occurredAt];
-            }
-
-            #[\Override]
-            public static function fromWire(array $payload): static
-            {
-                throw new \LogicException('Not deserializable.');
-            }
         };
 
-        Expect::that(static fn() => $reporter->onEvent($event))->because('an unmapped event is rejected')
+        Expect::that(static fn() => $reporter->onEvent($event))
+            ->because('a custom event only needs the public event interface and cannot enter JSONL')
             ->toThrow(
                 ReportGenerationFailed::class,
                 message: \sprintf(

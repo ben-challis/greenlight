@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Psr;
+namespace Greenlight\Tests\Unit\Psr11;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
@@ -12,13 +12,13 @@ use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Plugin\TestContext;
-use Greenlight\Psr\Psr11BridgeError;
-use Greenlight\Psr\Psr11Plugin;
-use Greenlight\Psr\Service;
+use Greenlight\Psr11\Psr11BridgeError;
+use Greenlight\Psr11\Psr11Plugin;
+use Greenlight\Psr11\Service;
 use Greenlight\Result\TestResult;
 use Greenlight\Tests\Support\PluginLifecycle;
-use Greenlight\Tests\Support\Psr\ArrayContainer;
-use Greenlight\Tests\Support\Psr\Greeter;
+use Greenlight\Tests\Support\Psr11\ArrayContainer;
+use Greenlight\Tests\Support\Psr11\Greeter;
 use Greenlight\Tests\Support\ServiceResolverProbe;
 use Psr\Container\ContainerInterface;
 

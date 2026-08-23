@@ -7,9 +7,9 @@ namespace Greenlight\Tests\Unit\Test;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Wire\InvalidWirePayload;
 use Greenlight\Test\ExecutionPolicy;
 use Greenlight\Tests\Support\JsonWire;
-use Greenlight\Wire\InvalidWirePayload;
 
 final class ExecutionPolicyTest
 {

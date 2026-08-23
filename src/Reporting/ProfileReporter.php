@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Reporting;
 
 use Greenlight\Event\Event;
-use Greenlight\Reporting\Output\Output;
 
 /**
  * Writes the run profile after the primary reporter summary.

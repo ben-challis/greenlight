@@ -6,10 +6,10 @@ namespace Greenlight\Capture;
 
 use Greenlight\Internal\Php\ErrorHandlerStack;
 use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Internal\Text\Utf8;
 use Greenlight\Result\CapturedOutput;
 use Greenlight\Result\Diagnostic;
 use Greenlight\Result\DiagnosticSeverity;
-use Greenlight\Wire\Utf8;
 
 /**
  * Direct writes to stream resources bypass output capture. Examples include

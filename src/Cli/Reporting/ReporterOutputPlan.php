@@ -8,7 +8,6 @@ use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Output\TerminalCapabilities;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Reporting\Reporter;
-use Greenlight\Reporting\ReporterProviderError;
 
 /**
  * Resolves reporter selections and owns their file output streams.
@@ -36,7 +35,7 @@ final readonly class ReporterOutputPlan
      * @param resource $stdout
      *
      * @throws CliError
-     * @throws ReporterOutputError
+     * @throws ReporterSetupFailed
      */
     public static function create(
         array $values,
@@ -112,7 +111,7 @@ final readonly class ReporterOutputPlan
      * @return list<Reporter>
      *
      * @throws CliError
-     * @throws ReporterProviderError
+     * @throws ReporterSetupFailed
      */
     public function createReporters(ReporterCatalog $catalog): array
     {
@@ -168,7 +167,7 @@ final readonly class ReporterOutputPlan
         return \rtrim($workingDirectory, '/') . '/' . $path;
     }
 
-    /** @throws ReporterOutputError */
+    /** @throws ReporterSetupFailed */
     private static function openFile(string $path, TerminalCapabilities $capabilities): ReporterOutput
     {
         $directory = \dirname($path);
@@ -177,22 +176,22 @@ final readonly class ReporterOutputPlan
             try {
                 $created = ErrorTrap::run(static fn() => \mkdir($directory, 0o777, true), $warning);
             } catch (\Throwable $failure) {
-                throw ReporterOutputError::directoryCreationFailed($directory, $failure->getMessage(), $failure);
+                throw ReporterSetupFailed::directoryCreationFailed($directory, $failure->getMessage(), $failure);
             }
 
             if (!$created && !\is_dir($directory)) {
-                throw ReporterOutputError::directoryCreationFailed($directory, $warning);
+                throw ReporterSetupFailed::directoryCreationFailed($directory, $warning);
             }
         }
 
         try {
             $stream = ErrorTrap::run(static fn() => \fopen($path, 'wb'), $warning);
         } catch (\Throwable $failure) {
-            throw ReporterOutputError::fileOpenFailed($path, $failure->getMessage(), $failure);
+            throw ReporterSetupFailed::fileOpenFailed($path, $failure->getMessage(), $failure);
         }
 
         if ($stream === false) {
-            throw ReporterOutputError::fileOpenFailed($path, $warning);
+            throw ReporterSetupFailed::fileOpenFailed($path, $warning);
         }
 
         return new ReporterOutput($stream, $capabilities, true);

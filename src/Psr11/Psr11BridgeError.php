@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Psr;
+namespace Greenlight\Psr11;
 
 use Greenlight\Harness\ServiceResolutionFailed;
 

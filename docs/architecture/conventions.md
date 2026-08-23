@@ -88,9 +88,11 @@ protect a narrow PHPDoc type.
 
 Constructor validation **MUST** throw `\InvalidArgumentException`.
 
-Wire deserialization **MUST** throw `WireCommunicationFailed` through the `Wire` readers.
+Wire deserialization **MUST** throw `WireCommunicationFailed` through the
+internal wire readers.
 
-Types that cross the wire **MUST** implement `WireSerializable`.
+Types that cross the wire **MUST** define `toWire()` and `fromWire()` methods.
+Public types **MUST** mark these methods `@internal`.
 
 Wire payloads **MUST** use explicit key names.
 

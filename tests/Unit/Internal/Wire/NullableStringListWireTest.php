@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Wire;
+namespace Greenlight\Tests\Unit\Internal\Wire;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Wire\InvalidWirePayload;
-use Greenlight\Wire\Wire;
+use Greenlight\Internal\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\Wire;
 
 final readonly class NullableStringListWireTest
 {

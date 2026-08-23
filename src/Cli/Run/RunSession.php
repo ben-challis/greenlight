@@ -34,12 +34,12 @@ use Greenlight\Execution\RunCoordinator;
 use Greenlight\Execution\RunResult;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\Internal\Process\GracefulShutdown;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\SummaryFormat;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Test\TestSelection;
-use Greenlight\Wire\WireCommunicationFailed;
 
 /**
  * Runs one normal or watch attempt with one stable command configuration.

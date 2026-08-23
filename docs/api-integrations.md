@@ -292,7 +292,7 @@ PHPDoc:
 
 ## `Psr11Plugin`
 
-Namespace: `Greenlight\Psr`
+Namespace: `Greenlight\Psr11`
 
 Creates a PSR-11 container lazily and resolves its services. By default, the
 plugin discards the container after each test that uses it.
@@ -304,7 +304,7 @@ plugin discards the container after each test that uses it.
 final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L25)
 
 ### `__construct()`
 
@@ -322,7 +322,7 @@ PHPDoc:
 - `@param bool $refreshBetweenTests Set to false only when the reset callback removes all container state, or when services do not keep state.`
 - `@param (\Closure(ContainerInterface): void)|null $reset An optional callback that resets the active container after each test.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L38)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L38)
 
 ### `services()`
 
@@ -335,7 +335,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L47)
 
 ### `resolve()`
 
@@ -349,7 +349,7 @@ PHPDoc:
 - `@param class-string $type`
 - `@param list<object> $attributes`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L92)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L92)
 
 ### `afterTest()`
 
@@ -362,11 +362,11 @@ PHPDoc:
 
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Psr11Plugin.php#L139)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L139)
 
-## `Psr\Service`
+## `Psr11\Service`
 
-Namespace: `Greenlight\Psr`
+Namespace: `Greenlight\Psr11`
 
 Selects a PSR-11 service ID that differs from the parameter type. The
 resolved service must still have the declared type.
@@ -376,7 +376,7 @@ resolved service must still have the declared type.
 final readonly class Service
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Service.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Service.php#L12)
 
 ### `$id`
 
@@ -388,7 +388,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Service.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Service.php#L17)
 
 ### `__construct()`
 
@@ -400,7 +400,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr/Service.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Service.php#L22)
 
 ## `HttpHarness`
 

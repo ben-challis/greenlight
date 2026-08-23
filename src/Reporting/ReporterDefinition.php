@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Reporting;
 
-use Greenlight\Reporting\Output\Output;
-
 /**
  * Defines one command-line reporter name and its factory.
  *

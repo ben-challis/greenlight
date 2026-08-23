@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution\Artifact;
 
-use Greenlight\Wire\InvalidWirePayload;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireCommunicationFailed;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Identifies the private attachment staging area of a run for a worker.
  *
  * @internal
  */
-final readonly class ArtifactSession implements WireSerializable
+final readonly class ArtifactSession
 {
     /**
      * @var non-empty-string
@@ -37,7 +36,7 @@ final readonly class ArtifactSession implements WireSerializable
         $this->publicDirectory = $this->validatedDirectory($publicDirectory, 'public');
     }
 
-    #[\Override]
+    /** @return array<string, mixed> */
     public function toWire(): array
     {
         return [
@@ -46,7 +45,10 @@ final readonly class ArtifactSession implements WireSerializable
         ];
     }
 
-    #[\Override]
+    /**
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         return new self(

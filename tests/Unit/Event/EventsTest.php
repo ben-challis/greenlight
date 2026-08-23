@@ -13,6 +13,7 @@ use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\TestStarted;
+use Greenlight\Event\WireEvent;
 use Greenlight\Event\WorkerSpawned;
 use Greenlight\Event\WorkerTiming;
 use Greenlight\Expect\Expect;
@@ -59,7 +60,7 @@ final class EventsTest
     #[DataSet('runEvents')]
     public function runEventsKeepTheirPublishedWireFields(
         string $kind,
-        Event $event,
+        WireEvent $event,
         array $payload,
     ): void {
         Expect::that($event->toWire())
@@ -68,7 +69,7 @@ final class EventsTest
     }
 
     /**
-     * @return iterable<string, array{non-empty-string, Event, array<string, mixed>}>
+     * @return iterable<string, array{non-empty-string, WireEvent, array<string, mixed>}>
      */
     public static function runEvents(): iterable
     {

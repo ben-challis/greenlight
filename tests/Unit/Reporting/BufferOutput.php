@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Doubles\Fake;
-use Greenlight\Reporting\Output\Output;
+use Greenlight\Reporting\Output;
 
 final class BufferOutput implements Output, Fake
 {

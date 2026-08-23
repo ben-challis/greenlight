@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Result;
 
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /** Aggregate outcome counts for a run. */
-final readonly class ResultSummary implements WireSerializable
+final readonly class ResultSummary
 {
     /**
      * @var non-negative-int
@@ -104,7 +104,11 @@ final readonly class ResultSummary implements WireSerializable
         return $total;
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -115,7 +119,12 @@ final readonly class ResultSummary implements WireSerializable
         ];
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         return new self(

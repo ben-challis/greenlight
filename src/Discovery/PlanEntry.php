@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Test\TestDefinition;
 use Greenlight\Test\TestId;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireCommunicationFailed;
-use Greenlight\Wire\WireSerializable;
 
 /** @internal */
-final readonly class PlanEntry implements WireSerializable
+final readonly class PlanEntry
 {
     public TestId $id;
 
@@ -22,7 +21,7 @@ final readonly class PlanEntry implements WireSerializable
         $this->id = new TestId($definition->class, $definition->method, $dataSetKey);
     }
 
-    #[\Override]
+    /** @return array<string, mixed> */
     public function toWire(): array
     {
         return [
@@ -32,9 +31,9 @@ final readonly class PlanEntry implements WireSerializable
     }
 
     /**
+     * @param array<string, mixed> $payload
      * @throws WireCommunicationFailed
      */
-    #[\Override]
     public static function fromWire(array $payload): static
     {
         return new self(

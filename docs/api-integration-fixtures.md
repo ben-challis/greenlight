@@ -16,7 +16,7 @@ Ordinary values and secrets are kept separate so debug output can redact
 credentials. Secrets are strings and require an explicit `reveal()` call.
 
 ```php
-final readonly class FixtureResource implements WireSerializable
+final readonly class FixtureResource
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L17)
@@ -130,24 +130,6 @@ public function mergedWith(self $channel): self
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L164)
 
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L172)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L181)
-
 ### `__debugInfo()`
 
 ```php
@@ -158,7 +140,7 @@ PHPDoc:
 
 - `@return array{values: array<string, mixed>, secrets: array<string, string>}`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L206)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L215)
 
 ## `IntegrationFixtureContext`
 
@@ -333,7 +315,7 @@ cannot inspect credentials allocated to another concurrent lane.
 Fixture IDs must remain string keys in PHP maps.
 
 ```php
-final readonly class IntegrationResources implements WireSerializable
+final readonly class IntegrationResources
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L18)
@@ -374,24 +356,6 @@ public function fixture(string $id): FixtureResource
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L52)
 
-### `toWire()`
-
-```php
-[\Override]
-public function toWire(): array
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L60)
-
-### `fromWire()`
-
-```php
-[\Override]
-public static function fromWire(array $payload): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L72)
-
 ### `__debugInfo()`
 
 ```php
@@ -402,7 +366,7 @@ PHPDoc:
 
 - `@return array{fixtures: array<non-empty-string, FixtureResource>}`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L93)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L102)
 
 ## `SensitiveValue`
 

@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireCommunicationFailed;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Entries for one class are adjacent. Entries preserve plan, method, and
@@ -14,7 +13,7 @@ use Greenlight\Wire\WireSerializable;
  *
  * @internal
  */
-final readonly class ExecutionPlan implements WireSerializable, \Countable
+final readonly class ExecutionPlan implements \Countable
 {
     /**
      * @var list<PlanEntry>
@@ -107,7 +106,7 @@ final readonly class ExecutionPlan implements WireSerializable, \Countable
         return $byClass;
     }
 
-    #[\Override]
+    /** @return array<string, mixed> */
     public function toWire(): array
     {
         return [
@@ -120,10 +119,10 @@ final readonly class ExecutionPlan implements WireSerializable, \Countable
     }
 
     /**
+     * @param array<string, mixed> $payload
      * @throws \InvalidArgumentException when entries are not grouped by class or contain duplicate test IDs
      * @throws WireCommunicationFailed
      */
-    #[\Override]
     public static function fromWire(array $payload): static
     {
         $entries = [];

@@ -8,7 +8,7 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\FixtureResource;
-use Greenlight\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\InvalidWirePayload;
 
 final readonly class FixtureResourceWireValidationTest
 {

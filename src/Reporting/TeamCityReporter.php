@@ -10,11 +10,10 @@ use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\TestStarted;
-use Greenlight\Reporting\Output\Output;
+use Greenlight\Internal\Text\Utf8;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
-use Greenlight\Wire\Utf8;
 
 /**
  * Each message uses the test-class name as its flowId. Thus, consumers can

@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
-use Greenlight\Wire\InvalidWirePayload;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Contains the output directory and safety limits for test attachments.
  *
  * @internal
  */
-final readonly class ArtifactConfiguration implements WireSerializable
+final readonly class ArtifactConfiguration
 {
     public const string DEFAULT_DIRECTORY = 'build/greenlight-artifacts';
     public const int DEFAULT_MAX_ATTACHMENTS_PER_TEST = 32;
@@ -43,7 +43,7 @@ final readonly class ArtifactConfiguration implements WireSerializable
         );
     }
 
-    #[\Override]
+    /** @return array<string, mixed> */
     public function toWire(): array
     {
         return [
@@ -56,7 +56,10 @@ final readonly class ArtifactConfiguration implements WireSerializable
         ];
     }
 
-    #[\Override]
+    /**
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         $directory = Wire::nonEmptyString($payload, 'directory');

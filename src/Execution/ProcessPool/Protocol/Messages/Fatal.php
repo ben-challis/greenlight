@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Execution\ProcessPool\Protocol\Messages;
 
 use Greenlight\Execution\ProcessPool\Protocol\Message;
+use Greenlight\Internal\Wire\Wire;
 use Greenlight\Result\ThrowableDetail;
-use Greenlight\Wire\Wire;
 
 /**
  * Reports an unhandled framework error from a worker to the orchestrator.

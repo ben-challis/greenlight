@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Coverage;
 
-use Greenlight\Wire\InvalidWirePayload;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireCommunicationFailed;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * The map sorts files by path. Thus, identical coverage always has identical
@@ -22,7 +21,7 @@ use Greenlight\Wire\WireSerializable;
  *
  * @internal
  */
-final readonly class CoverageMap implements WireSerializable
+final readonly class CoverageMap
 {
     /**
      * @var array<non-empty-string, FileCoverage>
@@ -107,7 +106,7 @@ final readonly class CoverageMap implements WireSerializable
         return $this->coveredLineTotal() / $executable * 100.0;
     }
 
-    #[\Override]
+    /** @return array<string, mixed> */
     public function toWire(): array
     {
 
@@ -116,7 +115,10 @@ final readonly class CoverageMap implements WireSerializable
         return ['files' => $files];
     }
 
-    #[\Override]
+    /**
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         $files = [];

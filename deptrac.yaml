@@ -13,10 +13,10 @@ deptrac:
       - function_superglobal
 
   layers:
-    - name: Wire
+    - name: InternalWire
       collectors:
         - type: directory
-          value: src/Wire/.*
+          value: src/Internal/Wire/.*
     - name: InternalFilesystem
       collectors:
         - type: directory
@@ -229,10 +229,10 @@ deptrac:
       collectors:
         - type: directory
           value: src/Hyperf/.*
-    - name: Psr
+    - name: Psr11
       collectors:
         - type: directory
-          value: src/Psr/.*
+          value: src/Psr11/.*
     - name: Psr15
       collectors:
         - type: directory
@@ -265,7 +265,7 @@ deptrac:
       collectors:
         - type: classNameRegex
           value: /^Composer\\InstalledVersions$/
-    - name: PsrFramework
+    - name: PsrContainerFramework
       collectors:
         - type: classNameRegex
           value: /^Psr\\Container\\/
@@ -293,42 +293,42 @@ deptrac:
           value: /^Symplify\\RuleDocGenerator\\/
 
   ruleset:
-    Wire: []
+    InternalWire: []
     InternalFilesystem: [InternalPhp]
     InternalText: []
     InternalProcess: []
     InternalPhp: []
-    Artifact: [Wire]
-    Test: [InternalText, Wire]
+    Artifact: [InternalWire]
+    Test: [InternalText, InternalWire]
     Condition: [InternalProcess]
-    Result: [Artifact, InternalText, Test, Wire]
-    Event: [Result, Test, Wire]
+    Result: [Artifact, InternalText, InternalWire, Test]
+    Event: [InternalWire, Result, Test]
     Attribute: [Condition, Test]
-    Config: [InternalPhp, InternalText, Plugin, Result, Test, Wire]
-    Discovery: [Attribute, InternalFilesystem, InternalPhp, Test, Wire]
-    Expect: [InternalPhp, Plugin, Result, Test, Wire]
-    Capture: [InternalPhp, Result, Wire]
+    Config: [InternalPhp, InternalText, InternalWire, Plugin, Result, Test]
+    Discovery: [Attribute, InternalFilesystem, InternalPhp, InternalWire, Test]
+    Expect: [InternalPhp, InternalText, Plugin, Result, Test]
+    Capture: [InternalPhp, InternalText, Result]
     Harness: []
-    IntegrationFixture: [Wire]
+    IntegrationFixture: [InternalWire]
     Doubles: [Expect, Harness, InternalFilesystem, InternalPhp, Result, Test]
     Sandbox: [Harness, InternalPhp, InternalProcess]
-    Coverage: [Wire]
+    Coverage: [InternalWire]
     CoverageCollection: [Coverage]
     CoverageDiff: [Coverage]
-    CoverageExport: [Coverage, InternalPhp, Wire]
+    CoverageExport: [Coverage, InternalPhp, InternalText]
     CoverageIgnore: [Coverage, InternalPhp]
     CoverageRelay: [Coverage, CoverageCollection, CoverageExport, InternalPhp]
     Plugin: [Artifact, Event, Harness, IntegrationFixture, Reporting, Result, Test]
-    Reporting: [Artifact, Event, InternalPhp, Result, Test, Wire]
-    Execution: [Artifact, Config, Coverage, Discovery, Event, ExecutionArtifact, ExecutionPlugin, ExecutionProcessProtocol, IntegrationFixture, Plugin, Reporting, Result, Test, Wire]
-    ExecutionAdapter: [Artifact, Config, CoverageCollection, Discovery, Event, Execution, ExecutionArtifact, ExecutionPlugin, ExecutionProcessOrchestrator, ExecutionProcessProtocol, ExecutionWorker, InternalProcess, Plugin, Reporting, Result, Test, Wire]
-    ExecutionArtifact: [Artifact, Attribute, Config, Event, InternalPhp, InternalText, Result, Test, Wire]
+    Reporting: [Artifact, Event, InternalPhp, InternalText, Result, Test]
+    Execution: [Artifact, Config, Coverage, Discovery, Event, ExecutionArtifact, ExecutionPlugin, ExecutionProcessProtocol, IntegrationFixture, InternalWire, Plugin, Reporting, Result, Test]
+    ExecutionAdapter: [Artifact, Config, CoverageCollection, Discovery, Event, Execution, ExecutionArtifact, ExecutionPlugin, ExecutionProcessOrchestrator, ExecutionProcessProtocol, ExecutionWorker, InternalProcess, InternalWire, Plugin, Reporting, Result, Test]
+    ExecutionArtifact: [Artifact, Attribute, Config, Event, InternalPhp, InternalText, InternalWire, Result, Test]
     ExecutionPlugin: [Event, Expect, Harness, IntegrationFixture, Plugin]
     ExecutionWorker: [Artifact, Attribute, Capture, Condition, Discovery, Doubles, Event, ExecutionArtifact, Expect, Harness, IntegrationFixture, InternalText, Plugin, Result, Sandbox, Test]
-    ExecutionProcessProtocol: [Attribute, Config, Coverage, Discovery, Event, ExecutionArtifact, IntegrationFixture, InternalPhp, Result, Test, Wire]
-    ExecutionProcessWorker: [Config, CoverageCollection, Event, ExecutionArtifact, ExecutionPlugin, ExecutionProcessProtocol, ExecutionWorker, Harness, InternalPhp, Plugin, Result, Test, Wire]
-    ExecutionProcessOrchestrator: [Artifact, Config, Coverage, CoverageCollection, Discovery, Event, ExecutionArtifact, ExecutionProcessProtocol, ExecutionWorker, IntegrationFixture, InternalPhp, InternalProcess, Reporting, Result, Test, Wire]
-    Cli: [CliCommand, CliOutput, Coverage, CoverageRelay, ExecutionProcessProtocol, ExecutionProcessWorker, Reporting, Wire]
+    ExecutionProcessProtocol: [Attribute, Config, Coverage, Discovery, Event, ExecutionArtifact, IntegrationFixture, InternalPhp, InternalWire, Result, Test]
+    ExecutionProcessWorker: [Config, CoverageCollection, Event, ExecutionArtifact, ExecutionPlugin, ExecutionProcessProtocol, ExecutionWorker, Harness, InternalPhp, InternalWire, Plugin, Result, Test]
+    ExecutionProcessOrchestrator: [Artifact, Config, Coverage, CoverageCollection, Discovery, Event, ExecutionArtifact, ExecutionProcessProtocol, ExecutionWorker, IntegrationFixture, InternalPhp, InternalProcess, InternalText, InternalWire, Reporting, Result, Test]
+    Cli: [CliCommand, CliOutput, Coverage, CoverageRelay, ExecutionProcessProtocol, ExecutionProcessWorker, InternalWire, Reporting]
     CliInput: []
     CliConfiguration: [CliInput, Config, InternalPhp, InternalText, Result, Test]
     CliDiscovery: [CliConfiguration, Config, Discovery]
@@ -339,15 +339,15 @@ deptrac:
     CliState: [InternalFilesystem, InternalPhp]
     CliWatch: [CliOutput, Event, InternalPhp, InternalProcess]
     CliWorkerCapacity: [Attribute, CpuCoreCounter, InternalPhp, InternalText]
-    CliCommand: [CliConfiguration, CliDiscovery, CliInput, CliOutput, CliRun, Config, Coverage, CoverageDiff, CoverageExport, Discovery, Event, InternalFilesystem, InternalPhp, PhpStan, Reporting, Wire]
-    CliRun: [Artifact, CliConfiguration, CliCoverage, CliDiscovery, CliInput, CliOutput, CliReporting, CliSignal, CliState, CliWatch, CliWorkerCapacity, Config, Coverage, CoverageCollection, CoverageIgnore, CoverageRelay, Discovery, Event, Execution, ExecutionAdapter, ExecutionProcessProtocol, ExecutionWorker, IntegrationFixture, InternalProcess, Reporting, Test, Wire]
+    CliCommand: [CliConfiguration, CliDiscovery, CliInput, CliOutput, CliRun, Config, Coverage, CoverageDiff, CoverageExport, Discovery, Event, InternalFilesystem, InternalPhp, InternalWire, PhpStan, Reporting]
+    CliRun: [Artifact, CliConfiguration, CliCoverage, CliDiscovery, CliInput, CliOutput, CliReporting, CliSignal, CliState, CliWatch, CliWorkerCapacity, Config, Coverage, CoverageCollection, CoverageIgnore, CoverageRelay, Discovery, Event, Execution, ExecutionAdapter, ExecutionProcessProtocol, ExecutionWorker, IntegrationFixture, InternalProcess, InternalWire, Reporting, Test]
     PhpStan: [Attribute, Condition, Config, Doubles, Expect, InternalPhp, Test, PhpStanFramework, PhpParserFramework]
     Rector: [Attribute, Condition, Expect, Test, PhpParserFramework, RectorFramework]
     Documentation: []
     Symfony: [Harness, Plugin, Result, SymfonyFramework]
     Laravel: [Harness, InternalPhp, InternalProcess, Plugin, Result, LaravelFramework]
-    Hyperf: [Harness, InternalPhp, Plugin, HyperfFramework, PsrFramework, SwooleFramework, ComposerRuntime]
-    Psr: [Harness, Plugin, Result, PsrFramework]
+    Hyperf: [Harness, InternalPhp, Plugin, HyperfFramework, PsrContainerFramework, SwooleFramework, ComposerRuntime]
+    Psr11: [Harness, Plugin, Result, PsrContainerFramework]
     Psr15: [Harness, Plugin, PsrHttpFramework]
     Tempest: [Harness, InternalProcess, Plugin, Result, Test, TempestFramework]
     PhpStanFramework: []
@@ -356,7 +356,7 @@ deptrac:
     HyperfFramework: []
     SwooleFramework: []
     ComposerRuntime: []
-    PsrFramework: []
+    PsrContainerFramework: []
     PsrHttpFramework: []
     TempestFramework: []
     CpuCoreCounter: []

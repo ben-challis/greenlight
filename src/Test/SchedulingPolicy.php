@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Test;
 
-use Greenlight\Wire\InvalidWirePayload;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireCommunicationFailed;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Defines worker assignment and resource rules for one test.
  */
-final readonly class SchedulingPolicy implements WireSerializable
+final readonly class SchedulingPolicy
 {
     /**
      * @var list<non-empty-string>
@@ -39,7 +38,11 @@ final readonly class SchedulingPolicy implements WireSerializable
         $this->resources = \array_values($validated);
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -49,8 +52,12 @@ final readonly class SchedulingPolicy implements WireSerializable
         ];
     }
 
-    /** @throws WireCommunicationFailed */
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         $resources = Wire::listOfStrings($payload, 'resources');

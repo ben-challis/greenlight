@@ -7,8 +7,8 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
-use Greenlight\Reporting\Output\StreamOutput;
 use Greenlight\Reporting\ReportGenerationFailed;
+use Greenlight\Reporting\StreamOutput;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Reporting\PartialWriteStream;
 

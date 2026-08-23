@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Test;
 
-use Greenlight\Wire\InvalidWirePayload;
-use Greenlight\Wire\Wire;
-use Greenlight\Wire\WireCommunicationFailed;
-use Greenlight\Wire\WireSerializable;
+use Greenlight\Internal\Wire\InvalidWirePayload;
+use Greenlight\Internal\Wire\Wire;
+use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
  * Defines the retry limit and the optional throwable filter for a test.
  */
-final readonly class RetryPolicy implements WireSerializable
+final readonly class RetryPolicy
 {
     /**
      * @var positive-int|null
@@ -39,7 +38,11 @@ final readonly class RetryPolicy implements WireSerializable
         $this->times = $times;
     }
 
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
         return [
@@ -48,8 +51,12 @@ final readonly class RetryPolicy implements WireSerializable
         ];
     }
 
-    /** @throws WireCommunicationFailed */
-    #[\Override]
+    /**
+     * @internal
+     *
+     * @param array<string, mixed> $payload
+     * @throws WireCommunicationFailed
+     */
     public static function fromWire(array $payload): static
     {
         $times = Wire::nullableInt($payload, 'times');

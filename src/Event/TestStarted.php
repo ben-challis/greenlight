@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Event;
 
+use Greenlight\Internal\Wire\Wire;
 use Greenlight\Test\TestId;
-use Greenlight\Wire\Wire;
 
-final readonly class TestStarted implements Event
+final readonly class TestStarted implements WireEvent
 {
     public function __construct(public TestId $id, public float $occurredAt)
     {
@@ -16,6 +16,7 @@ final readonly class TestStarted implements Event
         }
     }
 
+    /** @internal */
     #[\Override]
     public function toWire(): array
     {
@@ -25,6 +26,7 @@ final readonly class TestStarted implements Event
         ];
     }
 
+    /** @internal */
     #[\Override]
     public static function fromWire(array $payload): static
     {

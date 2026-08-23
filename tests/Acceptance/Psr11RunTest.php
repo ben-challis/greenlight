@@ -74,7 +74,7 @@ final readonly class Psr11RunTest
 
             use Greenlight\Attribute\Test;
             use Greenlight\Expect\Expect;
-            use Greenlight\Psr\Service;
+            use Greenlight\Psr11\Service;
 
             final readonly class ContainerServicesTest
             {
@@ -111,8 +111,8 @@ final readonly class Psr11RunTest
             declare(strict_types=1);
 
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Psr\Psr11Plugin;
-            use Greenlight\Tests\Support\Psr\ArrayContainer;
+            use Greenlight\Psr11\Psr11Plugin;
+            use Greenlight\Tests\Support\Psr11\ArrayContainer;
             use Psr\Container\ContainerInterface;
             use Psr11Probe\Greeter;
             use Psr11Probe\VisitCounter;

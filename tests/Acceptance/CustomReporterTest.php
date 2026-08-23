@@ -26,7 +26,7 @@ final readonly class CustomReporterTest
             use Greenlight\Config\GreenlightConfig;
             use Greenlight\Event\Event;
             use Greenlight\Plugin\ReporterProvider;
-            use Greenlight\Reporting\Output\Output;
+            use Greenlight\Reporting\Output;
             use Greenlight\Reporting\Reporter;
             use Greenlight\Reporting\ReporterDefinition;
 
@@ -121,7 +121,7 @@ final readonly class CustomReporterTest
 
             use Greenlight\Config\GreenlightConfig;
             use Greenlight\Plugin\ReporterProvider;
-            use Greenlight\Reporting\Output\Output;
+            use Greenlight\Reporting\Output;
             use Greenlight\Reporting\PlainReporter;
             use Greenlight\Reporting\Reporter;
             use Greenlight\Reporting\ReporterDefinition;
@@ -168,7 +168,7 @@ final readonly class CustomReporterTest
 
             use Greenlight\Config\GreenlightConfig;
             use Greenlight\Plugin\ReporterProvider;
-            use Greenlight\Reporting\Output\Output;
+            use Greenlight\Reporting\Output;
             use Greenlight\Reporting\Reporter;
             use Greenlight\Reporting\ReporterDefinition;
 

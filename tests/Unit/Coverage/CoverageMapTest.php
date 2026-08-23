@@ -9,8 +9,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Expect\Expect;
+use Greenlight\Internal\Wire\InvalidWirePayload;
 use Greenlight\Tests\Support\JsonWire;
-use Greenlight\Wire\InvalidWirePayload;
 
 final class CoverageMapTest
 {

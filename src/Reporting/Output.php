@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Reporting\Output;
-
-use Greenlight\Reporting\ReportGenerationFailed;
+namespace Greenlight\Reporting;
 
 /**
  * A destination for reporter text.
