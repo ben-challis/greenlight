@@ -4,44 +4,50 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery\Plan;
 
-use Greenlight\Attribute\CoverageIgnore;
+use Greenlight\Plugin\Prioritized;
+use Greenlight\Plugin\TestPlan;
+use Greenlight\Plugin\TestPlanTransformer;
+use Greenlight\Test\TestId;
 
 /**
- * Puts priority classes first. Then, it puts classes with known durations in
- * longest-first order. Classes without durations occur last.
- *
- * Entry order within a class never changes.
- *
- * A run with a seed does not supply durations. Cached durations change the
- * order that the seed reproduces.
+ * Applies failed-first and longest-first class ordering.
  *
  * @internal
  */
-final class PlanOrder
+final readonly class PlanOrder implements Prioritized, TestPlanTransformer
 {
-    #[CoverageIgnore]
-    private function __construct() {}
-
     /**
      * @param list<non-empty-string> $priorityClasses
      * @param array<string, float> $classSeconds
      */
-    public static function schedule(ExecutionPlan $plan, array $priorityClasses, array $classSeconds): ExecutionPlan
+    public function __construct(
+        private array $priorityClasses,
+        private array $classSeconds,
+    ) {}
+
+    #[\Override]
+    public function priority(): int
     {
-        if ($priorityClasses === [] && $classSeconds === []) {
+        return \PHP_INT_MIN;
+    }
+
+    #[\Override]
+    public function transformTestPlan(TestPlan $plan): TestPlan
+    {
+        if ($this->priorityClasses === [] && $this->classSeconds === []) {
             return $plan;
         }
 
         $byClass = [];
 
-        foreach ($plan->entries as $entry) {
-            $byClass[$entry->id->class][] = $entry;
+        foreach ($plan->tests as $test) {
+            $byClass[$test->class][] = $test;
         }
 
         $order = [];
         $prioritized = [];
 
-        foreach ($priorityClasses as $class) {
+        foreach ($this->priorityClasses as $class) {
             if (!isset($byClass[$class]) || isset($prioritized[$class])) {
                 continue;
             }
@@ -58,8 +64,8 @@ final class PlanOrder
                 continue;
             }
 
-            if (isset($classSeconds[$class])) {
-                $known[$class] = $classSeconds[$class];
+            if (isset($this->classSeconds[$class])) {
+                $known[$class] = $this->classSeconds[$class];
             } else {
                 $unknown[] = $class;
             }
@@ -67,16 +73,45 @@ final class PlanOrder
 
         \arsort($known);
         $order = [...$order, ...\array_keys($known), ...$unknown];
-
-        /** @var list<PlanEntry> $entries */
-        $entries = [];
+        $tests = [];
 
         foreach ($order as $class) {
-            foreach ($byClass[$class] as $entry) {
-                $entries[] = $entry;
+            foreach ($byClass[$class] as $test) {
+                $tests[] = $test;
             }
         }
 
-        return new ExecutionPlan($entries, $plan->seed);
+        return $plan->withTests($tests);
+    }
+
+    /**
+     * @param list<non-empty-string> $priorityClasses
+     * @param array<string, float> $classSeconds
+     */
+    public static function schedule(
+        ExecutionPlan $plan,
+        array $priorityClasses,
+        array $classSeconds,
+    ): ExecutionPlan {
+        $publicPlan = TestPlan::create(\array_map(
+            static fn(PlanEntry $entry) => $entry->id,
+            $plan->entries,
+        ));
+        $replacement = new self($priorityClasses, $classSeconds)->transformTestPlan($publicPlan);
+
+        if ($replacement === $publicPlan) {
+            return $plan;
+        }
+
+        $entries = [];
+
+        foreach ($plan->entries as $entry) {
+            $entries[(string) $entry->id] = $entry;
+        }
+
+        return new ExecutionPlan(\array_map(
+            static fn(TestId $test): PlanEntry => $entries[(string) $test],
+            $replacement->tests,
+        ), $plan->seed);
     }
 }

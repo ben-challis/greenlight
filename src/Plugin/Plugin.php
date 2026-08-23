@@ -11,6 +11,7 @@ namespace Greenlight\Plugin;
  * `WorkerRuntimeRunner`, `TestAttemptRunner`, `BeforeTestSubscriber`,
  * `AfterTestSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
  * `CommandProvider`, `HarnessProvider`, `ReporterProvider`,
- * `TerminalResultTransformer`, or `ExpectationExtension`.
+ * `TerminalResultTransformer`, `TestPlanTransformer`, or
+ * `ExpectationExtension`.
  */
 interface Plugin {}

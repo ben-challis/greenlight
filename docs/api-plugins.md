@@ -268,13 +268,14 @@ Plugins implement one or more capability interfaces such as
 `WorkerRuntimeRunner`, `TestAttemptRunner`, `BeforeTestSubscriber`,
 `AfterTestSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
 `CommandProvider`, `HarnessProvider`, `ReporterProvider`,
-`TerminalResultTransformer`, or `ExpectationExtension`.
+`TerminalResultTransformer`, `TestPlanTransformer`, or
+`ExpectationExtension`.
 
 ```php
 interface Plugin
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Plugin.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Plugin.php#L17)
 
 This type does not declare public members.
 
@@ -515,6 +516,61 @@ PHPDoc:
 - `@throws SkipTest`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L64)
+
+## `TestPlan`
+
+Namespace: `Greenlight\Plugin`
+
+Contains the selected tests for one run in execution order.
+
+```php
+final readonly class TestPlan
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlan.php#L10)
+
+### `$tests`
+
+```php
+public array $tests
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlan.php#L17)
+
+### `withTests()`
+
+Return a plan with replacement test selection and order.
+
+```php
+public function withTests(array $tests): self
+```
+
+PHPDoc:
+
+- `@param list<TestId> $tests`
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlan.php#L58)
+
+## `TestPlanTransformer`
+
+Namespace: `Greenlight\Plugin`
+
+Changes the selected tests or their execution order before a run starts.
+
+```php
+interface TestPlanTransformer extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlanTransformer.php#L8)
+
+### `transformTestPlan()`
+
+```php
+public function transformTestPlan(TestPlan $plan): TestPlan;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlanTransformer.php#L10)
 
 ## `WorkerBootstrapContext`
 
