@@ -426,7 +426,7 @@ public function __construct(
 
 PHPDoc:
 
-- `@param RequestHandlerInterface|\Closure(): mixed $handler`
+- `@param RequestHandlerInterface|\Closure(): RequestHandlerInterface $handler`
 - `@param null|\Closure(RequestHandlerInterface): void $release`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L29)
@@ -538,7 +538,7 @@ public function __construct(
 
 PHPDoc:
 
-- `@param RequestHandlerInterface|\Closure(): mixed $handler A handler or a factory that returns a handler.`
+- `@param RequestHandlerInterface|\Closure(): RequestHandlerInterface $handler A handler or a factory that returns a handler.`
 - `@param null|\Closure(RequestHandlerInterface): void $release A callback that releases the active handler when its scope closes.`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L27)

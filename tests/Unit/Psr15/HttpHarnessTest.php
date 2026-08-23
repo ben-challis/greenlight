@@ -90,7 +90,9 @@ final class HttpHarnessTest
     #[Test]
     public function reportsAFactoryResultThatIsNotAHandler(): void
     {
-        $harness = new HttpHarness($this->invalidHandlerFactory());
+        $harness = new HttpHarness(
+            $this->invalidHandlerFactory(), // @phpstan-ignore argument.type (This test supplies an invalid handler factory.)
+        );
 
         Expect::that(static fn(): ResponseInterface => $harness->send(
             new ServerRequest([], [], '/status', 'GET'),
