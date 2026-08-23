@@ -10,6 +10,7 @@ use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\WorkerCount;
 use Greenlight\Internal\Text\DecimalInteger;
 use Greenlight\Result\ResultPolicy;
+use Greenlight\Result\RunPolicy;
 use Greenlight\Test\ResourceName;
 use Greenlight\Test\TestExclusions;
 use Greenlight\Test\TestInclusions;
@@ -188,7 +189,11 @@ final readonly class CliOverrides
                 policy: new ResultPolicy(
                     failOnDeprecation: $arguments->has('fail-on-deprecation'),
                     failOnNotice: $arguments->has('fail-on-notice'),
+                    failOnWarning: $arguments->has('fail-on-warning'),
                     failOnRisky: $arguments->has('fail-on-risky'),
+                ),
+                runPolicy: new RunPolicy(
+                    failOnSkipped: $arguments->has('fail-on-skipped'),
                 ),
                 artifactsDirectory: $artifactsDirectory,
                 resourceLimits: $resourceLimits,

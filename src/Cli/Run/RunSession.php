@@ -190,7 +190,15 @@ final readonly class RunSession
                 return 1;
             }
 
-            if (!$run->summary->isSuccessful()) {
+            if (!$resolved->execution->runPolicy->accepts($run->summary)) {
+                if ($run->summary->isSuccessful()) {
+                    $this->console->err(\sprintf(
+                        "Greenlight failed because the fail-on-skipped policy found %d skipped %s.\n",
+                        $run->summary->skipped,
+                        $run->summary->skipped === 1 ? 'test' : 'tests',
+                    ));
+                }
+
                 return 1;
             }
 

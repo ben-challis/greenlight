@@ -106,6 +106,7 @@ final class WorkerProtocolSchemaTest
             ['artifactSession'],
             ['artifactConfiguration'],
             ['stopAfterFailures'],
+            ['policy', 'failOnWarning'],
         ]);
         $eventPayload = $this->withoutPaths($this->messages()['event']->toWire(), [
             ['data', 'result', 'risky'],
@@ -225,7 +226,13 @@ final class WorkerProtocolSchemaTest
                 'pcov',
                 coveragePerTest: true,
                 detectLeaks: true,
-                policy: new ResultPolicy(true, true, ['known deprecation*'], true),
+                policy: new ResultPolicy(
+                    failOnDeprecation: true,
+                    failOnNotice: true,
+                    failOnWarning: true,
+                    ignoreDeprecations: ['known deprecation*'],
+                    failOnRisky: true,
+                ),
                 artifactSession: new ArtifactSession('/tmp/greenlight-staging', 'build/greenlight-artifacts/run-1'),
                 artifactConfiguration: new ArtifactConfiguration(maxRunAttachments: 100),
                 stopAfterFailures: 3,

@@ -111,7 +111,9 @@ final readonly class Definition
                              Use plain append-only output.
           --fail-on-deprecation  Fail passed tests that captured a deprecation
           --fail-on-notice   Fail passed tests that captured a notice
+          --fail-on-warning  Fail passed tests that captured a warning
           --fail-on-risky    Fail passed tests that verified no expectations
+          --fail-on-skipped  Fail the run if its final summary contains a skipped test
           --profile          Add a run profile after the summary. It contains worker
                              utilization, boot latency, makespan spread, and slow classes.
                              It also extends the slow-test list.
@@ -148,7 +150,8 @@ final readonly class Definition
             new OptionSpec('list-tests'), new OptionSpec('list-groups'), new OptionSpec('list-suites'),
             new OptionSpec('repeat', OptionValue::Required), new OptionSpec('repeat-until-failure'),
             new OptionSpec('failed'), new OptionSpec('shard', OptionValue::Required),
-            new OptionSpec('fail-on-deprecation'), new OptionSpec('fail-on-notice'), new OptionSpec('fail-on-risky'),
+            new OptionSpec('fail-on-deprecation'), new OptionSpec('fail-on-notice'), new OptionSpec('fail-on-warning'),
+            new OptionSpec('fail-on-risky'), new OptionSpec('fail-on-skipped'),
             new OptionSpec('seed', OptionValue::Required),
             new OptionSpec('reporter', OptionValue::Required, repeatable: true),
             new OptionSpec('artifacts-dir', OptionValue::Required),
