@@ -6,7 +6,6 @@ namespace Greenlight\Tempest;
 
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
-use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\TerminalServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
@@ -83,9 +82,10 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
     /**
      * @param class-string $type
      * @param list<object> $attributes
+     * @throws ServiceResolutionFailed
      */
     #[\Override]
-    public function resolve(string $type, array $attributes): ServiceResolution
+    public function resolve(string $type, array $attributes): object
     {
         $tag = null;
 
@@ -98,18 +98,16 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
         try {
             $service = $this->container()->get($type, $tag);
         } catch (ServiceResolutionFailed $error) {
-            return ServiceResolution::failed($error);
+            throw $error;
         } catch (\Throwable $cause) {
-            return ServiceResolution::failed(TempestBridgeError::serviceResolutionFailed($type, $cause));
+            throw TempestBridgeError::serviceResolutionFailed($type, $cause);
         }
 
         if (!$service instanceof $type) {
-            return ServiceResolution::failed(
-                TempestBridgeError::serviceTypeMismatch($type, \get_debug_type($service)),
-            );
+            throw TempestBridgeError::serviceTypeMismatch($type, \get_debug_type($service));
         }
 
-        return ServiceResolution::resolved($service);
+        return $service;
     }
 
     #[\Override]

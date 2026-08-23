@@ -8,12 +8,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
-use Greenlight\Harness\ServiceResolution;
+use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Psr11\Psr11BridgeError;
 use Greenlight\Psr11\Psr11Plugin;
-use Greenlight\Psr11\Service;
 use Greenlight\Result\TestResult;
 use Greenlight\Tests\Support\PluginLifecycle;
 use Greenlight\Tests\Support\Psr11\ArrayContainer;
@@ -29,7 +28,7 @@ final readonly class Psr11PluginTest
         $greeter = new Greeter();
         $plugin = $this->plugin([Greeter::class => $greeter]);
 
-        Expect::that($plugin->resolve(Greeter::class, [])->value())->toBe($greeter);
+        Expect::that($plugin->resolve(Greeter::class, []))->toBe($greeter);
     }
 
     #[Test]
@@ -37,7 +36,7 @@ final readonly class Psr11PluginTest
     {
         $greeter = new Greeter();
         $plugin = $this->plugin(['application.greeter' => $greeter]);
-        $resolved = $plugin->resolve(Greeter::class, [new Service('application.greeter')])->value();
+        $resolved = $plugin->resolve(Greeter::class, [new Service('application.greeter')]);
 
         Expect::that($resolved)->toBe($greeter);
     }
@@ -45,14 +44,14 @@ final readonly class Psr11PluginTest
     #[Test]
     public function anUnknownTypeReturnsNull(): void
     {
-        Expect::that($this->plugin([])->resolve(Greeter::class, [])->value())->toBeNull();
+        Expect::that($this->plugin([])->resolve(Greeter::class, []))->toBeNull();
     }
 
     #[Test]
     public function anUnknownTypeFallsThroughToTheNextResolver(): void
     {
         $answer = new Greeter();
-        $later = new ServiceResolverProbe(ServiceResolution::resolved($answer));
+        $later = new ServiceResolverProbe($answer);
         $scopes = new HarnessScopes([], [$this->plugin([]), $later]);
 
         Expect::that($scopes->resolve(Greeter::class, 'test'))
@@ -64,7 +63,7 @@ final readonly class Psr11PluginTest
     #[Test]
     public function anUnknownExplicitServiceStopsTheResolverChain(): void
     {
-        $later = new ServiceResolverProbe(ServiceResolution::resolved(new Greeter()));
+        $later = new ServiceResolverProbe(new Greeter());
         $scopes = new HarnessScopes([], [$this->plugin([]), $later]);
 
         Expect::that(static fn(): object => $scopes->resolve(
@@ -83,7 +82,7 @@ final readonly class Psr11PluginTest
         $plugin = $this->plugin([]);
 
         Expect::that(static function () use ($plugin): void {
-            $plugin->resolve(Greeter::class, [new Service('missing')])->value();
+            $plugin->resolve(Greeter::class, [new Service('missing')]);
         })->toThrow(
             Psr11BridgeError::class,
             matching: '/no service "missing".*Check the service ID/s',
@@ -96,7 +95,7 @@ final readonly class Psr11PluginTest
         $plugin = $this->plugin(['application' => new \stdClass()]);
 
         Expect::that(static function () use ($plugin): void {
-            $plugin->resolve(Greeter::class, [new Service('application')])->value();
+            $plugin->resolve(Greeter::class, [new Service('application')]);
         })->toThrow(
             Psr11BridgeError::class,
             matching: '/service "application" has type "stdClass".*requires type/s',
@@ -138,11 +137,11 @@ final readonly class Psr11PluginTest
 
             return new ArrayContainer([Greeter::class => new Greeter()]);
         });
-        $first = $plugin->resolve(Greeter::class, [])->value();
+        $first = $plugin->resolve(Greeter::class, []);
 
         $plugin->afterTest($this->context(), $this->result());
 
-        Expect::that($plugin->resolve(Greeter::class, [])->value())->not()->toBe($first);
+        Expect::that($plugin->resolve(Greeter::class, []))->not()->toBe($first);
         Expect::that($created)->toBe(2);
     }
 
@@ -158,11 +157,11 @@ final readonly class Psr11PluginTest
             },
             refreshBetweenTests: false,
         );
-        $first = $plugin->resolve(Greeter::class, [])->value();
+        $first = $plugin->resolve(Greeter::class, []);
 
         $plugin->afterTest($this->context(), $this->result());
 
-        Expect::that($plugin->resolve(Greeter::class, [])->value())->toBe($first);
+        Expect::that($plugin->resolve(Greeter::class, []))->toBe($first);
         Expect::that($created)->toBe(1);
     }
 
@@ -234,7 +233,7 @@ final readonly class Psr11PluginTest
                 throw $failure;
             },
         );
-        $plugin->resolve(Greeter::class, [])->value();
+        $plugin->resolve(Greeter::class, []);
 
         try {
             $plugin->afterTest($this->context(), $this->result());
@@ -242,7 +241,7 @@ final readonly class Psr11PluginTest
             Expect::that($error->getPrevious())->toBe($failure);
         }
 
-        $plugin->resolve(Greeter::class, [])->value();
+        $plugin->resolve(Greeter::class, []);
         Expect::that($created)->toBe(2);
     }
 
@@ -257,7 +256,7 @@ final readonly class Psr11PluginTest
         $error = null;
 
         try {
-            $plugin->resolve(Greeter::class, [])->value();
+            $plugin->resolve(Greeter::class, []);
         } catch (Psr11BridgeError $caught) {
             $error = $caught;
         }
@@ -274,7 +273,7 @@ final readonly class Psr11PluginTest
     {
         $plugin = new Psr11Plugin($this->invalidContainerFactory()); // @phpstan-ignore argument.type (This test deliberately supplies an invalid factory result.)
 
-        Expect::that(static fn(): ?object => $plugin->resolve(Greeter::class, [])->value())->toThrow(
+        Expect::that(static fn(): ?object => $plugin->resolve(Greeter::class, []))->toThrow(
             Psr11BridgeError::class,
             matching: '/returned "stdClass".*ContainerInterface/',
         );
@@ -302,7 +301,7 @@ final readonly class Psr11PluginTest
         $plugin = new Psr11Plugin(static fn(): ContainerInterface => $container);
 
         $this->expectCause(
-            static fn(): ?object => $plugin->resolve(Greeter::class, [])->value(),
+            static fn(): ?object => $plugin->resolve(Greeter::class, []),
             $failure,
             '/failed when it checked service/',
         );
@@ -330,7 +329,7 @@ final readonly class Psr11PluginTest
         $plugin = new Psr11Plugin(static fn(): ContainerInterface => $container);
 
         $this->expectCause(
-            static fn(): ?object => $plugin->resolve(Greeter::class, [])->value(),
+            static fn(): ?object => $plugin->resolve(Greeter::class, []),
             $failure,
             '/failed when it read service/',
         );

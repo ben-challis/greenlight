@@ -2,23 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Symfony;
+namespace Greenlight\Harness;
 
 /**
- * If the parameter type is not a unique container ID, use `#[Service]`. The
+ * Selects a container service ID that differs from the parameter type. The
  * resolved service must have the declared type.
  */
 #[\Attribute(\Attribute::TARGET_PARAMETER)]
 final readonly class Service
 {
-    /**
-     * @var non-empty-string
-     */
+    /** @var non-empty-string */
     public string $id;
 
-    /**
-     * @throws \InvalidArgumentException
-     */
+    /** @throws \InvalidArgumentException */
     public function __construct(string $id)
     {
         if ($id === '') {

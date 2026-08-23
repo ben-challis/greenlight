@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Hyperf;
 
 use Greenlight\Harness\Scope;
+use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
-use Greenlight\Harness\ServiceResolution;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Internal\Php\ErrorTrap;
@@ -83,9 +83,10 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
     /**
      * @param class-string $type
      * @param list<object> $attributes
+     * @throws ServiceResolutionFailed
      */
     #[\Override]
-    public function resolve(string $type, array $attributes): ServiceResolution
+    public function resolve(string $type, array $attributes): ?object
     {
         $id = $type;
 
@@ -99,24 +100,24 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
             $container = $this->container();
 
             if (!$container->has($id)) {
-                return $id !== $type
-                    ? ServiceResolution::failed(HyperfBridgeError::unknownServiceId($id, $type))
-                    : ServiceResolution::unhandled();
+                if ($id !== $type) {
+                    throw HyperfBridgeError::unknownServiceId($id, $type);
+                }
+
+                return null;
             }
 
             $service = $container->get($id);
 
             if (!$service instanceof $type) {
-                return ServiceResolution::failed(
-                    HyperfBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service)),
-                );
+                throw HyperfBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service));
             }
 
-            return ServiceResolution::resolved($service);
+            return $service;
         } catch (ServiceResolutionFailed $error) {
-            return ServiceResolution::failed($error);
+            throw $error;
         } catch (\Throwable $cause) {
-            return ServiceResolution::failed(HyperfBridgeError::serviceResolutionFailed($id, $type, $cause));
+            throw HyperfBridgeError::serviceResolutionFailed($id, $type, $cause);
         }
     }
 

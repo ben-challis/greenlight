@@ -91,24 +91,18 @@ final class HarnessScopes
         }
 
         foreach ($this->resolvers as $resolver) {
-            $resolution = $resolver->resolve($type, $attributes);
+            $service = $resolver->resolve($type, $attributes);
 
-            if ($resolution->isUnhandled()) {
+            if ($service === null) {
                 if ($resolver instanceof TerminalServiceResolver) {
                     throw new \LogicException(\sprintf(
-                        'Terminal service resolver "%s" returned an unhandled result.',
+                        'Terminal service resolver "%s" returned null.',
                         $resolver::class,
                     ));
                 }
 
                 continue;
             }
-
-            if ($resolution->isFailed()) {
-                throw $resolution->error();
-            }
-
-            $service = $resolution->service();
 
             if (!$service instanceof $type) {
                 throw UnresolvableService::resolverTypeMismatch($type, $consumer, $resolver::class, $service::class);

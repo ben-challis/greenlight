@@ -4,23 +4,16 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit;
 
-use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Laravel\Service as LaravelService;
-use Greenlight\Psr11\Service as PsrService;
-use Greenlight\Symfony\Service as SymfonyService;
+use Greenlight\Harness\Service;
 
 final readonly class ServiceAttributeTest
 {
-    /**
-     * @param class-string<LaravelService|PsrService|SymfonyService> $attribute
-     */
     #[Test]
-    #[DataSet('serviceAttributes')]
-    public function rejectsAnEmptyServiceIdentifier(string $attribute): void
+    public function rejectsAnEmptyServiceIdentifier(): void
     {
-        Expect::that(static fn(): object => new $attribute(''))
+        Expect::that(static fn(): Service => new Service(''))
             ->because('a service attribute MUST identify a container service')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -28,25 +21,11 @@ final readonly class ServiceAttributeTest
             );
     }
 
-    /**
-     * @param class-string<LaravelService|PsrService|SymfonyService> $attribute
-     */
     #[Test]
-    #[DataSet('serviceAttributes')]
-    public function preservesAZeroStringServiceIdentifier(string $attribute): void
+    public function preservesAZeroStringServiceIdentifier(): void
     {
-        Expect::that((new $attribute('0'))->id)
+        Expect::that((new Service('0'))->id)
             ->because('a zero-string service identifier is not empty')
             ->toBe('0');
-    }
-
-    /**
-     * @return iterable<string, array{class-string<LaravelService|PsrService|SymfonyService>}>
-     */
-    public static function serviceAttributes(): iterable
-    {
-        yield 'Laravel' => [LaravelService::class];
-        yield 'PSR-11' => [PsrService::class];
-        yield 'Symfony' => [SymfonyService::class];
     }
 }
