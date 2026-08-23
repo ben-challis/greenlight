@@ -84,7 +84,8 @@ final readonly class CoverageMergeCommand
             }
 
             $path = ConfigurationLoader::absolutePath($input, $workingDirectory);
-            $identity = \realpath($path) ?: $path;
+            $realPath = \realpath($path);
+            $identity = $realPath === false ? $path : $realPath;
             $inputRoot = $inputRoots === []
                 ? null
                 : ConfigurationLoader::absolutePath($inputRoots[$index], $workingDirectory);
