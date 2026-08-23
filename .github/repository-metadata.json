@@ -1,0 +1,493 @@
+{
+  "types": [
+    {
+      "name": "feature",
+      "color": "1D76DB",
+      "description": "Adds a documented user capability."
+    },
+    {
+      "name": "fix",
+      "color": "D73A4A",
+      "description": "Corrects a defect in public behavior."
+    },
+    {
+      "name": "performance",
+      "color": "F9D0C4",
+      "description": "Reduces resource use without a compatibility change."
+    },
+    {
+      "name": "documentation",
+      "color": "0075CA",
+      "description": "Changes only documentation."
+    },
+    {
+      "name": "refactor",
+      "color": "C5DEF5",
+      "description": "Changes internal structure without a public behavior change."
+    },
+    {
+      "name": "test",
+      "color": "BFDADC",
+      "description": "Changes only tests or test fixtures."
+    },
+    {
+      "name": "ci",
+      "color": "0E8A16",
+      "description": "Changes only repository automation."
+    },
+    {
+      "name": "build",
+      "color": "5319E7",
+      "description": "Changes only development or package build tools."
+    },
+    {
+      "name": "style",
+      "color": "FEF2C0",
+      "description": "Changes only code format."
+    },
+    {
+      "name": "chore",
+      "color": "EDEDED",
+      "description": "Makes a maintenance change that no other type describes."
+    },
+    {
+      "name": "revert",
+      "color": "D4C5F9",
+      "description": "Reverts an earlier change."
+    },
+    {
+      "name": "dependencies",
+      "color": "0366D6",
+      "description": "Changes development dependencies."
+    },
+    {
+      "name": "security",
+      "color": "B60205",
+      "description": "Corrects a security defect."
+    }
+  ],
+  "statuses": [
+    {
+      "name": "blocked",
+      "color": "B60205",
+      "description": "Work cannot continue."
+    },
+    {
+      "name": "needs-review",
+      "color": "FBCA04",
+      "description": "Work needs review."
+    },
+    {
+      "name": "needs-changes",
+      "color": "D93F0B",
+      "description": "Work needs changes."
+    },
+    {
+      "name": "ready",
+      "color": "0E8A16",
+      "description": "Work is ready to merge."
+    },
+    {
+      "name": "work-in-progress",
+      "color": "C2E0C6",
+      "description": "Work is not ready to merge."
+    },
+    {
+      "name": "do-not-merge",
+      "color": "000000",
+      "description": "Do not merge this work."
+    }
+  ],
+  "scopes": [
+    {
+      "name": "artifact",
+      "description": "Changes the Artifact module.",
+      "layers": ["Artifact"],
+      "paths": ["src/Artifact/**", "tests/Unit/Artifact/**"]
+    },
+    {
+      "name": "attribute",
+      "description": "Changes the Attribute module.",
+      "layers": ["Attribute"],
+      "paths": ["src/Attribute/**", "tests/Unit/Attribute/**"]
+    },
+    {
+      "name": "condition",
+      "description": "Changes the Condition module.",
+      "layers": ["Condition"],
+      "paths": ["src/Condition/**", "tests/Unit/Condition/**", "tests/Fixture/Condition/**"]
+    },
+    {
+      "name": "config",
+      "description": "Changes the Config module.",
+      "layers": ["Config"],
+      "paths": ["src/Config/**", "tests/Unit/Config/**", "tests/Fixture/ConfigFiles/**"]
+    },
+    {
+      "name": "event",
+      "description": "Changes the Event module.",
+      "layers": ["Event"],
+      "paths": ["src/Event/**", "tests/Unit/Event/**"]
+    },
+    {
+      "name": "expect",
+      "description": "Changes the Expect module.",
+      "layers": ["Expect"],
+      "paths": ["src/Expect/**", "tests/Unit/Expect/**", "tests/Fixture/Expect/**"]
+    },
+    {
+      "name": "harness",
+      "description": "Changes the Harness module.",
+      "layers": ["Harness"],
+      "paths": ["src/Harness/**", "tests/Unit/Harness/**", "tests/Fixture/Harness*/**"]
+    },
+    {
+      "name": "integration-fixture",
+      "description": "Changes the IntegrationFixture module.",
+      "layers": ["IntegrationFixture"],
+      "paths": ["src/IntegrationFixture/**", "tests/Unit/IntegrationFixture/**"]
+    },
+    {
+      "name": "doubles",
+      "description": "Changes the Doubles module.",
+      "layers": ["Doubles"],
+      "paths": ["src/Doubles/**", "tests/Unit/Doubles/**", "tests/Fixture/Doubles/**"]
+    },
+    {
+      "name": "sandbox",
+      "description": "Changes the Sandbox module.",
+      "layers": ["Sandbox"],
+      "paths": ["src/Sandbox/**", "tests/Unit/Sandbox/**"]
+    },
+    {
+      "name": "plugin",
+      "description": "Changes the Plugin module.",
+      "layers": ["Plugin"],
+      "paths": ["src/Plugin/**", "tests/Unit/Plugin/**", "tests/Fixture/Plugin*/**", "tests/Fixture/Plugins/**"]
+    },
+    {
+      "name": "result",
+      "description": "Changes the Result module.",
+      "layers": ["Result"],
+      "paths": ["src/Result/**", "tests/Unit/Result/**"]
+    },
+    {
+      "name": "test",
+      "description": "Changes the Test module.",
+      "layers": ["Test"],
+      "paths": ["src/Test/**", "tests/Unit/Test/**"]
+    },
+    {
+      "name": "test-data-set",
+      "description": "Changes the Test DataSet layer.",
+      "layers": ["TestDataSet"],
+      "paths": ["src/Test/DataSet/**", "tests/Unit/Test/DataSet/**", "tests/Fixture/DataRows*/**"]
+    },
+    {
+      "name": "discovery",
+      "description": "Changes the Discovery module.",
+      "layers": ["Discovery"],
+      "paths": ["src/Discovery/**", "tests/Unit/Discovery/**", "tests/Fixture/Discovery*/**"]
+    },
+    {
+      "name": "discovery-plan",
+      "description": "Changes the Discovery Plan layer.",
+      "layers": ["DiscoveryPlan"],
+      "paths": ["src/Discovery/Plan/**", "tests/Unit/Discovery/Plan/**"]
+    },
+    {
+      "name": "coverage",
+      "description": "Changes the Coverage module.",
+      "layers": ["Coverage"],
+      "paths": ["src/Coverage/**", "tests/Unit/Coverage/**", "tests/Fixture/Coverage*/**", "greenlight.coverage.php"]
+    },
+    {
+      "name": "coverage-collection",
+      "description": "Changes the Coverage Collection layer.",
+      "layers": ["CoverageCollection"],
+      "paths": ["src/Coverage/Collection/**", "tests/Unit/Coverage/Collection/**"]
+    },
+    {
+      "name": "coverage-diff",
+      "description": "Changes the Coverage Diff layer.",
+      "layers": ["CoverageDiff"],
+      "paths": ["src/Coverage/Diff/**", "tests/Unit/Coverage/Diff/**"]
+    },
+    {
+      "name": "coverage-export",
+      "description": "Changes the Coverage Export layer.",
+      "layers": ["CoverageExport"],
+      "paths": ["src/Coverage/Export/**", "tests/Unit/Coverage/Export/**"]
+    },
+    {
+      "name": "coverage-ignore",
+      "description": "Changes the Coverage Ignore layer.",
+      "layers": ["CoverageIgnore"],
+      "paths": ["src/Coverage/Ignore/**", "tests/Unit/Coverage/Ignore/**", "tests/Fixture/CoverageIgnore*/**"]
+    },
+    {
+      "name": "coverage-relay",
+      "description": "Changes the Coverage Relay layer.",
+      "layers": ["CoverageRelay"],
+      "paths": ["src/Coverage/Relay/**", "tests/Unit/Coverage/Relay/**"]
+    },
+    {
+      "name": "reporting",
+      "description": "Changes the Reporting module.",
+      "layers": ["Reporting"],
+      "paths": ["src/Reporting/**", "tests/Unit/Reporting/**", "tests/Fixture/Reporting/**"]
+    },
+    {
+      "name": "reporting-profile",
+      "description": "Changes the Reporting Profile layer.",
+      "layers": ["ReportingProfile"],
+      "paths": ["src/Reporting/Profile/**", "tests/Unit/Reporting/Profile/**"]
+    },
+    {
+      "name": "execution",
+      "description": "Changes the Execution module.",
+      "layers": ["Execution"],
+      "paths": ["src/Execution/**", "tests/Unit/Execution/**", "tests/Fixture/Execution/**"]
+    },
+    {
+      "name": "execution-adapter",
+      "description": "Changes the Execution Adapter layer.",
+      "layers": ["ExecutionAdapter"],
+      "paths": ["src/Execution/Adapter/**", "tests/Unit/Execution/Adapter/**"]
+    },
+    {
+      "name": "execution-artifact",
+      "description": "Changes the Execution Artifact layer.",
+      "layers": ["ExecutionArtifact"],
+      "paths": ["src/Execution/Artifact/**", "tests/Unit/Execution/Artifact/**", "tests/Fixture/Execution/Artifact/**"]
+    },
+    {
+      "name": "execution-plugin",
+      "description": "Changes the Execution Plugin layer.",
+      "layers": ["ExecutionPlugin"],
+      "paths": ["src/Execution/Plugin/**", "tests/Unit/Execution/Plugin/**"]
+    },
+    {
+      "name": "execution-worker",
+      "description": "Changes the Execution Worker layer.",
+      "layers": ["ExecutionWorker"],
+      "paths": ["src/Execution/Worker/**", "tests/Unit/Execution/Worker/**", "tests/Fixture/Execution/Worker/**"]
+    },
+    {
+      "name": "execution-process-pool",
+      "description": "Changes the Execution ProcessPool layers.",
+      "layers": [],
+      "paths": ["src/Execution/ProcessPool/**", "tests/Unit/Execution/ProcessPool/**", "tests/Fixture/Execution/ProcessPool/**"]
+    },
+    {
+      "name": "execution-process-protocol",
+      "description": "Changes the Execution ProcessPool Protocol layer.",
+      "layers": ["ExecutionProcessProtocol"],
+      "paths": ["src/Execution/ProcessPool/Protocol/**", "tests/Unit/Execution/ProcessPool/Protocol/**", "tests/Fixture/Execution/ProcessPool/Protocol/**", "resources/schema/worker-protocol-*.schema.json"]
+    },
+    {
+      "name": "execution-process-worker",
+      "description": "Changes the Execution ProcessPool Worker layer.",
+      "layers": ["ExecutionProcessWorker"],
+      "paths": ["src/Execution/ProcessPool/Worker/**", "tests/Unit/Execution/ProcessPool/Worker/**"]
+    },
+    {
+      "name": "execution-process-orchestrator",
+      "description": "Changes the Execution ProcessPool Orchestrator layer.",
+      "layers": ["ExecutionProcessOrchestrator"],
+      "paths": ["src/Execution/ProcessPool/Orchestrator/**", "tests/Unit/Execution/ProcessPool/Orchestrator/**", "tests/Fixture/Execution/ProcessPool/Orchestrator/**"]
+    },
+    {
+      "name": "cli",
+      "description": "Changes the CLI module.",
+      "layers": ["Cli"],
+      "paths": ["bin/greenlight", "src/Cli/**", "tests/Unit/Cli/**", "tests/Fixture/Cli/**"]
+    },
+    {
+      "name": "cli-input",
+      "description": "Changes the CLI Input layer.",
+      "layers": ["CliInput"],
+      "paths": ["src/Cli/Input/**", "tests/Unit/Cli/Input/**"]
+    },
+    {
+      "name": "cli-configuration",
+      "description": "Changes the CLI Configuration layer.",
+      "layers": ["CliConfiguration"],
+      "paths": ["src/Cli/Configuration/**", "tests/Unit/Cli/Configuration/**"]
+    },
+    {
+      "name": "cli-discovery",
+      "description": "Changes the CLI Discovery layer.",
+      "layers": ["CliDiscovery"],
+      "paths": ["src/Cli/Discovery/**", "tests/Unit/Cli/Discovery/**"]
+    },
+    {
+      "name": "cli-output",
+      "description": "Changes the CLI Output layer.",
+      "layers": ["CliOutput"],
+      "paths": ["src/Cli/Output/**", "tests/Unit/Cli/Output/**"]
+    },
+    {
+      "name": "cli-reporting",
+      "description": "Changes the CLI Reporting layer.",
+      "layers": ["CliReporting"],
+      "paths": ["src/Cli/Reporting/**", "tests/Unit/Cli/Reporting/**"]
+    },
+    {
+      "name": "cli-coverage",
+      "description": "Changes the CLI Coverage layer.",
+      "layers": ["CliCoverage"],
+      "paths": ["src/Cli/Coverage/**", "tests/Unit/Cli/Coverage/**"]
+    },
+    {
+      "name": "cli-signal",
+      "description": "Changes the CLI Signal layer.",
+      "layers": ["CliSignal"],
+      "paths": ["src/Cli/Signal/**", "tests/Unit/Cli/Signal/**", "tests/Fixture/Cli/Signal/**"]
+    },
+    {
+      "name": "cli-state",
+      "description": "Changes the CLI State layer.",
+      "layers": ["CliState"],
+      "paths": ["src/Cli/State/**", "tests/Unit/Cli/State/**"]
+    },
+    {
+      "name": "cli-watch",
+      "description": "Changes the CLI Watch layer.",
+      "layers": ["CliWatch"],
+      "paths": ["src/Cli/Watch/**", "tests/Unit/Cli/Watch/**", "tests/Fixture/Cli/Watch/**"]
+    },
+    {
+      "name": "cli-worker-capacity",
+      "description": "Changes the CLI WorkerCapacity layer.",
+      "layers": ["CliWorkerCapacity"],
+      "paths": ["src/Cli/WorkerCapacity/**", "tests/Unit/Cli/WorkerCapacity/**", "tests/Fixture/Cli/WorkerCapacity/**"]
+    },
+    {
+      "name": "cli-command",
+      "description": "Changes the CLI Command layer.",
+      "layers": ["CliCommand"],
+      "paths": ["src/Cli/Command/**", "tests/Unit/Cli/Command/**"]
+    },
+    {
+      "name": "cli-run",
+      "description": "Changes the CLI Run layer.",
+      "layers": ["CliRun"],
+      "paths": ["src/Cli/Run/**", "tests/Unit/Cli/Run/**"]
+    },
+    {
+      "name": "phpstan",
+      "description": "Changes the PHPStan integration.",
+      "layers": ["PhpStan"],
+      "paths": ["src/PhpStan/**", "tests/Unit/PhpStan/**", "tests/Fixture/PhpStan*/**", "extension.neon", "phpstan*.neon"]
+    },
+    {
+      "name": "rector",
+      "description": "Changes the Rector integration.",
+      "layers": ["Rector"],
+      "paths": ["src/Rector/**", "tests/Unit/Rector/**", "tests/Fixture/Rector*/**", "rector*.php"]
+    },
+    {
+      "name": "documentation",
+      "description": "Changes the Documentation module.",
+      "layers": ["Documentation"],
+      "paths": ["src/Documentation/**", "tests/Unit/Documentation/**"]
+    },
+    {
+      "name": "symfony",
+      "description": "Changes the Symfony bridge.",
+      "layers": ["Symfony"],
+      "paths": ["src/Symfony/**", "tests/Unit/Symfony/**", "tests/Fixture/Symfony/**"]
+    },
+    {
+      "name": "laravel",
+      "description": "Changes the Laravel bridge.",
+      "layers": ["Laravel"],
+      "paths": ["src/Laravel/**", "tests/Unit/Laravel/**", "tests/Fixture/Laravel/**"]
+    },
+    {
+      "name": "hyperf",
+      "description": "Changes the Hyperf bridge.",
+      "layers": ["Hyperf"],
+      "paths": ["src/Hyperf/**", "tests/Unit/Hyperf/**", ".github/fixtures/hyperf-bridge/**"]
+    },
+    {
+      "name": "psr11",
+      "description": "Changes the PSR-11 bridge.",
+      "layers": ["Psr11"],
+      "paths": ["src/Psr11/**", "tests/Unit/Psr11/**", "tests/Support/Psr11/**"]
+    },
+    {
+      "name": "psr15",
+      "description": "Changes the PSR-15 harness.",
+      "layers": ["Psr15"],
+      "paths": ["src/Psr15/**", "tests/Unit/Psr15/**"]
+    },
+    {
+      "name": "tempest",
+      "description": "Changes the Tempest bridge.",
+      "layers": ["Tempest"],
+      "paths": ["src/Tempest/**", "tests/Unit/Tempest/**", ".github/fixtures/tempest-bridge/**", "greenlight.tempest-coverage.php"]
+    },
+    {
+      "name": "internal-filesystem",
+      "description": "Changes the Internal Filesystem layer.",
+      "layers": ["InternalFilesystem"],
+      "paths": ["src/Internal/Filesystem/**", "tests/Unit/Internal/Filesystem/**", "tests/Fixture/Filesystem/**"]
+    },
+    {
+      "name": "internal-php",
+      "description": "Changes the Internal PHP layer.",
+      "layers": ["InternalPhp"],
+      "paths": ["src/Internal/Php/**", "tests/Unit/Internal/Php/**"]
+    },
+    {
+      "name": "internal-process",
+      "description": "Changes the Internal Process layer.",
+      "layers": ["InternalProcess"],
+      "paths": ["src/Internal/Process/**", "tests/Unit/Internal/Process/**", "tests/Fixture/WorkerProcess/**"]
+    },
+    {
+      "name": "internal-text",
+      "description": "Changes the Internal Text layer.",
+      "layers": ["InternalText"],
+      "paths": ["src/Internal/Text/**", "tests/Unit/Internal/Text/**"]
+    },
+    {
+      "name": "internal-wire",
+      "description": "Changes the Internal Wire layer.",
+      "layers": ["InternalWire"],
+      "paths": ["src/Internal/Wire/**", "tests/Unit/Internal/Wire/**", "resources/schema/jsonl-*.schema.json"]
+    },
+    {
+      "name": "docs",
+      "description": "Changes repository documentation.",
+      "layers": [],
+      "paths": ["**/*.md", "docs/**", "website/**"]
+    },
+    {
+      "name": "ci",
+      "description": "Changes repository automation.",
+      "layers": [],
+      "paths": [".github/**", "codecov.yml", "renovate.json"]
+    },
+    {
+      "name": "deps",
+      "description": "Changes development dependencies.",
+      "layers": [],
+      "paths": ["composer.json", "composer.lock", "package.json", "package-lock.json", "website/package.json", "website/package-lock.json", "renovate.json"]
+    },
+    {
+      "name": "release",
+      "description": "Changes release automation or metadata.",
+      "layers": [],
+      "paths": [".release-please-manifest.json", "release-please-config.json", ".github/workflows/release-please.yml"]
+    },
+    {
+      "name": "tooling",
+      "description": "Changes repository development tools.",
+      "layers": [],
+      "paths": ["tools/**", "Makefile", ".gitattributes", ".gitignore", ".php-cs-fixer.dist.php", "commitlint.config.js", "deptrac.yaml", "phpstan*.neon", "rector*.php", ".markdownlint-cli2.jsonc", ".yamllint.yml"]
+    }
+  ]
+}

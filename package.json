@@ -1,0 +1,11 @@
+{
+  "name": "greenlight-repository-tooling",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "npm run check:metadata && npm run check:commitlint",
+    "check:commitlint": "node tools/check-commitlint.mjs",
+    "check:metadata": "node tools/repository-metadata.mjs --check",
+    "generate:metadata": "node tools/repository-metadata.mjs"
+  }
+}

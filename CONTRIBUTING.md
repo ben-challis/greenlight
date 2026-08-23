@@ -30,12 +30,13 @@ Before you push prose changes, review the prose:
 Run:
 
 ```bash
+npm run check
 composer static-analysis
 composer tests
 make docs-check
 ```
 
-CI runs the same checks. All three MUST pass locally.
+CI runs the same checks. All commands MUST pass locally.
 
 The Composer CI commands use one shared local slot by default. The slot applies
 across Git worktrees. Set `GREENLIGHT_LOCAL_CI_MAX_PARALLELISM` to a positive
@@ -58,7 +59,7 @@ Examples:
 
 ```text
 feat(expect): add toContain matcher for iterables
-fix(runner): close worker sockets on orchestrator shutdown
+fix(execution-process-orchestrator): close worker sockets on shutdown
 docs: clarify the channel contract in the README
 refactor(doubles): extract proxy generation from double factory
 test(discovery): cover nested fixture directories
@@ -66,7 +67,19 @@ chore: bump php-cs-fixer to 3.76
 ```
 
 Common types include `feat`, `fix`, `docs`, `refactor`, `test`, and `chore`.
-Add a scope if it gives useful context.
+Add a scope if it gives useful context. Use a scope from
+`.github/repository-metadata.json`. The matching path label has the
+`scope/<scope>` form.
+
+The metadata file also defines the repository label catalog and path rules.
+After a metadata change, run:
+
+```bash
+npm run generate:metadata
+npm run check
+```
+
+Commit `.github/labels.json` and `.github/labeler.yml` with the source change.
 
 ### Release classification
 

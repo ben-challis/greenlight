@@ -1,0 +1,422 @@
+[
+  {
+    "name": "type/feature",
+    "color": "1D76DB",
+    "description": "Adds a documented user capability."
+  },
+  {
+    "name": "type/fix",
+    "color": "D73A4A",
+    "description": "Corrects a defect in public behavior."
+  },
+  {
+    "name": "type/performance",
+    "color": "F9D0C4",
+    "description": "Reduces resource use without a compatibility change."
+  },
+  {
+    "name": "type/documentation",
+    "color": "0075CA",
+    "description": "Changes only documentation."
+  },
+  {
+    "name": "type/refactor",
+    "color": "C5DEF5",
+    "description": "Changes internal structure without a public behavior change."
+  },
+  {
+    "name": "type/test",
+    "color": "BFDADC",
+    "description": "Changes only tests or test fixtures."
+  },
+  {
+    "name": "type/ci",
+    "color": "0E8A16",
+    "description": "Changes only repository automation."
+  },
+  {
+    "name": "type/build",
+    "color": "5319E7",
+    "description": "Changes only development or package build tools."
+  },
+  {
+    "name": "type/style",
+    "color": "FEF2C0",
+    "description": "Changes only code format."
+  },
+  {
+    "name": "type/chore",
+    "color": "EDEDED",
+    "description": "Makes a maintenance change that no other type describes."
+  },
+  {
+    "name": "type/revert",
+    "color": "D4C5F9",
+    "description": "Reverts an earlier change."
+  },
+  {
+    "name": "type/dependencies",
+    "color": "0366D6",
+    "description": "Changes development dependencies."
+  },
+  {
+    "name": "type/security",
+    "color": "B60205",
+    "description": "Corrects a security defect."
+  },
+  {
+    "name": "status/blocked",
+    "color": "B60205",
+    "description": "Work cannot continue."
+  },
+  {
+    "name": "status/needs-review",
+    "color": "FBCA04",
+    "description": "Work needs review."
+  },
+  {
+    "name": "status/needs-changes",
+    "color": "D93F0B",
+    "description": "Work needs changes."
+  },
+  {
+    "name": "status/ready",
+    "color": "0E8A16",
+    "description": "Work is ready to merge."
+  },
+  {
+    "name": "status/work-in-progress",
+    "color": "C2E0C6",
+    "description": "Work is not ready to merge."
+  },
+  {
+    "name": "status/do-not-merge",
+    "color": "000000",
+    "description": "Do not merge this work."
+  },
+  {
+    "name": "scope/artifact",
+    "color": "5319E7",
+    "description": "Changes the Artifact module."
+  },
+  {
+    "name": "scope/attribute",
+    "color": "5319E7",
+    "description": "Changes the Attribute module."
+  },
+  {
+    "name": "scope/condition",
+    "color": "5319E7",
+    "description": "Changes the Condition module."
+  },
+  {
+    "name": "scope/config",
+    "color": "5319E7",
+    "description": "Changes the Config module."
+  },
+  {
+    "name": "scope/event",
+    "color": "5319E7",
+    "description": "Changes the Event module."
+  },
+  {
+    "name": "scope/expect",
+    "color": "5319E7",
+    "description": "Changes the Expect module."
+  },
+  {
+    "name": "scope/harness",
+    "color": "5319E7",
+    "description": "Changes the Harness module."
+  },
+  {
+    "name": "scope/integration-fixture",
+    "color": "5319E7",
+    "description": "Changes the IntegrationFixture module."
+  },
+  {
+    "name": "scope/doubles",
+    "color": "5319E7",
+    "description": "Changes the Doubles module."
+  },
+  {
+    "name": "scope/sandbox",
+    "color": "5319E7",
+    "description": "Changes the Sandbox module."
+  },
+  {
+    "name": "scope/plugin",
+    "color": "5319E7",
+    "description": "Changes the Plugin module."
+  },
+  {
+    "name": "scope/result",
+    "color": "5319E7",
+    "description": "Changes the Result module."
+  },
+  {
+    "name": "scope/test",
+    "color": "5319E7",
+    "description": "Changes the Test module."
+  },
+  {
+    "name": "scope/test-data-set",
+    "color": "5319E7",
+    "description": "Changes the Test DataSet layer."
+  },
+  {
+    "name": "scope/discovery",
+    "color": "5319E7",
+    "description": "Changes the Discovery module."
+  },
+  {
+    "name": "scope/discovery-plan",
+    "color": "5319E7",
+    "description": "Changes the Discovery Plan layer."
+  },
+  {
+    "name": "scope/coverage",
+    "color": "5319E7",
+    "description": "Changes the Coverage module."
+  },
+  {
+    "name": "scope/coverage-collection",
+    "color": "5319E7",
+    "description": "Changes the Coverage Collection layer."
+  },
+  {
+    "name": "scope/coverage-diff",
+    "color": "5319E7",
+    "description": "Changes the Coverage Diff layer."
+  },
+  {
+    "name": "scope/coverage-export",
+    "color": "5319E7",
+    "description": "Changes the Coverage Export layer."
+  },
+  {
+    "name": "scope/coverage-ignore",
+    "color": "5319E7",
+    "description": "Changes the Coverage Ignore layer."
+  },
+  {
+    "name": "scope/coverage-relay",
+    "color": "5319E7",
+    "description": "Changes the Coverage Relay layer."
+  },
+  {
+    "name": "scope/reporting",
+    "color": "5319E7",
+    "description": "Changes the Reporting module."
+  },
+  {
+    "name": "scope/reporting-profile",
+    "color": "5319E7",
+    "description": "Changes the Reporting Profile layer."
+  },
+  {
+    "name": "scope/execution",
+    "color": "5319E7",
+    "description": "Changes the Execution module."
+  },
+  {
+    "name": "scope/execution-adapter",
+    "color": "5319E7",
+    "description": "Changes the Execution Adapter layer."
+  },
+  {
+    "name": "scope/execution-artifact",
+    "color": "5319E7",
+    "description": "Changes the Execution Artifact layer."
+  },
+  {
+    "name": "scope/execution-plugin",
+    "color": "5319E7",
+    "description": "Changes the Execution Plugin layer."
+  },
+  {
+    "name": "scope/execution-worker",
+    "color": "5319E7",
+    "description": "Changes the Execution Worker layer."
+  },
+  {
+    "name": "scope/execution-process-pool",
+    "color": "5319E7",
+    "description": "Changes the Execution ProcessPool layers."
+  },
+  {
+    "name": "scope/execution-process-protocol",
+    "color": "5319E7",
+    "description": "Changes the Execution ProcessPool Protocol layer."
+  },
+  {
+    "name": "scope/execution-process-worker",
+    "color": "5319E7",
+    "description": "Changes the Execution ProcessPool Worker layer."
+  },
+  {
+    "name": "scope/execution-process-orchestrator",
+    "color": "5319E7",
+    "description": "Changes the Execution ProcessPool Orchestrator layer."
+  },
+  {
+    "name": "scope/cli",
+    "color": "5319E7",
+    "description": "Changes the CLI module."
+  },
+  {
+    "name": "scope/cli-input",
+    "color": "5319E7",
+    "description": "Changes the CLI Input layer."
+  },
+  {
+    "name": "scope/cli-configuration",
+    "color": "5319E7",
+    "description": "Changes the CLI Configuration layer."
+  },
+  {
+    "name": "scope/cli-discovery",
+    "color": "5319E7",
+    "description": "Changes the CLI Discovery layer."
+  },
+  {
+    "name": "scope/cli-output",
+    "color": "5319E7",
+    "description": "Changes the CLI Output layer."
+  },
+  {
+    "name": "scope/cli-reporting",
+    "color": "5319E7",
+    "description": "Changes the CLI Reporting layer."
+  },
+  {
+    "name": "scope/cli-coverage",
+    "color": "5319E7",
+    "description": "Changes the CLI Coverage layer."
+  },
+  {
+    "name": "scope/cli-signal",
+    "color": "5319E7",
+    "description": "Changes the CLI Signal layer."
+  },
+  {
+    "name": "scope/cli-state",
+    "color": "5319E7",
+    "description": "Changes the CLI State layer."
+  },
+  {
+    "name": "scope/cli-watch",
+    "color": "5319E7",
+    "description": "Changes the CLI Watch layer."
+  },
+  {
+    "name": "scope/cli-worker-capacity",
+    "color": "5319E7",
+    "description": "Changes the CLI WorkerCapacity layer."
+  },
+  {
+    "name": "scope/cli-command",
+    "color": "5319E7",
+    "description": "Changes the CLI Command layer."
+  },
+  {
+    "name": "scope/cli-run",
+    "color": "5319E7",
+    "description": "Changes the CLI Run layer."
+  },
+  {
+    "name": "scope/phpstan",
+    "color": "5319E7",
+    "description": "Changes the PHPStan integration."
+  },
+  {
+    "name": "scope/rector",
+    "color": "5319E7",
+    "description": "Changes the Rector integration."
+  },
+  {
+    "name": "scope/documentation",
+    "color": "5319E7",
+    "description": "Changes the Documentation module."
+  },
+  {
+    "name": "scope/symfony",
+    "color": "5319E7",
+    "description": "Changes the Symfony bridge."
+  },
+  {
+    "name": "scope/laravel",
+    "color": "5319E7",
+    "description": "Changes the Laravel bridge."
+  },
+  {
+    "name": "scope/hyperf",
+    "color": "5319E7",
+    "description": "Changes the Hyperf bridge."
+  },
+  {
+    "name": "scope/psr11",
+    "color": "5319E7",
+    "description": "Changes the PSR-11 bridge."
+  },
+  {
+    "name": "scope/psr15",
+    "color": "5319E7",
+    "description": "Changes the PSR-15 harness."
+  },
+  {
+    "name": "scope/tempest",
+    "color": "5319E7",
+    "description": "Changes the Tempest bridge."
+  },
+  {
+    "name": "scope/internal-filesystem",
+    "color": "5319E7",
+    "description": "Changes the Internal Filesystem layer."
+  },
+  {
+    "name": "scope/internal-php",
+    "color": "5319E7",
+    "description": "Changes the Internal PHP layer."
+  },
+  {
+    "name": "scope/internal-process",
+    "color": "5319E7",
+    "description": "Changes the Internal Process layer."
+  },
+  {
+    "name": "scope/internal-text",
+    "color": "5319E7",
+    "description": "Changes the Internal Text layer."
+  },
+  {
+    "name": "scope/internal-wire",
+    "color": "5319E7",
+    "description": "Changes the Internal Wire layer."
+  },
+  {
+    "name": "scope/docs",
+    "color": "5319E7",
+    "description": "Changes repository documentation."
+  },
+  {
+    "name": "scope/ci",
+    "color": "5319E7",
+    "description": "Changes repository automation."
+  },
+  {
+    "name": "scope/deps",
+    "color": "5319E7",
+    "description": "Changes development dependencies."
+  },
+  {
+    "name": "scope/release",
+    "color": "5319E7",
+    "description": "Changes release automation or metadata."
+  },
+  {
+    "name": "scope/tooling",
+    "color": "5319E7",
+    "description": "Changes repository development tools."
+  }
+]

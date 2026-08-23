@@ -1,0 +1,34 @@
+name: "Repository labels"
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - ".github/labels.json"
+      - ".github/workflows/labels.yml"
+  workflow_dispatch: ~
+
+permissions: {}
+
+jobs:
+  synchronize:
+    name: "Synchronize repository labels"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 5
+    permissions:
+      contents: "read"
+      issues: "write"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
+          sparse-checkout: ".github/labels.json"
+
+      - name: "Synchronize labels"
+        uses: "EndBug/label-sync@7753e99e1e64188c24d7deede343c5a63e7c0d39" # v2.3.3
+        with:
+          config-file: ".github/labels.json"
+          delete-other-labels: false
