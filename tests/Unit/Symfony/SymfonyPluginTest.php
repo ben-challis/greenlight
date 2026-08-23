@@ -205,7 +205,7 @@ final class SymfonyPluginTest
     #[Test]
     public function aClassThatIsNotAKernelFailsLoudly(): void
     {
-        $plugin = new SymfonyPlugin(\ArrayObject::class);
+        $plugin = new SymfonyPlugin(\ArrayObject::class); // @phpstan-ignore argument.type (This test deliberately supplies an invalid kernel class.)
 
         Expect::that(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, [])->value();

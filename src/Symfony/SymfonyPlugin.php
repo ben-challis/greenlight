@@ -42,7 +42,7 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     private ?ResetInterface $resetter = null;
 
     /**
-     * @param string|\Closure(): KernelInterface $kernel
+     * @param class-string<KernelInterface>|\Closure(): KernelInterface $kernel
      *   A kernel class name that Greenlight constructs as
      *   new $kernel($env, $debug), or a closure that constructs the kernel.
      *   Use a closure for other constructor requirements.
