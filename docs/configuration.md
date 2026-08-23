@@ -247,6 +247,18 @@ subscribers.
 
 Also available as `--fail-on-notice`.
 
+### `failOnWarning(bool $enabled = true): self`
+
+Default: off.
+
+Fails a test that otherwise passed if its captured diagnostics contain a
+warning.
+
+The worker records the change as a result transformation. It applies the
+change after retries and `afterTest()` subscribers.
+
+Also available as `--fail-on-warning`.
+
 ### `ignoreDeprecationsMatching(string ...$patterns): self`
 
 Default: none.
@@ -277,6 +289,26 @@ Use `#[NoExpectations]` for a test that intentionally verifies no expectations.
 Each `eventually()` or `consistently()` matcher counts once.
 
 Also available as `--fail-on-risky`.
+
+### `failOnSkipped(bool $enabled = true): self`
+
+Default: off.
+
+Fails a run if its final summary contains one or more skipped tests.
+
+This run policy does not change a skipped test to a failure. Reporters keep the
+skipped outcome and its reason. JUnit uses a `skipped` element. JSONL uses the
+`skipped` outcome. TeamCity uses `testIgnored`. The GitHub reporter does not
+create an error annotation for a skipped test.
+
+The policy evaluates terminal results after plugins and retries. A plugin that
+changes the terminal outcome changes the run-policy input.
+
+A skipped test does not count toward `--bail` because its outcome is not a test
+failure. The policy fails the completed iteration instead. Thus, repeat mode
+records that iteration as failed. `--repeat-until-failure` stops after it.
+
+Also available as `--fail-on-skipped`.
 
 ### `plugins(Closure ...$plugins): self`
 
@@ -803,9 +835,17 @@ Enables the deprecation policy for this run.
 
 Enables the notice policy for this run.
 
+### `--fail-on-warning`
+
+Enables the warning policy for this run.
+
 ### `--fail-on-risky`
 
 Enables the risky-test policy for this run.
+
+### `--fail-on-skipped`
+
+Enables the skipped-test run policy for this run.
 
 ### `--profile`
 

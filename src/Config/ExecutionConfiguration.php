@@ -6,6 +6,7 @@ namespace Greenlight\Config;
 
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Result\ResultPolicy;
+use Greenlight\Result\RunPolicy;
 
 /**
  * Defines policy, extensions, and retained output for test execution.
@@ -21,6 +22,7 @@ final readonly class ExecutionConfiguration
     public function __construct(
         public array $plugins,
         public ResultPolicy $policy,
+        public RunPolicy $runPolicy,
         public ?int $stopAfterFailures,
         public ArtifactConfiguration $artifacts,
     ) {}

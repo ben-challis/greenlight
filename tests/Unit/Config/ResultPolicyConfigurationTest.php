@@ -64,6 +64,20 @@ final class ResultPolicyConfigurationTest
             'failOnNotice',
             false,
         ];
+        yield 'fail on warning enabled' => [
+            static function (GreenlightConfig $config): void {
+                $config->failOnWarning();
+            },
+            'failOnWarning',
+            true,
+        ];
+        yield 'fail on warning disabled' => [
+            static function (GreenlightConfig $config): void {
+                $config->failOnWarning()->failOnWarning(false);
+            },
+            'failOnWarning',
+            false,
+        ];
         yield 'fail on risky enabled' => [
             static function (GreenlightConfig $config): void {
                 $config->failOnRisky();
@@ -78,6 +92,20 @@ final class ResultPolicyConfigurationTest
             'failOnRisky',
             false,
         ];
+    }
+
+    #[Test]
+    public function skippedPolicyFlowsIntoTheBuiltConfiguration(): void
+    {
+        $policy = GreenlightConfig::create()
+            ->failOnSkipped()
+            ->build()
+            ->execution
+            ->runPolicy;
+
+        Expect::that($policy->failOnSkipped)
+            ->because('the public configuration flag MUST reach the run policy')
+            ->toBeTrue();
     }
 
     #[Test]

@@ -314,6 +314,7 @@
             "properties": {
                 "failOnDeprecation": {"type": "boolean"},
                 "failOnNotice": {"type": "boolean"},
+                "failOnWarning": {"type": "boolean"},
                 "ignoreDeprecations": {
                     "type": "array",
                     "items": {"type": "string", "minLength": 1}

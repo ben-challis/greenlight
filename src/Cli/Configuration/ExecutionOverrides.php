@@ -6,6 +6,7 @@ namespace Greenlight\Cli\Configuration;
 
 use Greenlight\Config\WorkerCount;
 use Greenlight\Result\ResultPolicy;
+use Greenlight\Result\RunPolicy;
 
 /**
  * Contains command-line values that override execution settings.
@@ -22,6 +23,7 @@ final readonly class ExecutionOverrides
         public ?WorkerCount $workers = null,
         public ?int $stopAfterFailures = null,
         public ResultPolicy $policy = new ResultPolicy(),
+        public RunPolicy $runPolicy = new RunPolicy(),
         public ?string $artifactsDirectory = null,
         public array $resourceLimits = [],
     ) {}
