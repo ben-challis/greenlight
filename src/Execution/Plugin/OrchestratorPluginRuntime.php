@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution\Plugin;
 
+use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Event\Event;
 use Greenlight\Event\EventSink;
 use Greenlight\IntegrationFixture\IntegrationFixtureDefinition;
@@ -12,6 +14,8 @@ use Greenlight\Plugin\IntegrationFixtureProvider;
 use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\RunLifecycleSubscriber;
+use Greenlight\Plugin\TestPlan;
+use Greenlight\Plugin\TestPlanTransformer;
 
 /**
  * Executes the plugin capabilities that one orchestrated run owns.
@@ -26,6 +30,7 @@ final readonly class OrchestratorPluginRuntime extends PluginRuntime implements 
     private const array CAPABILITIES = [
         IntegrationFixtureProvider::class,
         RunLifecycleSubscriber::class,
+        TestPlanTransformer::class,
     ];
 
     /**
@@ -38,10 +43,14 @@ final readonly class OrchestratorPluginRuntime extends PluginRuntime implements 
 
     /**
      * @param list<PluginDefinition> $definitions
+     * @param list<Plugin> $bundledPlugins
      */
-    public static function fromDefinitions(array $definitions, EventSink $inner): self
+    public static function fromDefinitions(array $definitions, EventSink $inner, array $bundledPlugins = []): self
     {
-        return new self(self::createOwned($definitions, self::CAPABILITIES), $inner);
+        return new self([
+            ...$bundledPlugins,
+            ...self::createOwned($definitions, self::CAPABILITIES),
+        ], $inner);
     }
 
     /**
@@ -73,6 +82,46 @@ final readonly class OrchestratorPluginRuntime extends PluginRuntime implements 
                 yield $definition;
             }
         }
+    }
+
+    /** @throws PluginRuntimeError */
+    public function transformTestPlan(ExecutionPlan $plan): ExecutionPlan
+    {
+        $publicPlan = TestPlan::create(\array_map(
+            static fn(PlanEntry $entry) => $entry->id,
+            $plan->entries,
+        ));
+
+        foreach ($this->ordered(TestPlanTransformer::class) as $transformer) {
+            try {
+                $replacement = $transformer->transformTestPlan($publicPlan);
+            } catch (\Throwable $failure) {
+                throw PluginRuntimeError::hookFailed($transformer::class, 'transformTestPlan', $failure);
+            }
+
+            $available = [];
+
+            foreach ($plan->entries as $entry) {
+                $available[(string) $entry->id] = $entry;
+            }
+
+            $entries = [];
+
+            foreach ($replacement->tests as $test) {
+                $entry = $available[(string) $test] ?? null;
+
+                if ($entry === null) {
+                    throw PluginRuntimeError::addedUnknownTest($transformer::class, $test);
+                }
+
+                $entries[] = $entry;
+            }
+
+            $plan = new ExecutionPlan($entries, $plan->seed);
+            $publicPlan = $replacement;
+        }
+
+        return $plan;
     }
 
     #[\Override]

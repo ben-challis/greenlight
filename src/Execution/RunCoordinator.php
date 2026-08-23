@@ -18,6 +18,7 @@ use Greenlight\Event\RunFinished;
 use Greenlight\Event\RunStarted;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Plugin\OrchestratorPluginRuntime;
+use Greenlight\Execution\Plugin\PluginRuntimeError;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\IntegrationFixture\IntegrationFixtureManager;
 use Greenlight\Reporting\ReportGenerationFailed;
@@ -56,11 +57,17 @@ final readonly class RunCoordinator
         $seed = $configuration->order->seed;
         $classSeconds = $configuration->order->isRandomized() ? [] : $classSeconds;
         $storage = StorageLayout::resolve($configuration->storage, $this->workingDirectory);
-        $plan = PlanOrder::schedule(
-            $this->sharded($this->discover($selection, $directories, $seed, $storage), $selection),
-            $priorityClasses,
-            $classSeconds,
+        $plan = $this->sharded($this->discover($selection, $directories, $seed, $storage), $selection);
+        $orchestratorPlugins = OrchestratorPluginRuntime::fromDefinitions(
+            $configuration->execution->plugins,
+            $sink,
+            [new PlanOrder($priorityClasses, $classSeconds)],
         );
+        try {
+            $plan = $orchestratorPlugins->transformTestPlan($plan);
+        } catch (PluginRuntimeError $failure) {
+            throw ExecutionFailed::plugin($failure);
+        }
         $topology = $execution->topology($plan, $classSeconds);
         $runId = \bin2hex(\random_bytes(8));
         $startedAt = \hrtime(true);
@@ -72,10 +79,6 @@ final readonly class RunCoordinator
         );
 
         try {
-            $orchestratorPlugins = OrchestratorPluginRuntime::fromDefinitions(
-                $configuration->execution->plugins,
-                $sink,
-            );
             $sink = $orchestratorPlugins;
 
             if (\count($plan) === 0) {

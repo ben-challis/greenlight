@@ -171,6 +171,49 @@ receive the event or finish signal from that callback.
 Shell completions suggest the built-in names. A configured name remains valid
 when it does not occur in the suggestions.
 
+### TestPlanTransformer
+
+Orchestrator-side.
+
+A `TestPlanTransformer` can remove selected tests or change their execution
+order. Greenlight applies these transformers after discovery, sharding, and
+its failed-first and longest-first ordering. It applies them before fixture
+provisioning, worker startup, or the `RunStarted` event.
+
+<!-- php-example {"example":"plugins-example-test-plan-transformer","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Config\GreenlightConfig;
+use Greenlight\Plugin\TestPlan;
+use Greenlight\Plugin\TestPlanTransformer;
+use Greenlight\Test\TestId;
+
+final class ExcludeSlowTests implements TestPlanTransformer
+{
+    public function transformTestPlan(TestPlan $plan): TestPlan
+    {
+        return $plan->withTests(array_values(array_filter(
+            $plan->tests,
+            static fn (TestId $test): bool => !str_ends_with($test->class, 'SlowTest'),
+        )));
+    }
+}
+
+return GreenlightConfig::create()
+    ->plugins(static fn(): ExcludeSlowTests => new ExcludeSlowTests());
+```
+
+`TestPlan::$tests` contains `TestId` values in execution order. Use
+`withTests()` to return a replacement. A transformer MAY remove tests and MAY
+reorder complete class blocks. It MUST NOT add tests, duplicate tests, or split
+one class across separate blocks. An invalid replacement or a transformer
+error stops the run.
+
+Transformers use normal plugin priority order. Greenlight runs its bundled
+ordering transformer first. Equal-priority configured transformers keep their
+configuration order. Repeat iterations and watch reruns get new plugin
+instances and new input plans. Listing and dry-run commands do not apply plan
+transformers.
+
 ### IntegrationFixtureProvider
 
 Orchestrator-side.

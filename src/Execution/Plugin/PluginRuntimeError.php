@@ -8,7 +8,7 @@ use Greenlight\Result\Outcome;
 use Greenlight\Test\TestId;
 
 /**
- * A worker plugin cannot complete a test lifecycle operation.
+ * A plugin cannot complete a runtime operation.
  *
  * @internal
  */
@@ -54,6 +54,16 @@ final class PluginRuntimeError extends \RuntimeException
             $plugin,
             $before->value,
             $after->value,
+        ));
+    }
+
+    /** @param class-string $plugin */
+    public static function addedUnknownTest(string $plugin, TestId $test): self
+    {
+        return new self(\sprintf(
+            'Plugin "%s" added unknown test "%s" during transformTestPlan(). A plan transformer MAY only remove or reorder selected tests.',
+            $plugin,
+            $test,
         ));
     }
 }
