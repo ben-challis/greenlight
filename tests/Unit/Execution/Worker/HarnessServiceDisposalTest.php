@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Execution\Worker;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Execution\Worker\HarnessServiceDisposal;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Execution\Worker\WorkerError;

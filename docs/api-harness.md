@@ -146,7 +146,7 @@ final readonly class ServiceResolution
 public static function unhandled(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L18)
 
 ### `resolved()`
 
@@ -154,7 +154,7 @@ public static function unhandled(): self
 public static function resolved(object $service): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L23)
 
 ### `failed()`
 
@@ -162,7 +162,7 @@ public static function resolved(object $service): self
 public static function failed(ServiceResolutionFailed $error): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L28)
 
 ### `isUnhandled()`
 
@@ -170,7 +170,7 @@ public static function failed(ServiceResolutionFailed $error): self
 public function isUnhandled(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L34)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L33)
 
 ### `isResolved()`
 
@@ -178,7 +178,7 @@ public function isUnhandled(): bool
 public function isResolved(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L39)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L38)
 
 ### `isFailed()`
 
@@ -186,7 +186,7 @@ public function isResolved(): bool
 public function isFailed(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L43)
 
 ### `service()`
 
@@ -194,7 +194,7 @@ public function isFailed(): bool
 public function service(): object
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L49)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L48)
 
 ### `error()`
 
@@ -202,7 +202,7 @@ public function service(): object
 public function error(): ServiceResolutionFailed
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L55)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L54)
 
 ### `value()`
 
@@ -214,7 +214,7 @@ PHPDoc:
 
 - `@throws ServiceResolutionFailed if the resolver failed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolution.php#L63)
 
 ## `ServiceResolutionFailed`
 

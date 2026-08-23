@@ -53,7 +53,11 @@ final class ScriptedWorkerTransport implements Fake, WorkerTransport
      *
      * @param list<list<Message>> $scripts
      */
-    public function __construct(private array $scripts, private readonly float $pollSeconds = 0.01) {}
+    public function __construct(
+        private array $scripts,
+        private readonly float $pollSeconds = 0.01,
+        private readonly ?ProtocolError $startFailure = null,
+    ) {}
 
     #[\Override]
     public function token(): string
@@ -70,6 +74,10 @@ final class ScriptedWorkerTransport implements Fake, WorkerTransport
     #[\Override]
     public function start(string $workerId, int $channelNumber): int
     {
+        if ($this->startFailure instanceof ProtocolError) {
+            throw $this->startFailure;
+        }
+
         $script = \array_shift($this->scripts);
 
         if (!\is_array($script)) {

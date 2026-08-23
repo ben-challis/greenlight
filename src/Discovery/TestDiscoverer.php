@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
+use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Test\DataSet\DataSetError;
+use Greenlight\Test\DataSet\DataSetExpander;
 use Greenlight\Test\TestSelection;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
@@ -54,7 +58,12 @@ final readonly class TestDiscoverer
             $unfiltered = $cache?->lookup($file);
 
             if ($unfiltered === null) {
-                $unfiltered = $this->entriesForFile($file);
+                try {
+                    $unfiltered = $this->entriesForFile($file);
+                } catch (DataSetError $error) {
+                    throw DiscoveryError::invalidDataSet($error);
+                }
+
                 $cache?->store($file, $unfiltered);
             }
 
@@ -114,6 +123,7 @@ final readonly class TestDiscoverer
      * @param non-empty-string $file
      *
      * @return list<PlanEntry>
+     * @throws DataSetError
      * @throws DiscoveryError
      */
     private function entriesForFile(string $file): array

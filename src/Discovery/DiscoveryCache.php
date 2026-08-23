@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
+use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Internal\Filesystem\AtomicFile;
 use Greenlight\Internal\Filesystem\AtomicFileError;
 use Greenlight\Internal\Php\ErrorTrap;

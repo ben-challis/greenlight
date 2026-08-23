@@ -29,12 +29,11 @@ use Greenlight\Event\EventSink;
 use Greenlight\Execution\Adapter\InProcessExecution;
 use Greenlight\Execution\Adapter\ProcessPoolExecution;
 use Greenlight\Execution\ExecutionAdapter;
-use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
+use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\RunCoordinator;
 use Greenlight\Execution\RunResult;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\Internal\Process\GracefulShutdown;
-use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\SummaryFormat;
@@ -65,7 +64,6 @@ final readonly class RunSession
      * @param array<string, float> $classSeconds
      * @throws CoverageError
      * @throws ReportGenerationFailed
-     * @throws WireCommunicationFailed
      */
     public function runAttempt(Reporter $reporter, array $priorityClasses, array $classSeconds): RunAttemptResult
     {
@@ -79,7 +77,6 @@ final readonly class RunSession
      * @param list<non-empty-string> $priorityClasses
      * @return list<non-empty-string>
      * @throws ReportGenerationFailed
-     * @throws WireCommunicationFailed
      */
     public function watchAttempt(Reporter $reporter, array $priorityClasses): array
     {
@@ -90,7 +87,7 @@ final readonly class RunSession
 
         try {
             $this->coordinate($reporter, $tap, $priorityClasses, $classSeconds, $workers, $coverageSettings);
-        } catch (AttachmentError|DiscoveryError|IntegrationFixtureError|ProtocolError $error) {
+        } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
             $reporter->finish();
             $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
 
@@ -119,7 +116,6 @@ final readonly class RunSession
      * @param array<string, float> $classSeconds
      * @throws CoverageError
      * @throws ReportGenerationFailed
-     * @throws WireCommunicationFailed
      */
     private function execute(Reporter $reporter, FailedTestsTap $failedTap, array $priorityClasses, array $classSeconds): int
     {
@@ -135,7 +131,7 @@ final readonly class RunSession
         try {
             try {
                 $run = $this->coordinate($reporter, $failedTap, $priorityClasses, $classSeconds, $workers, $coverageSettings);
-            } catch (AttachmentError|DiscoveryError|IntegrationFixtureError|ProtocolError $error) {
+            } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
                 $reporter->finish();
                 $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
                 $interruptExit = $this->shutdown->exitCode();
@@ -190,9 +186,8 @@ final readonly class RunSession
      * @throws AttachmentError
      * @throws DiscoveryError
      * @throws IntegrationFixtureError
-     * @throws ProtocolError
+     * @throws ExecutionFailed
      * @throws ReportGenerationFailed
-     * @throws WireCommunicationFailed
      */
     private function coordinate(Reporter $reporter, EventSink $sink, array $priorityClasses, array $classSeconds, int $workers, ?CoverageSettings $coverageSettings): RunResult
     {

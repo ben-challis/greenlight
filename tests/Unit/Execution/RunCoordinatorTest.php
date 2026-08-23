@@ -8,7 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Configuration\CliOverrides;
 use Greenlight\Cli\Configuration\ConfigurationResolver;
 use Greenlight\Config\GreenlightConfig;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Doubles\Fake;
 use Greenlight\Event\EventSink;
 use Greenlight\Event\RunFinished;
@@ -17,6 +17,7 @@ use Greenlight\Execution\Adapter\InProcessExecution;
 use Greenlight\Execution\Adapter\ProcessPoolExecution;
 use Greenlight\Execution\ExecutionAdapter;
 use Greenlight\Execution\ExecutionContext;
+use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\ExecutionOutcome;
 use Greenlight\Execution\ExecutionTopology;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
@@ -32,6 +33,7 @@ use Greenlight\Test\TestSelection;
 use Greenlight\Tests\Fixture\Plugins\RecordingRunSubscriber;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\FixturePath;
+use Greenlight\Tests\Support\ScriptedWorkerTransport;
 
 final readonly class RunCoordinatorTest
 {
@@ -106,6 +108,32 @@ final readonly class RunCoordinatorTest
             ->toContain('RunStarted')
             ->toContain('RunFinished');
         Expect::that($result->summary->passed)->toBe(7);
+    }
+
+    #[Test]
+    public function processPoolProtocolFailuresUseTheExecutionFailureSeam(): void
+    {
+        $configuration = GreenlightConfig::create()->build();
+        $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
+        $protocolFailure = ProtocolError::malformedFrame('scripted process-pool failure');
+
+        Expect::that(fn() => $this->coordinator()->run(
+            $resolved,
+            $resolved->selection,
+            [FixturePath::get('DiscoveryBasic')],
+            new CollectingEventSink(),
+            new ProcessPoolExecution(
+                [\PHP_BINARY, \dirname(__DIR__, 3) . '/bin/greenlight'],
+                $this->tempDirectory->path(),
+                2,
+                $resolved->workers,
+                transport: new ScriptedWorkerTransport([], startFailure: $protocolFailure),
+            ),
+        ))->toThrow(static function (ExecutionFailed $error) use ($protocolFailure): void {
+            Expect::that($error->getPrevious())
+                ->because('the execution failure MUST preserve the process protocol failure')
+                ->toBe($protocolFailure);
+        });
     }
 
     #[Test]
@@ -244,7 +272,7 @@ final readonly class RunCoordinatorTest
     }
 
     #[Test]
-    public function workerBootstrapFailuresUseTheWorkerFatalProtocolError(): void
+    public function workerBootstrapFailuresUseTheExecutionFailureSeam(): void
     {
         $this->environment->unset('GREENLIGHT_CHANNEL');
         $failure = new \RuntimeException('worker bootstrap exploded');
@@ -261,11 +289,11 @@ final readonly class RunCoordinatorTest
             new CollectingEventSink(),
             new InProcessExecution(),
         ))
-            ->because('in-process bootstrap failures MUST use the worker fatal protocol contract')
+            ->because('in-process bootstrap failures MUST use the execution failure contract')
             ->toThrow(
-                static function (ProtocolError $error) use ($failure): void {
+                static function (ExecutionFailed $error) use ($failure): void {
                     Expect::that($error->getMessage())->toBe(\sprintf(
-                        'Worker "in-process" reported a fatal Greenlight error: worker bootstrap exploded (%s:%d)',
+                        'Worker "in-process" reported a fatal Greenlight error: worker bootstrap exploded (%s:%d).',
                         $failure->getFile(),
                         $failure->getLine(),
                     ));

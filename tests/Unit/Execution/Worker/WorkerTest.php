@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Execution\Worker;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Execution\Worker\LeakDetector;

@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Execution\Worker;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Doubles\Fake;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Worker\Worker;

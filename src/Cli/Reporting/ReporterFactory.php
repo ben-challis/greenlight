@@ -17,7 +17,7 @@ use Greenlight\Reporting\JsonLinesReporter;
 use Greenlight\Reporting\JUnitReporter;
 use Greenlight\Reporting\Output;
 use Greenlight\Reporting\PlainReporter;
-use Greenlight\Reporting\ProfileReporter;
+use Greenlight\Reporting\Profile\ProfileReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReporterDefinition;
 use Greenlight\Reporting\RunHeader;

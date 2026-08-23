@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceLease;
 use Greenlight\Execution\ProcessPool\Orchestrator\SchedulingUnit;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerState;

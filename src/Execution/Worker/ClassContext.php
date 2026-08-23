@@ -6,8 +6,8 @@ namespace Greenlight\Execution\Worker;
 
 use Greenlight\Attribute\After;
 use Greenlight\Attribute\Before;
-use Greenlight\Discovery\DataSetExpander;
-use Greenlight\Discovery\DiscoveryError;
+use Greenlight\Test\DataSet\DataSetError;
+use Greenlight\Test\DataSet\DataSetExpander;
 
 /**
  * Contains the execution state for one test class. This state includes
@@ -87,7 +87,7 @@ final class ClassContext
      *
      * @return list<mixed>
      *
-     * @throws DiscoveryError
+     * @throws DataSetError
      * @throws WorkerError
      */
     public function argumentsFor(?string $provider, ?string $providerClass, string $testMethod, string $key): array

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Execution\ProcessPool\Protocol\Messages;
 
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Execution\Artifact\ArtifactSession;
 use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Internal\Wire\Wire;

@@ -12,7 +12,7 @@ use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Wire\InvalidWirePayload;
 use Greenlight\Internal\Wire\Wire;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
-use Greenlight\Reporting\ProfileAggregator;
+use Greenlight\Reporting\Profile\ProfileAggregator;
 use Greenlight\Reporting\Style;
 
 /**

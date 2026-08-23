@@ -12,7 +12,7 @@ responsibilities, interfaces, invariants, and machine-readable formats.
 ```mermaid
 flowchart LR
     config["greenlight.php<br/>GreenlightConfig"] --> cli["CLI and focused configuration resolution"]
-    tests["Test files<br/>attributes and data sets"] --> discovery["Discovery<br/>ExecutionPlan"]
+    tests["Test files<br/>attributes and data sets"] --> discovery["Discovery<br/>immutable plan"]
     cli --> coordinator["Run coordinator"]
     coordinator --> discovery
     discovery --> coordinator
@@ -57,7 +57,8 @@ public.
 | `Internal/Wire`, `Internal/Text`, `Internal/Process`, `Internal/Php` | Worker-protocol operations and focused internal utilities | Nothing |
 | `Internal/Filesystem` | Atomic file operations | `Internal/Php` |
 | `Artifact` | Attachment values and operations | `Internal/Wire` |
-| `Test` | Test definitions, policies, and cleanup controls | `Internal/Wire`, `Internal/Text` |
+| `Test` | Test definitions, data-provider values, policies, and cleanup controls | `Internal/Wire`, `Internal/Text` |
+| `Test/DataSet` | Shared data-set expansion and validation | `Attribute` and focused internal utilities |
 | `Condition` | Conditions that control test execution | `Internal/Process` |
 | `Result` | Test outcomes, diagnostics, and result values | `Artifact`, `Test`, `Internal/Wire`, `Internal/Text` |
 | `Event` | Events that describe the run lifecycle | `Result`, `Test`, `Internal/Wire` |
@@ -68,22 +69,23 @@ public.
 | `IntegrationFixture` | Fixture definitions, resources, provisioning, and cleanup | `Internal/Wire` |
 | `Plugin` | Extension interfaces and plugin capability groups | Public contracts, `IntegrationFixture`, and `Reporting` |
 | `Doubles`, `Sandbox` | Test-author tools that use harness scopes | Lower test-author modules |
-| `Discovery` | PHP declaration discovery and execution plans | Public contracts, internal utilities, `Attribute` |
-| `Capture` | Bounded output capture | Public contracts and internal utilities |
+| `Discovery` | PHP declaration discovery, metadata, and caching | Public contracts, `Discovery/Plan`, `Test/DataSet`, internal utilities, and `Attribute` |
+| `Discovery/Plan` | Immutable execution plans, ordering, and sharding | `Attribute`, `Test`, and `Internal/Wire` |
 | `Coverage` | Line-coverage values and errors | `Internal/Wire` |
 | `Coverage/Collection` | Coverage drivers and raw coverage collection | `Coverage` |
 | `Coverage/Diff` | Baseline coverage comparison | `Coverage` |
-| `Coverage/Export` | Coverage export formats | `Coverage`, `Internal/Wire`, and internal PHP utilities |
+| `Coverage/Export` | Coverage export formats | `Coverage`, `Internal/Text`, and internal PHP utilities |
 | `Coverage/Ignore` | Source ignore directives and filtering | `Coverage` and internal PHP utilities |
 | `Coverage/Relay` | Coverage transfer from child CLI processes | Coverage modules and internal PHP utilities |
 | `Reporting` | Event consumers and output formats | Public contracts and internal PHP utilities |
+| `Reporting/Profile` | Profile event aggregation and profile output | `Event` and `Reporting` |
 | `Execution/Artifact` | Private attachment staging, publication, recovery, quotas, and cleanup | Artifact, configuration, event, result, test, wire, and internal utilities |
 | `Execution/Plugin` | Orchestrator and worker plugin instances and event delivery | Plugin capability modules |
-| `Execution/Worker` | In-process test execution and worker-owned lifecycle | Test execution modules and execution artifacts |
+| `Execution/Worker` | In-process test execution, bounded output capture, and worker-owned lifecycle | Test execution modules and execution artifacts |
 | `Execution/ProcessPool/Protocol` | Internal worker messages, frames, and socket channels | Wire values and message payload modules |
 | `Execution/ProcessPool/Worker` | Hidden worker command and protocol event delivery | Worker, protocol, plugin, and coverage modules |
 | `Execution/ProcessPool/Orchestrator` | Process scheduling, resource capacity, containment, and transport | Protocol, worker, artifact, event, result, and coverage modules |
-| `Execution` and `Execution/Adapter` | Run coordination and the in-process and process-pool adapters | Execution implementation modules and engine modules |
+| `Execution` and `Execution/Adapter` | Run coordination and the in-process and process-pool adapters | Execution implementation modules and engine modules through one execution-failure seam |
 | `Cli` | Public command entry point and hidden worker routing | `Cli/Command`, `Cli/Output`, coverage relay, and worker execution |
 | `Cli/Input`, `Cli/Configuration` | Argument definition and configuration loading | Configuration values and focused internal utilities |
 | `Cli/Discovery` | Selection-plan discovery, sharding, and unmatched exclude-path diagnostics | `Cli/Configuration`, configuration values, and `Discovery` |

@@ -8,7 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Condition\EnvironmentVariableEquals;
 use Greenlight\Condition\PhpVersionAtLeast;
 use Greenlight\Discovery\DiscoveryError;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Test\TestDefinition;

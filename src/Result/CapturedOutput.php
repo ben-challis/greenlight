@@ -12,7 +12,8 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
  * When output is too long, Greenlight keeps the first part. This part usually
  * identifies the cause. The last part usually contains repeated information.
  *
- * Greenlight converts standard output to valid UTF-8 before it crosses the wire.
+ * Greenlight converts captured standard output to valid UTF-8 before it adds
+ * the output to a test result.
  */
 final readonly class CapturedOutput
 {
@@ -49,6 +50,9 @@ final readonly class CapturedOutput
 
     /**
      * @internal
+     *
+     * The worker protocol accepts only valid UTF-8 text. Scrub standard output
+     * when Greenlight encodes it for transport.
      *
      * @return array<string, mixed>
      */

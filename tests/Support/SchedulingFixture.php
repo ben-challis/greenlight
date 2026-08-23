@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Execution\ProcessPool\Orchestrator\DispatchKind;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceLease;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceScheduler;

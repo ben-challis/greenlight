@@ -118,17 +118,15 @@ const parsedTypes = [];
 for (const file of sourceFiles.filter((path) => path.endsWith('.php'))) {
   const source = await readFile(file, 'utf8');
   const sourceFile = relative(repositoryRoot, file);
-  let type;
+  let types;
 
   try {
-    type = parseType(source, sourceFile);
+    types = parseTypes(source, sourceFile);
   } catch (error) {
     throw new Error(`${sourceFile}: ${error.message}`, { cause: error });
   }
 
-  if (type !== undefined) {
-    parsedTypes.push(type);
-  }
+  parsedTypes.push(...types);
 }
 
 const typesByName = new Map(parsedTypes.map((type) => [type.name, type]));
@@ -257,11 +255,12 @@ async function filesBelow(directory) {
   return files;
 }
 
-function parseType(source, file) {
+function parseTypes(source, file) {
   const tokens = tokenize(source);
   const namespace = namespaceName(tokens);
+  const types = [];
   let depth = 0;
-  let declarationIndex = -1;
+  let boundaryIndex = -1;
 
   for (let index = 0; index < tokens.length; index += 1) {
     const token = tokens[index];
@@ -273,6 +272,16 @@ function parseType(source, file) {
 
     if (token.value === '}') {
       depth -= 1;
+
+      if (depth === 0) {
+        boundaryIndex = index;
+      }
+
+      continue;
+    }
+
+    if (depth === 0 && token.value === ';') {
+      boundaryIndex = index;
       continue;
     }
 
@@ -282,30 +291,28 @@ function parseType(source, file) {
       && ['class', 'interface', 'enum', 'trait'].includes(token.value)
       && tokens[index - 1]?.value !== '::'
     ) {
-      declarationIndex = index;
-      break;
+      types.push(parseTypeDeclaration(source, file, tokens, namespace, index, boundaryIndex));
     }
   }
 
-  if (declarationIndex === -1) {
-    return undefined;
-  }
+  return types;
+}
 
+function parseTypeDeclaration(source, file, tokens, namespace, declarationIndex, boundaryIndex) {
   const kind = tokens[declarationIndex].value;
-  const nameToken = tokens.slice(declarationIndex + 1).find((token) => token.kind === 'word');
-
-  if (nameToken === undefined) {
-    throw new Error(`${file}: The API parser cannot find the type name.`);
-  }
-
   const openIndex = tokens.findIndex((token, index) => index > declarationIndex && token.value === '{');
 
   if (openIndex === -1) {
     throw new Error(`${file}: The API parser cannot find the type body.`);
   }
 
+  const nameToken = tokens.slice(declarationIndex + 1, openIndex).find((token) => token.kind === 'word');
+
+  if (nameToken === undefined) {
+    throw new Error(`${file}: The API parser cannot find the type name.`);
+  }
+
   const closeIndex = matchingBrace(tokens, openIndex);
-  const boundaryIndex = previousTopLevelBoundary(tokens, declarationIndex);
   const declarationTokens = tokens.slice(boundaryIndex + 1, openIndex);
   const typeDoc = [...declarationTokens].reverse().find((token) => token.kind === 'doc');
   const signatureStart = firstSignatureToken(declarationTokens);
@@ -535,26 +542,6 @@ function namespaceName(tokens) {
   }
 
   return parts.join('');
-}
-
-function previousTopLevelBoundary(tokens, declarationIndex) {
-  let depth = 0;
-
-  for (let index = declarationIndex - 1; index >= 0; index -= 1) {
-    const token = tokens[index];
-
-    if (token.value === '}') {
-      depth += 1;
-    } else if (token.value === '{') {
-      depth -= 1;
-    }
-
-    if (depth === 0 && (token.value === ';' || token.value === '}')) {
-      return index;
-    }
-  }
-
-  return -1;
 }
 
 function firstSignatureToken(tokens) {

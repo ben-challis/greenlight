@@ -8,7 +8,6 @@ use Greenlight\Config\ExecutionConfiguration;
 use Greenlight\Config\StorageLayout;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\IntegrationFixture\ProvisionedIntegrationFixtures;
-use Greenlight\Plugin\PluginRegistry;
 
 /**
  * Supplies run-owned state to one execution adapter.
@@ -24,7 +23,6 @@ final readonly class ExecutionContext
         public ExecutionConfiguration $execution,
         public ArtifactStore $artifacts,
         public ProvisionedIntegrationFixtures $fixtures,
-        public PluginRegistry $orchestratorPlugins,
         public array $classSeconds,
         public StorageLayout $storage,
     ) {}

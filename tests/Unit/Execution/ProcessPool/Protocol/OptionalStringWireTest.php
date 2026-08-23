@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Protocol;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Bootstrap;
 use Greenlight\Expect\Expect;

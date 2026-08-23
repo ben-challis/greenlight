@@ -19,7 +19,6 @@ use Greenlight\Cli\Reporting\ReporterSetupFailed;
 use Greenlight\Cli\Signal\SignalHandlers;
 use Greenlight\Cli\State\RunState;
 use Greenlight\Cli\WorkerCapacity\CpuCores;
-use Greenlight\Cli\WorkerCapacity\WorkerExecutable;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\InvalidConfiguration;
@@ -27,7 +26,6 @@ use Greenlight\Config\StorageLayout;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Internal\Process\GracefulShutdown;
-use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\Style;
 
@@ -65,7 +63,6 @@ final readonly class RunCommand
     /**
      * @throws CoverageError
      * @throws ReportGenerationFailed
-     * @throws WireCommunicationFailed
      */
     public function run(ParsedArguments $arguments, string $workingDirectory, ?string $binPath): int
     {
@@ -75,7 +72,6 @@ final readonly class RunCommand
     /**
      * @throws CoverageError
      * @throws ReportGenerationFailed
-     * @throws WireCommunicationFailed
      */
     private function runCommand(ParsedArguments $arguments, string $workingDirectory, ?string $binPath = null): int
     {

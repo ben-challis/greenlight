@@ -8,6 +8,70 @@ import test from 'node:test';
 
 const script = resolve(dirname(fileURLToPath(import.meta.url)), 'generate-api-reference.mjs');
 
+test('each public top-level declaration appears in the reference', async () => {
+  const sourceRoot = await mkdtemp(resolve(tmpdir(), 'greenlight-api-reference-source-'));
+  const documentationRoot = await mkdtemp(resolve(tmpdir(), 'greenlight-api-reference-docs-'));
+
+  try {
+    await writeFile(resolve(sourceRoot, 'Events.php'), `<?php
+
+namespace Greenlight\\Event;
+
+final class FirstEvent {}
+
+final class SecondEvent {}
+`);
+
+    const result = spawnSync(process.execPath, [
+      script,
+      `--source-root=${sourceRoot}`,
+      `--documentation-root=${documentationRoot}`,
+    ], { encoding: 'utf8' });
+
+    assert.equal(result.status, 0, result.stderr);
+
+    const reference = await readFile(resolve(documentationRoot, 'api-events.md'), 'utf8');
+
+    assert.match(reference, /## `FirstEvent`/);
+    assert.match(reference, /## `SecondEvent`/);
+    assert.match(reference, /## `SecondEvent`[\s\S]*?```php\nfinal class SecondEvent\n```/);
+    assert.doesNotMatch(reference, /final class FirstEvent \{\}[\s\S]*?final class SecondEvent/);
+  } finally {
+    await rm(sourceRoot, { recursive: true, force: true });
+    await rm(documentationRoot, { recursive: true, force: true });
+  }
+});
+
+test('a secondary internal declaration cannot leak through a public type', async () => {
+  const sourceRoot = await mkdtemp(resolve(tmpdir(), 'greenlight-api-reference-'));
+
+  try {
+    await writeFile(resolve(sourceRoot, 'Types.php'), `<?php
+
+namespace Greenlight\\Event;
+
+final class PublicType
+{
+    public function leak(InternalType $value): void {}
+}
+
+/** @internal */
+final class InternalType {}
+`);
+
+    const result = spawnSync(process.execPath, [
+      script,
+      `--source-root=${sourceRoot}`,
+      '--validate-only',
+    ], { encoding: 'utf8' });
+
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /PublicType::leak\(\) signature references internal type "Greenlight\\Event\\InternalType"/);
+  } finally {
+    await rm(sourceRoot, { recursive: true, force: true });
+  }
+});
+
 test('public API validation rejects each internal type reference surface', async () => {
   const sourceRoot = await mkdtemp(resolve(tmpdir(), 'greenlight-api-reference-'));
 

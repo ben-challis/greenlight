@@ -14,7 +14,7 @@ use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\SuiteConfiguration;
 use Greenlight\Discovery\DiscoveryError;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 
 /**
  * Discovers and formats test, group, and suite listings.

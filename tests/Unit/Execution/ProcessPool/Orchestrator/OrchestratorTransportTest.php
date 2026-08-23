@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Discovery\ExecutionPlan;
-use Greenlight\Discovery\PlanEntry;
+use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\TestStarted;
 use Greenlight\Execution\ProcessPool\Orchestrator\Orchestrator;

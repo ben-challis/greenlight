@@ -11,6 +11,28 @@ use Greenlight\Reporting\ReportGenerationFailed;
 final class ReportGenerationFailedTest
 {
     #[Test]
+    public function createsACustomReporterFailure(): void
+    {
+        $previous = new \RuntimeException('Template error.');
+        $failure = ReportGenerationFailed::because(' the template is invalid ', $previous);
+
+        Expect::that($failure->getMessage())
+            ->toBe('The reporter did not generate output because the template is invalid.');
+        Expect::that($failure->getPrevious())
+            ->toBe($previous);
+    }
+
+    #[Test]
+    public function rejectsAnEmptyCustomReporterFailureReason(): void
+    {
+        Expect::that(static fn() => ReportGenerationFailed::because(" \n\t "))
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Report generation failure reason MUST NOT be empty.',
+            );
+    }
+
+    #[Test]
     public function reportsWriteFailureExactly(): void
     {
         Expect::that(ReportGenerationFailed::writeFailed()->getMessage())

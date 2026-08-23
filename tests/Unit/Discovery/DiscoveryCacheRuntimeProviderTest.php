@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
-use Greenlight\Discovery\PlanEntry;
+use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Expect\Expect;
 use Greenlight\Test\DataProvider;
 use Greenlight\Test\TestDefinition;

@@ -8,7 +8,7 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryError;
-use Greenlight\Discovery\ExecutionPlan;
+use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;

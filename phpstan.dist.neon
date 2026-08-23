@@ -13,7 +13,7 @@ parameters:
     tmpDir: build/cache/phpstan
     exceptions:
         checkedExceptionClasses:
-            - Greenlight\Capture\CaptureError
+            - Greenlight\Execution\Worker\CaptureError
             - Greenlight\Cli\Input\CliError
             - Greenlight\Config\ConfigFileError
             - Greenlight\Config\InvalidConfiguration
@@ -23,6 +23,7 @@ parameters:
             - Greenlight\Internal\Wire\WireCommunicationFailed
             - Greenlight\Coverage\CoverageError
             - Greenlight\Discovery\DiscoveryError
+            - Greenlight\Test\DataSet\DataSetError
             - Greenlight\Doubles\InvalidDoubleUsage
             - Greenlight\Expect\ExpectationFailed
             - Greenlight\Sandbox\TemporaryDirectoryError
@@ -30,6 +31,7 @@ parameters:
             - Greenlight\PhpStan\MatcherMapError
             - Greenlight\Reporting\ReportGenerationFailed
             - Greenlight\IntegrationFixture\IntegrationFixtureError
+            - Greenlight\Execution\ExecutionFailed
             - Greenlight\Execution\Worker\WorkerError
         check:
             missingCheckedExceptionInThrows: true
