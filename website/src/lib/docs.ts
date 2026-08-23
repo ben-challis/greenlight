@@ -32,6 +32,11 @@ export const docSections = [
         description: 'This guide explains how to reuse Greenlight run state between GitHub Actions runs.',
       },
       {
+        id: 'gitlab-ci',
+        title: 'GitLab CI/CD',
+        description: 'This guide explains how to publish Greenlight test results, attachments, and coverage in GitLab.',
+      },
+      {
         id: 'attributes',
         title: 'Attributes',
         description: 'This reference explains attributes for tests, hooks, data sets, and execution.',
