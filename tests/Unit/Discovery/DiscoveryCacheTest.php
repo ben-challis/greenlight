@@ -97,7 +97,7 @@ final readonly class DiscoveryCacheTest
                 ->because('an invalid cache document becomes a cache miss')
                 ->toBe(2);
             Expect::that($rewritten)
-                ->toContain('"version":4')
+                ->toContain('"version":5')
                 ->toContain($className . '.php');
         } finally {
             @\unlink($cacheFile);
@@ -113,9 +113,9 @@ final readonly class DiscoveryCacheTest
     {
         yield 'scalar document' => ['null'];
         yield 'wrong version' => ['{"version":3,"files":{}}'];
-        yield 'files is not a map' => ['{"version":4,"files":"invalid"}'];
-        yield 'file path is not a string' => ['{"version":4,"files":{"0":{}}}'];
-        yield 'file entry is not a map' => ['{"version":4,"files":{"/project/Test.php":"invalid"}}'];
+        yield 'files is not a map' => ['{"version":5,"files":"invalid"}'];
+        yield 'file path is not a string' => ['{"version":5,"files":{"0":{}}}'];
+        yield 'file entry is not a map' => ['{"version":5,"files":{"/project/Test.php":"invalid"}}'];
     }
 
     #[Test]
@@ -149,7 +149,7 @@ final readonly class DiscoveryCacheTest
                 ->toBeInt();
 
             \file_put_contents($cacheFile, \json_encode([
-                'version' => 4,
+                'version' => 5,
                 'files' => [
                     $source => [
                         'mtime' => $mtime,

@@ -33,6 +33,7 @@ final readonly class CliOverrides
         public array $suiteTags = [],
         public ?int $seed = null,
         public RepeatConfiguration $repeat = new RepeatConfiguration(),
+        public CoverageOverrides $coverage = new CoverageOverrides(),
     ) {}
 
     /**
@@ -164,6 +165,23 @@ final readonly class CliOverrides
             $seed = $parsed;
         }
 
+        $coverageIncludes = self::nonEmptyValues($arguments, 'coverage-include');
+        $coverageMap = null;
+
+        if ($arguments->has('coverage-map')) {
+            $value = $arguments->value('coverage-map');
+
+            if ($value === null || $value === '') {
+                throw CliError::optionRequiresValue('coverage-map');
+            }
+
+            $coverageMap = $value;
+        }
+
+        if ($arguments->has('no-coverage') && ($coverageMap !== null || $coverageIncludes !== [])) {
+            throw CliError::coverageOptionsConflict();
+        }
+
         return new self(
             execution: new ExecutionOverrides(
                 workers: $workers,
@@ -189,6 +207,7 @@ final readonly class CliOverrides
             suiteTags: self::nonEmptyValues($arguments, 'suite-tag'),
             seed: $seed,
             repeat: new RepeatConfiguration($repeat, $repeatUntilFailure),
+            coverage: new CoverageOverrides($coverageIncludes, $coverageMap, $arguments->has('no-coverage')),
         );
     }
 

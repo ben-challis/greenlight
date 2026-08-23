@@ -96,6 +96,12 @@ final readonly class RunCommand
             return self::EXIT_USAGE;
         }
 
+        if ($arguments->has('watch') && $resolved->coverage?->perTestTarget !== null) {
+            $this->printError('Per-test coverage is not available in watch mode.', $arguments->has('no-ansi'));
+
+            return self::EXIT_USAGE;
+        }
+
         if ($arguments->has('dry-run')) {
             ($this->out)(PlanFormatter::format($resolved, $configFile, $workingDirectory));
 

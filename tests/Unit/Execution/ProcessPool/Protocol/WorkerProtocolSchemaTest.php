@@ -21,6 +21,7 @@ use Greenlight\Execution\ProcessPool\Protocol\MessageRegistry;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Bootstrap;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\CoverageChunk;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
@@ -113,10 +114,10 @@ final class WorkerProtocolSchemaTest
             ['data', 'result', 'attachments'],
         ]);
 
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'assign', 'p' => $assignPayload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 4, 't' => 'assign', 'p' => $assignPayload])))
             ->because('the schema MUST accept compatible assignment payloads')
             ->toBe([]);
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'event', 'p' => $eventPayload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 4, 't' => 'event', 'p' => $eventPayload])))
             ->because('the schema MUST accept compatible test result payloads')
             ->toBe([]);
     }
@@ -127,7 +128,7 @@ final class WorkerProtocolSchemaTest
         $payload = $this->messages()['assign']->toWire();
         $payload['futureProtocolField'] = true;
 
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'assign', 'p' => $payload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 4, 't' => 'assign', 'p' => $payload])))
             ->because('a protocol change MUST update the schema')
             ->not()
             ->toBe([]);
@@ -223,21 +224,23 @@ final class WorkerProtocolSchemaTest
                 new ExecutionPlan([$entry], 17),
                 ['/project/src'],
                 'pcov',
-                true,
-                new ResultPolicy(
+                coveragePerTest: true,
+                detectLeaks: true,
+                policy: new ResultPolicy(
                     failOnDeprecation: true,
                     failOnNotice: true,
                     failOnWarning: true,
                     ignoreDeprecations: ['known deprecation*'],
                     failOnRisky: true,
                 ),
-                new ArtifactSession('/tmp/greenlight-staging', 'build/greenlight-artifacts/run-1'),
-                new ArtifactConfiguration(maxRunAttachments: 100),
+                artifactSession: new ArtifactSession('/tmp/greenlight-staging', 'build/greenlight-artifacts/run-1'),
+                artifactConfiguration: new ArtifactConfiguration(maxRunAttachments: 100),
                 stopAfterFailures: 3,
             ),
             'drain' => new Drain(),
             'event' => new EventEnvelope(new TestFinished($result, 1_780_000_000.5)),
             'attempt-started' => new AttemptStarted($id, 2),
+            'coverage' => new CoverageChunk($id, '/project/src/Example.php', [2, 3]),
             'done' => new Done(
                 new ResultSummary(passed: 2, failed: 1),
                 123_456,
@@ -390,7 +393,7 @@ final class WorkerProtocolSchemaTest
 
     private function schemaPath(): string
     {
-        return \dirname(__DIR__, 5) . '/resources/schema/worker-protocol-v3.schema.json';
+        return \dirname(__DIR__, 5) . '/resources/schema/worker-protocol-v4.schema.json';
     }
 
     /**

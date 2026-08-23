@@ -72,6 +72,7 @@ public.
 | `Discovery` | PHP declaration discovery, metadata, and caching | Public contracts, `Discovery/Plan`, `Test/DataSet`, internal utilities, and `Attribute` |
 | `Discovery/Plan` | Immutable execution plans, ordering, and sharding | `Attribute`, `Test`, and `Internal/Wire` |
 | `Coverage` | Line-coverage values and errors | `Internal/Wire` |
+| `Coverage/Attribution` | Per-test coverage spooling and versioned export | `Coverage`, `Discovery/Plan`, `Test`, and internal utilities |
 | `Coverage/Collection` | Coverage drivers and raw coverage collection | `Coverage` |
 | `Coverage/Diff` | Baseline coverage comparison | `Coverage` |
 | `Coverage/Export` | Coverage export formats | `Coverage`, `Internal/Text`, and internal PHP utilities |
@@ -176,8 +177,9 @@ JSONL reporter, and `profile:report` use this codec through their own seams.
 - [Artifact storage](artifacts.md)
 - [JSONL reporter schema](jsonl.md)
 - [Coverage JSON schema](coverage-json.md)
+- [Per-test coverage JSONL schema](test-coverage-jsonl.md)
 - [Temporal expectations](temporal-expectations.md)
-- [Infection support decision](mutation-testing.md)
+- [Infection support](mutation-testing.md)
 - [Code conventions](conventions.md)
 - [Documentation PHP examples](documentation-php-examples.md)
 

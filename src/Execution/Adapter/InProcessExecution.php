@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution\Adapter;
 
+use Greenlight\Coverage\Attribution\CollectingTestCoverageSink;
 use Greenlight\Coverage\Collection\CoverageCollector;
 use Greenlight\Coverage\Collection\CoverageSettings;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\EventSink;
 use Greenlight\Execution\Artifact\PublishingEventSink;
@@ -47,7 +49,10 @@ final readonly class InProcessExecution implements ExecutionAdapter
         return new ExecutionTopology(1, 1);
     }
 
-    /** @throws ExecutionFailed */
+    /**
+     * @throws CoverageError
+     * @throws ExecutionFailed
+     */
     #[\Override]
     public function execute(
         ExecutionPlan $plan,
@@ -90,11 +95,25 @@ final readonly class InProcessExecution implements ExecutionAdapter
                 );
             }
 
+            $coverageUnavailable = null;
             $collector = $this->coverageSettings instanceof CoverageSettings
-                ? CoverageCollector::create($this->coverageSettings)
+                ? CoverageCollector::create($this->coverageSettings, static function (string $reason) use (&$coverageUnavailable): void {
+                    $coverageUnavailable = $reason;
+                })
+                : null;
+
+            if ($this->coverageSettings?->perTest === true && !$collector instanceof CoverageCollector) {
+                throw CoverageError::requiredDriverUnavailable($coverageUnavailable ?? 'no coverage driver is available');
+            }
+
+            $testCoverage = $this->coverageSettings?->perTest === true
+                ? new CollectingTestCoverageSink($context->testCoverageStore)
                 : null;
             $collectingCoverage = $collector instanceof CoverageCollector;
-            $collector?->start();
+
+            if ($this->coverageSettings?->perTest !== true) {
+                $collector?->start();
+            }
 
             try {
                 try {
@@ -113,6 +132,8 @@ final readonly class InProcessExecution implements ExecutionAdapter
                             $execution->stopAfterFailures,
                             $this->shutdown instanceof GracefulShutdown ? $this->shutdown->requested(...) : null,
                             $scopes,
+                            perTestCoverage: $this->coverageSettings?->perTest === true ? $collector : null,
+                            testCoverageSink: $testCoverage,
                         ),
                     ));
                 } catch (WorkerError $failure) {
@@ -128,7 +149,9 @@ final readonly class InProcessExecution implements ExecutionAdapter
                 }
 
                 $collectingCoverage = false;
-                $coverage = $collector?->stop();
+                $coverage = $this->coverageSettings?->perTest === true
+                    ? $testCoverage?->coverage()
+                    : $collector?->stop();
             } catch (\Throwable $failure) {
                 if ($collectingCoverage) {
                     try {

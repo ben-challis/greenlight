@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Config\ArtifactConfiguration;
+use Greenlight\Coverage\Attribution\TestCoverageStore;
 use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\IntegrationFixture\ProvisionedIntegrationFixtures;
@@ -42,5 +43,6 @@ final readonly class OrchestratorConfiguration
         public InitialWorkerAssignment $initialWorkerAssignment = InitialWorkerAssignment::Progressive,
         public ?string $generatedCodeDirectory = null,
         public ?string $temporaryDirectory = null,
+        public ?TestCoverageStore $testCoverageStore = null,
     ) {}
 }

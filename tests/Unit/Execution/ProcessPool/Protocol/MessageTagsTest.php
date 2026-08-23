@@ -10,6 +10,7 @@ use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\MessageRegistry;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\CoverageChunk;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
@@ -42,6 +43,7 @@ final class MessageTagsTest
         yield 'drain' => [Drain::class, 'drain'];
         yield 'event' => [EventEnvelope::class, 'event'];
         yield 'attempt started' => [AttemptStarted::class, 'attempt-started'];
+        yield 'coverage' => [CoverageChunk::class, 'coverage'];
         yield 'done' => [Done::class, 'done'];
         yield 'fatal' => [Fatal::class, 'fatal'];
     }
@@ -52,7 +54,7 @@ final class MessageTagsTest
         Expect::that(MessageRegistry::envelope(new Drain()))
             ->because('the published worker-protocol envelope MUST remain compatible')
             ->toBe([
-                'v' => 3,
+                'v' => 4,
                 't' => 'drain',
                 'p' => [],
             ]);

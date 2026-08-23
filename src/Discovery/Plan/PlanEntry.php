@@ -21,6 +21,7 @@ final readonly class PlanEntry
     public function __construct(
         public TestDefinition $definition,
         public ?string $dataSetKey = null,
+        public string $sourceFile = '',
     ) {
         $this->id = new TestId($definition->class, $definition->method, $dataSetKey);
     }
@@ -31,6 +32,7 @@ final readonly class PlanEntry
         return [
             'definition' => $this->definition->toWire(),
             'dataSetKey' => $this->dataSetKey,
+            'sourceFile' => $this->sourceFile,
         ];
     }
 
@@ -43,6 +45,7 @@ final readonly class PlanEntry
         return new self(
             TestDefinition::fromWire(Wire::map($payload, 'definition')),
             Wire::nullableString($payload, 'dataSetKey'),
+            \array_key_exists('sourceFile', $payload) ? Wire::string($payload, 'sourceFile') : '',
         );
     }
 }

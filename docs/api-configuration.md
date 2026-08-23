@@ -119,7 +119,7 @@ PHPDoc:
 - `@param non-empty-string ...$paths`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L35)
 
 ### `driver()`
 
@@ -132,7 +132,7 @@ PHPDoc:
 - `@param non-empty-string $driver`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L56)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L61)
 
 ### `export()`
 
@@ -146,7 +146,22 @@ PHPDoc:
 - `@param non-empty-string $target`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L73)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L78)
+
+### `perTest()`
+
+Writes a versioned map of the source lines that each test covers.
+
+```php
+public function perTest(string $target): self
+```
+
+PHPDoc:
+
+- `@param non-empty-string $target`
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L100)
 
 ## `GreenlightConfig`
 

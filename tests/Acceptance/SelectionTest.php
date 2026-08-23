@@ -84,7 +84,31 @@ final readonly class SelectionTest
         );
 
         Expect::that($result->exitCode)->because('test ID selects only an exact ID')->toBe(1);
-        Expect::that($result->output())->because('test ID selects only an exact ID')->toContain('Greenlight found no tests');
+        Expect::that($result->output())->because('test ID selects only an exact ID')->toContain('did not find the requested exact test ID');
+    }
+
+    #[Test]
+    public function testIdFileSelectsDeduplicatedExactIdsAndRejectsStaleIds(): void
+    {
+        $project = $this->writeProject();
+        $project->writeFile(
+            'exact-tests.txt',
+            "\nSelectionProbe\\SelectionProbeTest::alsoPasses\nSelectionProbe\\SelectionProbeTest::alsoPasses\n",
+        );
+
+        $result = $this->run($project, '--test-id-file=exact-tests.txt');
+
+        Expect::that($result->exitCode)->because('the exact test ID file selects one known test')->toBe(0);
+        Expect::that($this->sortedFinishedTestIds($result))->toBe([
+            'SelectionProbe\SelectionProbeTest::alsoPasses',
+        ]);
+
+        $project->writeFile('exact-tests.txt', "SelectionProbe\\SelectionProbeTest::removed\n");
+        $result = $this->run($project, '--test-id-file=exact-tests.txt');
+
+        Expect::that($result->exitCode)->because('a stale exact test ID MUST fail discovery')->toBe(1);
+        Expect::that($result->output())->toContain('did not find the requested exact test ID')
+            ->toContain('SelectionProbe\SelectionProbeTest::removed');
     }
 
     #[Test]

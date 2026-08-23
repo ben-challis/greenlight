@@ -28,6 +28,7 @@ final class PlanFormatterTest
                 ->coverage(static fn(CoverageBuilder $coverage) => $coverage
                     ->include('src')
                     ->driver('xdebug')
+                    ->perTest('build/test-coverage.jsonl')
                     ->export('json', 'build/coverage.json'))
                 ->build(),
             new CliOverrides(),
@@ -55,7 +56,7 @@ final class PlanFormatterTest
                   storage temporary: {$temporary}
                   coverage include paths: src
                   coverage driver: xdebug
-                  coverage exports: json -> build/coverage.json
+                  coverage exports: json -> build/coverage.json, per-test -> build/test-coverage.jsonl
 
                 PLAN,
         );

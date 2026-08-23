@@ -1,13 +1,13 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/worker-protocol-v3.schema.json",
-    "title": "Greenlight worker protocol envelope (version 3)",
+    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/worker-protocol-v4.schema.json",
+    "title": "Greenlight worker protocol envelope (version 4)",
     "description": "The JSON body of one length-prefixed worker protocol frame.",
     "type": "object",
     "additionalProperties": false,
     "required": ["v", "t", "p"],
     "properties": {
-        "v": {"enum": [3]},
+        "v": {"enum": [4]},
         "t": {"type": "string", "minLength": 1},
         "p": {"type": ["object", "array"]}
     },
@@ -52,6 +52,12 @@
             "properties": {
                 "t": {"enum": ["attempt-started"]},
                 "p": {"$ref": "#/definitions/attemptStarted"}
+            }
+        },
+        {
+            "properties": {
+                "t": {"enum": ["coverage"]},
+                "p": {"$ref": "#/definitions/coverageChunk"}
             }
         },
         {
@@ -165,6 +171,7 @@
                 "slice",
                 "coverageInclude",
                 "coverageDriver",
+                "coveragePerTest",
                 "detectLeaks",
                 "policy"
             ],
@@ -180,6 +187,7 @@
                     ]
                 },
                 "coverageDriver": {"type": ["string", "null"], "minLength": 1},
+                "coveragePerTest": {"type": "boolean"},
                 "detectLeaks": {"type": "boolean"},
                 "policy": {
                     "oneOf": [
@@ -220,10 +228,11 @@
         "planEntry": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["definition", "dataSetKey"],
+            "required": ["definition", "dataSetKey", "sourceFile"],
             "properties": {
                 "definition": {"$ref": "#/definitions/testDefinition"},
-                "dataSetKey": {"type": ["string", "null"]}
+                "dataSetKey": {"type": ["string", "null"]},
+                "sourceFile": {"type": "string"}
             }
         },
         "testDefinition": {
@@ -358,6 +367,20 @@
             "properties": {
                 "id": {"$ref": "#/definitions/testId"},
                 "attempt": {"type": "integer", "minimum": 1}
+            }
+        },
+        "coverageChunk": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["test", "file", "lines"],
+            "properties": {
+                "test": {"$ref": "#/definitions/testId"},
+                "file": {"type": "string", "minLength": 1},
+                "lines": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {"type": "integer", "minimum": 1}
+                }
             }
         },
         "done": {

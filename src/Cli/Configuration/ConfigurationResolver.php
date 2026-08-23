@@ -6,6 +6,7 @@ namespace Greenlight\Cli\Configuration;
 
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Config\Configuration;
+use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\ExecutionConfiguration;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\WorkerConfiguration;
@@ -39,6 +40,30 @@ final class ConfigurationResolver
             $artifacts = $artifacts->withDirectory($executionOverrides->artifactsDirectory);
         }
 
+        $coverageOverrides = $overrides->coverage;
+        $coverage = $configuration->coverage;
+        $configuredIncludes = $coverage instanceof CoverageConfiguration ? $coverage->includePaths : [];
+        $configuredDriver = $coverage instanceof CoverageConfiguration ? $coverage->driver : null;
+        $configuredExports = $coverage instanceof CoverageConfiguration ? $coverage->exports : [];
+        $configuredPerTestTarget = $coverage instanceof CoverageConfiguration ? $coverage->perTestTarget : null;
+
+        if ($coverageOverrides->disabled) {
+            $coverage = null;
+        } elseif ($coverage instanceof CoverageConfiguration
+            || $coverageOverrides->includePaths !== []
+            || $coverageOverrides->perTestTarget !== null
+        ) {
+            $coverage = new CoverageConfiguration(
+                [
+                    ...$configuredIncludes,
+                    ...$coverageOverrides->includePaths,
+                ],
+                $configuredDriver,
+                $configuredExports,
+                $coverageOverrides->perTestTarget ?? $configuredPerTestTarget,
+            );
+        }
+
         return new ResolvedConfiguration(
             discovery: $configuration->discovery,
             suiteSelection: SuiteSelectionResolver::resolve(
@@ -67,7 +92,7 @@ final class ConfigurationResolver
             ),
             order: $configuration->order->resolve($overrides->seed),
             selection: $overrides->selection,
-            coverage: $configuration->coverage,
+            coverage: $coverage,
             watch: $configuration->watch,
             storage: $configuration->storage,
         );

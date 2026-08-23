@@ -41,7 +41,17 @@ final class CoverageSession
 
         try {
             if ($collectProcess) {
-                $session->collector = CoverageCollector::create($settings);
+                $unavailable = null;
+                $session->collector = CoverageCollector::create(
+                    $settings,
+                    static function (string $reason) use (&$unavailable): void {
+                        $unavailable = $reason;
+                    },
+                );
+
+                if ($settings->perTest && !$session->collector instanceof CoverageCollector) {
+                    throw CoverageError::requiredDriverUnavailable($unavailable ?? 'no coverage driver is available');
+                }
 
                 if ($session->collector instanceof CoverageCollector) {
                     $session->collector->start();
