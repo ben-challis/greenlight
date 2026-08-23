@@ -4,17 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-/** Runs PHP test processes with the required isolated configuration. */
+/** Runs PHP test processes through the shared process support. */
 final readonly class PhpSubprocess
 {
-    /** @var array<string, string> */
-    private const array ENVIRONMENT = [
-        'DD_TRACE_ENABLED' => '0',
-        'DD_TRACE_CLI_ENABLED' => '0',
-        'DD_TRACE_STARTUP_LOGS' => '0',
-        'DD_INSTRUMENTATION_TELEMETRY_ENABLED' => '0',
-    ];
-
     private function __construct() {}
 
     /**
@@ -33,7 +25,7 @@ final readonly class PhpSubprocess
         return Subprocess::run(
             $workingDirectory,
             self::command($arguments, $phpArguments),
-            [...$environment, ...self::ENVIRONMENT],
+            $environment,
         );
     }
 
@@ -53,7 +45,7 @@ final readonly class PhpSubprocess
         return Subprocess::start(
             $workingDirectory,
             self::command($arguments, $phpArguments),
-            [...$environment, ...self::ENVIRONMENT],
+            $environment,
         );
     }
 
@@ -70,8 +62,6 @@ final readonly class PhpSubprocess
         return [
             \PHP_BINARY,
             ...$phpArguments,
-            '-d',
-            'ddtrace.disable=1',
             ...$arguments,
         ];
     }
