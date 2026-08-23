@@ -6,15 +6,21 @@ namespace Greenlight\Tests\Unit\Execution\Worker;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Execution\Worker\DefaultServices;
+use Greenlight\Execution\Worker\StandardHarnessPlugin;
 use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Test\TestChannel;
 
-final readonly class DefaultServicesTest
+final readonly class StandardHarnessPluginTest
 {
     public function __construct(private EnvironmentVariables $environment) {}
+
+    #[Test]
+    public function standardServicesStayBeforeUserPluginServices(): void
+    {
+        Expect::that(new StandardHarnessPlugin()->priority())->toBe(\PHP_INT_MIN);
+    }
 
     #[Test]
     #[DataSet('channelEnvironmentValues')]
@@ -26,14 +32,29 @@ final readonly class DefaultServicesTest
             $this->environment->set('GREENLIGHT_CHANNEL', $raw);
         }
 
-        $scopes = new HarnessScopes(DefaultServices::definitions());
+        $scopes = new HarnessScopes(new StandardHarnessPlugin()->services());
 
         try {
             $channel = $scopes->resolve(TestChannel::class, self::class);
 
             Expect::that($channel->number)
-                ->because('the default channel service MUST always use a positive number')
+                ->because('the standard channel service MUST always use a positive number')
                 ->toBe($expected);
+        } finally {
+            $scopes->closeWorker();
+        }
+    }
+
+    #[Test]
+    public function anExplicitWorkerChannelOverridesTheProcessEnvironment(): void
+    {
+        $this->environment->set('GREENLIGHT_CHANNEL', '2');
+        $scopes = new HarnessScopes(new StandardHarnessPlugin(channel: new TestChannel(3))->services());
+
+        try {
+            $channel = $scopes->resolve(TestChannel::class, self::class);
+
+            Expect::that($channel->number)->toBe(3);
         } finally {
             $scopes->closeWorker();
         }
