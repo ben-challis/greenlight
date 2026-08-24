@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Cli\Watch;
 
 use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Plugin\WatchSource;
 
 /**
  * A portable file change detector.
@@ -17,7 +18,7 @@ use Greenlight\Internal\Php\ErrorTrap;
  *
  * @internal
  */
-final class StatChangeDetector implements ChangeDetector
+final class StatChangeDetector implements WatchSource
 {
     /**
      * @var array<string, string>|null path to fingerprint

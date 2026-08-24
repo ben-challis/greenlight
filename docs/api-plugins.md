@@ -288,7 +288,7 @@ Plugins implement one or more capability interfaces such as
 `WorkerRuntimeRunner`, `TestAttemptRunner`, `BeforeTestSubscriber`,
 `AfterTestSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
 `CommandProvider`, `CoverageMapTransformer`, `HarnessProvider`, `ReporterProvider`,
-`TerminalResultTransformer`, `TestPlanTransformer`, or
+`TerminalResultTransformer`, `TestPlanTransformer`, `WatchSource`, or
 `ExpectationExtension`.
 
 ```php
@@ -591,6 +591,30 @@ public function transformTestPlan(TestPlan $plan): TestPlan;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlanTransformer.php#L10)
+
+## `WatchSource`
+
+Namespace: `Greenlight\Plugin`
+
+Reports changes that cause a watch-mode rerun.
+
+```php
+interface WatchSource extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WatchSource.php#L8)
+
+### `poll()`
+
+```php
+public function poll(): array;
+```
+
+PHPDoc:
+
+- `@return list<non-empty-string> changed paths or trigger labels since the previous poll`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WatchSource.php#L13)
 
 ## `WorkerBootstrapContext`
 
