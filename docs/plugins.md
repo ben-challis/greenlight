@@ -22,10 +22,11 @@ return GreenlightConfig::create()
 
 Greenlight creates plugin instances only for an owner that uses one of their
 capabilities. It creates one command-owned instance for each factory that
-has `CommandProvider` or `ReporterProvider`. Command dispatch and reporter
-setup own separate instances. It creates one run-owned orchestrator instance
-for each factory that has a run capability. It creates one worker instance for
-each factory that has a worker capability and for each physical worker.
+has `CommandProvider`, `ReporterProvider`, or `WatchSource`. Command dispatch,
+reporter setup, and watch polling own separate instances. It creates one
+run-owned orchestrator instance for each factory that has a run capability. It
+creates one worker instance for each factory that has a worker capability and
+for each physical worker.
 
 A plugin that has capabilities on both sides gets one instance on each side.
 The instances are separate with one in-process worker and with parallel
@@ -100,6 +101,28 @@ Built-in and configured names share one registry. A duplicate name stops
 command dispatch. Greenlight creates the provider only when it resolves a
 configured command. Configured commands do not change the bundled help text or
 completion scripts.
+
+### WatchSource
+
+Command-side.
+
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
+```php
+public function poll(): array;
+```
+
+A `WatchSource` reports changed paths or trigger labels that cause a watch-mode
+rerun. Greenlight polls configured sources with its built-in PHP file source.
+Return an empty list when no change occurred. Greenlight removes duplicate
+strings before it notifies the watch loop.
+
+The source instance belongs to one `--watch` command. It can keep a snapshot or
+cursor between polls. Its first poll SHOULD establish the initial state and
+return an empty list. A source can poll an external change feed, a generated
+file index, or another application-specific signal.
+
+If source creation or polling fails, Greenlight names the plugin, stops watch
+mode, restores terminal input, and returns exit code 1.
 
 ### ReporterProvider
 
@@ -787,6 +810,7 @@ Priority applies to these capabilities:
 * `AfterTestSubscriber`
 * `RetryDecider`
 * `TerminalResultTransformer`
+* `WatchSource`
 * `RunLifecycleSubscriber`
 * `HarnessProvider`
 * `ServiceResolver`
@@ -807,6 +831,6 @@ implement both capabilities run their callbacks in the exact reverse order.
 Greenlight runs all after-test subscribers. It also runs them when a
 before-test subscriber stops the attempt.
 
-Greenlight reports all plugin failures. A worker-side failure causes an error
-for the affected test and names the plugin. An orchestrator-side failure causes
-the run to fail.
+Greenlight reports all plugin failures. A command-side failure stops the
+command. A worker-side failure causes an error for the affected test and names
+the plugin. An orchestrator-side failure causes the run to fail.
