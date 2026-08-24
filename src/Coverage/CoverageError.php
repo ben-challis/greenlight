@@ -41,6 +41,16 @@ final class CoverageError extends \RuntimeException
         return new self(\sprintf('Per-test coverage requires an available coverage driver: %s.', $reason));
     }
 
+    public static function branchCoverageUnavailable(string $reason): self
+    {
+        return new self(\sprintf('Branch coverage requires Xdebug branch support: %s', $reason));
+    }
+
+    public static function branchCoverageRequiresXdebug(): self
+    {
+        return new self('Branch coverage requires the Xdebug coverage driver. Remove driver("pcov") or select driver("xdebug").');
+    }
+
     public static function artifactWriteFailed(string $path, ?string $cause = null): self
     {
         return new self(\sprintf(

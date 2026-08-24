@@ -6,6 +6,7 @@ namespace Greenlight\Cli\Coverage;
 
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Coverage\Collection\CoverageSettings;
+use Greenlight\Coverage\Collection\Driver\XdebugDriver;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Internal\Php\ErrorTrap;
 
@@ -44,6 +45,23 @@ final class CoverageSettingsResolver
             throw CoverageError::perTestIncludeRequired();
         }
 
-        return new CoverageSettings($include, $configuration->driver, $configuration->perTestTarget !== null);
+        if ($configuration->requiresBranchCoverage()) {
+            if ($configuration->driver !== null && $configuration->driver !== 'xdebug') {
+                throw CoverageError::branchCoverageRequiresXdebug();
+            }
+
+            if (!XdebugDriver::isBranchCoverageAvailable()) {
+                throw CoverageError::branchCoverageUnavailable(
+                    'Enable Xdebug coverage mode and use a version that defines XDEBUG_CC_BRANCH_CHECK.',
+                );
+            }
+        }
+
+        return new CoverageSettings(
+            $include,
+            $configuration->driver,
+            $configuration->perTestTarget !== null,
+            $configuration->requiresBranchCoverage(),
+        );
     }
 }

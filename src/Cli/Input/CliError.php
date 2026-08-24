@@ -125,6 +125,14 @@ final class CliError extends \RuntimeException
         ));
     }
 
+    public static function invalidBranchCoveragePercentage(string $raw): self
+    {
+        return new self(\sprintf(
+            '--minimum-branch-coverage requires a percentage from 0 through 100 with at most two decimal places. Received "%s".',
+            $raw,
+        ));
+    }
+
     public static function malformedCoverageExport(string $raw): self
     {
         return new self(\sprintf(

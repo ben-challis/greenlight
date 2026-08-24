@@ -1,13 +1,13 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/worker-protocol-v4.schema.json",
-    "title": "Greenlight worker protocol envelope (version 4)",
+    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/worker-protocol-v5.schema.json",
+    "title": "Greenlight worker protocol envelope (version 5)",
     "description": "The JSON body of one length-prefixed worker protocol frame.",
     "type": "object",
     "additionalProperties": false,
     "required": ["v", "t", "p"],
     "properties": {
-        "v": {"enum": [4]},
+        "v": {"enum": [5]},
         "t": {"type": "string", "minLength": 1},
         "p": {"type": ["object", "array"]}
     },
@@ -58,6 +58,18 @@
             "properties": {
                 "t": {"enum": ["coverage"]},
                 "p": {"$ref": "#/definitions/coverageChunk"}
+            }
+        },
+        {
+            "properties": {
+                "t": {"enum": ["branch-coverage"]},
+                "p": {"$ref": "#/definitions/branchCoverageChunk"}
+            }
+        },
+        {
+            "properties": {
+                "t": {"enum": ["path-coverage"]},
+                "p": {"$ref": "#/definitions/pathCoverageChunk"}
             }
         },
         {
@@ -172,6 +184,7 @@
                 "coverageInclude",
                 "coverageDriver",
                 "coveragePerTest",
+                "coverageBranches",
                 "detectLeaks",
                 "policy"
             ],
@@ -188,6 +201,7 @@
                 },
                 "coverageDriver": {"type": ["string", "null"], "minLength": 1},
                 "coveragePerTest": {"type": "boolean"},
+                "coverageBranches": {"type": "boolean"},
                 "detectLeaks": {"type": "boolean"},
                 "policy": {
                     "oneOf": [
@@ -383,6 +397,37 @@
                 }
             }
         },
+        "branchCoverageChunk": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["test", "file", "function", "branches"],
+            "properties": {
+                "test": {"$ref": "#/definitions/testId"},
+                "file": {"type": "string", "minLength": 1},
+                "function": {"type": "string", "minLength": 1},
+                "branches": {"$ref": "#/definitions/branchIds"}
+            }
+        },
+        "pathCoverageChunk": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["test", "file", "function", "paths"],
+            "properties": {
+                "test": {"$ref": "#/definitions/testId"},
+                "file": {"type": "string", "minLength": 1},
+                "function": {"type": "string", "minLength": 1},
+                "paths": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {"$ref": "#/definitions/branchIds"}
+                }
+            }
+        },
+        "branchIds": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "integer", "minimum": 0}
+        },
         "done": {
             "type": "object",
             "additionalProperties": false,
@@ -403,20 +448,41 @@
             }
         },
         "coverageMap": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": ["files"],
-            "properties": {
-                "files": {
-                    "oneOf": [
-                        {
-                            "type": "object",
-                            "additionalProperties": {"$ref": "#/definitions/coverageLineSets"}
-                        },
-                        {"$ref": "#/definitions/emptyMap"}
-                    ]
+            "oneOf": [
+                {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["files"],
+                    "properties": {
+                        "files": {
+                            "oneOf": [
+                                {
+                                    "type": "object",
+                                    "additionalProperties": {"$ref": "#/definitions/coverageLineSets"}
+                                },
+                                {"$ref": "#/definitions/emptyMap"}
+                            ]
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["branchCoverage", "files"],
+                    "properties": {
+                        "branchCoverage": {"enum": [true]},
+                        "files": {
+                            "oneOf": [
+                                {
+                                    "type": "object",
+                                    "additionalProperties": {"$ref": "#/definitions/branchCoverageFile"}
+                                },
+                                {"$ref": "#/definitions/emptyMap"}
+                            ]
+                        }
+                    }
                 }
-            }
+            ]
         },
         "coverageLineSets": {
             "type": "array",
@@ -425,6 +491,56 @@
             "items": {
                 "type": "array",
                 "items": {"type": "integer", "minimum": 1}
+            }
+        },
+        "branchCoverageFile": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["covered", "uncovered", "functions"],
+            "properties": {
+                "covered": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+                "uncovered": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+                "functions": {"type": "array", "items": {"$ref": "#/definitions/functionCoverage"}}
+            }
+        },
+        "functionCoverage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "branches", "paths"],
+            "properties": {
+                "name": {"type": "string", "minLength": 1},
+                "branches": {"type": "array", "items": {"$ref": "#/definitions/branchCoverage"}},
+                "paths": {"type": "array", "items": {"$ref": "#/definitions/pathCoverage"}}
+            }
+        },
+        "branchCoverage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "startLine", "endLine", "covered", "exits"],
+            "properties": {
+                "id": {"type": "integer", "minimum": 0},
+                "startLine": {"type": "integer", "minimum": 1},
+                "endLine": {"type": "integer", "minimum": 1},
+                "covered": {"type": "boolean"},
+                "exits": {"type": "array", "items": {"$ref": "#/definitions/branchExitCoverage"}}
+            }
+        },
+        "branchExitCoverage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "covered"],
+            "properties": {
+                "id": {"type": "integer", "minimum": 0},
+                "covered": {"type": "boolean"}
+            }
+        },
+        "pathCoverage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["branches", "covered"],
+            "properties": {
+                "branches": {"$ref": "#/definitions/branchIds"},
+                "covered": {"type": "boolean"}
             }
         },
         "fatal": {

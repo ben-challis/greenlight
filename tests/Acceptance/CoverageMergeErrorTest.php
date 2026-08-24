@@ -85,7 +85,7 @@ final readonly class CoverageMergeErrorTest
         $directory = $this->tempDirectory->subdirectory('coverage-merge-input-errors');
         CoverageJson::write($directory . '/valid.json', CoverageMap::empty());
         \file_put_contents($directory . '/malformed.json', '{');
-        \file_put_contents($directory . '/version.json', '{"v":2,"files":{}}');
+        \file_put_contents($directory . '/version.json', '{"v":3,"files":{}}');
 
         $missing = GreenlightCli::run($directory, [
             'coverage:merge',
@@ -142,6 +142,25 @@ final readonly class CoverageMergeErrorTest
             ->toBe(1);
         Expect::that($result->output())
             ->toContain('Coverage JSON version 1 requires an absolute file path. Received "src/A.php".');
+    }
+
+    #[Test]
+    public function rejectsMixedLineOnlyAndBranchCoverageShards(): void
+    {
+        $directory = $this->tempDirectory->subdirectory('coverage-merge-mixed-versions');
+        CoverageJson::write($directory . '/line.json', CoverageMap::empty());
+        CoverageJson::write($directory . '/branch.json', CoverageMap::empty(true));
+
+        $result = GreenlightCli::run($directory, [
+            'coverage:merge',
+            '--input=line.json',
+            '--input=branch.json',
+            '--export=json=merged.json',
+        ]);
+
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())
+            ->toContain('Cannot merge line-only coverage with branch coverage.');
     }
 
     #[Test]

@@ -6,8 +6,11 @@ namespace Greenlight\Tests\Unit\Coverage\Attribution;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Attribution\TestCoverageStore;
+use Greenlight\Coverage\BranchCoverage;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
+use Greenlight\Coverage\FunctionCoverage;
+use Greenlight\Coverage\PathCoverage;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Expect\Expect;
@@ -95,5 +98,56 @@ final readonly class TestCoverageStoreTest
         Expect::that(\is_dir($directory))->toBeTrue();
 
         $store->close();
+    }
+
+    #[Test]
+    public function versionTwoStreamsBranchAndPathAttribution(): void
+    {
+        $root = $this->temporaryDirectory->path();
+        $source = $root . '/src/Decision.php';
+        $testFile = $root . '/tests/DecisionTest.php';
+        \mkdir(\dirname($source), 0o777, true);
+        \mkdir(\dirname($testFile), 0o777, true);
+        \file_put_contents($source, "<?php\nreturn true;\n");
+        \file_put_contents($testFile, "<?php\n");
+
+        $entry = new PlanEntry(new TestDefinition('Example\DecisionTest', 'coversTrue'), sourceFile: $testFile);
+        $store = TestCoverageStore::open($root, true);
+        $store->registerPlan(new ExecutionPlan([$entry]));
+        $store->record($entry->id, $this->branchMap($source, true));
+        $target = $root . '/coverage/branch-map.jsonl';
+        $store->write($target, $root, 'run-branch', $this->branchMap($source, true));
+
+        $lines = \file($target, \FILE_IGNORE_NEW_LINES | \FILE_SKIP_EMPTY_LINES);
+        $records = [];
+        $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 4) . '/resources/schema/test-coverage-jsonl-v2.schema.json'];
+
+        foreach ($lines === false ? [] : $lines as $line) {
+            $decoded = \json_decode($line, false, flags: \JSON_THROW_ON_ERROR);
+            $validator = new Validator();
+            $validator->validate($decoded, $schema);
+            Expect::that($validator->isValid())->because('each branch attribution record MUST match version 2')->toBeTrue();
+            $records[] = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
+        }
+
+        $types = \array_column($records, 'type');
+        Expect::that($types)
+            ->toContain('branch-coverage')
+            ->toContain('path-coverage')
+            ->toContain('source-branch')
+            ->toContain('source-path');
+    }
+
+    private function branchMap(string $source, bool $covered): CoverageMap
+    {
+        return new CoverageMap([
+            new FileCoverage($source, [2], [], [
+                new FunctionCoverage('decide', [
+                    new BranchCoverage(0, 2, 2, $covered),
+                ], [
+                    new PathCoverage([0], $covered),
+                ]),
+            ]),
+        ], true);
     }
 }

@@ -71,7 +71,7 @@ final readonly class CoverageMergeCommand
         $targetRoot = $projectRoot === null
             ? null
             : ConfigurationLoader::absolutePath($projectRoot, $workingDirectory);
-        $merged = CoverageMap::empty();
+        $merged = null;
 
         /** @var array<string, string|null> $seenInputs */
         $seenInputs = [];
@@ -125,6 +125,8 @@ final readonly class CoverageMergeCommand
                 } else {
                     $this->requireAbsolutePaths($map);
                 }
+
+                $merged = $merged instanceof CoverageMap ? $merged->merge($map) : $map;
             } catch (\Throwable $error) {
                 $this->console->error(\sprintf(
                     'Coverage input "%s" is not compatible: %s',
@@ -134,9 +136,9 @@ final readonly class CoverageMergeCommand
 
                 return 1;
             }
-
-            $merged = $merged->merge($map);
         }
+
+        $merged ??= CoverageMap::empty();
 
         $configuration = new CoverageConfiguration(
             [],
@@ -144,6 +146,8 @@ final readonly class CoverageMergeCommand
             $exports,
             $coverageOverrides->minimumPercentage,
             $coverageOverrides->maximumUncoveredLines,
+            minimumBranchPercentage: $coverageOverrides->minimumBranchPercentage,
+            maximumUncoveredBranches: $coverageOverrides->maximumUncoveredBranches,
         );
         $style = new Style($this->console->capabilities(
             $arguments->has('no-ansi'),

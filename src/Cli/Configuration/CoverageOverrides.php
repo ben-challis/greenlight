@@ -18,6 +18,7 @@ final readonly class CoverageOverrides
      * @param list<non-empty-string> $includePaths
      * @param non-empty-string|null $perTestTarget
      * @param int<0, max>|null $maximumUncoveredLines
+     * @param int<0, max>|null $maximumUncoveredBranches
      */
     public function __construct(
         public array $includePaths = [],
@@ -26,6 +27,9 @@ final readonly class CoverageOverrides
         public ?float $minimumPercentage = null,
         public ?int $maximumUncoveredLines = null,
         public bool $requireDriver = false,
+        public bool $branchCoverage = false,
+        public ?float $minimumBranchPercentage = null,
+        public ?int $maximumUncoveredBranches = null,
     ) {}
 
     public function enablesCoverage(): bool
@@ -34,7 +38,10 @@ final readonly class CoverageOverrides
             || $this->perTestTarget !== null
             || $this->minimumPercentage !== null
             || $this->maximumUncoveredLines !== null
-            || $this->requireDriver;
+            || $this->requireDriver
+            || $this->branchCoverage
+            || $this->minimumBranchPercentage !== null
+            || $this->maximumUncoveredBranches !== null;
     }
 
     /** @throws CliError */
@@ -83,6 +90,29 @@ final readonly class CoverageOverrides
             }
         }
 
+        $minimumBranchPercentage = null;
+
+        if ($arguments->has('minimum-branch-coverage')) {
+            $raw = $arguments->value('minimum-branch-coverage') ?? '';
+
+            if (\preg_match('/^(?:100(?:\.0{1,2})?|(?:\d|[1-9]\d)(?:\.\d{1,2})?)\z/', $raw) !== 1) {
+                throw CliError::invalidBranchCoveragePercentage($raw);
+            }
+
+            $minimumBranchPercentage = (float) $raw;
+        }
+
+        $maximumUncoveredBranches = null;
+
+        if ($arguments->has('maximum-uncovered-branches')) {
+            $raw = $arguments->value('maximum-uncovered-branches') ?? '';
+            $maximumUncoveredBranches = DecimalInteger::parse($raw);
+
+            if ($maximumUncoveredBranches === null) {
+                throw CliError::notANonNegativeInteger('--maximum-uncovered-branches', $raw);
+            }
+        }
+
         $overrides = new self(
             includePaths: $includePaths,
             perTestTarget: $perTestTarget,
@@ -90,6 +120,9 @@ final readonly class CoverageOverrides
             minimumPercentage: $minimumPercentage,
             maximumUncoveredLines: $maximumUncoveredLines,
             requireDriver: $arguments->has('require-coverage-driver'),
+            branchCoverage: $arguments->has('branch-coverage'),
+            minimumBranchPercentage: $minimumBranchPercentage,
+            maximumUncoveredBranches: $maximumUncoveredBranches,
         );
 
         if ($overrides->disabled && $overrides->enablesCoverage()) {

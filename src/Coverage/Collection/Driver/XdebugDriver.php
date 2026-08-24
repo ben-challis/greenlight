@@ -28,18 +28,28 @@ final class XdebugDriver implements CoverageDriver
     public function __construct(
         ?XdebugRuntime $runtime = null,
         private readonly ?int $flags = null,
+        private readonly bool $branchCoverage = false,
     ) {
         if (!$runtime instanceof XdebugRuntime && !self::isAvailable()) {
             throw CoverageError::driverUnavailable('xdebug', 'Enable the Xdebug extension. Add "coverage" to xdebug.mode or the XDEBUG_MODE environment variable.');
         }
 
         $this->runtime = $runtime ?? new NativeXdebugRuntime();
+
+        if ($this->branchCoverage && !$this->runtime->supportsBranchCoverage()) {
+            throw CoverageError::branchCoverageUnavailable('Install an Xdebug version that defines XDEBUG_CC_BRANCH_CHECK.');
+        }
     }
 
     #[\Override]
     public static function isAvailable(): bool
     {
         return \extension_loaded('xdebug') && \in_array('coverage', self::activeModes(), true);
+    }
+
+    public static function isBranchCoverageAvailable(): bool
+    {
+        return self::isAvailable() && \defined('XDEBUG_CC_BRANCH_CHECK');
     }
 
     #[\Override]
@@ -49,7 +59,13 @@ final class XdebugDriver implements CoverageDriver
             throw new \LogicException('The Xdebug collection window is already open. Call stop() before start().');
         }
 
-        $this->runtime->start($this->flags ?? \XDEBUG_CC_UNUSED | \XDEBUG_CC_DEAD_CODE);
+        $flags = $this->flags ?? \XDEBUG_CC_UNUSED | \XDEBUG_CC_DEAD_CODE;
+
+        if ($this->branchCoverage) {
+            $flags |= \XDEBUG_CC_BRANCH_CHECK;
+        }
+
+        $this->runtime->start($flags);
         $this->collecting = true;
     }
 
@@ -70,7 +86,7 @@ final class XdebugDriver implements CoverageDriver
             }
         }
 
-        return new RawCoverage($collected);
+        return new RawCoverage($collected, $this->branchCoverage);
     }
 
     /**

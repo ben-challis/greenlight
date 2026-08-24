@@ -29,13 +29,20 @@ final readonly class FileCoverage
     public array $uncoveredLines;
 
     /**
+     * @var list<FunctionCoverage>
+     */
+    public array $functions;
+
+    /**
      * @param list<int> $coveredLines
      * @param list<int> $uncoveredLines
+     * @param list<FunctionCoverage> $functions
      */
     public function __construct(
         string $file,
         array $coveredLines,
         array $uncoveredLines,
+        array $functions = [],
     ) {
         if ($file === '') {
             throw new \InvalidArgumentException('Use a non-empty coverage file path.');
@@ -54,6 +61,15 @@ final readonly class FileCoverage
 
         $this->coveredLines = $covered;
         $this->uncoveredLines = $uncovered;
+        $byName = [];
+
+        foreach ($functions as $function) {
+            $existing = $byName[$function->name] ?? null;
+            $byName[$function->name] = $existing instanceof FunctionCoverage ? $existing->merge($function) : $function;
+        }
+
+        \ksort($byName, \SORT_STRING);
+        $this->functions = \array_values($byName);
     }
 
     public function executableLineCount(): int
@@ -110,7 +126,77 @@ final readonly class FileCoverage
             $this->file,
             \array_merge($this->coveredLines, $other->coveredLines),
             \array_merge($this->uncoveredLines, $other->uncoveredLines),
+            [...$this->functions, ...$other->functions],
         );
+    }
+
+    public function branchTotal(): int
+    {
+        return \array_sum(\array_map(static fn(FunctionCoverage $function): int => $function->branchTotal(), $this->functions));
+    }
+
+    public function coveredBranchTotal(): int
+    {
+        return \array_sum(\array_map(static fn(FunctionCoverage $function): int => $function->coveredBranchTotal(), $this->functions));
+    }
+
+    public function pathTotal(): int
+    {
+        return \array_sum(\array_map(static fn(FunctionCoverage $function): int => $function->pathTotal(), $this->functions));
+    }
+
+    public function coveredPathTotal(): int
+    {
+        return \array_sum(\array_map(static fn(FunctionCoverage $function): int => $function->coveredPathTotal(), $this->functions));
+    }
+
+    public function branchPercentage(): float
+    {
+        return $this->branchTotal() === 0 ? 100.0 : $this->coveredBranchTotal() / $this->branchTotal() * 100.0;
+    }
+
+    public function pathPercentage(): float
+    {
+        return $this->pathTotal() === 0 ? 100.0 : $this->coveredPathTotal() / $this->pathTotal() * 100.0;
+    }
+
+    /** @return array<positive-int, list<BranchCoverage>> */
+    public function branchesByLine(): array
+    {
+        $byLine = [];
+
+        foreach ($this->functions as $function) {
+            foreach ($function->branches as $branch) {
+                $byLine[$branch->startLine][] = $branch;
+            }
+        }
+
+        \ksort($byLine);
+
+        return $byLine;
+    }
+
+    public function withFile(string $file): self
+    {
+        return new self($file, $this->coveredLines, $this->uncoveredLines, $this->functions);
+    }
+
+    /** @param array<int, true> $ignored */
+    public function withoutLines(array $ignored): self
+    {
+        $covered = \array_values(\array_filter($this->coveredLines, static fn(int $line): bool => !isset($ignored[$line])));
+        $uncovered = \array_values(\array_filter($this->uncoveredLines, static fn(int $line): bool => !isset($ignored[$line])));
+        $functions = [];
+
+        foreach ($this->functions as $function) {
+            $filtered = $function->withoutLines($ignored);
+
+            if ($filtered instanceof FunctionCoverage) {
+                $functions[] = $filtered;
+            }
+        }
+
+        return new self($this->file, $covered, $uncovered, $functions);
     }
 
     /**

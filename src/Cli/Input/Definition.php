@@ -126,6 +126,11 @@ final readonly class Definition
                              Fail if more than n executable lines are uncovered.
           --require-coverage-driver
                              Fail if no configured coverage driver is available.
+          --branch-coverage  Collect Xdebug branch and path coverage.
+          --minimum-branch-coverage=<percentage>
+                             Fail if total branch coverage is below this percentage.
+          --maximum-uncovered-branches=<n>
+                             Fail if more than n branches are uncovered.
           --input=<path>     Read an input file. Repeat for coverage:merge.
           --export=<format>=<path>
                              Write merged coverage. Repeat for more formats.
@@ -178,6 +183,9 @@ final readonly class Definition
             new OptionSpec('minimum-coverage', OptionValue::Required),
             new OptionSpec('maximum-uncovered-lines', OptionValue::Required),
             new OptionSpec('require-coverage-driver'),
+            new OptionSpec('branch-coverage'),
+            new OptionSpec('minimum-branch-coverage', OptionValue::Required),
+            new OptionSpec('maximum-uncovered-branches', OptionValue::Required),
             new OptionSpec('coverage-map', OptionValue::Required),
             new OptionSpec('coverage-include', OptionValue::Required, repeatable: true),
             new OptionSpec('no-coverage'),

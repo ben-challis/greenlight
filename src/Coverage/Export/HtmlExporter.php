@@ -96,8 +96,17 @@ final readonly class HtmlExporter implements CoverageExporter
 
         foreach ($map->files() as $path => $file) {
             $class = $this->percentClass($file->percentage());
+            $branchCells = $map->branchCoverage ? \sprintf(
+                '<td class="%s">%s</td><td>%d/%d</td><td>%d/%d paths</td>',
+                $this->percentClass($file->branchPercentage()),
+                $this->percent($file->branchPercentage()),
+                $file->coveredBranchTotal(),
+                $file->branchTotal(),
+                $file->coveredPathTotal(),
+                $file->pathTotal(),
+            ) : '';
             $rows .= \sprintf(
-                '<tr><td><a href="%s">%s</a></td><td><div class="bar"><span class="%s" style="width:%.2F%%"></span></div></td><td class="%s">%s</td><td>%d/%d</td></tr>' . "\n",
+                '<tr><td><a href="%s">%s</a></td><td><div class="bar"><span class="%s" style="width:%.2F%%"></span></div></td><td class="%s">%s</td><td>%d/%d</td>%s</tr>' . "\n",
                 self::pageName($path),
                 $this->html($this->displayPath($path)),
                 $class,
@@ -106,16 +115,27 @@ final readonly class HtmlExporter implements CoverageExporter
                 $this->percent($file->percentage()),
                 $file->coveredLineCount(),
                 $file->executableLineCount(),
+                $branchCells,
             );
         }
 
         $totalClass = $this->percentClass($map->totalPercentage());
+        $branchTotals = $map->branchCoverage ? \sprintf(
+            '<th class="%s">%s</th><th>%d/%d</th><th>%d/%d paths</th>',
+            $this->percentClass($map->totalBranchPercentage()),
+            $this->percent($map->totalBranchPercentage()),
+            $map->coveredBranchTotal(),
+            $map->branchTotal(),
+            $map->coveredPathTotal(),
+            $map->pathTotal(),
+        ) : '';
         $totals = \sprintf(
-            '<tr><th>Total</th><th></th><th class="%s">%s</th><th>%d/%d</th></tr>' . "\n",
+            '<tr><th>Total</th><th></th><th class="%s">%s</th><th>%d/%d</th>%s</tr>' . "\n",
             $totalClass,
             $this->percent($map->totalPercentage()),
             $map->coveredLineTotal(),
             $map->executableLineTotal(),
+            $branchTotals,
         );
 
         $cards = '<div class="cards">' . "\n"
@@ -130,12 +150,22 @@ final readonly class HtmlExporter implements CoverageExporter
                 $map->coveredLineTotal(),
                 $map->executableLineTotal(),
             )
+            . ($map->branchCoverage ? \sprintf(
+                '<div class="card"><div class="label">Branches covered</div><div class="value">%d/%d</div></div>' . "\n"
+                . '<div class="card"><div class="label">Paths covered</div><div class="value">%d/%d</div></div>' . "\n",
+                $map->coveredBranchTotal(),
+                $map->branchTotal(),
+                $map->coveredPathTotal(),
+                $map->pathTotal(),
+            ) : '')
             . '</div>' . "\n";
+
+        $branchHeaders = $map->branchCoverage ? '<th colspan="2">Branches</th><th>Paths</th>' : '';
 
         $body = '<h1>Greenlight Coverage</h1>' . "\n"
             . $cards
             . '<table>' . "\n"
-            . '<tr><th>File</th><th colspan="2">Coverage</th><th>Lines</th></tr>' . "\n"
+            . '<tr><th>File</th><th colspan="2">Coverage</th><th>Lines</th>' . $branchHeaders . '</tr>' . "\n"
             . $rows
             . $totals
             . '</table>' . "\n";
@@ -155,6 +185,18 @@ final readonly class HtmlExporter implements CoverageExporter
             $file->coveredLineCount(),
             $file->executableLineCount(),
         );
+
+        if ($file->functions !== []) {
+            $body .= \sprintf(
+                '<p class="meta">Branches: %s (%d/%d). Paths: %s (%d/%d).</p>' . "\n",
+                $this->percent($file->branchPercentage()),
+                $file->coveredBranchTotal(),
+                $file->branchTotal(),
+                $this->percent($file->pathPercentage()),
+                $file->coveredPathTotal(),
+                $file->pathTotal(),
+            );
+        }
 
         $lineHits = $file->lineHits();
         $source = $this->highlightedLines($file->file);

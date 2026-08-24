@@ -21,7 +21,7 @@ final class JsonExporterSchemaDiagnosticTest
             ->because('an invalid coverage schema MUST identify the supported version')
             ->toThrow(
                 CoverageError::class,
-                message: 'Coverage JSON document is invalid: unsupported or missing schema version, expected 1.',
+                message: 'Coverage JSON document is invalid: unsupported or missing schema version, expected 1 or 2.',
             );
     }
 
@@ -31,6 +31,6 @@ final class JsonExporterSchemaDiagnosticTest
     public static function invalidSchemaVersions(): iterable
     {
         yield 'missing version' => ['{"files":{}}'];
-        yield 'unsupported version' => ['{"v":2,"files":{}}'];
+        yield 'unsupported version' => ['{"v":3,"files":{}}'];
     }
 }

@@ -28,11 +28,8 @@ final class CoberturaExporterTest
             ->toBe([
                 'attributes' => [
                     'line-rate' => '0.7500',
-                    'branch-rate' => '0',
                     'lines-covered' => '3',
                     'lines-valid' => '4',
-                    'branches-covered' => '0',
-                    'branches-valid' => '0',
                     'complexity' => '0',
                     'version' => '0',
                     'timestamp' => '1234',
@@ -42,7 +39,6 @@ final class CoberturaExporterTest
                     'attributes' => [
                         'name' => 'greenlight',
                         'line-rate' => '0.7500',
-                        'branch-rate' => '0',
                         'complexity' => '0',
                     ],
                     'classes' => [
@@ -51,7 +47,6 @@ final class CoberturaExporterTest
                                 'name' => 'src/A.php',
                                 'filename' => 'src/A.php',
                                 'line-rate' => '0.6667',
-                                'branch-rate' => '0',
                                 'complexity' => '0',
                             ],
                             'methods' => [[]],
@@ -66,7 +61,6 @@ final class CoberturaExporterTest
                                 'name' => 'src/B.php',
                                 'filename' => 'src/B.php',
                                 'line-rate' => '1.0000',
-                                'branch-rate' => '0',
                                 'complexity' => '0',
                             ],
                             'methods' => [[]],
@@ -89,11 +83,8 @@ final class CoberturaExporterTest
             ->toBe([
                 'attributes' => [
                     'line-rate' => '1.0000',
-                    'branch-rate' => '0',
                     'lines-covered' => '0',
                     'lines-valid' => '0',
-                    'branches-covered' => '0',
-                    'branches-valid' => '0',
                     'complexity' => '0',
                     'version' => '0',
                     'timestamp' => '0',
@@ -103,7 +94,6 @@ final class CoberturaExporterTest
                     'attributes' => [
                         'name' => 'greenlight',
                         'line-rate' => '1.0000',
-                        'branch-rate' => '0',
                         'complexity' => '0',
                     ],
                     'classes' => [],

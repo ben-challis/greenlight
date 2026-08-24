@@ -127,6 +127,44 @@ final class XdebugDriverTest
     }
 
     #[Test]
+    #[Isolated]
+    public function branchCollectionRequiresCapabilityAndAddsOnlyTheBranchFlag(): void
+    {
+        if (!\defined('XDEBUG_CC_UNUSED')) {
+            \define('XDEBUG_CC_UNUSED', 1);
+        }
+
+        if (!\defined('XDEBUG_CC_DEAD_CODE')) {
+            \define('XDEBUG_CC_DEAD_CODE', 2);
+        }
+
+        if (!\defined('XDEBUG_CC_BRANCH_CHECK')) {
+            \define('XDEBUG_CC_BRANCH_CHECK', 4);
+        }
+
+        $unsupported = new FakeXdebugRuntime();
+        $unsupported->branchCoverage = false;
+
+        Expect::that(static fn(): XdebugDriver => new XdebugDriver($unsupported, branchCoverage: true))
+            ->because('branch capability MUST be checked before collection starts')
+            ->toThrow(
+                CoverageError::class,
+                message: 'Branch coverage requires Xdebug branch support: Install an Xdebug version that defines XDEBUG_CC_BRANCH_CHECK.',
+            );
+
+        $runtime = new FakeXdebugRuntime();
+        $runtime->coverage = ['file.php' => ['lines' => [], 'functions' => []]];
+        $driver = new XdebugDriver($runtime, branchCoverage: true);
+        $driver->start();
+        $coverage = $driver->stop();
+
+        Expect::that($runtime->flags)
+            ->because('ordinary Xdebug remains line-only and opt-in adds the branch flag')
+            ->toBe(\XDEBUG_CC_UNUSED | \XDEBUG_CC_DEAD_CODE | \XDEBUG_CC_BRANCH_CHECK);
+        Expect::that($coverage->branchCoverage)->toBeTrue();
+    }
+
+    #[Test]
     public function collectsRealLineCoverageOverTheFixture(): void
     {
         if (!XdebugDriver::isAvailable()) {
@@ -163,6 +201,29 @@ final class XdebugDriverTest
             ->because('collects real line coverage over the fixture')
             ->not()
             ->toContain(Adder::ADD_RETURN_LINE);
+    }
+
+    #[Test]
+    public function collectsRealBranchCoverageOverTheFixtureWhenXdebugSupportsIt(): void
+    {
+        if (!XdebugDriver::isBranchCoverageAvailable()) {
+            throw new SkipTest('xdebug branch coverage is not available');
+        }
+
+        $fixtureFile = ClassFile::of(Adder::class);
+        $driver = new XdebugDriver(branchCoverage: true);
+        $driver->start();
+        $sum = new Adder()->add(19, 23);
+        $map = $driver->stop()->toMap(new PathFilter([\dirname($fixtureFile)]));
+
+        Expect::that($sum)->toBe(42);
+        Expect::that($map->branchCoverage)->toBeTrue();
+        Expect::that($map->branchTotal())
+            ->because('an Xdebug branch run MUST retain function opcode data')
+            ->toBeGreaterThan(0);
+        Expect::that($map->pathTotal())
+            ->because('an Xdebug branch run MUST retain function path data')
+            ->toBeGreaterThan(0);
     }
 
     /**

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Coverage\Ignore;
 
 use Greenlight\Coverage\CoverageMap;
-use Greenlight\Coverage\FileCoverage;
 
 /**
  * Removes ignored lines from a merged coverage map.
@@ -34,16 +33,15 @@ final readonly class IgnoreFilter
                 continue;
             }
 
-            $covered = \array_values(\array_filter($file->coveredLines, static fn(int $line): bool => !isset($ignored[$line])));
-            $uncovered = \array_values(\array_filter($file->uncoveredLines, static fn(int $line): bool => !isset($ignored[$line])));
+            $filtered = $file->withoutLines($ignored);
 
-            if ($covered === [] && $uncovered === []) {
+            if ($filtered->coveredLines === [] && $filtered->uncoveredLines === [] && $filtered->functions === []) {
                 continue;
             }
 
-            $files[] = new FileCoverage($file->file, $covered, $uncovered);
+            $files[] = $filtered;
         }
 
-        return new CoverageMap($files);
+        return new CoverageMap($files, $map->branchCoverage);
     }
 }

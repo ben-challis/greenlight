@@ -38,6 +38,23 @@ final readonly class LcovExporter implements CoverageExporter
                 $out .= 'DA:' . $line . ',' . $hit . "\n";
             }
 
+            if ($map->branchCoverage) {
+                foreach ($file->functions as $functionIndex => $function) {
+                    foreach ($function->branches as $branch) {
+                        $out .= \sprintf(
+                            "BRDA:%d,%d,%d,%d\n",
+                            $branch->startLine,
+                            $functionIndex,
+                            $branch->id,
+                            $branch->covered ? 1 : 0,
+                        );
+                    }
+                }
+
+                $out .= 'BRF:' . $file->branchTotal() . "\n";
+                $out .= 'BRH:' . $file->coveredBranchTotal() . "\n";
+            }
+
             $out .= 'LF:' . $file->executableLineCount() . "\n";
             $out .= 'LH:' . $file->coveredLineCount() . "\n";
             $out .= "end_of_record\n";

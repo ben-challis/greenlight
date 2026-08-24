@@ -42,6 +42,36 @@ final class CoverageGate
             );
         }
 
+        if (($configuration->minimumBranchPercentage !== null || $configuration->maximumUncoveredBranches !== null)
+            && !$coverage->branchCoverage
+        ) {
+            $failures[] = 'Branch coverage gates require a branch coverage JSON version 2 result.';
+
+            return $failures;
+        }
+
+        $branchPercentage = \round($coverage->totalBranchPercentage(), 2, \RoundingMode::HalfAwayFromZero);
+
+        if ($configuration->minimumBranchPercentage !== null && $branchPercentage < $configuration->minimumBranchPercentage) {
+            $failures[] = \sprintf(
+                'Branch coverage gate failed: %.2f%% is less than the minimum %.2f%%.',
+                $branchPercentage,
+                $configuration->minimumBranchPercentage,
+            );
+        }
+
+        $uncoveredBranches = $coverage->uncoveredBranchTotal();
+
+        if ($configuration->maximumUncoveredBranches !== null && $uncoveredBranches > $configuration->maximumUncoveredBranches) {
+            $failures[] = \sprintf(
+                'Branch coverage gate failed: %d uncovered %s %s the maximum %d.',
+                $uncoveredBranches,
+                $uncoveredBranches === 1 ? 'branch' : 'branches',
+                $uncoveredBranches === 1 ? 'exceeds' : 'exceed',
+                $configuration->maximumUncoveredBranches,
+            );
+        }
+
         return $failures;
     }
 }

@@ -102,6 +102,8 @@ final readonly class CoverageDiffCommand
                 [],
                 $coverageOverrides->minimumPercentage,
                 $coverageOverrides->maximumUncoveredLines,
+                minimumBranchPercentage: $coverageOverrides->minimumBranchPercentage,
+                maximumUncoveredBranches: $coverageOverrides->maximumUncoveredBranches,
             ),
             $maps['current'],
         );

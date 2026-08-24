@@ -102,6 +102,26 @@ final class SummaryFormat
         );
     }
 
+    public static function branchCoverage(float $percentage, int $covered, int $total, Style $style): string
+    {
+        return \sprintf(
+            'Branches: %s (%d of %s)',
+            $style->ok(\sprintf('%.2f%%', $percentage)),
+            $covered,
+            Plural::count($total, 'branch', 'branches'),
+        );
+    }
+
+    public static function pathCoverage(float $percentage, int $covered, int $total, Style $style): string
+    {
+        return \sprintf(
+            'Paths: %s (%d of %s)',
+            $style->ok(\sprintf('%.2f%%', $percentage)),
+            $covered,
+            Plural::count($total, 'path'),
+        );
+    }
+
     public static function coverageExport(string $format, string $target): string
     {
         return \sprintf('  %s → %s', $format, $target);

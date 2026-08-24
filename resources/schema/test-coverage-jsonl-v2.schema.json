@@ -1,0 +1,157 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/test-coverage-jsonl-v2.schema.json",
+    "title": "Greenlight per-test coverage artifact record (v2)",
+    "description": "One line of Greenlight's opt-in per-test branch coverage artifact. Consumers must tolerate unknown keys and may skip unknown record types.",
+    "type": "object",
+    "required": ["v", "type"],
+    "properties": {
+        "v": {"enum": [2]},
+        "type": {"type": "string", "minLength": 1}
+    },
+    "oneOf": [
+        {
+            "properties": {
+                "type": {"enum": ["meta"]},
+                "root": {"type": "string", "minLength": 1},
+                "runId": {"type": "string", "minLength": 1},
+                "complete": {"enum": [true]},
+                "branchCoverage": {"enum": [true]}
+            },
+            "required": ["root", "runId", "complete", "branchCoverage"]
+        },
+        {
+            "properties": {
+                "type": {"enum": ["test"]},
+                "test": {"type": "integer", "minimum": 0},
+                "id": {"$ref": "#/definitions/testId"},
+                "renderedId": {"type": "string", "minLength": 1},
+                "file": {"type": "string"}
+            },
+            "required": ["test", "id", "renderedId", "file"]
+        },
+        {
+            "properties": {
+                "type": {"enum": ["coverage"]},
+                "test": {"type": "integer", "minimum": 0},
+                "file": {"type": "string", "minLength": 1},
+                "lines": {"$ref": "#/definitions/lines"}
+            },
+            "required": ["test", "file", "lines"]
+        },
+        {
+            "properties": {
+                "type": {"enum": ["branch-coverage"]},
+                "test": {"type": "integer", "minimum": 0},
+                "file": {"type": "string", "minLength": 1},
+                "function": {"type": "string", "minLength": 1},
+                "branches": {"$ref": "#/definitions/branchIds"}
+            },
+            "required": ["test", "file", "function", "branches"]
+        },
+        {
+            "properties": {
+                "type": {"enum": ["path-coverage"]},
+                "test": {"type": "integer", "minimum": 0},
+                "file": {"type": "string", "minLength": 1},
+                "function": {"type": "string", "minLength": 1},
+                "paths": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {"$ref": "#/definitions/branchIds"}
+                }
+            },
+            "required": ["test", "file", "function", "paths"]
+        },
+        {
+            "properties": {
+                "type": {"enum": ["source"]},
+                "file": {"type": "string", "minLength": 1},
+                "covered": {"type": "boolean"},
+                "lines": {"$ref": "#/definitions/lines"}
+            },
+            "required": ["file", "covered", "lines"]
+        },
+        {
+            "properties": {
+                "type": {"enum": ["source-branch"]},
+                "file": {"type": "string", "minLength": 1},
+                "function": {"type": "string", "minLength": 1},
+                "id": {"type": "integer", "minimum": 0},
+                "startLine": {"type": "integer", "minimum": 1},
+                "endLine": {"type": "integer", "minimum": 1},
+                "covered": {"type": "boolean"},
+                "exits": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/exit"}
+                }
+            },
+            "required": ["file", "function", "id", "startLine", "endLine", "covered", "exits"]
+        },
+        {
+            "properties": {
+                "type": {"enum": ["source-path"]},
+                "file": {"type": "string", "minLength": 1},
+                "function": {"type": "string", "minLength": 1},
+                "branches": {"$ref": "#/definitions/branchIds"},
+                "covered": {"type": "boolean"}
+            },
+            "required": ["file", "function", "branches", "covered"]
+        },
+        {
+            "properties": {
+                "type": {"enum": ["unattributed"]},
+                "file": {"type": "string", "minLength": 1},
+                "lines": {"$ref": "#/definitions/lines"}
+            },
+            "required": ["file", "lines"]
+        },
+        {
+            "properties": {
+                "type": {"enum": ["unattributed-branch"]},
+                "file": {"type": "string", "minLength": 1},
+                "function": {"type": "string", "minLength": 1},
+                "branch": {"type": "integer", "minimum": 0}
+            },
+            "required": ["file", "function", "branch"]
+        },
+        {
+            "properties": {
+                "type": {"enum": ["unattributed-path"]},
+                "file": {"type": "string", "minLength": 1},
+                "function": {"type": "string", "minLength": 1},
+                "branches": {"$ref": "#/definitions/branchIds"}
+            },
+            "required": ["file", "function", "branches"]
+        }
+    ],
+    "definitions": {
+        "lines": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "integer", "minimum": 1}
+        },
+        "branchIds": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "integer", "minimum": 0}
+        },
+        "exit": {
+            "type": "object",
+            "properties": {
+                "id": {"type": "integer", "minimum": 0},
+                "covered": {"type": "boolean"}
+            },
+            "required": ["id", "covered"]
+        },
+        "testId": {
+            "type": "object",
+            "required": ["class", "method", "dataSetKey"],
+            "properties": {
+                "class": {"type": "string", "minLength": 1},
+                "method": {"type": "string", "minLength": 1},
+                "dataSetKey": {"type": ["string", "null"]}
+            }
+        }
+    }
+}

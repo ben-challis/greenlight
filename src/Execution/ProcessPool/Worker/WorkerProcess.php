@@ -231,7 +231,7 @@ final readonly class WorkerProcess
                 // coverage acceptance tests exercise this bootstrap path.
                 // @codeCoverageIgnoreStart
                 $collector = CoverageCollector::create(
-                    new CoverageSettings($message->coverageInclude, $message->coverageDriver, $message->coveragePerTest),
+                    new CoverageSettings($message->coverageInclude, $message->coverageDriver, $message->coveragePerTest, $message->coverageBranches),
                     static function (string $reason) use (&$coverageUnavailable): void {
                         $coverageUnavailable = $reason;
                     },
@@ -253,7 +253,7 @@ final readonly class WorkerProcess
                 );
             }
 
-            $testCoverage = $message->coveragePerTest ? new SocketTestCoverageSink($channel) : null;
+            $testCoverage = $message->coveragePerTest ? new SocketTestCoverageSink($channel, $message->coverageBranches) : null;
 
             if (!$message->coveragePerTest) {
                 $collector?->start();

@@ -49,6 +49,9 @@ final class ConfigurationResolver
         $configuredMaximum = $coverage instanceof CoverageConfiguration ? $coverage->maximumUncoveredLines : null;
         $configuredRequireDriver = $coverage instanceof CoverageConfiguration && $coverage->requireDriver;
         $configuredPerTestTarget = $coverage instanceof CoverageConfiguration ? $coverage->perTestTarget : null;
+        $configuredBranchCoverage = $coverage instanceof CoverageConfiguration && $coverage->branchCoverage;
+        $configuredMinimumBranch = $coverage instanceof CoverageConfiguration ? $coverage->minimumBranchPercentage : null;
+        $configuredMaximumBranches = $coverage instanceof CoverageConfiguration ? $coverage->maximumUncoveredBranches : null;
 
         if ($coverageOverrides->disabled) {
             $coverage = null;
@@ -66,6 +69,9 @@ final class ConfigurationResolver
                 $coverageOverrides->maximumUncoveredLines ?? $configuredMaximum,
                 $configuredRequireDriver || $coverageOverrides->requireDriver,
                 $coverageOverrides->perTestTarget ?? $configuredPerTestTarget,
+                $configuredBranchCoverage || $coverageOverrides->branchCoverage,
+                $coverageOverrides->minimumBranchPercentage ?? $configuredMinimumBranch,
+                $coverageOverrides->maximumUncoveredBranches ?? $configuredMaximumBranches,
             );
         }
 

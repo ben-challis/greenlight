@@ -21,5 +21,6 @@ final readonly class CoverageSettings
         public array $includePaths,
         public ?string $driver = null,
         public bool $perTest = false,
+        public bool $branchCoverage = false,
     ) {}
 }

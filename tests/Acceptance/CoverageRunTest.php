@@ -6,11 +6,14 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Coverage\Collection\Driver\XdebugDriver;
 use Greenlight\Coverage\Relay\SubprocessCoverage;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\CoverageJson;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
@@ -62,6 +65,49 @@ final readonly class CoverageRunTest
     }
 
     #[Test]
+    public function branchCoverageCrossesWorkersAndPerTestAttributionWhenXdebugSupportsIt(): void
+    {
+        if (!XdebugDriver::isBranchCoverageAvailable()) {
+            throw new SkipTest('xdebug branch coverage is not available');
+        }
+
+        $project = $this->writeProject();
+        $result = $this->runIn($project, [
+            'run',
+            '--workers=2',
+            '--reporter=plain',
+            '--branch-coverage',
+            '--coverage-map=coverage-out/per-test.jsonl',
+            '--minimum-branch-coverage=0',
+            '--maximum-uncovered-branches=9999',
+        ], 'coverage');
+
+        Expect::that($result->exitCode)
+            ->because('branch coverage MUST cross the worker protocol. Output: ' . $result->output())
+            ->toBe(0);
+
+        $json = \file_get_contents($project->path('coverage-out/coverage.json'));
+        Expect::that($json)->toBeString();
+        /** @var array{v: int, totals: array{branches: int, paths: int}} $document */
+        $document = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
+
+        Expect::that($document['v'])->toBe(2);
+        Expect::that($document['totals']['branches'])->toBeGreaterThan(0);
+        Expect::that($document['totals']['paths'])->toBeGreaterThan(0);
+
+        $lcov = \file_get_contents($project->path('coverage-out/lcov.info'));
+        Expect::that($lcov)->toBeString()->toContain('BRDA:')->toContain('BRF:')->toContain('BRH:');
+
+        $perTest = \file_get_contents($project->path('coverage-out/per-test.jsonl'));
+        Expect::that($perTest)
+            ->toBeString()
+            ->toContain('"v":2,"type":"meta"')
+            ->toContain('"type":"branch-coverage"')
+            ->toContain('"type":"source-branch"')
+            ->toContain('"type":"source-path"');
+    }
+
+    #[Test]
     public function missingDriverWarnsWithoutFailingTheRun(): void
     {
         $project = $this->writeProject();
@@ -70,6 +116,18 @@ final readonly class CoverageRunTest
         Expect::that($result->exitCode)->because('missing driver warns without failing the run')->toBe(0);
         Expect::that($result->output())->toContain('No worker collected the requested coverage');
         Expect::that(\is_dir($project->path('coverage-out')))->toBeFalse();
+    }
+
+    #[Test]
+    public function unavailableBranchCoverageFailsBeforeTheRunWithGuidance(): void
+    {
+        $project = $this->writeProject();
+        $result = $this->runIn($project, ['run', '--branch-coverage'], 'off');
+
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())
+            ->toContain('Branch coverage requires Xdebug branch support')
+            ->toContain('Enable Xdebug coverage mode');
     }
 
     #[Test]
@@ -363,6 +421,37 @@ final readonly class CoverageRunTest
         $contents = $dumps === [] ? '' : (string) \file_get_contents($dumps[0]);
 
         Expect::that($contents)->because('spawned CLI processes dump coverage into the shared directory')->toContain('src/Cli/Application.php');
+    }
+
+    #[Test]
+    public function spawnedCliProcessesKeepBranchCoverageInTheRelay(): void
+    {
+        if (!XdebugDriver::isBranchCoverageAvailable()) {
+            throw new SkipTest('xdebug branch coverage is not available');
+        }
+
+        $shared = $this->tempDirectory->subdirectory('branch-coverage-relay');
+        $project = $this->writeProject();
+        $root = \dirname(__DIR__, 2);
+        $result = $this->runIn($project, ['run', '--workers=2', '--reporter=plain', '--branch-coverage'], 'coverage', [
+            SubprocessCoverage::DIRECTORY_ENV => $shared,
+            SubprocessCoverage::INCLUDE_ENV => $root . '/src/Cli',
+            SubprocessCoverage::BRANCH_ENV => '1',
+        ]);
+
+        Expect::that($result->exitCode)
+            ->because('a child branch run MUST complete. Output: ' . $result->output())
+            ->toBe(0);
+
+        $dumps = \glob($shared . '/*.json');
+
+        if (!\is_array($dumps) || $dumps === []) {
+            Fail::because('A child branch coverage dump MUST exist.');
+        }
+
+        $dump = CoverageJson::read($dumps[0]);
+        Expect::that($dump->branchCoverage)->toBeTrue();
+        Expect::that($dump->branchTotal())->toBeGreaterThan(0);
     }
 
     #[Test]

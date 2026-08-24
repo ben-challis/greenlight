@@ -17,9 +17,9 @@ final class CollectingTestCoverageSink implements TestCoverageSink
 {
     private CoverageMap $coverage;
 
-    public function __construct(private readonly ?TestCoverageStore $store = null)
+    public function __construct(private readonly ?TestCoverageStore $store = null, bool $branchCoverage = false)
     {
-        $this->coverage = CoverageMap::empty();
+        $this->coverage = CoverageMap::empty($branchCoverage);
     }
 
     /** @throws CoverageError */

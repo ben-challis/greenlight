@@ -21,12 +21,14 @@ use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Bootstrap;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\BranchCoverageChunk;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\CoverageChunk;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Fatal;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\PathCoverageChunk;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\Worker\WorkerError;
@@ -491,6 +493,7 @@ final class Orchestrator
                 $this->configuration->coverageSettings?->includePaths,
                 $this->configuration->coverageSettings?->driver,
                 $this->configuration->coverageSettings?->perTest === true,
+                $this->configuration->coverageSettings?->branchCoverage === true,
                 $this->configuration->detectLeaks,
                 $this->configuration->policy,
                 $this->configuration->artifactStore?->session(),
@@ -523,6 +526,20 @@ final class Orchestrator
             $this->configuration->testCoverageStore?->record(
                 $message->test,
                 new CoverageMap([new FileCoverage($message->file, $message->lines, [])]),
+            );
+        } elseif ($message instanceof BranchCoverageChunk) {
+            $this->configuration->testCoverageStore?->recordBranches(
+                $message->test,
+                $message->file,
+                $message->function,
+                $message->branches,
+            );
+        } elseif ($message instanceof PathCoverageChunk) {
+            $this->configuration->testCoverageStore?->recordPaths(
+                $message->test,
+                $message->file,
+                $message->function,
+                $message->paths,
             );
         } elseif ($message instanceof Ready) {
             if ($handle->ready) {

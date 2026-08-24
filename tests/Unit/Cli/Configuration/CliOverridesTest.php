@@ -116,6 +116,9 @@ final class CliOverridesTest
             'resource-limit' => ['postgres=3', 'payments-sandbox=1', 'cache.primary_1=2'],
             'minimum-coverage' => ['95.25'],
             'maximum-uncovered-lines' => ['0'],
+            'branch-coverage' => [null],
+            'minimum-branch-coverage' => ['75.5'],
+            'maximum-uncovered-branches' => ['1'],
             'require-coverage-driver' => [null],
             'coverage-include' => ['src', 'packages/core'],
             'coverage-map' => ['build/test-coverage.jsonl'],
@@ -137,6 +140,9 @@ final class CliOverridesTest
         Expect::that($overrides->coverage->minimumPercentage)->because('extracts typed values')->toBe(95.25);
         Expect::that($overrides->coverage->maximumUncoveredLines)->because('extracts typed values')->toBe(0);
         Expect::that($overrides->coverage->requireDriver)->because('extracts typed values')->toBeTrue();
+        Expect::that($overrides->coverage->branchCoverage)->toBeTrue();
+        Expect::that($overrides->coverage->minimumBranchPercentage)->toBe(75.5);
+        Expect::that($overrides->coverage->maximumUncoveredBranches)->toBe(1);
         Expect::that($overrides->coverage->includePaths)->toBe(['src', 'packages/core']);
         Expect::that($overrides->coverage->perTestTarget)->toBe('build/test-coverage.jsonl');
         Expect::that($overrides->coverage->disabled)->toBeFalse();
@@ -170,6 +176,16 @@ final class CliOverridesTest
             'maximum-uncovered-lines',
             '-1',
             '--maximum-uncovered-lines requires a nonnegative integer. Received "-1".',
+        ];
+        yield 'branch percentage above 100' => [
+            'minimum-branch-coverage',
+            '100.01',
+            '--minimum-branch-coverage requires a percentage from 0 through 100 with at most two decimal places. Received "100.01".',
+        ];
+        yield 'negative uncovered branches' => [
+            'maximum-uncovered-branches',
+            '-1',
+            '--maximum-uncovered-branches requires a nonnegative integer. Received "-1".',
         ];
     }
 

@@ -34,28 +34,56 @@ final readonly class CloverExporter implements CoverageExporter
                 $out .= \sprintf('      <line num="%d" type="stmt" count="%d"/>', $line, $count) . "\n";
             }
 
-            $out .= '      ' . $this->metrics($file->executableLineCount(), $file->coveredLineCount()) . "\n";
+            if ($map->branchCoverage) {
+                foreach ($file->functions as $function) {
+                    foreach ($function->branches as $branch) {
+                        $out .= \sprintf('      <line num="%d" type="cond" count="%d"/>', $branch->startLine, $branch->covered ? 1 : 0) . "\n";
+                    }
+                }
+            }
+
+            $out .= '      ' . $this->metrics(
+                $file->executableLineCount(),
+                $file->coveredLineCount(),
+                conditionals: $map->branchCoverage ? $file->branchTotal() : null,
+                coveredConditionals: $map->branchCoverage ? $file->coveredBranchTotal() : null,
+            ) . "\n";
             $out .= '    </file>' . "\n";
         }
 
-        $out .= '    ' . $this->metrics($map->executableLineTotal(), $map->coveredLineTotal(), \count($map->files())) . "\n";
+        $out .= '    ' . $this->metrics(
+            $map->executableLineTotal(),
+            $map->coveredLineTotal(),
+            \count($map->files()),
+            $map->branchCoverage ? $map->branchTotal() : null,
+            $map->branchCoverage ? $map->coveredBranchTotal() : null,
+        ) . "\n";
         $out .= '  </project>' . "\n";
         $out .= '</coverage>' . "\n";
 
         return [self::FILE_NAME => $out];
     }
 
-    private function metrics(int $statements, int $covered, ?int $files = null): string
-    {
+    private function metrics(
+        int $statements,
+        int $covered,
+        ?int $files = null,
+        ?int $conditionals = null,
+        ?int $coveredConditionals = null,
+    ): string {
         $prefix = $files === null ? '' : \sprintf('files="%d" ', $files);
+        $conditionalAttributes = $conditionals === null || $coveredConditionals === null
+            ? ''
+            : \sprintf('conditionals="%d" coveredconditionals="%d" ', $conditionals, $coveredConditionals);
 
         return \sprintf(
-            '<metrics %sloc="0" ncloc="0" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="%d" coveredstatements="%d" elements="%d" coveredelements="%d"/>',
+            '<metrics %sloc="0" ncloc="0" classes="0" methods="0" coveredmethods="0" %sstatements="%d" coveredstatements="%d" elements="%d" coveredelements="%d"/>',
             $prefix,
+            $conditionalAttributes,
             $statements,
             $covered,
-            $statements,
-            $covered,
+            $statements + ($conditionals ?? 0),
+            $covered + ($coveredConditionals ?? 0),
         );
     }
 }

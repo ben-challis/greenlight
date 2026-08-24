@@ -24,6 +24,13 @@ final class CoverageBuilder
 
     private bool $requireDriver = false;
 
+    private bool $branchCoverage = false;
+
+    private ?float $minimumBranchPercentage = null;
+
+    /** @var int<0, max>|null */
+    private ?int $maximumUncoveredBranches = null;
+
     /**
      * @var list<CoverageExport>
      */
@@ -121,6 +128,51 @@ final class CoverageBuilder
         return $this;
     }
 
+    /** Enables Xdebug branch and path coverage. */
+    public function branchCoverage(bool $enabled = true): self
+    {
+        $this->branchCoverage = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Sets the minimum accepted total branch-coverage percentage.
+     *
+     * @throws InvalidConfiguration
+     */
+    public function minimumBranchPercentage(float $percentage): self
+    {
+        if (!\is_finite($percentage) || $percentage < 0.0 || $percentage > 100.0) {
+            throw new InvalidConfiguration('Minimum branch coverage percentage must be from 0 through 100.');
+        }
+
+        if (\round($percentage, 2) !== $percentage) {
+            throw new InvalidConfiguration('Minimum branch coverage percentage can have at most two decimal places.');
+        }
+
+        $this->minimumBranchPercentage = $percentage;
+
+        return $this;
+    }
+
+    /**
+     * Sets the maximum accepted number of uncovered branches.
+     *
+     * @param int<0, max> $branches
+     * @throws InvalidConfiguration
+     */
+    public function maximumUncoveredBranches(int $branches): self
+    {
+        if ($branches < 0) {
+            throw new InvalidConfiguration('Maximum uncovered branches cannot be negative.');
+        }
+
+        $this->maximumUncoveredBranches = $branches;
+
+        return $this;
+    }
+
     /**
      * @param 'json'|'lcov'|'clover'|'cobertura'|'html' $format
      * @param non-empty-string $target
@@ -143,7 +195,7 @@ final class CoverageBuilder
     }
 
     /**
-     * Writes a versioned map of the source lines that each test covers.
+     * Writes a versioned map of the source coverage for each test.
      *
      * @param non-empty-string $target
      *
@@ -173,6 +225,9 @@ final class CoverageBuilder
             $this->maximumUncoveredLines,
             $this->requireDriver,
             $this->perTestTarget,
+            $this->branchCoverage,
+            $this->minimumBranchPercentage,
+            $this->maximumUncoveredBranches,
         );
     }
 }

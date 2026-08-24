@@ -13,6 +13,7 @@ final readonly class CoverageConfiguration
      * @param list<CoverageExport> $exports
      * @param int<0, max>|null $maximumUncoveredLines
      * @param non-empty-string|null $perTestTarget
+     * @param int<0, max>|null $maximumUncoveredBranches
      */
     public function __construct(
         public array $includePaths,
@@ -22,15 +23,28 @@ final readonly class CoverageConfiguration
         public ?int $maximumUncoveredLines = null,
         public bool $requireDriver = false,
         public ?string $perTestTarget = null,
+        public bool $branchCoverage = false,
+        public ?float $minimumBranchPercentage = null,
+        public ?int $maximumUncoveredBranches = null,
     ) {}
 
     public function hasGates(): bool
     {
-        return $this->minimumPercentage !== null || $this->maximumUncoveredLines !== null;
+        return $this->minimumPercentage !== null
+            || $this->maximumUncoveredLines !== null
+            || $this->minimumBranchPercentage !== null
+            || $this->maximumUncoveredBranches !== null;
     }
 
     public function requiresCoverageResult(): bool
     {
         return $this->requireDriver || $this->hasGates();
+    }
+
+    public function requiresBranchCoverage(): bool
+    {
+        return $this->branchCoverage
+            || $this->minimumBranchPercentage !== null
+            || $this->maximumUncoveredBranches !== null;
     }
 }

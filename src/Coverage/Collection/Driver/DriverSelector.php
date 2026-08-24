@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Coverage\Collection\Driver;
 
+use Greenlight\Coverage\CoverageError;
+
 /**
  * The default order selects pcov before Xdebug because pcov collects line
  * coverage more quickly.
@@ -20,11 +22,20 @@ final readonly class DriverSelector
      */
     public function __construct(private array $candidates = [PcovDriver::class, XdebugDriver::class]) {}
 
-    public function select(): DriverSelection
+    /** @throws CoverageError */
+    public function select(bool $branchCoverage = false): DriverSelection
     {
         foreach ($this->candidates as $candidate) {
+            if ($branchCoverage && $candidate !== XdebugDriver::class) {
+                continue;
+            }
+
             if ($candidate::isAvailable()) {
-                return DriverSelection::selected(new $candidate());
+                return DriverSelection::selected(
+                    $candidate === XdebugDriver::class
+                        ? new XdebugDriver(branchCoverage: $branchCoverage)
+                        : new $candidate(),
+                );
             }
         }
 

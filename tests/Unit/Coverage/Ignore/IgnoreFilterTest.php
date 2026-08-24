@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Coverage\Ignore;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Coverage\BranchCoverage;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
+use Greenlight\Coverage\FunctionCoverage;
 use Greenlight\Coverage\Ignore\IgnoreFilter;
+use Greenlight\Coverage\PathCoverage;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 
@@ -54,6 +57,39 @@ final readonly class IgnoreFilterTest
         $map = new CoverageMap([new FileCoverage($path, [3], [4])]);
 
         Expect::that(new IgnoreFilter()->apply($map)->isEmpty())->toBeTrue();
+    }
+
+    #[Test]
+    public function ignoredSourceRangesRemoveBranchesAndDependentPaths(): void
+    {
+        $path = $this->tempDirectory->subdirectory('ignored-branches') . '/subject.php';
+        \file_put_contents($path, <<<'PHP'
+            <?php
+            $a = 1;
+            // @codeCoverageIgnoreStart
+            $b = 2;
+            // @codeCoverageIgnoreEnd
+            $c = 3;
+
+            PHP);
+
+        $map = new CoverageMap([
+            new FileCoverage($path, [2, 4, 6], [], [
+                new FunctionCoverage('run', [
+                    new BranchCoverage(0, 2, 2, true),
+                    new BranchCoverage(1, 4, 4, true),
+                ], [
+                    new PathCoverage([0], true),
+                    new PathCoverage([0, 1], true),
+                ]),
+            ]),
+        ], true);
+
+        $filtered = new IgnoreFilter()->apply($map);
+
+        Expect::that($filtered->files()[$path]->coveredLines)->toBe([2, 6]);
+        Expect::that($filtered->files()[$path]->branchTotal())->toBe(1);
+        Expect::that($filtered->files()[$path]->pathTotal())->toBe(1);
     }
 
     #[Test]

@@ -28,6 +28,7 @@ final readonly class Assign implements Message
         public ?array $coverageInclude = null,
         public ?string $coverageDriver = null,
         public bool $coveragePerTest = false,
+        public bool $coverageBranches = false,
         public bool $detectLeaks = false,
         public ?ResultPolicy $policy = null,
         public ?ArtifactSession $artifactSession = null,
@@ -49,6 +50,7 @@ final readonly class Assign implements Message
             'coverageInclude' => $this->coverageInclude,
             'coverageDriver' => $this->coverageDriver,
             'coveragePerTest' => $this->coveragePerTest,
+            'coverageBranches' => $this->coverageBranches,
             'detectLeaks' => $this->detectLeaks,
             'policy' => $this->policy?->toWire(),
             'artifactSession' => $this->artifactSession?->toWire(),
@@ -75,6 +77,7 @@ final readonly class Assign implements Message
             $coverageInclude,
             $coverageDriver === '' ? null : $coverageDriver,
             Wire::bool($payload, 'coveragePerTest'),
+            Wire::bool($payload, 'coverageBranches'),
             Wire::bool($payload, 'detectLeaks'),
             ($policy = Wire::nullableMap($payload, 'policy')) === null ? null : ResultPolicy::fromWire($policy),
             ($artifacts = \array_key_exists('artifactSession', $payload) ? Wire::nullableMap($payload, 'artifactSession') : null) === null

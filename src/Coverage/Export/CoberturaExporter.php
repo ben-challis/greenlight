@@ -10,8 +10,6 @@ use Greenlight\Coverage\CoverageMap;
  * Each file becomes one class element with a hit count for each line.
  * Class, package, and root elements contain line-rate attributes.
  *
- * The report uses zero for branch rates because Greenlight collects only line coverage.
- *
  * The caller supplies the timestamp to make the output deterministic.
  *
  * @internal
@@ -26,9 +24,16 @@ final readonly class CoberturaExporter implements CoverageExporter
     public function export(CoverageMap $map): array
     {
         $out = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $branchAttributes = $map->branchCoverage ? \sprintf(
+            ' branch-rate="%s" branches-covered="%d" branches-valid="%d"',
+            $this->rate($map->coveredBranchTotal(), $map->branchTotal()),
+            $map->coveredBranchTotal(),
+            $map->branchTotal(),
+        ) : '';
         $out .= \sprintf(
-            '<coverage line-rate="%s" branch-rate="0" lines-covered="%d" lines-valid="%d" branches-covered="0" branches-valid="0" complexity="0" version="0" timestamp="%d">',
+            '<coverage line-rate="%s"%s lines-covered="%d" lines-valid="%d" complexity="0" version="0" timestamp="%d">',
             $this->rate($map->coveredLineTotal(), $map->executableLineTotal()),
+            $branchAttributes,
             $map->coveredLineTotal(),
             $map->executableLineTotal(),
             $this->timestamp,
@@ -38,23 +43,60 @@ final readonly class CoberturaExporter implements CoverageExporter
         $out .= '  </sources>' . "\n";
         $out .= '  <packages>' . "\n";
         $out .= \sprintf(
-            '    <package name="greenlight" line-rate="%s" branch-rate="0" complexity="0">',
+            '    <package name="greenlight" line-rate="%s"%s complexity="0">',
             $this->rate($map->coveredLineTotal(), $map->executableLineTotal()),
+            $map->branchCoverage ? ' branch-rate="' . $this->rate($map->coveredBranchTotal(), $map->branchTotal()) . '"' : '',
         ) . "\n";
         $out .= '      <classes>' . "\n";
 
         foreach ($map->files() as $path => $file) {
             $out .= \sprintf(
-                '        <class name="%s" filename="%s" line-rate="%s" branch-rate="0" complexity="0">',
+                '        <class name="%s" filename="%s" line-rate="%s"%s complexity="0">',
                 XmlEscaper::attribute(\ltrim($path, '/')),
                 XmlEscaper::attribute(\ltrim($path, '/')),
                 $this->rate($file->coveredLineCount(), $file->executableLineCount()),
+                $map->branchCoverage ? ' branch-rate="' . $this->rate($file->coveredBranchTotal(), $file->branchTotal()) . '"' : '',
             ) . "\n";
             $out .= '          <methods/>' . "\n";
             $out .= '          <lines>' . "\n";
 
-            foreach ($file->lineHits() as $line => $hit) {
-                $out .= \sprintf('            <line number="%d" hits="%d"/>', $line, $hit) . "\n";
+            $lineHits = $file->lineHits();
+            $branchesByLine = $file->branchesByLine();
+            $lines = \array_unique([...\array_keys($lineHits), ...\array_keys($branchesByLine)]);
+            \sort($lines);
+
+            foreach ($lines as $line) {
+                $branches = $branchesByLine[$line] ?? [];
+                $hit = $lineHits[$line] ?? (\array_filter($branches, static fn($branch): bool => $branch->covered) === [] ? 0 : 1);
+
+                if ($branches === []) {
+                    $out .= \sprintf('            <line number="%d" hits="%d"/>', $line, $hit) . "\n";
+                    continue;
+                }
+
+                $covered = \count(\array_filter($branches, static fn($branch): bool => $branch->covered));
+                $total = \count($branches);
+                $percentage = $total === 0 ? 100 : (int) \round($covered / $total * 100);
+                $out .= \sprintf(
+                    '            <line number="%d" hits="%d" branch="true" condition-coverage="%d%% (%d/%d)">',
+                    $line,
+                    $hit,
+                    $percentage,
+                    $covered,
+                    $total,
+                ) . "\n";
+                $out .= '              <conditions>' . "\n";
+
+                foreach ($branches as $branch) {
+                    $out .= \sprintf(
+                        '                <condition number="%d" type="jump" coverage="%d%%"/>',
+                        $branch->id,
+                        $branch->covered ? 100 : 0,
+                    ) . "\n";
+                }
+
+                $out .= '              </conditions>' . "\n";
+                $out .= '            </line>' . "\n";
             }
 
             $out .= '          </lines>' . "\n";

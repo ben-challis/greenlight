@@ -119,7 +119,7 @@ PHPDoc:
 - `@param non-empty-string ...$paths`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L42)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L49)
 
 ### `driver()`
 
@@ -132,7 +132,7 @@ PHPDoc:
 - `@param non-empty-string $driver`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L68)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L75)
 
 ### `minimumPercentage()`
 
@@ -146,7 +146,7 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L84)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L91)
 
 ### `maximumUncoveredLines()`
 
@@ -161,7 +161,7 @@ PHPDoc:
 - `@param int<0, max> $lines`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L105)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L112)
 
 ### `requireDriver()`
 
@@ -171,7 +171,46 @@ Fails the run when the selected coverage driver is not available.
 public function requireDriver(bool $required = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L117)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L124)
+
+### `branchCoverage()`
+
+Enables Xdebug branch and path coverage.
+
+```php
+public function branchCoverage(bool $enabled = true): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L132)
+
+### `minimumBranchPercentage()`
+
+Sets the minimum accepted total branch-coverage percentage.
+
+```php
+public function minimumBranchPercentage(float $percentage): self
+```
+
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L144)
+
+### `maximumUncoveredBranches()`
+
+Sets the maximum accepted number of uncovered branches.
+
+```php
+public function maximumUncoveredBranches(int $branches): self
+```
+
+PHPDoc:
+
+- `@param int<0, max> $branches`
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L165)
 
 ### `export()`
 
@@ -185,11 +224,11 @@ PHPDoc:
 - `@param non-empty-string $target`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L130)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L182)
 
 ### `perTest()`
 
-Writes a versioned map of the source lines that each test covers.
+Writes a versioned map of the source coverage for each test.
 
 ```php
 public function perTest(string $target): self
@@ -200,7 +239,7 @@ PHPDoc:
 - `@param non-empty-string $target`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L152)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L204)
 
 ## `GreenlightConfig`
 

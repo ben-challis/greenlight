@@ -133,7 +133,7 @@ final readonly class RunSession
             $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $this->workingDirectory);
             $storage = StorageLayout::resolve($resolved->storage, $this->workingDirectory);
             $testCoverageStore = $coverageSettings?->perTest === true
-                ? TestCoverageStore::open($storage->temporaryDirectory)
+                ? TestCoverageStore::open($storage->temporaryDirectory, $coverageSettings->branchCoverage)
                 : null;
             $coverageSession = CoverageSession::open(
                 $coverageSettings,

@@ -7,6 +7,7 @@ namespace Greenlight\Coverage\Relay;
 use Greenlight\Coverage\Collection\CoverageCollector;
 use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Coverage\Collection\Driver\DriverSelector;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Internal\Php\ErrorTrap;
 
@@ -26,6 +27,7 @@ final readonly class SubprocessCoverage
 {
     public const string DIRECTORY_ENV = 'GREENLIGHT_COVERAGE_DIR';
     public const string INCLUDE_ENV = 'GREENLIGHT_COVERAGE_INCLUDE';
+    public const string BRANCH_ENV = 'GREENLIGHT_COVERAGE_BRANCH';
 
     private function __construct(
         private CoverageCollector $collector,
@@ -39,6 +41,7 @@ final readonly class SubprocessCoverage
         return \is_string($directory) && $directory !== '';
     }
 
+    /** @throws CoverageError */
     public static function begin(?DriverSelector $selector = null): ?self
     {
         $directory = \getenv(self::DIRECTORY_ENV);
@@ -49,8 +52,9 @@ final readonly class SubprocessCoverage
 
         $include = \getenv(self::INCLUDE_ENV);
         $paths = \is_string($include) ? CoverageRelayPaths::decode($include) : [];
+        $branchCoverage = \getenv(self::BRANCH_ENV) === '1';
 
-        $collector = CoverageCollector::create(new CoverageSettings($paths), selector: $selector);
+        $collector = CoverageCollector::create(new CoverageSettings($paths, branchCoverage: $branchCoverage), selector: $selector);
 
         if (!$collector instanceof CoverageCollector) {
             return null;

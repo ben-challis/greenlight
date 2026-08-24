@@ -1,10 +1,11 @@
 # Per-test coverage JSONL schema
 
-`CoverageBuilder::perTest()` and `--coverage-map` write the source lines covered
-by each test as JSONL.
+`CoverageBuilder::perTest()` and `--coverage-map` write the source coverage of
+each test as JSONL.
 
-The JSON Schema for version 1 is
-[resources/schema/test-coverage-jsonl-v1.schema.json](../../resources/schema/test-coverage-jsonl-v1.schema.json).
+The JSON Schemas are
+[version 1](../../resources/schema/test-coverage-jsonl-v1.schema.json) and
+[version 2](../../resources/schema/test-coverage-jsonl-v2.schema.json).
 
 Per-test coverage has a separate format from the `jsonl` reporter and the
 aggregate coverage JSON export.
@@ -27,10 +28,10 @@ only warns in the same situation.
 
 Every line is a UTF-8 JSON object with two common fields:
 
-* `v` is the schema version, currently `1`
+* `v` is `1` for line-only coverage and `2` for branch coverage
 * `type` identifies the record
 
-Lines end in `\n`. Version 1 may add fields and record types. Readers must
+Lines end in `\n`. Each version may add fields and record types. Readers must
 ignore unknown fields and skip unknown record types. A change to an existing
 field requires a new version.
 
@@ -45,6 +46,10 @@ The first line describes the artifact:
 `root` is the absolute working directory. `runId` identifies the Greenlight
 run. Version 1 only publishes finished artifacts, so `complete` is always
 `true`.
+
+Version 2 adds `"branchCoverage":true` to the metadata record. This field
+means that Xdebug measured branches. It is present even when no source branch
+exists.
 
 ## `test`
 
@@ -77,6 +82,11 @@ line lists.
 Each data row has its own test ordinal. Coverage from retries is already
 combined. A test with no mapped lines has no `coverage` record.
 
+Version 2 adds `branch-coverage` and `path-coverage` records. A branch record
+assigns covered function-scoped branch IDs to a test. A path record assigns
+covered, ordered branch sequences to a test. Each record has `file` and
+`function` fields. Lists contain no more than 50,000 items.
+
 ## `source`
 
 A `source` record lists executable lines from the aggregate coverage result:
@@ -88,6 +98,12 @@ A `source` record lists executable lines from the aggregate coverage result:
 `covered` states whether the listed lines ran during the suite. The covered and
 uncovered records reconstruct the aggregate line map without a separate
 coverage JSON export.
+
+Version 2 adds `source-branch` and `source-path` records. A source branch keeps
+the source range, hit state, and ordered exit identities. A source path keeps
+its exact normalized branch sequence and hit state. These records can
+reconstruct aggregate coverage JSON version 2 without reducing branches to
+lines.
 
 ## `unattributed`
 
@@ -102,6 +118,9 @@ This includes coverage from the orchestrator, bootstrap code, child Greenlight
 processes, and a worker that stopped before completing its current test.
 Readers must not assign these lines to every test.
 
+Version 2 adds `unattributed-branch` and `unattributed-path` records for
+covered identities that belong to no completed test window.
+
 ## Paths and ignored lines
 
 Source paths are the absolute paths returned by the coverage driver. Test paths
@@ -109,16 +128,18 @@ come from discovery.
 
 `#[CoverageIgnore]` and the supported ignore comments apply before Greenlight
 writes the artifact. Ignored lines do not appear in `coverage`, `source`, or
-`unattributed` records. Dead code is omitted as it is from aggregate coverage.
+`unattributed` records. In version 2, an ignored source range also removes its
+branches and all paths that contain those branches. Dead code is omitted as it
+is from aggregate coverage.
 
 ## Ordering and storage
 
-Version 1 writes records in this order:
+Both versions write records in this order:
 
 1. `meta`
 2. every `test` record
 3. `coverage` records in arrival order
-4. `source` and `unattributed` records in aggregate file order
+4. aggregate source and unattributed records in aggregate file order
 
 Readers should use record fields rather than rely on this order, apart from the
 metadata and test table appearing before coverage records.

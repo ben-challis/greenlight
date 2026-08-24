@@ -6,10 +6,14 @@ namespace Greenlight\Tests\Unit\Coverage\Export;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Coverage\BranchCoverage;
+use Greenlight\Coverage\BranchExitCoverage;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Coverage\FileCoverage;
+use Greenlight\Coverage\FunctionCoverage;
+use Greenlight\Coverage\PathCoverage;
 use Greenlight\Expect\Expect;
 
 final class JsonExporterTest
@@ -79,6 +83,48 @@ final class JsonExporterTest
     }
 
     #[Test]
+    public function branchCoverageUsesVersionTwoAndRoundTripsWithoutLineReduction(): void
+    {
+        $map = new CoverageMap([
+            new FileCoverage('/src/Decision.php', [10], [11], [
+                new FunctionCoverage('decide', [
+                    new BranchCoverage(0, 10, 11, true, [
+                        new BranchExitCoverage(0, true),
+                        new BranchExitCoverage(1, false),
+                    ]),
+                ], [
+                    new PathCoverage([0, 1], true),
+                    new PathCoverage([4, 12], false),
+                ]),
+            ]),
+        ], true);
+
+        $json = new JsonExporter()->export($map)[JsonExporter::FILE_NAME];
+        $document = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
+
+        if (!\is_array($document)) {
+            throw new \RuntimeException('Expected a JSON object coverage document.');
+        }
+
+        Expect::that($document['v'] ?? null)->toBe(2);
+        Expect::that($document['totals'] ?? null)->toBe([
+            'files' => 1,
+            'coveredLines' => 1,
+            'executableLines' => 2,
+            'percentage' => 50,
+            'coveredBranches' => 1,
+            'branches' => 1,
+            'branchPercentage' => 100,
+            'coveredPaths' => 1,
+            'paths' => 2,
+            'pathPercentage' => 50,
+        ]);
+        Expect::that(JsonExporter::import($json)->toWire())
+            ->because('coverage JSON version 2 MUST retain branch, exit, and path identity')
+            ->toBe($map->toWire());
+    }
+
+    #[Test]
     #[DataSet('invalidDocuments')]
     public function importReportsEachInvalidDocumentExactly(string $json, string $message): void
     {
@@ -106,8 +152,8 @@ final class JsonExporterTest
     public static function invalidDocuments(): iterable
     {
         yield 'unsupported schema version' => [
-            '{"v":2,"files":{}}',
-            'Coverage JSON document is invalid: unsupported or missing schema version, expected 1.',
+            '{"v":3,"files":{}}',
+            'Coverage JSON document is invalid: unsupported or missing schema version, expected 1 or 2.',
         ];
         yield 'top level is not an object' => [
             '"invalid"',

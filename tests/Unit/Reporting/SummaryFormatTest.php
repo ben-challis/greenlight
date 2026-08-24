@@ -48,6 +48,17 @@ final class SummaryFormatTest
     }
 
     #[Test]
+    public function branchAndPathCoverageUseMeasuredTotals(): void
+    {
+        $style = new Style(ansi: false);
+
+        Expect::that(SummaryFormat::branchCoverage(50.0, 1, 2, $style))
+            ->toBe('Branches: 50.00% (1 of 2 branches)');
+        Expect::that(SummaryFormat::pathCoverage(100.0, 1, 1, $style))
+            ->toBe('Paths: 100.00% (1 of 1 path)');
+    }
+
+    #[Test]
     public function anEmptyLineSeparatesDistinctSkipReasons(): void
     {
         $block = SummaryFormat::skipped([

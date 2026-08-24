@@ -21,12 +21,14 @@ use Greenlight\Execution\ProcessPool\Protocol\MessageRegistry;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Bootstrap;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\BranchCoverageChunk;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\CoverageChunk;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Fatal;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\PathCoverageChunk;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
 use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\FixtureResource;
@@ -114,10 +116,10 @@ final class WorkerProtocolSchemaTest
             ['data', 'result', 'attachments'],
         ]);
 
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 4, 't' => 'assign', 'p' => $assignPayload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 5, 't' => 'assign', 'p' => $assignPayload])))
             ->because('the schema MUST accept compatible assignment payloads')
             ->toBe([]);
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 4, 't' => 'event', 'p' => $eventPayload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 5, 't' => 'event', 'p' => $eventPayload])))
             ->because('the schema MUST accept compatible test result payloads')
             ->toBe([]);
     }
@@ -128,7 +130,7 @@ final class WorkerProtocolSchemaTest
         $payload = $this->messages()['assign']->toWire();
         $payload['futureProtocolField'] = true;
 
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 4, 't' => 'assign', 'p' => $payload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 5, 't' => 'assign', 'p' => $payload])))
             ->because('a protocol change MUST update the schema')
             ->not()
             ->toBe([]);
@@ -225,6 +227,7 @@ final class WorkerProtocolSchemaTest
                 ['/project/src'],
                 'pcov',
                 coveragePerTest: true,
+                coverageBranches: true,
                 detectLeaks: true,
                 policy: new ResultPolicy(
                     failOnDeprecation: true,
@@ -241,6 +244,8 @@ final class WorkerProtocolSchemaTest
             'event' => new EventEnvelope(new TestFinished($result, 1_780_000_000.5)),
             'attempt-started' => new AttemptStarted($id, 2),
             'coverage' => new CoverageChunk($id, '/project/src/Example.php', [2, 3]),
+            'branch-coverage' => new BranchCoverageChunk($id, '/project/src/Example.php', 'checksValue', [4, 9]),
+            'path-coverage' => new PathCoverageChunk($id, '/project/src/Example.php', 'checksValue', [[4, 9]]),
             'done' => new Done(
                 new ResultSummary(passed: 2, failed: 1),
                 123_456,
@@ -393,7 +398,7 @@ final class WorkerProtocolSchemaTest
 
     private function schemaPath(): string
     {
-        return \dirname(__DIR__, 5) . '/resources/schema/worker-protocol-v4.schema.json';
+        return \dirname(__DIR__, 5) . '/resources/schema/worker-protocol-v5.schema.json';
     }
 
     /**

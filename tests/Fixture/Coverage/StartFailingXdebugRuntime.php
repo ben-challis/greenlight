@@ -17,6 +17,12 @@ final class StartFailingXdebugRuntime implements Fake, XdebugRuntime
     public function __construct(private readonly \RuntimeException $failure) {}
 
     #[\Override]
+    public function supportsBranchCoverage(): bool
+    {
+        return true;
+    }
+
+    #[\Override]
     public function start(int $flags): void
     {
         $this->calls[] = 'start';

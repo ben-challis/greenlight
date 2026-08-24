@@ -22,6 +22,7 @@ final readonly class SharedCoverageDirectory
         private string $directory,
         private string|false $previousDirectory,
         private string|false $previousInclude,
+        private string|false $previousBranch,
     ) {}
 
     /** @throws CoverageError */
@@ -37,17 +38,20 @@ final readonly class SharedCoverageDirectory
 
         $previousDirectory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
         $previousInclude = \getenv(SubprocessCoverage::INCLUDE_ENV);
+        $previousBranch = \getenv(SubprocessCoverage::BRANCH_ENV);
 
         \putenv(SubprocessCoverage::DIRECTORY_ENV . '=' . $directory);
         \putenv(SubprocessCoverage::INCLUDE_ENV . '=' . CoverageRelayPaths::encode($settings->includePaths));
+        \putenv(SubprocessCoverage::BRANCH_ENV . '=' . ($settings->branchCoverage ? '1' : '0'));
 
-        return new self($directory, $previousDirectory, $previousInclude);
+        return new self($directory, $previousDirectory, $previousInclude, $previousBranch);
     }
 
     public function drain(): ?CoverageMap
     {
         $this->restore(SubprocessCoverage::DIRECTORY_ENV, $this->previousDirectory);
         $this->restore(SubprocessCoverage::INCLUDE_ENV, $this->previousInclude);
+        $this->restore(SubprocessCoverage::BRANCH_ENV, $this->previousBranch);
 
         $dumps = \glob($this->directory . '/*.json');
 

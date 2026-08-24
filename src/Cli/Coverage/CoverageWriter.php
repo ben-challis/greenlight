@@ -31,7 +31,24 @@ final readonly class CoverageWriter
 
     public function write(CoverageConfiguration $configuration, CoverageMap $coverage, string $workingDirectory, Style $style): bool
     {
-        $this->human("\n" . SummaryFormat::coverage($coverage->totalPercentage(), $coverage->coveredLineTotal(), $coverage->executableLineTotal(), $style) . "\n");
+        $summary = SummaryFormat::coverage($coverage->totalPercentage(), $coverage->coveredLineTotal(), $coverage->executableLineTotal(), $style);
+
+        if ($coverage->branchCoverage) {
+            $summary .= "\n" . SummaryFormat::branchCoverage(
+                $coverage->totalBranchPercentage(),
+                $coverage->coveredBranchTotal(),
+                $coverage->branchTotal(),
+                $style,
+            );
+            $summary .= "\n" . SummaryFormat::pathCoverage(
+                $coverage->totalPathPercentage(),
+                $coverage->coveredPathTotal(),
+                $coverage->pathTotal(),
+                $style,
+            );
+        }
+
+        $this->human("\n" . $summary . "\n");
         foreach ($configuration->exports as $export) {
             $exporter = $this->exporterFor($export->format, $workingDirectory);
             if (!$exporter instanceof CoverageExporter) {

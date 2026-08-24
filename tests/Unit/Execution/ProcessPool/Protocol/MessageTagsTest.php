@@ -10,12 +10,14 @@ use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\MessageRegistry;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\BranchCoverageChunk;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\CoverageChunk;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Fatal;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\PathCoverageChunk;
 use Greenlight\Expect\Expect;
 
 final class MessageTagsTest
@@ -44,6 +46,8 @@ final class MessageTagsTest
         yield 'event' => [EventEnvelope::class, 'event'];
         yield 'attempt started' => [AttemptStarted::class, 'attempt-started'];
         yield 'coverage' => [CoverageChunk::class, 'coverage'];
+        yield 'branch coverage' => [BranchCoverageChunk::class, 'branch-coverage'];
+        yield 'path coverage' => [PathCoverageChunk::class, 'path-coverage'];
         yield 'done' => [Done::class, 'done'];
         yield 'fatal' => [Fatal::class, 'fatal'];
     }
@@ -54,7 +58,7 @@ final class MessageTagsTest
         Expect::that(MessageRegistry::envelope(new Drain()))
             ->because('the published worker-protocol envelope MUST remain compatible')
             ->toBe([
-                'v' => 4,
+                'v' => 5,
                 't' => 'drain',
                 'p' => [],
             ]);

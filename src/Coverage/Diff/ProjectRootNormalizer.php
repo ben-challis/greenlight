@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Coverage\Diff;
 
 use Greenlight\Coverage\CoverageMap;
-use Greenlight\Coverage\FileCoverage;
 
 /** Normalizes absolute coverage paths against explicit project roots.
  *
@@ -45,14 +44,10 @@ final class ProjectRootNormalizer
                 ));
             }
 
-            $files[] = new FileCoverage(
-                $relative,
-                $coverage->coveredLines,
-                $coverage->uncoveredLines,
-            );
+            $files[] = $coverage->withFile($relative);
         }
 
-        return new CoverageMap($files);
+        return new CoverageMap($files, $map->branchCoverage);
     }
 
     /** Changes paths below one source root to paths below one target root. */
@@ -67,13 +62,9 @@ final class ProjectRootNormalizer
         $files = [];
 
         foreach ($relative->files() as $path => $coverage) {
-            $files[] = new FileCoverage(
-                $root . '/' . $path,
-                $coverage->coveredLines,
-                $coverage->uncoveredLines,
-            );
+            $files[] = $coverage->withFile($root . '/' . $path);
         }
 
-        return new CoverageMap($files);
+        return new CoverageMap($files, $map->branchCoverage);
     }
 }

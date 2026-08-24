@@ -12,6 +12,12 @@ namespace Greenlight\Coverage\Collection\Driver;
 final readonly class NativeXdebugRuntime implements XdebugRuntime
 {
     #[\Override]
+    public function supportsBranchCoverage(): bool
+    {
+        return \defined('XDEBUG_CC_BRANCH_CHECK');
+    }
+
+    #[\Override]
     public function start(int $flags): void
     {
         \xdebug_start_code_coverage($flags);

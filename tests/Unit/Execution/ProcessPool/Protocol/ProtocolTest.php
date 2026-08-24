@@ -17,12 +17,14 @@ use Greenlight\Execution\ProcessPool\Protocol\MessageRegistry;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Bootstrap;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\BranchCoverageChunk;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\CoverageChunk;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Fatal;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\PathCoverageChunk;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Expect\Expect;
@@ -70,6 +72,8 @@ final class ProtocolTest
             new EventEnvelope(new TestFinished($result, 1_780_000_000.5)),
             new AttemptStarted(new TestId('App\FooTest', 'bar'), 2),
             new CoverageChunk(new TestId('App\FooTest', 'bar'), '/project/src/Foo.php', [2, 3]),
+            new BranchCoverageChunk(new TestId('App\FooTest', 'bar'), '/project/src/Foo.php', 'run', [4, 9]),
+            new PathCoverageChunk(new TestId('App\FooTest', 'bar'), '/project/src/Foo.php', 'run', [[4, 9]]),
             new Done(new ResultSummary(passed: 3, failed: 1), 12345),
             new Fatal(ThrowableDetail::fromThrowable(new \RuntimeException('boom'))),
         ];
@@ -118,6 +122,7 @@ final class ProtocolTest
 
         $assign = Assign::fromWire(new Assign(
             new ExecutionPlan([$entry], 42),
+            coverageBranches: true,
             artifactSession: new ArtifactSession('/tmp/staging', 'build/artifacts/run-1'),
             artifactConfiguration: new ArtifactConfiguration(maxRunAttachments: 123),
             stopAfterFailures: 2,
@@ -128,6 +133,7 @@ final class ProtocolTest
         Expect::that($assign->artifactSession?->publicDirectory)->toBe('build/artifacts/run-1');
         Expect::that($assign->artifactConfiguration?->maxRunAttachments)->toBe(123);
         Expect::that($assign->stopAfterFailures)->toBe(2);
+        Expect::that($assign->coverageBranches)->toBeTrue();
         Expect::that($assign->slice->entries[0]->id->dataSetKey)->toBe('data set one');
         Expect::that($assign->slice->entries[0]->definition->scheduling->isolated)->toBeTrue();
         Expect::that($assign->slice->entries[0]->definition->scheduling->resources)->toBe(['postgres']);
@@ -216,7 +222,7 @@ final class ProtocolTest
     #[Test]
     public function unknownTagsAndVersionsAreProtocolErrors(): void
     {
-        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 4, 't' => 'nonsense', 'p' => []]))->because('unknown tags and versions are protocol errors')
+        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 5, 't' => 'nonsense', 'p' => []]))->because('unknown tags and versions are protocol errors')
             ->toThrow(ProtocolError::class, matching: '/Unknown message type "nonsense"/');
 
         Expect::that(static fn(): Message => MessageRegistry::open(['v' => 9, 't' => 'drain', 'p' => []]))->because('unknown tags and versions are protocol errors')

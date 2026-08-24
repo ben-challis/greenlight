@@ -107,7 +107,7 @@ final readonly class InProcessExecution implements ExecutionAdapter
             }
 
             $testCoverage = $this->coverageSettings?->perTest === true
-                ? new CollectingTestCoverageSink($context->testCoverageStore)
+                ? new CollectingTestCoverageSink($context->testCoverageStore, $this->coverageSettings->branchCoverage)
                 : null;
             $collectingCoverage = $collector instanceof CoverageCollector;
 

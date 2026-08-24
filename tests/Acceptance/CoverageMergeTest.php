@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Coverage\BranchCoverage;
+use Greenlight\Coverage\BranchExitCoverage;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
+use Greenlight\Coverage\FunctionCoverage;
+use Greenlight\Coverage\PathCoverage;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\CoverageJson;
@@ -84,6 +88,37 @@ final readonly class CoverageMergeTest
         Expect::that((string) \file_get_contents($directory . '/reverse.json'))
             ->because('input order MUST NOT change serialized coverage')
             ->toBe((string) \file_get_contents($directory . '/out/coverage.json'));
+    }
+
+    #[Test]
+    public function mergesBranchAndPathHitsAcrossCiShards(): void
+    {
+        $directory = $this->tempDirectory->subdirectory('coverage-merge-branches');
+        CoverageJson::write($directory . '/shard-1.json', $this->branchMap(true, false));
+        CoverageJson::write($directory . '/shard-2.json', $this->branchMap(false, true));
+
+        $result = GreenlightCli::run($directory, [
+            'coverage:merge',
+            '--input=shard-1.json',
+            '--input=shard-2.json',
+            '--export=json=merged.json',
+            '--export=cobertura=cobertura.xml',
+            '--minimum-branch-coverage=100',
+            '--maximum-uncovered-branches=0',
+            '--no-ansi',
+        ]);
+
+        Expect::that($result->exitCode)
+            ->because('CI shard merges MUST combine branch and path hit state. Output: ' . $result->output())
+            ->toBe(0);
+
+        $merged = CoverageJson::read($directory . '/merged.json');
+        Expect::that([$merged->coveredBranchTotal(), $merged->branchTotal()])->toBe([2, 2]);
+        Expect::that([$merged->coveredPathTotal(), $merged->pathTotal()])->toBe([2, 2]);
+        Expect::that((string) \file_get_contents($directory . '/cobertura.xml'))
+            ->toContain('branch-rate="1.0000"')
+            ->toContain('branches-covered="2"')
+            ->toContain('condition-coverage="100% (2/2)"');
     }
 
     #[Test]
@@ -202,5 +237,24 @@ final readonly class CoverageMergeTest
         Expect::that(\is_file($directory . '/merged.json'))
             ->because('a failed gate MUST keep the merged coverage export')
             ->toBeTrue();
+    }
+
+    private function branchMap(bool $firstCovered, bool $secondCovered): CoverageMap
+    {
+        return new CoverageMap([
+            new FileCoverage('/project/src/Decision.php', [10], [11], [
+                new FunctionCoverage('decide', [
+                    new BranchCoverage(0, 10, 10, $firstCovered, [
+                        new BranchExitCoverage(0, $firstCovered),
+                    ]),
+                    new BranchCoverage(1, 10, 11, $secondCovered, [
+                        new BranchExitCoverage(0, $secondCovered),
+                    ]),
+                ], [
+                    new PathCoverage([0, 1], $firstCovered),
+                    new PathCoverage([1], $secondCovered),
+                ]),
+            ]),
+        ], true);
     }
 }

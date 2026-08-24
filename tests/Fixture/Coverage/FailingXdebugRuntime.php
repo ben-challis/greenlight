@@ -19,6 +19,12 @@ final class FailingXdebugRuntime implements Fake, XdebugRuntime
     public ?\Throwable $stopFailure = null;
 
     #[\Override]
+    public function supportsBranchCoverage(): bool
+    {
+        return true;
+    }
+
+    #[\Override]
     public function start(int $flags): void
     {
         $this->calls[] = 'start';

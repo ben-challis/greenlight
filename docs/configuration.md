@@ -177,6 +177,13 @@ accumulate.
 * `maximumUncoveredLines(int $lines): self` sets the maximum number of
   uncovered executable lines. The value must be zero or more. Default: no
   maximum.
+* `branchCoverage(bool $enabled = true): self` enables Xdebug branch and path
+  coverage. Default: `false`.
+* `minimumBranchPercentage(float $percentage): self` sets the minimum total
+  branch coverage. The value must be from `0` through `100`. It can have two
+  decimal places. Default: no minimum.
+* `maximumUncoveredBranches(int $branches): self` sets the maximum number of
+  uncovered branches. The value must be zero or more. Default: no maximum.
 * `export(string $format, string $target): self` adds a coverage export.
   Supported formats are `json`, `lcov`, `clover`, `cobertura`, and `html`.
   `$target` is a file path, or a directory for multi-file formats such as
@@ -198,6 +205,20 @@ accumulate.
     ->export('html', 'coverage/html'))
 ```
 
+Branch coverage requires Xdebug. Do not select `pcov` in a branch coverage
+configuration:
+
+<!-- php-example {"example":"configuration-branch-coverage","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
+->coverage(fn ($c) => $c
+    ->include('src')
+    ->driver('xdebug')
+    ->branchCoverage()
+    ->minimumBranchPercentage(80.0)
+    ->maximumUncoveredBranches(50)
+    ->export('cobertura', 'coverage/cobertura.xml'))
+```
+
 When you configure coverage, the run prints the total percentage and writes
 each coverage export.
 
@@ -216,6 +237,16 @@ The uncovered-line gate counts executable lines that did not execute. A count
 that is equal to the maximum passes. When both gates are configured, both gates
 must pass.
 
+Branch gates use the same rules. A percentage equal to the minimum passes. An
+uncovered branch count equal to the maximum passes. Configuring a branch gate
+also enables branch coverage.
+
+Cobertura reports measured branch totals, rates, and line condition coverage.
+Clover reports branch nodes as conditional lines. LCOV writes `BRDA`, `BRF`,
+and `BRH` records. HTML reports branch and path totals. Line-only runs omit
+branch fields from these formats. Greenlight does not write zero branch values
+when no branch measurement occurred.
+
 Greenlight writes all configured coverage exports before it evaluates the
 gates. Thus, a failed gate keeps the coverage evidence. A failed gate uses exit
 code `1`.
@@ -233,8 +264,9 @@ only when the run passes without leaks or interruption. See the
 The workers are not the only measured processes. In a parallel run, the
 orchestrator collects its own coverage. Thus, the export includes code that
 executes only in the orchestrator. A coverage run also exports
-`GREENLIGHT_COVERAGE_DIR` and `GREENLIGHT_COVERAGE_INCLUDE` to each process that
-it starts. A `bin/greenlight` process writes coverage to the shared directory
+`GREENLIGHT_COVERAGE_DIR`, `GREENLIGHT_COVERAGE_INCLUDE`, and
+`GREENLIGHT_COVERAGE_BRANCH` to each process that it starts. A `bin/greenlight`
+process writes coverage to the shared directory
 if it inherits these variables. For example, an acceptance test can start this
 process to operate the real CLI.
 
@@ -581,8 +613,9 @@ also rejects relative version 1 file paths.
 Each output file uses an atomic replacement. Output files and HTML pages have
 deterministic content and order.
 
-The command accepts `--minimum-coverage` and `--maximum-uncovered-lines`. These
-gates apply to the merged map after Greenlight writes the outputs.
+The command accepts the line and branch coverage gate options. These gates
+apply to the merged map after Greenlight writes the outputs. All inputs must
+use the same aggregate coverage JSON version.
 
 ### `coverage:diff`
 
@@ -612,9 +645,9 @@ below its applicable root. The command fails if a path is outside the root.
 The root options do not change either coverage export. Coverage JSON version 1
 continues to use absolute path keys.
 
-The command also accepts `--minimum-coverage` and
-`--maximum-uncovered-lines`. These gates apply to the current export. A failed
-gate fails the command when the baseline has no regression.
+The command also accepts the line and branch coverage gate options. These
+gates apply to the current export. A failed gate fails the command when the
+baseline has no regression.
 
 Exits with code 1 if total coverage decreases or the current export has a new
 uncovered line. A total coverage gain does not hide a new uncovered line.
@@ -930,6 +963,28 @@ Overrides `CoverageBuilder::maximumUncoveredLines()` for a run. The option also
 enables coverage when the configuration file does not configure it. With
 `coverage:diff`, the option checks the current export. With `coverage:merge`,
 the option checks the merged map.
+
+The value must be a nonnegative integer.
+
+### `--branch-coverage`
+
+Enables Xdebug branch and path coverage for a run. Greenlight fails before
+discovery if Xdebug coverage mode or branch support is unavailable. Ordinary
+Xdebug and pcov runs remain line-only.
+
+### `--minimum-branch-coverage=<percentage>`
+
+Overrides `CoverageBuilder::minimumBranchPercentage()`. The option enables
+branch coverage for a run. With `coverage:diff`, it checks the current export.
+With `coverage:merge`, it checks the merged map.
+
+The value must be from `0` through `100`. It can have two decimal places.
+
+### `--maximum-uncovered-branches=<n>`
+
+Overrides `CoverageBuilder::maximumUncoveredBranches()`. The option enables
+branch coverage for a run. With `coverage:diff`, it checks the current export.
+With `coverage:merge`, it checks the merged map.
 
 The value must be a nonnegative integer.
 

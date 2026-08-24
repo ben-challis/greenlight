@@ -11,6 +11,8 @@ namespace Greenlight\Coverage\Collection\Driver;
  */
 interface XdebugRuntime
 {
+    public function supportsBranchCoverage(): bool;
+
     public function start(int $flags): void;
 
     /**

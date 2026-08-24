@@ -108,6 +108,9 @@ final class CoverageBuilderTest
         $configuration = new CoverageBuilder()
             ->minimumPercentage(95.25)
             ->maximumUncoveredLines(0)
+            ->branchCoverage()
+            ->minimumBranchPercentage(75.5)
+            ->maximumUncoveredBranches(1)
             ->requireDriver()
             ->toConfiguration();
 
@@ -120,6 +123,9 @@ final class CoverageBuilderTest
         Expect::that($configuration->requireDriver)
             ->because('the run MUST retain the coverage-driver requirement')
             ->toBeTrue();
+        Expect::that($configuration->branchCoverage)->toBeTrue();
+        Expect::that($configuration->minimumBranchPercentage)->toBe(75.5);
+        Expect::that($configuration->maximumUncoveredBranches)->toBe(1);
     }
 
     #[Test]
@@ -139,6 +145,22 @@ final class CoverageBuilderTest
         })
             ->because('an uncovered-line maximum cannot be negative')
             ->toThrow(InvalidConfiguration::class, message: 'Maximum uncovered lines cannot be negative.');
+    }
+
+    #[Test]
+    public function rejectsInvalidBranchGates(): void
+    {
+        Expect::that(static fn(): CoverageBuilder => new CoverageBuilder()->minimumBranchPercentage(100.01))
+            ->toThrow(
+                InvalidConfiguration::class,
+                message: 'Minimum branch coverage percentage must be from 0 through 100.',
+            );
+        Expect::that(static function (): void {
+            new CoverageBuilder()->maximumUncoveredBranches(-1); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        })->toThrow(
+            InvalidConfiguration::class,
+            message: 'Maximum uncovered branches cannot be negative.',
+        );
     }
 
     /** @return iterable<string, array{float, non-empty-string}> */

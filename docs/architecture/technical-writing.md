@@ -116,7 +116,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | coverage driver | Technical noun | A component that collects raw line coverage |
 | coverage export | Technical noun | A file or directory that contains coverage results |
 | coverage gate | Technical noun | A repository check that enforces a coverage requirement |
-| coverage map | Technical noun | Data that identifies executable and covered source lines |
+| coverage map | Technical noun | Data that identifies executable source lines and optional branch and path coverage |
 | crash containment | Technical noun | Orchestrator behavior that limits a worker crash to its active test and recovers the remaining assignment |
 | data provider | Technical noun | A public static method that supplies named data sets |
 | data set | Technical noun | One named set of arguments for a test method |

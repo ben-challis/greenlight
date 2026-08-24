@@ -11,6 +11,7 @@ use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Coverage\Collection\CoverageCollector;
 use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Coverage\Collection\Driver\DriverSelector;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Tests\Fixture\Coverage\RecordingFakeDriver;
@@ -46,6 +47,19 @@ final class CoverageMissingIncludePathTest
         Expect::that($collector->stop()->files())
             ->because('an unresolved include path MUST NOT broaden coverage to all files')
             ->toBe([]);
+    }
+
+    #[Test]
+    public function branchCoverageRejectsPcovBeforeCollection(): void
+    {
+        $configuration = new CoverageConfiguration([], 'pcov', [], branchCoverage: true);
+
+        Expect::that(static fn() => CoverageSettingsResolver::resolve($configuration, '/project'))
+            ->because('a branch request MUST fail before discovery when pcov is selected')
+            ->toThrow(
+                CoverageError::class,
+                message: 'Branch coverage requires the Xdebug coverage driver. Remove driver("pcov") or select driver("xdebug").',
+            );
     }
 
     #[Test]

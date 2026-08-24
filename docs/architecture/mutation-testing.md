@@ -104,12 +104,13 @@ Per-test coverage does not change ordinary runs, reporters, or aggregate
 coverage exports. Existing configuration behaves as before unless
 `CoverageBuilder::perTest()` or `--coverage-map` enables the feature.
 
-The worker protocol is now version 4 because it includes the `coverage`
-message. This protocol is internal, and workers always use the same Greenlight
-installation as the orchestrator.
+The worker protocol is version 5 because it includes line, branch, and path
+coverage messages. This protocol is internal, and workers always use the same
+Greenlight installation as the orchestrator.
 
-The per-test map has its own schema version. The adapter reads version 1 and
-converts it to Infection's PHPUnit coverage XML format.
+The per-test map has its own schema version. The Infection adapter uses
+line-only version 1 and converts it to Infection's PHPUnit coverage XML format.
+That XML format does not carry Greenlight version 2 branch and path identity.
 
 ## Watch mode
 

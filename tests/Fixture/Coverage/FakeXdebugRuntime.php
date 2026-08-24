@@ -9,12 +9,27 @@ use Greenlight\Doubles\Fake;
 
 final class FakeXdebugRuntime implements Fake, XdebugRuntime
 {
+    public bool $branchCoverage = true;
     /**
      * @var list<string>
      */
     public array $calls = [];
 
     public int $flags = 0;
+
+    /** @var array<mixed> */
+    public array $coverage = [
+        '/src/Example.php' => [
+            10 => 1,
+            11 => -1,
+        ],
+    ];
+
+    #[\Override]
+    public function supportsBranchCoverage(): bool
+    {
+        return $this->branchCoverage;
+    }
 
     #[\Override]
     public function start(int $flags): void
@@ -24,19 +39,14 @@ final class FakeXdebugRuntime implements Fake, XdebugRuntime
     }
 
     /**
-     * @return array<string, array<int, int>>
+     * @return array<mixed>
      */
     #[\Override]
     public function collect(): array
     {
         $this->calls[] = 'collect';
 
-        return [
-            '/src/Example.php' => [
-                10 => 1,
-                11 => -1,
-            ],
-        ];
+        return $this->coverage;
     }
 
     #[\Override]

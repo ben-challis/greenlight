@@ -39,10 +39,10 @@ connects as a client.
 Each message is a length-prefixed JSON frame: a 4-byte big-endian length
 followed by the JSON body. Frames are capped at 8 MiB. Greenlight rejects
 oversized or malformed frames as protocol errors. The JSON envelope contains a
-protocol version (`v`, currently `4`), a type tag, and the payload. Greenlight
+protocol version (`v`, currently `5`), a type tag, and the payload. Greenlight
 also rejects unknown versions and tags.
 
-The [version 4 schema](../../resources/schema/worker-protocol-v4.schema.json)
+The [version 5 schema](../../resources/schema/worker-protocol-v5.schema.json)
 specifies each envelope and payload that Greenlight sends.
 
 The socket carries all protocol data. The native adapter closes worker stdin
@@ -52,17 +52,19 @@ travel over stdio, so test output cannot corrupt the protocol.
 
 ## The messages
 
-Ten message types cross the socket:
+Twelve message types cross the socket:
 
 | Tag | Direction | Payload |
 | --- | --- | --- |
 | `hello` | worker to orchestrator | worker ID, shared token, process ID |
 | `bootstrap` | orchestrator to worker | stable channel, config file path, that channel's integration resources |
 | `ready` | worker to orchestrator | bootstrap acknowledgement |
-| `assign` | orchestrator to worker | a plan slice (test classes to run), remaining failure allowance, coverage settings, per-test coverage flag, leak detection flag, result policy, artifact session and limits |
+| `assign` | orchestrator to worker | a plan slice, failure allowance, coverage flags, leak flag, result policy, and artifact settings |
 | `event` | worker to orchestrator | one test event: class started, test started, test finished, class finished |
 | `attempt-started` | worker to orchestrator | active test ID and attempt number for a crash report |
 | `coverage` | worker to orchestrator | a bounded list of covered source lines for one completed test |
+| `branch-coverage` | worker to orchestrator | bounded covered function-scoped branch IDs for one completed test |
+| `path-coverage` | worker to orchestrator | bounded covered function-scoped opcode paths for one completed test |
 | `done` | worker to orchestrator | result summary, peak memory, coverage, detected leaks |
 | `drain` | orchestrator to worker | no payload (request for a clean worker exit) |
 | `fatal` | worker to orchestrator | details of a throwable that the worker could not contain |
