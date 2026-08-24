@@ -247,6 +247,45 @@ and `BRH` records. HTML reports branch and path totals. Line-only runs omit
 branch fields from these formats. Greenlight does not write zero branch values
 when no branch measurement occurred.
 
+#### Branch coverage cost and limits
+
+Xdebug branch coverage collects complete branch and path graphs. It can use
+much more time and memory than Xdebug line coverage. Measure it on the target
+suite before you enable it in CI.
+
+A development measurement used source revision `9ed2bd880a368ba6cbc072cfcb5a6c376ce80a17`.
+It ran on an Apple M3 Pro with 36 GB of memory. The software was PHP 8.4.14 and
+Xdebug 3.4.2 on arm64 macOS. Datadog tracing, profiling, AppSec, and telemetry
+were disabled.
+
+The workload selected 18 JUnit reporter tests with four workers and seed
+`12345`. Coverage included `src/Reporting`. The runs did not write coverage
+exports. Each mode had one discarded warmup and three measured runs.
+
+| Mode | Raw elapsed samples | Median |
+| --- | --- | --- |
+| Xdebug line coverage | 0.36 s, 0.35 s, 0.35 s | 0.35 s |
+| Xdebug branch coverage | 7.21 s, 7.62 s, 7.67 s | 7.62 s |
+
+For this workload, the branch median was 21.77 times the line median. This is
+2,077% more elapsed time. This result applies only to the specified workload
+and environment. It is not a general performance ratio.
+
+A broader development run selected 195 reporting tests and included all of
+`src/Reporting`. Its branch data exceeded the 60-second worker inactivity
+limit during merge. Use narrow test and include scopes when you investigate
+branch coverage cost.
+
+Branch and path identity depends on the compiled control-flow graph. Greenlight
+normalizes process-specific opcode offsets, but shards SHOULD use the same PHP
+version, Xdebug version, and source revision. A merge rejects conflicting
+source metadata and a mix of line-only and branch-enabled inputs.
+
+Coverage ignore ranges remove branches that overlap an ignored line. They also
+remove paths that use one of those branches. Aggregate JSON version 2 and
+per-test JSONL version 2 preserve path identity. Clover, Cobertura, and LCOV do
+not preserve complete path identity.
+
 Greenlight writes all configured coverage exports before it evaluates the
 gates. Thus, a failed gate keeps the coverage evidence. A failed gate uses exit
 code `1`.

@@ -124,22 +124,20 @@ final readonly class RawCoverageTest
     #[Test]
     public function processSpecificOpcodeOffsetsNormalizeBeforeMerge(): void
     {
-        $map = static function (int $target, int $hit): array {
-            return [
-                '/src/Decision.php' => [
-                    'lines' => [10 => $hit],
-                    'functions' => [
-                        'decide' => [
-                            'branches' => [
-                                ['op_start' => 0, 'op_end' => 3, 'line_start' => 10, 'line_end' => 10, 'hit' => $hit, 'out' => [$target], 'out_hit' => [$hit]],
-                                ['op_start' => $target, 'op_end' => $target + 2, 'line_start' => 11, 'line_end' => 11, 'hit' => $hit],
-                            ],
-                            'paths' => [['path' => [0, $target], 'hit' => $hit]],
+        $map = (static fn(int $target, int $hit): array => [
+            '/src/Decision.php' => [
+                'lines' => [10 => $hit],
+                'functions' => [
+                    'decide' => [
+                        'branches' => [
+                            ['op_start' => 0, 'op_end' => 3, 'line_start' => 10, 'line_end' => 10, 'hit' => $hit, 'out' => [$target], 'out_hit' => [$hit]],
+                            ['op_start' => $target, 'op_end' => $target + 2, 'line_start' => 11, 'line_end' => 11, 'hit' => $hit],
                         ],
+                        'paths' => [['path' => [0, $target], 'hit' => $hit]],
                     ],
                 ],
-            ];
-        };
+            ],
+        ]);
 
         $merged = new RawCoverage($map(4, 0), true)->toMap()
             ->merge(new RawCoverage($map(6, 1), true)->toMap());
