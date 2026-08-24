@@ -35,6 +35,30 @@ public function afterTest(TestContext $context, TestResult $result): TestResult;
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/AfterTestSubscriber.php#L23)
 
+## `AttachmentRetentionDecider`
+
+Namespace: `Greenlight\Plugin`
+
+Changes the publication decision for one completed test attachment.
+
+```php
+interface AttachmentRetentionDecider extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/AttachmentRetentionDecider.php#L11)
+
+### `retainAttachment()`
+
+```php
+public function retainAttachment(
+    TestResult $result,
+    Attachment $attachment,
+    bool $retain,
+): bool;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/AttachmentRetentionDecider.php#L13)
+
 ## `BeforeTestSubscriber`
 
 Namespace: `Greenlight\Plugin`
@@ -284,18 +308,14 @@ Namespace: `Greenlight\Plugin`
 
 Identifies an object as a Greenlight plugin.
 
-Plugins implement one or more capability interfaces such as
-`WorkerRuntimeRunner`, `TestAttemptRunner`, `BeforeTestSubscriber`,
-`AfterTestSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
-`CommandProvider`, `CoverageMapTransformer`, `HarnessProvider`, `ReporterProvider`,
-`TerminalResultTransformer`, `TestPlanTransformer`, `WatchSource`, or
-`ExpectationExtension`.
+Plugins implement one or more capability interfaces. The plugin guide lists
+each command, orchestrator, and worker capability.
 
 ```php
 interface Plugin
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Plugin.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Plugin.php#L13)
 
 This type does not declare public members.
 

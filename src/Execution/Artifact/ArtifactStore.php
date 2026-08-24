@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution\Artifact;
 
+use Greenlight\Artifact\Attachment;
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Artifact\AttachmentRetention;
@@ -31,9 +32,12 @@ final class ArtifactStore
         private readonly ?string $outputDirectory,
         private readonly bool $ownsStaging,
         private readonly FileCopier $fileCopier,
+        /** @var (\Closure(TestResult, Attachment): bool)|null */
+        private readonly ?\Closure $retainAttachment,
     ) {}
 
     /**
+     * @param (\Closure(TestResult, Attachment): bool)|null $retainAttachment
      * @throws AttachmentError
      */
     public static function open(
@@ -42,6 +46,7 @@ final class ArtifactStore
         string $runId,
         ?FileCopier $fileCopier = null,
         ?string $temporaryDirectory = null,
+        ?\Closure $retainAttachment = null,
     ): self {
         $configured = \rtrim($configuration->directory, '/');
 
@@ -77,6 +82,7 @@ final class ArtifactStore
             $output,
             true,
             $fileCopier ?? new NativeFileCopier(),
+            $retainAttachment,
         );
     }
 
@@ -91,6 +97,7 @@ final class ArtifactStore
             null,
             false,
             $fileCopier ?? new NativeFileCopier(),
+            null,
         );
     }
 
@@ -351,20 +358,21 @@ final class ArtifactStore
         }
 
         $published = [];
-        $problematic = !$result->outcome->isSuccessful() || \array_any(
-            $result->transformations,
-            static fn($transformation): bool => !$transformation->from->isSuccessful(),
-        );
 
         foreach ($result->attachments as $attachment) {
             if (!$attachment instanceof StagedAttachment) {
                 throw AttachmentError::storage('Attachment metadata does not contain a staging coordinate');
             }
 
-            if (!$problematic
-                && $attachment->attempt >= $result->attempts
-                && $attachment->retention === AttachmentRetention::OnFailure
-            ) {
+            try {
+                $retain = $this->retainAttachment instanceof \Closure
+                    ? ($this->retainAttachment)($result, $attachment)
+                    : $this->defaultRetention($result, $attachment);
+            } catch (\Throwable $failure) {
+                throw AttachmentError::plugin($failure);
+            }
+
+            if (!$retain) {
                 $this->discard($attachment);
 
                 continue;
@@ -414,6 +422,18 @@ final class ArtifactStore
         }
 
         return $result->withAttachments($published);
+    }
+
+    private function defaultRetention(TestResult $result, Attachment $attachment): bool
+    {
+        $problematic = !$result->outcome->isSuccessful() || \array_any(
+            $result->transformations,
+            static fn($transformation): bool => !$transformation->from->isSuccessful(),
+        );
+
+        return $problematic
+            || $attachment->attempt < $result->attempts
+            || $attachment->retention !== AttachmentRetention::OnFailure;
     }
 
     /**

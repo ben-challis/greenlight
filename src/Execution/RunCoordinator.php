@@ -76,6 +76,7 @@ final readonly class RunCoordinator
             $this->workingDirectory,
             $runId,
             temporaryDirectory: $storage->temporaryDirectory,
+            retainAttachment: $orchestratorPlugins->retainAttachment(...),
         );
 
         try {
