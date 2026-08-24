@@ -33,6 +33,12 @@ const sections = [
     prefixes: ['Greenlight\\Artifact\\'],
   },
   {
+    id: 'api-coverage',
+    title: 'Coverage API',
+    description: 'This reference lists coverage maps and per-file line coverage values.',
+    prefixes: ['Greenlight\\Coverage\\'],
+  },
+  {
     id: 'api-events',
     title: 'Event API',
     description: 'This reference lists the events that plugins and reporters receive during a run.',

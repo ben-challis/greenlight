@@ -7,9 +7,9 @@ namespace Greenlight\Coverage;
 /** @internal */
 final class CoverageError extends \RuntimeException
 {
-    private function __construct(string $message)
+    private function __construct(string $message, ?\Throwable $previous = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, previous: $previous);
     }
 
     public static function driverUnavailable(string $driver, string $hint): self
@@ -29,5 +29,16 @@ final class CoverageError extends \RuntimeException
             $directory,
             $cause === null ? '' : ': ' . $cause,
         ));
+    }
+
+    /** @param class-string $plugin */
+    public static function pluginFailed(string $plugin, string $operation, \Throwable $cause): self
+    {
+        return new self(\sprintf(
+            'Coverage plugin "%s" caused an error during %s: %s',
+            $plugin,
+            $operation,
+            $cause->getMessage(),
+        ), $cause);
     }
 }

@@ -214,6 +214,42 @@ configuration order. Repeat iterations and watch reruns get new plugin
 instances and new input plans. Listing and dry-run commands do not apply plan
 transformers.
 
+### CoverageMapTransformer
+
+Command-side, once for each completed standard or repeat run.
+
+A `CoverageMapTransformer` changes merged coverage before Greenlight writes
+coverage reports or checks thresholds. Greenlight first removes lines that
+have coverage-ignore markers. It then applies configured transformers in
+plugin priority and configuration order.
+
+<!-- php-example {"example":"plugins-example-coverage-transformer","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Config\GreenlightConfig;
+use Greenlight\Coverage\CoverageMap;
+use Greenlight\Coverage\FileCoverage;
+use Greenlight\Plugin\CoverageMapTransformer;
+
+final class SourceCoverageOnly implements CoverageMapTransformer
+{
+    public function transformCoverageMap(CoverageMap $coverage): CoverageMap
+    {
+        return new CoverageMap(array_values(array_filter(
+            $coverage->files(),
+            static fn (FileCoverage $file): bool => str_contains($file->file, '/src/'),
+        )));
+    }
+}
+
+return GreenlightConfig::create()
+    ->plugins(static fn(): SourceCoverageOnly => new SourceCoverageOnly());
+```
+
+The transformer receives a `CoverageMap` with sorted `FileCoverage` values.
+It MUST return a `CoverageMap`. A transformer or plugin-factory error stops
+coverage finishing and the command fails. Watch reruns do not write coverage
+and do not apply these transformers.
+
 ### IntegrationFixtureProvider
 
 Orchestrator-side.

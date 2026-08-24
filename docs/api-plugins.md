@@ -207,6 +207,26 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandProvider.php#L11)
 
+## `CoverageMapTransformer`
+
+Namespace: `Greenlight\Plugin`
+
+Changes the merged coverage map before Greenlight exports it.
+
+```php
+interface CoverageMapTransformer extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CoverageMapTransformer.php#L10)
+
+### `transformCoverageMap()`
+
+```php
+public function transformCoverageMap(CoverageMap $coverage): CoverageMap;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CoverageMapTransformer.php#L12)
+
 ## `HarnessProvider`
 
 Namespace: `Greenlight\Plugin`
@@ -267,7 +287,7 @@ Identifies an object as a Greenlight plugin.
 Plugins implement one or more capability interfaces such as
 `WorkerRuntimeRunner`, `TestAttemptRunner`, `BeforeTestSubscriber`,
 `AfterTestSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
-`CommandProvider`, `HarnessProvider`, `ReporterProvider`,
+`CommandProvider`, `CoverageMapTransformer`, `HarnessProvider`, `ReporterProvider`,
 `TerminalResultTransformer`, `TestPlanTransformer`, or
 `ExpectationExtension`.
 
