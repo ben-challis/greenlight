@@ -21,6 +21,7 @@ use Greenlight\Cli\Watch\WatchLoop;
 use Greenlight\Cli\Watch\WatchSourceFailed;
 use Greenlight\Cli\Watch\WatchSourceRuntime;
 use Greenlight\Config\StorageLayout;
+use Greenlight\Execution\RunPolicyError;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Reporting\Reporter;
@@ -72,7 +73,7 @@ final readonly class WatchRuns
                 [new StatChangeDetector($watched)],
             );
             new WatchLoop($sources, new Debouncer($resolved->watch->debounceMilliseconds / 1000), $keys, new SystemWatchClock(), $this->console->out(...), $shutdown)->run($runOnce);
-        } catch (ReporterSetupFailed|WatchSourceFailed $error) {
+        } catch (ReporterSetupFailed|RunPolicyError|WatchSourceFailed $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
             return 1;
         } finally {

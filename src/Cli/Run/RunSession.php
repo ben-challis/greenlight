@@ -30,7 +30,9 @@ use Greenlight\Execution\Adapter\InProcessExecution;
 use Greenlight\Execution\Adapter\ProcessPoolExecution;
 use Greenlight\Execution\ExecutionAdapter;
 use Greenlight\Execution\ExecutionFailed;
+use Greenlight\Execution\RunAcceptance;
 use Greenlight\Execution\RunCoordinator;
+use Greenlight\Execution\RunPolicyError;
 use Greenlight\Execution\RunResult;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\Internal\Process\GracefulShutdown;
@@ -96,7 +98,7 @@ final readonly class RunSession
 
         $reporter->finish();
         $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
-        $this->reportRunPolicyFailure($run, $failedTap);
+        $this->reportRunPolicyFailures($run, $failedTap);
 
         return $tap->failedClasses();
     }
@@ -178,38 +180,40 @@ final readonly class RunSession
             return 1;
         }
 
-        if (!$resolved->execution->runPolicy->accepts($run->summary, $failedTap->retriedPasses())) {
-            $this->reportRunPolicyFailure($run, $failedTap);
+        if (!$run->summary->isSuccessful()) {
+            return 1;
+        }
 
+        try {
+            $policyFailed = $this->reportRunPolicyFailures($run, $failedTap);
+        } catch (RunPolicyError $error) {
+            $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
+
+            return 1;
+        }
+
+        if ($policyFailed) {
             return 1;
         }
 
         return 0;
     }
 
-    private function reportRunPolicyFailure(RunResult $run, FailedTestsTap $tap): void
+    /** @throws RunPolicyError */
+    private function reportRunPolicyFailures(RunResult $run, FailedTestsTap $tap): bool
     {
-        if (!$run->summary->isSuccessful()) {
-            return;
+        $resolved = $this->configuration->resolved;
+        $messages = RunAcceptance::failureMessages(
+            $resolved->execution,
+            $run->summary,
+            $tap->retriedPasses(),
+        );
+
+        foreach ($messages as $message) {
+            $this->console->err($message . "\n");
         }
 
-        $policy = $this->configuration->resolved->execution->runPolicy;
-
-        if ($policy->failOnSkipped && $run->summary->skipped > 0) {
-            $this->console->err(\sprintf(
-                "Greenlight failed because the fail-on-skipped policy found %d skipped %s.\n",
-                $run->summary->skipped,
-                $run->summary->skipped === 1 ? 'test' : 'tests',
-            ));
-        }
-
-        if ($policy->failOnRetriedPass && $tap->retriedPasses() > 0) {
-            $this->console->err(\sprintf(
-                "Greenlight failed because the fail-on-retried-pass policy found %d %s that passed after retry.\n",
-                $tap->retriedPasses(),
-                $tap->retriedPasses() === 1 ? 'test' : 'tests',
-            ));
-        }
+        return $messages !== [];
     }
 
     /**

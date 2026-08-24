@@ -179,6 +179,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | result policy | Technical noun | A rule that can change a test result after execution |
 | retention | Technical noun | The rule that determines if Greenlight publishes an attachment |
 | retried pass | Technical noun | A successful terminal result that used more than one test attempt |
+| run acceptance policy | Technical noun | A command-side plugin that can reject an otherwise successful run without changing test outcomes |
 | retry decider | Technical noun | A plugin that determines if Greenlight starts another test attempt |
 | risky test | Technical noun | A passed test that verifies no expectations and has no `#[NoExpectations]` attribute |
 | run | Technical noun | One execution of a selected test suite |
