@@ -342,7 +342,7 @@ deptrac:
     Execution: [Artifact, Config, Coverage, Discovery, DiscoveryPlan, Event, ExecutionArtifact, ExecutionPlugin, IntegrationFixture, InternalWire, Reporting, Result, Test]
     ExecutionAdapter: [Artifact, Config, CoverageCollection, DiscoveryPlan, Event, Execution, ExecutionArtifact, ExecutionPlugin, ExecutionProcessOrchestrator, ExecutionWorker, InternalProcess, InternalWire, Plugin, Reporting, Result, Test]
     ExecutionArtifact: [Artifact, Attribute, Config, Event, InternalPhp, InternalText, InternalWire, Result, Test]
-    ExecutionPlugin: [DiscoveryPlan, Event, Expect, Harness, IntegrationFixture, Plugin, Result, Test]
+    ExecutionPlugin: [Artifact, DiscoveryPlan, Event, Expect, Harness, IntegrationFixture, Plugin, Result, Test]
     ExecutionWorker: [Artifact, Attribute, Condition, DiscoveryPlan, Doubles, Event, ExecutionArtifact, ExecutionPlugin, Expect, Harness, IntegrationFixture, InternalPhp, InternalText, Plugin, Result, Sandbox, Test, TestDataSet]
     ExecutionProcessProtocol: [Attribute, Config, Coverage, DiscoveryPlan, Event, ExecutionArtifact, IntegrationFixture, InternalEvent, InternalPhp, InternalWire, Result, Test]
     ExecutionProcessWorker: [Config, CoverageCollection, Event, ExecutionArtifact, ExecutionPlugin, ExecutionProcessProtocol, ExecutionWorker, Harness, InternalPhp, InternalWire, Plugin, Result, Test]

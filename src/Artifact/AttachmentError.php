@@ -48,4 +48,10 @@ final class AttachmentError extends \RuntimeException
     {
         return new self($message . '.');
     }
+
+    /** @internal */
+    public static function plugin(\Throwable $cause): self
+    {
+        return new self($cause->getMessage(), previous: $cause);
+    }
 }

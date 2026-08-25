@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution\Plugin;
 
+use Greenlight\Artifact\Attachment;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Event\Event;
 use Greenlight\Event\EventSink;
 use Greenlight\IntegrationFixture\IntegrationFixtureDefinition;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
+use Greenlight\Plugin\AttachmentRetentionDecider;
 use Greenlight\Plugin\IntegrationFixtureProvider;
 use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\RunLifecycleSubscriber;
 use Greenlight\Plugin\TestPlan;
 use Greenlight\Plugin\TestPlanTransformer;
+use Greenlight\Result\TestResult;
 
 /**
  * Executes the plugin capabilities that one orchestrated run owns.
@@ -28,6 +31,7 @@ final readonly class OrchestratorPluginRuntime extends PluginRuntime implements 
      * @var non-empty-list<class-string>
      */
     private const array CAPABILITIES = [
+        AttachmentRetentionDecider::class,
         IntegrationFixtureProvider::class,
         RunLifecycleSubscriber::class,
         TestPlanTransformer::class,
@@ -48,6 +52,7 @@ final readonly class OrchestratorPluginRuntime extends PluginRuntime implements 
     public static function fromDefinitions(array $definitions, EventSink $inner, array $bundledPlugins = []): self
     {
         return new self([
+            new DefaultAttachmentRetention(),
             ...$bundledPlugins,
             ...self::createOwned($definitions, self::CAPABILITIES),
         ], $inner);
@@ -62,7 +67,23 @@ final readonly class OrchestratorPluginRuntime extends PluginRuntime implements 
      */
     public static function fromPlugins(array $plugins, EventSink $inner): self
     {
-        return new self($plugins, $inner);
+        return new self([new DefaultAttachmentRetention(), ...$plugins], $inner);
+    }
+
+    /** @throws PluginRuntimeError */
+    public function retainAttachment(TestResult $result, Attachment $attachment): bool
+    {
+        $retain = true;
+
+        foreach ($this->ordered(AttachmentRetentionDecider::class) as $decider) {
+            try {
+                $retain = $decider->retainAttachment($result, $attachment, $retain);
+            } catch (\Throwable $failure) {
+                throw PluginRuntimeError::hookFailed($decider::class, 'retainAttachment', $failure);
+            }
+        }
+
+        return $retain;
     }
 
     /**

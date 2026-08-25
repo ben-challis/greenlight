@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Execution\Artifact;
 
+use Greenlight\Artifact\Attachment;
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
@@ -80,5 +81,66 @@ final readonly class ArtifactStorePublicationTest
         Expect::that($published->attachments)
             ->because('a rejected worker publication leaves the evidence intact')
             ->toHaveCount(1);
+    }
+
+    #[Test]
+    public function aRetentionCallbackControlsFinalPublication(): void
+    {
+        $root = $this->tempDirectory->subdirectory('plugin-retention');
+        $store = ArtifactStore::open(
+            new ArtifactConfiguration($root),
+            $root,
+            'run-plugin-retention',
+            retainAttachment: static fn(TestResult $result, Attachment $attachment): bool => false,
+        );
+        $this->cleanup->defer($store->cleanup(...));
+        $id = new TestId('Example\\EvidenceTest', 'fails');
+        $attempt = $store->forAttempt($id, 1, new TestArtifactBudget());
+        $attempt->text('evidence.txt', 'evidence');
+        $result = new TestResult(
+            $id,
+            Outcome::Failed,
+            0.1,
+            0,
+            attachments: $attempt->seal(),
+        );
+
+        $published = $store->publish($result);
+
+        Expect::that($published->attachments)->toBe([]);
+        Expect::that(\file_exists($store->publicDirectory()))->toBeFalse();
+    }
+
+    #[Test]
+    public function aRetentionCallbackFailureKeepsItsCause(): void
+    {
+        $root = $this->tempDirectory->subdirectory('plugin-retention-failure');
+        $failure = new \RuntimeException('Retention decision failed');
+        $store = ArtifactStore::open(
+            new ArtifactConfiguration($root),
+            $root,
+            'run-plugin-retention-failure',
+            retainAttachment: static fn(TestResult $result, Attachment $attachment): bool => throw $failure,
+        );
+        $this->cleanup->defer($store->cleanup(...));
+        $id = new TestId('Example\\EvidenceTest', 'fails');
+        $attempt = $store->forAttempt($id, 1, new TestArtifactBudget());
+        $attempt->text('evidence.txt', 'evidence');
+        $result = new TestResult(
+            $id,
+            Outcome::Failed,
+            0.1,
+            0,
+            attachments: $attempt->seal(),
+        );
+
+        Expect::that(static fn(): TestResult => $store->publish($result))
+            ->because('attachment publication MUST contain a retention callback failure')
+            ->toThrow(
+                static function (AttachmentError $error) use ($failure): void {
+                    Expect::that($error->getMessage())->toBe('Retention decision failed');
+                    Expect::that($error->getPrevious())->toBe($failure);
+                },
+            );
     }
 }

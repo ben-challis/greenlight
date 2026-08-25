@@ -273,6 +273,30 @@ It MUST return a `CoverageMap`. A transformer or plugin-factory error stops
 coverage finishing and the command fails. Watch reruns do not write coverage
 and do not apply these transformers.
 
+### AttachmentRetentionDecider
+
+Orchestrator-side.
+
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
+```php
+public function retainAttachment(TestResult $result, Attachment $attachment, bool $retain): bool;
+```
+
+An `AttachmentRetentionDecider` changes whether Greenlight publishes one
+completed test attachment. Greenlight first applies the retention selected by
+the test. `Always` retains the attachment. `OnFailure` retains it for an
+unsuccessful result, a transformed failure, or an earlier failed attempt.
+
+Each configured decider receives that current decision and returns the next
+decision. Thus, a decider can retain evidence that the built-in rule would
+discard, or discard evidence that the built-in rule would retain. The final
+decision applies before Greenlight publishes the file and emits
+`TestFinished`.
+
+The decider receives attachment metadata. It does not receive attachment
+content. If it throws, Greenlight names the plugin, fails the run, and retains
+the error as the cause.
+
 ### IntegrationFixtureProvider
 
 Orchestrator-side.
@@ -802,6 +826,7 @@ reads the priority one time for each owner-local plugin instance.
 
 Priority applies to these capabilities:
 
+* `AttachmentRetentionDecider`
 * `IntegrationFixtureProvider`
 * `WorkerBootstrapSubscriber`
 * `WorkerRuntimeRunner`
