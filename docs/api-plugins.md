@@ -400,6 +400,35 @@ public function shouldRetry(RetryPolicy $policy, TestResult $result, int $attemp
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RetryDecider.php#L22)
 
+## `RunAcceptancePolicy`
+
+Namespace: `Greenlight\Plugin`
+
+Evaluates an otherwise successful run without changing test outcomes.
+
+Greenlight calls each policy one time after reporters finish. It runs lower
+priorities first and uses registration order for equal priorities. Return
+null to accept the run. Return a non-empty failure message to reject it.
+Greenlight runs all policies and reports all rejection messages.
+
+```php
+interface RunAcceptancePolicy extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunAcceptancePolicy.php#L17)
+
+### `failureMessage()`
+
+```php
+public function failureMessage(ResultSummary $summary, int $retriedPasses): ?string;
+```
+
+PHPDoc:
+
+- `@param non-negative-int $retriedPasses`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunAcceptancePolicy.php#L20)
+
 ## `RunLifecycleSubscriber`
 
 Namespace: `Greenlight\Plugin`

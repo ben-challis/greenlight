@@ -22,8 +22,10 @@ return GreenlightConfig::create()
 
 Greenlight creates plugin instances only for an owner that uses one of their
 capabilities. It creates one command-owned instance for each factory that
-has `CommandProvider`, `ReporterProvider`, or `WatchSource`. Command dispatch,
-reporter setup, and watch polling own separate instances. It creates one
+has `CommandProvider`, `ReporterProvider`, `WatchSource`,
+`CoverageMapTransformer`, or `RunAcceptancePolicy`. Command dispatch,
+reporter setup, watch polling, coverage finishing, and run policy evaluation
+own separate instances. It creates one
 run-owned orchestrator instance for each factory that has a run capability. It
 creates one worker instance for each factory that has a worker capability and
 for each physical worker.
@@ -296,6 +298,44 @@ decision applies before Greenlight publishes the file and emits
 The decider receives attachment metadata. It does not receive attachment
 content. If it throws, Greenlight names the plugin, fails the run, and retains
 the error as the cause.
+
+### RunAcceptancePolicy
+
+Command-side, once for each completed standard, repeat, or watch run.
+
+A `RunAcceptancePolicy` can reject a run that has no failed or errored test
+outcomes. It receives the final `ResultSummary` and the number of tests that
+passed after a retry. Return `null` to accept the run. Return a non-empty
+failure message to reject it. The policy does not change test outcomes or
+reporter data.
+
+<!-- php-example {"example":"plugins-example-run-acceptance-policy","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Config\GreenlightConfig;
+use Greenlight\Plugin\RunAcceptancePolicy;
+use Greenlight\Result\ResultSummary;
+
+final readonly class RequireNoSkippedTests implements RunAcceptancePolicy
+{
+    public function failureMessage(ResultSummary $summary, int $retriedPasses): ?string
+    {
+        return $summary->skipped > 0
+            ? sprintf('The run skipped %d tests.', $summary->skipped)
+            : null;
+    }
+}
+
+return GreenlightConfig::create()
+    ->plugins(static fn(): RequireNoSkippedTests => new RequireNoSkippedTests());
+```
+
+Greenlight runs the bundled `failOnSkipped()` and `failOnRetriedPass()` policy
+first. It then runs configured policies in plugin priority and configuration
+order. Greenlight runs all policies and reports all rejection messages. It
+does not call acceptance policies when a test outcome already failed the run.
+
+If policy creation or evaluation fails, or a policy returns an empty message,
+Greenlight names the plugin and stops the command.
 
 ### IntegrationFixtureProvider
 
@@ -835,6 +875,7 @@ Priority applies to these capabilities:
 * `AfterTestSubscriber`
 * `RetryDecider`
 * `TerminalResultTransformer`
+* `RunAcceptancePolicy`
 * `WatchSource`
 * `RunLifecycleSubscriber`
 * `HarnessProvider`

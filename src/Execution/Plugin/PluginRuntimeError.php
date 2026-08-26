@@ -31,6 +31,25 @@ final class PluginRuntimeError extends \RuntimeException
     }
 
     /** @param class-string $plugin */
+    public static function creationFailed(string $plugin, \Throwable $cause): self
+    {
+        return new self(\sprintf(
+            'Plugin "%s" caused an error during creation: %s',
+            $plugin,
+            $cause->getMessage(),
+        ), $cause);
+    }
+
+    /** @param class-string $plugin */
+    public static function emptyRunPolicyFailure(string $plugin): self
+    {
+        return new self(\sprintf(
+            'Plugin "%s" returned an empty failure message from failureMessage().',
+            $plugin,
+        ));
+    }
+
+    /** @param class-string $plugin */
     public static function changedTestIdentity(
         string $plugin,
         TestId $before,
