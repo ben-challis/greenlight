@@ -22,6 +22,16 @@ final readonly class CoverageMergeErrorTest
         $directory = $this->tempDirectory->subdirectory('coverage-merge-required');
         CoverageJson::write($directory . '/one.json', CoverageMap::empty());
 
+        $emptyInput = GreenlightCli::run($directory, [
+            'coverage:merge',
+            '--input=',
+            '--input=one.json',
+            '--export=json=merged.json',
+        ]);
+        Expect::that($emptyInput->exitCode)->toBe(64);
+        Expect::that($emptyInput->output())
+            ->toContain('--input requires a non-empty path.');
+
         $oneInput = GreenlightCli::run($directory, [
             'coverage:merge',
             '--input=one.json',
@@ -154,6 +164,29 @@ final readonly class CoverageMergeErrorTest
         );
         CoverageJson::write($directory . '/two.json', CoverageMap::empty());
 
+        $missingInputRoots = GreenlightCli::run($directory, [
+            'coverage:merge',
+            '--input=one.json',
+            '--input=two.json',
+            '--project-root=/current',
+            '--export=json=merged.json',
+        ]);
+        Expect::that($missingInputRoots->exitCode)->toBe(64);
+        Expect::that($missingInputRoots->output())
+            ->toContain('Use --input-root=<path> and --project-root=<path> together.');
+
+        $missingProjectRoot = GreenlightCli::run($directory, [
+            'coverage:merge',
+            '--input=one.json',
+            '--input=two.json',
+            '--input-root=/old/one',
+            '--input-root=/old/two',
+            '--export=json=merged.json',
+        ]);
+        Expect::that($missingProjectRoot->exitCode)->toBe(64);
+        Expect::that($missingProjectRoot->output())
+            ->toContain('Use --input-root=<path> and --project-root=<path> together.');
+
         $partial = GreenlightCli::run($directory, [
             'coverage:merge',
             '--input=one.json',
@@ -215,5 +248,30 @@ final readonly class CoverageMergeErrorTest
         Expect::that($result->output())
             ->toContain('Greenlight could not write the coverage export');
         Expect::that(\is_dir($directory . '/coverage.json'))->toBeTrue();
+    }
+
+    #[Test]
+    public function anUnsupportedExportPathFailsCleanly(): void
+    {
+        $directory = $this->tempDirectory->subdirectory('coverage-merge-export-error');
+        \file_put_contents(
+            $directory . '/invalid-path.json',
+            '{"v":1,"files":{"/project/A\\nB.php":{"covered":[1],"uncovered":[]}}}',
+        );
+        CoverageJson::write($directory . '/valid.json', CoverageMap::empty());
+
+        $result = GreenlightCli::run($directory, [
+            'coverage:merge',
+            '--input=invalid-path.json',
+            '--input=valid.json',
+            '--export=lcov=coverage.lcov',
+            '--no-ansi',
+        ]);
+
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->output())
+            ->toContain('Greenlight could not create the "lcov" coverage export')
+            ->toContain('LCOV file paths MUST NOT contain line breaks.');
+        Expect::that(\file_exists($directory . '/coverage.lcov'))->toBeFalse();
     }
 }

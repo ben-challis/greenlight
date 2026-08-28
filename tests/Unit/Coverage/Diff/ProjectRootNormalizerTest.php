@@ -74,4 +74,19 @@ final class ProjectRootNormalizerTest
                 ],
             ]);
     }
+
+    #[Test]
+    public function relocationRejectsARelativeTargetRoot(): void
+    {
+        Expect::that(static fn(): CoverageMap => ProjectRootNormalizer::relocate(
+            CoverageMap::empty(),
+            '/old/worktree',
+            'new/worktree',
+        ))
+            ->because('relocation requires an explicit absolute target root')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'The target project root must be an absolute path.',
+            );
+    }
 }
