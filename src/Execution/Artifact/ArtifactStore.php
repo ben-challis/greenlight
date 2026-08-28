@@ -543,13 +543,7 @@ final class ArtifactStore
             }
         }
 
-        try {
-            $report = $this->retention->prune(protectedRunId: $protectedRunId);
-        } catch (\Throwable) {
-            $warnings[] = 'Greenlight did not apply the artifact retention policy.';
-
-            return new ArtifactPruneReport(warnings: $warnings);
-        }
+        $report = $this->retention->prune(protectedRunId: $protectedRunId);
 
         return new ArtifactPruneReport($report->items, [...$warnings, ...$report->warnings]);
     }

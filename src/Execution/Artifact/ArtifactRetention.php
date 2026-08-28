@@ -466,10 +466,9 @@ final readonly class ArtifactRetention
         }
         $map = [];
         foreach ($decoded as $key => $value) {
-            if (!\is_string($key)) {
-                return [];
+            if (\is_string($key)) {
+                $map[$key] = $value;
             }
-            $map[$key] = $value;
         }
 
         return $map;
@@ -522,9 +521,12 @@ final readonly class ArtifactRetention
 
         $missing = [];
         $current = $directory;
-        while (!ErrorTrap::run(static fn() => \is_dir($current))) {
+        while (true) {
             if (ErrorTrap::run(static fn() => \is_link($current))) {
                 throw AttachmentError::storage('Attachment output directory contains a symbolic link');
+            }
+            if (ErrorTrap::run(static fn() => \is_dir($current))) {
+                break;
             }
             if (ErrorTrap::run(static fn() => \file_exists($current))) {
                 throw AttachmentError::storage('Attachment output path contains a non-directory entry');

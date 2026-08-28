@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Execution\Artifact;
 
+use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactRetention;
 use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
+use Greenlight\Test\SkipTest;
 
 final readonly class ArtifactRetentionTest
 {
@@ -265,6 +267,221 @@ final readonly class ArtifactRetentionTest
                 ['run-counted', ['count']],
                 ['run-sized', ['size']],
             ]);
+    }
+
+    #[Test]
+    public function beginRejectsUnsafeAndExistingRunDirectories(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('retention-begin-errors');
+        $retention = $this->retention($parent, maxCompletedRuns: 1);
+
+        Expect::that(static fn() => $retention->begin('../outside'))
+            ->toThrow(AttachmentError::class, message: 'Artifact run ID is unsafe.');
+
+        \mkdir($parent . '/run-existing');
+        Expect::that(static fn() => $retention->begin('run-existing'))
+            ->toThrow(AttachmentError::class);
+    }
+
+    #[Test]
+    public function parentPathValidationRejectsUnsafeFilesystemShapes(): void
+    {
+        $base = $this->tempDirectory->subdirectory('retention-parent-errors');
+        $outside = $this->tempDirectory->subdirectory('retention-parent-target');
+        \symlink($outside, $base . '/linked');
+        \file_put_contents($base . '/blocked', 'file');
+
+        $linkedParent = $this->retention($base . '/linked', maxCompletedRuns: 1);
+        Expect::that(static fn() => $linkedParent->begin('run'))
+            ->toThrow(AttachmentError::class, message: 'Attachment output directory contains a symbolic link.');
+
+        $linkedAncestor = $this->retention($base . '/linked/artifacts', maxCompletedRuns: 1);
+        Expect::that(static fn() => $linkedAncestor->begin('run'))
+            ->toThrow(AttachmentError::class, message: 'Attachment output directory contains a symbolic link.');
+
+        $fileAncestor = $this->retention($base . '/blocked/artifacts', maxCompletedRuns: 1);
+        Expect::that(static fn() => $fileAncestor->begin('run'))
+            ->toThrow(AttachmentError::class, message: 'Attachment output path contains a non-directory entry.');
+
+        $noncanonical = $this->retention($base . '/.', maxCompletedRuns: 1);
+        Expect::that(static fn() => $noncanonical->begin('run'))
+            ->toThrow(AttachmentError::class, message: 'Artifact parent directory is not canonical.');
+    }
+
+    #[Test]
+    public function aBlockedPruneLockIsAdvisory(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('retention-prune-lock');
+        $retention = $this->retention($parent, maxCompletedRuns: 1);
+        \mkdir($parent . '/.greenlight-prune.lock');
+
+        $report = $retention->prune();
+
+        Expect::that($report->warnings)
+            ->toBe(['Greenlight did not lock the artifact parent for pruning.']);
+    }
+
+    #[Test]
+    public function malformedRecordShapesRemainIneligible(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('retention-record-shapes');
+        $retention = $this->retention($parent, maxCompletedRunAgeSeconds: 1);
+        \mkdir($parent . '/unsafe name');
+        $this->metadataDirectory($parent, 'run-missing-metadata', '');
+        \unlink($parent . '/run-missing-metadata/' . ArtifactRetention::METADATA_FILE);
+        $this->metadataDirectory($parent, 'run-empty-metadata', '');
+        $this->metadataDirectory($parent, 'run-list-metadata', '[]');
+        $this->metadataDirectory($parent, 'run-numeric-key', '{"0":"value"}');
+
+        $report = $retention->prune(now: 100);
+
+        Expect::that($report->items)->toBe([]);
+        Expect::that(\is_dir($parent . '/unsafe name'))->toBeTrue();
+        Expect::that(\is_dir($parent . '/run-missing-metadata'))->toBeTrue();
+        Expect::that(\is_dir($parent . '/run-empty-metadata'))->toBeTrue();
+        Expect::that(\is_dir($parent . '/run-list-metadata'))->toBeTrue();
+        Expect::that(\is_dir($parent . '/run-numeric-key'))->toBeTrue();
+    }
+
+    #[Test]
+    public function manifestAndMetadataFailuresAreExplicit(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('retention-content-errors');
+        $unowned = $parent . '/unowned-directory';
+        \mkdir($unowned);
+        \mkdir($unowned . '/empty');
+        Expect::that(static fn() => ArtifactRetention::contentManifest($unowned))
+            ->toThrow(\RuntimeException::class, message: 'Artifact run content contains an unowned directory.');
+
+        $unsafe = $parent . '/unsafe-path';
+        \mkdir($unsafe);
+        \file_put_contents($unsafe . '/bad\\name', 'content');
+        Expect::that(static fn() => ArtifactRetention::contentManifest($unsafe))
+            ->toThrow(\RuntimeException::class, message: 'Artifact run content contains an unsafe path.');
+
+        $readFailure = $parent . '/read-failure';
+        \mkdir($readFailure);
+        \file_put_contents($readFailure . '/unreadable.txt', 'content');
+        \chmod($readFailure . '/unreadable.txt', 0o000);
+        try {
+            Expect::that(static fn() => ArtifactRetention::contentManifest($readFailure))
+                ->toThrow(\RuntimeException::class, message: 'Greenlight did not read artifact run content.');
+        } finally {
+            \chmod($readFailure . '/unreadable.txt', 0o600);
+        }
+
+        $unwritable = $parent . '/unwritable';
+        \mkdir($unwritable);
+        \chmod($unwritable, 0o500);
+        try {
+            Expect::that(static fn() => ArtifactRetention::writeMetadata($unwritable, []))
+                ->toThrow(\RuntimeException::class, message: 'Greenlight did not write artifact run metadata.');
+        } finally {
+            \chmod($unwritable, 0o700);
+        }
+
+        $blockedTarget = $parent . '/blocked-target';
+        \mkdir($blockedTarget);
+        \mkdir($blockedTarget . '/' . ArtifactRetention::METADATA_FILE);
+        Expect::that(static fn() => ArtifactRetention::writeMetadata($blockedTarget, []))
+            ->toThrow(\RuntimeException::class, message: 'Greenlight did not finalize artifact run metadata.');
+    }
+
+    #[Test]
+    public function runHandleCompletionIsIdempotentAndValidatesActiveMetadata(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('retention-handle');
+        $retention = $this->retention($parent, maxCompletedRuns: 1);
+        $handle = $retention->begin('run-valid');
+        $handle->complete();
+        $handle->complete();
+
+        $invalid = $retention->begin('run-invalid');
+        ArtifactRetention::writeMetadata($invalid->directory, []);
+        Expect::that($invalid->complete(...))
+            ->toThrow(\RuntimeException::class, message: 'Artifact run metadata is not an active Greenlight record.');
+        $invalid->close();
+    }
+
+    #[Test]
+    public function aReadOnlyNestedDirectoryMakesCleanupAdvisory(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('retention-nested-cleanup-failure');
+        $retention = $this->retention($parent, maxCompletedRunAgeSeconds: 1);
+        $handle = $retention->begin('run-read-only-nested');
+        \mkdir($handle->directory . '/nested');
+        \file_put_contents($handle->directory . '/nested/evidence.txt', 'owned');
+        $handle->complete();
+        \chmod($handle->directory . '/nested', 0o500);
+
+        try {
+            $report = $retention->prune(now: \PHP_INT_MAX);
+        } finally {
+            $directory = \is_dir($handle->directory)
+                ? $handle->directory
+                : $parent . '/.greenlight-prune-recovery';
+            if (\is_dir($directory . '/nested')) {
+                \chmod($directory . '/nested', 0o700);
+            }
+            $claims = \glob($parent . '/.greenlight-prune-*', \GLOB_ONLYDIR);
+            foreach ($claims === false ? [] : $claims as $claim) {
+                if (\is_dir($claim . '/nested')) {
+                    \chmod($claim . '/nested', 0o700);
+                }
+            }
+        }
+
+        Expect::that($report->items)->toBe([]);
+        Expect::that($report->warnings)->toBe([
+            'Greenlight did not prune artifact run "run-read-only-nested".',
+        ]);
+    }
+
+    #[Test]
+    public function anUnreadableParentMakesPolicyFailureAdvisory(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('retention-unreadable-parent');
+        $retention = $this->retention($parent, maxCompletedRuns: 1);
+        \chmod($parent, 0o000);
+
+        try {
+            $report = $retention->prune();
+        } finally {
+            \chmod($parent, 0o700);
+        }
+
+        Expect::that($report->warnings)->toBe([
+            'Greenlight did not lock the artifact parent for pruning.',
+        ]);
+    }
+
+    #[Test]
+    public function aSatisfiedByteLimitKeepsCompletedRuns(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('retention-satisfied-size');
+        $retention = $this->retention($parent, maxRetainedBytes: \PHP_INT_MAX);
+        $this->completedRun($retention, 'run-kept', 10, 'owned');
+
+        $report = $retention->prune(now: 20);
+
+        Expect::that($report->items)->toBe([]);
+        Expect::that(\is_dir($parent . '/run-kept'))->toBeTrue();
+    }
+
+    #[Test]
+    public function manifestRejectsUnsupportedFilesystemEntries(): void
+    {
+        if (!\function_exists('posix_mkfifo')) {
+            throw new SkipTest('The posix extension is not available.');
+        }
+
+        $directory = $this->tempDirectory->subdirectory('retention-unsupported-entry');
+        if (!\posix_mkfifo($directory . '/pipe', 0o600)) {
+            throw new SkipTest('The filesystem did not create a named pipe.');
+        }
+
+        Expect::that(static fn() => ArtifactRetention::contentManifest($directory))
+            ->toThrow(\RuntimeException::class, message: 'Artifact run content contains an unsupported filesystem entry.');
     }
 
     private function retention(
