@@ -143,6 +143,19 @@ final class CliError extends \RuntimeException
         ));
     }
 
+    public static function malformedCoverageExport(string $raw): self
+    {
+        return new self(\sprintf(
+            '--export requires <format>=<path>, such as json=coverage.json. Received "%s".',
+            $raw,
+        ));
+    }
+
+    public static function duplicateCoverageExport(string $path): self
+    {
+        return new self(\sprintf('Write coverage export target "%s" only once.', $path));
+    }
+
     public static function malformedResourceLimit(string $raw): self
     {
         return new self(\sprintf(

@@ -117,6 +117,43 @@ Greenlight rounds the value to two decimal places.
 An empty report has `100.0` coverage because there are no executable lines to
 miss.
 
+## Merge behavior
+
+The coverage merge command reads two or more coverage documents:
+
+```sh id="merge-coverage-json"
+greenlight coverage:merge \
+    --input=shard-1.json \
+    --input=shard-2.json \
+    --export=json=coverage.json
+```
+
+The result contains the union of the file paths and executable line sets. A
+line has coverage if any input identifies it as covered. Thus, an uncovered
+line has no covered occurrence in any input.
+
+The merge operation is commutative, associative, and idempotent. Input order,
+duplicate inputs, and empty maps do not change the result.
+
+A file can be absent from an input. The result contains that file if a different
+input contains it.
+
+The command rejects malformed documents and unsupported versions. Without root
+options, each file path must be absolute.
+
+For different roots, give one `--input-root` for each input. Give one
+`--project-root` for the output. Greenlight removes each applicable input root
+and adds the output root.
+
+The command rejects these root errors:
+
+* The number of input roots differs from the number of inputs.
+* A path is outside its applicable input root.
+* The same input has different input roots.
+
+Root relocation does not change the schema. The JSON output contains absolute
+file paths.
+
 ## Semantics
 
 The format stores covered and uncovered line sets, not hit counts.

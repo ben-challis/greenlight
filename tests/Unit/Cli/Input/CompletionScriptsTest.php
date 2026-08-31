@@ -19,7 +19,7 @@ final class CompletionScriptsTest
     {
         $script = (string) $this->scripts()->render($shell);
 
-        foreach (['run', 'list-tests', 'coverage:diff', 'profile:report', 'artifacts:prune', 'ide-helper', 'completion'] as $command) {
+        foreach (['run', 'list-tests', 'coverage:merge', 'coverage:diff', 'profile:report', 'artifacts:prune', 'ide-helper', 'completion'] as $command) {
             // The zsh _describe entries use an escape before the colon in a
             // command name.
             Expect::that($script)->toContain($shell === 'zsh' ? \str_replace(':', '\:', $command) : $command);
@@ -35,6 +35,7 @@ final class CompletionScriptsTest
         Expect::that($script)
             ->toContain('Find and run tests (default)')
             ->toContain('List each found test ID, one per line')
+            ->toContain('Merge coverage JSON exports')
             ->toContain('Compare two coverage JSON exports')
             ->toContain('Create a run profile from a saved JSONL stream')
             ->toContain('Apply configured artifact retention')

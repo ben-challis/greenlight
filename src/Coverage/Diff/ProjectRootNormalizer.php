@@ -7,7 +7,7 @@ namespace Greenlight\Coverage\Diff;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 
-/** Changes absolute coverage paths below one explicit root to relative paths.
+/** Normalizes absolute coverage paths against explicit project roots.
  *
  * @internal
  */
@@ -39,6 +39,28 @@ final class ProjectRootNormalizer
 
             $files[] = new FileCoverage(
                 $relative,
+                $coverage->coveredLines,
+                $coverage->uncoveredLines,
+            );
+        }
+
+        return new CoverageMap($files);
+    }
+
+    /** Changes paths below one source root to paths below one target root. */
+    public static function relocate(CoverageMap $map, string $sourceRoot, string $targetRoot): CoverageMap
+    {
+        if (!\str_starts_with($targetRoot, '/')) {
+            throw new \InvalidArgumentException('The target project root must be an absolute path.');
+        }
+
+        $relative = self::normalize($map, $sourceRoot);
+        $root = $targetRoot === '/' ? '' : \rtrim($targetRoot, '/');
+        $files = [];
+
+        foreach ($relative->files() as $path => $coverage) {
+            $files[] = new FileCoverage(
+                $root . '/' . $path,
                 $coverage->coveredLines,
                 $coverage->uncoveredLines,
             );
