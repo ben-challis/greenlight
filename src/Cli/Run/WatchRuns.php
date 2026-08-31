@@ -18,6 +18,7 @@ use Greenlight\Cli\Watch\StatChangeDetector;
 use Greenlight\Cli\Watch\StdinKeyInput;
 use Greenlight\Cli\Watch\SystemWatchClock;
 use Greenlight\Cli\Watch\WatchLoop;
+use Greenlight\Cli\Watch\WatchPathMatcher;
 use Greenlight\Cli\Watch\WatchSourceFailed;
 use Greenlight\Cli\Watch\WatchSourceRuntime;
 use Greenlight\Config\StorageLayout;
@@ -47,6 +48,13 @@ final readonly class WatchRuns
                 $watched[] = $absolute;
             }
         }
+        $additionalPaths = [];
+        foreach ($resolved->watch->paths as $path) {
+            $absolute = ConfigurationLoader::absolutePath($path, $workingDirectory);
+            if ($absolute !== '' && !\in_array($absolute, $additionalPaths, true)) {
+                $additionalPaths[] = $absolute;
+            }
+        }
         $detectLeaks = $arguments->has('detect-leaks');
         $storage = StorageLayout::resolve(
             $resolved->storage,
@@ -70,7 +78,16 @@ final readonly class WatchRuns
         try {
             $sources = WatchSourceRuntime::fromDefinitions(
                 $resolved->execution->plugins,
-                [new StatChangeDetector($watched)],
+                [new StatChangeDetector(
+                    directories: $watched,
+                    additionalPaths: $additionalPaths,
+                    matcher: new WatchPathMatcher(
+                        $workingDirectory,
+                        $resolved->watch->includePatterns,
+                        $resolved->watch->excludePatterns,
+                    ),
+                    maximumFiles: $resolved->watch->maximumFiles,
+                )],
             );
             new WatchLoop($sources, new Debouncer($resolved->watch->debounceMilliseconds / 1000), $keys, new SystemWatchClock(), $this->console->out(...), $shutdown)->run($runOnce);
         } catch (ReporterSetupFailed|RunPolicyError|WatchSourceFailed $error) {

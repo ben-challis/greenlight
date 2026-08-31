@@ -13,6 +13,7 @@ use Greenlight\Cli\Configuration\PlanFormatter;
 use Greenlight\Config\CoverageBuilder;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\SuiteBuilder;
+use Greenlight\Config\WatchBuilder;
 use Greenlight\Expect\Expect;
 use Greenlight\Test\TestInclusions;
 use Greenlight\Test\TestSelection;
@@ -56,6 +57,11 @@ final class PlanFormatterTest
                   storage cache: {$temporary}
                   storage generated code: {$temporary}/greenlight-proxies-{$projectKey}
                   storage temporary: {$temporary}
+                  watch debounce: 200 ms
+                  additional watch paths: (none)
+                  watch include patterns: (all additional directory files)
+                  watch exclude patterns: (none)
+                  watch file limit: 100000
                   coverage include paths: src
                   coverage driver: xdebug
                   coverage driver required: yes
@@ -133,10 +139,38 @@ final class PlanFormatterTest
                       storage cache: {$temporary}
                       storage generated code: {$temporary}/greenlight-proxies-{$projectKey}
                       storage temporary: {$temporary}
+                      watch debounce: 200 ms
+                      additional watch paths: (none)
+                      watch include patterns: (all additional directory files)
+                      watch exclude patterns: (none)
+                      watch file limit: 100000
                       coverage: (off)
 
                     PLAN,
             );
+    }
+
+    #[Test]
+    public function formatsConfiguredWatchInputs(): void
+    {
+        $configuration = ConfigurationResolver::resolve(
+            GreenlightConfig::create()
+                ->watch(static fn(WatchBuilder $watch) => $watch
+                    ->debounceMilliseconds(350)
+                    ->paths('templates', 'config/app.yaml')
+                    ->include('**/*.twig', '**/*.yaml')
+                    ->exclude('build/**')
+                    ->maximumFiles(2_000))
+                ->build(),
+            new CliOverrides(),
+        );
+
+        Expect::that(PlanFormatter::format($configuration, '/project/greenlight.php', '/project'))
+            ->toContain('  watch debounce: 350 ms')
+            ->toContain('  additional watch paths: templates, config/app.yaml')
+            ->toContain('  watch include patterns: **/*.twig, **/*.yaml')
+            ->toContain('  watch exclude patterns: build/**')
+            ->toContain('  watch file limit: 2000');
     }
 
     /**

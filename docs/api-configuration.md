@@ -651,4 +651,64 @@ PHPDoc:
 - `@param positive-int $milliseconds`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L36)
+
+### `paths()`
+
+Adds file or directory inputs. Relative paths use the command working
+directory. Multiple calls add paths.
+
+```php
+public function paths(string ...$paths): self
+```
+
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L53)
+
+### `include()`
+
+Selects files below additional directory inputs. Multiple calls add
+patterns. Exact file inputs do not require an include pattern.
+
+```php
+public function include(string ...$patterns): self
+```
+
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L66)
+
+### `exclude()`
+
+Removes from all watch inputs each file that matches. Exclusion has
+precedence over an explicit path or include pattern. Multiple calls add
+patterns.
+
+```php
+public function exclude(string ...$patterns): self
+```
+
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L80)
+
+### `maximumFiles()`
+
+Sets the maximum number of files that one poll can track.
+
+```php
+public function maximumFiles(int $maximumFiles): self
+```
+
+PHPDoc:
+
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L92)
