@@ -151,13 +151,13 @@ final class AttributeContractTest
     public function timeoutRejectsNonPositiveSeconds(): void
     {
         Expect::that(static fn(): Timeout => new Timeout(0.0))->because('timeout rejects nonpositive seconds')->toThrow(\InvalidArgumentException::class);
-        Expect::that(static fn(): Timeout => new Timeout(-1.5))->because('timeout rejects nonpositive seconds')->toThrow(\InvalidArgumentException::class);
+        Expect::that(static fn(): Timeout => new Timeout(-1.5))->because('timeout rejects nonpositive seconds')->toThrow(\InvalidArgumentException::class); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
     }
 
     #[Test]
     public function timeoutRejectsNonfiniteSeconds(): void
     {
-        Expect::that(static fn(): Timeout => new Timeout(\NAN))->because('timeout rejects nonfinite seconds')->toThrow(\InvalidArgumentException::class);
+        Expect::that(static fn(): Timeout => new Timeout(\NAN))->because('timeout rejects nonfinite seconds')->toThrow(\InvalidArgumentException::class); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         Expect::that(static fn(): Timeout => new Timeout(\INF))->because('timeout rejects nonfinite seconds')->toThrow(\InvalidArgumentException::class);
     }
 

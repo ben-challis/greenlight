@@ -15,7 +15,7 @@ final class TimeoutValidationTest
     #[DataSet('invalidSeconds')]
     public function invalidSecondsHaveAnActionableDiagnostic(float $seconds): void
     {
-        Expect::that(static fn(): Timeout => new Timeout($seconds))
+        Expect::that(static fn(): Timeout => new Timeout($seconds)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('invalid timeout seconds MUST explain the accepted range')
             ->toThrow(
                 \InvalidArgumentException::class,
