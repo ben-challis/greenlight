@@ -495,7 +495,7 @@ jobs:
         run: |
           XDEBUG_MODE=coverage php bin/greenlight run --config=greenlight.tempest-coverage.php \
             --ansi \
-            --minimum-coverage=78 \
+            --minimum-coverage=90 \
             --filter='*Tempest*Test::*'
 
       - name: "Upload Tempest coverage to Codecov"
@@ -608,7 +608,7 @@ jobs:
           dependency-versions: "locked"
 
       - name: "Run the suite with coverage"
-        run: "composer tests:coverage -- --ansi --minimum-coverage=78"
+        run: "composer tests:coverage -- --ansi --minimum-coverage=90"
 
       - name: "Upload coverage to Codecov"
         if: "always()"
