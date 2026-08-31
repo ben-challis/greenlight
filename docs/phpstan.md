@@ -81,8 +81,8 @@ Errors have identifiers under `greenlight.attributeArgument.*` (`retry`,
 PHPStan does not have float range types. The extension checks constant values
 for these method arguments:
 
-* `CoverageBuilder::minimumPercentage()` accepts a finite value from `0`
-  through `100`, with at most two decimal places.
+* `CoverageBuilder::minimumPercentage()` accepts a value from `0` through
+  `100`, with at most two decimal places.
 * `toBeWithin()` accepts a finite tolerance of zero or more.
 * `pollEvery()` accepts a finite duration of at least `0.001` seconds.
 * `within()` and `for()` accept a finite duration greater than zero.

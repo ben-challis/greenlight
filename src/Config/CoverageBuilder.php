@@ -74,7 +74,7 @@ final class CoverageBuilder
     /**
      * Sets the minimum accepted total line-coverage percentage.
      *
-     * @param float $percentage A finite value from 0 through 100 with at most two decimal places.
+     * @param float $percentage A value from 0 through 100 with at most two decimal places.
      *
      * @throws InvalidConfiguration
      */

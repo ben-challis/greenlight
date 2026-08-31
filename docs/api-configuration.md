@@ -183,7 +183,7 @@ public function minimumPercentage(float $percentage): self
 
 PHPDoc:
 
-- `@param float $percentage A finite value from 0 through 100 with at most two decimal places.`
+- `@param float $percentage A value from 0 through 100 with at most two decimal places.`
 - `@throws InvalidConfiguration`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L81)
