@@ -7,8 +7,6 @@ namespace Greenlight\PhpStan;
 use Greenlight\Expect\ConsistentlyExpectation;
 use Greenlight\Expect\EventuallyExpectation;
 use Greenlight\Expect\Expectation;
-use Greenlight\Expect\PendingConsistently;
-use Greenlight\Expect\PendingEventually;
 use Greenlight\Expect\TemporalExpectation;
 use Greenlight\Internal\Php\ErrorTrap;
 use PhpParser\Node;
@@ -51,53 +49,9 @@ final class ExpectationArgumentRule implements Rule
                 'toMatch' => $this->patternErrors($node, $scope, $method, 'pattern', 0),
                 'toThrow' => $this->patternErrors($node, $scope, $method, 'matching', 1),
                 'toMatchJson' => $this->jsonErrors($node, $scope),
-                'toBeWithin' => $this->toleranceErrors($node, $scope),
                 'because' => $this->reasonErrors($node, $scope),
                 default => [],
             };
-        }
-
-        if ($method === 'within' && $this->isType($scope, $node, PendingEventually::class)) {
-            return $this->durationErrors($node, $scope, $method, 0.0, false);
-        }
-
-        if ($method === 'for' && $this->isType($scope, $node, PendingConsistently::class)) {
-            return $this->durationErrors($node, $scope, $method, 0.0, false);
-        }
-
-        if ($method === 'pollEvery'
-            && ($this->isType($scope, $node, PendingEventually::class)
-                || $this->isType($scope, $node, PendingConsistently::class))
-        ) {
-            return $this->durationErrors($node, $scope, $method, 0.001, true);
-        }
-
-        return [];
-    }
-
-    /**
-     * @return list<IdentifierRuleError>
-     */
-    private function toleranceErrors(MethodCall $call, Scope $scope): array
-    {
-        $argument = $this->argument($call, 'delta', 0);
-
-        if (!$argument instanceof Arg) {
-            return [];
-        }
-
-        foreach ($scope->getType($argument->value)->getConstantScalarValues() as $delta) {
-            if ((\is_int($delta) || \is_float($delta))
-                && \is_finite((float) $delta)
-                && $delta >= 0.0
-            ) {
-                continue;
-            }
-
-            return [RuleErrorBuilder::message('toBeWithin() requires a finite tolerance of zero or more.')
-                ->identifier('greenlight.expectationArgument.tolerance')
-                ->line($call->getStartLine())
-                ->build()];
         }
 
         return [];
@@ -191,47 +145,6 @@ final class ExpectationArgumentRule implements Rule
         return [];
     }
 
-    /**
-     * @return list<IdentifierRuleError>
-     */
-    private function durationErrors(
-        MethodCall $call,
-        Scope $scope,
-        string $method,
-        float $minimum,
-        bool $inclusive,
-    ): array {
-        $argument = $this->argument($call, 'seconds', 0);
-
-        if (!$argument instanceof Arg) {
-            return [];
-        }
-
-        foreach ($scope->getType($argument->value)->getConstantScalarValues() as $seconds) {
-            if ((\is_int($seconds) || \is_float($seconds))
-                && \is_finite((float) $seconds)
-                && ($inclusive ? $seconds >= $minimum : $seconds > $minimum)
-            ) {
-                continue;
-            }
-
-            $constraint = $inclusive
-                ? \sprintf('at least %.3f seconds', $minimum)
-                : \sprintf('greater than %.3f seconds', $minimum);
-
-            return [RuleErrorBuilder::message(\sprintf(
-                '%s() requires a finite duration %s.',
-                $method,
-                $constraint,
-            ))
-                ->identifier('greenlight.expectationArgument.duration')
-                ->line($call->getStartLine())
-                ->build()];
-        }
-
-        return [];
-    }
-
     private function argument(MethodCall $call, string $name, int $position): ?Arg
     {
         $nextPosition = 0;
@@ -267,11 +180,4 @@ final class ExpectationArgumentRule implements Rule
         );
     }
 
-    /**
-     * @param class-string $class
-     */
-    private function isType(Scope $scope, MethodCall $call, string $class): bool
-    {
-        return new ObjectType($class)->isSuperTypeOf($scope->getType($call->var))->yes();
-    }
 }

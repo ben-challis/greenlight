@@ -9,12 +9,12 @@ parameters:
 
 rules:
     - Greenlight\PhpStan\AttributeArgumentRule
-    - Greenlight\PhpStan\CoverageBuilderArgumentRule
     - Greenlight\PhpStan\DataProviderSignatureRule
     - Greenlight\PhpStan\DoublePlanRule
     - Greenlight\PhpStan\DoubleableTypeRule
     - Greenlight\PhpStan\DoublesCallRule
     - Greenlight\PhpStan\ExpectationArgumentRule
+    - Greenlight\PhpStan\FloatArgumentRule
     - Greenlight\PhpStan\LifecycleMethodRule
     - Greenlight\PhpStan\NativeMatcherSubjectRule
     - Greenlight\PhpStan\SkipUnlessConditionRule
