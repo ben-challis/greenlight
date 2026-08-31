@@ -90,7 +90,7 @@ final class MethodExpectation
      */
     private function withArguments(array $arguments, string $selector): self
     {
-        $this->contract->assertPlannedArgumentCount($selector, \count($arguments));
+        $this->contract->assertPlannedArguments($selector, $arguments);
         $this->arguments = $arguments;
 
         return $this;

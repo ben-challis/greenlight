@@ -170,23 +170,24 @@ The bundled PHPStan extension preserves the combined value type in each
 cannot match the selected method parameter. Other type names use `mixed`, as
 they do for `Argument::type()`.
 
-Use `Argument::allOf()` to apply two or more constraints to one argument:
+Use a typed predicate to apply a type constraint and a value constraint:
 
 <!-- php-example {"example":"test-doubles-example-07","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Doubles\Argument;
 
-$plan->expects('save')->with(Argument::allOf(
-    Argument::type(Order::class),
-    Argument::predicate(
-        fn (Order $order): bool => $order->isReady(),
-        'a ready order',
-    ),
+$plan->expects('save')->with(Argument::predicate(
+    fn (Order $order): bool => $order->isReady(),
+    'a ready order',
 ));
 ```
 
-Greenlight checks the matchers from left to right. Put a type matcher before a
-predicate that has a parameter of that type. `allOf()` does not accept a captor.
+The parameter type rejects an incompatible value before the predicate runs.
+Greenlight rejects the plan if this type cannot match the method parameter.
+
+Use `Argument::allOf()` to apply two or more constraints to one argument.
+Greenlight checks the matchers from left to right. `allOf()` does not accept a
+captor.
 
 ## Argument capture
 

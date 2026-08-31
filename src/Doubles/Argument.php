@@ -85,6 +85,7 @@ final class Argument
 
     /**
      * This matcher accepts the value when the closure returns true.
+     * A declared parameter type rejects incompatible values before the closure runs.
      * The description identifies the constraint in failure messages.
      *
      * @template T
@@ -92,6 +93,7 @@ final class Argument
      * @param \Closure(T): mixed $predicate
      *
      * @return ArgumentMatcher<T>
+     * @throws InvalidDoubleUsage
      */
     public static function predicate(\Closure $predicate, string $description = 'predicate'): ArgumentMatcher
     {

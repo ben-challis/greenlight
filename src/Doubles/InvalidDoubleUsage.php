@@ -237,6 +237,30 @@ final class InvalidDoubleUsage extends \LogicException
     /**
      * @param class-string $type
      */
+    public static function incompatiblePlannedArgumentMatcher(
+        string $selector,
+        string $type,
+        string $method,
+        int $position,
+        string $matcherType,
+        string $parameter,
+        string $parameterType,
+    ): self {
+        return new self(\sprintf(
+            'The matcher in %s() argument %d accepts "%s", but parameter "$%s" of "%s::%s()" requires "%s".',
+            $selector,
+            $position,
+            $matcherType,
+            $parameter,
+            $type,
+            $method,
+            $parameterType,
+        ));
+    }
+
+    /**
+     * @param class-string $type
+     */
     public static function tooFewCallArguments(string $type, string $method, int $actual, int $required): self
     {
         return new self(\sprintf(
