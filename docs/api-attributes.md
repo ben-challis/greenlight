@@ -474,7 +474,7 @@ final readonly class Timeout
 public float $seconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L20)
 
 ### `__construct()`
 
@@ -486,9 +486,10 @@ public function __construct(
 
 PHPDoc:
 
+- `@param non-negative-float $seconds`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L19)
 
 ## `ClassAvailable`
 
