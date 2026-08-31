@@ -193,7 +193,7 @@ final readonly class ArgumentType
         }
 
         if ($name === 'self' || $name === 'static') {
-            return !$context instanceof \ReflectionClass ? $name : $context->name;
+            return $context instanceof \ReflectionClass ? $context->name : $name;
         }
 
         if ($name !== 'parent') {

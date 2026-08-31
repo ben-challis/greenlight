@@ -153,10 +153,8 @@ final class ArgumentTypeTest
     #[Test]
     public function parentTypeRequiresItsDeclaringClassContext(): void
     {
-        $reflection = new \ReflectionMethod(ArgumentTypeChild::class, 'parentType');
-        $type = $reflection->getParameters()[0]->getType();
+        $type = new ArgumentTypeParentNamedType();
 
-        Expect::that($type)->toBeInstanceOf(\ReflectionType::class);
         Expect::that(static fn(): ArgumentType => ArgumentType::fromReflection($type))
             ->toThrow(
                 InvalidDoubleUsage::class,
@@ -464,5 +462,28 @@ final class ArgumentTypeUnresolvedNamedType extends \ReflectionNamedType
     public function __toString(): string
     {
         return 'UnresolvedClass';
+    }
+}
+
+final class ArgumentTypeParentNamedType extends \ReflectionNamedType
+{
+    public function getName(): string
+    {
+        return 'parent';
+    }
+
+    public function isBuiltin(): bool
+    {
+        return false;
+    }
+
+    public function allowsNull(): bool
+    {
+        return false;
+    }
+
+    public function __toString(): string
+    {
+        return 'parent';
     }
 }
