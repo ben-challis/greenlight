@@ -183,9 +183,10 @@ public function minimumPercentage(float $percentage): self
 
 PHPDoc:
 
+- `@param float $percentage A finite value from 0 through 100 with at most two decimal places.`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L79)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L81)
 
 ### `maximumUncoveredLines()`
 
@@ -200,7 +201,7 @@ PHPDoc:
 - `@param int<0, max> $lines`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L100)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L102)
 
 ### `requireDriver()`
 
@@ -210,7 +211,7 @@ Fails the run when the selected coverage driver is not available.
 public function requireDriver(bool $required = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L112)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L114)
 
 ### `export()`
 
@@ -224,7 +225,7 @@ PHPDoc:
 - `@param non-empty-string $target`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L125)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L127)
 
 ## `GreenlightConfig`
 

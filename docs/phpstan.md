@@ -76,6 +76,16 @@ The extension reports constant attribute arguments that Greenlight cannot use:
 Errors have identifiers under `greenlight.attributeArgument.*` (`retry`,
 `skipUnless`, `timeout`, `resource`).
 
+## Coverage builder argument checks
+
+The extension checks constant values for `CoverageBuilder::minimumPercentage()`.
+The percentage must be finite and from `0` through `100`. It can have at most
+two decimal places.
+
+Errors use `greenlight.coverageBuilderArgument.range` and
+`greenlight.coverageBuilderArgument.precision`. Greenlight checks unresolved
+values at run time.
+
 If you use [phpstan/extension-installer](https://github.com/phpstan/extension-installer),
 it registers the include for you. Set only the `greenlight.configFiles`
 parameter.
