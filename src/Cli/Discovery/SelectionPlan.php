@@ -19,6 +19,7 @@ use Greenlight\Discovery\Plan\PlanOrder;
  */
 final class SelectionPlan
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     /**

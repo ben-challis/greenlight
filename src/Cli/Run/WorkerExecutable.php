@@ -20,6 +20,7 @@ final class WorkerExecutable
         'stream_socket_client', 'stream_select', 'stream_set_blocking',
     ];
 
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     /** @return non-empty-string|false */
