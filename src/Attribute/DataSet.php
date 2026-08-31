@@ -26,6 +26,9 @@ final readonly class DataSet
      * arguments, it names the provider class and `$method` names the provider
      * method.
      *
+     * @param ($method is null ? non-empty-string : class-string) $provider
+     * @param non-empty-string|null $method
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(string $provider, ?string $method = null)
@@ -43,9 +46,6 @@ final readonly class DataSet
         }
 
         $this->provider = $method ?? $provider;
-
-        /** @var class-string|null $providerClass */
-        $providerClass = $method === null ? null : $provider;
-        $this->providerClass = $providerClass;
+        $this->providerClass = $method === null ? null : $provider;
     }
 }
