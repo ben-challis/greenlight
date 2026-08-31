@@ -130,6 +130,36 @@ final class GreenlightConfigTest
     }
 
     #[Test]
+    public function zeroIsAValidConfiguredSeed(): void
+    {
+        $configuration = GreenlightConfig::create()->randomizeOrder(seed: 0)->build();
+
+        Expect::that($configuration->order->randomized)
+            ->because('zero MUST enable random order')
+            ->toBeTrue();
+        Expect::that($configuration->order->seed)
+            ->because('zero MUST remain the configured seed')
+            ->toBe(0);
+    }
+
+    #[Test]
+    public function aNegativeSeedDoesNotPartiallyChangeTheBuilder(): void
+    {
+        $builder = GreenlightConfig::create()->randomizeOrder(seed: 7);
+
+        Expect::that(static fn(): GreenlightConfig => $builder->randomizeOrder(seed: -1)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+            ->because('a negative seed MUST be rejected')
+            ->toThrow(
+                InvalidConfiguration::class,
+                message: 'Random order seed must be a nonnegative integer. Actual value: -1.',
+            );
+
+        Expect::that($builder->build()->order->seed)
+            ->because('a rejected seed MUST retain the prior seed')
+            ->toBe(7);
+    }
+
+    #[Test]
     public function rejectedWorkerConfigurationsDoNotPartiallyChangeTheBuilder(): void
     {
         $builder = GreenlightConfig::create()->workers(count: 2);

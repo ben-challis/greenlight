@@ -11,6 +11,7 @@ namespace Greenlight\Config;
  */
 final readonly class OrderConfiguration
 {
+    /** @param int<0, max>|null $seed */
     public function __construct(
         public bool $randomized = false,
         public ?int $seed = null,

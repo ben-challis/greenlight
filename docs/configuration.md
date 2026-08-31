@@ -525,6 +525,8 @@ Default: declared order, no seed.
 
 Randomizes class order.
 
+The seed MUST be a nonnegative integer. Zero is a valid seed.
+
 If `$seed` is `null`, Greenlight selects one seed when it resolves the command.
 Discovery and execution use this seed. Greenlight prints the seed. Use `--seed`
 with that value to reproduce the same order.
