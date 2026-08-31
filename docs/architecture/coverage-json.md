@@ -53,33 +53,13 @@ Absolute keys make a baseline specific to its checkout root. Coverage from two
 sources represents the same file only when the keys match exactly. Sources
 include worktrees, containers, and machines.
 
-Use a stable mounted path when possible. For different checkout roots, give
-both explicit roots to the difference command:
+Use a stable mounted path. For different roots, the [coverage difference
+command](../configuration.md#coveragediff) can normalize absolute keys for one
+comparison.
 
-```sh id="portable-coverage-diff"
-greenlight coverage:diff \
-    --baseline=baseline.json \
-    --current=current.json \
-    --baseline-root=/old/checkout \
-    --current-root=/new/checkout
-```
-
-The command removes the applicable root and `/` from each file key. It uses the
-resulting project-relative path only for that comparison. Each file key
-**MUST** be below its applicable root. The command rejects a document that has
-a key outside the root.
-
-Use `--baseline-root` and `--current-root` together. Greenlight resolves a
-relative root from the command working directory. An absolute root can refer
-to a checkout that is not on the current machine.
-
-The options do not change the JSON documents. Version 1 keeps its absolute-path
-contract. A JSON format that stores project-relative keys requires a new schema
-version.
-
-The difference command can also apply `--minimum-coverage` and
-`--maximum-uncovered-lines` to the current document. These gates do not add
-fields to the document.
+Supply both root options. Each file key **MUST** be below the selected root.
+Normalization does not change the documents or the version 1 absolute-path
+contract.
 
 `files` is always an object. This rule also applies to an empty report:
 
