@@ -7,7 +7,8 @@ namespace Greenlight\Coverage\Diff;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 
-/** Normalizes absolute coverage paths against explicit project roots.
+/**
+ * Normalizes absolute coverage paths against explicit project roots.
  *
  * @internal
  */
