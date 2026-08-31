@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
+use Greenlight\Doubles\Argument;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Doubles\MethodCallContract;
@@ -32,6 +33,42 @@ final readonly class MethodArgumentContractTest
             InvalidDoubleUsage::class,
             '/with\(\) supplies 1 argument .* but the method accepts at most 0 arguments/',
         );
+    }
+
+    #[Test]
+    public function plannedPredicateTypeMustOverlapTheMethodParameterType(): void
+    {
+        Expect::that(fn(): PredicateTarget => $this->doubles->mock(
+            PredicateTarget::class,
+            static function (MockPlan $plan): void {
+                $plan->expects(self::predicateMethod())->with(Argument::predicate(
+                    static fn(PredicateBaz $value): bool => true,
+                    'a baz',
+                ));
+            },
+        ))->toThrow(
+            InvalidDoubleUsage::class,
+            '/matcher in with\(\) argument 1 accepts .*PredicateBaz.*parameter "\$value".*requires .*PredicateBar/',
+        );
+    }
+
+    #[Test]
+    public function plannedPredicateCanNarrowTheMethodParameterType(): void
+    {
+        $this->doubles->mock(PredicateTarget::class, static function (MockPlan $plan): void {
+            $plan->expects('accept')->with(Argument::predicate(
+                static fn(PredicateBarChild $value): bool => true,
+                'a bar child',
+            ))->never();
+        });
+    }
+
+    #[Test]
+    public function typedMatcherCanTargetAnUntypedMethodParameter(): void
+    {
+        $this->doubles->mock(PredicateTarget::class, static function (MockPlan $plan): void {
+            $plan->expects('acceptUntyped')->with(Argument::type('int'))->never();
+        });
     }
 
     #[Test]
@@ -71,4 +108,24 @@ final readonly class MethodArgumentContractTest
     {
         return 'returnsVoid';
     }
+
+    /** @return non-empty-string */
+    private static function predicateMethod(): string
+    {
+        return 'accept';
+    }
 }
+
+interface PredicateTarget
+{
+    public function accept(PredicateBar $value): void;
+
+    /** @param mixed $value */
+    public function acceptUntyped($value): void;
+}
+
+class PredicateBar {}
+
+final class PredicateBarChild extends PredicateBar {}
+
+final class PredicateBaz {}

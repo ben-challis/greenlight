@@ -197,6 +197,53 @@ final readonly class ArgumentMatchingTest
     }
 
     #[Test]
+    public function typedPredicateRejectsIncompatibleValuesBeforeTheClosureRuns(): void
+    {
+        $predicateCalled = false;
+        $matcher = Argument::predicate(static function (\DateTimeInterface|string $value) use (&$predicateCalled): bool {
+            $predicateCalled = true;
+
+            return $value !== '';
+        });
+
+        Expect::that($matcher->matches(1))
+            ->because('a typed predicate MUST reject an incompatible value')
+            ->toBeFalse();
+        Expect::that($predicateCalled)
+            ->because('a typed predicate MUST NOT receive an incompatible value')
+            ->toBeFalse();
+        Expect::that($matcher->matches('value'))
+            ->because('a typed predicate MUST receive a compatible value')
+            ->toBeTrue();
+        Expect::that($predicateCalled)->toBeTrue();
+    }
+
+    #[Test]
+    public function typedPredicateSupportsNullableUnionAndIntersectionTypes(): void
+    {
+        $matcher = Argument::predicate(
+            static fn((\IteratorAggregate&\Countable)|string|null $value): bool => true,
+        );
+
+        Expect::that($matcher->matches(new \ArrayObject()))->toBeTrue();
+        Expect::that($matcher->matches('value'))->toBeTrue();
+        Expect::that($matcher->matches(null))->toBeTrue();
+        Expect::that($matcher->matches(new \stdClass()))->toBeFalse();
+    }
+
+    #[Test]
+    public function typedPredicateDoesNotHideErrorsFromTheClosureBody(): void
+    {
+        $matcher = Argument::predicate(static function (\DateTimeInterface $value): bool {
+            throw new \TypeError('predicate body failed');
+        });
+
+        Expect::that(static fn(): bool => $matcher->matches(new \DateTimeImmutable()))
+            ->because('a typed predicate MUST preserve errors from its closure body')
+            ->toThrow(\TypeError::class, message: 'predicate body failed');
+    }
+
+    #[Test]
     public function equalsUsesDeepEquality(): void
     {
         $expected = ['a' => (object) ['values' => [1, 2]]];
