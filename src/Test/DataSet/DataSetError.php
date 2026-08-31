@@ -60,13 +60,13 @@ final class DataSetError extends \RuntimeException
         ));
     }
 
-    public static function providerNotIterable(string $class, string $provider, string $actualType): self
+    public static function providerNotIterable(string $class, string $provider, mixed $actual): self
     {
         return new self(\sprintf(
             'Data-set provider %s::%s() returned %s. Return an iterable from the provider.',
             $class,
             $provider,
-            $actualType,
+            \get_debug_type($actual),
         ));
     }
 
@@ -103,13 +103,13 @@ final class DataSetError extends \RuntimeException
         ));
     }
 
-    public static function providerKeyInvalid(string $class, string $provider, string $keyType): self
+    public static function providerKeyInvalid(string $class, string $provider, mixed $key): self
     {
         return new self(\sprintf(
             'Data-set provider %s::%s() produced a key of type %s. Use string or integer keys.',
             $class,
             $provider,
-            $keyType,
+            \get_debug_type($key),
         ));
     }
 

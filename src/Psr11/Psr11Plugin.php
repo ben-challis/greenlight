@@ -72,7 +72,7 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
         }
 
         if (!$container instanceof ContainerInterface) {
-            throw Psr11BridgeError::notAContainer(\get_debug_type($container));
+            throw Psr11BridgeError::notAContainer($container);
         }
 
         $this->activeContainer = $container;
@@ -128,7 +128,7 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
         }
 
         if (!$service instanceof $type) {
-            throw Psr11BridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service));
+            throw Psr11BridgeError::serviceTypeMismatch($id, $type, $service);
         }
 
         return $service;

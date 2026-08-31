@@ -104,7 +104,7 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
         }
 
         if (!$service instanceof $type) {
-            throw TempestBridgeError::serviceTypeMismatch($type, \get_debug_type($service));
+            throw TempestBridgeError::serviceTypeMismatch($type, $service);
         }
 
         return $service;

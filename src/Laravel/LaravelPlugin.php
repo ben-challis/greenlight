@@ -61,7 +61,7 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
                 $app = require $application;
 
                 if (!$app instanceof Application) {
-                    throw LaravelBridgeError::notAnApplication(\get_debug_type($app));
+                    throw LaravelBridgeError::notAnApplication($app);
                 }
 
                 return $app;
@@ -113,7 +113,7 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             $service = $app->make($id);
 
             if (!$service instanceof $type) {
-                throw LaravelBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service));
+                throw LaravelBridgeError::serviceTypeMismatch($id, $type, $service);
             }
 
             return $service;
@@ -153,7 +153,7 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             $app = ($this->factory)();
 
             if (!$app instanceof Application) {
-                throw LaravelBridgeError::notAnApplication(\get_debug_type($app));
+                throw LaravelBridgeError::notAnApplication($app);
             }
 
             $this->app = $app;
@@ -165,7 +165,7 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             $kernel = $this->containerEntry($app, Kernel::class);
 
             if (!$kernel instanceof Kernel) {
-                throw LaravelBridgeError::consoleKernelTypeMismatch(\get_debug_type($kernel));
+                throw LaravelBridgeError::consoleKernelTypeMismatch($kernel);
             }
 
             $this->preserveDiagnosticHandlers($app);

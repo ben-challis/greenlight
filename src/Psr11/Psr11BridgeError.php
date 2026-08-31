@@ -26,11 +26,11 @@ final class Psr11BridgeError extends ServiceResolutionFailed
         );
     }
 
-    public static function notAContainer(string $actual): self
+    public static function notAContainer(mixed $actual): self
     {
         return new self(\sprintf(
             'The PSR-11 container factory returned "%s". Return an instance of Psr\\Container\\ContainerInterface.',
-            $actual,
+            \get_debug_type($actual),
         ));
     }
 
@@ -59,12 +59,12 @@ final class Psr11BridgeError extends ServiceResolutionFailed
         ));
     }
 
-    public static function serviceTypeMismatch(string $id, string $type, string $actual): self
+    public static function serviceTypeMismatch(string $id, string $type, mixed $actual): self
     {
         return new self(\sprintf(
             'PSR-11 service "%s" has type "%s". The parameter requires type "%s".',
             $id,
-            $actual,
+            \get_debug_type($actual),
             $type,
         ));
     }

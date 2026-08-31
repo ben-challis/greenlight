@@ -20,11 +20,11 @@ final class DataSetErrorTest
             DataSetError::providerClassMissing('App\ExampleTest', 'checksValue', 'App\Rows')->getMessage(),
             DataSetError::providerMissing('App\ExampleTest', 'checksValue', 'App\Rows', 'values')->getMessage(),
             DataSetError::providerNotPublicStatic('App\ExampleTest', 'checksValue', 'App\Rows', 'values')->getMessage(),
-            DataSetError::providerNotIterable('App\Rows', 'values', 'string')->getMessage(),
+            DataSetError::providerNotIterable('App\Rows', 'values', 'not iterable')->getMessage(),
             $providerError->getMessage(),
             DataSetError::providerTooSlow('App\Rows', 'values', 0.125)->getMessage(),
             DataSetError::providerYieldedNothing('App\Rows', 'values')->getMessage(),
-            DataSetError::providerKeyInvalid('App\Rows', 'values', 'float')->getMessage(),
+            DataSetError::providerKeyInvalid('App\Rows', 'values', 1.5)->getMessage(),
             DataSetError::duplicateDataSetKey('App\ExampleTest', 'checksValue', 'same')->getMessage(),
         ];
 

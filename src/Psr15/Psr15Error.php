@@ -12,33 +12,33 @@ final class Psr15Error extends \RuntimeException
         return new self('The PSR-15 handler factory failed.', 0, $cause);
     }
 
-    public static function invalidHandler(string $type): self
+    public static function invalidHandler(mixed $handler): self
     {
         return new self(\sprintf(
             'The PSR-15 handler factory returned "%s". It MUST return an instance of "Psr\\Http\\Server\\RequestHandlerInterface".',
-            $type,
+            \get_debug_type($handler),
         ));
     }
 
     public static function requestFailed(
         string $method,
         string $path,
-        string $handler,
+        mixed $handler,
         \Throwable $cause,
     ): self {
         return new self(\sprintf(
             'PSR-15 handler "%s" failed for request "%s %s".',
-            $handler,
+            \get_debug_type($handler),
             $method,
             $path,
         ), 0, $cause);
     }
 
-    public static function releaseFailed(string $handler, \Throwable $cause): self
+    public static function releaseFailed(mixed $handler, \Throwable $cause): self
     {
         return new self(\sprintf(
             'The release callback failed for PSR-15 handler "%s".',
-            $handler,
+            \get_debug_type($handler),
         ), 0, $cause);
     }
 

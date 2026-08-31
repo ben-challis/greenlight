@@ -62,7 +62,7 @@ final readonly class TempestBridgeErrorTest
     #[Test]
     public function reportsAServiceTypeMismatch(): void
     {
-        $error = TempestBridgeError::serviceTypeMismatch(ProbeService::class, \stdClass::class);
+        $error = TempestBridgeError::serviceTypeMismatch(ProbeService::class, new \stdClass());
 
         Expect::that($error->getMessage())->toBe(
             'The Tempest container returned "stdClass" for the parameter type "'

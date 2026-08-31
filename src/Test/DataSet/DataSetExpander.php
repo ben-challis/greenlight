@@ -157,7 +157,7 @@ final readonly class DataSetExpander
         }
 
         if (!\is_iterable($result)) {
-            throw DataSetError::providerNotIterable($providerClassName, $provider, \get_debug_type($result));
+            throw DataSetError::providerNotIterable($providerClassName, $provider, $result);
         }
 
         $dataSets = [];
@@ -215,7 +215,7 @@ final readonly class DataSetExpander
         }
 
         if (!\is_string($key)) {
-            throw DataSetError::providerKeyInvalid($class, $provider, \get_debug_type($key));
+            throw DataSetError::providerKeyInvalid($class, $provider, $key);
         }
 
         if ($key !== '' && \preg_match('/^\P{C}+\z/u', $key) === 1) {

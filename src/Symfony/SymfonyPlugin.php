@@ -109,7 +109,7 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             $service = $container->get($id);
 
             if (!$service instanceof $type) {
-                throw SymfonyBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service));
+                throw SymfonyBridgeError::serviceTypeMismatch($id, $type, $service);
             }
 
             return $service;
@@ -144,7 +144,7 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
         $kernel = ($this->factory)();
 
         if (!$kernel instanceof KernelInterface) {
-            throw SymfonyBridgeError::notAKernelFromFactory(\get_debug_type($kernel));
+            throw SymfonyBridgeError::notAKernelFromFactory($kernel);
         }
 
         $kernel->boot();
