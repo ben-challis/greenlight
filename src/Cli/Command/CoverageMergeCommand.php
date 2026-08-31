@@ -10,6 +10,7 @@ use Greenlight\Cli\Coverage\CoverageWriter;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Cli\Output\ExitCode;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\CoverageExport;
 use Greenlight\Config\InvalidConfiguration;
@@ -35,7 +36,7 @@ final readonly class CoverageMergeCommand
         if (\count($inputs) < 2) {
             $this->console->err("coverage:merge requires at least two --input=<path> options.\n");
 
-            return 64;
+            return ExitCode::USAGE;
         }
 
         try {
@@ -44,13 +45,13 @@ final readonly class CoverageMergeCommand
         } catch (CliError|InvalidConfiguration $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
-            return 64;
+            return ExitCode::USAGE;
         }
 
         if ($exports === []) {
             $this->console->err("coverage:merge requires at least one --export=<format>=<path> option.\n");
 
-            return 64;
+            return ExitCode::USAGE;
         }
 
         $inputRoots = $arguments->values('input-root');
@@ -59,13 +60,13 @@ final readonly class CoverageMergeCommand
         if (($inputRoots === []) !== ($projectRoot === null)) {
             $this->console->err("Use --input-root=<path> and --project-root=<path> together.\n");
 
-            return 64;
+            return ExitCode::USAGE;
         }
 
         if ($inputRoots !== [] && \count($inputRoots) !== \count($inputs)) {
             $this->console->err("Repeat --input-root=<path> once for each --input=<path>.\n");
 
-            return 64;
+            return ExitCode::USAGE;
         }
 
         $targetRoot = $projectRoot === null
@@ -80,7 +81,7 @@ final readonly class CoverageMergeCommand
             if ($input === '') {
                 $this->console->err("--input requires a non-empty path.\n");
 
-                return 64;
+                return ExitCode::USAGE;
             }
 
             $path = ConfigurationLoader::absolutePath($input, $workingDirectory);
@@ -98,7 +99,7 @@ final readonly class CoverageMergeCommand
                         $input,
                     ), $arguments->has('no-ansi'));
 
-                    return 64;
+                    return ExitCode::USAGE;
                 }
 
                 continue;
@@ -114,7 +115,7 @@ final readonly class CoverageMergeCommand
                     $warning === null ? '' : ': ' . $warning,
                 ), $arguments->has('no-ansi'));
 
-                return 1;
+                return ExitCode::FAILURE;
             }
 
             try {
@@ -132,7 +133,7 @@ final readonly class CoverageMergeCommand
                     $error->getMessage(),
                 ), $arguments->has('no-ansi'));
 
-                return 1;
+                return ExitCode::FAILURE;
             }
 
             $merged = $merged->merge($map);
@@ -155,7 +156,7 @@ final readonly class CoverageMergeCommand
             $merged,
             $workingDirectory,
             $style,
-        ) ? 0 : 1;
+        ) ? ExitCode::SUCCESS : ExitCode::FAILURE;
     }
 
     /**

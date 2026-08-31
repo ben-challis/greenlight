@@ -10,6 +10,7 @@ use Greenlight\Cli\Coverage\CoverageGate;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Cli\Output\ExitCode;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Coverage\Diff\BaselineDiff;
 use Greenlight\Coverage\Diff\ProjectRootNormalizer;
@@ -32,20 +33,20 @@ final readonly class CoverageDiffCommand
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
-            return 64;
+            return ExitCode::USAGE;
         }
 
         $baselinePath = $arguments->value('baseline');
         $currentPath = $arguments->value('current');
         if ($baselinePath === null || $currentPath === null) {
             $this->console->err("coverage:diff requires --baseline=<path> and --current=<path>.\n");
-            return 64;
+            return ExitCode::USAGE;
         }
         $baselineRoot = $arguments->value('baseline-root');
         $currentRoot = $arguments->value('current-root');
         if (($baselineRoot === null) !== ($currentRoot === null)) {
             $this->console->err("Use --baseline-root=<path> and --current-root=<path> together.\n");
-            return 64;
+            return ExitCode::USAGE;
         }
         $maps = [];
         foreach (['baseline' => $baselinePath, 'current' => $currentPath] as $label => $path) {
@@ -53,13 +54,13 @@ final readonly class CoverageDiffCommand
             $json = ErrorTrap::run(static fn() => \file_get_contents($absolute), $warning);
             if ($json === false) {
                 $this->console->error(\sprintf('Greenlight could not read the %s coverage export at "%s"%s.', $label, $path, $warning === null ? '' : ': ' . $warning), $arguments->has('no-ansi'));
-                return 1;
+                return ExitCode::FAILURE;
             }
             try {
                 $maps[$label] = JsonExporter::import($json);
             } catch (\Throwable $error) {
                 $this->console->error(\sprintf('The %s file is not a valid coverage export: %s', $label, $error->getMessage()), $arguments->has('no-ansi'));
-                return 1;
+                return ExitCode::FAILURE;
             }
         }
 
@@ -78,7 +79,7 @@ final readonly class CoverageDiffCommand
                         $error->getMessage(),
                     ), $arguments->has('no-ansi'));
 
-                    return 1;
+                    return ExitCode::FAILURE;
                 }
             }
         }
@@ -114,6 +115,8 @@ final readonly class CoverageDiffCommand
             $this->console->err("Coverage regressed against the baseline.\n");
         }
 
-        return $report->hasRegressions() || $gateFailures !== [] ? 1 : 0;
+        return $report->hasRegressions() || $gateFailures !== []
+            ? ExitCode::FAILURE
+            : ExitCode::SUCCESS;
     }
 }

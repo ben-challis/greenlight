@@ -7,6 +7,7 @@ namespace Greenlight\Cli\Plugin;
 use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Cli\Output\ExitCode;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\InvalidConfiguration;
@@ -56,7 +57,7 @@ final readonly class CommandDispatcher
         } catch (ConfigFileError|InvalidConfiguration|CommandSetupFailed $error) {
             $this->console->error($error->getMessage(), \in_array('--no-ansi', $argv, true));
 
-            return 1;
+            return ExitCode::FAILURE;
         }
 
         $definition = $catalog->get($command);
@@ -67,7 +68,7 @@ final readonly class CommandDispatcher
                 \in_array('--no-ansi', $argv, true),
             );
 
-            return 64;
+            return ExitCode::USAGE;
         }
 
         $arguments = $argv;
@@ -95,7 +96,7 @@ final readonly class CommandDispatcher
                 $error->getMessage(),
             ), \in_array('--no-ansi', $argv, true));
 
-            return 1;
+            return ExitCode::FAILURE;
         }
 
         if ($exitCode < 0 || $exitCode > 255) {
@@ -105,7 +106,7 @@ final readonly class CommandDispatcher
                 $exitCode,
             ), \in_array('--no-ansi', $argv, true));
 
-            return 1;
+            return ExitCode::FAILURE;
         }
 
         return $exitCode;

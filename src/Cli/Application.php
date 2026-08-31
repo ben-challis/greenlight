@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Cli\Output\Console;
+use Greenlight\Cli\Output\ExitCode;
 use Greenlight\Cli\Plugin\CommandDispatcher;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\Relay\SubprocessCoverage;
@@ -23,8 +24,6 @@ use Greenlight\Reporting\StreamOutput;
 final readonly class Application
 {
     public const string VERSION = '0.0.0'; // x-release-please-version
-
-    private const int EXIT_USAGE = 64;
 
     private function __construct(private Console $console) {}
 
@@ -67,7 +66,7 @@ final readonly class Application
             if (\count($argv) !== 4 || $argv[1] === '' || $argv[2] === '' || $argv[3] === '') {
                 $this->console->err("__worker requires <address> <workerId> <token>.\n");
 
-                return self::EXIT_USAGE;
+                return ExitCode::USAGE;
             }
 
             return new WorkerProcess(isolateProcessGroup: true)->run($argv[1], $argv[2], $argv[3]);

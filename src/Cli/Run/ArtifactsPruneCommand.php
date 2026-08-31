@@ -9,6 +9,7 @@ use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Cli\Output\ExitCode;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Execution\ArtifactMaintenance;
@@ -29,15 +30,15 @@ final readonly class ArtifactsPruneCommand
             $maintenance = ArtifactMaintenance::forConfiguration($configuration, $workingDirectory);
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return 64;
+            return ExitCode::USAGE;
         } catch (AttachmentError|ConfigFileError|InvalidConfiguration $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return 1;
+            return ExitCode::FAILURE;
         }
 
         if (!$configuration->hasRetentionPolicy()) {
             $this->console->out("No artifact retention policy is configured.\n");
-            return 0;
+            return ExitCode::SUCCESS;
         }
 
         $report = $maintenance->prune($arguments->has('dry-run'));
@@ -60,6 +61,6 @@ final readonly class ArtifactsPruneCommand
             $this->console->err($warning . "\n");
         }
 
-        return 0;
+        return ExitCode::SUCCESS;
     }
 }
