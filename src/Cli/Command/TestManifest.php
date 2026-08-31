@@ -16,6 +16,7 @@ use Greenlight\Discovery\Plan\PlanEntry;
  */
 final class TestManifest
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     /**

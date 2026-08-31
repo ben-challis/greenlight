@@ -32,7 +32,7 @@ final readonly class JsonlSchemaTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
         Expect::that($result->exitCode)->because('every emitted line validates against the shipped schema')->toBe(1);
         $lines = $result->stdoutLines();
-        $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/jsonl-v3.schema.json'];
+        $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/jsonl-v1.schema.json'];
         $seenTags = [];
         $violations = [];
         Expect::that($lines)->because('every emitted line validates against the shipped schema')->not()->toBeEmpty();

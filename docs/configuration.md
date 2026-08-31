@@ -235,22 +235,66 @@ paths filter coverage from all processes.
 
 ### `watch(callable $configurator): self`
 
-Default: 200 ms debounce.
+Defaults: 200 ms debounce and a 100,000-file poll limit.
 
 The configurator receives a `WatchBuilder`.
 
-`WatchBuilder` has one method:
+`WatchBuilder` has these methods:
 
 * `debounceMilliseconds(int $milliseconds): self` sets the quiet period before a
   rerun starts. The value must be at least 1.
+* `paths(string ...$paths): self` adds file or directory inputs.
+* `include(string ...$patterns): self` selects files below additional directory
+  inputs.
+* `exclude(string ...$patterns): self` removes from all watch inputs each file
+  that matches.
+* `maximumFiles(int $maximumFiles): self` sets the file limit for one poll.
+
+Relative paths use the command working directory. An input that does not exist
+stays in the configuration and can appear later.
+
+An additional file input does not need an include pattern. An additional
+directory includes all its regular files when there are no include patterns.
+When include patterns exist, the directory includes only files that match.
+
+Patterns match the complete path. Paths below the working directory use a
+relative path. Paths outside it use an absolute path.
+
+Pattern syntax is as follows:
+
+* `/` separates path segments.
+* `*` matches zero or more characters except `/`.
+* `?` matches one character except `/`.
+* `**` matches characters across path segments.
+
+Pattern comparison is case-sensitive. Patterns do not use negation. Use
+`exclude()` for an exclusion. An exclusion has precedence over each path and
+include pattern.
+
+The effective test and coverage roots keep their default PHP-only behavior.
+Exclusion patterns also apply to those roots.
 
 A rerun starts after the configured period has no file changes. Thus, a group
 of save operations starts only one run.
 
 <!-- php-example {"example":"configuration-example-06","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-->watch(fn ($w) => $w->debounceMilliseconds(500))
+->watch(fn ($w) => $w
+    ->debounceMilliseconds(500)
+    ->paths('templates', 'config/app.yaml', 'migrations')
+    ->include('**/*.twig', '**/*.yaml', '**/*.sql')
+    ->exclude(
+        'build/**',
+        'coverage/**',
+        'var/greenlight/**',
+    )
+    ->maximumFiles(25_000))
 ```
+
+Use exclusions for files that the run writes. Examples include build output,
+Greenlight storage, coverage output, and configured report or artifact targets.
+Greenlight does not add broad default exclusions because those exclusions can
+hide source inputs.
 
 ### `failOnDeprecation(bool $enabled = true): self`
 
@@ -481,6 +525,8 @@ Default: declared order, no seed.
 
 Randomizes class order.
 
+The seed MUST be a nonnegative integer. Zero is a valid seed.
+
 If `$seed` is `null`, Greenlight selects one seed when it resolves the command.
 Discovery and execution use this seed. Greenlight prints the seed. Use `--seed`
 with that value to reproduce the same order.
@@ -657,7 +703,7 @@ format and path rules.
 
 Renders a run profile from a saved JSONL event stream.
 
-The command accepts JSONL versions 2 and 3.
+The command accepts JSONL version 1.
 
 Requires:
 
@@ -1017,6 +1063,9 @@ Greenlight watches the effective test paths and all coverage include paths. An
 explicit suite selection limits the effective test paths to selected suites.
 After a change, classes that failed in the previous watch iteration run first.
 
+The `watch()` builder can add templates, YAML, JSON, SQL migrations, fixtures,
+and other inputs. It can also exclude generated output from every watched root.
+
 Watch mode does not publish coverage totals or coverage exports.
 
 In watch mode:
@@ -1025,6 +1074,29 @@ In watch mode:
 * `q` quits with exit code 0, regardless of the last iteration result.
 
 Signals use the exit codes in the [interruption](#interruption) section.
+
+### Configure watch inputs
+
+Use `WatchBuilder::paths()` to add files or directories. Relative paths use the
+command working directory. Include patterns select files in additional
+directories. Exact file inputs do not require an include pattern. Exclude
+patterns apply to all watch inputs and have precedence over include patterns.
+
+Each poll visits directory entries in a stable lexical order. It does not hash
+an excluded or unmatched file. A poll stops with an error when it exceeds the
+configured file limit.
+
+Greenlight does not follow symlinks in watched trees.
+
+A created file reports an addition. A removed file reports a deletion. A
+rename reports one deletion and one addition.
+
+An unreadable or temporarily absent file is not in that poll. If it was in the
+prior poll, Greenlight reports a deletion. It reports an addition when the file
+becomes readable again.
+
+Large projects increase poll time. Increase the watch debounce when frequent
+save events cause excess scans.
 
 ### `--detect-leaks`
 
@@ -1094,7 +1166,8 @@ Default: `_greenlight_ide_helper.php`.
 ### `--dry-run`
 
 Prints a summary of the resolved run settings without test discovery or
-execution.
+execution. The summary includes additional watch paths, patterns, debounce, and
+the file limit.
 
 ### `--verbose`
 

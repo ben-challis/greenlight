@@ -86,6 +86,11 @@ final class PlanFormatter
         $lines[] = '  storage cache: ' . $storage->cacheDirectory;
         $lines[] = '  storage generated code: ' . $storage->generatedCodeDirectory;
         $lines[] = '  storage temporary: ' . $storage->temporaryDirectory;
+        $lines[] = '  watch debounce: ' . $configuration->watch->debounceMilliseconds . ' ms';
+        $lines[] = '  additional watch paths: ' . ($configuration->watch->paths === [] ? '(none)' : \implode(', ', $configuration->watch->paths));
+        $lines[] = '  watch include patterns: ' . ($configuration->watch->includePatterns === [] ? '(all additional directory files)' : \implode(', ', $configuration->watch->includePatterns));
+        $lines[] = '  watch exclude patterns: ' . ($configuration->watch->excludePatterns === [] ? '(none)' : \implode(', ', $configuration->watch->excludePatterns));
+        $lines[] = '  watch file limit: ' . $configuration->watch->maximumFiles;
 
         if (!$configuration->coverage instanceof CoverageConfiguration) {
             $lines[] = '  coverage: (off)';

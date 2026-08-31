@@ -116,13 +116,13 @@ final class WorkerProtocolSchemaTest
             ['data', 'result', 'attachments'],
         ]);
 
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'bootstrap', 'p' => $bootstrapPayload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'bootstrap', 'p' => $bootstrapPayload])))
             ->because('the schema MUST accept compatible bootstrap payloads')
             ->toBe([]);
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'assign', 'p' => $assignPayload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'assign', 'p' => $assignPayload])))
             ->because('the schema MUST accept compatible assignment payloads')
             ->toBe([]);
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'event', 'p' => $eventPayload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'event', 'p' => $eventPayload])))
             ->because('the schema MUST accept compatible test result payloads')
             ->toBe([]);
     }
@@ -133,7 +133,7 @@ final class WorkerProtocolSchemaTest
         $payload = $this->messages()['assign']->toWire();
         $payload['futureProtocolField'] = true;
 
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 3, 't' => 'assign', 'p' => $payload])))
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'assign', 'p' => $payload])))
             ->because('a protocol change MUST update the schema')
             ->not()
             ->toBe([]);
@@ -403,7 +403,7 @@ final class WorkerProtocolSchemaTest
 
     private function schemaPath(): string
     {
-        return \dirname(__DIR__, 5) . '/resources/schema/worker-protocol-v3.schema.json';
+        return \dirname(__DIR__, 5) . '/resources/schema/worker-protocol-v1.schema.json';
     }
 
     /**

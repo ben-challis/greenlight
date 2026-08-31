@@ -39,6 +39,7 @@ final readonly class PhpStanConfigurationBuilderTypeTest
                     ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests')->tag('fast'))
                     ->workers(count: 2)
                     ->resourceLimit('database', 1)
+                    ->randomizeOrder(seed: 0)
                     ->ignoreDeprecationsMatching('vendor *')
                     ->coverage(static fn(CoverageBuilder $coverage) => $coverage
                         ->include('src')
@@ -82,6 +83,7 @@ final readonly class PhpStanConfigurationBuilderTypeTest
                 GreenlightConfig::create()->workers(count: 0);
                 GreenlightConfig::create()->resourceLimit('', 1);
                 GreenlightConfig::create()->resourceLimit('database', 0);
+                GreenlightConfig::create()->randomizeOrder(seed: -1);
                 GreenlightConfig::create()->ignoreDeprecationsMatching('');
 
                 new SuiteBuilder('unit')->in('')->tag('');
@@ -113,10 +115,11 @@ final readonly class PhpStanConfigurationBuilderTypeTest
             ->because('PHPStan rejects configuration values that cannot pass runtime validation')
             ->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(28);
+        Expect::that(\count($probe->errors))->toBe(29);
         Expect::that($probe->messages())->toContain('Minimum coverage percentage must be from 0 through 100.');
         Expect::that($probe->messages())->toContain('Minimum coverage percentage can have at most two decimal places.');
         Expect::that($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::workers() expects');
+        Expect::that($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::randomizeOrder() expects');
         Expect::that($probe->messages())->toContain('Greenlight\Config\ArtifactBuilder::maxRunAttachments() expects');
         Expect::that($probe->messages())->toContain('Greenlight\Config\StorageBuilder::temporaryDirectory() expects');
     }

@@ -195,9 +195,7 @@ final class TerminalEmulator
 
     private function ensureRow(int $row): void
     {
-        if (!isset($this->cells[$row])) {
-            $this->cells[$row] = [];
-        }
+        $this->cells[$row] ??= [];
 
         if ($row > $this->maxRow) {
             $this->maxRow = $row;

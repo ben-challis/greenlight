@@ -19,16 +19,13 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
 /**
  * Encodes and decodes built-in events for the worker protocol and JSONL streams.
  *
- * The JSONL encoder writes version 3. The decoder accepts versions 2 and 3.
+ * The JSONL encoder and decoder use version 1.
  *
  * @internal
  */
 final class EventCodec
 {
-    private const int JSONL_VERSION = 3;
-
-    /** @var list<int> */
-    private const array ACCEPTED_JSONL_VERSIONS = [2, 3];
+    private const int JSONL_VERSION = 1;
 
     /**
      * @var array<non-empty-string, class-string<WireEvent>>
@@ -150,7 +147,7 @@ final class EventCodec
             throw EventCodecFailed::malformedJsonEnvelope($failure);
         }
 
-        if (!\in_array($version, self::ACCEPTED_JSONL_VERSIONS, true)) {
+        if ($version !== self::JSONL_VERSION) {
             throw EventCodecFailed::unsupportedJsonVersion($version);
         }
 

@@ -8,7 +8,8 @@ use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Internal\Text\DecimalInteger;
 
-/** Contains validated command-line coverage overrides.
+/**
+ * Contains validated command-line coverage overrides.
  *
  * @internal
  */

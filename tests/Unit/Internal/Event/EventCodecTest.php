@@ -51,33 +51,25 @@ final class EventCodecTest
     }
 
     #[Test]
-    public function jsonEncodingUsesTheDocumentedVersionThreeEnvelope(): void
+    public function jsonEncodingUsesTheDocumentedVersionOneEnvelope(): void
     {
         $event = CannedStream::events()[0];
 
         Expect::that(EventCodec::encodeJsonLine($event))->toBe(
-            "{\"v\":3,\"event\":\"run-started\",\"data\":{\"runId\":\"run-1\",\"plannedTests\":6,\"workers\":2,\"occurredAt\":1750000000.5,\"artifactsDirectory\":null}}\n",
+            "{\"v\":1,\"event\":\"run-started\",\"data\":{\"runId\":\"run-1\",\"plannedTests\":6,\"workers\":2,\"occurredAt\":1750000000.5,\"artifactsDirectory\":null}}\n",
         );
     }
 
     #[Test]
-    #[DataSet('acceptedJsonVersions')]
-    public function jsonDecodingAcceptsSupportedVersions(int $version): void
+    public function jsonDecodingAcceptsVersionOne(): void
     {
         $event = EventCodec::decodeJsonLine(\sprintf(
             '{"v":%d,"event":"run-started","data":{"runId":"run-1","plannedTests":1,"workers":1,"occurredAt":1,"artifactsDirectory":null}}',
-            $version,
+            1,
         ));
 
         Expect::that($event::class)->toBe(RunStarted::class);
         Expect::that($event->occurredAt)->toBe(1.0);
-    }
-
-    /** @return iterable<string, array{int}> */
-    public static function acceptedJsonVersions(): iterable
-    {
-        yield 'version two' => [2];
-        yield 'version three' => [3];
     }
 
     #[Test]
@@ -107,7 +99,7 @@ final class EventCodecTest
     {
         yield 'scalar' => ['null'];
         yield 'list' => ['[true]'];
-        yield 'numeric object key' => ['{"0":true,"v":3,"event":"run-started","data":{}}'];
+        yield 'numeric object key' => ['{"0":true,"v":1,"event":"run-started","data":{}}'];
     }
 
     #[Test]
@@ -129,21 +121,21 @@ final class EventCodecTest
     #[Test]
     public function unsupportedJsonVersionsAreRejectedByTheCodec(): void
     {
-        Expect::that(static fn(): Event => EventCodec::decodeJsonLine('{"v":4,"event":"run-started","data":{}}'))
-            ->toThrow(EventCodecFailed::class, message: 'Unsupported JSONL version 4.');
+        Expect::that(static fn(): Event => EventCodec::decodeJsonLine('{"v":2,"event":"run-started","data":{}}'))
+            ->toThrow(EventCodecFailed::class, message: 'Unsupported JSONL version 2.');
     }
 
     #[Test]
     public function unknownTagsAreRejectedByTheCodec(): void
     {
-        Expect::that(static fn(): Event => EventCodec::decodeJsonLine('{"v":3,"event":"future-event","data":{}}'))
+        Expect::that(static fn(): Event => EventCodec::decodeJsonLine('{"v":1,"event":"future-event","data":{}}'))
             ->toThrow(EventCodecFailed::class, message: 'Unknown event type "future-event".');
     }
 
     #[Test]
     public function invalidKnownEventPayloadsAreRejectedByTheCodec(): void
     {
-        Expect::that(static fn(): Event => EventCodec::decodeJsonLine('{"v":3,"event":"run-started","data":{}}'))
+        Expect::that(static fn(): Event => EventCodec::decodeJsonLine('{"v":1,"event":"run-started","data":{}}'))
             ->toThrow(EventCodecFailed::class, message: 'Wire payload is missing the "runId" key.');
     }
 

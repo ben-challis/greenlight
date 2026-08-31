@@ -75,6 +75,7 @@ final class AssertionMap
      */
     private static ?array $entries = null;
 
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function lookup(string $method): ?AssertionConversion

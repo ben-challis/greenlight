@@ -27,7 +27,7 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
  */
 final class MessageRegistry
 {
-    private const int VERSION = 3;
+    private const int VERSION = 1;
 
     /**
      * @var array<non-empty-string, class-string<Message>>

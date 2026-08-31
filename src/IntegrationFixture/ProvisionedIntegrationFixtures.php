@@ -47,9 +47,7 @@ final class ProvisionedIntegrationFixtures
     {
         $this->ensureOpen();
 
-        if (!isset($this->resources[$fixture])) {
-            $this->resources[$fixture] = [FixtureResource::empty(), []];
-        }
+        $this->resources[$fixture] ??= [FixtureResource::empty(), []];
     }
 
     public function dependency(string $fixture, ?int $channel): FixtureResource

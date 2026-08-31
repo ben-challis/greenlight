@@ -44,7 +44,7 @@ final class JsonlSchemaTest
     #[Test]
     public function anUnknownEventTagIsRejected(): void
     {
-        $decoded = \json_decode('{"v":3,"event":"bogus-event","data":{"occurredAt":1.5}}');
+        $decoded = \json_decode('{"v":1,"event":"bogus-event","data":{"occurredAt":1.5}}');
         $validator = new Validator();
         $validator->validate($decoded, $this->schema());
 
@@ -86,7 +86,7 @@ final class JsonlSchemaTest
 
     private function schema(): object
     {
-        return (object) ['$ref' => 'file://' . \dirname(__DIR__, 3) . '/resources/schema/jsonl-v3.schema.json'];
+        return (object) ['$ref' => 'file://' . \dirname(__DIR__, 3) . '/resources/schema/jsonl-v1.schema.json'];
     }
 
     private function eventTag(string $line): ?string

@@ -5,8 +5,8 @@ The `jsonl` reporter is Greenlight's machine-readable run output.
 It writes one JSON object per line as each event occurs. Typical consumers
 include IDEs, dashboards, and tools for intermittent test failures.
 
-A machine-readable JSON Schema for version 3 is at
-[resources/schema/jsonl-v3.schema.json](../../resources/schema/jsonl-v3.schema.json).
+A machine-readable JSON Schema for version 1 is at
+[resources/schema/jsonl-v1.schema.json](../../resources/schema/jsonl-v1.schema.json).
 Tests verify that each reporter line conforms to this schema. The schema
 defines the required keys and their types.
 
@@ -15,12 +15,12 @@ defines the required keys and their types.
 Each line is one JSON object with three keys:
 
 ```json id="zk90n2"
-{"v": 3, "event": "test-finished", "data": {"result": {"...": "..."}, "occurredAt": 1750000000.5}}
+{"v": 1, "event": "test-finished", "data": {"result": {"...": "..."}, "occurredAt": 1750000000.5}}
 ```
 
 ### v
 
-The current version is `3`.
+The current version is `1`.
 
 ### event
 
@@ -50,12 +50,8 @@ that remain.
 
 The `v` field identifies the schema version.
 
-Each version has its own schema. Consumers **SHOULD** validate against the schema
-named by `v`. They **SHOULD** treat an unsupported version as data that they
-cannot parse.
-
-Version 3 removes the reserved suite lifecycle tags from version 2. Greenlight
-did not emit these tags. Configured suites do not create execution boundaries.
+Consumers **SHOULD** validate against the schema named by `v`. They **SHOULD**
+treat an unsupported version as data that they cannot parse.
 
 Greenlight **MAY** add optional payload keys within a version. Consumers
 **MUST** ignore unknown keys. New required keys, event tags, or enum values

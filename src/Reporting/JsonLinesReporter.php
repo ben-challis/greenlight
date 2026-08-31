@@ -12,7 +12,7 @@ use Greenlight\Internal\Event\EventCodecFailureKind;
 /**
  * Writes one JSON object for each event when the event arrives.
  *
- * Each line has the form {"v": 3, "event": "<tag>", "data": {...}}. data is
+ * Each line has the form {"v": 1, "event": "<tag>", "data": {...}}. data is
  * the event wire payload.
  *
  * The schema is in docs/architecture/jsonl.md.

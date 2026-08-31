@@ -72,31 +72,31 @@ final readonly class ApplicationProfileReportTest
 
         yield 'invalid envelope key' => [
             'profile-invalid-envelope-key',
-            '{"0":true,"v":2,"event":"future-event","data":{}}',
+            '{"0":true,"v":1,"event":"future-event","data":{}}',
             "The input is not a JSONL event stream. A line does not contain an event envelope.\n",
         ];
 
         yield 'unsupported envelope version' => [
             'profile-unsupported-version',
-            '{"v":4,"event":"run-started","data":{}}',
-            "The input uses unsupported JSONL version 4.\n",
+            '{"v":2,"event":"run-started","data":{}}',
+            "The input uses unsupported JSONL version 2.\n",
         ];
 
         yield 'invalid known event payload' => [
             'profile-invalid-payload',
-            '{"v":2,"event":"run-started","data":[]}',
+            '{"v":1,"event":"run-started","data":[]}',
             "greenlight: Greenlight could not decode a \"run-started\" event: Wire payload is missing the \"runId\" key.\n",
         ];
 
         yield 'invalid event data map' => [
             'profile-invalid-data-map',
-            '{"v":2,"event":"future-event","data":{"0":true}}',
+            '{"v":1,"event":"future-event","data":{"0":true}}',
             "The input is not a JSONL event stream. A line does not contain an event envelope.\n",
         ];
 
         yield 'no finished run' => [
             'profile-no-finished-run',
-            '{"v":2,"event":"future-event","data":[]}',
+            '{"v":1,"event":"future-event","data":[]}',
             "The stream has no finished run to profile.\n",
         ];
     }

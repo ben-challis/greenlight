@@ -157,9 +157,9 @@ final readonly class WorkerProcess
                         $message->generatedCodeDirectory,
                         $message->temporaryDirectory,
                     ),
-                    ...(!$message->policy instanceof ResultPolicy
-                        ? []
-                        : [new ResultPolicyPlugin($message->policy)]),
+                    ...($message->policy instanceof ResultPolicy
+                        ? [new ResultPolicyPlugin($message->policy)]
+                        : []),
                 ]);
                 $scopes = $plugins->prepareWorker(
                     $bootstrap,
