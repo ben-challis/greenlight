@@ -397,12 +397,15 @@ final class GreenlightConfig
     /**
      * Uses a wider parameter type than the public contract. This gives callers
      * without static analysis a clear runtime error for invalid strings.
+     *
+     * @param positive-int|'auto' $count
+     *
      * @throws InvalidConfiguration
      */
     private function workerCount(int|string $count): WorkerCount
     {
         if (\is_int($count)) {
-            return WorkerCount::exactly($count); // @phpstan-ignore argument.type (This method deliberately accepts wider runtime input.)
+            return WorkerCount::exactly($count);
         }
 
         if ($count === 'auto') {
