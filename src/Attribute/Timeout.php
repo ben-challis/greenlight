@@ -12,8 +12,6 @@ namespace Greenlight\Attribute;
 final readonly class Timeout
 {
     /**
-     * @param non-negative-float $seconds
-     *
      * @throws \InvalidArgumentException
      */
     public function __construct(

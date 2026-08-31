@@ -20,15 +20,12 @@ rules:
     - Greenlight\PhpStan\TestAttributePlacementRule
     - Greenlight\PhpStan\TestConstructorRule
     - Greenlight\PhpStan\TestMethodRule
+    - Greenlight\PhpStan\TimeoutConstructorRule
     - Greenlight\PhpStan\ToThrowCallbackRule
     - Greenlight\PhpStan\ToThrowConstraintRule
     - Greenlight\PhpStan\ToThrowSubjectRule
 
 services:
-    greenlight.nonNegativeFloatTypeNodeResolverExtension:
-        class: Greenlight\PhpStan\NonNegativeFloatTypeNodeResolverExtension
-        tags:
-            - phpstan.phpDoc.typeNodeResolverExtension
     greenlight.argumentTypeCombinationReturnTypeExtension:
         class: Greenlight\PhpStan\ArgumentTypeCombinationReturnTypeExtension
         tags:
