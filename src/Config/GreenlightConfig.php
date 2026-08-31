@@ -402,7 +402,7 @@ final class GreenlightConfig
     private function workerCount(int|string $count): WorkerCount
     {
         if (\is_int($count)) {
-            return WorkerCount::exactly($count);
+            return WorkerCount::exactly($count); // @phpstan-ignore argument.type (This method deliberately accepts wider runtime input.)
         }
 
         if ($count === 'auto') {
