@@ -39,10 +39,10 @@ connects as a client.
 Each message is a length-prefixed JSON frame: a 4-byte big-endian length
 followed by the JSON body. Frames are capped at 8 MiB. Greenlight rejects
 oversized or malformed frames as protocol errors. The JSON envelope contains a
-protocol version (`v`, currently `3`), a type tag, and the payload. Greenlight
+protocol version (`v`, currently `1`), a type tag, and the payload. Greenlight
 also rejects unknown versions and tags.
 
-The [version 3 schema](../../resources/schema/worker-protocol-v3.schema.json)
+The [version 1 schema](../../resources/schema/worker-protocol-v1.schema.json)
 specifies each envelope and payload that Greenlight sends.
 
 The socket carries all protocol data. The native adapter closes worker stdin

@@ -22,7 +22,7 @@ final class JsonLinesReporterInvalidUtf8Test
         Expect::that(\json_decode($output->buffer(), true, flags: \JSON_THROW_ON_ERROR))
             ->because('JSONL event fields remain valid UTF-8')
             ->toBe([
-                'v' => 3,
+                'v' => 1,
                 'event' => 'class-started',
                 'data' => [
                     'class' => "bad \u{FFFD} class",
