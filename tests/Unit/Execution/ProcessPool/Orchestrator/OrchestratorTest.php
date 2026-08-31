@@ -88,7 +88,7 @@ final class OrchestratorTest
                 [, , $address, $workerId, $token] = $argv;
                 $socket = stream_socket_client($address);
                 $json = json_encode([
-                    'v' => 3,
+                    'v' => 1,
                     't' => 'hello',
                     'p' => [
                         'workerId' => $workerId,
@@ -168,7 +168,7 @@ final class OrchestratorTest
         $script = <<<'PHP'
             [, , $address, $workerId, $token] = $argv;
             $socket = stream_socket_client($address);
-            $json = json_encode(['v' => 3, 't' => 'hello', 'p' => ['workerId' => $workerId, 'token' => $token, 'pid' => getmypid()]]);
+            $json = json_encode(['v' => 1, 't' => 'hello', 'p' => ['workerId' => $workerId, 'token' => $token, 'pid' => getmypid()]]);
             fwrite($socket, pack('N', strlen($json)) . $json);
             fflush($socket);
             sleep(60);

@@ -657,7 +657,7 @@ format and path rules.
 
 Renders a run profile from a saved JSONL event stream.
 
-The command accepts JSONL versions 2 and 3.
+The command accepts JSONL version 1.
 
 Requires:
 

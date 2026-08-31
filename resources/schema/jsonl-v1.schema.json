@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/jsonl-v1.schema.json",
     "title": "Greenlight JSONL reporter line (version 1)",
-    "description": "One line from the JSONL reporter stream. Version 1 changes only by addition. Newer payloads can have new keys. A new event tag requires a new schema version. Prose reference: docs/architecture/jsonl.md.",
+    "description": "One line from the JSONL reporter stream. Prose reference: docs/architecture/jsonl.md.",
     "type": "object",
     "required": ["v", "event", "data"],
     "properties": {
@@ -28,18 +28,6 @@
             "properties": {
                 "event": {"enum": ["run-finished"]},
                 "data": {"$ref": "#/definitions/runFinished"}
-            }
-        },
-        {
-            "properties": {
-                "event": {"enum": ["suite-started"]},
-                "data": {"$ref": "#/definitions/suite"}
-            }
-        },
-        {
-            "properties": {
-                "event": {"enum": ["suite-finished"]},
-                "data": {"$ref": "#/definitions/suite"}
             }
         },
         {
@@ -80,12 +68,13 @@
         },
         "runStarted": {
             "type": "object",
-            "required": ["runId", "plannedTests", "workers", "occurredAt"],
+            "required": ["runId", "plannedTests", "workers", "occurredAt", "artifactsDirectory"],
             "properties": {
                 "runId": {"type": "string", "minLength": 1},
                 "plannedTests": {"type": "integer", "minimum": 0},
                 "workers": {"type": "integer", "minimum": 1},
-                "occurredAt": {"$ref": "#/definitions/occurredAt"}
+                "occurredAt": {"$ref": "#/definitions/occurredAt"},
+                "artifactsDirectory": {"type": ["string", "null"]}
             }
         },
         "runFinished": {
@@ -95,7 +84,11 @@
                 "runId": {"type": "string", "minLength": 1},
                 "summary": {"$ref": "#/definitions/summary"},
                 "durationSeconds": {"type": "number", "minimum": 0},
-                "occurredAt": {"$ref": "#/definitions/occurredAt"}
+                "occurredAt": {"$ref": "#/definitions/occurredAt"},
+                "workerTimings": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/workerTiming"}
+                }
             }
         },
         "summary": {
@@ -108,21 +101,14 @@
                 "skipped": {"type": "integer", "minimum": 0}
             }
         },
-        "suite": {
-            "type": "object",
-            "required": ["suite", "occurredAt"],
-            "properties": {
-                "suite": {"type": "string", "minLength": 1},
-                "occurredAt": {"$ref": "#/definitions/occurredAt"}
-            }
-        },
         "testClass": {
             "type": "object",
-            "required": ["class", "occurredAt"],
+            "required": ["class", "occurredAt", "workerId"],
             "properties": {
                 "class": {"type": "string", "minLength": 1},
                 "occurredAt": {"$ref": "#/definitions/occurredAt"},
-                "workerId": {"type": "string"}
+                "workerId": {"type": "string"},
+                "isolated": {"type": "boolean"}
             }
         },
         "testStarted": {
@@ -150,6 +136,33 @@
                 "occurredAt": {"$ref": "#/definitions/occurredAt"}
             }
         },
+        "workerTiming": {
+            "type": "object",
+            "required": [
+                "workerId",
+                "spawnToHelloSeconds",
+                "helloToReadySeconds",
+                "readyToFirstAssignmentSeconds",
+                "assignmentGaps",
+                "assignmentGapSeconds",
+                "bootstrapBarrierSeconds",
+                "resourceCapacitySeconds",
+                "noQueuedWorkSeconds",
+                "retirementToExitSeconds"
+            ],
+            "properties": {
+                "workerId": {"type": "string", "minLength": 1},
+                "spawnToHelloSeconds": {"type": ["number", "null"], "minimum": 0},
+                "helloToReadySeconds": {"type": ["number", "null"], "minimum": 0},
+                "readyToFirstAssignmentSeconds": {"type": ["number", "null"], "minimum": 0},
+                "assignmentGaps": {"type": "integer", "minimum": 0},
+                "assignmentGapSeconds": {"type": "number", "minimum": 0},
+                "bootstrapBarrierSeconds": {"type": "number", "minimum": 0},
+                "resourceCapacitySeconds": {"type": "number", "minimum": 0},
+                "noQueuedWorkSeconds": {"type": "number", "minimum": 0},
+                "retirementToExitSeconds": {"type": ["number", "null"], "minimum": 0}
+            }
+        },
         "testId": {
             "type": "object",
             "required": ["class", "method", "dataSetKey"],
@@ -170,7 +183,11 @@
                 "failures",
                 "error",
                 "skipReason",
-                "transformations"
+                "transformations",
+                "output",
+                "risky",
+                "expectations",
+                "attachments"
             ],
             "properties": {
                 "id": {"$ref": "#/definitions/testId"},
@@ -201,10 +218,29 @@
                 },
                 "risky": {"type": "boolean"},
                 "expectations": {
-                    "description": "The number of expectations that Greenlight verified in the final attempt. Older streams do not have this key. If this key is absent, use 0.",
+                    "description": "The number of expectations that Greenlight verified in the final attempt.",
                     "type": "integer",
                     "minimum": 0
+                },
+                "attachments": {
+                    "description": "Metadata for a retained attachment. Greenlight stores the content separately at the specified path.",
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/attachment"}
                 }
+            }
+        },
+        "attachment": {
+            "type": "object",
+            "required": ["name", "kind", "mediaType", "sizeBytes", "sha256", "attempt", "path", "retention"],
+            "properties": {
+                "name": {"type": "string", "minLength": 1},
+                "kind": {"enum": ["value", "text", "binary", "file"]},
+                "mediaType": {"type": "string", "minLength": 1},
+                "sizeBytes": {"type": "integer", "minimum": 0},
+                "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+                "attempt": {"type": "integer", "minimum": 1},
+                "path": {"type": "string", "minLength": 1},
+                "retention": {"enum": ["on-failure", "always"]}
             }
         },
         "outcome": {

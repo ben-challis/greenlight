@@ -1,13 +1,13 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/worker-protocol-v3.schema.json",
-    "title": "Greenlight worker protocol envelope (version 3)",
+    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/worker-protocol-v1.schema.json",
+    "title": "Greenlight worker protocol envelope (version 1)",
     "description": "The JSON body of one length-prefixed worker protocol frame.",
     "type": "object",
     "additionalProperties": false,
     "required": ["v", "t", "p"],
     "properties": {
-        "v": {"enum": [3]},
+        "v": {"enum": [1]},
         "t": {"type": "string", "minLength": 1},
         "p": {"type": ["object", "array"]}
     },
