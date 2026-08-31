@@ -495,9 +495,11 @@ jobs:
         run: |
           XDEBUG_MODE=coverage php bin/greenlight run --config=greenlight.tempest-coverage.php \
             --ansi \
+            --minimum-coverage=78 \
             --filter='*Tempest*Test::*'
 
       - name: "Upload Tempest coverage to Codecov"
+        if: "always()"
         continue-on-error: true
         uses: "codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f" # v7.0.0
         with:
@@ -505,10 +507,6 @@ jobs:
           fail_ci_if_error: false
           files: "build/coverage/cobertura.xml"
           use_oidc: true
-
-      - name: "Run the Tempest coverage gate"
-        if: "always()"
-        run: "composer coverage-gate"
 
   php-next:
     name: "PHP 8.6 pre-release compatibility"
@@ -610,9 +608,10 @@ jobs:
           dependency-versions: "locked"
 
       - name: "Run the suite with coverage"
-        run: "composer tests:coverage -- --ansi"
+        run: "composer tests:coverage -- --ansi --minimum-coverage=78"
 
       - name: "Upload coverage to Codecov"
+        if: "always()"
         continue-on-error: true
         uses: "codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f" # v7.0.0
         with:
@@ -620,10 +619,6 @@ jobs:
           fail_ci_if_error: false
           files: "build/coverage/cobertura.xml"
           use_oidc: true
-
-      - name: "Run the self-coverage gate"
-        if: "always()"
-        run: "composer coverage-gate"
 
   pcov:
     name: "PCOV coverage integration"
