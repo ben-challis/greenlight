@@ -183,8 +183,8 @@ As an alternative, use `coverage:diff` with `--baseline-root` and
 does not change the coverage JSON version 1 contract.
 
 For coverage from multiple roots, use `coverage:merge` with one `--input-root`
-for each input and one `--project-root`. This operation writes version 1
-absolute paths below the selected output root.
+for each input and one `--project-root`. This operation writes absolute paths
+below the selected output root.
 
 Paths can disclose the workspace layout. Give machine-readable reports the same
 access controls as logs and test evidence.

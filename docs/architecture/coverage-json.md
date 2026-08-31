@@ -119,7 +119,7 @@ miss.
 
 ## Merge behavior
 
-The coverage merge command reads two or more version 1 documents:
+The coverage merge command reads two or more coverage documents:
 
 ```sh id="merge-coverage-json"
 greenlight coverage:merge \
@@ -139,7 +139,7 @@ A file can be absent from an input. The result contains that file if a different
 input contains it.
 
 The command rejects malformed documents and unsupported versions. Without root
-options, each file path must be an absolute version 1 path.
+options, each file path must be absolute.
 
 For different roots, give one `--input-root` for each input. Give one
 `--project-root` for the output. Greenlight removes each applicable input root
@@ -151,8 +151,8 @@ The command rejects these root errors:
 * A path is outside its applicable input root.
 * The same input has different input roots.
 
-Root relocation does not change the schema. The JSON output remains version 1
-and contains absolute file paths.
+Root relocation does not change the schema. The JSON output contains absolute
+file paths.
 
 ## Semantics
 

@@ -131,7 +131,7 @@ final readonly class CoverageMergeErrorTest
     }
 
     #[Test]
-    public function rejectsRelativeVersionOnePathsWithoutExplicitRootMapping(): void
+    public function rejectsRelativePathsWithoutExplicitRootMapping(): void
     {
         $directory = $this->tempDirectory->subdirectory('coverage-merge-relative-path');
         \file_put_contents(
@@ -148,10 +148,10 @@ final readonly class CoverageMergeErrorTest
         ]);
 
         Expect::that($result->exitCode)
-            ->because('coverage JSON version 1 MUST keep absolute file paths')
+            ->because('coverage JSON MUST use absolute file paths')
             ->toBe(1);
         Expect::that($result->output())
-            ->toContain('Coverage JSON version 1 requires an absolute file path. Received "src/A.php".');
+            ->toContain('Coverage JSON requires an absolute file path. Received "src/A.php".');
     }
 
     #[Test]

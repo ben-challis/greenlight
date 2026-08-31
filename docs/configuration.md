@@ -589,8 +589,8 @@ result.
 Duplicate inputs and empty maps do not change the result. A file that is absent
 from one input remains in the result if another input contains it.
 
-By default, version 1 absolute paths identify files. For different checkout
-roots, repeat `--input-root` once for each input. Also set `--project-root`:
+By default, absolute paths identify files. For different checkout roots, repeat
+`--input-root` once for each input. Also set `--project-root`:
 
 ```sh
 greenlight coverage:merge \
@@ -607,7 +607,7 @@ outside its applicable input root. It also rejects one input that has different
 input roots.
 
 The command rejects malformed documents and unsupported schema versions. It
-also rejects relative version 1 file paths.
+also rejects relative file paths.
 
 Each output file uses an atomic replacement. Output files and HTML pages have
 deterministic content and order.

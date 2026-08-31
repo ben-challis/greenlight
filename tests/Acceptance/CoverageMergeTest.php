@@ -87,7 +87,7 @@ final readonly class CoverageMergeTest
     }
 
     #[Test]
-    public function explicitRootsCreateOnePortableVersionOneMap(): void
+    public function explicitRootsCreateOnePortableCoverageMap(): void
     {
         $directory = $this->tempDirectory->subdirectory('coverage-merge-roots');
         CoverageJson::write(

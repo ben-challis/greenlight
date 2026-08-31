@@ -204,7 +204,7 @@ jobs:
 ```
 
 GitHub-hosted matrix jobs use the same workspace path for one repository. Thus,
-their version 1 absolute paths match.
+their absolute paths match.
 
 For runners with different checkout roots, add one `--input-root` for each
 input. Also add `--project-root` for the merge job checkout.

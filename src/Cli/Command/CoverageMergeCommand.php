@@ -202,7 +202,7 @@ final readonly class CoverageMergeCommand
         foreach ($map->files() as $path => $_coverage) {
             if (!\str_starts_with($path, '/')) {
                 throw new \InvalidArgumentException(\sprintf(
-                    'Coverage JSON version 1 requires an absolute file path. Received "%s".',
+                    'Coverage JSON requires an absolute file path. Received "%s".',
                     $path,
                 ));
             }
