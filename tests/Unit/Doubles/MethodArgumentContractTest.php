@@ -64,6 +64,14 @@ final readonly class MethodArgumentContractTest
     }
 
     #[Test]
+    public function typedMatcherCanTargetAnUntypedMethodParameter(): void
+    {
+        $this->doubles->mock(PredicateTarget::class, static function (MockPlan $plan): void {
+            $plan->expects('acceptUntyped')->with(Argument::type('int'))->never();
+        });
+    }
+
+    #[Test]
     public function aDoubleRejectsArgumentsThatTheMethodDoesNotDeclare(): void
     {
         $wide = $this->doubles->mock(Wide::class, static function (MockPlan $plan): void {
@@ -111,6 +119,9 @@ final readonly class MethodArgumentContractTest
 interface PredicateTarget
 {
     public function accept(PredicateBar $value): void;
+
+    /** @param mixed $value */
+    public function acceptUntyped($value): void;
 }
 
 class PredicateBar {}
