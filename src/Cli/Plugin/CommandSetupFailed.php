@@ -11,6 +11,11 @@ namespace Greenlight\Cli\Plugin;
  */
 final class CommandSetupFailed extends \RuntimeException
 {
+    private function __construct(string $message, ?\Throwable $previous = null)
+    {
+        parent::__construct($message, previous: $previous);
+    }
+
     public static function providerFailed(string $provider, \Throwable $cause): self
     {
         return new self(\sprintf(

@@ -13,6 +13,11 @@ use Greenlight\Execution\Plugin\PluginRuntimeError;
  */
 final class RunPolicyError extends \RuntimeException
 {
+    private function __construct(string $message, ?\Throwable $previous = null)
+    {
+        parent::__construct($message, previous: $previous);
+    }
+
     public static function fromRuntime(PluginRuntimeError $cause): self
     {
         return new self($cause->getMessage(), previous: $cause);
