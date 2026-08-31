@@ -8,6 +8,7 @@ use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Configuration\LoadedConfiguration;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Cli\Output\ExitCode;
 use Greenlight\Cli\Reporting\ReporterCatalog;
 use Greenlight\Cli\Reporting\ReporterFactory;
 use Greenlight\Cli\Reporting\ReporterOutputPlan;
@@ -92,10 +93,10 @@ final readonly class WatchRuns
             new WatchLoop($sources, new Debouncer($resolved->watch->debounceMilliseconds / 1000), $keys, new SystemWatchClock(), $this->console->out(...), $shutdown)->run($runOnce);
         } catch (ReporterSetupFailed|RunPolicyError|WatchSourceFailed $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return 1;
+            return ExitCode::FAILURE;
         } finally {
             $keys->restore();
         }
-        return $shutdown->exitCode() ?? 0;
+        return $shutdown->exitCode() ?? ExitCode::SUCCESS;
     }
 }

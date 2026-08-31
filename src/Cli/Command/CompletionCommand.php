@@ -7,6 +7,7 @@ namespace Greenlight\Cli\Command;
 use Greenlight\Cli\Input\CompletionScripts;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Cli\Output\ExitCode;
 
 /**
  * Prints a completion script for a supported shell.
@@ -23,14 +24,14 @@ final readonly class CompletionCommand
         $shell = $arguments[0] ?? null;
         if ($shell === null) {
             $this->console->err(\sprintf("completion requires a shell argument: %s.\n", \implode(', ', Definition::COMPLETION_SHELLS)));
-            return 64;
+            return ExitCode::USAGE;
         }
         $script = new CompletionScripts($this->definition->options())->render($shell);
         if ($script === null) {
             $this->console->err(\sprintf("Unknown shell \"%s\". Select one of: %s.\n", $shell, \implode(', ', Definition::COMPLETION_SHELLS)));
-            return 64;
+            return ExitCode::USAGE;
         }
         $this->console->out($script);
-        return 0;
+        return ExitCode::SUCCESS;
     }
 }

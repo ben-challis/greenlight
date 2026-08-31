@@ -13,6 +13,7 @@ use Greenlight\Cli\Command\ProfileReportCommand;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Cli\Output\ExitCode;
 use Greenlight\Cli\Run\ArtifactsPruneCommand;
 use Greenlight\Cli\Run\RunCommand;
 use Greenlight\Coverage\CoverageError;
@@ -70,19 +71,19 @@ final readonly class BundledCommands implements CommandProvider
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), \in_array('--no-ansi', $invocation->argv(), true));
 
-            return 64;
+            return ExitCode::USAGE;
         }
 
         if ($arguments->has('help')) {
             $this->console->out(Definition::HELP . "\n");
 
-            return 0;
+            return ExitCode::SUCCESS;
         }
 
         if ($arguments->has('version')) {
             $this->console->out('Greenlight ' . $this->version . "\n");
 
-            return 0;
+            return ExitCode::SUCCESS;
         }
 
         $command = $arguments->command ?? 'run';
@@ -96,7 +97,7 @@ final readonly class BundledCommands implements CommandProvider
                 $arguments->has('no-ansi'),
             );
 
-            return 64;
+            return ExitCode::USAGE;
         }
 
         if ($command === 'list-tests'

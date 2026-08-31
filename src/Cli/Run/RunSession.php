@@ -12,6 +12,7 @@ use Greenlight\Cli\Coverage\CoverageSettingsResolver;
 use Greenlight\Cli\Coverage\CoverageWriter;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Cli\Output\ExitCode;
 use Greenlight\Cli\Reporting\FailedTestsTap;
 use Greenlight\Cli\Reporting\ReporterSink;
 use Greenlight\Cli\State\RunState;
@@ -143,7 +144,7 @@ final readonly class RunSession
                     $this->console->err("Interrupted. Integration fixture teardown was attempted before exit.\n");
                 }
 
-                return $interruptExit ?? 1;
+                return $interruptExit ?? ExitCode::FAILURE;
             }
             $coverage = $coverageSession->finish($run->coverage);
         } finally {
@@ -165,7 +166,7 @@ final readonly class RunSession
         if ($run->plannedTests === 0) {
             $this->console->err("Greenlight found no tests. Check the configuration, test paths, and filters.\n");
 
-            return 1;
+            return ExitCode::FAILURE;
         }
         $coverageConfig = $resolved->coverage;
         if ($coverageConfig instanceof CoverageConfiguration
@@ -178,16 +179,16 @@ final readonly class RunSession
                     : $this->console->stdoutStyle($this->arguments->has('no-ansi')),
             )
         ) {
-            return 1;
+            return ExitCode::FAILURE;
         }
         if ($run->leaks !== []) {
             $this->console->err(SummaryFormat::leaks($run->leaks, $this->console->stderrStyle($this->arguments->has('no-ansi'))));
 
-            return 1;
+            return ExitCode::FAILURE;
         }
 
         if (!$run->summary->isSuccessful()) {
-            return 1;
+            return ExitCode::FAILURE;
         }
 
         try {
@@ -195,14 +196,14 @@ final readonly class RunSession
         } catch (RunPolicyError $error) {
             $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
 
-            return 1;
+            return ExitCode::FAILURE;
         }
 
         if ($policyFailed) {
-            return 1;
+            return ExitCode::FAILURE;
         }
 
-        return 0;
+        return ExitCode::SUCCESS;
     }
 
     /** @throws RunPolicyError */

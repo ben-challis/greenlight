@@ -7,6 +7,7 @@ namespace Greenlight\Cli\Command;
 use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Cli\Output\ExitCode;
 use Greenlight\Internal\Event\EventCodec;
 use Greenlight\Internal\Event\EventCodecFailed;
 use Greenlight\Internal\Event\EventCodecFailureKind;
@@ -29,13 +30,13 @@ final readonly class ProfileReportCommand
         $input = $inputs[0] ?? null;
         if (\count($inputs) !== 1 || $input === null || $input === '') {
             $this->console->err("profile:report requires --input=<path to a JSONL stream>.\n");
-            return 64;
+            return ExitCode::USAGE;
         }
         $path = ConfigurationLoader::absolutePath($input, $workingDirectory);
         $raw = ErrorTrap::run(static fn() => \file_get_contents($path), $warning);
         if (!\is_string($raw)) {
             $this->console->err(\sprintf("Greenlight could not read \"%s\"%s.\n", $path, $warning === null ? '' : ': ' . $warning));
-            return 1;
+            return ExitCode::FAILURE;
         }
         $aggregator = new ProfileAggregator();
         foreach (\explode("\n", $raw) as $line) {
@@ -58,10 +59,10 @@ final readonly class ProfileReportCommand
         $report = $aggregator->render(new Style($this->console->capabilities($arguments->has('no-ansi'), $arguments->has('ansi'))->color));
         if ($report === '') {
             $this->console->err("The stream has no finished run to profile.\n");
-            return 1;
+            return ExitCode::FAILURE;
         }
         $this->console->out(\ltrim($report, "\n"));
-        return 0;
+        return ExitCode::SUCCESS;
     }
 
     private function handleCodecFailure(EventCodecFailed $failure, bool $noAnsi): ?int
@@ -98,13 +99,13 @@ final readonly class ProfileReportCommand
             $failure->getMessage(),
         ), $noAnsi);
 
-        return 1;
+        return ExitCode::FAILURE;
     }
 
     private function writeInputError(string $message): int
     {
         $this->console->err($message . "\n");
 
-        return 1;
+        return ExitCode::FAILURE;
     }
 }
