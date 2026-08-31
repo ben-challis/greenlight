@@ -7,7 +7,8 @@ namespace Greenlight\Cli\Coverage;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Coverage\CoverageMap;
 
-/** Evaluates total coverage against the configured CI limits.
+/**
+ * Evaluates total coverage against the configured CI limits.
  *
  * @internal
  */
