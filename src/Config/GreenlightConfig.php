@@ -61,6 +61,7 @@ final class GreenlightConfig
 
     private bool $randomizeOrder = false;
 
+    /** @var int<0, max>|null */
     private ?int $randomSeed = null;
 
     /**
@@ -385,9 +386,21 @@ final class GreenlightConfig
         return $this;
     }
 
-    /** If the seed is null, Greenlight selects and prints a seed when it resolves the command. */
+    /**
+     * If the seed is null, Greenlight selects and prints a seed when it resolves the command.
+     *
+     * @param int<0, max>|null $seed
+     * @throws InvalidConfiguration
+     */
     public function randomizeOrder(?int $seed = null): self
     {
+        if ($seed !== null && $seed < 0) {
+            throw new InvalidConfiguration(\sprintf(
+                'Random order seed must be a nonnegative integer. Actual value: %d.',
+                $seed,
+            ));
+        }
+
         $this->randomizeOrder = true;
         $this->randomSeed = $seed;
 
