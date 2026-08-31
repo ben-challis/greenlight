@@ -156,7 +156,7 @@ public ?string $providerClass;
 
 PHPDoc:
 
-- `@var non-empty-string|null`
+- `@var class-string|null`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataSet.php#L22)
 
