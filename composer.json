@@ -91,7 +91,6 @@
         ],
         "code-style:check": "php-cs-fixer fix --dry-run --diff --ansi",
         "code-style:fix": "php-cs-fixer fix --diff --ansi",
-        "coverage-gate": "@php tools/coverage-gate.php",
         "deptrac": "deptrac analyse --no-progress --report-uncovered --fail-on-uncovered",
         "docs:php:check": "@php tools/docs-php.php check",
         "lint": [
@@ -126,7 +125,6 @@
         "check": "Runs static analysis, tests, and the memory gate.",
         "code-style:check": "Checks code style without changes to files.",
         "code-style:fix": "Corrects code-style violations.",
-        "coverage-gate": "Checks the test coverage requirements.",
         "deptrac": "Checks the dependency boundaries.",
         "docs:php:check": "Checks the PHP API documentation.",
         "lint": "Checks the PHP syntax.",

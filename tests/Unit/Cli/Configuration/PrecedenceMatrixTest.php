@@ -7,8 +7,10 @@ namespace Greenlight\Tests\Unit\Cli\Configuration;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Configuration\CliOverrides;
 use Greenlight\Cli\Configuration\ConfigurationResolver;
+use Greenlight\Cli\Configuration\CoverageOverrides;
 use Greenlight\Cli\Configuration\ExecutionOverrides;
 use Greenlight\Config\ArtifactBuilder;
+use Greenlight\Config\CoverageBuilder;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\WorkerCount;
@@ -123,6 +125,37 @@ final class PrecedenceMatrixTest
         );
 
         Expect::that($resolved->workers->resourceLimits)->because('resource limit precedence merges by name')->toBe(['postgres' => 1, 'redis' => 2]);
+    }
+
+    #[Test]
+    public function coverageGatePrecedence(): void
+    {
+        $resolved = $this->resolve(
+            config: static fn(GreenlightConfig $c) => $c->coverage(static fn(CoverageBuilder $coverage) => $coverage
+                ->minimumPercentage(90.0)
+                ->maximumUncoveredLines(10)),
+            cli: new CliOverrides(coverage: new CoverageOverrides(95.5, 2, true)),
+        );
+
+        Expect::that($resolved->coverage?->minimumPercentage)
+            ->because('the command-line minimum coverage MUST replace the configured value')
+            ->toBe(95.5);
+        Expect::that($resolved->coverage?->maximumUncoveredLines)
+            ->because('the command-line uncovered-line maximum MUST replace the configured value')
+            ->toBe(2);
+        Expect::that($resolved->coverage?->requireDriver)
+            ->because('the command line can require a coverage driver')
+            ->toBeTrue();
+    }
+
+    #[Test]
+    public function aCoverageGateFlagEnablesCoverage(): void
+    {
+        $resolved = $this->resolve(cli: new CliOverrides(coverage: new CoverageOverrides(minimumPercentage: 80.0)));
+
+        Expect::that($resolved->coverage?->minimumPercentage)
+            ->because('a command-line coverage gate needs coverage collection')
+            ->toBe(80.0);
     }
 
     #[Test]

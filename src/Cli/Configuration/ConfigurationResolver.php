@@ -6,6 +6,7 @@ namespace Greenlight\Cli\Configuration;
 
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Config\Configuration;
+use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\ExecutionConfiguration;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\WorkerConfiguration;
@@ -39,6 +40,21 @@ final class ConfigurationResolver
             $artifacts = $artifacts->withDirectory($executionOverrides->artifactsDirectory);
         }
 
+        $coverage = $configuration->coverage;
+        $coverageOverrides = $overrides->coverage;
+
+        if ($coverageOverrides->enablesCoverage()) {
+            $coverage ??= new CoverageConfiguration([], null, []);
+            $coverage = new CoverageConfiguration(
+                $coverage->includePaths,
+                $coverage->driver,
+                $coverage->exports,
+                $coverageOverrides->minimumPercentage ?? $coverage->minimumPercentage,
+                $coverageOverrides->maximumUncoveredLines ?? $coverage->maximumUncoveredLines,
+                $coverage->requireDriver || $coverageOverrides->requireDriver,
+            );
+        }
+
         return new ResolvedConfiguration(
             discovery: $configuration->discovery,
             suiteSelection: SuiteSelectionResolver::resolve(
@@ -68,7 +84,7 @@ final class ConfigurationResolver
             ),
             order: $configuration->order->resolve($overrides->seed),
             selection: $overrides->selection,
-            coverage: $configuration->coverage,
+            coverage: $coverage,
             watch: $configuration->watch,
             storage: $configuration->storage,
         );

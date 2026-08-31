@@ -53,8 +53,12 @@ Absolute keys make a baseline specific to its checkout root. Coverage from two
 sources represents the same file only when the keys match exactly. Sources
 include worktrees, containers, and machines.
 
-Use a stable mounted path. As an alternative, normalize both documents before
-you compare them. Project-relative keys require a new schema version.
+Use a stable mounted path. For different roots, the [coverage difference
+command](../configuration.md#coveragediff) can normalize absolute keys for one
+comparison.
+
+Supply both root options. Each file key **MUST** be below the selected root.
+Normalization does not change the documents.
 
 `files` is always an object. This rule also applies to an empty report:
 

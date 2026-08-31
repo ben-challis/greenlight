@@ -80,7 +80,11 @@ public function merge(self $other): self
 public function coveredLineTotal(): int
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L70)
+PHPDoc:
+
+- `@return int<0, max>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L71)
 
 ### `executableLineTotal()`
 
@@ -88,7 +92,23 @@ public function coveredLineTotal(): int
 public function executableLineTotal(): int
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L81)
+PHPDoc:
+
+- `@return int<0, max>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L83)
+
+### `uncoveredLineTotal()`
+
+```php
+public function uncoveredLineTotal(): int
+```
+
+PHPDoc:
+
+- `@return int<0, max>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L95)
 
 ### `totalPercentage()`
 
@@ -100,7 +120,7 @@ An empty map has full coverage because it has no executable lines.
 public function totalPercentage(): float
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L97)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L111)
 
 ## `FileCoverage`
 
@@ -175,7 +195,11 @@ PHPDoc:
 public function executableLineCount(): int
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L58)
+PHPDoc:
+
+- `@return int<0, max>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L59)
 
 ### `coveredLineCount()`
 
@@ -183,7 +207,11 @@ public function executableLineCount(): int
 public function coveredLineCount(): int
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L63)
+PHPDoc:
+
+- `@return int<0, max>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L65)
 
 ### `lineHits()`
 
@@ -197,7 +225,7 @@ PHPDoc:
 
 - `@return array<positive-int, 0|1>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L73)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L75)
 
 ### `percentage()`
 
@@ -209,7 +237,7 @@ A file with no executable lines has full coverage.
 public function percentage(): float
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L91)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L93)
 
 ### `merge()`
 
@@ -217,4 +245,4 @@ public function percentage(): float
 public function merge(self $other): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L102)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L104)

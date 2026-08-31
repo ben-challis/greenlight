@@ -55,11 +55,13 @@ final readonly class FileCoverage
         $this->uncoveredLines = $uncovered;
     }
 
+    /** @return int<0, max> */
     public function executableLineCount(): int
     {
         return \count($this->coveredLines) + \count($this->uncoveredLines);
     }
 
+    /** @return int<0, max> */
     public function coveredLineCount(): int
     {
         return \count($this->coveredLines);

@@ -14,47 +14,6 @@ final readonly class RuntimeMessageTest
     public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
-    public function coverageGateReportsAMissingExportExactly(): void
-    {
-        [$root, $script] = $this->toolSandbox('coverage-missing', 'coverage-gate.php');
-        $summary = $root . '/summary.md';
-        $result = PhpSubprocess::run(
-            $root,
-            [$script],
-            ['GITHUB_STEP_SUMMARY' => $summary],
-        );
-
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stderr)->toContain(
-            \sprintf(
-                'Greenlight did not find the coverage export at %s/build/coverage/coverage.json. Run `composer tests:coverage` first.',
-                (string) \realpath($root),
-            ),
-        );
-        Expect::that((string) \file_get_contents($summary))->toBe(
-            "## Code coverage\n\n"
-                . "**Coverage unavailable.** Greenlight did not produce the coverage export.\n\n",
-        );
-    }
-
-    #[Test]
-    public function coverageGateReportsASummaryWriteFailureExactly(): void
-    {
-        [$root, $script] = $this->toolSandbox('coverage-summary-write', 'coverage-gate.php');
-        $summaryDirectory = $this->tempDirectory->subdirectory('coverage-summary-write/summary');
-        $result = PhpSubprocess::run(
-            $root,
-            [$script],
-            ['GITHUB_STEP_SUMMARY' => $summaryDirectory],
-        );
-
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stderr)->toContain(
-            'Warning: Greenlight did not write the GitHub Actions job summary.',
-        );
-    }
-
-    #[Test]
     public function phpStanExtractionReportsMissingAndExtractedSourcesExactly(): void
     {
         [$missingRoot, $missingScript] = $this->toolSandbox('phpstan-missing', 'extract-phpstan-api.php');

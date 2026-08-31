@@ -178,7 +178,9 @@ contain machine-local data. Coverage baselines compare a file only when
 its absolute keys match.
 
 Different checkout roots, containers, or worktrees need the same mounted path.
-As an alternative, normalize both reports before you compare them.
+As an alternative, use `coverage:diff` with `--baseline-root` and
+`--current-root`. This command option normalizes paths for one comparison. It
+does not change the coverage JSON version 1 contract.
 
 Paths can disclose the workspace layout. Give machine-readable reports the same
 access controls as logs and test evidence.

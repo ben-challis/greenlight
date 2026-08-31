@@ -194,7 +194,17 @@ final readonly class RunCommand
 
             $classSeconds = $resolved->order->isRandomized() ? [] : $state->classSeconds();
             $this->warnWhenLeakDetectionIsUnreliable($arguments->has('detect-leaks'), $arguments->has('no-ansi'));
-            $session = new RunSession($this->console, $arguments, $configuration, $workingDirectory, $workerBin, $shutdown, $selection, $state);
+            $session = new RunSession(
+                $this->console,
+                $arguments,
+                $configuration,
+                $workingDirectory,
+                $workerBin,
+                $shutdown,
+                $selection,
+                $state,
+                $reporterOutputs->writesReporterToStandardOutput('jsonl'),
+            );
 
             // --repeat=1 specifies one standard run. Show the loop, banners, and
             // summary only when more than one iteration is possible.

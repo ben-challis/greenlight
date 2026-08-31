@@ -169,6 +169,14 @@ accumulate.
 * `driver(string $driver): self` restricts coverage to `pcov` or `xdebug` when
   you use that value. Other non-empty values have the default behavior:
   Greenlight tries pcov, then Xdebug.
+* `requireDriver(bool $required = true): self` fails the run when the selected
+  coverage driver is not available. Default: `false`.
+* `minimumPercentage(float $percentage): self` sets the minimum total line
+  coverage. The value must be from `0` through `100`. It can have two decimal
+  places. Default: no minimum.
+* `maximumUncoveredLines(int $lines): self` sets the maximum number of
+  uncovered executable lines. The value must be zero or more. Default: no
+  maximum.
 * `export(string $format, string $target): self` adds a coverage export.
   Supported formats are `json`, `lcov`, `clover`, `cobertura`, and `html`.
   `$target` is a file path, or a directory for multi-file formats such as
@@ -179,6 +187,9 @@ accumulate.
 ->coverage(fn ($c) => $c
     ->include('src')
     ->driver('pcov')
+    ->requireDriver()
+    ->minimumPercentage(90.0)
+    ->maximumUncoveredLines(100)
     ->export('lcov', 'coverage/lcov.info')
     ->export('html', 'coverage/html'))
 ```
@@ -188,7 +199,27 @@ each coverage export.
 
 If no worker can collect coverage because neither pcov nor Xdebug coverage mode
 is available, Greenlight warns on stderr. That warning does not fail the run by
-itself.
+itself. `requireDriver()` changes the warning to a run failure.
+
+A configured coverage gate also requires coverage. Thus, an unavailable
+coverage driver fails the run when a gate is configured.
+
+The minimum percentage gate uses the total line coverage. Greenlight rounds
+the calculated percentage to two decimal places before the comparison. It uses
+half-up rounding. A result that is equal to the minimum passes.
+
+The uncovered-line gate counts executable lines that did not execute. A count
+that is equal to the maximum passes. When both gates are configured, both gates
+must pass.
+
+Greenlight writes all configured coverage exports before it evaluates the
+gates. Thus, a failed gate keeps the coverage evidence. A failed gate uses exit
+code `1`.
+
+Reporters continue to report test results. They do not add a coverage-gate
+result to JUnit, JSONL, or other machine formats. Use the process exit code for
+the machine-readable gate result. If JSONL writes to standard output,
+Greenlight writes human coverage output to standard error.
 
 The workers are not the only measured processes. In a parallel run, the
 orchestrator collects its own coverage. Thus, the export includes code that
@@ -545,6 +576,27 @@ Requires:
 --current=<path>
 ```
 
+For exports from different checkout roots, also use both root options:
+
+```sh
+greenlight coverage:diff \
+    --baseline=baseline.json \
+    --current=current.json \
+    --baseline-root=/old/checkout \
+    --current-root=/new/checkout
+```
+
+Greenlight removes each explicit root from the file paths in its applicable
+export. It then compares the project-relative paths. Each coverage path must be
+below its applicable root. The command fails if a path is outside the root.
+
+The root options do not change either coverage export. Coverage JSON version 1
+continues to use absolute path keys.
+
+The command also accepts `--minimum-coverage` and
+`--maximum-uncovered-lines`. These gates apply to the current export. A failed
+gate fails the command when the baseline has no regression.
+
 Exits with code 1 if total coverage decreases or the current export has a new
 uncovered line. A total coverage gain does not hide a new uncovered line.
 
@@ -843,6 +895,27 @@ Overrides the configured artifact parent directory for this run. Greenlight
 creates a unique run directory below it and reports that path in human and
 machine-readable output.
 
+### `--minimum-coverage=<percentage>`
+
+Overrides `CoverageBuilder::minimumPercentage()` for a run. The option also
+enables coverage when the configuration file does not configure it. With
+`coverage:diff`, the option checks the current export.
+
+The value must be from `0` through `100`. It can have two decimal places.
+
+### `--maximum-uncovered-lines=<n>`
+
+Overrides `CoverageBuilder::maximumUncoveredLines()` for a run. The option also
+enables coverage when the configuration file does not configure it. With
+`coverage:diff`, the option checks the current export.
+
+The value must be a nonnegative integer.
+
+### `--require-coverage-driver`
+
+Requires an available coverage driver for this run. The option also enables
+coverage when the configuration file does not configure it.
+
 ### `--baseline=<path>`
 
 Sets the baseline coverage JSON file for `coverage:diff`.
@@ -850,6 +923,16 @@ Sets the baseline coverage JSON file for `coverage:diff`.
 ### `--current=<path>`
 
 Sets the current coverage JSON file for `coverage:diff`.
+
+### `--baseline-root=<path>`
+
+Sets the project root for baseline path normalization. Use this option with
+`--current-root`.
+
+### `--current-root=<path>`
+
+Sets the project root for current path normalization. Use this option with
+`--baseline-root`.
 
 ### `--watch`
 

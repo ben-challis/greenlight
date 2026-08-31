@@ -33,6 +33,7 @@ final readonly class CliOverrides
         public array $suiteTags = [],
         public ?int $seed = null,
         public RepeatConfiguration $repeat = new RepeatConfiguration(),
+        public CoverageOverrides $coverage = new CoverageOverrides(),
     ) {}
 
     /**
@@ -190,6 +191,7 @@ final readonly class CliOverrides
             suiteTags: self::nonEmptyValues($arguments, 'suite-tag'),
             seed: $seed,
             repeat: new RepeatConfiguration($repeat, $repeatUntilFailure),
+            coverage: CoverageOverrides::fromArguments($arguments),
         );
     }
 
@@ -227,4 +229,5 @@ final readonly class CliOverrides
 
         return $value;
     }
+
 }

@@ -77,6 +77,7 @@ final class CoverageMapTest
 
         Expect::that($map->coveredLineTotal())->because('percentages aggregate across files')->toBe(4);
         Expect::that($map->executableLineTotal())->toBe(8);
+        Expect::that($map->uncoveredLineTotal())->because('uncovered lines aggregate across files')->toBe(4);
         Expect::that($map->totalPercentage())->toBeWithin(0.001, 50.0);
     }
 

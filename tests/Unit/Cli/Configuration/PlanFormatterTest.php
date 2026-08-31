@@ -28,6 +28,9 @@ final class PlanFormatterTest
                 ->coverage(static fn(CoverageBuilder $coverage) => $coverage
                     ->include('src')
                     ->driver('xdebug')
+                    ->requireDriver()
+                    ->minimumPercentage(95.25)
+                    ->maximumUncoveredLines(3)
                     ->export('json', 'build/coverage.json'))
                 ->build(),
             new CliOverrides(),
@@ -55,6 +58,9 @@ final class PlanFormatterTest
                   storage temporary: {$temporary}
                   coverage include paths: src
                   coverage driver: xdebug
+                  coverage driver required: yes
+                  minimum coverage: 95.25%
+                  maximum uncovered lines: 3
                   coverage exports: json -> build/coverage.json
 
                 PLAN,
