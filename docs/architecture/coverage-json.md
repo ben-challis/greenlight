@@ -58,8 +58,7 @@ command](../configuration.md#coveragediff) can normalize absolute keys for one
 comparison.
 
 Supply both root options. Each file key **MUST** be below the selected root.
-Normalization does not change the documents or the version 1 absolute-path
-contract.
+Normalization does not change the documents.
 
 `files` is always an object. This rule also applies to an empty report:
 

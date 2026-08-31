@@ -67,6 +67,7 @@ final readonly class CoverageMap
         return new self(\array_merge(\array_values($this->files), \array_values($other->files)));
     }
 
+    /** @return int<0, max> */
     public function coveredLineTotal(): int
     {
         $total = 0;
@@ -78,6 +79,7 @@ final readonly class CoverageMap
         return $total;
     }
 
+    /** @return int<0, max> */
     public function executableLineTotal(): int
     {
         $total = 0;
@@ -89,9 +91,16 @@ final readonly class CoverageMap
         return $total;
     }
 
+    /** @return int<0, max> */
     public function uncoveredLineTotal(): int
     {
-        return $this->executableLineTotal() - $this->coveredLineTotal();
+        $total = 0;
+
+        foreach ($this->files as $file) {
+            $total += \count($file->uncoveredLines);
+        }
+
+        return $total;
     }
 
     /**
@@ -153,7 +162,7 @@ final readonly class CoverageMap
     }
 
     /**
-     * @return list<int>
+     * @return list<positive-int>
      * @throws WireCommunicationFailed
      */
     private static function lineList(mixed $value): array
