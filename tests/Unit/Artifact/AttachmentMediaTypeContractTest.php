@@ -6,12 +6,21 @@ namespace Greenlight\Tests\Unit\Artifact;
 
 use Greenlight\Artifact\Attachment;
 use Greenlight\Artifact\AttachmentKind;
+use Greenlight\Artifact\AttachmentMediaType;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 
 final class AttachmentMediaTypeContractTest
 {
+    #[Test]
+    #[DataSet('invalidMediaTypes')]
+    public function validatorRejectsInvalidMediaTypes(string $mediaType): void
+    {
+        Expect::that(AttachmentMediaType::isValid($mediaType))
+            ->toBeFalse();
+    }
+
     #[Test]
     #[DataSet('invalidMediaTypes')]
     public function constructionAndWireDecodingRejectInvalidMediaTypes(string $mediaType): void
