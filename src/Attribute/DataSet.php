@@ -17,7 +17,7 @@ final readonly class DataSet
     public string $provider;
 
     /**
-     * @var non-empty-string|null
+     * @var class-string|null
      */
     public ?string $providerClass;
 
@@ -43,6 +43,9 @@ final readonly class DataSet
         }
 
         $this->provider = $method ?? $provider;
-        $this->providerClass = $method === null ? null : $provider;
+
+        /** @var class-string|null $providerClass */
+        $providerClass = $method === null ? null : $provider;
+        $this->providerClass = $providerClass;
     }
 }
