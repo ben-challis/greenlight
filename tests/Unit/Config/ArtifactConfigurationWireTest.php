@@ -23,6 +23,9 @@ final class ArtifactConfigurationWireTest
             maxTestBytes: 33,
             maxRunAttachments: 44,
             maxRunBytes: 55,
+            maxCompletedRuns: 66,
+            maxCompletedRunAgeSeconds: 77,
+            maxRetainedBytes: 88,
         );
 
         $restored = ArtifactConfiguration::fromWire(
@@ -73,6 +76,9 @@ final class ArtifactConfigurationWireTest
             'max test bytes' => 'maxTestBytes',
             'max run attachments' => 'maxRunAttachments',
             'max run bytes' => 'maxRunBytes',
+            'maximum completed runs' => 'maxCompletedRuns',
+            'maximum completed run age' => 'maxCompletedRunAgeSeconds',
+            'maximum retained bytes' => 'maxRetainedBytes',
         ] as $label => $field) {
             yield $label . ': zero' => [$field, 0];
             yield $label . ': negative' => [$field, -1];

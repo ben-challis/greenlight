@@ -29,7 +29,7 @@ PHPDoc:
 - `@param non-empty-string $directory`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L44)
 
 ### `maxAttachmentsPerTest()`
 
@@ -42,7 +42,7 @@ PHPDoc:
 - `@param positive-int $count`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L55)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L64)
 
 ### `maxAttachmentSize()`
 
@@ -55,7 +55,7 @@ PHPDoc:
 - `@param non-empty-string $size`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L71)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L80)
 
 ### `maxTestSize()`
 
@@ -68,7 +68,7 @@ PHPDoc:
 - `@param non-empty-string $size`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L83)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L92)
 
 ### `maxRunAttachments()`
 
@@ -81,7 +81,7 @@ PHPDoc:
 - `@param positive-int $count`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L95)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L104)
 
 ### `maxRunSize()`
 
@@ -94,7 +94,46 @@ PHPDoc:
 - `@param non-empty-string $size`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L111)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L120)
+
+### `maxCompletedRuns()`
+
+```php
+public function maxCompletedRuns(int $count): self
+```
+
+PHPDoc:
+
+- `@param positive-int $count`
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L132)
+
+### `maxCompletedRunAge()`
+
+```php
+public function maxCompletedRunAge(int $seconds): self
+```
+
+PHPDoc:
+
+- `@param positive-int $seconds`
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L148)
+
+### `maxRetainedSize()`
+
+```php
+public function maxRetainedSize(string $size): self
+```
+
+PHPDoc:
+
+- `@param non-empty-string $size`
+- `@throws InvalidConfiguration`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L164)
 
 ## `CoverageBuilder`
 

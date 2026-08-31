@@ -94,6 +94,8 @@ final readonly class RunCoordinator
                 $summary = new ResultSummary();
                 $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
 
+                $artifacts->complete();
+
                 return new RunResult($summary, 0, $durationSeconds, $seed);
             }
 
@@ -155,6 +157,8 @@ final readonly class RunCoordinator
             if ($cleanupFailures !== []) {
                 throw IntegrationFixtureError::cleanup($cleanupFailures);
             }
+
+            $artifacts->complete();
 
             return $result;
         } finally {

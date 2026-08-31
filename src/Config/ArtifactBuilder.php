@@ -27,6 +27,15 @@ final class ArtifactBuilder
     /** @var positive-int */
     private int $maxRunBytes = ArtifactConfiguration::DEFAULT_MAX_RUN_BYTES;
 
+    /** @var positive-int|null */
+    private ?int $maxCompletedRuns = null;
+
+    /** @var positive-int|null */
+    private ?int $maxCompletedRunAgeSeconds = null;
+
+    /** @var positive-int|null */
+    private ?int $maxRetainedBytes = null;
+
     /**
      * @param non-empty-string $directory
      *
@@ -116,6 +125,50 @@ final class ArtifactBuilder
     }
 
     /**
+     * @param positive-int $count
+     *
+     * @throws InvalidConfiguration
+     */
+    public function maxCompletedRuns(int $count): self
+    {
+        if ($count < 1) {
+            throw new InvalidConfiguration('Completed artifact run count must be at least 1.');
+        }
+
+        $this->maxCompletedRuns = $count;
+
+        return $this;
+    }
+
+    /**
+     * @param positive-int $seconds
+     *
+     * @throws InvalidConfiguration
+     */
+    public function maxCompletedRunAge(int $seconds): self
+    {
+        if ($seconds < 1) {
+            throw new InvalidConfiguration('Completed artifact run age must be at least 1 second.');
+        }
+
+        $this->maxCompletedRunAgeSeconds = $seconds;
+
+        return $this;
+    }
+
+    /**
+     * @param non-empty-string $size
+     *
+     * @throws InvalidConfiguration
+     */
+    public function maxRetainedSize(string $size): self
+    {
+        $this->maxRetainedBytes = MemorySize::parseToBytes($size);
+
+        return $this;
+    }
+
+    /**
      * @internal
      */
     public function toConfiguration(): ArtifactConfiguration
@@ -127,6 +180,9 @@ final class ArtifactBuilder
             $this->maxTestBytes,
             $this->maxRunAttachments,
             $this->maxRunBytes,
+            $this->maxCompletedRuns,
+            $this->maxCompletedRunAgeSeconds,
+            $this->maxRetainedBytes,
         );
     }
 }

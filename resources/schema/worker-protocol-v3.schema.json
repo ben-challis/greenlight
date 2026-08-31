@@ -354,7 +354,10 @@
                 "maxAttachmentBytes": {"type": "integer", "minimum": 1},
                 "maxTestBytes": {"type": "integer", "minimum": 1},
                 "maxRunAttachments": {"type": "integer", "minimum": 1},
-                "maxRunBytes": {"type": "integer", "minimum": 1}
+                "maxRunBytes": {"type": "integer", "minimum": 1},
+                "maxCompletedRuns": {"type": ["integer", "null"], "minimum": 1},
+                "maxCompletedRunAgeSeconds": {"type": ["integer", "null"], "minimum": 1},
+                "maxRetainedBytes": {"type": ["integer", "null"], "minimum": 1}
             }
         },
         "attemptStarted": {

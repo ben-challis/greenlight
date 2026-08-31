@@ -73,6 +73,50 @@ final readonly class ArtifactStoreIntegrityTest
     }
 
     #[Test]
+    public function workerSideCompletionDoesNotOwnRunRetention(): void
+    {
+        $root = $this->tempDirectory->subdirectory('worker-completion');
+        $configuration = new ArtifactConfiguration($root);
+        $owner = ArtifactStore::open($configuration, $root, 'run-worker-completion');
+        $this->cleanup->defer($owner->cleanup(...));
+        $worker = ArtifactStore::fromSession($owner->session(), $configuration);
+
+        $report = $worker->complete();
+
+        Expect::that($report->items)->toBe([]);
+        Expect::that($report->warnings)->toBe([]);
+    }
+
+    #[Test]
+    public function invalidCompletionMetadataMakesRetentionAdvisory(): void
+    {
+        $root = $this->tempDirectory->subdirectory('invalid-completion-metadata');
+        $configuration = new ArtifactConfiguration($root, maxCompletedRuns: 1);
+        $store = ArtifactStore::open($configuration, $root, 'run-invalid-completion');
+        $this->cleanup->defer($store->cleanup(...));
+        $id = new TestId('Example\\EvidenceTest', 'fails');
+        $attachments = $store->forAttempt($id, 1, new TestArtifactBudget());
+        $attachments->text('evidence.txt', 'body');
+        $store->publish(new TestResult(
+            $id,
+            Outcome::Failed,
+            0.1,
+            0,
+            attachments: $attachments->seal(),
+        ));
+        \file_put_contents($store->publicDirectory() . '/.greenlight-run.json', '{}');
+
+        $report = $store->complete();
+
+        Expect::that($report->warnings)->toBe([
+            'Greenlight did not complete artifact run metadata. This run is not eligible for pruning.',
+        ]);
+        Expect::that(\is_dir($store->publicDirectory()))
+            ->because('an incomplete ownership record MUST keep the current run directory')
+            ->toBeTrue();
+    }
+
+    #[Test]
     public function unsafeStorageKeysCannotEscapeThePublicationDirectory(): void
     {
         $root = $this->tempDirectory->subdirectory('unsafe-storage-key');

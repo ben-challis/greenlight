@@ -177,7 +177,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | resource lease | Technical noun | A temporary grant of resource capacity to one scheduling unit |
 | resource limit | Technical noun | A limit on concurrent access to a named resource |
 | result policy | Technical noun | A rule that can change a test result after execution |
-| retention | Technical noun | The rule that determines if Greenlight publishes an attachment |
+| retention | Technical noun | A rule that determines if Greenlight publishes an attachment or keeps a completed run directory |
 | retried pass | Technical noun | A successful terminal result that used more than one test attempt |
 | run acceptance policy | Technical noun | A command-side plugin that can reject an otherwise successful run without changing test outcomes |
 | retry decider | Technical noun | A plugin that determines if Greenlight starts another test attempt |
