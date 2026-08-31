@@ -363,7 +363,7 @@ final class Psr15Error extends \RuntimeException
 public static function factoryFailed(\Throwable $cause): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L15)
 
 ### `invalidHandler()`
 
@@ -371,7 +371,7 @@ public static function factoryFailed(\Throwable $cause): self
 public static function invalidHandler(string $type): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L20)
 
 ### `requestFailed()`
 
@@ -384,7 +384,7 @@ public static function requestFailed(
 ): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L28)
 
 ### `releaseFailed()`
 
@@ -392,7 +392,7 @@ public static function requestFailed(
 public static function releaseFailed(string $handler, \Throwable $cause): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L42)
 
 ### `disposed()`
 
@@ -400,7 +400,7 @@ public static function releaseFailed(string $handler, \Throwable $cause): self
 public static function disposed(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L45)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L50)
 
 ## `Psr15Plugin`
 

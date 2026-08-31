@@ -9,4 +9,18 @@ namespace Greenlight\Cli\Watch;
  *
  * @internal
  */
-final class WatchScanFailed extends \RuntimeException {}
+final class WatchScanFailed extends \RuntimeException
+{
+    private function __construct(string $message)
+    {
+        parent::__construct($message);
+    }
+
+    public static function fileLimitExceeded(int $maximumFiles): self
+    {
+        return new self(\sprintf(
+            'Watch mode matched more files than the limit of %d. Narrow the watch paths or patterns, or increase maximumFiles().',
+            $maximumFiles,
+        ));
+    }
+}

@@ -167,12 +167,7 @@ final readonly class OrchestratorPluginRuntime extends PluginRuntime implements 
 
         foreach ($provided as $definition) {
             if (!$definition instanceof IntegrationFixtureDefinition) {
-                throw new IntegrationFixtureError(\sprintf(
-                    'Integration fixture provider "%s" returned %s. '
-                    . 'It MUST return IntegrationFixtureDefinition instances.',
-                    $provider::class,
-                    \get_debug_type($definition),
-                ));
+                throw IntegrationFixtureError::invalidDefinition($provider::class, $definition);
             }
 
             $definitions[] = $definition;
