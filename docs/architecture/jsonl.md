@@ -72,6 +72,15 @@ guarantees, and incomplete-output behavior.
 | `test-finished`  | Test ends             | `result`, `occurredAt`                                                 |
 | `worker-spawned` | Worker process starts | `workerId`, `pid`, `occurredAt`                                        |
 
+`run-started.workers` is the worker-count limit for the selected execution
+method. It does not report the number of processes that Greenlight starts.
+
+A process-pool run can start fewer processes when the plan or resource limits
+need fewer workers. An in-process run reports `1`.
+
+Use `worker-spawned` events and `run-finished.workerTimings` to identify the
+processes that Greenlight started.
+
 `run-finished.summary` contains the passed, failed, errored, and skipped totals.
 
 `run-finished.workerTimings` is an optional list. Each item contains timing
@@ -224,8 +233,11 @@ These records identify each plugin that changed the outcome.
 
 ### output
 
-The output that Greenlight captured during the test. The value is `null` when
-Greenlight captured no output.
+The output record that Greenlight captured during a test attempt. An active
+capture window produces a record, even when standard output is empty.
+
+The value is `null` when the result has no capture record. A test can disable
+capture. Greenlight can also create a result outside a test attempt.
 
 When present, it has this shape:
 
