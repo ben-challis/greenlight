@@ -97,10 +97,10 @@ final readonly class WatchRuns
         } finally {
             $keys->restore();
         }
-        $interruptExit = $shutdown->exitCode();
+        $interruptSignal = $shutdown->signal();
 
-        return $interruptExit === null
+        return $interruptSignal === null
             ? ExitCode::success()
-            : ExitCode::fromInt($interruptExit);
+            : ExitCode::signal($interruptSignal);
     }
 }

@@ -28,17 +28,23 @@ final readonly class ExitCodeTest
     }
 
     #[Test]
-    #[DataSet('dynamicProcessCodes')]
-    public function preservesDynamicProcessCodes(int $processCode): void
+    #[DataSet('signals')]
+    public function convertsSignalsToProcessCodes(int $signal): void
     {
-        Expect::that(ExitCode::fromInt($processCode)->toInt())->toBe($processCode);
+        Expect::that(ExitCode::signal($signal)->toInt())->toBe(128 + $signal);
     }
 
     /** @return iterable<string, array{int}> */
-    public static function dynamicProcessCodes(): iterable
+    public static function signals(): iterable
     {
-        yield 'interrupt signal' => [128 + \SIGINT];
-        yield 'quit signal' => [128 + \SIGQUIT];
-        yield 'termination signal' => [128 + \SIGTERM];
+        yield 'interrupt signal' => [\SIGINT];
+        yield 'quit signal' => [\SIGQUIT];
+        yield 'termination signal' => [\SIGTERM];
+    }
+
+    #[Test]
+    public function preservesAPluginProcessCode(): void
+    {
+        Expect::that(ExitCode::fromInt(7)->toInt())->toBe(7);
     }
 }

@@ -251,10 +251,10 @@ final readonly class RunCommand
 
                 $lastClassSeconds = $attempt->classSeconds;
 
-                $interruptExit = $shutdown->exitCode();
+                $interruptSignal = $shutdown->signal();
 
-                if ($interruptExit !== null) {
-                    return ExitCode::fromInt($interruptExit);
+                if ($interruptSignal !== null) {
+                    return ExitCode::signal($interruptSignal);
                 }
 
                 if (!$attempt->exitCode->isSuccess()) {

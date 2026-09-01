@@ -29,6 +29,15 @@ final readonly class ExitCode
         return new self(64);
     }
 
+    public static function signal(int $signal): self
+    {
+        if ($signal < 1 || $signal > 127) {
+            throw new \InvalidArgumentException('Signal number MUST be from 1 through 127.');
+        }
+
+        return new self(128 + $signal);
+    }
+
     public static function fromInt(int $value): self
     {
         return new self($value);

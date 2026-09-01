@@ -139,14 +139,14 @@ final readonly class RunSession
             } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
                 $reporter->finish();
                 $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
-                $interruptExit = $this->shutdown->exitCode();
-                if ($interruptExit !== null) {
+                $interruptSignal = $this->shutdown->signal();
+                if ($interruptSignal !== null) {
                     $this->console->err("Interrupted. Integration fixture teardown was attempted before exit.\n");
                 }
 
-                return $interruptExit === null
+                return $interruptSignal === null
                     ? ExitCode::failure()
-                    : ExitCode::fromInt($interruptExit);
+                    : ExitCode::signal($interruptSignal);
             }
             $coverage = $coverageSession->finish($run->coverage);
         } finally {
@@ -159,11 +159,11 @@ final readonly class RunSession
             $coverage = CoveragePluginRuntime::fromDefinitions($resolved->execution->plugins)
                 ->transform($coverage);
         }
-        $interruptExit = $this->shutdown->exitCode();
-        if ($interruptExit !== null) {
+        $interruptSignal = $this->shutdown->signal();
+        if ($interruptSignal !== null) {
             $this->console->err("Interrupted. The summary includes only tests that finished before shutdown.\n");
 
-            return ExitCode::fromInt($interruptExit);
+            return ExitCode::signal($interruptSignal);
         }
         if ($run->plannedTests === 0) {
             $this->console->err("Greenlight found no tests. Check the configuration, test paths, and filters.\n");
