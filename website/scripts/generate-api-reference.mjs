@@ -614,6 +614,7 @@ function memberTokens(tokens) {
   }
 
   while (tokens[index]?.value === '#' && tokens[index + 1]?.value === '[') {
+    index += 1;
     let attributeDepth = 0;
 
     do {

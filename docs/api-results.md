@@ -521,11 +521,10 @@ PHPDoc:
 ### `__toString()`
 
 ```php
-[\Override]
 public function __toString(): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L39)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L40)
 
 ## `TestResult`
 

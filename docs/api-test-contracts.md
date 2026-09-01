@@ -576,8 +576,7 @@ public function equals(self $other): bool
 ### `__toString()`
 
 ```php
-[\Override]
 public function __toString(): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L52)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/TestId.php#L53)

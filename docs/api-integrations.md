@@ -77,7 +77,6 @@ PHPDoc:
 ### `services()`
 
 ```php
-[\Override]
 public function services(): array
 ```
 
@@ -85,12 +84,11 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L75)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L76)
 
 ### `resolve()`
 
 ```php
-[\Override]
 public function resolve(string $type, array $attributes): ?object
 ```
 
@@ -100,12 +98,11 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L88)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L89)
 
 ### `onWorkerBootstrap()`
 
 ```php
-[\Override]
 public function onWorkerBootstrap(WorkerBootstrapContext $context): void
 ```
 
@@ -113,12 +110,11 @@ PHPDoc:
 
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L125)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L126)
 
 ### `runWorker()`
 
 ```php
-[\Override]
 public function runWorker(\Closure $worker): mixed
 ```
 
@@ -129,12 +125,11 @@ PHPDoc:
 - `@return T`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L182)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L183)
 
 ### `runTestAttempt()`
 
 ```php
-[\Override]
 public function runTestAttempt(\Closure $attempt): mixed
 ```
 
@@ -145,7 +140,7 @@ PHPDoc:
 - `@return T`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L226)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L227)
 
 ## `LaravelPlugin`
 
@@ -182,7 +177,6 @@ PHPDoc:
 ### `services()`
 
 ```php
-[\Override]
 public function services(): array
 ```
 
@@ -190,12 +184,11 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L74)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L75)
 
 ### `resolve()`
 
 ```php
-[\Override]
 public function resolve(string $type, array $attributes): ?object
 ```
 
@@ -205,16 +198,15 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L91)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L92)
 
 ### `afterTest()`
 
 ```php
-[\Override]
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L127)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L128)
 
 ## `Psr11Plugin`
 
@@ -253,7 +245,6 @@ PHPDoc:
 ### `services()`
 
 ```php
-[\Override]
 public function services(): array
 ```
 
@@ -261,12 +252,11 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L48)
 
 ### `resolve()`
 
 ```php
-[\Override]
 public function resolve(string $type, array $attributes): ?object
 ```
 
@@ -276,12 +266,11 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L93)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L94)
 
 ### `afterTest()`
 
 ```php
-[\Override]
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
@@ -289,7 +278,7 @@ PHPDoc:
 
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L140)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L141)
 
 ## `HttpHarness`
 
@@ -335,7 +324,6 @@ PHPDoc:
 ### `dispose()`
 
 ```php
-[\Override]
 public function dispose(): void
 ```
 
@@ -343,7 +331,7 @@ PHPDoc:
 
 - `@throws Psr15Error`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L71)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L72)
 
 ## `Psr15Error`
 
@@ -435,7 +423,6 @@ PHPDoc:
 ### `services()`
 
 ```php
-[\Override]
 public function services(): array
 ```
 
@@ -443,7 +430,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L40)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L41)
 
 ## `PhpUnitToGreenlightRector`
 
@@ -554,7 +541,6 @@ PHPDoc:
 ### `services()`
 
 ```php
-[\Override]
 public function services(): array
 ```
 
@@ -562,12 +548,11 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L74)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L75)
 
 ### `resolve()`
 
 ```php
-[\Override]
 public function resolve(string $type, array $attributes): ?object
 ```
 
@@ -577,16 +562,15 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L87)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L88)
 
 ### `afterTest()`
 
 ```php
-[\Override]
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L123)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L124)
 
 ## `TempestPlugin`
 
@@ -627,16 +611,14 @@ PHPDoc:
 ### `onWorkerBootstrap()`
 
 ```php
-[\Override]
 public function onWorkerBootstrap(WorkerBootstrapContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L65)
 
 ### `services()`
 
 ```php
-[\Override]
 public function services(): array
 ```
 
@@ -644,12 +626,11 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L73)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L74)
 
 ### `resolve()`
 
 ```php
-[\Override]
 public function resolve(string $type, array $attributes): object
 ```
 
@@ -659,21 +640,19 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L87)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L88)
 
 ### `beforeTest()`
 
 ```php
-[\Override]
 public function beforeTest(TestContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L113)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L114)
 
 ### `afterTest()`
 
 ```php
-[\Override]
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
@@ -681,4 +660,4 @@ PHPDoc:
 
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L126)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L127)

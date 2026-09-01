@@ -518,11 +518,10 @@ PHPDoc:
 ### `isSatisfied()`
 
 ```php
-[\Override]
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L32)
 
 ## `Condition`
 
@@ -574,11 +573,10 @@ PHPDoc:
 ### `isSatisfied()`
 
 ```php
-[\Override]
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L29)
 
 ## `EnvironmentVariableSet`
 
@@ -606,11 +604,10 @@ PHPDoc:
 ### `isSatisfied()`
 
 ```php
-[\Override]
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L29)
 
 ## `ExtensionLoaded`
 
@@ -638,11 +635,10 @@ PHPDoc:
 ### `isSatisfied()`
 
 ```php
-[\Override]
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L29)
 
 ## `ExtensionMissing`
 
@@ -670,11 +666,10 @@ PHPDoc:
 ### `isSatisfied()`
 
 ```php
-[\Override]
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L29)
 
 ## `FunctionAvailable`
 
@@ -702,11 +697,10 @@ PHPDoc:
 ### `isSatisfied()`
 
 ```php
-[\Override]
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L29)
 
 ## `OperatingSystemFamily`
 
@@ -736,11 +730,10 @@ PHPDoc:
 ### `isSatisfied()`
 
 ```php
-[\Override]
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L30)
 
 ## `PhpVersionAtLeast`
 
@@ -768,11 +761,10 @@ PHPDoc:
 ### `isSatisfied()`
 
 ```php
-[\Override]
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L29)
 
 ## `PhpVersionLessThan`
 
@@ -800,8 +792,7 @@ PHPDoc:
 ### `isSatisfied()`
 
 ```php
-[\Override]
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L29)
