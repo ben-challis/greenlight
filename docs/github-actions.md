@@ -1,13 +1,94 @@
 # GitHub Actions
 
+Greenlight can publish test annotations and retained attachments in GitHub
+Actions. It can also reuse run state and merge coverage from parallel shards.
+
+## Publish test results and attachments
+
+The `github` reporter writes GitHub workflow annotations for failed and errored
+tests. It also writes a warning when a test passes after a retry. The `plain`
+reporter keeps a human-readable test log.
+
+Configure a project-relative parent directory for retained attachments:
+
+<!-- php-example {"mode":"display","reason":"Shows one method in an existing Greenlight configuration chain."} -->
+```php
+->artifacts(fn ($artifacts) => $artifacts
+    ->directory('build/github/greenlight-runs'))
+```
+
+Greenlight creates a unique run directory below this parent. A run without
+retained attachments does not create an empty directory.
+
+This workflow publishes annotations and uploads retained attachments after a
+successful or failed test run:
+
+```yaml
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Run tests
+        shell: bash
+        run: >-
+          vendor/bin/greenlight run
+          --reporter=plain
+          --reporter=github
+
+      - name: Upload retained attachments
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: greenlight-test-evidence-${{ github.run_attempt }}
+          path: build/github/greenlight-runs/
+          if-no-files-found: ignore
+```
+
+The `github` reporter prints attachment paths and a notice with the Greenlight
+run directory. It does not upload attachment content. The upload step stores
+that content with the workflow run.
+
+The upload step runs after a passed or failed test command. It does not run
+after job cancellation. The `ignore` value is intentional because a run with
+no retained attachments has no directory to upload.
+
+For a matrix job, add the matrix values to the artifact name. Each job must use
+a different artifact name.
+
+Greenlight does not remove secrets or personal data from attachment content.
+Remove sensitive data before attachment creation. GitHub controls access and
+retention after upload. For more information, see
+[Test attachments](attachments.md).
+
+## Cache run state
+
 Greenlight stores run state in the system temporary directory by default. Run
 state contains failed test IDs and class durations from the previous run.
 
 The next run uses this data to put failed classes first. It then puts the
 remaining classes in longest-first order. This order reduces idle worker time
 near the end of a run.
-
-## Cache run state
 
 Configure a project state directory. Restore the state before the test step and
 save it after the step.
@@ -30,7 +111,7 @@ jobs:
       matrix:
         php: ['8.4', '8.5']
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Restore Greenlight run state
         uses: actions/cache/restore@v6

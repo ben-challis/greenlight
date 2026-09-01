@@ -29,7 +29,7 @@ export const docSections = [
       {
         id: 'github-actions',
         title: 'GitHub Actions',
-        description: 'This guide explains how to reuse Greenlight run state between GitHub Actions runs.',
+        description: 'This guide explains how to publish Greenlight test results, attachments, run state, and coverage in GitHub Actions.',
       },
       {
         id: 'gitlab-ci',
