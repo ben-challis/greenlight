@@ -10,12 +10,12 @@ use Greenlight\Cli\Coverage\CoverageGate;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Command\CommandResult;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Coverage\Diff\BaselineDiff;
 use Greenlight\Coverage\Diff\ProjectRootNormalizer;
 use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Plugin\CommandResult;
 
 /**
  * Compares saved baseline and current coverage maps.

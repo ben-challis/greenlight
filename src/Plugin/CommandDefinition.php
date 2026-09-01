@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Command;
+namespace Greenlight\Plugin;
 
 /** Defines one named command-line command. */
 final readonly class CommandDefinition

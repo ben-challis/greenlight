@@ -7,8 +7,8 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\ExitCode;
-use Greenlight\Command\CommandResult;
 use Greenlight\Expect\Expect;
+use Greenlight\Plugin\CommandResult;
 
 final readonly class ExitCodeTest
 {

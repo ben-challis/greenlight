@@ -59,11 +59,11 @@ name, a single-line description, and an invocation handler.
 
 <!-- php-example {"example":"plugins-example-command-provider","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
-use Greenlight\Command\CommandDefinition;
-use Greenlight\Command\CommandInvocation;
-use Greenlight\Command\CommandProvider;
-use Greenlight\Command\CommandResult;
 use Greenlight\Config\GreenlightConfig;
+use Greenlight\Plugin\CommandDefinition;
+use Greenlight\Plugin\CommandInvocation;
+use Greenlight\Plugin\CommandProvider;
+use Greenlight\Plugin\CommandResult;
 
 final class CompanyCommands implements CommandProvider
 {

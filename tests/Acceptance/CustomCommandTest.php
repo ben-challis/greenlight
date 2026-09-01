@@ -115,10 +115,10 @@ final readonly class CustomCommandTest
 
             declare(strict_types=1);
 
-            use Greenlight\Command\CommandDefinition;
-            use Greenlight\Command\CommandInvocation;
-            use Greenlight\Command\CommandProvider;
-            use Greenlight\Command\CommandResult;
+            use Greenlight\Plugin\CommandDefinition;
+            use Greenlight\Plugin\CommandInvocation;
+            use Greenlight\Plugin\CommandProvider;
+            use Greenlight\Plugin\CommandResult;
             use Greenlight\Config\GreenlightConfig;
 
             %s

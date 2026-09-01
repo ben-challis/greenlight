@@ -19,7 +19,6 @@ use Greenlight\Cli\Reporting\ReporterSetupFailed;
 use Greenlight\Cli\Signal\SignalHandlers;
 use Greenlight\Cli\State\RunState;
 use Greenlight\Cli\WorkerCapacity\CpuCores;
-use Greenlight\Command\CommandResult;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\InvalidConfiguration;
@@ -27,6 +26,8 @@ use Greenlight\Config\StorageLayout;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Internal\Process\GracefulShutdown;
+use Greenlight\Plugin\CommandOutcome;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\Style;
 
@@ -257,7 +258,7 @@ final readonly class RunCommand
                     return CommandResult::interrupted($interruptSignal);
                 }
 
-                if (!$attempt->result->isSuccessful()) {
+                if ($attempt->result->outcome() !== CommandOutcome::Success) {
                     $failedIterations[] = $iteration;
 
                     if ($overrides->repeat->untilFailure) {

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
-use Greenlight\Command\CommandResult;
+use Greenlight\Plugin\CommandOutcome;
+use Greenlight\Plugin\CommandResult;
 
 /**
  * Converts a command result to a process exit code.
@@ -17,11 +18,11 @@ final readonly class ExitCode
 
     public static function fromCommandResult(CommandResult $result): self
     {
-        return new self(match (true) {
-            $result->isSuccessful() => 0,
-            $result->isUsageError() => 64,
-            $result->isInterrupted() => 128 + $result->interruptionSignal,
-            default => 1,
+        return new self(match ($result->outcome()) {
+            CommandOutcome::Success => 0,
+            CommandOutcome::Failure => 1,
+            CommandOutcome::UsageError => 64,
+            CommandOutcome::Interrupted => 128 + $result->interruptionSignal(),
         });
     }
 

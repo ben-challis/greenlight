@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Command;
+namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Command\CommandDefinition;
-use Greenlight\Command\CommandInvocation;
-use Greenlight\Command\CommandResult;
 use Greenlight\Expect\Expect;
+use Greenlight\Plugin\CommandDefinition;
+use Greenlight\Plugin\CommandInvocation;
+use Greenlight\Plugin\CommandResult;
 
 final readonly class CommandDefinitionTest
 {

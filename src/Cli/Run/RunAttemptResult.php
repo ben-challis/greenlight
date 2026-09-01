@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Run;
 
-use Greenlight\Command\CommandResult;
+use Greenlight\Plugin\CommandResult;
 
 /**
  * Contains the observable result and saved scheduling data for one run attempt.

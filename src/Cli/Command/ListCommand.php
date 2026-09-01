@@ -10,13 +10,13 @@ use Greenlight\Cli\Discovery\SelectionPlan;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Command\CommandResult;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\SuiteConfiguration;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Plugin\CommandResult;
 
 /**
  * Discovers and formats test, group, and suite listings.

@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Command;
-
-use Greenlight\Plugin\Plugin;
+namespace Greenlight\Plugin;
 
 /** Supplies named command-line commands. */
 interface CommandProvider extends Plugin

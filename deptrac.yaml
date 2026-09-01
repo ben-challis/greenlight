@@ -121,10 +121,6 @@ deptrac:
       collectors:
         - type: directory
           value: src/Coverage/[^/]+\.php
-    - name: Command
-      collectors:
-        - type: directory
-          value: src/Command/.*
     - name: Plugin
       collectors:
         - type: directory
@@ -340,7 +336,6 @@ deptrac:
     CoverageExport: [Coverage, InternalPhp, InternalText]
     CoverageIgnore: [Coverage, InternalPhp]
     CoverageRelay: [Coverage, CoverageCollection, CoverageExport, InternalPhp]
-    Command: [Plugin]
     Plugin: [Artifact, Coverage, Event, Harness, IntegrationFixture, Reporting, Result, Test]
     Reporting: [Artifact, Event, InternalEvent, InternalPhp, InternalText, Result, Test]
     ReportingProfile: [Event, Reporting]
@@ -352,20 +347,20 @@ deptrac:
     ExecutionProcessProtocol: [Attribute, Config, Coverage, DiscoveryPlan, Event, ExecutionArtifact, IntegrationFixture, InternalEvent, InternalPhp, InternalWire, Result, Test]
     ExecutionProcessWorker: [Config, CoverageCollection, Event, ExecutionArtifact, ExecutionPlugin, ExecutionProcessProtocol, ExecutionWorker, Harness, InternalPhp, InternalWire, Plugin, Result, Test]
     ExecutionProcessOrchestrator: [Artifact, Config, Coverage, CoverageCollection, DiscoveryPlan, Event, ExecutionArtifact, ExecutionProcessProtocol, ExecutionWorker, IntegrationFixture, InternalPhp, InternalProcess, InternalText, InternalWire, Reporting, Result, Test]
-    Cli: [CliCommand, CliOutput, CliPlugin, Command, Coverage, CoverageRelay, ExecutionProcessProtocol, ExecutionProcessWorker, InternalWire, Reporting]
+    Cli: [CliCommand, CliOutput, CliPlugin, Coverage, CoverageRelay, ExecutionProcessProtocol, ExecutionProcessWorker, InternalWire, Plugin, Reporting]
     CliInput: []
     CliConfiguration: [CliInput, Config, InternalPhp, InternalText, Result, Test]
     CliDiscovery: [CliConfiguration, CliInput, CliState, Config, Discovery, DiscoveryPlan, Test]
     CliOutput: [InternalPhp, InternalText, Reporting]
     CliReporting: [CliInput, CliOutput, Event, InternalPhp, Plugin, Reporting, ReportingProfile]
-    CliPlugin: [CliCommand, CliConfiguration, CliInput, CliOutput, CliRun, Command, Config, Coverage, InternalPhp, InternalWire, Plugin, Reporting]
+    CliPlugin: [CliCommand, CliConfiguration, CliInput, CliOutput, CliRun, Config, Coverage, InternalPhp, InternalWire, Plugin, Reporting]
     CliCoverage: [CliConfiguration, CliOutput, Config, Coverage, CoverageCollection, CoverageExport, CoverageIgnore, CoverageRelay, InternalFilesystem, InternalPhp, Plugin, Reporting]
     CliSignal: [InternalProcess]
     CliState: [InternalFilesystem, InternalPhp]
     CliWatch: [CliOutput, Event, InternalPhp, InternalProcess, Plugin]
     CliWorkerCapacity: [Attribute, CpuCoreCounter, InternalPhp, InternalText]
-    CliCommand: [CliConfiguration, CliCoverage, CliDiscovery, CliInput, CliOutput, CliRun, Command, Config, Coverage, CoverageDiff, CoverageExport, Discovery, DiscoveryPlan, Event, InternalEvent, InternalFilesystem, InternalPhp, InternalWire, PhpStan, Reporting, ReportingProfile]
-    CliRun: [Artifact, CliConfiguration, CliCoverage, CliDiscovery, CliInput, CliOutput, CliReporting, CliSignal, CliState, CliWatch, CliWorkerCapacity, Command, Config, Coverage, CoverageCollection, CoverageIgnore, CoverageRelay, Discovery, Event, Execution, ExecutionAdapter, ExecutionWorker, IntegrationFixture, InternalPhp, InternalProcess, Reporting, Test]
+    CliCommand: [CliConfiguration, CliCoverage, CliDiscovery, CliInput, CliOutput, CliRun, Config, Coverage, CoverageDiff, CoverageExport, Discovery, DiscoveryPlan, Event, InternalEvent, InternalFilesystem, InternalPhp, InternalWire, PhpStan, Plugin, Reporting, ReportingProfile]
+    CliRun: [Artifact, CliConfiguration, CliCoverage, CliDiscovery, CliInput, CliOutput, CliReporting, CliSignal, CliState, CliWatch, CliWorkerCapacity, Config, Coverage, CoverageCollection, CoverageIgnore, CoverageRelay, Discovery, Event, Execution, ExecutionAdapter, ExecutionWorker, IntegrationFixture, InternalPhp, InternalProcess, Plugin, Reporting, Test]
     PhpStan: [Attribute, Condition, Config, Doubles, Expect, InternalPhp, Test, PhpStanFramework, PhpParserFramework]
     Rector: [Attribute, Condition, Expect, Test, PhpParserFramework, RectorFramework]
     Documentation: []

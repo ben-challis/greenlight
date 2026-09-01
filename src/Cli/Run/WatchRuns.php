@@ -21,11 +21,11 @@ use Greenlight\Cli\Watch\WatchLoop;
 use Greenlight\Cli\Watch\WatchPathMatcher;
 use Greenlight\Cli\Watch\WatchSourceFailed;
 use Greenlight\Cli\Watch\WatchSourceRuntime;
-use Greenlight\Command\CommandResult;
 use Greenlight\Config\StorageLayout;
 use Greenlight\Execution\RunPolicyError;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Internal\Process\GracefulShutdown;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\Reporter;
 
 /**

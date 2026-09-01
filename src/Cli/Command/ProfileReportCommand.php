@@ -7,11 +7,11 @@ namespace Greenlight\Cli\Command;
 use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Command\CommandResult;
 use Greenlight\Internal\Event\EventCodec;
 use Greenlight\Internal\Event\EventCodecFailed;
 use Greenlight\Internal\Event\EventCodecFailureKind;
 use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\Profile\ProfileAggregator;
 use Greenlight\Reporting\Style;
 

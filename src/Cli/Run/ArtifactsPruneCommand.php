@@ -9,10 +9,10 @@ use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Command\CommandResult;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Execution\ArtifactMaintenance;
+use Greenlight\Plugin\CommandResult;
 
 /**
  * Applies configured retention to completed Greenlight artifact runs.

@@ -10,7 +10,6 @@ use Greenlight\Cli\Coverage\CoverageWriter;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Command\CommandResult;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\CoverageExport;
 use Greenlight\Config\InvalidConfiguration;
@@ -18,6 +17,7 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Diff\ProjectRootNormalizer;
 use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\Style;
 
 /**

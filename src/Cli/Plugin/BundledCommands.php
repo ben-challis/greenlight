@@ -15,11 +15,11 @@ use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Cli\Run\ArtifactsPruneCommand;
 use Greenlight\Cli\Run\RunCommand;
-use Greenlight\Command\CommandDefinition;
-use Greenlight\Command\CommandInvocation;
-use Greenlight\Command\CommandProvider;
-use Greenlight\Command\CommandResult;
 use Greenlight\Coverage\CoverageError;
+use Greenlight\Plugin\CommandDefinition;
+use Greenlight\Plugin\CommandInvocation;
+use Greenlight\Plugin\CommandProvider;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\ReportGenerationFailed;
 
 /**

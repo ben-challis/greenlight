@@ -7,7 +7,6 @@ namespace Greenlight\Cli\Command;
 use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Command\CommandResult;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\InvalidConfiguration;
@@ -16,6 +15,7 @@ use Greenlight\Internal\Filesystem\AtomicFileError;
 use Greenlight\PhpStan\IdeHelper;
 use Greenlight\PhpStan\MatcherMap;
 use Greenlight\PhpStan\MatcherMapError;
+use Greenlight\Plugin\CommandResult;
 
 /**
  * Writes the IDE helper for configured extension matchers.
