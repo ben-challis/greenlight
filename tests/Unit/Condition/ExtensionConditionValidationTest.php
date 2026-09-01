@@ -12,14 +12,12 @@ use Greenlight\Expect\Expect;
 
 final readonly class ExtensionConditionValidationTest
 {
-    /**
-     * @param class-string<ExtensionLoaded|ExtensionMissing> $conditionClass
-     */
+    /** @param \Closure(): (ExtensionLoaded|ExtensionMissing) $create */
     #[Test]
     #[DataSet('extensionConditions')]
-    public function rejectsAnEmptyExtensionName(string $conditionClass): void
+    public function rejectsAnEmptyExtensionName(\Closure $create): void
     {
-        Expect::that(static fn(): ExtensionLoaded|ExtensionMissing => new $conditionClass(''))
+        Expect::that($create)
             ->because('an extension availability condition MUST identify the extension')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -28,12 +26,12 @@ final readonly class ExtensionConditionValidationTest
     }
 
     /**
-     * @return iterable<string, array{class-string<ExtensionLoaded|ExtensionMissing>}>
+     * @return iterable<string, array{\Closure(): (ExtensionLoaded|ExtensionMissing)}>
      */
     public static function extensionConditions(): iterable
     {
-        yield 'loaded' => [ExtensionLoaded::class];
+        yield 'loaded' => [static fn(): ExtensionLoaded => new ExtensionLoaded('')]; // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
 
-        yield 'missing' => [ExtensionMissing::class];
+        yield 'missing' => [static fn(): ExtensionMissing => new ExtensionMissing('')]; // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
     }
 }

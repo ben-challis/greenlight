@@ -14,6 +14,8 @@ final readonly class EnvironmentVariableEquals implements Condition
     private string $name;
 
     /**
+     * @param non-empty-string $name
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(string $name, private string $value)

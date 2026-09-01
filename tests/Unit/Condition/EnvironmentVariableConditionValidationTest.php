@@ -16,13 +16,13 @@ final readonly class EnvironmentVariableConditionValidationTest
     #[DataSet('invalidNames')]
     public function rejectsAnInvalidEnvironmentVariableName(string $name): void
     {
-        Expect::that(static fn(): EnvironmentVariableSet => new EnvironmentVariableSet($name))
+        Expect::that(static fn(): EnvironmentVariableSet => new EnvironmentVariableSet($name)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a presence condition MUST reject a name that getenv() cannot safely read')
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Environment variable names cannot be empty or contain "=" or a null byte.',
             );
-        Expect::that(static fn(): EnvironmentVariableEquals => new EnvironmentVariableEquals($name, 'value'))
+        Expect::that(static fn(): EnvironmentVariableEquals => new EnvironmentVariableEquals($name, 'value')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('an equality condition MUST reject a name that getenv() cannot safely read')
             ->toThrow(
                 \InvalidArgumentException::class,

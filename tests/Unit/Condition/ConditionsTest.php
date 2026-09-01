@@ -22,6 +22,7 @@ final readonly class ConditionsTest
 {
     public function __construct(private EnvironmentVariables $environment) {}
 
+    /** @param non-empty-string $extension */
     #[Test]
     #[DataSet('extensionLoadedStates')]
     public function extensionLoadedChecksTheLoadedExtensionList(string $extension, bool $expected): void
@@ -40,6 +41,7 @@ final readonly class ConditionsTest
         yield 'missing extension' => ['greenlight_no_such_extension', false];
     }
 
+    /** @param non-empty-string $extension */
     #[Test]
     #[DataSet('extensionMissingStates')]
     public function extensionMissingIsTheInverseOfExtensionLoaded(string $extension, bool $expected): void
@@ -95,6 +97,7 @@ final readonly class ConditionsTest
             ->toBeFalse();
     }
 
+    /** @param non-empty-string $family */
     #[Test]
     #[DataSet('operatingSystemFamilies')]
     public function operatingSystemFamilyComparesCaseInsensitively(string $family, bool $expected): void
@@ -114,6 +117,7 @@ final readonly class ConditionsTest
         yield 'unknown family' => ['NotAnOperatingSystem', false];
     }
 
+    /** @param non-empty-string $version */
     #[Test]
     #[DataSet('minimumPhpVersions')]
     public function phpVersionAtLeastComparesAgainstTheRunningVersion(string $version, bool $expected): void
@@ -133,6 +137,7 @@ final readonly class ConditionsTest
         yield 'newer version' => ['99.0', false];
     }
 
+    /** @param non-empty-string $version */
     #[Test]
     #[DataSet('maximumPhpVersions')]
     public function phpVersionLessThanComparesAgainstTheRunningVersion(string $version, bool $expected): void
@@ -152,6 +157,7 @@ final readonly class ConditionsTest
         yield 'current version' => [\PHP_VERSION, false];
     }
 
+    /** @param non-empty-string $function */
     #[Test]
     #[DataSet('functionAvailability')]
     public function functionAvailableChecksCallableFunctions(string $function, bool $expected): void
@@ -170,6 +176,7 @@ final readonly class ConditionsTest
         yield 'missing function' => ['greenlight_no_such_function', false];
     }
 
+    /** @param non-empty-string $class */
     #[Test]
     #[DataSet('classAvailability')]
     public function classAvailableChecksAutoloadableClasses(string $class, bool $expected): void
@@ -191,7 +198,7 @@ final readonly class ConditionsTest
     #[Test]
     public function classAvailableRejectsAnEmptyClassName(): void
     {
-        Expect::that(static fn(): ClassAvailable => new ClassAvailable(''))
+        Expect::that(static fn(): ClassAvailable => new ClassAvailable('')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a class availability condition MUST identify the class')
             ->toThrow(
                 \InvalidArgumentException::class,

@@ -12,6 +12,8 @@ final readonly class PhpVersionAtLeast implements Condition
     private string $version;
 
     /**
+     * @param non-empty-string $version
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(string $version)
