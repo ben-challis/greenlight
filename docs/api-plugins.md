@@ -57,7 +57,7 @@ PHPDoc:
 - `@param \Closure(CommandInvocation): CommandResult $handler`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandDefinition.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandDefinition.php#L23)
 
 ## `CommandInvocation`
 
@@ -152,12 +152,21 @@ PHPDoc:
 Namespace: `Greenlight\Command`
 
 Contains the result that a Greenlight command returns.
+An interrupted result contains a signal number from 1 through 127.
 
 ```php
 final readonly class CommandResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L11)
+
+### `$interruptionSignal`
+
+```php
+public ?int $interruptionSignal
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L24)
 
 ### `success()`
 
@@ -165,7 +174,7 @@ final readonly class CommandResult
 public static function success(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L27)
 
 ### `failure()`
 
@@ -173,7 +182,7 @@ public static function success(): self
 public static function failure(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L32)
 
 ### `usage()`
 
@@ -181,7 +190,7 @@ public static function failure(): self
 public static function usage(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L37)
 
 ### `interrupted()`
 
@@ -189,7 +198,7 @@ public static function usage(): self
 public static function interrupted(int $signal): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L40)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L43)
 
 ### `isSuccessful()`
 
@@ -197,7 +206,7 @@ public static function interrupted(int $signal): self
 public function isSuccessful(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L49)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L52)
 
 ### `isUsageError()`
 
@@ -205,15 +214,15 @@ public function isSuccessful(): bool
 public function isUsageError(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L54)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L57)
 
-### `interruptionSignal()`
+### `isInterrupted()`
 
 ```php
-public function interruptionSignal(): ?int
+public function isInterrupted(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L59)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L66)
 
 ## `AfterTestSubscriber`
 

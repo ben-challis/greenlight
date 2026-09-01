@@ -6,6 +6,7 @@ namespace Greenlight\Command;
 
 /**
  * Contains the result that a Greenlight command returns.
+ * An interrupted result contains a signal number from 1 through 127.
  */
 final readonly class CommandResult
 {
@@ -17,9 +18,10 @@ final readonly class CommandResult
 
     private const string INTERRUPTED = 'interrupted';
 
+    /** @param int<1, 127>|null $interruptionSignal */
     private function __construct(
         private string $outcome,
-        private ?int $signal = null,
+        public ?int $interruptionSignal = null,
     ) {}
 
     public static function success(): self
@@ -37,6 +39,7 @@ final readonly class CommandResult
         return new self(self::USAGE_ERROR);
     }
 
+    /** @phpstan-assert int<1, 127> $signal */
     public static function interrupted(int $signal): self
     {
         if ($signal < 1 || $signal > 127) {
@@ -56,8 +59,12 @@ final readonly class CommandResult
         return $this->outcome === self::USAGE_ERROR;
     }
 
-    public function interruptionSignal(): ?int
+    /**
+     * @phpstan-assert-if-true int<1, 127> $this->interruptionSignal
+     * @phpstan-assert-if-false null $this->interruptionSignal
+     */
+    public function isInterrupted(): bool
     {
-        return $this->signal;
+        return $this->interruptionSignal !== null;
     }
 }

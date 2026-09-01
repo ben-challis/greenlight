@@ -17,12 +17,10 @@ final readonly class ExitCode
 
     public static function fromCommandResult(CommandResult $result): self
     {
-        $signal = $result->interruptionSignal();
-
         return new self(match (true) {
             $result->isSuccessful() => 0,
             $result->isUsageError() => 64,
-            $signal !== null => 128 + $signal,
+            $result->isInterrupted() => 128 + $result->interruptionSignal,
             default => 1,
         });
     }

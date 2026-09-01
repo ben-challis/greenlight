@@ -28,8 +28,13 @@ final readonly class CommandResultTest
     #[Test]
     public function containsAnInterruptionSignal(): void
     {
-        Expect::that(CommandResult::interrupted(\SIGTERM)->interruptionSignal())->toBe(\SIGTERM);
-        Expect::that(CommandResult::failure()->interruptionSignal())->toBeNull();
+        $interrupted = CommandResult::interrupted(\SIGTERM);
+        Expect::that($interrupted->isInterrupted())->toBeTrue();
+        Expect::that($interrupted->interruptionSignal)->toBe(\SIGTERM);
+
+        $failure = CommandResult::failure();
+        Expect::that($failure->isInterrupted())->toBeFalse();
+        Expect::that($failure->interruptionSignal)->toBeNull();
     }
 
     #[Test]

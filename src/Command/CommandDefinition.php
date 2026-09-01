@@ -15,6 +15,8 @@ final readonly class CommandDefinition
 
     /**
      * @param \Closure(CommandInvocation): CommandResult $handler
+     * @phpstan-assert non-empty-string $name
+     * @phpstan-assert non-empty-string $description
      *
      * @throws \InvalidArgumentException
      */
