@@ -30,7 +30,7 @@ interface AfterTestSubscriber extends Plugin
 ### `afterTest()`
 
 ```php
-public function afterTest(TestContext $context, TestResult $result): TestResult;
+public function afterTest(TestContext $context, \Greenlight\Result\TestResult $result): \Greenlight\Result\TestResult;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/AfterTestSubscriber.php#L23)
@@ -51,8 +51,8 @@ interface AttachmentRetentionDecider extends Plugin
 
 ```php
 public function retainAttachment(
-    TestResult $result,
-    Attachment $attachment,
+    \Greenlight\Result\TestResult $result,
+    \Greenlight\Artifact\Attachment $attachment,
     bool $retain,
 ): bool;
 ```
@@ -86,7 +86,7 @@ public function beforeTest(TestContext $context): void;
 
 PHPDoc:
 
-- `@throws SkipTest`
+- `@throws \Greenlight\Test\SkipTest`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/BeforeTestSubscriber.php#L24)
 
@@ -291,7 +291,7 @@ interface CoverageMapTransformer extends Plugin
 ### `transformCoverageMap()`
 
 ```php
-public function transformCoverageMap(CoverageMap $coverage): CoverageMap;
+public function transformCoverageMap(\Greenlight\Coverage\CoverageMap $coverage): \Greenlight\Coverage\CoverageMap;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CoverageMapTransformer.php#L12)
@@ -319,7 +319,7 @@ public function services(): array;
 
 PHPDoc:
 
-- `@return list<ServiceDefinition>`
+- `@return list<\Greenlight\Harness\ServiceDefinition>`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/HarnessProvider.php#L20)
 
@@ -343,7 +343,7 @@ public function integrationFixtures(): array;
 
 PHPDoc:
 
-- `@return list<IntegrationFixtureDefinition>`
+- `@return list<\Greenlight\IntegrationFixture\IntegrationFixtureDefinition>`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/IntegrationFixtureProvider.php#L17)
 
@@ -414,7 +414,7 @@ public function reporters(): array;
 
 PHPDoc:
 
-- `@return list<ReporterDefinition>`
+- `@return list<\Greenlight\Reporting\ReporterDefinition>`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/ReporterProvider.php#L23)
 
@@ -440,7 +440,7 @@ interface RetryDecider extends Plugin
 ### `shouldRetry()`
 
 ```php
-public function shouldRetry(RetryPolicy $policy, TestResult $result, int $attempt, ?\Throwable $cause): bool;
+public function shouldRetry(\Greenlight\Test\RetryPolicy $policy, \Greenlight\Result\TestResult $result, int $attempt, ?\Throwable $cause): bool;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RetryDecider.php#L22)
@@ -465,7 +465,7 @@ interface RunAcceptancePolicy extends Plugin
 ### `failureMessage()`
 
 ```php
-public function failureMessage(ResultSummary $summary, int $retriedPasses): ?string;
+public function failureMessage(\Greenlight\Result\ResultSummary $summary, int $retriedPasses): ?string;
 ```
 
 PHPDoc:
@@ -493,7 +493,7 @@ interface RunLifecycleSubscriber extends Plugin
 ### `onRunEvent()`
 
 ```php
-public function onRunEvent(Event $event): void;
+public function onRunEvent(\Greenlight\Event\Event $event): void;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunLifecycleSubscriber.php#L18)
@@ -523,7 +523,7 @@ interface TerminalResultTransformer extends Plugin
 ### `transformTerminalResult()`
 
 ```php
-public function transformTerminalResult(TestDefinition $definition, TestResult $result): TestResult;
+public function transformTerminalResult(\Greenlight\Test\TestDefinition $definition, \Greenlight\Result\TestResult $result): \Greenlight\Result\TestResult;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TerminalResultTransformer.php#L25)
@@ -571,7 +571,7 @@ final readonly class TestContext
 ### `$attachments`
 
 ```php
-public Attachments $attachments;
+public \Greenlight\Artifact\Attachments $attachments;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L23)
@@ -587,7 +587,7 @@ public object $instance
 ### `$id`
 
 ```php
-public TestId $id
+public \Greenlight\Test\TestId $id
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L28)
@@ -595,7 +595,7 @@ public TestId $id
 ### `$definition`
 
 ```php
-public TestDefinition $definition
+public \Greenlight\Test\TestDefinition $definition
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L29)
@@ -611,7 +611,7 @@ PHPDoc:
 - `@template T of object`
 - `@param class-string<T> $type`
 - `@return T`
-- `@throws ServiceResolutionFailed when a service resolver cannot supply a valid service`
+- `@throws \Greenlight\Harness\ServiceResolutionFailed when a service resolver cannot supply a valid service`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L45)
 
@@ -627,7 +627,7 @@ public function skip(string $reason): never
 PHPDoc:
 
 - `@param non-empty-string $reason`
-- `@throws SkipTest`
+- `@throws \Greenlight\Test\SkipTest`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L64)
 
@@ -661,7 +661,7 @@ public function withTests(array $tests): self
 
 PHPDoc:
 
-- `@param list<TestId> $tests`
+- `@param list<\Greenlight\Test\TestId> $tests`
 - `@throws \InvalidArgumentException`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlan.php#L58)
@@ -733,7 +733,7 @@ public string $workerId
 ### `$channel`
 
 ```php
-public TestChannel $channel
+public \Greenlight\Test\TestChannel $channel
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WorkerBootstrapContext.php#L20)
@@ -741,7 +741,7 @@ public TestChannel $channel
 ### `$resources`
 
 ```php
-public IntegrationResources $resources
+public \Greenlight\IntegrationFixture\IntegrationResources $resources
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WorkerBootstrapContext.php#L21)
@@ -751,8 +751,8 @@ public IntegrationResources $resources
 ```php
 public function __construct(
     public string $workerId,
-    public TestChannel $channel,
-    public IntegrationResources $resources,
+    public \Greenlight\Test\TestChannel $channel,
+    public \Greenlight\IntegrationFixture\IntegrationResources $resources,
 )
 ```
 

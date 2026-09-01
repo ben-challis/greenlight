@@ -464,7 +464,7 @@ public function plugins(\Closure ...$plugins): self
 
 PHPDoc:
 
-- `@param \Closure(): Plugin ...$plugins`
+- `@param \Closure(): \Greenlight\Plugin\Plugin ...$plugins`
 - `@throws InvalidConfiguration`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L365)

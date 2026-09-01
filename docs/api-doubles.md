@@ -263,7 +263,7 @@ the same format as an `Expect` failure.
 not run. `Doubles` does not support partial mocks or static interception.
 
 ```php
-final class Doubles implements Disposable
+final class Doubles implements \Greenlight\Harness\Disposable
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L26)
@@ -366,7 +366,7 @@ public function dispose(): void
 
 PHPDoc:
 
-- `@throws ExpectationFailed`
+- `@throws \Greenlight\Expect\ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L161)
 

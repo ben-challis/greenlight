@@ -52,7 +52,7 @@ interface Reporter
 ### `onEvent()`
 
 ```php
-public function onEvent(Event $event): void;
+public function onEvent(\Greenlight\Event\Event $event): void;
 ```
 
 PHPDoc:

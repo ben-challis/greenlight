@@ -323,15 +323,17 @@ function parseTypeDeclaration(source, file, tokens, namespace, declarationIndex,
   const typeDoc = [...declarationTokens].reverse().find((token) => token.kind === 'doc');
   const signatureStart = firstSignatureToken(declarationTokens);
   const signature = source.slice(signatureStart.start, tokens[openIndex].start).trim();
+  const imports = importedTypes(source.slice(0, tokens[declarationIndex].start));
+  const declaringContext = { namespace, imports };
   const members = parseMembers(source, tokens, openIndex, closeIndex, kind)
-    .map((member) => ({ ...member, file }));
+    .map((member) => ({ ...member, file, declaringContext }));
   const shortName = nameToken.value;
 
   return {
     name: namespace === '' ? shortName : `${namespace}\\${shortName}`,
     shortName,
     namespace,
-    imports: importedTypes(source.slice(0, tokens[declarationIndex].start)),
+    imports,
     kind,
     file,
     line: lineAt(source, tokens[declarationIndex].start),
@@ -386,15 +388,11 @@ function referencedType(owner, reference, typesByName) {
     return undefined;
   }
 
-  const normalized = reference.replace(/^\\/u, '');
-  const namespace = owner.name.slice(0, owner.name.lastIndexOf('\\'));
-  const name = normalized.includes('\\') ? normalized : `${namespace}\\${normalized}`;
-
-  return typesByName.get(name);
+  return typesByName.get(resolveTypeName(reference, owner));
 }
 
 function projectMixinMember(member, mixin) {
-  const replaceSelf = (value) => value.replace(/\bself\b/gu, mixin.shortName);
+  const replaceSelf = (value) => value.replace(/\bself\b/gu, `\\${mixin.name}`);
 
   return {
     ...member,
@@ -524,6 +522,217 @@ function resolveTypeName(identifier, type) {
   }
 
   return type.namespace === '' ? identifier : `${type.namespace}\\${identifier}`;
+}
+
+function qualifySignature(signature, declaringContext, displayedNamespace, additionalExcludedStarts = new Set()) {
+  const tokens = tokenize(signature);
+  const excludedStarts = new Set(additionalExcludedStarts);
+
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+
+    if (
+      ['class', 'interface', 'enum', 'trait', 'case'].includes(token.value)
+      && tokens[index - 1]?.value !== '::'
+      && tokens[index + 1]?.kind === 'word'
+    ) {
+      excludedStarts.add(tokens[index + 1].start);
+    }
+
+    if (token.value === 'function') {
+      const openIndex = tokens.findIndex((candidate, candidateIndex) => (
+        candidateIndex > index && candidate.value === '('
+      ));
+      const name = tokens.slice(index + 1, openIndex === -1 ? undefined : openIndex)
+        .findLast((candidate) => candidate.kind === 'word');
+
+      if (name !== undefined) {
+        excludedStarts.add(name.start);
+      }
+    }
+
+    if (token.value === 'const') {
+      const boundary = tokens.findIndex((candidate, candidateIndex) => (
+        candidateIndex > index && ['=', ';'].includes(candidate.value)
+      ));
+      const declaration = tokens.slice(index + 1, boundary === -1 ? undefined : boundary);
+      const name = declaration.findLast((candidate) => candidate.kind === 'word');
+
+      if (name !== undefined) {
+        excludedStarts.add(name.start);
+      }
+    }
+  }
+
+  const replacements = [];
+
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+
+    if (token.kind !== 'word') {
+      continue;
+    }
+
+    let endIndex = index;
+
+    while (tokens[endIndex + 1]?.value === '\\' && tokens[endIndex + 2]?.kind === 'word') {
+      endIndex += 2;
+    }
+
+    const previous = tokens[index - 1];
+    const next = tokens[endIndex + 1];
+
+    if (
+      previous?.value !== '\\'
+      && !['::', '->', '?->'].includes(previous?.value)
+      && next?.value !== ':'
+      && !excludedStarts.has(token.start)
+    ) {
+      const end = tokens[endIndex].end;
+      const identifier = signature.slice(token.start, end);
+      const qualified = qualifiedTypeReference(identifier, declaringContext, displayedNamespace);
+
+      if (qualified !== undefined && qualified !== identifier) {
+        replacements.push({ start: token.start, end, value: qualified });
+      }
+    }
+
+    index = endIndex;
+  }
+
+  let qualified = signature;
+
+  for (const replacement of replacements.reverse()) {
+    qualified = `${qualified.slice(0, replacement.start)}${replacement.value}${qualified.slice(replacement.end)}`;
+  }
+
+  return qualified;
+}
+
+function qualifiedTypeReference(identifier, declaringContext, displayedNamespace) {
+  const [first] = identifier.split('\\');
+  const imported = declaringContext.imports.get(first);
+  const resolved = resolveTypeName(identifier, declaringContext);
+
+  if (imported === undefined && !typesByName.has(resolved) && !identifier.startsWith('Greenlight\\')) {
+    return undefined;
+  }
+
+  if (
+    imported === undefined
+    && !identifier.includes('\\')
+    && declaringContext.namespace === displayedNamespace
+  ) {
+    return identifier;
+  }
+
+  return `\\${resolved}`;
+}
+
+function qualifyTypeExpression(expression, declaringContext, displayedNamespace) {
+  return qualifySignature(expression, declaringContext, displayedNamespace);
+}
+
+function qualifyDocTag(tag, declaringContext, displayedNamespace) {
+  const parameterTag = tag.match(/^(@(?:param|property(?:-read|-write)?|var)\s+)([\s\S]+)$/u);
+
+  if (parameterTag !== null) {
+    const variable = parameterTag[2].match(/\$[A-Za-z_][A-Za-z0-9_]*/u);
+
+    if (variable !== null) {
+      const type = parameterTag[2].slice(0, variable.index);
+
+      return `${parameterTag[1]}${qualifyTypeExpression(type, declaringContext, displayedNamespace)}${parameterTag[2].slice(variable.index)}`;
+    }
+  }
+
+  const templateTag = tag.match(/^(@template(?:-covariant|-contravariant)?\s+\S+\s+(?:of|as)\s+)([\s\S]+)$/u);
+
+  if (templateTag !== null) {
+    const end = phpDocTypeEnd(templateTag[2]);
+
+    return `${templateTag[1]}${qualifyTypeExpression(templateTag[2].slice(0, end), declaringContext, displayedNamespace)}${templateTag[2].slice(end)}`;
+  }
+
+  const methodTag = tag.match(/^(@method\s+)([\s\S]+)$/u);
+
+  if (methodTag !== null) {
+    const end = phpDocMethodEnd(methodTag[2]);
+    const declaration = methodTag[2].slice(0, end);
+    const declarationTokens = tokenize(declaration);
+    const openIndex = declarationTokens.findIndex((token) => token.value === '(');
+    const methodName = declarationTokens.slice(0, openIndex).findLast((token) => token.kind === 'word');
+    const excluded = methodName === undefined ? new Set() : new Set([methodName.start]);
+
+    return `${methodTag[1]}${qualifySignature(declaration, declaringContext, displayedNamespace, excluded)}${methodTag[2].slice(end)}`;
+  }
+
+  const leadingTypeTag = tag.match(/^(@(?:extends|implements|mixin|return|throws|use|var)\s+)([\s\S]+)$/u);
+
+  if (leadingTypeTag === null) {
+    return tag;
+  }
+
+  const end = phpDocTypeEnd(leadingTypeTag[2]);
+
+  return `${leadingTypeTag[1]}${qualifyTypeExpression(leadingTypeTag[2].slice(0, end), declaringContext, displayedNamespace)}${leadingTypeTag[2].slice(end)}`;
+}
+
+function phpDocTypeEnd(value) {
+  const open = new Set(['(', '[', '{', '<']);
+  const close = new Set([')', ']', '}', '>']);
+  let depth = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index];
+
+    if (open.has(character)) {
+      depth += 1;
+      continue;
+    }
+
+    if (close.has(character)) {
+      depth -= 1;
+      continue;
+    }
+
+    if (depth !== 0 || !/\s/u.test(character)) {
+      continue;
+    }
+
+    const previous = value.slice(0, index).trimEnd().at(-1);
+    const next = value.slice(index).trimStart()[0];
+
+    if (!'|&?:='.includes(previous) && !'|&?:='.includes(next)) {
+      return index;
+    }
+  }
+
+  return value.length;
+}
+
+function phpDocMethodEnd(value) {
+  const open = value.indexOf('(');
+
+  if (open === -1) {
+    return phpDocTypeEnd(value);
+  }
+
+  let depth = 0;
+
+  for (let index = open; index < value.length; index += 1) {
+    if (value[index] === '(') {
+      depth += 1;
+    } else if (value[index] === ')') {
+      depth -= 1;
+
+      if (depth === 0) {
+        return index + 1;
+      }
+    }
+  }
+
+  return value.length;
 }
 
 function namespaceName(tokens) {
@@ -1062,7 +1271,7 @@ function renderSection(section, types) {
 
     lines.push(
       '```php',
-      publicTypeSignature(type),
+      qualifySignature(publicTypeSignature(type), type, type.namespace),
       '```',
       '',
       `[View source](https://github.com/ben-challis/greenlight/blob/main/${type.file}#L${type.line})`,
@@ -1072,7 +1281,12 @@ function renderSection(section, types) {
     const typeTags = publicTypeTags(type);
 
     if (typeTags.length > 0) {
-      lines.push('PHPDoc:', '', ...typeTags.map((tag) => `- \`${escapeBackticks(tag)}\``), '');
+      lines.push(
+        'PHPDoc:',
+        '',
+        ...typeTags.map((tag) => `- \`${escapeBackticks(qualifyDocTag(tag, type, type.namespace))}\``),
+        '',
+      );
     }
 
     if (type.members.length === 0) {
@@ -1087,10 +1301,22 @@ function renderSection(section, types) {
         lines.push(member.doc.description, '');
       }
 
-      lines.push('```php', member.signature, '```', '');
+      lines.push(
+        '```php',
+        qualifySignature(member.signature, member.declaringContext, type.namespace),
+        '```',
+        '',
+      );
 
       if (member.doc.tags.length > 0) {
-        lines.push('PHPDoc:', '', ...member.doc.tags.map((tag) => `- \`${escapeBackticks(tag)}\``), '');
+        lines.push(
+          'PHPDoc:',
+          '',
+          ...member.doc.tags.map((tag) => (
+            `- \`${escapeBackticks(qualifyDocTag(tag, member.declaringContext, type.namespace))}\``
+          )),
+          '',
+        );
       }
 
       lines.push(

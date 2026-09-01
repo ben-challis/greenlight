@@ -74,12 +74,12 @@ PHPDoc:
 Passes when the subject and expected value are identical (===).
 
 ```php
-public function toBe(mixed $expected): Expectation
+public function toBe(mixed $expected): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L140)
@@ -90,12 +90,12 @@ Passes when the subject and expected value satisfy the rules for deep
 equality on this class.
 
 ```php
-public function toEqual(mixed $expected): Expectation
+public function toEqual(mixed $expected): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L157)
@@ -106,12 +106,12 @@ Uses the `toEqual()` rules but ignores list-element order at all levels.
 Associative arrays keep their keys.
 
 ```php
-public function toEqualCanonicalizing(mixed $expected): Expectation
+public function toEqualCanonicalizing(mixed $expected): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L174)
@@ -121,12 +121,12 @@ PHPDoc:
 Passes when the subject is identical (===) to one of the options.
 
 ```php
-public function toBeOneOf(mixed ...$options): Expectation
+public function toBeOneOf(mixed ...$options): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L190)
@@ -138,13 +138,13 @@ matcher is the reverse of `toContain()`. The check consumes a `Traversable`
 haystack.
 
 ```php
-public function toBeIn(iterable $haystack): Expectation
+public function toBeIn(iterable $haystack): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
 - `@param iterable<mixed> $haystack`
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L210)
@@ -152,13 +152,13 @@ PHPDoc:
 ### `toBeInstanceOf()`
 
 ```php
-public function toBeInstanceOf(string $class): Expectation
+public function toBeInstanceOf(string $class): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
 - `@param class-string $class`
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L228)
@@ -166,12 +166,12 @@ PHPDoc:
 ### `toBeTrue()`
 
 ```php
-public function toBeTrue(): Expectation
+public function toBeTrue(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L242)
@@ -179,12 +179,12 @@ PHPDoc:
 ### `toBeFalse()`
 
 ```php
-public function toBeFalse(): Expectation
+public function toBeFalse(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L252)
@@ -192,12 +192,12 @@ PHPDoc:
 ### `toBeNull()`
 
 ```php
-public function toBeNull(): Expectation
+public function toBeNull(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L262)
@@ -205,12 +205,12 @@ PHPDoc:
 ### `toBeArray()`
 
 ```php
-public function toBeArray(): Expectation
+public function toBeArray(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L272)
@@ -218,12 +218,12 @@ PHPDoc:
 ### `toBeString()`
 
 ```php
-public function toBeString(): Expectation
+public function toBeString(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L287)
@@ -231,12 +231,12 @@ PHPDoc:
 ### `toBeInt()`
 
 ```php
-public function toBeInt(): Expectation
+public function toBeInt(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L302)
@@ -244,12 +244,12 @@ PHPDoc:
 ### `toBeFloat()`
 
 ```php
-public function toBeFloat(): Expectation
+public function toBeFloat(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L317)
@@ -257,12 +257,12 @@ PHPDoc:
 ### `toBeBool()`
 
 ```php
-public function toBeBool(): Expectation
+public function toBeBool(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L332)
@@ -270,12 +270,12 @@ PHPDoc:
 ### `toBeCallable()`
 
 ```php
-public function toBeCallable(): Expectation
+public function toBeCallable(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L347)
@@ -283,12 +283,12 @@ PHPDoc:
 ### `toBeIterable()`
 
 ```php
-public function toBeIterable(): Expectation
+public function toBeIterable(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L362)
@@ -300,12 +300,12 @@ subject, checks for the value by identity (===). The check consumes a
 `Traversable` subject.
 
 ```php
-public function toContain(mixed $needle): Expectation
+public function toContain(mixed $needle): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L381)
@@ -316,12 +316,12 @@ The subject must be `Countable` or `Traversable`. The count consumes a
 `Traversable` subject.
 
 ```php
-public function toHaveCount(int $count): Expectation
+public function toHaveCount(int $count): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L430)
@@ -333,12 +333,12 @@ The subject must be a string, array, `Countable`, or iterable. The check
 consumes a `Traversable` subject.
 
 ```php
-public function toBeEmpty(): Expectation
+public function toBeEmpty(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L460)
@@ -350,12 +350,12 @@ strings, measures the number of bytes. Array and `Countable` subjects use
 `count()`.
 
 ```php
-public function toHaveLength(int $length): Expectation
+public function toHaveLength(int $length): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L487)
@@ -367,12 +367,12 @@ matcher uses `array_key_exists()` for arrays and `offsetExists()` for
 `ArrayAccess`.
 
 ```php
-public function toHaveKey(int|string $key): Expectation
+public function toHaveKey(int|string $key): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L518)
@@ -385,13 +385,13 @@ related nested subject array can contain extra keys. The failure
 identifies the first different key by its dot-separated path.
 
 ```php
-public function toContainSubset(array $subset): Expectation
+public function toContainSubset(array $subset): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
 - `@param array<array-key, mixed> $subset`
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L550)
@@ -399,12 +399,12 @@ PHPDoc:
 ### `toBeGreaterThan()`
 
 ```php
-public function toBeGreaterThan(int|float $bound): Expectation
+public function toBeGreaterThan(int|float $bound): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L580)
@@ -412,12 +412,12 @@ PHPDoc:
 ### `toBeGreaterThanOrEqual()`
 
 ```php
-public function toBeGreaterThanOrEqual(int|float $bound): Expectation
+public function toBeGreaterThanOrEqual(int|float $bound): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L594)
@@ -425,12 +425,12 @@ PHPDoc:
 ### `toBeLessThan()`
 
 ```php
-public function toBeLessThan(int|float $bound): Expectation
+public function toBeLessThan(int|float $bound): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L608)
@@ -438,12 +438,12 @@ PHPDoc:
 ### `toBeLessThanOrEqual()`
 
 ```php
-public function toBeLessThanOrEqual(int|float $bound): Expectation
+public function toBeLessThanOrEqual(int|float $bound): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L622)
@@ -454,12 +454,12 @@ Passes when the absolute difference between the numeric subject and
 `$of` is not more than `$delta`. Use a finite tolerance of zero or more.
 
 ```php
-public function toBeWithin(float $delta, float $of): Expectation
+public function toBeWithin(float $delta, float $of): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L639)
@@ -467,12 +467,12 @@ PHPDoc:
 ### `toMatch()`
 
 ```php
-public function toMatch(string $pattern): Expectation
+public function toMatch(string $pattern): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws \InvalidArgumentException when the pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
@@ -481,12 +481,12 @@ PHPDoc:
 ### `toStartWith()`
 
 ```php
-public function toStartWith(string $prefix): Expectation
+public function toStartWith(string $prefix): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L682)
@@ -494,12 +494,12 @@ PHPDoc:
 ### `toEndWith()`
 
 ```php
-public function toEndWith(string $suffix): Expectation
+public function toEndWith(string $suffix): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L696)
@@ -510,12 +510,12 @@ The subject must be a string. The matcher passes when the string
 contains valid JSON.
 
 ```php
-public function toBeJson(): Expectation
+public function toBeJson(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L713)
@@ -528,12 +528,12 @@ the results. Object-key order has no effect. Invalid subject JSON causes
 an expectation failure. Invalid expected JSON causes a usage error.
 
 ```php
-public function toMatchJson(string $expected): Expectation
+public function toMatchJson(string $expected): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L732)
@@ -564,14 +564,14 @@ public function toThrow(
     string|\Closure|\Throwable $throwable,
     ?string $matching = null,
     ?string $message = null,
-): Expectation
+): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
 - `@template TThrowable of \Throwable`
 - `@param class-string<TThrowable>|TThrowable|\Closure(TThrowable): void $throwable`
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws \InvalidArgumentException when the match pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
@@ -645,12 +645,12 @@ PHPDoc:
 Passes when the subject and expected value are identical (===).
 
 ```php
-public function toBe(mixed $expected): Expectation
+public function toBe(mixed $expected): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L140)
@@ -661,12 +661,12 @@ Passes when the subject and expected value satisfy the rules for deep
 equality on this class.
 
 ```php
-public function toEqual(mixed $expected): Expectation
+public function toEqual(mixed $expected): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L157)
@@ -677,12 +677,12 @@ Uses the `toEqual()` rules but ignores list-element order at all levels.
 Associative arrays keep their keys.
 
 ```php
-public function toEqualCanonicalizing(mixed $expected): Expectation
+public function toEqualCanonicalizing(mixed $expected): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L174)
@@ -692,12 +692,12 @@ PHPDoc:
 Passes when the subject is identical (===) to one of the options.
 
 ```php
-public function toBeOneOf(mixed ...$options): Expectation
+public function toBeOneOf(mixed ...$options): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L190)
@@ -709,13 +709,13 @@ matcher is the reverse of `toContain()`. The check consumes a `Traversable`
 haystack.
 
 ```php
-public function toBeIn(iterable $haystack): Expectation
+public function toBeIn(iterable $haystack): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
 - `@param iterable<mixed> $haystack`
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L210)
@@ -723,13 +723,13 @@ PHPDoc:
 ### `toBeInstanceOf()`
 
 ```php
-public function toBeInstanceOf(string $class): Expectation
+public function toBeInstanceOf(string $class): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
 - `@param class-string $class`
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L228)
@@ -737,12 +737,12 @@ PHPDoc:
 ### `toBeTrue()`
 
 ```php
-public function toBeTrue(): Expectation
+public function toBeTrue(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L242)
@@ -750,12 +750,12 @@ PHPDoc:
 ### `toBeFalse()`
 
 ```php
-public function toBeFalse(): Expectation
+public function toBeFalse(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L252)
@@ -763,12 +763,12 @@ PHPDoc:
 ### `toBeNull()`
 
 ```php
-public function toBeNull(): Expectation
+public function toBeNull(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L262)
@@ -776,12 +776,12 @@ PHPDoc:
 ### `toBeArray()`
 
 ```php
-public function toBeArray(): Expectation
+public function toBeArray(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L272)
@@ -789,12 +789,12 @@ PHPDoc:
 ### `toBeString()`
 
 ```php
-public function toBeString(): Expectation
+public function toBeString(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L287)
@@ -802,12 +802,12 @@ PHPDoc:
 ### `toBeInt()`
 
 ```php
-public function toBeInt(): Expectation
+public function toBeInt(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L302)
@@ -815,12 +815,12 @@ PHPDoc:
 ### `toBeFloat()`
 
 ```php
-public function toBeFloat(): Expectation
+public function toBeFloat(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L317)
@@ -828,12 +828,12 @@ PHPDoc:
 ### `toBeBool()`
 
 ```php
-public function toBeBool(): Expectation
+public function toBeBool(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L332)
@@ -841,12 +841,12 @@ PHPDoc:
 ### `toBeCallable()`
 
 ```php
-public function toBeCallable(): Expectation
+public function toBeCallable(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L347)
@@ -854,12 +854,12 @@ PHPDoc:
 ### `toBeIterable()`
 
 ```php
-public function toBeIterable(): Expectation
+public function toBeIterable(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L362)
@@ -871,12 +871,12 @@ subject, checks for the value by identity (===). The check consumes a
 `Traversable` subject.
 
 ```php
-public function toContain(mixed $needle): Expectation
+public function toContain(mixed $needle): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L381)
@@ -887,12 +887,12 @@ The subject must be `Countable` or `Traversable`. The count consumes a
 `Traversable` subject.
 
 ```php
-public function toHaveCount(int $count): Expectation
+public function toHaveCount(int $count): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L430)
@@ -904,12 +904,12 @@ The subject must be a string, array, `Countable`, or iterable. The check
 consumes a `Traversable` subject.
 
 ```php
-public function toBeEmpty(): Expectation
+public function toBeEmpty(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L460)
@@ -921,12 +921,12 @@ strings, measures the number of bytes. Array and `Countable` subjects use
 `count()`.
 
 ```php
-public function toHaveLength(int $length): Expectation
+public function toHaveLength(int $length): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L487)
@@ -938,12 +938,12 @@ matcher uses `array_key_exists()` for arrays and `offsetExists()` for
 `ArrayAccess`.
 
 ```php
-public function toHaveKey(int|string $key): Expectation
+public function toHaveKey(int|string $key): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L518)
@@ -956,13 +956,13 @@ related nested subject array can contain extra keys. The failure
 identifies the first different key by its dot-separated path.
 
 ```php
-public function toContainSubset(array $subset): Expectation
+public function toContainSubset(array $subset): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
 - `@param array<array-key, mixed> $subset`
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L550)
@@ -970,12 +970,12 @@ PHPDoc:
 ### `toBeGreaterThan()`
 
 ```php
-public function toBeGreaterThan(int|float $bound): Expectation
+public function toBeGreaterThan(int|float $bound): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L580)
@@ -983,12 +983,12 @@ PHPDoc:
 ### `toBeGreaterThanOrEqual()`
 
 ```php
-public function toBeGreaterThanOrEqual(int|float $bound): Expectation
+public function toBeGreaterThanOrEqual(int|float $bound): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L594)
@@ -996,12 +996,12 @@ PHPDoc:
 ### `toBeLessThan()`
 
 ```php
-public function toBeLessThan(int|float $bound): Expectation
+public function toBeLessThan(int|float $bound): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L608)
@@ -1009,12 +1009,12 @@ PHPDoc:
 ### `toBeLessThanOrEqual()`
 
 ```php
-public function toBeLessThanOrEqual(int|float $bound): Expectation
+public function toBeLessThanOrEqual(int|float $bound): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L622)
@@ -1025,12 +1025,12 @@ Passes when the absolute difference between the numeric subject and
 `$of` is not more than `$delta`. Use a finite tolerance of zero or more.
 
 ```php
-public function toBeWithin(float $delta, float $of): Expectation
+public function toBeWithin(float $delta, float $of): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L639)
@@ -1038,12 +1038,12 @@ PHPDoc:
 ### `toMatch()`
 
 ```php
-public function toMatch(string $pattern): Expectation
+public function toMatch(string $pattern): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws \InvalidArgumentException when the pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
@@ -1052,12 +1052,12 @@ PHPDoc:
 ### `toStartWith()`
 
 ```php
-public function toStartWith(string $prefix): Expectation
+public function toStartWith(string $prefix): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L682)
@@ -1065,12 +1065,12 @@ PHPDoc:
 ### `toEndWith()`
 
 ```php
-public function toEndWith(string $suffix): Expectation
+public function toEndWith(string $suffix): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L696)
@@ -1081,12 +1081,12 @@ The subject must be a string. The matcher passes when the string
 contains valid JSON.
 
 ```php
-public function toBeJson(): Expectation
+public function toBeJson(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L713)
@@ -1099,12 +1099,12 @@ the results. Object-key order has no effect. Invalid subject JSON causes
 an expectation failure. Invalid expected JSON causes a usage error.
 
 ```php
-public function toMatchJson(string $expected): Expectation
+public function toMatchJson(string $expected): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L732)
@@ -1135,14 +1135,14 @@ public function toThrow(
     string|\Closure|\Throwable $throwable,
     ?string $matching = null,
     ?string $message = null,
-): Expectation
+): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
 - `@template TThrowable of \Throwable`
 - `@param class-string<TThrowable>|TThrowable|\Closure(TThrowable): void $throwable`
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws \InvalidArgumentException when the match pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
@@ -1820,7 +1820,7 @@ Namespace: `Greenlight\Expect`
 Supplies extension matchers through `Expectation::__call()`.
 
 ```php
-interface ExpectationExtension extends Plugin
+interface ExpectationExtension extends \Greenlight\Plugin\Plugin
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ExpectationExtension.php#L10)
@@ -1872,7 +1872,7 @@ public readonly array $details
 ### `fromDetail()`
 
 ```php
-public static function fromDetail(FailureDetail $detail): self
+public static function fromDetail(\Greenlight\Result\FailureDetail $detail): self
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ExpectationFailed.php#L30)
@@ -1885,7 +1885,7 @@ public static function fromDetails(array $details): self
 
 PHPDoc:
 
-- `@param non-empty-list<FailureDetail> $details`
+- `@param non-empty-list<\Greenlight\Result\FailureDetail> $details`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ExpectationFailed.php#L38)
 
@@ -1895,7 +1895,7 @@ Returns the first failure. In the default mode, this is the only
 failure.
 
 ```php
-public function detail(): FailureDetail
+public function detail(): \Greenlight\Result\FailureDetail
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ExpectationFailed.php#L64)
@@ -2085,12 +2085,12 @@ PHPDoc:
 Passes when the subject and expected value are identical (===).
 
 ```php
-public function toBe(mixed $expected): Expectation
+public function toBe(mixed $expected): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L140)
@@ -2101,12 +2101,12 @@ Passes when the subject and expected value satisfy the rules for deep
 equality on this class.
 
 ```php
-public function toEqual(mixed $expected): Expectation
+public function toEqual(mixed $expected): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L157)
@@ -2117,12 +2117,12 @@ Uses the `toEqual()` rules but ignores list-element order at all levels.
 Associative arrays keep their keys.
 
 ```php
-public function toEqualCanonicalizing(mixed $expected): Expectation
+public function toEqualCanonicalizing(mixed $expected): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L174)
@@ -2132,12 +2132,12 @@ PHPDoc:
 Passes when the subject is identical (===) to one of the options.
 
 ```php
-public function toBeOneOf(mixed ...$options): Expectation
+public function toBeOneOf(mixed ...$options): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L190)
@@ -2149,13 +2149,13 @@ matcher is the reverse of `toContain()`. The check consumes a `Traversable`
 haystack.
 
 ```php
-public function toBeIn(iterable $haystack): Expectation
+public function toBeIn(iterable $haystack): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
 - `@param iterable<mixed> $haystack`
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L210)
@@ -2163,13 +2163,13 @@ PHPDoc:
 ### `toBeInstanceOf()`
 
 ```php
-public function toBeInstanceOf(string $class): Expectation
+public function toBeInstanceOf(string $class): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
 - `@param class-string $class`
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L228)
@@ -2177,12 +2177,12 @@ PHPDoc:
 ### `toBeTrue()`
 
 ```php
-public function toBeTrue(): Expectation
+public function toBeTrue(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L242)
@@ -2190,12 +2190,12 @@ PHPDoc:
 ### `toBeFalse()`
 
 ```php
-public function toBeFalse(): Expectation
+public function toBeFalse(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L252)
@@ -2203,12 +2203,12 @@ PHPDoc:
 ### `toBeNull()`
 
 ```php
-public function toBeNull(): Expectation
+public function toBeNull(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L262)
@@ -2216,12 +2216,12 @@ PHPDoc:
 ### `toBeArray()`
 
 ```php
-public function toBeArray(): Expectation
+public function toBeArray(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L272)
@@ -2229,12 +2229,12 @@ PHPDoc:
 ### `toBeString()`
 
 ```php
-public function toBeString(): Expectation
+public function toBeString(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L287)
@@ -2242,12 +2242,12 @@ PHPDoc:
 ### `toBeInt()`
 
 ```php
-public function toBeInt(): Expectation
+public function toBeInt(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L302)
@@ -2255,12 +2255,12 @@ PHPDoc:
 ### `toBeFloat()`
 
 ```php
-public function toBeFloat(): Expectation
+public function toBeFloat(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L317)
@@ -2268,12 +2268,12 @@ PHPDoc:
 ### `toBeBool()`
 
 ```php
-public function toBeBool(): Expectation
+public function toBeBool(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L332)
@@ -2281,12 +2281,12 @@ PHPDoc:
 ### `toBeCallable()`
 
 ```php
-public function toBeCallable(): Expectation
+public function toBeCallable(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L347)
@@ -2294,12 +2294,12 @@ PHPDoc:
 ### `toBeIterable()`
 
 ```php
-public function toBeIterable(): Expectation
+public function toBeIterable(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L362)
@@ -2311,12 +2311,12 @@ subject, checks for the value by identity (===). The check consumes a
 `Traversable` subject.
 
 ```php
-public function toContain(mixed $needle): Expectation
+public function toContain(mixed $needle): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L381)
@@ -2327,12 +2327,12 @@ The subject must be `Countable` or `Traversable`. The count consumes a
 `Traversable` subject.
 
 ```php
-public function toHaveCount(int $count): Expectation
+public function toHaveCount(int $count): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L430)
@@ -2344,12 +2344,12 @@ The subject must be a string, array, `Countable`, or iterable. The check
 consumes a `Traversable` subject.
 
 ```php
-public function toBeEmpty(): Expectation
+public function toBeEmpty(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L460)
@@ -2361,12 +2361,12 @@ strings, measures the number of bytes. Array and `Countable` subjects use
 `count()`.
 
 ```php
-public function toHaveLength(int $length): Expectation
+public function toHaveLength(int $length): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L487)
@@ -2378,12 +2378,12 @@ matcher uses `array_key_exists()` for arrays and `offsetExists()` for
 `ArrayAccess`.
 
 ```php
-public function toHaveKey(int|string $key): Expectation
+public function toHaveKey(int|string $key): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L518)
@@ -2396,13 +2396,13 @@ related nested subject array can contain extra keys. The failure
 identifies the first different key by its dot-separated path.
 
 ```php
-public function toContainSubset(array $subset): Expectation
+public function toContainSubset(array $subset): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
 - `@param array<array-key, mixed> $subset`
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L550)
@@ -2410,12 +2410,12 @@ PHPDoc:
 ### `toBeGreaterThan()`
 
 ```php
-public function toBeGreaterThan(int|float $bound): Expectation
+public function toBeGreaterThan(int|float $bound): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L580)
@@ -2423,12 +2423,12 @@ PHPDoc:
 ### `toBeGreaterThanOrEqual()`
 
 ```php
-public function toBeGreaterThanOrEqual(int|float $bound): Expectation
+public function toBeGreaterThanOrEqual(int|float $bound): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L594)
@@ -2436,12 +2436,12 @@ PHPDoc:
 ### `toBeLessThan()`
 
 ```php
-public function toBeLessThan(int|float $bound): Expectation
+public function toBeLessThan(int|float $bound): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L608)
@@ -2449,12 +2449,12 @@ PHPDoc:
 ### `toBeLessThanOrEqual()`
 
 ```php
-public function toBeLessThanOrEqual(int|float $bound): Expectation
+public function toBeLessThanOrEqual(int|float $bound): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L622)
@@ -2465,12 +2465,12 @@ Passes when the absolute difference between the numeric subject and
 `$of` is not more than `$delta`. Use a finite tolerance of zero or more.
 
 ```php
-public function toBeWithin(float $delta, float $of): Expectation
+public function toBeWithin(float $delta, float $of): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L639)
@@ -2478,12 +2478,12 @@ PHPDoc:
 ### `toMatch()`
 
 ```php
-public function toMatch(string $pattern): Expectation
+public function toMatch(string $pattern): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws \InvalidArgumentException when the pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
@@ -2492,12 +2492,12 @@ PHPDoc:
 ### `toStartWith()`
 
 ```php
-public function toStartWith(string $prefix): Expectation
+public function toStartWith(string $prefix): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L682)
@@ -2505,12 +2505,12 @@ PHPDoc:
 ### `toEndWith()`
 
 ```php
-public function toEndWith(string $suffix): Expectation
+public function toEndWith(string $suffix): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L696)
@@ -2521,12 +2521,12 @@ The subject must be a string. The matcher passes when the string
 contains valid JSON.
 
 ```php
-public function toBeJson(): Expectation
+public function toBeJson(): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L713)
@@ -2539,12 +2539,12 @@ the results. Object-key order has no effect. Invalid subject JSON causes
 an expectation failure. Invalid expected JSON causes a usage error.
 
 ```php
-public function toMatchJson(string $expected): Expectation
+public function toMatchJson(string $expected): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L732)
@@ -2575,14 +2575,14 @@ public function toThrow(
     string|\Closure|\Throwable $throwable,
     ?string $matching = null,
     ?string $message = null,
-): Expectation
+): \Greenlight\Expect\Expectation
 ```
 
 PHPDoc:
 
 - `@template TThrowable of \Throwable`
 - `@param class-string<TThrowable>|TThrowable|\Closure(TThrowable): void $throwable`
-- `@return Expectation<T>`
+- `@return \Greenlight\Expect\Expectation<T>`
 - `@throws \InvalidArgumentException when the match pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 

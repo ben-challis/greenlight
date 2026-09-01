@@ -570,7 +570,7 @@ PHPDoc:
 ### `$id`
 
 ```php
-public TestId $id
+public \Greenlight\Test\TestId $id
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L41)
@@ -659,7 +659,7 @@ public array $attachments
 
 ```php
 public function __construct(
-    public TestId $id,
+    public \Greenlight\Test\TestId $id,
     public Outcome $outcome,
     public float $durationSeconds,
     public int $memoryDeltaBytes,
@@ -679,7 +679,7 @@ PHPDoc:
 
 - `@param list<FailureDetail> $failures`
 - `@param list<OutcomeTransformation> $transformations`
-- `@param list<Attachment> $attachments`
+- `@param list<\Greenlight\Artifact\Attachment> $attachments`
 - `@throws \InvalidArgumentException`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L40)
