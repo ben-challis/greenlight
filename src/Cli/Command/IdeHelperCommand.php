@@ -47,7 +47,10 @@ final readonly class IdeHelperCommand
             $this->console->err(\sprintf("Greenlight could not write \"%s\": %s\n", $path, $error->getMessage()));
             return ExitCode::FAILURE;
         }
-        $this->console->out(\sprintf("Wrote %s with %d matchers. Add it to .gitignore. Generate it again after matcher changes.\n", $path, \count($map->names())));
+        $this->console->out(
+            \sprintf("Wrote %s with %d matchers. Add it to .gitignore. Generate it again after matcher changes.\n", $path, \count($map->names())),
+        );
+
         return ExitCode::SUCCESS;
     }
 }
