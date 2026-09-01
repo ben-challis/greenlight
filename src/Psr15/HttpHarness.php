@@ -59,7 +59,7 @@ final class HttpHarness implements Disposable
             throw Psr15Error::requestFailed(
                 $method === '' ? '<empty>' : $method,
                 $path === '' ? '/' : $path,
-                \get_debug_type($handler),
+                $handler,
                 $threw,
             );
         }
@@ -86,7 +86,7 @@ final class HttpHarness implements Disposable
         try {
             ($this->release)($handler);
         } catch (\Throwable $threw) {
-            throw Psr15Error::releaseFailed(\get_debug_type($handler), $threw);
+            throw Psr15Error::releaseFailed($handler, $threw);
         }
     }
 
@@ -109,7 +109,7 @@ final class HttpHarness implements Disposable
         }
 
         if (!$handler instanceof RequestHandlerInterface) {
-            throw Psr15Error::invalidHandler(\get_debug_type($handler));
+            throw Psr15Error::invalidHandler($handler);
         }
 
         $this->handler = $handler;

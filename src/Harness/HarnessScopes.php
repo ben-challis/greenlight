@@ -84,7 +84,7 @@ final class HarnessScopes
             $service = $this->containerFor($definition->scope)->get($definition);
 
             if (!$service instanceof $type) {
-                throw UnresolvableService::factoryTypeMismatch($type, $service::class);
+                throw UnresolvableService::factoryTypeMismatch($type, $service);
             }
 
             return $service;
@@ -105,7 +105,7 @@ final class HarnessScopes
             }
 
             if (!$service instanceof $type) {
-                throw UnresolvableService::resolverTypeMismatch($type, $consumer, $resolver::class, $service::class);
+                throw UnresolvableService::resolverTypeMismatch($type, $consumer, $resolver::class, $service);
             }
 
             return $service;

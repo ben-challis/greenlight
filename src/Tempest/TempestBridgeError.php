@@ -63,11 +63,11 @@ final class TempestBridgeError extends ServiceResolutionFailed
         ), $cause);
     }
 
-    public static function serviceTypeMismatch(string $type, string $actual): self
+    public static function serviceTypeMismatch(string $type, mixed $actual): self
     {
         return new self(\sprintf(
             'The Tempest container returned "%s" for the parameter type "%s".',
-            $actual,
+            \get_debug_type($actual),
             $type,
         ));
     }

@@ -110,7 +110,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
             $service = $container->get($id);
 
             if (!$service instanceof $type) {
-                throw HyperfBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service));
+                throw HyperfBridgeError::serviceTypeMismatch($id, $type, $service);
             }
 
             return $service;
@@ -148,7 +148,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
             $defined = \constant('BASE_PATH');
 
             if (!\is_string($defined)) {
-                throw HyperfBridgeError::basePathConflict($basePath, \get_debug_type($defined));
+                throw HyperfBridgeError::basePathConflict($basePath, $defined);
             }
 
             $definedPath = ErrorTrap::run(static fn() => \realpath($defined));
@@ -372,7 +372,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
         $container = $loader($this->containerFile);
 
         if (!$container instanceof ContainerInterface) {
-            throw HyperfBridgeError::notAContainer($this->containerFile, \get_debug_type($container));
+            throw HyperfBridgeError::notAContainer($this->containerFile, $container);
         }
 
         return $container;
@@ -394,7 +394,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
         $application = $container->get(ApplicationInterface::class);
 
         if (!\is_object($application)) {
-            throw HyperfBridgeError::applicationUnavailable(\get_debug_type($application));
+            throw HyperfBridgeError::applicationUnavailable($application);
         }
     }
 

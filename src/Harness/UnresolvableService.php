@@ -36,7 +36,7 @@ final class UnresolvableService extends ServiceResolutionFailed
         ));
     }
 
-    public static function resolverTypeMismatch(string $type, string $consumer, string $resolver, string $actual): self
+    public static function resolverTypeMismatch(string $type, string $consumer, string $resolver, mixed $actual): self
     {
         return new self(\sprintf(
             'Resolver "%s" answered the request for "%s" (required by "%s") with an instance of "%s", '
@@ -44,16 +44,16 @@ final class UnresolvableService extends ServiceResolutionFailed
             $resolver,
             $type,
             $consumer,
-            $actual,
+            \get_debug_type($actual),
         ));
     }
 
-    public static function factoryTypeMismatch(string $type, string $actual): self
+    public static function factoryTypeMismatch(string $type, mixed $actual): self
     {
         return new self(\sprintf(
             'Service definition for type "%s" created "%s". Its factory MUST return an instance of "%s".',
             $type,
-            $actual,
+            \get_debug_type($actual),
             $type,
         ));
     }

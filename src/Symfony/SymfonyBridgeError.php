@@ -51,12 +51,12 @@ final class SymfonyBridgeError extends ServiceResolutionFailed
         ));
     }
 
-    public static function serviceTypeMismatch(string $id, string $type, string $actual): self
+    public static function serviceTypeMismatch(string $id, string $type, mixed $actual): self
     {
         return new self(\sprintf(
             'Symfony service "%s" has type "%s". The parameter requires type "%s".',
             $id,
-            $actual,
+            \get_debug_type($actual),
             $type,
         ));
     }
@@ -70,11 +70,11 @@ final class SymfonyBridgeError extends ServiceResolutionFailed
         ));
     }
 
-    public static function notAKernelFromFactory(string $actual): self
+    public static function notAKernelFromFactory(mixed $actual): self
     {
         return new self(\sprintf(
             'The Symfony kernel factory returned "%s". Return an instance of Symfony\Component\HttpKernel\KernelInterface.',
-            $actual,
+            \get_debug_type($actual),
         ));
     }
 

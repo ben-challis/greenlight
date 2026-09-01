@@ -119,7 +119,7 @@ final class ClassContext
                 $key,
                 $this->reflection->getName(),
                 $testMethod,
-                \get_debug_type($value),
+                $value,
             );
         }
 

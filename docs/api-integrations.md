@@ -368,7 +368,7 @@ public static function factoryFailed(\Throwable $cause): self
 ### `invalidHandler()`
 
 ```php
-public static function invalidHandler(string $type): self
+public static function invalidHandler(mixed $handler): self
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L20)
@@ -379,7 +379,7 @@ public static function invalidHandler(string $type): self
 public static function requestFailed(
     string $method,
     string $path,
-    string $handler,
+    mixed $handler,
     \Throwable $cause,
 ): self
 ```
@@ -389,7 +389,7 @@ public static function requestFailed(
 ### `releaseFailed()`
 
 ```php
-public static function releaseFailed(string $handler, \Throwable $cause): self
+public static function releaseFailed(mixed $handler, \Throwable $cause): self
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L42)
