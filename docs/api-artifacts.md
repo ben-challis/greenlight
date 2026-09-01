@@ -117,7 +117,7 @@ final class AttachmentError extends \RuntimeException
 public static function unavailable(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L17)
 
 ### `sealed()`
 
@@ -125,7 +125,7 @@ public static function unavailable(): self
 public static function sealed(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L22)
 
 ### `invalidName()`
 
@@ -133,7 +133,7 @@ public static function sealed(): self
 public static function invalidName(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L27)
 
 ### `invalidMediaType()`
 
@@ -141,7 +141,7 @@ public static function invalidName(string $name): self
 public static function invalidMediaType(string $mediaType): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L32)
 
 ### `invalidValue()`
 
@@ -149,7 +149,7 @@ public static function invalidMediaType(string $mediaType): self
 public static function invalidValue(string $message): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L37)
 
 ### `source()`
 
@@ -157,7 +157,7 @@ public static function invalidValue(string $message): self
 public static function source(string $path, string $reason): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L42)
 
 ### `limit()`
 
@@ -165,7 +165,7 @@ public static function source(string $path, string $reason): self
 public static function limit(string $message): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L42)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L47)
 
 ### `storage()`
 
@@ -173,7 +173,7 @@ public static function limit(string $message): self
 public static function storage(string $message): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/AttachmentError.php#L52)
 
 ## `AttachmentKind`
 

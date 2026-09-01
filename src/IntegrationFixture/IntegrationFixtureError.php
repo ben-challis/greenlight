@@ -11,6 +11,46 @@ namespace Greenlight\IntegrationFixture;
  */
 final class IntegrationFixtureError extends \RuntimeException
 {
+    private function __construct(string $message, ?\Throwable $previous = null)
+    {
+        parent::__construct($message, previous: $previous);
+    }
+
+    public static function duplicateDefinition(string $fixture): self
+    {
+        return new self(\sprintf('Integration fixture "%s" is declared more than once.', $fixture));
+    }
+
+    /**
+     * @param non-empty-list<string> $cycle
+     */
+    public static function dependencyCycle(array $cycle): self
+    {
+        return new self('Integration fixture dependency cycle: ' . \implode(' -> ', $cycle) . '.');
+    }
+
+    public static function missingDependency(string $fixture, string $dependency): self
+    {
+        return new self(\sprintf(
+            'Integration fixture "%s" depends on missing fixture "%s".',
+            $fixture,
+            $dependency,
+        ));
+    }
+
+    /**
+     * @param class-string $provider
+     */
+    public static function invalidDefinition(string $provider, mixed $definition): self
+    {
+        return new self(\sprintf(
+            'Integration fixture provider "%s" returned %s. '
+            . 'It MUST return IntegrationFixtureDefinition instances.',
+            $provider,
+            \get_debug_type($definition),
+        ));
+    }
+
     /**
      * @param class-string $provider
      */
@@ -20,7 +60,7 @@ final class IntegrationFixtureError extends \RuntimeException
             'Integration fixture provider "%s" failed: %s',
             $provider,
             self::sentence($failure->getMessage()),
-        ), 0, $failure);
+        ), previous: $failure);
     }
 
     /**
@@ -34,7 +74,7 @@ final class IntegrationFixtureError extends \RuntimeException
             self::sentence($failure->getMessage()),
         );
 
-        return new self(self::appendCleanupFailures($message, $cleanupFailures), 0, $failure);
+        return new self(self::appendCleanupFailures($message, $cleanupFailures), previous: $failure);
     }
 
     /**
@@ -52,7 +92,7 @@ final class IntegrationFixtureError extends \RuntimeException
     {
         $message = \sprintf('The run failed with %s: %s', $failure::class, self::sentence($failure->getMessage()));
 
-        return new self(self::appendCleanupFailures($message, $cleanupFailures), 0, $failure);
+        return new self(self::appendCleanupFailures($message, $cleanupFailures), previous: $failure);
     }
 
     /**

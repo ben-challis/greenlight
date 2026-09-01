@@ -24,6 +24,8 @@ final readonly class WorkerCount
     }
 
     /**
+     * @param positive-int $count
+     *
      * @throws InvalidConfiguration
      */
     public static function exactly(int $count): self

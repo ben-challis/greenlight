@@ -410,6 +410,9 @@ final class GreenlightConfig
     /**
      * Uses a wider parameter type than the public contract. This gives callers
      * without static analysis a clear runtime error for invalid strings.
+     *
+     * @param positive-int|'auto' $count
+     *
      * @throws InvalidConfiguration
      */
     private function workerCount(int|string $count): WorkerCount

@@ -169,10 +169,7 @@ final class StatChangeDetector implements WatchSource
         $candidates[$path] = true;
 
         if (\count($candidates) > $this->maximumFiles) {
-            throw new WatchScanFailed(\sprintf(
-                'Watch mode matched more files than the limit of %d. Narrow the watch paths or patterns, or increase maximumFiles().',
-                $this->maximumFiles,
-            ));
+            throw WatchScanFailed::fileLimitExceeded($this->maximumFiles);
         }
     }
 

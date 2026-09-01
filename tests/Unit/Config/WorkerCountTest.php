@@ -42,7 +42,7 @@ final class WorkerCountTest
     #[DataSet('nonpositiveCounts')]
     public function nonpositiveCountsGiveExactGuidance(int $count, string $message): void
     {
-        Expect::that(static fn(): WorkerCount => WorkerCount::exactly($count))
+        Expect::that(static fn(): WorkerCount => WorkerCount::exactly($count)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a worker count must be positive')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }
