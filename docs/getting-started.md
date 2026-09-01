@@ -189,10 +189,12 @@ command for each required report.
 ## Read the output
 
 Greenlight uses the `tty` reporter on an interactive terminal. This reporter
-shows live progress with ANSI color and prints failure differences immediately.
+shows live progress with ANSI color. At the end of the run, it prints problem
+details and differences before the summary.
 
 Greenlight uses the `plain` reporter when standard output is not a TTY. This
-reporter prints one line for each event and does not print escape codes.
+reporter prints the run start, one line for each completed test, problem
+details, and the final summary. It does not print escape codes.
 
 Select a reporter with `--reporter`:
 
