@@ -33,8 +33,8 @@ final readonly class PhpVersionConditionValidationTest
      */
     public static function emptyVersionConditions(): iterable
     {
-        yield 'at least' => [static fn(): PhpVersionAtLeast => new PhpVersionAtLeast('')];
-        yield 'less than' => [static fn(): PhpVersionLessThan => new PhpVersionLessThan('')];
+        yield 'at least' => [static fn(): PhpVersionAtLeast => new PhpVersionAtLeast('')]; // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        yield 'less than' => [static fn(): PhpVersionLessThan => new PhpVersionLessThan('')]; // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
     }
 
     /**

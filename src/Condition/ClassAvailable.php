@@ -15,6 +15,8 @@ final readonly class ClassAvailable implements Condition
     private string $class;
 
     /**
+     * @param non-empty-string $class
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(string $class)

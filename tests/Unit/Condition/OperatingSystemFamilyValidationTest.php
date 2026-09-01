@@ -13,7 +13,7 @@ final readonly class OperatingSystemFamilyValidationTest
     #[Test]
     public function rejectsAnEmptyFamily(): void
     {
-        Expect::that(static fn(): OperatingSystemFamily => new OperatingSystemFamily(''))
+        Expect::that(static fn(): OperatingSystemFamily => new OperatingSystemFamily('')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('an operating-system condition MUST identify the family')
             ->toThrow(
                 \InvalidArgumentException::class,

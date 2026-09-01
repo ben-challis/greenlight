@@ -12,6 +12,8 @@ final readonly class ExtensionMissing implements Condition
     private string $extension;
 
     /**
+     * @param non-empty-string $extension
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(string $extension)

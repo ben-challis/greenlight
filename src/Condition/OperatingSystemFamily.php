@@ -13,6 +13,8 @@ final readonly class OperatingSystemFamily implements Condition
     private string $family;
 
     /**
+     * @param non-empty-string $family
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(string $family)

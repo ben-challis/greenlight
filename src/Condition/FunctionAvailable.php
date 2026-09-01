@@ -12,6 +12,8 @@ final readonly class FunctionAvailable implements Condition
     private string $function;
 
     /**
+     * @param non-empty-string $function
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(string $function)

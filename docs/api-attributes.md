@@ -510,9 +510,10 @@ public function __construct(string $class)
 
 PHPDoc:
 
+- `@param non-empty-string $class`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L22)
 
 ### `isSatisfied()`
 
@@ -521,7 +522,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L31)
 
 ## `Condition`
 
@@ -565,9 +566,10 @@ public function __construct(string $name, private string $value)
 
 PHPDoc:
 
+- `@param non-empty-string $name`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L21)
 
 ### `isSatisfied()`
 
@@ -576,7 +578,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L28)
 
 ## `EnvironmentVariableSet`
 
@@ -596,9 +598,10 @@ public function __construct(string $name)
 
 PHPDoc:
 
+- `@param non-empty-string $name`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L21)
 
 ### `isSatisfied()`
 
@@ -607,7 +610,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L28)
 
 ## `ExtensionLoaded`
 
@@ -627,9 +630,10 @@ public function __construct(string $extension)
 
 PHPDoc:
 
+- `@param non-empty-string $extension`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L19)
 
 ### `isSatisfied()`
 
@@ -638,7 +642,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L28)
 
 ## `ExtensionMissing`
 
@@ -658,9 +662,10 @@ public function __construct(string $extension)
 
 PHPDoc:
 
+- `@param non-empty-string $extension`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L19)
 
 ### `isSatisfied()`
 
@@ -669,7 +674,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L28)
 
 ## `FunctionAvailable`
 
@@ -689,9 +694,10 @@ public function __construct(string $function)
 
 PHPDoc:
 
+- `@param non-empty-string $function`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L19)
 
 ### `isSatisfied()`
 
@@ -700,7 +706,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L28)
 
 ## `OperatingSystemFamily`
 
@@ -722,9 +728,10 @@ public function __construct(string $family)
 
 PHPDoc:
 
+- `@param non-empty-string $family`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L20)
 
 ### `isSatisfied()`
 
@@ -733,7 +740,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/OperatingSystemFamily.php#L29)
 
 ## `PhpVersionAtLeast`
 
@@ -753,9 +760,10 @@ public function __construct(string $version)
 
 PHPDoc:
 
+- `@param non-empty-string $version`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L19)
 
 ### `isSatisfied()`
 
@@ -764,7 +772,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L28)
 
 ## `PhpVersionLessThan`
 
@@ -784,9 +792,10 @@ public function __construct(string $version)
 
 PHPDoc:
 
+- `@param non-empty-string $version`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L19)
 
 ### `isSatisfied()`
 
@@ -795,4 +804,4 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L28)
