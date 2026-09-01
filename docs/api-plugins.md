@@ -6,17 +6,158 @@ This reference lists plugin capabilities and lifecycle callback contracts.
 
 These signatures are the public API.
 
-## `ExitCode`
+## `CommandDefinition`
+
+Namespace: `Greenlight\Command`
+
+Defines one named command-line command.
+
+```php
+final readonly class CommandDefinition
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandDefinition.php#L8)
+
+### `$name`
+
+```php
+public string $name;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandDefinition.php#L11)
+
+### `$description`
+
+```php
+public string $description;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandDefinition.php#L14)
+
+### `__construct()`
+
+```php
+public function __construct(
+    string $name,
+    string $description,
+    private \Closure $handler,
+)
+```
+
+PHPDoc:
+
+- `@param \Closure(CommandInvocation): CommandResult $handler`
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandDefinition.php#L21)
+
+## `CommandInvocation`
+
+Namespace: `Greenlight\Command`
+
+Contains the input and output channels for one plugin command invocation.
+
+```php
+final readonly class CommandInvocation
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandInvocation.php#L8)
+
+### `$command`
+
+```php
+public string $command
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandInvocation.php#L17)
+
+### `$arguments`
+
+```php
+public array $arguments
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandInvocation.php#L18)
+
+### `$workingDirectory`
+
+```php
+public string $workingDirectory
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandInvocation.php#L19)
+
+### `$binaryPath`
+
+```php
+public ?string $binaryPath
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandInvocation.php#L20)
+
+### `write()`
+
+Write exact text to standard output.
+
+```php
+public function write(string $text): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandInvocation.php#L27)
+
+### `writeError()`
+
+Write exact text to standard error.
+
+```php
+public function writeError(string $text): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandInvocation.php#L33)
+
+## `CommandProvider`
+
+Namespace: `Greenlight\Command`
+
+Supplies named command-line commands.
+
+```php
+interface CommandProvider extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandProvider.php#L10)
+
+### `commands()`
+
+```php
+public function commands(): array;
+```
+
+PHPDoc:
+
+- `@return list<CommandDefinition>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandProvider.php#L13)
+
+## `CommandResult`
 
 Namespace: `Greenlight\Command`
 
 Contains the result that a Greenlight command returns.
 
 ```php
-final readonly class ExitCode
+final readonly class CommandResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L10)
 
 ### `success()`
 
@@ -24,7 +165,7 @@ final readonly class ExitCode
 public static function success(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L25)
 
 ### `failure()`
 
@@ -32,7 +173,7 @@ public static function success(): self
 public static function failure(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L30)
 
 ### `usage()`
 
@@ -40,39 +181,39 @@ public static function failure(): self
 public static function usage(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L35)
 
-### `signal()`
-
-```php
-public static function signal(int $signal): self
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L29)
-
-### `fromInt()`
+### `interrupted()`
 
 ```php
-public static function fromInt(int $value): self
+public static function interrupted(int $signal): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L38)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L40)
 
-### `isSuccess()`
+### `isSuccessful()`
 
 ```php
-public function isSuccess(): bool
+public function isSuccessful(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L49)
 
-### `toInt()`
+### `isUsageError()`
 
 ```php
-public function toInt(): int
+public function isUsageError(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L52)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L54)
+
+### `interruptionSignal()`
+
+```php
+public function interruptionSignal(): ?int
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/CommandResult.php#L59)
 
 ## `AfterTestSubscriber`
 
@@ -157,147 +298,6 @@ PHPDoc:
 - `@throws SkipTest`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/BeforeTestSubscriber.php#L24)
-
-## `CommandDefinition`
-
-Namespace: `Greenlight\Plugin`
-
-Defines one named command-line command.
-
-```php
-final readonly class CommandDefinition
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L10)
-
-### `$name`
-
-```php
-public string $name;
-```
-
-PHPDoc:
-
-- `@var non-empty-string`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L13)
-
-### `$description`
-
-```php
-public string $description;
-```
-
-PHPDoc:
-
-- `@var non-empty-string`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L16)
-
-### `__construct()`
-
-```php
-public function __construct(
-    string $name,
-    string $description,
-    private \Closure $handler,
-)
-```
-
-PHPDoc:
-
-- `@param \Closure(CommandInvocation): ExitCode $handler`
-- `@throws \InvalidArgumentException`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L23)
-
-## `CommandInvocation`
-
-Namespace: `Greenlight\Plugin`
-
-Contains the input and output channels for one plugin command invocation.
-
-```php
-final readonly class CommandInvocation
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L8)
-
-### `$command`
-
-```php
-public string $command
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L17)
-
-### `$arguments`
-
-```php
-public array $arguments
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L18)
-
-### `$workingDirectory`
-
-```php
-public string $workingDirectory
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L19)
-
-### `$binaryPath`
-
-```php
-public ?string $binaryPath
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L20)
-
-### `write()`
-
-Write exact text to standard output.
-
-```php
-public function write(string $text): void
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L27)
-
-### `writeError()`
-
-Write exact text to standard error.
-
-```php
-public function writeError(string $text): void
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L33)
-
-## `CommandProvider`
-
-Namespace: `Greenlight\Plugin`
-
-Supplies named command-line commands.
-
-```php
-interface CommandProvider extends Plugin
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandProvider.php#L8)
-
-### `commands()`
-
-```php
-public function commands(): array;
-```
-
-PHPDoc:
-
-- `@return list<CommandDefinition>`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandProvider.php#L11)
 
 ## `CoverageMapTransformer`
 

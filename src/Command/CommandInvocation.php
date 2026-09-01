@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Plugin;
+namespace Greenlight\Command;
 
 /** Contains the input and output channels for one plugin command invocation. */
 final readonly class CommandInvocation

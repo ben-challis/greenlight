@@ -25,12 +25,12 @@ final readonly class CustomCommandTest
                     return [new CommandDefinition(
                         'company:hello',
                         'Print a company greeting',
-                        static function (CommandInvocation $invocation): ExitCode {
+                        static function (CommandInvocation $invocation): CommandResult {
                             $invocation->write("cwd=" . $invocation->workingDirectory . "\n");
                             $invocation->write("args=" . implode('|', $invocation->arguments) . "\n");
                             $invocation->writeError("company diagnostic\n");
 
-                            return ExitCode::fromInt(7);
+                            return CommandResult::failure();
                         },
                     )];
                 }
@@ -43,7 +43,7 @@ final readonly class CustomCommandTest
 
         $result = GreenlightCli::run($project->directory, ['company:hello', 'Ben', '--mode=brief']);
 
-        Expect::that($result->exitCode)->toBe(7);
+        Expect::that($result->exitCode)->toBe(1);
         Expect::that($result->stdout)
             ->toContain('cwd=' . $project->directory)
             ->toContain('args=Ben|--mode=brief');
@@ -59,8 +59,8 @@ final readonly class CustomCommandTest
                 public function commands(): array
                 {
                     return [
-                        new CommandDefinition('run', 'Replace the run command', static fn(CommandInvocation $invocation): ExitCode => ExitCode::success()),
-                        new CommandDefinition('company:probe', 'Load this provider', static fn(CommandInvocation $invocation): ExitCode => ExitCode::success()),
+                        new CommandDefinition('run', 'Replace the run command', static fn(CommandInvocation $invocation): CommandResult => CommandResult::success()),
+                        new CommandDefinition('company:probe', 'Load this provider', static fn(CommandInvocation $invocation): CommandResult => CommandResult::success()),
                     ];
                 }
             }
@@ -89,12 +89,7 @@ final readonly class CustomCommandTest
                         new CommandDefinition(
                             'company:throws',
                             'Throw from a command',
-                            static fn(CommandInvocation $invocation): ExitCode => throw new RuntimeException('Command exploded'),
-                        ),
-                        new CommandDefinition(
-                            'company:invalid-exit',
-                            'Return an invalid exit code',
-                            static fn(CommandInvocation $invocation): ExitCode => ExitCode::fromInt(300),
+                            static fn(CommandInvocation $invocation): CommandResult => throw new RuntimeException('Command exploded'),
                         ),
                     ];
                 }
@@ -109,11 +104,6 @@ final readonly class CustomCommandTest
         Expect::that($threw->exitCode)->toBe(1);
         Expect::that($threw->stderr)
             ->toBe('greenlight: Command "company:throws" caused an error: Command exploded');
-
-        $invalid = GreenlightCli::run($project->directory, ['company:invalid-exit', '--no-ansi']);
-        Expect::that($invalid->exitCode)->toBe(1);
-        Expect::that($invalid->stderr)
-            ->toBe('greenlight: Command "company:invalid-exit" caused an error: Exit code MUST be from 0 through 255.');
     }
 
     private function project(string $name, string $body): AcceptanceProject
@@ -125,11 +115,11 @@ final readonly class CustomCommandTest
 
             declare(strict_types=1);
 
-            use Greenlight\Command\ExitCode;
+            use Greenlight\Command\CommandDefinition;
+            use Greenlight\Command\CommandInvocation;
+            use Greenlight\Command\CommandProvider;
+            use Greenlight\Command\CommandResult;
             use Greenlight\Config\GreenlightConfig;
-            use Greenlight\Plugin\CommandDefinition;
-            use Greenlight\Plugin\CommandInvocation;
-            use Greenlight\Plugin\CommandProvider;
 
             %s
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Plugin;
 
-use Greenlight\Plugin\CommandDefinition;
+use Greenlight\Command\CommandDefinition;
 
 /** @internal */
 final readonly class CommandCatalog

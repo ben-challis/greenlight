@@ -21,7 +21,7 @@ use Greenlight\Cli\Watch\WatchLoop;
 use Greenlight\Cli\Watch\WatchPathMatcher;
 use Greenlight\Cli\Watch\WatchSourceFailed;
 use Greenlight\Cli\Watch\WatchSourceRuntime;
-use Greenlight\Command\ExitCode;
+use Greenlight\Command\CommandResult;
 use Greenlight\Config\StorageLayout;
 use Greenlight\Execution\RunPolicyError;
 use Greenlight\Execution\Worker\LeakDetector;
@@ -38,7 +38,7 @@ final readonly class WatchRuns
     public function __construct(private Console $console) {}
 
     /** @param non-empty-string|false $workerBin */
-    public function run(ParsedArguments $arguments, string $workingDirectory, string|false $workerBin, LoadedConfiguration $configuration, GracefulShutdown $shutdown, ReporterCatalog $reporterCatalog, ReporterOutputPlan $reporterOutputs, Reporter $initialReporter): ExitCode
+    public function run(ParsedArguments $arguments, string $workingDirectory, string|false $workerBin, LoadedConfiguration $configuration, GracefulShutdown $shutdown, ReporterCatalog $reporterCatalog, ReporterOutputPlan $reporterOutputs, Reporter $initialReporter): CommandResult
     {
         $resolved = $configuration->resolved;
         $directories = $configuration->directories;
@@ -93,14 +93,14 @@ final readonly class WatchRuns
             new WatchLoop($sources, new Debouncer($resolved->watch->debounceMilliseconds / 1000), $keys, new SystemWatchClock(), $this->console->out(...), $shutdown)->run($runOnce);
         } catch (ReporterSetupFailed|RunPolicyError|WatchSourceFailed $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::failure();
+            return CommandResult::failure();
         } finally {
             $keys->restore();
         }
         $interruptSignal = $shutdown->signal();
 
         return $interruptSignal === null
-            ? ExitCode::success()
-            : ExitCode::signal($interruptSignal);
+            ? CommandResult::success()
+            : CommandResult::interrupted($interruptSignal);
     }
 }

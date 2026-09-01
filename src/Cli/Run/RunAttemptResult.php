@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Run;
 
-use Greenlight\Command\ExitCode;
+use Greenlight\Command\CommandResult;
 
 /**
  * Contains the observable result and saved scheduling data for one run attempt.
@@ -18,7 +18,7 @@ final readonly class RunAttemptResult
      * @param array<non-empty-string, float> $classSeconds
      */
     public function __construct(
-        public ExitCode $exitCode,
+        public CommandResult $result,
         public array $failedTests,
         public array $classSeconds,
     ) {}

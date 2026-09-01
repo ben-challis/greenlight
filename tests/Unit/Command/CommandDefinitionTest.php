@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Plugin;
+namespace Greenlight\Tests\Unit\Command;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Command\ExitCode;
+use Greenlight\Command\CommandDefinition;
+use Greenlight\Command\CommandInvocation;
+use Greenlight\Command\CommandResult;
 use Greenlight\Expect\Expect;
-use Greenlight\Plugin\CommandDefinition;
-use Greenlight\Plugin\CommandInvocation;
 
 final readonly class CommandDefinitionTest
 {
@@ -20,7 +20,7 @@ final readonly class CommandDefinitionTest
         Expect::that(static fn(): CommandDefinition => new CommandDefinition(
             $name,
             $description,
-            static fn(CommandInvocation $invocation): ExitCode => ExitCode::success(),
+            static fn(CommandInvocation $invocation): CommandResult => CommandResult::success(),
         ))->toThrow(\InvalidArgumentException::class, message: $message);
     }
 

@@ -7,16 +7,16 @@ namespace Greenlight\Cli\Plugin;
 use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Command\ExitCode;
+use Greenlight\Command\CommandDefinition;
+use Greenlight\Command\CommandInvocation;
+use Greenlight\Command\CommandProvider;
+use Greenlight\Command\CommandResult;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
-use Greenlight\Plugin\CommandDefinition;
-use Greenlight\Plugin\CommandInvocation;
-use Greenlight\Plugin\CommandProvider;
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Reporting\ReportGenerationFailed;
 
@@ -40,7 +40,7 @@ final readonly class CommandDispatcher
      * @throws ReportGenerationFailed
      * @throws WireCommunicationFailed
      */
-    public function dispatch(array $argv, string $workingDirectory, ?string $binPath): ExitCode
+    public function dispatch(array $argv, string $workingDirectory, ?string $binPath): CommandResult
     {
         [$command, $commandIndex] = $this->selectedCommand($argv);
         $command ??= 'run';
@@ -57,7 +57,7 @@ final readonly class CommandDispatcher
         } catch (ConfigFileError|InvalidConfiguration|CommandSetupFailed $error) {
             $this->console->error($error->getMessage(), \in_array('--no-ansi', $argv, true));
 
-            return ExitCode::failure();
+            return CommandResult::failure();
         }
 
         $definition = $catalog->get($command);
@@ -68,7 +68,7 @@ final readonly class CommandDispatcher
                 \in_array('--no-ansi', $argv, true),
             );
 
-            return ExitCode::usage();
+            return CommandResult::usage();
         }
 
         $arguments = $argv;
@@ -78,7 +78,7 @@ final readonly class CommandDispatcher
         }
 
         try {
-            $exitCode = $definition->run(CommandInvocation::create(
+            $result = $definition->run(CommandInvocation::create(
                 $command,
                 $arguments,
                 $workingDirectory,
@@ -96,10 +96,10 @@ final readonly class CommandDispatcher
                 $error->getMessage(),
             ), \in_array('--no-ansi', $argv, true));
 
-            return ExitCode::failure();
+            return CommandResult::failure();
         }
 
-        return $exitCode;
+        return $result;
     }
 
     /**

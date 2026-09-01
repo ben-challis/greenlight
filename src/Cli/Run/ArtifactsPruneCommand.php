@@ -9,7 +9,7 @@ use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Command\ExitCode;
+use Greenlight\Command\CommandResult;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Execution\ArtifactMaintenance;
@@ -23,22 +23,22 @@ final readonly class ArtifactsPruneCommand
 {
     public function __construct(private Console $console) {}
 
-    public function run(ParsedArguments $arguments, string $workingDirectory): ExitCode
+    public function run(ParsedArguments $arguments, string $workingDirectory): CommandResult
     {
         try {
             $configuration = new ConfigurationLoader()->load($arguments, $workingDirectory)->resolved->execution->artifacts;
             $maintenance = ArtifactMaintenance::forConfiguration($configuration, $workingDirectory);
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::usage();
+            return CommandResult::usage();
         } catch (AttachmentError|ConfigFileError|InvalidConfiguration $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::failure();
+            return CommandResult::failure();
         }
 
         if (!$configuration->hasRetentionPolicy()) {
             $this->console->out("No artifact retention policy is configured.\n");
-            return ExitCode::success();
+            return CommandResult::success();
         }
 
         $report = $maintenance->prune($arguments->has('dry-run'));
@@ -61,6 +61,6 @@ final readonly class ArtifactsPruneCommand
             $this->console->err($warning . "\n");
         }
 
-        return ExitCode::success();
+        return CommandResult::success();
     }
 }

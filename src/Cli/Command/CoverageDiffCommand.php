@@ -10,7 +10,7 @@ use Greenlight\Cli\Coverage\CoverageGate;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Command\ExitCode;
+use Greenlight\Command\CommandResult;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Coverage\Diff\BaselineDiff;
 use Greenlight\Coverage\Diff\ProjectRootNormalizer;
@@ -26,27 +26,27 @@ final readonly class CoverageDiffCommand
 {
     public function __construct(private Console $console) {}
 
-    public function run(ParsedArguments $arguments, string $workingDirectory): ExitCode
+    public function run(ParsedArguments $arguments, string $workingDirectory): CommandResult
     {
         try {
             $coverageOverrides = CoverageOverrides::fromArguments($arguments);
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
-            return ExitCode::usage();
+            return CommandResult::usage();
         }
 
         $baselinePath = $arguments->value('baseline');
         $currentPath = $arguments->value('current');
         if ($baselinePath === null || $currentPath === null) {
             $this->console->err("coverage:diff requires --baseline=<path> and --current=<path>.\n");
-            return ExitCode::usage();
+            return CommandResult::usage();
         }
         $baselineRoot = $arguments->value('baseline-root');
         $currentRoot = $arguments->value('current-root');
         if (($baselineRoot === null) !== ($currentRoot === null)) {
             $this->console->err("Use --baseline-root=<path> and --current-root=<path> together.\n");
-            return ExitCode::usage();
+            return CommandResult::usage();
         }
         $maps = [];
         foreach (['baseline' => $baselinePath, 'current' => $currentPath] as $label => $path) {
@@ -63,7 +63,7 @@ final readonly class CoverageDiffCommand
                     $arguments->has('no-ansi'),
                 );
 
-                return ExitCode::failure();
+                return CommandResult::failure();
             }
             try {
                 $maps[$label] = JsonExporter::import($json);
@@ -77,7 +77,7 @@ final readonly class CoverageDiffCommand
                     $arguments->has('no-ansi'),
                 );
 
-                return ExitCode::failure();
+                return CommandResult::failure();
             }
         }
 
@@ -96,7 +96,7 @@ final readonly class CoverageDiffCommand
                         $error->getMessage(),
                     ), $arguments->has('no-ansi'));
 
-                    return ExitCode::failure();
+                    return CommandResult::failure();
                 }
             }
         }
@@ -146,7 +146,7 @@ final readonly class CoverageDiffCommand
         }
 
         return $report->hasRegressions() || $gateFailures !== []
-            ? ExitCode::failure()
-            : ExitCode::success();
+            ? CommandResult::failure()
+            : CommandResult::success();
     }
 }

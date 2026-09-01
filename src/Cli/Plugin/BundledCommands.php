@@ -15,11 +15,11 @@ use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Cli\Run\ArtifactsPruneCommand;
 use Greenlight\Cli\Run\RunCommand;
-use Greenlight\Command\ExitCode;
+use Greenlight\Command\CommandDefinition;
+use Greenlight\Command\CommandInvocation;
+use Greenlight\Command\CommandProvider;
+use Greenlight\Command\CommandResult;
 use Greenlight\Coverage\CoverageError;
-use Greenlight\Plugin\CommandDefinition;
-use Greenlight\Plugin\CommandInvocation;
-use Greenlight\Plugin\CommandProvider;
 use Greenlight\Reporting\ReportGenerationFailed;
 
 /**
@@ -55,7 +55,7 @@ final readonly class BundledCommands implements CommandProvider
         return $definitions;
     }
 
-    private function completion(CommandInvocation $invocation): ExitCode
+    private function completion(CommandInvocation $invocation): CommandResult
     {
         return new CompletionCommand($this->console, $this->definition)->run($invocation->arguments);
     }
@@ -64,26 +64,26 @@ final readonly class BundledCommands implements CommandProvider
      * @throws CoverageError
      * @throws ReportGenerationFailed
      */
-    private function parsedCommand(CommandInvocation $invocation): ExitCode
+    private function parsedCommand(CommandInvocation $invocation): CommandResult
     {
         try {
             $arguments = $this->definition->parser()->parse($invocation->argv());
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), \in_array('--no-ansi', $invocation->argv(), true));
 
-            return ExitCode::usage();
+            return CommandResult::usage();
         }
 
         if ($arguments->has('help')) {
             $this->console->out(Definition::HELP . "\n");
 
-            return ExitCode::success();
+            return CommandResult::success();
         }
 
         if ($arguments->has('version')) {
             $this->console->out('Greenlight ' . $this->version . "\n");
 
-            return ExitCode::success();
+            return CommandResult::success();
         }
 
         $command = $arguments->command ?? 'run';
@@ -97,7 +97,7 @@ final readonly class BundledCommands implements CommandProvider
                 $arguments->has('no-ansi'),
             );
 
-            return ExitCode::usage();
+            return CommandResult::usage();
         }
 
         if ($command === 'list-tests'
