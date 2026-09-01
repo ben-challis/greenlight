@@ -18,6 +18,7 @@ enum ExitCode
     case Interrupted;
     case Terminated;
 
+    /** @return 0|1|64|130|143 */
     public function toInt(): int
     {
         return match ($this) {
