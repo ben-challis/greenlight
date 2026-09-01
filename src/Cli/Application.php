@@ -76,14 +76,14 @@ final readonly class Application
         // process. A CLI process that inherits them reports its coverage
         // through the shared directory.
         $dump = SubprocessCoverage::begin();
-        $dispatch = fn(): int => new CommandDispatcher($this->console, self::VERSION)->dispatch($argv, $workingDirectory, $binPath);
+        $dispatch = fn(): ExitCode => new CommandDispatcher($this->console, self::VERSION)->dispatch($argv, $workingDirectory, $binPath);
 
         if (!$dump instanceof SubprocessCoverage) {
-            return $dispatch();
+            return $dispatch()->toInt();
         }
 
         try {
-            return $dispatch();
+            return $dispatch()->toInt();
         } finally {
             $dump->write();
         }
