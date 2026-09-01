@@ -485,11 +485,16 @@ Target: method or class.
 
 No parameters.
 
-Runs the test method, or each test in the class, in a dedicated new worker.
-Greenlight discards that worker after the test.
+With process-pool execution, runs the test method, or each test in the class,
+in a dedicated new worker. Greenlight discards that worker after the test.
 
 Use this for tests that modify process-global state, such as ini settings,
 environment variables, or static caches.
+
+In-process execution cannot provide this isolation. `--workers=1` and the
+automatic fallback for unavailable process functions run the complete plan in
+one process. Do not use either mode when a test depends on `#[Isolated]` for
+process-global state cleanup.
 
 ## CoverageIgnore
 

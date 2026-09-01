@@ -83,13 +83,18 @@ Some attribute conversions are less direct:
 | `#[RequiresPhpExtension]` | `#[SkipUnless]` with `ExtensionLoaded` |
 | `#[RequiresOperatingSystemFamily]` | `#[SkipUnless]` with `OperatingSystemFamily` |
 
+This separate-process conversion applies only to process-pool execution.
+`--workers=1` and automatic in-process fallback cannot give `#[Isolated]`
+tests a dedicated process.
+
 The rule removes coverage metadata attributes, for example `#[CoversClass]`,
 because coverage configuration belongs in `greenlight.php`. It also removes
 use metadata, `#[TestDox]`, and `#[DisableReturnValueGenerationForTestDoubles]`.
 
 Rector's printer also reflows each converted class. Run your code-style fixer
-after the conversion. Then run the suite one time with `--workers=1` before you
-enable parallel workers.
+after the conversion. If no test depends on `#[Isolated]`, run the suite one
+time with `--workers=1` before you enable parallel workers. Otherwise, start
+with two process-pool workers.
 
 ## Map the concepts
 
@@ -347,7 +352,8 @@ These differences are intentional:
 * Put expensive shared state in a class-scoped or worker-scoped harness service.
 * Tests run in parallel worker processes by default.
 * Tests in one class stay together unless the class has `#[AllowParallel]`.
-* Use `#[Isolated]` for a test that must own its process.
+* With process-pool execution, use `#[Isolated]` for a test that must own its
+  process.
 * External dependencies require an explicit parallel strategy.
 * Use a channel for one resource for each worker.
 * Use `#[RequiresResource]` to limit access to a shared dependency.
@@ -367,6 +373,7 @@ These differences are intentional:
 9. Keep the provider body when only the attribute must change.
 10. Convert mocks after the other test code.
 11. Use strict-double failures to find loose assumptions in the old tests.
-12. Run with `--workers=1` to exclude parallel execution from the first runs.
-13. Remove `--workers=1`.
+12. If no test depends on `#[Isolated]`, run with `--workers=1` to exclude
+    parallel execution from the first runs. Otherwise, start with two workers.
+13. Remove `--workers=1` when you used it.
 14. Correct failures that occur only with parallel workers.
