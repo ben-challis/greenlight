@@ -20,6 +20,7 @@ rules:
     - Greenlight\PhpStan\TestAttributePlacementRule
     - Greenlight\PhpStan\TestConstructorRule
     - Greenlight\PhpStan\TestMethodRule
+    - Greenlight\PhpStan\TimeoutConstructorRule
     - Greenlight\PhpStan\ToThrowCallbackRule
     - Greenlight\PhpStan\ToThrowConstraintRule
     - Greenlight\PhpStan\ToThrowSubjectRule
