@@ -18,7 +18,7 @@ final class DataSetTest
         string $message,
     ): void {
         Expect::that(
-            static fn(): DataSet => new DataSet($provider, $method),
+            static fn(): object => new \ReflectionClass(DataSet::class)->newInstance($provider, $method),
         )
             ->because('data set provider identifiers MUST be non-empty')
             ->toThrow(\InvalidArgumentException::class, message: $message);

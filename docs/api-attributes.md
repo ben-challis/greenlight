@@ -156,7 +156,7 @@ public ?string $providerClass;
 
 PHPDoc:
 
-- `@var non-empty-string|null`
+- `@var class-string|null`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataSet.php#L22)
 
@@ -172,9 +172,11 @@ public function __construct(string $provider, ?string $method = null)
 
 PHPDoc:
 
+- `@param ($method is null ? non-empty-string : class-string) $provider`
+- `@param non-empty-string|null $method`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataSet.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataSet.php#L34)
 
 ## `Group`
 
