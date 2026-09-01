@@ -35,7 +35,7 @@ jobs:
       - name: Restore Greenlight run state
         uses: actions/cache/restore@v6
         with:
-          path: build/greenlight-state/run-state.json
+          path: build/greenlight-state/run-state*.json
           key: greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php }}-
 
@@ -47,12 +47,15 @@ jobs:
         if: ${{ !cancelled() && steps.tests.outcome != 'skipped' }}
         uses: actions/cache/save@v6
         with:
-          path: build/greenlight-state/run-state.json
+          path: build/greenlight-state/run-state*.json
           key: greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php }}-${{ github.run_id }}-${{ github.run_attempt }}
 ```
 
 GitHub cache entries are immutable. The run ID and run attempt make each save
 key unique. The restore prefix selects the most recent applicable entry.
+
+The path pattern includes the default state file and state files for selected
+suites.
 
 Save state after a failed test run. A normal failed run contains useful
 failure and duration data. Do not save state from a canceled job.
