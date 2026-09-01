@@ -66,7 +66,7 @@ final readonly class Application
             if (\count($argv) !== 4 || $argv[1] === '' || $argv[2] === '' || $argv[3] === '') {
                 $this->console->err("__worker requires <address> <workerId> <token>.\n");
 
-                return ExitCode::USAGE;
+                return ExitCode::Usage->toInt();
             }
 
             return new WorkerProcess(isolateProcessGroup: true)->run($argv[1], $argv[2], $argv[3]);

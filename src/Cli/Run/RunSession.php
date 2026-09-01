@@ -122,7 +122,7 @@ final readonly class RunSession
      * @throws CoverageError
      * @throws ReportGenerationFailed
      */
-    private function execute(Reporter $reporter, FailedTestsTap $failedTap, array $priorityClasses, array $classSeconds): int
+    private function execute(Reporter $reporter, FailedTestsTap $failedTap, array $priorityClasses, array $classSeconds): ExitCode
     {
         $resolved = $this->configuration->resolved;
         $workers = $resolved->workers->count->fixed ?? CpuCores::count();
@@ -144,7 +144,9 @@ final readonly class RunSession
                     $this->console->err("Interrupted. Integration fixture teardown was attempted before exit.\n");
                 }
 
-                return $interruptExit ?? ExitCode::FAILURE;
+                return $interruptExit === null
+                    ? ExitCode::Failure
+                    : ExitCode::fromInt($interruptExit);
             }
             $coverage = $coverageSession->finish($run->coverage);
         } finally {
@@ -161,12 +163,12 @@ final readonly class RunSession
         if ($interruptExit !== null) {
             $this->console->err("Interrupted. The summary includes only tests that finished before shutdown.\n");
 
-            return $interruptExit;
+            return ExitCode::fromInt($interruptExit);
         }
         if ($run->plannedTests === 0) {
             $this->console->err("Greenlight found no tests. Check the configuration, test paths, and filters.\n");
 
-            return ExitCode::FAILURE;
+            return ExitCode::Failure;
         }
         $coverageConfig = $resolved->coverage;
         if ($coverageConfig instanceof CoverageConfiguration
@@ -179,16 +181,16 @@ final readonly class RunSession
                     : $this->console->stdoutStyle($this->arguments->has('no-ansi')),
             )
         ) {
-            return ExitCode::FAILURE;
+            return ExitCode::Failure;
         }
         if ($run->leaks !== []) {
             $this->console->err(SummaryFormat::leaks($run->leaks, $this->console->stderrStyle($this->arguments->has('no-ansi'))));
 
-            return ExitCode::FAILURE;
+            return ExitCode::Failure;
         }
 
         if (!$run->summary->isSuccessful()) {
-            return ExitCode::FAILURE;
+            return ExitCode::Failure;
         }
 
         try {
@@ -196,14 +198,14 @@ final readonly class RunSession
         } catch (RunPolicyError $error) {
             $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
 
-            return ExitCode::FAILURE;
+            return ExitCode::Failure;
         }
 
         if ($policyFailed) {
-            return ExitCode::FAILURE;
+            return ExitCode::Failure;
         }
 
-        return ExitCode::SUCCESS;
+        return ExitCode::Success;
     }
 
     /** @throws RunPolicyError */

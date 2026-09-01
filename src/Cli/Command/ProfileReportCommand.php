@@ -24,19 +24,19 @@ final readonly class ProfileReportCommand
 {
     public function __construct(private Console $console) {}
 
-    public function run(ParsedArguments $arguments, string $workingDirectory): int
+    public function run(ParsedArguments $arguments, string $workingDirectory): ExitCode
     {
         $inputs = $arguments->values('input');
         $input = $inputs[0] ?? null;
         if (\count($inputs) !== 1 || $input === null || $input === '') {
             $this->console->err("profile:report requires --input=<path to a JSONL stream>.\n");
-            return ExitCode::USAGE;
+            return ExitCode::Usage;
         }
         $path = ConfigurationLoader::absolutePath($input, $workingDirectory);
         $raw = ErrorTrap::run(static fn() => \file_get_contents($path), $warning);
         if (!\is_string($raw)) {
             $this->console->err(\sprintf("Greenlight could not read \"%s\"%s.\n", $path, $warning === null ? '' : ': ' . $warning));
-            return ExitCode::FAILURE;
+            return ExitCode::Failure;
         }
         $aggregator = new ProfileAggregator();
         foreach (\explode("\n", $raw) as $line) {
@@ -49,7 +49,7 @@ final readonly class ProfileReportCommand
             } catch (EventCodecFailed $failure) {
                 $exitCode = $this->handleCodecFailure($failure, $arguments->has('no-ansi'));
 
-                if ($exitCode === null) {
+                if (!$exitCode instanceof ExitCode) {
                     continue;
                 }
 
@@ -59,13 +59,13 @@ final readonly class ProfileReportCommand
         $report = $aggregator->render(new Style($this->console->capabilities($arguments->has('no-ansi'), $arguments->has('ansi'))->color));
         if ($report === '') {
             $this->console->err("The stream has no finished run to profile.\n");
-            return ExitCode::FAILURE;
+            return ExitCode::Failure;
         }
         $this->console->out(\ltrim($report, "\n"));
-        return ExitCode::SUCCESS;
+        return ExitCode::Success;
     }
 
-    private function handleCodecFailure(EventCodecFailed $failure, bool $noAnsi): ?int
+    private function handleCodecFailure(EventCodecFailed $failure, bool $noAnsi): ?ExitCode
     {
         return match ($failure->kind) {
             EventCodecFailureKind::UnknownEvent => null,
@@ -83,7 +83,7 @@ final readonly class ProfileReportCommand
         };
     }
 
-    private function writeUnsupportedVersion(EventCodecFailed $failure): int
+    private function writeUnsupportedVersion(EventCodecFailed $failure): ExitCode
     {
         return $this->writeInputError(\sprintf(
             'The input uses unsupported JSONL version %d.',
@@ -91,7 +91,7 @@ final readonly class ProfileReportCommand
         ));
     }
 
-    private function writeInvalidEvent(EventCodecFailed $failure, bool $noAnsi): int
+    private function writeInvalidEvent(EventCodecFailed $failure, bool $noAnsi): ExitCode
     {
         $this->console->error(\sprintf(
             'Greenlight could not decode a "%s" event: %s',
@@ -99,13 +99,13 @@ final readonly class ProfileReportCommand
             $failure->getMessage(),
         ), $noAnsi);
 
-        return ExitCode::FAILURE;
+        return ExitCode::Failure;
     }
 
-    private function writeInputError(string $message): int
+    private function writeInputError(string $message): ExitCode
     {
         $this->console->err($message . "\n");
 
-        return ExitCode::FAILURE;
+        return ExitCode::Failure;
     }
 }

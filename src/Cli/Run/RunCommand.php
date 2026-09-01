@@ -61,7 +61,7 @@ final readonly class RunCommand
      * @throws CoverageError
      * @throws ReportGenerationFailed
      */
-    public function run(ParsedArguments $arguments, string $workingDirectory, ?string $binPath): int
+    public function run(ParsedArguments $arguments, string $workingDirectory, ?string $binPath): ExitCode
     {
         return $this->runCommand($arguments, $workingDirectory, $binPath);
     }
@@ -70,18 +70,18 @@ final readonly class RunCommand
      * @throws CoverageError
      * @throws ReportGenerationFailed
      */
-    private function runCommand(ParsedArguments $arguments, string $workingDirectory, ?string $binPath = null): int
+    private function runCommand(ParsedArguments $arguments, string $workingDirectory, ?string $binPath = null): ExitCode
     {
         try {
             $configuration = new ConfigurationLoader()->load($arguments, $workingDirectory);
         } catch (CliError $error) {
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
-            return ExitCode::USAGE;
+            return ExitCode::Usage;
         } catch (ConfigFileError|InvalidConfiguration $error) {
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
-            return ExitCode::FAILURE;
+            return ExitCode::Failure;
         }
         $resolved = $configuration->resolved;
         $configFile = $configuration->file;
@@ -90,13 +90,13 @@ final readonly class RunCommand
         if ($arguments->has('watch') && ($overrides->repeat->count !== null || $overrides->repeat->untilFailure)) {
             $this->printError('Do not use --watch with --repeat or --repeat-until-failure.', $arguments->has('no-ansi'));
 
-            return ExitCode::USAGE;
+            return ExitCode::Usage;
         }
 
         if ($arguments->has('dry-run')) {
             ($this->out)(PlanFormatter::format($resolved, $configFile, $workingDirectory));
 
-            return ExitCode::SUCCESS;
+            return ExitCode::Success;
         }
 
         $this->warnWhenExcludePathsMatchNothing(new SelectionDiscovery($configuration, $workingDirectory), $arguments->has('no-ansi'));
@@ -120,11 +120,11 @@ final readonly class RunCommand
         } catch (CliError $error) {
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
-            return ExitCode::USAGE;
+            return ExitCode::Usage;
         } catch (ReporterSetupFailed $error) {
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
-            return ExitCode::FAILURE;
+            return ExitCode::Failure;
         }
 
         try {
@@ -133,12 +133,12 @@ final readonly class RunCommand
             $reporterOutputs->close();
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
-            return ExitCode::USAGE;
+            return ExitCode::Usage;
         } catch (ReporterSetupFailed $error) {
             $reporterOutputs->close();
             $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
-            return ExitCode::FAILURE;
+            return ExitCode::Failure;
         }
 
         try {
@@ -161,13 +161,13 @@ final readonly class RunCommand
                 if ($previousFailures === null) {
                     $this->printError(CliError::failedRequiresState()->getMessage(), $arguments->has('no-ansi'));
 
-                    return ExitCode::USAGE;
+                    return ExitCode::Usage;
                 }
 
                 if ($previousFailures === []) {
                     ($this->out)("No tests failed in the previous run. There are no tests to run again.\n");
 
-                    return ExitCode::SUCCESS;
+                    return ExitCode::Success;
                 }
 
                 $selection = $resolved->selection->withExactIds($previousFailures);
@@ -232,11 +232,11 @@ final readonly class RunCommand
                     } catch (CliError $error) {
                         $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
-                        return ExitCode::USAGE;
+                        return ExitCode::Usage;
                     } catch (ReporterSetupFailed $error) {
                         $this->printError($error->getMessage(), $arguments->has('no-ansi'));
 
-                        return ExitCode::FAILURE;
+                        return ExitCode::Failure;
                     }
                 }
 
@@ -254,10 +254,10 @@ final readonly class RunCommand
                 $interruptExit = $shutdown->exitCode();
 
                 if ($interruptExit !== null) {
-                    return $interruptExit;
+                    return ExitCode::fromInt($interruptExit);
                 }
 
-                if ($attempt->exitCode !== ExitCode::SUCCESS) {
+                if ($attempt->exitCode !== ExitCode::Success) {
                     $failedIterations[] = $iteration;
 
                     if ($overrides->repeat->untilFailure) {
@@ -269,7 +269,7 @@ final readonly class RunCommand
             if ($failedIterations === []) {
                 $repeatOutput(\sprintf("Repeat: %d iterations, all passed\n", $limit));
 
-                return ExitCode::SUCCESS;
+                return ExitCode::Success;
             }
 
             // Record each test that fails in an iteration. Thus, a later --failed
@@ -278,7 +278,7 @@ final readonly class RunCommand
 
             $repeatOutput(\sprintf("Repeat: failed iterations: %s\n", \implode(', ', $failedIterations)));
 
-            return ExitCode::FAILURE;
+            return ExitCode::Failure;
         } finally {
             $reporterOutputs->close();
         }

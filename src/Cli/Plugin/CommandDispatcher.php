@@ -57,7 +57,7 @@ final readonly class CommandDispatcher
         } catch (ConfigFileError|InvalidConfiguration|CommandSetupFailed $error) {
             $this->console->error($error->getMessage(), \in_array('--no-ansi', $argv, true));
 
-            return ExitCode::FAILURE;
+            return ExitCode::Failure->toInt();
         }
 
         $definition = $catalog->get($command);
@@ -68,7 +68,7 @@ final readonly class CommandDispatcher
                 \in_array('--no-ansi', $argv, true),
             );
 
-            return ExitCode::USAGE;
+            return ExitCode::Usage->toInt();
         }
 
         $arguments = $argv;
@@ -96,7 +96,7 @@ final readonly class CommandDispatcher
                 $error->getMessage(),
             ), \in_array('--no-ansi', $argv, true));
 
-            return ExitCode::FAILURE;
+            return ExitCode::Failure->toInt();
         }
 
         if ($exitCode < 0 || $exitCode > 255) {
@@ -106,7 +106,7 @@ final readonly class CommandDispatcher
                 $exitCode,
             ), \in_array('--no-ansi', $argv, true));
 
-            return ExitCode::FAILURE;
+            return ExitCode::Failure->toInt();
         }
 
         return $exitCode;

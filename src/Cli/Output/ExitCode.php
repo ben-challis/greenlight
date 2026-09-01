@@ -5,15 +5,41 @@ declare(strict_types=1);
 namespace Greenlight\Cli\Output;
 
 /**
- * Defines the process exit codes that Greenlight commands return.
+ * Identifies one result that a Greenlight command returns. Converts the result
+ * to an integer at a process or plugin seam.
  *
  * @internal
  */
-final class ExitCode
+enum ExitCode
 {
-    public const int SUCCESS = 0;
-    public const int FAILURE = 1;
-    public const int USAGE = 64;
+    case Success;
+    case Failure;
+    case Usage;
+    case Interrupted;
+    case Terminated;
 
-    private function __construct() {}
+    public function toInt(): int
+    {
+        return match ($this) {
+            self::Success => 0,
+            self::Failure => 1,
+            self::Usage => 64,
+            self::Interrupted => 130,
+            self::Terminated => 143,
+        };
+    }
+
+    public static function fromInt(int $value): self
+    {
+        foreach (self::cases() as $exitCode) {
+            if ($exitCode->toInt() === $value) {
+                return $exitCode;
+            }
+        }
+
+        throw new \InvalidArgumentException(\sprintf(
+            'Exit code %d does not identify a Greenlight command result.',
+            $value,
+        ));
+    }
 }

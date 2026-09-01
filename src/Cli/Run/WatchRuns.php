@@ -38,7 +38,7 @@ final readonly class WatchRuns
     public function __construct(private Console $console) {}
 
     /** @param non-empty-string|false $workerBin */
-    public function run(ParsedArguments $arguments, string $workingDirectory, string|false $workerBin, LoadedConfiguration $configuration, GracefulShutdown $shutdown, ReporterCatalog $reporterCatalog, ReporterOutputPlan $reporterOutputs, Reporter $initialReporter): int
+    public function run(ParsedArguments $arguments, string $workingDirectory, string|false $workerBin, LoadedConfiguration $configuration, GracefulShutdown $shutdown, ReporterCatalog $reporterCatalog, ReporterOutputPlan $reporterOutputs, Reporter $initialReporter): ExitCode
     {
         $resolved = $configuration->resolved;
         $directories = $configuration->directories;
@@ -93,10 +93,14 @@ final readonly class WatchRuns
             new WatchLoop($sources, new Debouncer($resolved->watch->debounceMilliseconds / 1000), $keys, new SystemWatchClock(), $this->console->out(...), $shutdown)->run($runOnce);
         } catch (ReporterSetupFailed|RunPolicyError|WatchSourceFailed $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::FAILURE;
+            return ExitCode::Failure;
         } finally {
             $keys->restore();
         }
-        return $shutdown->exitCode() ?? ExitCode::SUCCESS;
+        $interruptExit = $shutdown->exitCode();
+
+        return $interruptExit === null
+            ? ExitCode::Success
+            : ExitCode::fromInt($interruptExit);
     }
 }

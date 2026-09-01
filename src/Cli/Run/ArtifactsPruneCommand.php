@@ -23,22 +23,22 @@ final readonly class ArtifactsPruneCommand
 {
     public function __construct(private Console $console) {}
 
-    public function run(ParsedArguments $arguments, string $workingDirectory): int
+    public function run(ParsedArguments $arguments, string $workingDirectory): ExitCode
     {
         try {
             $configuration = new ConfigurationLoader()->load($arguments, $workingDirectory)->resolved->execution->artifacts;
             $maintenance = ArtifactMaintenance::forConfiguration($configuration, $workingDirectory);
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::USAGE;
+            return ExitCode::Usage;
         } catch (AttachmentError|ConfigFileError|InvalidConfiguration $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::FAILURE;
+            return ExitCode::Failure;
         }
 
         if (!$configuration->hasRetentionPolicy()) {
             $this->console->out("No artifact retention policy is configured.\n");
-            return ExitCode::SUCCESS;
+            return ExitCode::Success;
         }
 
         $report = $maintenance->prune($arguments->has('dry-run'));
@@ -61,6 +61,6 @@ final readonly class ArtifactsPruneCommand
             $this->console->err($warning . "\n");
         }
 
-        return ExitCode::SUCCESS;
+        return ExitCode::Success;
     }
 }
