@@ -42,6 +42,40 @@ final class SecondEvent {}
   }
 });
 
+test('member attributes do not leave partial signatures', async () => {
+  const sourceRoot = await mkdtemp(resolve(tmpdir(), 'greenlight-api-reference-source-'));
+  const documentationRoot = await mkdtemp(resolve(tmpdir(), 'greenlight-api-reference-docs-'));
+
+  try {
+    await writeFile(resolve(sourceRoot, 'Event.php'), `<?php
+
+namespace Greenlight\\Event;
+
+final class Event
+{
+    #[\\Override]
+    public function name(): string {}
+}
+`);
+
+    const result = spawnSync(process.execPath, [
+      script,
+      `--source-root=${sourceRoot}`,
+      `--documentation-root=${documentationRoot}`,
+    ], { encoding: 'utf8' });
+
+    assert.equal(result.status, 0, result.stderr);
+
+    const reference = await readFile(resolve(documentationRoot, 'api-events.md'), 'utf8');
+
+    assert.match(reference, /```php\npublic function name\(\): string\n```/);
+    assert.doesNotMatch(reference, /\\Override/);
+  } finally {
+    await rm(sourceRoot, { recursive: true, force: true });
+    await rm(documentationRoot, { recursive: true, force: true });
+  }
+});
+
 test('a secondary internal declaration cannot leak through a public type', async () => {
   const sourceRoot = await mkdtemp(resolve(tmpdir(), 'greenlight-api-reference-'));
 

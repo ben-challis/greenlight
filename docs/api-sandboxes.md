@@ -33,11 +33,10 @@ PHPDoc:
 ### `dispose()`
 
 ```php
-[\Override]
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/Autoloaders.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/Autoloaders.php#L25)
 
 ## `EnvironmentVariables`
 
@@ -79,11 +78,10 @@ PHPDoc:
 ### `dispose()`
 
 ```php
-[\Override]
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/EnvironmentVariables.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/EnvironmentVariables.php#L38)
 
 ## `StreamWrapperError`
 
@@ -149,7 +147,6 @@ PHPDoc:
 ### `dispose()`
 
 ```php
-[\Override]
 public function dispose(): void
 ```
 
@@ -157,7 +154,7 @@ PHPDoc:
 
 - `@throws StreamWrapperError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrappers.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrappers.php#L45)
 
 ## `TemporaryDirectory`
 
@@ -215,7 +212,6 @@ PHPDoc:
 ### `dispose()`
 
 ```php
-[\Override]
 public function dispose(): void
 ```
 
@@ -223,7 +219,7 @@ PHPDoc:
 
 - `@throws TemporaryDirectoryError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L107)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L108)
 
 ## `TemporaryDirectoryError`
 

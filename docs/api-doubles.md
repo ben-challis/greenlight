@@ -361,7 +361,6 @@ Verifies mocks and clears their state when the test scope closes.
 One `ExpectationFailed` contains the details for all unmet expectations.
 
 ```php
-[\Override]
 public function dispose(): void
 ```
 
@@ -369,7 +368,7 @@ PHPDoc:
 
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L160)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L161)
 
 ## `Fake`
 
