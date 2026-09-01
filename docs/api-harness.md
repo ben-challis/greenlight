@@ -218,14 +218,13 @@ Namespace: `Greenlight\Harness`
 Identifies a resolver that handles every request. Greenlight places one
 terminal resolver after all fallback-capable resolvers.
 
-A terminal resolver MUST return an object or throw
-`ServiceResolutionFailed`.
+A terminal resolver returns an object or throws `ServiceResolutionFailed`.
 
 ```php
 interface TerminalServiceResolver extends ServiceResolver
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/TerminalServiceResolver.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/TerminalServiceResolver.php#L13)
 
 ### `resolve()`
 
