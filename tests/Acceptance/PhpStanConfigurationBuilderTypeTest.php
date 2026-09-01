@@ -44,7 +44,10 @@ final readonly class PhpStanConfigurationBuilderTypeTest
                     ->coverage(static fn(CoverageBuilder $coverage) => $coverage
                         ->include('src')
                         ->driver('pcov')
+                        ->minimumPercentage(95.25)
                         ->export('lcov', 'build/coverage.lcov'))
+                    ->coverage(static fn(CoverageBuilder $coverage) => $coverage->minimumPercentage(0.0))
+                    ->coverage(static fn(CoverageBuilder $coverage) => $coverage->minimumPercentage(100.0))
                     ->watch(static fn(WatchBuilder $watch) => $watch->debounceMilliseconds(200))
                     ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts
                         ->directory('build/artifacts')
@@ -86,6 +89,10 @@ final readonly class PhpStanConfigurationBuilderTypeTest
                 new SuiteBuilder('unit')->in('')->tag('');
                 new CoverageBuilder()->include('')->driver('')->export('', 'report');
                 new CoverageBuilder()->export('xml', 'report.xml');
+                new CoverageBuilder()->minimumPercentage(-0.01);
+                new CoverageBuilder()->minimumPercentage(100.01);
+                new CoverageBuilder()->minimumPercentage(99.999);
+                new CoverageBuilder()->minimumPercentage(\INF);
                 new WatchBuilder()->debounceMilliseconds(0);
                 new ArtifactBuilder()
                     ->directory('')
@@ -108,7 +115,9 @@ final readonly class PhpStanConfigurationBuilderTypeTest
             ->because('PHPStan rejects configuration values that cannot pass runtime validation')
             ->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(25);
+        Expect::that(\count($probe->errors))->toBe(29);
+        Expect::that($probe->messages())->toContain('Minimum coverage percentage must be from 0 through 100.');
+        Expect::that($probe->messages())->toContain('Minimum coverage percentage can have at most two decimal places.');
         Expect::that($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::workers() expects');
         Expect::that($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::randomizeOrder() expects');
         Expect::that($probe->messages())->toContain('Greenlight\Config\ArtifactBuilder::maxRunAttachments() expects');
