@@ -12,7 +12,6 @@ use Greenlight\Cli\Coverage\CoverageSettingsResolver;
 use Greenlight\Cli\Coverage\CoverageWriter;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Cli\Output\ExitCode;
 use Greenlight\Cli\Reporting\FailedTestsTap;
 use Greenlight\Cli\Reporting\ReporterSink;
 use Greenlight\Cli\State\RunState;
@@ -37,6 +36,7 @@ use Greenlight\Execution\RunPolicyError;
 use Greenlight\Execution\RunResult;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\Internal\Process\GracefulShutdown;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\SummaryFormat;
@@ -72,9 +72,9 @@ final readonly class RunSession
     public function runAttempt(Reporter $reporter, array $priorityClasses, array $classSeconds): RunAttemptResult
     {
         $failedTap = new FailedTestsTap(new ReporterSink($reporter));
-        $exitCode = $this->execute($reporter, $failedTap, $priorityClasses, $classSeconds);
+        $result = $this->execute($reporter, $failedTap, $priorityClasses, $classSeconds);
 
-        return new RunAttemptResult($exitCode, $failedTap->failedTests(), $failedTap->classSeconds());
+        return new RunAttemptResult($result, $failedTap->failedTests(), $failedTap->classSeconds());
     }
 
     /**
@@ -122,7 +122,7 @@ final readonly class RunSession
      * @throws CoverageError
      * @throws ReportGenerationFailed
      */
-    private function execute(Reporter $reporter, FailedTestsTap $failedTap, array $priorityClasses, array $classSeconds): ExitCode
+    private function execute(Reporter $reporter, FailedTestsTap $failedTap, array $priorityClasses, array $classSeconds): CommandResult
     {
         $resolved = $this->configuration->resolved;
         $workers = $resolved->workers->count->fixed ?? CpuCores::count();
@@ -145,8 +145,8 @@ final readonly class RunSession
                 }
 
                 return $interruptSignal === null
-                    ? ExitCode::failure()
-                    : ExitCode::signal($interruptSignal);
+                    ? CommandResult::failure()
+                    : CommandResult::interrupted($interruptSignal);
             }
             $coverage = $coverageSession->finish($run->coverage);
         } finally {
@@ -163,12 +163,12 @@ final readonly class RunSession
         if ($interruptSignal !== null) {
             $this->console->err("Interrupted. The summary includes only tests that finished before shutdown.\n");
 
-            return ExitCode::signal($interruptSignal);
+            return CommandResult::interrupted($interruptSignal);
         }
         if ($run->plannedTests === 0) {
             $this->console->err("Greenlight found no tests. Check the configuration, test paths, and filters.\n");
 
-            return ExitCode::failure();
+            return CommandResult::failure();
         }
         $coverageConfig = $resolved->coverage;
         if ($coverageConfig instanceof CoverageConfiguration
@@ -181,16 +181,16 @@ final readonly class RunSession
                     : $this->console->stdoutStyle($this->arguments->has('no-ansi')),
             )
         ) {
-            return ExitCode::failure();
+            return CommandResult::failure();
         }
         if ($run->leaks !== []) {
             $this->console->err(SummaryFormat::leaks($run->leaks, $this->console->stderrStyle($this->arguments->has('no-ansi'))));
 
-            return ExitCode::failure();
+            return CommandResult::failure();
         }
 
         if (!$run->summary->isSuccessful()) {
-            return ExitCode::failure();
+            return CommandResult::failure();
         }
 
         try {
@@ -198,14 +198,14 @@ final readonly class RunSession
         } catch (RunPolicyError $error) {
             $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
 
-            return ExitCode::failure();
+            return CommandResult::failure();
         }
 
         if ($policyFailed) {
-            return ExitCode::failure();
+            return CommandResult::failure();
         }
 
-        return ExitCode::success();
+        return CommandResult::success();
     }
 
     /** @throws RunPolicyError */

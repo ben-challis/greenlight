@@ -6,45 +6,25 @@ namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Cli\Output\ExitCode;
+use Greenlight\Cli\ExitCode;
 use Greenlight\Expect\Expect;
+use Greenlight\Plugin\CommandResult;
 
 final readonly class ExitCodeTest
 {
     #[Test]
-    #[DataSet('processCodes')]
-    public function convertsNamedCommandResultsAtTheProcessSeam(ExitCode $exitCode, int $processCode, bool $successful): void
+    #[DataSet('results')]
+    public function convertsACommandResult(CommandResult $result, int $value): void
     {
-        Expect::that($exitCode->toInt())->toBe($processCode);
-        Expect::that($exitCode->isSuccess())->toBe($successful);
+        Expect::that(ExitCode::fromCommandResult($result)->value())->toBe($value);
     }
 
-    /** @return iterable<string, array{ExitCode, int, bool}> */
-    public static function processCodes(): iterable
+    /** @return iterable<string, array{CommandResult, int}> */
+    public static function results(): iterable
     {
-        yield 'success' => [ExitCode::success(), 0, true];
-        yield 'failure' => [ExitCode::failure(), 1, false];
-        yield 'usage' => [ExitCode::usage(), 64, false];
-    }
-
-    #[Test]
-    #[DataSet('signals')]
-    public function convertsSignalsToProcessCodes(int $signal): void
-    {
-        Expect::that(ExitCode::signal($signal)->toInt())->toBe(128 + $signal);
-    }
-
-    /** @return iterable<string, array{int}> */
-    public static function signals(): iterable
-    {
-        yield 'interrupt signal' => [\SIGINT];
-        yield 'quit signal' => [\SIGQUIT];
-        yield 'termination signal' => [\SIGTERM];
-    }
-
-    #[Test]
-    public function preservesAPluginProcessCode(): void
-    {
-        Expect::that(ExitCode::fromInt(7)->toInt())->toBe(7);
+        yield 'success' => [CommandResult::success(), 0];
+        yield 'failure' => [CommandResult::failure(), 1];
+        yield 'usage error' => [CommandResult::usage(), 64];
+        yield 'interruption' => [CommandResult::interrupted(\SIGTERM), 128 + \SIGTERM];
     }
 }

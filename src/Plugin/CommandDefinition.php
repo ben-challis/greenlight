@@ -14,7 +14,9 @@ final readonly class CommandDefinition
     public string $description;
 
     /**
-     * @param \Closure(CommandInvocation): int $handler
+     * @param \Closure(CommandInvocation): CommandResult $handler
+     * @phpstan-assert non-empty-string $name
+     * @phpstan-assert non-empty-string $description
      *
      * @throws \InvalidArgumentException
      */
@@ -38,7 +40,7 @@ final readonly class CommandDefinition
     }
 
     /** @internal Greenlight runs command definitions. */
-    public function run(CommandInvocation $invocation): int
+    public function run(CommandInvocation $invocation): CommandResult
     {
         return ($this->handler)($invocation);
     }

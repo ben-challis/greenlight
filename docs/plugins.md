@@ -63,6 +63,7 @@ use Greenlight\Config\GreenlightConfig;
 use Greenlight\Plugin\CommandDefinition;
 use Greenlight\Plugin\CommandInvocation;
 use Greenlight\Plugin\CommandProvider;
+use Greenlight\Plugin\CommandResult;
 
 final class CompanyCommands implements CommandProvider
 {
@@ -71,11 +72,11 @@ final class CompanyCommands implements CommandProvider
         return [new CommandDefinition(
             'company:hello',
             'Print a company greeting',
-            static function (CommandInvocation $invocation): int {
+            static function (CommandInvocation $invocation): CommandResult {
                 $name = $invocation->arguments[0] ?? 'team';
                 $invocation->write("Hello, {$name}.\n");
 
-                return 0;
+                return CommandResult::success();
             },
         )];
     }
@@ -96,8 +97,10 @@ keeps all other tokens in their input order. A plugin command owns the syntax
 and validation of these arguments.
 
 Use `write()` for standard output. Use `writeError()` for standard error. The
-handler MUST return an exit code from 0 through 255. If it throws or returns an
-invalid exit code, Greenlight reports a command error and returns exit code 1.
+handler MUST return a `CommandResult`. Use `success()`, `failure()`, or `usage()`
+to describe a completed command. Use `interrupted()` with the signal number that
+stopped a command. If the handler throws, Greenlight reports a command error and
+returns exit code 1.
 
 Built-in and configured names share one registry. A duplicate name stops
 command dispatch. Greenlight creates the provider only when it resolves a

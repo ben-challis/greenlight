@@ -138,10 +138,10 @@ public function __construct(
 
 PHPDoc:
 
-- `@param \Closure(CommandInvocation): int $handler`
+- `@param \Closure(CommandInvocation): CommandResult $handler`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L23)
 
 ## `CommandInvocation`
 
@@ -230,6 +230,51 @@ PHPDoc:
 - `@return list<CommandDefinition>`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandProvider.php#L11)
+
+## `CommandResult`
+
+Namespace: `Greenlight\Plugin`
+
+Contains the result that a Greenlight command returns.
+An interrupted result contains a signal number from 1 through 127.
+
+```php
+final readonly class CommandResult
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandResult.php#L11)
+
+### `success()`
+
+```php
+public static function success(): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandResult.php#L19)
+
+### `failure()`
+
+```php
+public static function failure(): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandResult.php#L24)
+
+### `usage()`
+
+```php
+public static function usage(): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandResult.php#L29)
+
+### `interrupted()`
+
+```php
+public static function interrupted(int $signal): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandResult.php#L35)
 
 ## `CoverageMapTransformer`
 

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Cli\Output\Console;
-use Greenlight\Cli\Output\ExitCode;
 use Greenlight\Cli\Plugin\CommandDispatcher;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\Relay\SubprocessCoverage;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\ProcessPool\Worker\WorkerProcess;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\StreamOutput;
 
@@ -66,7 +66,7 @@ final readonly class Application
             if (\count($argv) !== 4 || $argv[1] === '' || $argv[2] === '' || $argv[3] === '') {
                 $this->console->err("__worker requires <address> <workerId> <token>.\n");
 
-                return ExitCode::usage()->toInt();
+                return ExitCode::fromCommandResult(CommandResult::usage())->value();
             }
 
             return new WorkerProcess(isolateProcessGroup: true)->run($argv[1], $argv[2], $argv[3]);
@@ -76,14 +76,14 @@ final readonly class Application
         // process. A CLI process that inherits them reports its coverage
         // through the shared directory.
         $dump = SubprocessCoverage::begin();
-        $dispatch = fn(): ExitCode => new CommandDispatcher($this->console, self::VERSION)->dispatch($argv, $workingDirectory, $binPath);
+        $dispatch = fn(): CommandResult => new CommandDispatcher($this->console, self::VERSION)->dispatch($argv, $workingDirectory, $binPath);
 
         if (!$dump instanceof SubprocessCoverage) {
-            return $dispatch()->toInt();
+            return ExitCode::fromCommandResult($dispatch())->value();
         }
 
         try {
-            return $dispatch()->toInt();
+            return ExitCode::fromCommandResult($dispatch())->value();
         } finally {
             $dump->write();
         }

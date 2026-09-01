@@ -9,6 +9,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Plugin\CommandDefinition;
 use Greenlight\Plugin\CommandInvocation;
+use Greenlight\Plugin\CommandResult;
 
 final readonly class CommandDefinitionTest
 {
@@ -19,7 +20,7 @@ final readonly class CommandDefinitionTest
         Expect::that(static fn(): CommandDefinition => new CommandDefinition(
             $name,
             $description,
-            static fn(CommandInvocation $invocation): int => 0,
+            static fn(CommandInvocation $invocation): CommandResult => CommandResult::success(),
         ))->toThrow(\InvalidArgumentException::class, message: $message);
     }
 
