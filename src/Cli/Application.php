@@ -66,7 +66,7 @@ final readonly class Application
             if (\count($argv) !== 4 || $argv[1] === '' || $argv[2] === '' || $argv[3] === '') {
                 $this->console->err("__worker requires <address> <workerId> <token>.\n");
 
-                return ExitCode::USAGE;
+                return ExitCode::usage()->toInt();
             }
 
             return new WorkerProcess(isolateProcessGroup: true)->run($argv[1], $argv[2], $argv[3]);
@@ -76,14 +76,14 @@ final readonly class Application
         // process. A CLI process that inherits them reports its coverage
         // through the shared directory.
         $dump = SubprocessCoverage::begin();
-        $dispatch = fn(): int => new CommandDispatcher($this->console, self::VERSION)->dispatch($argv, $workingDirectory, $binPath);
+        $dispatch = fn(): ExitCode => new CommandDispatcher($this->console, self::VERSION)->dispatch($argv, $workingDirectory, $binPath);
 
         if (!$dump instanceof SubprocessCoverage) {
-            return $dispatch();
+            return $dispatch()->toInt();
         }
 
         try {
-            return $dispatch();
+            return $dispatch()->toInt();
         } finally {
             $dump->write();
         }

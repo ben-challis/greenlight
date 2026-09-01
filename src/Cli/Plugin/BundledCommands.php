@@ -47,15 +47,15 @@ final readonly class BundledCommands implements CommandProvider
                 $name,
                 $description,
                 $name === 'completion'
-                    ? $this->completion(...)
-                    : $this->parsedCommand(...),
+                    ? fn(CommandInvocation $invocation): int => $this->completion($invocation)->toInt()
+                    : fn(CommandInvocation $invocation): int => $this->parsedCommand($invocation)->toInt(),
             );
         }
 
         return $definitions;
     }
 
-    private function completion(CommandInvocation $invocation): int
+    private function completion(CommandInvocation $invocation): ExitCode
     {
         return new CompletionCommand($this->console, $this->definition)->run($invocation->arguments);
     }
@@ -64,26 +64,26 @@ final readonly class BundledCommands implements CommandProvider
      * @throws CoverageError
      * @throws ReportGenerationFailed
      */
-    private function parsedCommand(CommandInvocation $invocation): int
+    private function parsedCommand(CommandInvocation $invocation): ExitCode
     {
         try {
             $arguments = $this->definition->parser()->parse($invocation->argv());
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), \in_array('--no-ansi', $invocation->argv(), true));
 
-            return ExitCode::USAGE;
+            return ExitCode::usage();
         }
 
         if ($arguments->has('help')) {
             $this->console->out(Definition::HELP . "\n");
 
-            return ExitCode::SUCCESS;
+            return ExitCode::success();
         }
 
         if ($arguments->has('version')) {
             $this->console->out('Greenlight ' . $this->version . "\n");
 
-            return ExitCode::SUCCESS;
+            return ExitCode::success();
         }
 
         $command = $arguments->command ?? 'run';
@@ -97,7 +97,7 @@ final readonly class BundledCommands implements CommandProvider
                 $arguments->has('no-ansi'),
             );
 
-            return ExitCode::USAGE;
+            return ExitCode::usage();
         }
 
         if ($command === 'list-tests'

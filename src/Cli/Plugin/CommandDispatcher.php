@@ -40,7 +40,7 @@ final readonly class CommandDispatcher
      * @throws ReportGenerationFailed
      * @throws WireCommunicationFailed
      */
-    public function dispatch(array $argv, string $workingDirectory, ?string $binPath): int
+    public function dispatch(array $argv, string $workingDirectory, ?string $binPath): ExitCode
     {
         [$command, $commandIndex] = $this->selectedCommand($argv);
         $command ??= 'run';
@@ -57,7 +57,7 @@ final readonly class CommandDispatcher
         } catch (ConfigFileError|InvalidConfiguration|CommandSetupFailed $error) {
             $this->console->error($error->getMessage(), \in_array('--no-ansi', $argv, true));
 
-            return ExitCode::FAILURE;
+            return ExitCode::failure();
         }
 
         $definition = $catalog->get($command);
@@ -68,7 +68,7 @@ final readonly class CommandDispatcher
                 \in_array('--no-ansi', $argv, true),
             );
 
-            return ExitCode::USAGE;
+            return ExitCode::usage();
         }
 
         $arguments = $argv;
@@ -96,7 +96,7 @@ final readonly class CommandDispatcher
                 $error->getMessage(),
             ), \in_array('--no-ansi', $argv, true));
 
-            return ExitCode::FAILURE;
+            return ExitCode::failure();
         }
 
         if ($exitCode < 0 || $exitCode > 255) {
@@ -106,10 +106,10 @@ final readonly class CommandDispatcher
                 $exitCode,
             ), \in_array('--no-ansi', $argv, true));
 
-            return ExitCode::FAILURE;
+            return ExitCode::failure();
         }
 
-        return $exitCode;
+        return ExitCode::fromInt($exitCode);
     }
 
     /**

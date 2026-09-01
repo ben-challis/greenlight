@@ -16,22 +16,22 @@ final class GracefulShutdownTest
         $shutdown = new GracefulShutdown();
 
         Expect::that($shutdown->requested())->because('starts with nothing requested')->toBeFalse();
-        Expect::that($shutdown->exitCode())->because('starts with nothing requested')->toBe(null);
+        Expect::that($shutdown->signal())->because('starts with nothing requested')->toBe(null);
     }
 
     #[Test]
-    public function mapsSignalsToConventionalExitCodes(): void
+    public function keepsTheRequestedSignal(): void
     {
         $sigint = new GracefulShutdown();
         $sigint->request(2);
 
-        Expect::that($sigint->requested())->because('maps signals to conventional exit codes')->toBeTrue();
-        Expect::that($sigint->exitCode())->because('maps signals to conventional exit codes')->toBe(130);
+        Expect::that($sigint->requested())->because('has a requested signal')->toBeTrue();
+        Expect::that($sigint->signal())->because('keeps the requested signal')->toBe(2);
 
         $sigterm = new GracefulShutdown();
         $sigterm->request(15);
 
-        Expect::that($sigterm->exitCode())->because('maps signals to conventional exit codes')->toBe(143);
+        Expect::that($sigterm->signal())->because('keeps the requested signal')->toBe(15);
     }
 
     #[Test]
@@ -41,6 +41,6 @@ final class GracefulShutdownTest
         $shutdown->request(15);
         $shutdown->request(2);
 
-        Expect::that($shutdown->exitCode())->because('keeps the first signal')->toBe(143);
+        Expect::that($shutdown->signal())->because('keeps the first signal')->toBe(15);
     }
 }

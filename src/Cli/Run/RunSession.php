@@ -122,7 +122,7 @@ final readonly class RunSession
      * @throws CoverageError
      * @throws ReportGenerationFailed
      */
-    private function execute(Reporter $reporter, FailedTestsTap $failedTap, array $priorityClasses, array $classSeconds): int
+    private function execute(Reporter $reporter, FailedTestsTap $failedTap, array $priorityClasses, array $classSeconds): ExitCode
     {
         $resolved = $this->configuration->resolved;
         $workers = $resolved->workers->count->fixed ?? CpuCores::count();
@@ -139,12 +139,14 @@ final readonly class RunSession
             } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
                 $reporter->finish();
                 $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
-                $interruptExit = $this->shutdown->exitCode();
-                if ($interruptExit !== null) {
+                $interruptSignal = $this->shutdown->signal();
+                if ($interruptSignal !== null) {
                     $this->console->err("Interrupted. Integration fixture teardown was attempted before exit.\n");
                 }
 
-                return $interruptExit ?? ExitCode::FAILURE;
+                return $interruptSignal === null
+                    ? ExitCode::failure()
+                    : ExitCode::signal($interruptSignal);
             }
             $coverage = $coverageSession->finish($run->coverage);
         } finally {
@@ -157,16 +159,16 @@ final readonly class RunSession
             $coverage = CoveragePluginRuntime::fromDefinitions($resolved->execution->plugins)
                 ->transform($coverage);
         }
-        $interruptExit = $this->shutdown->exitCode();
-        if ($interruptExit !== null) {
+        $interruptSignal = $this->shutdown->signal();
+        if ($interruptSignal !== null) {
             $this->console->err("Interrupted. The summary includes only tests that finished before shutdown.\n");
 
-            return $interruptExit;
+            return ExitCode::signal($interruptSignal);
         }
         if ($run->plannedTests === 0) {
             $this->console->err("Greenlight found no tests. Check the configuration, test paths, and filters.\n");
 
-            return ExitCode::FAILURE;
+            return ExitCode::failure();
         }
         $coverageConfig = $resolved->coverage;
         if ($coverageConfig instanceof CoverageConfiguration
@@ -179,16 +181,16 @@ final readonly class RunSession
                     : $this->console->stdoutStyle($this->arguments->has('no-ansi')),
             )
         ) {
-            return ExitCode::FAILURE;
+            return ExitCode::failure();
         }
         if ($run->leaks !== []) {
             $this->console->err(SummaryFormat::leaks($run->leaks, $this->console->stderrStyle($this->arguments->has('no-ansi'))));
 
-            return ExitCode::FAILURE;
+            return ExitCode::failure();
         }
 
         if (!$run->summary->isSuccessful()) {
-            return ExitCode::FAILURE;
+            return ExitCode::failure();
         }
 
         try {
@@ -196,14 +198,14 @@ final readonly class RunSession
         } catch (RunPolicyError $error) {
             $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
 
-            return ExitCode::FAILURE;
+            return ExitCode::failure();
         }
 
         if ($policyFailed) {
-            return ExitCode::FAILURE;
+            return ExitCode::failure();
         }
 
-        return ExitCode::SUCCESS;
+        return ExitCode::success();
     }
 
     /** @throws RunPolicyError */

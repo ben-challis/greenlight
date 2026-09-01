@@ -257,9 +257,9 @@ final readonly class WatchTest
         Expect::that($detector->polls)
             ->because('watch mode does not poll again after a shutdown request')
             ->toBe(1);
-        Expect::that($shutdown->exitCode())
-            ->because('watch mode converts the requested signal to a shell exit status')
-            ->toBe(143);
+        Expect::that($shutdown->signal())
+            ->because('watch mode keeps the signal that requested shutdown')
+            ->toBe(15);
     }
 
     #[Test]

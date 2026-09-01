@@ -33,8 +33,7 @@ final class SignalHandlersTest
         Expect::that($shutdown->requested())
             ->because('each supported signal MUST request graceful shutdown on first delivery')
             ->toBeTrue();
-        Expect::that($shutdown->exitCode())
-            ->toBe(128 + $signal);
+        Expect::that($shutdown->signal())->toBe($signal);
     }
 
     #[Test]
@@ -80,7 +79,7 @@ final class SignalHandlersTest
         Expect::that($shutdown->requested())
             ->because('the first signal requests graceful shutdown')
             ->toBeTrue();
-        Expect::that($shutdown->exitCode())->toBe(128 + \SIGTERM);
+        Expect::that($shutdown->signal())->toBe(\SIGTERM);
         Expect::that($operations->registrations[2] ?? null)
             ->because('the first signal restores the default SIGINT handler')
             ->toBe(['signal' => \SIGINT, 'handler' => \SIG_DFL]);
