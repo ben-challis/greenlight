@@ -71,19 +71,19 @@ final readonly class BundledCommands implements CommandProvider
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), \in_array('--no-ansi', $invocation->argv(), true));
 
-            return ExitCode::Usage;
+            return ExitCode::usage();
         }
 
         if ($arguments->has('help')) {
             $this->console->out(Definition::HELP . "\n");
 
-            return ExitCode::Success;
+            return ExitCode::success();
         }
 
         if ($arguments->has('version')) {
             $this->console->out('Greenlight ' . $this->version . "\n");
 
-            return ExitCode::Success;
+            return ExitCode::success();
         }
 
         $command = $arguments->command ?? 'run';
@@ -97,7 +97,7 @@ final readonly class BundledCommands implements CommandProvider
                 $arguments->has('no-ansi'),
             );
 
-            return ExitCode::Usage;
+            return ExitCode::usage();
         }
 
         if ($command === 'list-tests'

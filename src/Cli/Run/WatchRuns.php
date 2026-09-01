@@ -93,14 +93,14 @@ final readonly class WatchRuns
             new WatchLoop($sources, new Debouncer($resolved->watch->debounceMilliseconds / 1000), $keys, new SystemWatchClock(), $this->console->out(...), $shutdown)->run($runOnce);
         } catch (ReporterSetupFailed|RunPolicyError|WatchSourceFailed $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::Failure;
+            return ExitCode::failure();
         } finally {
             $keys->restore();
         }
         $interruptExit = $shutdown->exitCode();
 
         return $interruptExit === null
-            ? ExitCode::Success
+            ? ExitCode::success()
             : ExitCode::fromInt($interruptExit);
     }
 }

@@ -30,13 +30,13 @@ final readonly class ProfileReportCommand
         $input = $inputs[0] ?? null;
         if (\count($inputs) !== 1 || $input === null || $input === '') {
             $this->console->err("profile:report requires --input=<path to a JSONL stream>.\n");
-            return ExitCode::Usage;
+            return ExitCode::usage();
         }
         $path = ConfigurationLoader::absolutePath($input, $workingDirectory);
         $raw = ErrorTrap::run(static fn() => \file_get_contents($path), $warning);
         if (!\is_string($raw)) {
             $this->console->err(\sprintf("Greenlight could not read \"%s\"%s.\n", $path, $warning === null ? '' : ': ' . $warning));
-            return ExitCode::Failure;
+            return ExitCode::failure();
         }
         $aggregator = new ProfileAggregator();
         foreach (\explode("\n", $raw) as $line) {
@@ -59,10 +59,10 @@ final readonly class ProfileReportCommand
         $report = $aggregator->render(new Style($this->console->capabilities($arguments->has('no-ansi'), $arguments->has('ansi'))->color));
         if ($report === '') {
             $this->console->err("The stream has no finished run to profile.\n");
-            return ExitCode::Failure;
+            return ExitCode::failure();
         }
         $this->console->out(\ltrim($report, "\n"));
-        return ExitCode::Success;
+        return ExitCode::success();
     }
 
     private function handleCodecFailure(EventCodecFailed $failure, bool $noAnsi): ?ExitCode
@@ -99,13 +99,13 @@ final readonly class ProfileReportCommand
             $failure->getMessage(),
         ), $noAnsi);
 
-        return ExitCode::Failure;
+        return ExitCode::failure();
     }
 
     private function writeInputError(string $message): ExitCode
     {
         $this->console->err($message . "\n");
 
-        return ExitCode::Failure;
+        return ExitCode::failure();
     }
 }

@@ -30,15 +30,15 @@ final readonly class ArtifactsPruneCommand
             $maintenance = ArtifactMaintenance::forConfiguration($configuration, $workingDirectory);
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::Usage;
+            return ExitCode::usage();
         } catch (AttachmentError|ConfigFileError|InvalidConfiguration $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::Failure;
+            return ExitCode::failure();
         }
 
         if (!$configuration->hasRetentionPolicy()) {
             $this->console->out("No artifact retention policy is configured.\n");
-            return ExitCode::Success;
+            return ExitCode::success();
         }
 
         $report = $maintenance->prune($arguments->has('dry-run'));
@@ -61,6 +61,6 @@ final readonly class ArtifactsPruneCommand
             $this->console->err($warning . "\n");
         }
 
-        return ExitCode::Success;
+        return ExitCode::success();
     }
 }

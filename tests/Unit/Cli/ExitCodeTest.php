@@ -13,29 +13,32 @@ final readonly class ExitCodeTest
 {
     #[Test]
     #[DataSet('processCodes')]
-    public function convertsCommandResultsAtTheProcessSeam(ExitCode $exitCode, int $processCode): void
+    public function convertsNamedCommandResultsAtTheProcessSeam(ExitCode $exitCode, int $processCode, bool $successful): void
     {
         Expect::that($exitCode->toInt())->toBe($processCode);
-        Expect::that(ExitCode::fromInt($processCode))->toBe($exitCode);
+        Expect::that($exitCode->isSuccess())->toBe($successful);
     }
 
-    /** @return iterable<string, array{ExitCode, int}> */
+    /** @return iterable<string, array{ExitCode, int, bool}> */
     public static function processCodes(): iterable
     {
-        yield 'success' => [ExitCode::Success, 0];
-        yield 'failure' => [ExitCode::Failure, 1];
-        yield 'usage' => [ExitCode::Usage, 64];
-        yield 'interrupted' => [ExitCode::Interrupted, 130];
-        yield 'terminated' => [ExitCode::Terminated, 143];
+        yield 'success' => [ExitCode::success(), 0, true];
+        yield 'failure' => [ExitCode::failure(), 1, false];
+        yield 'usage' => [ExitCode::usage(), 64, false];
     }
 
     #[Test]
-    public function rejectsAnUnknownProcessCode(): void
+    #[DataSet('dynamicProcessCodes')]
+    public function preservesDynamicProcessCodes(int $processCode): void
     {
-        Expect::that(static fn(): ExitCode => ExitCode::fromInt(7))
-            ->toThrow(
-                \InvalidArgumentException::class,
-                message: 'Exit code 7 does not identify a Greenlight command result.',
-            );
+        Expect::that(ExitCode::fromInt($processCode)->toInt())->toBe($processCode);
+    }
+
+    /** @return iterable<string, array{int}> */
+    public static function dynamicProcessCodes(): iterable
+    {
+        yield 'interrupt signal' => [128 + \SIGINT];
+        yield 'quit signal' => [128 + \SIGQUIT];
+        yield 'termination signal' => [128 + \SIGTERM];
     }
 }

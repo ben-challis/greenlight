@@ -24,14 +24,14 @@ final readonly class CompletionCommand
         $shell = $arguments[0] ?? null;
         if ($shell === null) {
             $this->console->err(\sprintf("completion requires a shell argument: %s.\n", \implode(', ', Definition::COMPLETION_SHELLS)));
-            return ExitCode::Usage;
+            return ExitCode::usage();
         }
         $script = new CompletionScripts($this->definition->options())->render($shell);
         if ($script === null) {
             $this->console->err(\sprintf("Unknown shell \"%s\". Select one of: %s.\n", $shell, \implode(', ', Definition::COMPLETION_SHELLS)));
-            return ExitCode::Usage;
+            return ExitCode::usage();
         }
         $this->console->out($script);
-        return ExitCode::Success;
+        return ExitCode::success();
     }
 }

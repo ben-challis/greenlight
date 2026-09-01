@@ -33,11 +33,11 @@ final readonly class IdeHelperCommand
             $map = MatcherMap::fromConfigFiles([ConfigurationLoader::absolutePath($configFile, $workingDirectory)]);
         } catch (ConfigFileError|InvalidConfiguration|MatcherMapError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::Failure;
+            return ExitCode::failure();
         }
         if ($map->names() === []) {
             $this->console->out("The configuration has no extension matchers. There is no helper to generate.\n");
-            return ExitCode::Success;
+            return ExitCode::success();
         }
         $output = $arguments->value('output') ?? '_greenlight_ide_helper.php';
         $path = ConfigurationLoader::absolutePath($output, $workingDirectory);
@@ -45,12 +45,12 @@ final readonly class IdeHelperCommand
             AtomicFile::write($path, IdeHelper::render($map));
         } catch (AtomicFileError $error) {
             $this->console->err(\sprintf("Greenlight could not write \"%s\": %s\n", $path, $error->getMessage()));
-            return ExitCode::Failure;
+            return ExitCode::failure();
         }
         $this->console->out(
             \sprintf("Wrote %s with %d matchers. Add it to .gitignore. Generate it again after matcher changes.\n", $path, \count($map->names())),
         );
 
-        return ExitCode::Success;
+        return ExitCode::success();
     }
 }

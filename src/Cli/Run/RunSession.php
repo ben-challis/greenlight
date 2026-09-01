@@ -145,7 +145,7 @@ final readonly class RunSession
                 }
 
                 return $interruptExit === null
-                    ? ExitCode::Failure
+                    ? ExitCode::failure()
                     : ExitCode::fromInt($interruptExit);
             }
             $coverage = $coverageSession->finish($run->coverage);
@@ -168,7 +168,7 @@ final readonly class RunSession
         if ($run->plannedTests === 0) {
             $this->console->err("Greenlight found no tests. Check the configuration, test paths, and filters.\n");
 
-            return ExitCode::Failure;
+            return ExitCode::failure();
         }
         $coverageConfig = $resolved->coverage;
         if ($coverageConfig instanceof CoverageConfiguration
@@ -181,16 +181,16 @@ final readonly class RunSession
                     : $this->console->stdoutStyle($this->arguments->has('no-ansi')),
             )
         ) {
-            return ExitCode::Failure;
+            return ExitCode::failure();
         }
         if ($run->leaks !== []) {
             $this->console->err(SummaryFormat::leaks($run->leaks, $this->console->stderrStyle($this->arguments->has('no-ansi'))));
 
-            return ExitCode::Failure;
+            return ExitCode::failure();
         }
 
         if (!$run->summary->isSuccessful()) {
-            return ExitCode::Failure;
+            return ExitCode::failure();
         }
 
         try {
@@ -198,14 +198,14 @@ final readonly class RunSession
         } catch (RunPolicyError $error) {
             $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
 
-            return ExitCode::Failure;
+            return ExitCode::failure();
         }
 
         if ($policyFailed) {
-            return ExitCode::Failure;
+            return ExitCode::failure();
         }
 
-        return ExitCode::Success;
+        return ExitCode::success();
     }
 
     /** @throws RunPolicyError */

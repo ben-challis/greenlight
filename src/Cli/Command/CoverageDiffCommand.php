@@ -33,20 +33,20 @@ final readonly class CoverageDiffCommand
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
-            return ExitCode::Usage;
+            return ExitCode::usage();
         }
 
         $baselinePath = $arguments->value('baseline');
         $currentPath = $arguments->value('current');
         if ($baselinePath === null || $currentPath === null) {
             $this->console->err("coverage:diff requires --baseline=<path> and --current=<path>.\n");
-            return ExitCode::Usage;
+            return ExitCode::usage();
         }
         $baselineRoot = $arguments->value('baseline-root');
         $currentRoot = $arguments->value('current-root');
         if (($baselineRoot === null) !== ($currentRoot === null)) {
             $this->console->err("Use --baseline-root=<path> and --current-root=<path> together.\n");
-            return ExitCode::Usage;
+            return ExitCode::usage();
         }
         $maps = [];
         foreach (['baseline' => $baselinePath, 'current' => $currentPath] as $label => $path) {
@@ -63,7 +63,7 @@ final readonly class CoverageDiffCommand
                     $arguments->has('no-ansi'),
                 );
 
-                return ExitCode::Failure;
+                return ExitCode::failure();
             }
             try {
                 $maps[$label] = JsonExporter::import($json);
@@ -77,7 +77,7 @@ final readonly class CoverageDiffCommand
                     $arguments->has('no-ansi'),
                 );
 
-                return ExitCode::Failure;
+                return ExitCode::failure();
             }
         }
 
@@ -96,7 +96,7 @@ final readonly class CoverageDiffCommand
                         $error->getMessage(),
                     ), $arguments->has('no-ansi'));
 
-                    return ExitCode::Failure;
+                    return ExitCode::failure();
                 }
             }
         }
@@ -146,7 +146,7 @@ final readonly class CoverageDiffCommand
         }
 
         return $report->hasRegressions() || $gateFailures !== []
-            ? ExitCode::Failure
-            : ExitCode::Success;
+            ? ExitCode::failure()
+            : ExitCode::success();
     }
 }

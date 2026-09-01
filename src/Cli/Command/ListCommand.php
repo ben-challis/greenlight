@@ -33,14 +33,14 @@ final readonly class ListCommand
 
         if (!\in_array($format, ['text', 'json'], true)) {
             $this->console->error(CliError::unknownTestListFormat($format)->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::Usage;
+            return ExitCode::usage();
         }
 
         $manifest = $format === 'json';
 
         if ($manifest && ($arguments->has('list-groups') || $arguments->has('list-suites'))) {
             $this->console->error(CliError::formatRequiresTestListing()->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::Usage;
+            return ExitCode::usage();
         }
 
         if (!$manifest) {
@@ -66,10 +66,10 @@ final readonly class ListCommand
             $loaded = new ConfigurationLoader()->load($arguments, $workingDirectory);
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::Usage;
+            return ExitCode::usage();
         } catch (ConfigFileError|InvalidConfiguration $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::Failure;
+            return ExitCode::failure();
         }
         $standalone = $arguments->command === 'list-tests';
         if (!$standalone && $arguments->has('list-suites')) {
@@ -81,10 +81,10 @@ final readonly class ListCommand
             $plan = SelectionPlan::resolve($loaded, $workingDirectory, $arguments->has('failed'));
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::Usage;
+            return ExitCode::usage();
         } catch (DiscoveryError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return ExitCode::Failure;
+            return ExitCode::failure();
         }
 
         if ($manifest) {
@@ -99,7 +99,7 @@ final readonly class ListCommand
                 \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_THROW_ON_ERROR,
             ) . "\n");
 
-            return ExitCode::Success;
+            return ExitCode::success();
         }
 
         return !$standalone && $arguments->has('list-groups') ? $this->groups($plan) : $this->tests($plan);
@@ -111,7 +111,7 @@ final readonly class ListCommand
             $this->console->out($entry->id . "\n");
         }
         $this->console->out(\sprintf("\n%d tests\n", \count($plan->entries)));
-        return ExitCode::Success;
+        return ExitCode::success();
     }
 
     private function groups(ExecutionPlan $plan): ExitCode
@@ -127,7 +127,7 @@ final readonly class ListCommand
             $this->console->out(\sprintf("%s (%d tests)\n", $group, $count));
         }
         $this->console->out(\sprintf("\n%d groups\n", \count($counts)));
-        return ExitCode::Success;
+        return ExitCode::success();
     }
 
     private function suites(ResolvedConfiguration $resolved): ExitCode
@@ -142,7 +142,7 @@ final readonly class ListCommand
             $this->console->out($line . "\n");
         }
         $this->console->out(\sprintf("\n%d suites\n", \count($suites)));
-        return ExitCode::Success;
+        return ExitCode::success();
     }
 
     private function warnWhenExcludePathsMatchNothing(SelectionDiscovery $discovery, bool $noAnsi): void
