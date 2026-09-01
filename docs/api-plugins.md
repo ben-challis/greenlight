@@ -509,10 +509,10 @@ equal priorities. Greenlight calls each transformer one time for each
 executed test, before the worker finalizes the class scope and publishes the
 result.
 
-A plugin can return the same result or a replacement. It MUST preserve the
-test identity. Use `TestResult::withOutcome()` for outcome changes so that
-the result records their source. Greenlight contains transformer failures
-and continues with the remaining transformers.
+A plugin can return the same result or a replacement. Preserve the test
+identity. Use `TestResult::withOutcome()` for outcome changes so that the
+result records their source. Greenlight contains transformer failures and
+continues with the remaining transformers.
 
 ```php
 interface TerminalResultTransformer extends Plugin

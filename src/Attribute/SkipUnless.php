@@ -7,8 +7,8 @@ namespace Greenlight\Attribute;
 use Greenlight\Condition\Condition;
 
 /**
- * A worker evaluates the condition. Constructor arguments MUST be scalar
- * values or null. Float values MUST be finite.
+ * A worker evaluates the condition. Use only scalar values or null for
+ * constructor arguments. Use finite float values.
  */
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class SkipUnless

@@ -96,11 +96,11 @@ Greenlight removes the command name from `CommandInvocation::$arguments`. It
 keeps all other tokens in their input order. A plugin command owns the syntax
 and validation of these arguments.
 
-Use `write()` for standard output. Use `writeError()` for standard error. The
-handler MUST return a `CommandResult`. Use `success()`, `failure()`, or `usage()`
-to describe a completed command. Use `interrupted()` with the signal number that
-stopped a command. If the handler throws, Greenlight reports a command error and
-returns exit code 1.
+Use `write()` for standard output. Use `writeError()` for standard error.
+Return a `CommandResult` from the handler. Use `success()`, `failure()`, or
+`usage()` to describe a completed command. Use `interrupted()` with the signal
+number that stopped a command. If the handler throws, Greenlight reports a
+command error and returns exit code 1.
 
 Built-in and configured names share one registry. A duplicate name stops
 command dispatch. Greenlight creates the provider only when it resolves a
@@ -122,9 +122,9 @@ Return an empty list when no change occurred. Greenlight removes duplicate
 strings before it notifies the watch loop.
 
 The source instance belongs to one `--watch` command. It can keep a snapshot or
-cursor between polls. Its first poll SHOULD establish the initial state and
-return an empty list. A source can poll an external change feed, a generated
-file index, or another application-specific signal.
+cursor between polls. Typically, its first poll establishes the initial state
+and returns an empty list. A source can poll an external change feed, a
+generated file index, or another application-specific signal.
 
 If source creation or polling fails, Greenlight names the plugin, stops watch
 mode, restores terminal input, and returns exit code 1.
@@ -188,9 +188,9 @@ final event, or after a contained run error.
 If a provider or factory throws, Greenlight reports the name and stops the
 command. An invalid factory result also stops the command before test execution.
 
-If a reporter cannot render or deliver its output, it MUST throw
-`ReportGenerationFailed::because()`. The reason MUST NOT be empty. If an
-original error is available, pass it as the second argument. For example, use
+If a reporter cannot render or deliver its output, throw
+`ReportGenerationFailed::because()`. Supply a nonempty reason. If an original
+error is available, pass it as the second argument. For example, use
 `ReportGenerationFailed::because('the custom template is invalid', $error)`.
 
 Greenlight propagates this error and stops the command. Later reporters do not
@@ -231,10 +231,10 @@ return GreenlightConfig::create()
 ```
 
 `TestPlan::$tests` contains `TestId` values in execution order. Use
-`withTests()` to return a replacement. A transformer MAY remove tests and MAY
-reorder complete class blocks. It MUST NOT add tests, duplicate tests, or split
-one class across separate blocks. An invalid replacement or a transformer
-error stops the run.
+`withTests()` to return a replacement. A transformer can remove tests and
+reorder complete class blocks. Do not add tests, duplicate tests, or split one
+class across separate blocks. An invalid replacement or a transformer error
+stops the run.
 
 Transformers use normal plugin priority order. Greenlight runs its bundled
 ordering transformer first. Equal-priority configured transformers keep their
@@ -274,9 +274,9 @@ return GreenlightConfig::create()
 ```
 
 The transformer receives a `CoverageMap` with sorted `FileCoverage` values.
-It MUST return a `CoverageMap`. A transformer or plugin-factory error stops
-coverage finishing and the command fails. Watch reruns do not write coverage
-and do not apply these transformers.
+Return a `CoverageMap`. A transformer or plugin-factory error stops coverage
+finishing and the command fails. Watch reruns do not write coverage and do not
+apply these transformers.
 
 ### AttachmentRetentionDecider
 
@@ -659,8 +659,8 @@ The test scope is closed. The worker has not yet closed the class scope or
 published `TestFinished`.
 
 The transformer receives the test definition and the result that remains after
-retries. It must return the same result or a replacement. It MUST preserve the
-test identity. Use `TestResult::withOutcome()` for each outcome change.
+retries. Return the same result or a replacement. Preserve the test identity.
+Use `TestResult::withOutcome()` for each outcome change.
 
 Greenlight runs all terminal-result transformers. If a transformer throws,
 Greenlight records the failure on the result and continues with the remaining
@@ -744,8 +744,8 @@ declared parameter type and the attribute instances.
 Return `null` when the resolver does not support the type. Greenlight then
 calls the next resolver.
 
-Return the service object when the resolver supplies it. The service MUST have
-the requested type.
+Return the service object when the resolver supplies it. Use the requested type
+for the service.
 
 Throw `ServiceResolutionFailed` when the resolver handles the request but
 cannot supply a valid service. Greenlight stops the resolver chain and exposes
@@ -757,7 +757,7 @@ result. A container operation failure is also a failed result.
 
 Implement `TerminalServiceResolver` when a resolver handles every request.
 Greenlight places one terminal resolver after all fallback-capable resolvers.
-A terminal resolver MUST NOT return `null`. Greenlight rejects a resolver
+Do not return `null` from a terminal resolver. Greenlight rejects a resolver
 chain that has an item after a terminal resolver.
 
 The resolver owns each object that it returns. Harness scopes do not track or
