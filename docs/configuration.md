@@ -711,6 +711,19 @@ Requires:
 --input=<path>
 ```
 
+### artifacts:prune
+
+Applies the configured retention policy to completed artifact run directories.
+
+Use `--dry-run` to list the directories that the command would remove. The
+command reports each directory, its size, and the applicable limit.
+
+If no retention policy is configured, the command exits successfully and does
+not remove a directory.
+
+See [`artifacts()`](#artifactscallable-configurator-self) for the retention
+settings.
+
 ### ide-helper
 
 Writes the IDE autocomplete helper for extension matchers.
