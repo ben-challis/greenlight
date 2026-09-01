@@ -7,7 +7,7 @@ namespace Greenlight\Cli\Plugin;
 use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Cli\Output\ExitCode;
+use Greenlight\Command\ExitCode;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\InvalidConfiguration;
@@ -99,17 +99,7 @@ final readonly class CommandDispatcher
             return ExitCode::failure();
         }
 
-        if ($exitCode < 0 || $exitCode > 255) {
-            $this->console->error(\sprintf(
-                'Command "%s" returned invalid exit code %d. Exit codes MUST be from 0 through 255.',
-                $command,
-                $exitCode,
-            ), \in_array('--no-ansi', $argv, true));
-
-            return ExitCode::failure();
-        }
-
-        return ExitCode::fromInt($exitCode);
+        return $exitCode;
     }
 
     /**

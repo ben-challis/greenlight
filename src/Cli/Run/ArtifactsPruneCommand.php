@@ -9,7 +9,7 @@ use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Cli\Output\ExitCode;
+use Greenlight\Command\ExitCode;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Execution\ArtifactMaintenance;

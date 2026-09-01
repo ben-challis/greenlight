@@ -13,9 +13,9 @@ use Greenlight\Cli\Command\ProfileReportCommand;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Cli\Output\ExitCode;
 use Greenlight\Cli\Run\ArtifactsPruneCommand;
 use Greenlight\Cli\Run\RunCommand;
+use Greenlight\Command\ExitCode;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Plugin\CommandDefinition;
 use Greenlight\Plugin\CommandInvocation;
@@ -47,8 +47,8 @@ final readonly class BundledCommands implements CommandProvider
                 $name,
                 $description,
                 $name === 'completion'
-                    ? fn(CommandInvocation $invocation): int => $this->completion($invocation)->toInt()
-                    : fn(CommandInvocation $invocation): int => $this->parsedCommand($invocation)->toInt(),
+                    ? $this->completion(...)
+                    : $this->parsedCommand(...),
             );
         }
 

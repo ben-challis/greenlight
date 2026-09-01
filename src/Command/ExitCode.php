@@ -2,13 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Cli\Output;
+namespace Greenlight\Command;
 
 /**
- * Contains the integer result that a Greenlight command returns. Converts the
- * result to an integer at a process or plugin seam.
- *
- * @internal
+ * Contains the result that a Greenlight command returns.
  */
 final readonly class ExitCode
 {
@@ -40,6 +37,10 @@ final readonly class ExitCode
 
     public static function fromInt(int $value): self
     {
+        if ($value < 0 || $value > 255) {
+            throw new \InvalidArgumentException('Exit code MUST be from 0 through 255.');
+        }
+
         return new self($value);
     }
 

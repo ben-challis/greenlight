@@ -10,7 +10,7 @@ use Greenlight\Cli\Coverage\CoverageGate;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Cli\Output\ExitCode;
+use Greenlight\Command\ExitCode;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Coverage\Diff\BaselineDiff;
 use Greenlight\Coverage\Diff\ProjectRootNormalizer;

@@ -7,7 +7,7 @@ namespace Greenlight\Cli\Command;
 use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Cli\Output\ExitCode;
+use Greenlight\Command\ExitCode;
 use Greenlight\Internal\Event\EventCodec;
 use Greenlight\Internal\Event\EventCodecFailed;
 use Greenlight\Internal\Event\EventCodecFailureKind;

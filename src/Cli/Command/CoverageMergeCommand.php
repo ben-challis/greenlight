@@ -10,7 +10,7 @@ use Greenlight\Cli\Coverage\CoverageWriter;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Cli\Output\ExitCode;
+use Greenlight\Command\ExitCode;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\CoverageExport;
 use Greenlight\Config\InvalidConfiguration;

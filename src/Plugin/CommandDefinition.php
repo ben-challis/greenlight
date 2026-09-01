@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Plugin;
 
+use Greenlight\Command\ExitCode;
+
 /** Defines one named command-line command. */
 final readonly class CommandDefinition
 {
@@ -14,7 +16,7 @@ final readonly class CommandDefinition
     public string $description;
 
     /**
-     * @param \Closure(CommandInvocation): int $handler
+     * @param \Closure(CommandInvocation): ExitCode $handler
      *
      * @throws \InvalidArgumentException
      */
@@ -38,7 +40,7 @@ final readonly class CommandDefinition
     }
 
     /** @internal Greenlight runs command definitions. */
-    public function run(CommandInvocation $invocation): int
+    public function run(CommandInvocation $invocation): ExitCode
     {
         return ($this->handler)($invocation);
     }

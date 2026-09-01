@@ -90,7 +90,7 @@ const sections = [
     id: 'api-plugins',
     title: 'Plugin API',
     description: 'This reference lists plugin capabilities and lifecycle callback contracts.',
-    prefixes: ['Greenlight\\Plugin\\'],
+    prefixes: ['Greenlight\\Command\\', 'Greenlight\\Plugin\\'],
   },
   {
     id: 'api-reporting',

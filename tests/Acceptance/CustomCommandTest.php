@@ -25,12 +25,12 @@ final readonly class CustomCommandTest
                     return [new CommandDefinition(
                         'company:hello',
                         'Print a company greeting',
-                        static function (CommandInvocation $invocation): int {
+                        static function (CommandInvocation $invocation): ExitCode {
                             $invocation->write("cwd=" . $invocation->workingDirectory . "\n");
                             $invocation->write("args=" . implode('|', $invocation->arguments) . "\n");
                             $invocation->writeError("company diagnostic\n");
 
-                            return 7;
+                            return ExitCode::fromInt(7);
                         },
                     )];
                 }
@@ -59,8 +59,8 @@ final readonly class CustomCommandTest
                 public function commands(): array
                 {
                     return [
-                        new CommandDefinition('run', 'Replace the run command', static fn(CommandInvocation $invocation): int => 0),
-                        new CommandDefinition('company:probe', 'Load this provider', static fn(CommandInvocation $invocation): int => 0),
+                        new CommandDefinition('run', 'Replace the run command', static fn(CommandInvocation $invocation): ExitCode => ExitCode::success()),
+                        new CommandDefinition('company:probe', 'Load this provider', static fn(CommandInvocation $invocation): ExitCode => ExitCode::success()),
                     ];
                 }
             }
@@ -89,12 +89,12 @@ final readonly class CustomCommandTest
                         new CommandDefinition(
                             'company:throws',
                             'Throw from a command',
-                            static fn(CommandInvocation $invocation): int => throw new RuntimeException('Command exploded'),
+                            static fn(CommandInvocation $invocation): ExitCode => throw new RuntimeException('Command exploded'),
                         ),
                         new CommandDefinition(
                             'company:invalid-exit',
                             'Return an invalid exit code',
-                            static fn(CommandInvocation $invocation): int => 300,
+                            static fn(CommandInvocation $invocation): ExitCode => ExitCode::fromInt(300),
                         ),
                     ];
                 }
@@ -113,7 +113,7 @@ final readonly class CustomCommandTest
         $invalid = GreenlightCli::run($project->directory, ['company:invalid-exit', '--no-ansi']);
         Expect::that($invalid->exitCode)->toBe(1);
         Expect::that($invalid->stderr)
-            ->toBe('greenlight: Command "company:invalid-exit" returned invalid exit code 300. Exit codes MUST be from 0 through 255.');
+            ->toBe('greenlight: Command "company:invalid-exit" caused an error: Exit code MUST be from 0 through 255.');
     }
 
     private function project(string $name, string $body): AcceptanceProject
@@ -125,6 +125,7 @@ final readonly class CustomCommandTest
 
             declare(strict_types=1);
 
+            use Greenlight\Command\ExitCode;
             use Greenlight\Config\GreenlightConfig;
             use Greenlight\Plugin\CommandDefinition;
             use Greenlight\Plugin\CommandInvocation;

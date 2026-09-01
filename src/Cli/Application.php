@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Cli;
 
 use Greenlight\Cli\Output\Console;
-use Greenlight\Cli\Output\ExitCode;
 use Greenlight\Cli\Plugin\CommandDispatcher;
+use Greenlight\Command\ExitCode;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\Relay\SubprocessCoverage;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;

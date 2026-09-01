@@ -6,6 +6,74 @@ This reference lists plugin capabilities and lifecycle callback contracts.
 
 These signatures are the public API.
 
+## `ExitCode`
+
+Namespace: `Greenlight\Command`
+
+Contains the result that a Greenlight command returns.
+
+```php
+final readonly class ExitCode
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L10)
+
+### `success()`
+
+```php
+public static function success(): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L14)
+
+### `failure()`
+
+```php
+public static function failure(): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L19)
+
+### `usage()`
+
+```php
+public static function usage(): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L24)
+
+### `signal()`
+
+```php
+public static function signal(int $signal): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L29)
+
+### `fromInt()`
+
+```php
+public static function fromInt(int $value): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L38)
+
+### `isSuccess()`
+
+```php
+public function isSuccess(): bool
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L47)
+
+### `toInt()`
+
+```php
+public function toInt(): int
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Command/ExitCode.php#L52)
+
 ## `AfterTestSubscriber`
 
 Namespace: `Greenlight\Plugin`
@@ -100,7 +168,7 @@ Defines one named command-line command.
 final readonly class CommandDefinition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L8)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L10)
 
 ### `$name`
 
@@ -112,7 +180,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L11)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L13)
 
 ### `$description`
 
@@ -124,7 +192,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L16)
 
 ### `__construct()`
 
@@ -138,10 +206,10 @@ public function __construct(
 
 PHPDoc:
 
-- `@param \Closure(CommandInvocation): int $handler`
+- `@param \Closure(CommandInvocation): ExitCode $handler`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L23)
 
 ## `CommandInvocation`
 

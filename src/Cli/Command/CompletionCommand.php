@@ -7,7 +7,7 @@ namespace Greenlight\Cli\Command;
 use Greenlight\Cli\Input\CompletionScripts;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Cli\Output\ExitCode;
+use Greenlight\Command\ExitCode;
 
 /**
  * Prints a completion script for a supported shell.
