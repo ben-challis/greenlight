@@ -71,7 +71,7 @@
                 "id": {"type": "string", "minLength": 1},
                 "class": {"type": "string", "minLength": 1},
                 "method": {"type": "string", "minLength": 1},
-                "dataSetKey": {"type": ["string", "null"]},
+                "dataSetKey": {"type": ["string", "null"], "minLength": 1},
                 "source": {"$ref": "#/definitions/source"},
                 "groups": {
                     "type": "array",
@@ -123,7 +123,7 @@
             "required": ["present", "condition"],
             "properties": {
                 "present": {"type": "boolean"},
-                "condition": {"type": ["string", "null"]}
+                "condition": {"type": ["string", "null"], "minLength": 1}
             }
         },
         "retry": {
@@ -131,7 +131,7 @@
             "required": ["additionalAttempts", "onlyOn"],
             "properties": {
                 "additionalAttempts": {"type": "integer", "minimum": 0},
-                "onlyOn": {"type": ["string", "null"]}
+                "onlyOn": {"type": ["string", "null"], "minLength": 1}
             }
         }
     }
