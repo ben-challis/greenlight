@@ -164,8 +164,10 @@ final class Expectation
     }
 
     /**
-     * Uses the `toEqual()` rules but ignores list-element order at all levels.
-     * Associative arrays keep their keys.
+     * Uses the `toEqual()` rules but ignores list-element order. Canonicalization
+     * recurses through array values. It does not inspect object properties.
+     * Thus, lists in object properties keep their order. Associative arrays
+     * keep their keys.
      *
      * @return self<T>
      *

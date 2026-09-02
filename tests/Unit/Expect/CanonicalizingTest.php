@@ -58,6 +58,17 @@ final readonly class CanonicalizingTest
     }
 
     #[Test]
+    public function toEqualCanonicalizingKeepsListOrderInsideObjectProperties(): void
+    {
+        $subject = (object) ['values' => [2, 1]];
+        $expected = (object) ['values' => [1, 2]];
+
+        Expect::that($subject)
+            ->because('canonicalization MUST stop at an object boundary')
+            ->not()->toEqualCanonicalizing($expected);
+    }
+
+    #[Test]
     public function toEqualCanonicalizingFails(): void
     {
         $detail = FailureProbe::detailOf(
