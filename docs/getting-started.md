@@ -15,6 +15,8 @@ The parallel runner uses core stream sockets and `proc_open`. Coverage requires
 If PHP disables a process or stream function that the parallel runner requires,
 Greenlight uses an in-process sequential run.
 
+An in-process run cannot give `#[Isolated]` tests a dedicated process.
+
 Install Greenlight as a development dependency:
 
 ```sh
@@ -272,6 +274,9 @@ Tests run in parallel worker processes by default.
 
 `--workers=4` specifies four workers. `--workers=1` uses one in-process runner.
 The last mode is usually the simplest choice for debug work.
+
+Do not use `--workers=1` when a test depends on `#[Isolated]` for process-global
+state cleanup.
 
 A worker remains active until it has no more tests or the worker fails.
 This behavior makes memory growth and state leaks visible in the suite.
