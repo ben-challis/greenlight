@@ -26,7 +26,7 @@ use Greenlight\Hyperf\HyperfPlugin;
 
 return GreenlightConfig::create()
     ->paths(['tests'])
-    ->plugins(static fn(): HyperfPlugin => new HyperfPlugin(dirname(__DIR__)));
+    ->plugins(static fn(): HyperfPlugin => new HyperfPlugin(__DIR__));
 ```
 
 Pass the application root directory to the plugin. Include the standard
@@ -48,7 +48,7 @@ use Greenlight\Hyperf\ContainerLifetime;
 use Greenlight\Hyperf\HyperfPlugin;
 
 new HyperfPlugin(
-    dirname(__DIR__),
+    __DIR__,
     containerLifetime: ContainerLifetime::Worker,
 );
 ```
@@ -62,7 +62,7 @@ each test attempt:
 <!-- php-example {"example":"hyperf-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 new HyperfPlugin(
-    dirname(__DIR__),
+    __DIR__,
     containerLifetime: ContainerLifetime::TestAttempt,
 );
 ```
@@ -178,7 +178,7 @@ Use `reset:` to reset project state after each attempt. Use
 use Psr\Container\ContainerInterface;
 
 new HyperfPlugin(
-    dirname(__DIR__),
+    __DIR__,
     reset: static function (ContainerInterface $container): void {
         $container->get(RequestStateProbe::class)->reset();
     },
