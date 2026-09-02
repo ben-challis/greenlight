@@ -29,12 +29,12 @@ export const docSections = [
       {
         id: 'github-actions',
         title: 'GitHub Actions',
-        description: 'This guide explains how to publish Greenlight test results, attachments, run state, and coverage in GitHub Actions.',
+        description: 'This guide explains how to run Greenlight and publish test results, attachments, run state, and coverage in GitHub Actions.',
       },
       {
         id: 'gitlab-ci',
         title: 'GitLab CI/CD',
-        description: 'This guide explains how to publish Greenlight test results, attachments, and coverage in GitLab.',
+        description: 'This guide explains how to run Greenlight and publish test results, attachments, and coverage in GitLab.',
       },
       {
         id: 'attributes',
