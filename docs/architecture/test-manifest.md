@@ -16,7 +16,9 @@ The manifest does not contain completion order because no test executes.
 Thus, `order.completion` is `not-applicable`.
 
 The `order.seed` value contains the resolved seed. Its value is `null` for an
-unseeded plan. The `shard` value contains the selected shard or `null`.
+unseeded plan. The `shard` value is `null` when no shard is selected. Otherwise,
+it is an object with a one-based `index` and the total `count`. The values
+**MUST** satisfy `1 <= index <= count`.
 
 ## Test entries
 
