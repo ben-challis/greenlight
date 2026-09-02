@@ -929,8 +929,8 @@ Each shard enforces its own resource limits. If four shards each use
 
 Reruns only tests that failed or had an error in the previous run.
 
-Greenlight records failure state for each run in the system temporary
-directory.
+Greenlight records failure state for each run in the configured state
+directory. By default, it uses the system temporary directory.
 
 If no previous failure state exists, this is a usage error.
 
@@ -1248,7 +1248,8 @@ behavior and exits immediately.
 
 ## Discovery cache
 
-Greenlight caches discovery results per file under the system temp directory.
+Greenlight caches discovery results per file in the configured cache directory.
+By default, it uses the system temporary directory.
 
 The cache identity includes the effective discovery paths. The cache key for
 each entry includes the file path, mtime, and size. Greenlight can reuse data
