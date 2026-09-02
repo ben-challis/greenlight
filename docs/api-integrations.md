@@ -453,8 +453,8 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 ### `DROP_ASSERTION_MESSAGES`
 
 Configuration key: remove PHPUnit failure-message arguments. Without
-this option, a custom message rejects the class. Greenlight
-expectations carry no custom message.
+this option, a custom message rejects the class. A manual migration can
+preserve the message with `because()`.
 
 ```php
 public const string DROP_ASSERTION_MESSAGES = 'drop_assertion_messages';
