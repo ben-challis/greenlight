@@ -4,7 +4,8 @@ Thank you for your interest in Greenlight. These rules apply to every change.
 
 ## Requirements
 
-Greenlight requires PHP 8.4 or later.
+Greenlight requires PHP 8.4 or later. The documentation checks require Node.js
+24 or later and npm.
 
 ## Technical prose
 
