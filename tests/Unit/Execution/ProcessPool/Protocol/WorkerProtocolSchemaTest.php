@@ -140,6 +140,27 @@ final class WorkerProtocolSchemaTest
     }
 
     #[Test]
+    public function emptyMapKeysAreRejected(): void
+    {
+        /** @var array{resources: array{fixtures: array<string, mixed>}} $bootstrapPayload */
+        $bootstrapPayload = $this->messages()['bootstrap']->toWire();
+        $bootstrapPayload['resources']['fixtures'][''] = $bootstrapPayload['resources']['fixtures']['postgres'];
+
+        /** @var array{coverage: array{files: array<string, mixed>}} $donePayload */
+        $donePayload = $this->messages()['done']->toWire();
+        $donePayload['coverage']['files'][''] = [[1], []];
+
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'bootstrap', 'p' => $bootstrapPayload])))
+            ->because('the schema MUST reject an empty fixture ID')
+            ->not()
+            ->toBe([]);
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'done', 'p' => $donePayload])))
+            ->because('the schema MUST reject an empty coverage path')
+            ->not()
+            ->toBe([]);
+    }
+
+    #[Test]
     public function anExternalDataProviderWithoutAMethodIsRejected(): void
     {
         /** @var array{slice: array{entries: non-empty-list<array{definition: array{dataProvider: mixed}}>}} $payload */
