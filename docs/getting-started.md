@@ -23,6 +23,32 @@ Install Greenlight as a development dependency:
 composer require --dev greenlight/greenlight
 ```
 
+## Configure the Composer autoloader
+
+Add these keys to the project `composer.json` file:
+
+```json
+{
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\Tests\\": "tests/"
+        }
+    }
+}
+```
+
+Create the source and test directories. Then update the Composer autoloader:
+
+```sh
+mkdir -p src tests
+composer dump-autoload
+```
+
 ## Create the configuration file
 
 Greenlight reads `greenlight.php` from the project root. This file returns a
@@ -59,6 +85,13 @@ The longer form can make a new project easier to understand. See the
 ## Create the first test
 
 Tests are PHP classes. Add `#[Test]` to each test method.
+
+Greenlight scans the configured paths for files whose names end in `Test.php`.
+The class short name must match the file name. Composer must be able to
+autoload the class from its namespace.
+
+For example, `tests/GreeterTest.php` must declare the class
+`App\Tests\GreeterTest` with the mappings in this guide.
 
 Greenlight does not require a `TestCase` base class or a test method name
 pattern. Start each expectation with `Expect::that()`.
@@ -130,8 +163,6 @@ final class GreeterTest
 ```
 
 Save the file as `tests/GreeterTest.php`.
-
-Map `App` to `src/` in Composer. Map `App\Tests` to `tests/`.
 
 `Expect::that()` starts a matcher chain for a value. A failed matcher throws
 immediately and includes a clear difference when applicable.
