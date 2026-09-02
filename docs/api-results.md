@@ -693,8 +693,9 @@ public function withOutcome(Outcome $outcome, string $transformedBy): self
 PHPDoc:
 
 - `@param non-empty-string $transformedBy`
+- `@throws \InvalidArgumentException if the transformation source is empty`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L74)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L76)
 
 ## `ThrowableDetail`
 

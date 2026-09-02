@@ -161,6 +161,19 @@ final class TestResultTest
     }
 
     #[Test]
+    public function withOutcomeRejectsAnEmptyTransformationSource(): void
+    {
+        $result = new TestResult(new TestId('App\FooTest', 'bar'), Outcome::Failed, 0.1, 0);
+
+        Expect::that(static fn(): TestResult => $result->withOutcome(Outcome::Skipped, '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+            ->because('an outcome transformation MUST identify its source')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: 'Outcome transformation source must not be empty.',
+            );
+    }
+
+    #[Test]
     public function errorTransitionPreservesEarlierFailureEvidence(): void
     {
         $failure = new FailureDetail('The assertion failed.', 'ready', 'waiting');
