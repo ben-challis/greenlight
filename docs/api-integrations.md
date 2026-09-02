@@ -49,11 +49,14 @@ The default worker container lifetime matches a long-running Hyperf worker.
 `#[Service]` selects an explicit container ID. Isolate external test
 resources by `GREENLIGHT_CHANNEL`.
 
+Requires `hyperf/framework` and `hyperf/di` 3.2. It also requires Swoole 5
+or later and the pcntl extension. It does not support Swow.
+
 ```php
 final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemptRunner, WorkerBootstrapSubscriber, WorkerRuntimeRunner
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L40)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L43)
 
 ### `__construct()`
 
@@ -72,7 +75,7 @@ PHPDoc:
 - `@param null|\Closure(ContainerInterface): void $reset Resets project-owned request state after each test attempt. The callback runs inside the test coroutine.`
 - `@param null|\Closure(ContainerInterface): void $dispose Releases project-owned resources when the selected container lifetime ends. The callback runs inside a coroutine.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L63)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L66)
 
 ### `services()`
 
@@ -84,7 +87,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L76)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L79)
 
 ### `resolve()`
 
@@ -98,7 +101,7 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L89)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L92)
 
 ### `onWorkerBootstrap()`
 
@@ -110,7 +113,7 @@ PHPDoc:
 
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L126)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L129)
 
 ### `runWorker()`
 
@@ -125,7 +128,7 @@ PHPDoc:
 - `@return T`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L183)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L186)
 
 ### `runTestAttempt()`
 
@@ -140,7 +143,7 @@ PHPDoc:
 - `@return T`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L227)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L230)
 
 ## `LaravelPlugin`
 
