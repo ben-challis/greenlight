@@ -24,7 +24,7 @@ readonly class Attachment
 public string $name
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L19)
 
 ### `$kind`
 
@@ -32,7 +32,7 @@ public string $name
 public AttachmentKind $kind
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L20)
 
 ### `$mediaType`
 
@@ -40,7 +40,7 @@ public AttachmentKind $kind
 public string $mediaType
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L21)
 
 ### `$sizeBytes`
 
@@ -48,7 +48,7 @@ public string $mediaType
 public int $sizeBytes
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L22)
 
 ### `$sha256`
 
@@ -56,7 +56,7 @@ public int $sizeBytes
 public string $sha256
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L23)
 
 ### `$attempt`
 
@@ -64,7 +64,7 @@ public string $sha256
 public int $attempt
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L24)
 
 ### `$path`
 
@@ -72,7 +72,7 @@ public int $attempt
 public string $path
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L25)
 
 ### `$retention`
 
@@ -80,7 +80,7 @@ public string $path
 public AttachmentRetention $retention
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L26)
 
 ### `__construct()`
 
@@ -97,7 +97,11 @@ public function __construct(
 )
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L17)
+PHPDoc:
+
+- `@throws \InvalidArgumentException if the attachment metadata is invalid`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Artifact/Attachment.php#L18)
 
 ## `AttachmentError`
 
