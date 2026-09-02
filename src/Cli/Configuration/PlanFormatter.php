@@ -55,8 +55,8 @@ final class PlanFormatter
         $lines[] = '  resource limits: ' . ($resourceLimits === [] ? '(default 1 per required resource)' : \implode(', ', $resourceLimits));
         $lines[] = '  stop after: ' . match (true) {
             $configuration->execution->stopAfterFailures === null => 'never',
-            $configuration->execution->stopAfterFailures === 1 => '1 failure',
-            default => $configuration->execution->stopAfterFailures . ' failures',
+            $configuration->execution->stopAfterFailures === 1 => '1 failed or errored test',
+            default => $configuration->execution->stopAfterFailures . ' failed or errored tests',
         };
 
         $seed = $configuration->order->seed;

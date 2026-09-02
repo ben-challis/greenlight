@@ -178,8 +178,8 @@ final class PlanFormatterTest
      */
     public static function failureLimits(): iterable
     {
-        yield 'singular' => [1, '1 failure'];
+        yield 'singular' => [1, '1 failed or errored test'];
 
-        yield 'plural' => [3, '3 failures'];
+        yield 'plural' => [3, '3 failed or errored tests'];
     }
 }

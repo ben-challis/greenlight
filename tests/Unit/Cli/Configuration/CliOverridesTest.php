@@ -166,11 +166,11 @@ final class CliOverridesTest
     }
 
     #[Test]
-    public function bailWithoutAValueMeansStopAfterTheFirstFailure(): void
+    public function bailWithoutAValueMeansStopAfterTheFirstFailedOrErroredTest(): void
     {
         $overrides = CliOverrides::fromArguments(new ParsedArguments(null, ['bail' => [null]]));
 
-        Expect::that($overrides->execution->stopAfterFailures)->because('bail without a value means stop after the first failure')->toBe(1);
+        Expect::that($overrides->execution->stopAfterFailures)->because('bail without a value means stop after the first failed or errored test')->toBe(1);
     }
 
     #[Test]

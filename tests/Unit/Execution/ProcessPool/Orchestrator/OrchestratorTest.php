@@ -246,7 +246,7 @@ final class OrchestratorTest
 
     #[Test]
     #[Timeout(30.0)]
-    public function failureLimitDrainsRemainingBatchedClasses(): void
+    public function failedOrErroredTestLimitDrainsRemainingBatchedClasses(): void
     {
         $root = \dirname(__DIR__, 5);
         $sink = new CollectingEventSink();
@@ -268,7 +268,7 @@ final class OrchestratorTest
         $results = $sink->results();
 
         Expect::that($summary->total())
-            ->because('the failure limit MUST stop before the remaining batched class runs')
+            ->because('the failed-or-errored test limit MUST stop before the remaining batched class runs')
             ->toBe(1);
         Expect::that($summary->errored)
             ->toBe(1);
