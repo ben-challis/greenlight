@@ -34,8 +34,8 @@ use Greenlight\Reporting\Style;
 /**
  * Orchestrates one ordinary run command and its repeat policy.
  *
- * Uses exit code 0 for success. Uses 1 for a test or run failure. Uses 64 for
- * invalid command-line use.
+ * Uses exit code 0 for success. Uses 1 for a test or run failure.
+ * Uses 64 for invalid command-line use. Interruption uses 128 plus the signal.
  *
  * @internal
  */
