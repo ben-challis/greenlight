@@ -9,6 +9,9 @@ use Greenlight\Test\TestId;
 
 final readonly class TestStarted implements WireEvent
 {
+    /**
+     * @throws \InvalidArgumentException if $occurredAt is not finite
+     */
     public function __construct(public TestId $id, public float $occurredAt)
     {
         if (!\is_finite($occurredAt)) {
