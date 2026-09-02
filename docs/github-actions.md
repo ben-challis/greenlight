@@ -11,10 +11,12 @@ reporter keeps a human-readable test log.
 
 Configure a project-relative parent directory for retained attachments:
 
-<!-- php-example {"mode":"display","reason":"Shows one method in an existing Greenlight configuration chain."} -->
+<!-- php-example {"mode":"display","reason":"Shows a configuration call after omitted calls."} -->
 ```php
-->artifacts(fn ($artifacts) => $artifacts
-    ->directory('build/github/greenlight-runs'))
+return GreenlightConfig::create()
+    // ...
+    ->artifacts(fn ($artifacts) => $artifacts
+        ->directory('build/github/greenlight-runs'));
 ```
 
 Greenlight creates a unique run directory below this parent. A run without
@@ -95,10 +97,12 @@ save it after the step.
 
 For example, add this configuration to `greenlight.php`:
 
-<!-- php-example {"mode":"display","reason":"Shows one method in an existing Greenlight configuration chain."} -->
+<!-- php-example {"mode":"display","reason":"Shows a configuration call after omitted calls."} -->
 ```php
-->storage(fn ($storage) => $storage
-    ->stateDirectory('build/greenlight-state'))
+return GreenlightConfig::create()
+    // ...
+    ->storage(fn ($storage) => $storage
+        ->stateDirectory('build/greenlight-state'));
 ```
 
 This example keeps separate state for each operating system and PHP version:
