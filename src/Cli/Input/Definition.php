@@ -131,6 +131,8 @@ final readonly class Definition
                              Set one source root. Repeat once for each input.
           --project-root=<path>
                              Set the project root for merged coverage paths.
+          --baseline=<path>  Read the baseline coverage JSON for coverage:diff.
+          --current=<path>   Read the current coverage JSON for coverage:diff.
           --baseline-root=<path>
                              Set the baseline project root for coverage:diff.
           --current-root=<path>

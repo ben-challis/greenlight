@@ -63,7 +63,11 @@ final readonly class CliTest
     {
         $result = $this->runCli(['--help']);
         Expect::that($result->exitCode)->because('help and version exit zero')->toBe(0);
-        Expect::that($result->output())->because('help and version exit zero')->toContain('Usage:');
+        Expect::that($result->output())
+            ->because('help and version exit zero and lists required coverage diff inputs')
+            ->toContain('Usage:')
+            ->toContain('--baseline=<path>')
+            ->toContain('--current=<path>');
 
         $result = $this->runCli(['--version']);
         Expect::that($result->exitCode)->because('help and version exit zero')->toBe(0);
