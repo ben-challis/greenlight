@@ -129,6 +129,10 @@ Tests on the same worker receive the same service instances.
 When the shared container is active, the callback runs after each test attempt.
 This includes an attempt that does not request the container.
 
+If the reset callback throws, the attempt has an error and the bridge discards
+the shared container. The next service request calls the container factory
+again. Thus, later tests receive services from a new container.
+
 The bridge controls only container state. It does not isolate databases,
 caches, queues, files, or other external resources.
 
