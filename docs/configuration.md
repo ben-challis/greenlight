@@ -1219,6 +1219,7 @@ Greenlight uses these exit codes:
   errors, coverage export errors, detected leaks, and zero discovered tests
 * `64`: usage error, such as an unknown command, unknown flag, or malformed
   option value
+* `128 + signal number`: interruption by a process signal
 
 Greenlight treats a run with zero tests as a configuration problem. It does not
 treat the run as a success.
