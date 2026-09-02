@@ -578,7 +578,14 @@ function parseMembers(source, tokens, openIndex, closeIndex, typeKind) {
 
       if (isMethod(significant)) {
         addPromotedProperties(members, source, significant);
-        addMember(members, source, significant, token.start, 'method', typeKind);
+        addMember(
+          members,
+          source,
+          significant,
+          significant.findLast((candidate) => candidate.kind !== 'doc').end,
+          'method',
+          typeKind,
+        );
       } else if (isPublicProperty(significant)) {
         const propertyTokens = [...significant, ...tokens.slice(index, endIndex + 1)];
         addMember(members, source, propertyTokens, tokens[endIndex].end, 'property', typeKind);
