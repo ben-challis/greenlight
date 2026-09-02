@@ -16,6 +16,8 @@ final readonly class ReporterDefinition
      * @param non-empty-string $name
      * @param \Closure(Output): Reporter $factory Return a new reporter for each
      *   call. Greenlight owns the supplied output.
+     *
+     * @throws \InvalidArgumentException if the reporter name is invalid
      */
     public function __construct(
         public string $name,
