@@ -244,3 +244,8 @@ implementations. Calls through these methods can run application code.
 
 Greenlight does not run the class constructor when it creates a double. Prefer
 an interface at the application boundary.
+
+Greenlight suppresses a non-final destructor. It cannot suppress a final
+destructor, which can run application code. Greenlight intercepts a public,
+non-final `__clone()`. A final `__clone()` keeps its implementation and can run
+application code.

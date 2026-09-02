@@ -21,9 +21,13 @@ use Greenlight\Result\FailureDetail;
  */
 final readonly class CallHandler
 {
+    /**
+     * @param \WeakMap<object, DoubleState> $doubles
+     */
     public function __construct(
         private DoubleState $state,
         private ValueRenderer $renderer,
+        private \WeakMap $doubles,
     ) {}
 
     /**
@@ -35,6 +39,8 @@ final readonly class CallHandler
      */
     public function invoke(object $double, string $method, array $arguments): mixed
     {
+        $this->doubles[$double] = $this->state;
+
         MethodCallContract::from($this->state->type, $method)
             ->assertCallArgumentCount(\count($arguments));
 
