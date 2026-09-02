@@ -17,7 +17,7 @@ final readonly class StreamWrappersTest
     public function registrationRejectsAnEmptyScheme(): void
     {
         Expect::that(static function (): void {
-            new StreamWrappers()->register('', UnselectableStream::class);
+            new StreamWrappers()->register('', UnselectableStream::class); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         })->toThrow(
             \InvalidArgumentException::class,
             message: 'Stream wrapper scheme cannot be empty.',

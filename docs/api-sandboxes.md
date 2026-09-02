@@ -139,10 +139,12 @@ public function register(string $scheme, string $wrapper): void
 
 PHPDoc:
 
+- `@param non-empty-string $scheme`
 - `@param class-string $wrapper`
+- `@throws \InvalidArgumentException if the scheme is empty`
 - `@throws StreamWrapperError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrappers.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrappers.php#L25)
 
 ### `dispose()`
 
@@ -154,7 +156,7 @@ PHPDoc:
 
 - `@throws StreamWrapperError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrappers.php#L45)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrappers.php#L47)
 
 ## `TemporaryDirectory`
 
