@@ -379,9 +379,10 @@ create an error annotation for a skipped test.
 The policy evaluates terminal results after plugins and retries. A plugin that
 changes the terminal outcome changes the run-policy input.
 
-A skipped test does not count toward `--bail` because its outcome is not a test
-failure. The policy fails the completed iteration instead. Thus, repeat mode
-records that iteration as failed. `--repeat-until-failure` stops after it.
+A skipped test does not count toward `--bail` because its outcome is neither
+`failed` nor `errored`. The policy fails the completed iteration instead. Thus,
+repeat mode records that iteration as failed. `--repeat-until-failure` stops
+after it.
 
 Also available as `--fail-on-skipped`.
 
@@ -517,7 +518,7 @@ directories that it creates and owns.
 
 Default: off.
 
-Stops the run after the first failure.
+Stops the run after the first failed or errored test.
 
 ### `randomizeOrder(?int $seed = null): self`
 
@@ -782,7 +783,7 @@ time.
 
 ### `--bail[=<n>]`
 
-Stops after `<n>` failures.
+Stops after `<n>` failed or errored tests.
 
 Bare `--bail` means `--bail=1`.
 

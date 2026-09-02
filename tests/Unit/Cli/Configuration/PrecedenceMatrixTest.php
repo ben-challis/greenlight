@@ -41,14 +41,14 @@ final class PrecedenceMatrixTest
     #[Test]
     public function stopAfterFailuresPrecedence(): void
     {
-        Expect::that($this->resolve()->execution->stopAfterFailures)->because('failure limit options use the required precedence')->toBe(null);
+        Expect::that($this->resolve()->execution->stopAfterFailures)->because('stop-limit options use the required precedence')->toBe(null);
         Expect::that(
             $this->resolve(config: static fn(GreenlightConfig $c) => $c->failFast())->execution->stopAfterFailures,
-        )->because('failure limit options use the required precedence')->toBe(1);
-        Expect::that($this->resolve(cli: new CliOverrides(execution: new ExecutionOverrides(stopAfterFailures: 3)))->execution->stopAfterFailures)->because('failure limit options use the required precedence')->toBe(3);
+        )->because('stop-limit options use the required precedence')->toBe(1);
+        Expect::that($this->resolve(cli: new CliOverrides(execution: new ExecutionOverrides(stopAfterFailures: 3)))->execution->stopAfterFailures)->because('stop-limit options use the required precedence')->toBe(3);
         Expect::that(
             $this->resolve(config: static fn(GreenlightConfig $c) => $c->failFast(), cli: new CliOverrides(execution: new ExecutionOverrides(stopAfterFailures: 3)))->execution->stopAfterFailures,
-        )->because('failure limit options use the required precedence')->toBe(3);
+        )->because('stop-limit options use the required precedence')->toBe(3);
     }
 
     #[Test]

@@ -162,7 +162,7 @@ final class ProtocolTest
             ->because('legacy assignments have no artifact configuration')
             ->toBeNull();
         Expect::that($assign->stopAfterFailures)
-            ->because('legacy assignments have no local failure allowance')
+            ->because('legacy assignments have no local failed-or-errored test allowance')
             ->toBeNull();
     }
 

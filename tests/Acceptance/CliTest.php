@@ -30,7 +30,7 @@ final readonly class CliTest
             ->toContain('  suite integration: tests/Integration [tags: io]')
             ->toContain('  workers: 4')
             ->toContain('  resource limits: postgres=3')
-            ->toContain('  stop after: 1 failure')
+            ->toContain('  stop after: 1 failed or errored test')
             ->toContain('  order: random (seed 4242)')
             ->toContain('  groups: (all)');
     }
@@ -52,7 +52,7 @@ final readonly class CliTest
         Expect::that($result->exitCode)->because('command line flags override the configuration file')->toBe(0);
         Expect::that($output)->because('command line flags override the configuration file')
             ->toContain('  workers: 2')
-            ->toContain('  stop after: 7 failures')
+            ->toContain('  stop after: 7 failed or errored tests')
             ->toContain('  order: random (seed 9)')
             ->toContain('  groups: slow');
         Expect::that($output)->because('command line flags override the configuration file')->toContain('  resource limits: postgres=2');

@@ -161,7 +161,7 @@ Use these commands for common tasks:
 * `vendor/bin/greenlight run --group=slow` selects tests with `#[Group('slow')]`.
 * `vendor/bin/greenlight run --exclude-group=slow` excludes that group.
 * `vendor/bin/greenlight run --list-tests` prints the selected tests.
-* `vendor/bin/greenlight run --bail` stops after the first failure.
+* `vendor/bin/greenlight run --bail` stops after the first failed or errored test.
 
 The `--exclude-class`, `--exclude-method`, and `--exclude-path` flags also
 exclude tests. Exclusion rules take priority over inclusion rules.

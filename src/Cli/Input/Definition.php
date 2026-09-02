@@ -62,7 +62,7 @@ final readonly class Definition
           --workers=<n|auto> Set the worker process count
           --resource-limit=<name>=<n>
                              Set a named resource limit. You can repeat this option.
-          --bail[=<n>]       Stop after <n> failures (default 1)
+          --bail[=<n>]       Stop after <n> failed or errored tests (default 1)
           --suite=<name>     Select a named suite. You can repeat this option.
           --suite-tag=<tag>  Select suites with this tag. You can repeat this option.
           --group=<name>     Run only this group. You can repeat this option.

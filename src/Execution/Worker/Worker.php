@@ -27,7 +27,7 @@ use Greenlight\Test\TestId;
  *
  * run() stops early in these conditions:
  *
- * - The run reaches the failure limit.
+ * - The run reaches the failed-or-errored test limit.
  * - The orchestrator requests a drain between tests.
  *
  * run() reports incomplete entries in plan order.
