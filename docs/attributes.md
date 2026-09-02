@@ -323,12 +323,13 @@ int $times
 ?string $onlyOn = null
 ```
 
-Retries a failed test up to `$times` additional attempts.
+Retries an unsuccessful test attempt up to `$times` additional attempts.
 
 Use a `$times` value of 1 or more.
 
 When you supply `$onlyOn`, use a throwable class-string. Greenlight retries
-only failures with that throwable type. It does not retry other failures.
+only when the attempt cause has that throwable type. It does not retry an
+unsuccessful attempt that has no matching cause.
 
 Greenlight gives each attempt a new test instance and a new per-test scope.
 Thus, state does not pass between attempts.
