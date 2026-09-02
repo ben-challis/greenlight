@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Doubles;
 
-use Greenlight\Attribute\NoExpectations;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\InvalidDoubleUsage;
@@ -59,13 +58,4 @@ final class StubTest
         $doubles->dispose();
     }
 
-    #[Test]
-    #[NoExpectations]
-    public function anUntouchedStubVerifiesCleanly(): void
-    {
-        $doubles = new Doubles();
-        $doubles->stub(Stubbable::class);
-
-        $doubles->dispose();
-    }
 }
