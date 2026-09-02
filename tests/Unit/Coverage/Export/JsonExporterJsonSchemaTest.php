@@ -22,6 +22,9 @@ final readonly class JsonExporterJsonSchemaTest
             'populated map' => $exporter->export(new CoverageMap([
                 new FileCoverage('/project/src/A.php', [3, 7], [5]),
             ]))[JsonExporter::FILE_NAME],
+            'path with line feed' => $exporter->export(new CoverageMap([
+                new FileCoverage("/project/src/Line\nBreak.php", [1], []),
+            ]))[JsonExporter::FILE_NAME],
             'empty map' => $exporter->export(CoverageMap::empty())[JsonExporter::FILE_NAME],
         ];
 
