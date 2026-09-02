@@ -140,6 +140,19 @@ final class WorkerProtocolSchemaTest
     }
 
     #[Test]
+    public function aStagedAttachmentWithoutAStorageKeyIsRejected(): void
+    {
+        $payload = $this->withoutPaths($this->messages()['event']->toWire(), [
+            ['data', 'result', 'attachments', 0, 'storageKey'],
+        ]);
+
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'event', 'p' => $payload])))
+            ->because('the worker schema MUST require the private attachment staging coordinate')
+            ->not()
+            ->toBe([]);
+    }
+
+    #[Test]
     public function anExternalDataProviderWithoutAMethodIsRejected(): void
     {
         /** @var array{slice: array{entries: non-empty-list<array{definition: array{dataProvider: mixed}}>}} $payload */
