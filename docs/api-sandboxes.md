@@ -13,7 +13,7 @@ Namespace: `Greenlight\Sandbox`
 Registers autoloaders and unregisters them when the test scope closes.
 
 ```php
-final class Autoloaders implements Greenlight\Harness\Disposable
+final class Autoloaders implements Disposable
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/Autoloaders.php#L12)
@@ -46,7 +46,7 @@ Updates `getenv()`, `$_ENV`, and `$_SERVER` together. It records each original
 value one time and restores the value during disposal.
 
 ```php
-final class EnvironmentVariables implements Greenlight\Harness\Disposable
+final class EnvironmentVariables implements Disposable
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/EnvironmentVariables.php#L14)
@@ -126,7 +126,7 @@ Namespace: `Greenlight\Sandbox`
 Registers stream wrappers and unregisters them when the test scope closes.
 
 ```php
-final class StreamWrappers implements Greenlight\Harness\Disposable
+final class StreamWrappers implements Disposable
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrappers.php#L13)
@@ -165,7 +165,7 @@ root.
 Disposal removes a symbolic link and leaves its target unchanged.
 
 ```php
-final class TemporaryDirectory implements Greenlight\Harness\Disposable
+final class TemporaryDirectory implements Disposable
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L15)

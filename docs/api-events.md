@@ -53,7 +53,7 @@ PHPDoc:
 ### `$summary`
 
 ```php
-public Greenlight\Result\ResultSummary $summary
+public ResultSummary $summary
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L24)
@@ -87,7 +87,7 @@ public array $workerTimings
 ```php
 public function __construct(
     string $runId,
-    public Greenlight\Result\ResultSummary $summary,
+    public ResultSummary $summary,
     public float $durationSeconds,
     public float $occurredAt,
     public array $workerTimings = [],
@@ -313,7 +313,7 @@ final readonly class TestFinished implements Event
 ### `$result`
 
 ```php
-public Greenlight\Result\TestResult $result
+public TestResult $result
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L12)
@@ -329,7 +329,7 @@ public float $occurredAt
 ### `__construct()`
 
 ```php
-public function __construct(public Greenlight\Result\TestResult $result, public float $occurredAt)
+public function __construct(public TestResult $result, public float $occurredAt)
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L12)
@@ -347,7 +347,7 @@ final readonly class TestStarted implements Event
 ### `$id`
 
 ```php
-public Greenlight\Test\TestId $id
+public TestId $id
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L12)
@@ -363,7 +363,7 @@ public float $occurredAt
 ### `__construct()`
 
 ```php
-public function __construct(public Greenlight\Test\TestId $id, public float $occurredAt)
+public function __construct(public TestId $id, public float $occurredAt)
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L12)
