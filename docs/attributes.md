@@ -102,13 +102,21 @@ or:
 #[DataSet(CurrencyDataSets::class, 'currencies')]
 ```
 
-The provider must return an iterable of named data sets for the test method.
+The provider **MUST** return a non-empty iterable. Each value **MUST** be the
+argument array for one test invocation.
 
-Providers run at discovery time before tests execute. Do not use I/O or global
-state in a provider.
+Greenlight invokes the provider during discovery to create the execution plan.
+The plan contains data-set keys, not argument values. Greenlight invokes the
+provider again once for each worker-side class assignment to create the values
+in that worker. The provider **MUST** return every planned key on each
+invocation. Keep providers pure, deterministic, and free of I/O and global
+state. Each invocation has a five-second time budget.
 
-Each provider key names a data set and appears in test IDs and reports. Each
-provider value is the argument list for one test invocation.
+A provider key **MUST** be an integer or a string. Greenlight changes an integer
+key to `#<key>`. It keeps a non-empty printable string key unchanged. It changes
+an empty or nonprintable string key to the first eight hexadecimal characters
+of its SHA-256 hash. The normalized key appears in test IDs and reports.
+Duplicate normalized keys cause a discovery error.
 
 <!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
@@ -416,8 +424,8 @@ placement and completion-event order remain load-dependent.
 Each assignment emits one class-started and class-finished event pair. The
 `#[Before]` and `#[After]` hooks still run for each test attempt.
 
-A data provider can run again in each assigned worker. Keep providers pure,
-deterministic, and fast.
+Each split assignment expands its data provider independently. Thus, the same
+provider can run many times for one test class.
 
 `#[AllowParallel]` is incompatible with these features:
 
