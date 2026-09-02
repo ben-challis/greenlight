@@ -104,6 +104,9 @@ $plan->expects('load')
 `andReturnsSequence()` consumes one value for each call that matches. Greenlight
 reports an error if a call occurs after the sequence is empty.
 
+Methods that declare `never` MUST use `andThrows()`. If a configured answer
+returns, Greenlight reports an `InvalidDoubleUsage` error.
+
 ## Argument matches
 
 Bare values passed to `with()` use strict comparison (`===`):
