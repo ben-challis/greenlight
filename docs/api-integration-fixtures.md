@@ -23,6 +23,12 @@ final readonly class FixtureResource
 
 ### `from()`
 
+Creates one resource from ordinary values and secrets.
+
+Values can contain null, integers, booleans, finite floats, UTF-8 strings, lists, and maps.
+Map keys must be non-empty UTF-8 strings. The maximum container depth is 16.
+Secrets must map non-empty UTF-8 string keys to UTF-8 string values.
+
 ```php
 public static function from(array $values = [], #[\SensitiveParameter] array $secrets = []): self
 ```
@@ -31,8 +37,9 @@ PHPDoc:
 
 - `@param array<string, mixed> $values`
 - `@param array<mixed> $secrets`
+- `@throws \InvalidArgumentException when an input does not satisfy these requirements`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L40)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L47)
 
 ### `empty()`
 
@@ -40,7 +47,7 @@ PHPDoc:
 public static function empty(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L61)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L68)
 
 ### `has()`
 
@@ -48,7 +55,7 @@ public static function empty(): self
 public function has(string $key): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L66)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L73)
 
 ### `value()`
 
@@ -56,7 +63,11 @@ public function has(string $key): bool
 public function value(string $key): mixed
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L71)
+PHPDoc:
+
+- `@throws \OutOfBoundsException when no ordinary value has the key`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L81)
 
 ### `string()`
 
@@ -64,7 +75,12 @@ public function value(string $key): mixed
 public function string(string $key): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L80)
+PHPDoc:
+
+- `@throws \OutOfBoundsException when no ordinary value has the key`
+- `@throws \UnexpectedValueException when the value is not a string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L94)
 
 ### `int()`
 
@@ -72,7 +88,12 @@ public function string(string $key): string
 public function int(string $key): int
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L91)
+PHPDoc:
+
+- `@throws \OutOfBoundsException when no ordinary value has the key`
+- `@throws \UnexpectedValueException when the value is not an integer`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L109)
 
 ### `float()`
 
@@ -80,7 +101,12 @@ public function int(string $key): int
 public function float(string $key): float
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L102)
+PHPDoc:
+
+- `@throws \OutOfBoundsException when no ordinary value has the key`
+- `@throws \UnexpectedValueException when the value is not an integer or float`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L124)
 
 ### `bool()`
 
@@ -88,7 +114,12 @@ public function float(string $key): float
 public function bool(string $key): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L113)
+PHPDoc:
+
+- `@throws \OutOfBoundsException when no ordinary value has the key`
+- `@throws \UnexpectedValueException when the value is not a boolean`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L139)
 
 ### `list()`
 
@@ -99,8 +130,10 @@ public function list(string $key): array
 PHPDoc:
 
 - `@return list<mixed>`
+- `@throws \OutOfBoundsException when no ordinary value has the key`
+- `@throws \UnexpectedValueException when the value is not a list`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L127)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L155)
 
 ### `map()`
 
@@ -111,8 +144,10 @@ public function map(string $key): array
 PHPDoc:
 
 - `@return array<string, mixed>`
+- `@throws \OutOfBoundsException when no ordinary value has the key`
+- `@throws \UnexpectedValueException when the value is not a map`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L141)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L171)
 
 ### `secret()`
 
@@ -120,7 +155,11 @@ PHPDoc:
 public function secret(string $key): SensitiveValue
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L153)
+PHPDoc:
+
+- `@throws \OutOfBoundsException when no secret has the key`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L186)
 
 ### `mergedWith()`
 
@@ -128,7 +167,7 @@ public function secret(string $key): SensitiveValue
 public function mergedWith(self $channel): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L164)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L197)
 
 ### `__debugInfo()`
 
@@ -140,7 +179,7 @@ PHPDoc:
 
 - `@return array{values: array<string, mixed>, secrets: array<string, string>}`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L215)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L248)
 
 ## `IntegrationFixtureContext`
 
@@ -207,11 +246,18 @@ PHPDoc:
 
 ### `dependency()`
 
+Gets the shared resource or the resource for one channel.
+
 ```php
 public function dependency(string $id, ?int $channel = null): FixtureResource;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L35)
+PHPDoc:
+
+- `@throws \LogicException when the fixture does not declare the dependency`
+- `@throws \OutOfBoundsException when the channel is not part of this run`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L41)
 
 ### `defer()`
 
@@ -226,7 +272,7 @@ PHPDoc:
 
 - `@param \Closure(): void $cleanup`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L43)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L49)
 
 ### `expose()`
 
@@ -239,8 +285,10 @@ public function expose(FixtureResource $shared, array $channels = []): void;
 PHPDoc:
 
 - `@param array<int, FixtureResource> $channels keyed by channel number`
+- `@throws \InvalidArgumentException when a channel is not part of this run`
+- `@throws \LogicException when the provisioner publishes resources more than once`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L58)
 
 ## `IntegrationFixtureDefinition`
 
@@ -285,9 +333,14 @@ PHPDoc:
 public \Closure $provision
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureDefinition.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureDefinition.php#L35)
 
 ### `__construct()`
+
+Creates one fixture definition.
+
+Each ID must be a non-empty UTF-8 string that is not an integer string.
+Dependency IDs must be unique.
 
 ```php
 public function __construct(
@@ -301,8 +354,9 @@ PHPDoc:
 
 - `@param \Closure(IntegrationFixtureContext): void $provision`
 - `@param list<mixed> $dependsOn`
+- `@throws \InvalidArgumentException when an ID does not satisfy these requirements`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureDefinition.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureDefinition.php#L33)
 
 ## `IntegrationResources`
 
@@ -329,8 +383,9 @@ public function __construct(private array $fixtures = [])
 PHPDoc:
 
 - `@param array<non-empty-string, FixtureResource> $fixtures`
+- `@throws \InvalidArgumentException when a key or value is invalid`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L24)
 
 ### `empty()`
 
@@ -338,7 +393,7 @@ PHPDoc:
 public static function empty(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L42)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L43)
 
 ### `has()`
 
@@ -346,7 +401,7 @@ public static function empty(): self
 public function has(string $id): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L48)
 
 ### `fixture()`
 
@@ -354,7 +409,11 @@ public function has(string $id): bool
 public function fixture(string $id): FixtureResource
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L52)
+PHPDoc:
+
+- `@throws \OutOfBoundsException when the fixture is not available`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L56)
 
 ### `__debugInfo()`
 
@@ -366,7 +425,7 @@ PHPDoc:
 
 - `@return array{fixtures: array<non-empty-string, FixtureResource>}`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L102)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationResources.php#L106)
 
 ## `SensitiveValue`
 

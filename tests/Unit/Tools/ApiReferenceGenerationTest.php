@@ -61,6 +61,24 @@ final readonly class ApiReferenceGenerationTest
     }
 
     #[Test]
+    public function integrationFixtureContractsDescribeInputsAndFailures(): void
+    {
+        $reference = $this->reference('api-integration-fixtures.md');
+
+        Expect::that($reference)
+            ->because('the integration fixture API MUST describe its transport-safe input contract')
+            ->toContain('Values can contain null, integers, booleans, finite floats, UTF-8 strings, lists, and maps.')
+            ->toContain('The maximum container depth is 16.')
+            ->toContain('Secrets must map non-empty UTF-8 string keys to UTF-8 string values.');
+        Expect::that($reference)
+            ->because('the integration fixture API MUST identify common caller errors')
+            ->toContain('@throws \\InvalidArgumentException')
+            ->toContain('@throws \\OutOfBoundsException')
+            ->toContain('@throws \\UnexpectedValueException')
+            ->toContain('@throws \\LogicException');
+    }
+
+    #[Test]
     public function serviceResolutionUsesTheSharedHarnessContract(): void
     {
         $harness = $this->reference('api-harness.md');
