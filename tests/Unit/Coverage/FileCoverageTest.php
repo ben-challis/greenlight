@@ -13,6 +13,7 @@ final class FileCoverageTest
     #[Test]
     public function emptyFilePathsAreRejected(): void
     {
+        // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         Expect::that(static fn(): FileCoverage => new FileCoverage('', [], []))
             ->because('coverage entries MUST identify a file')
             ->toThrow(

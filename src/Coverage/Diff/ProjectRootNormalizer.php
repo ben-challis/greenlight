@@ -37,6 +37,7 @@ final class ProjectRootNormalizer
             }
 
             $relative = \substr($path, \strlen($prefix));
+            \assert($relative !== '');
 
             $files[] = new FileCoverage(
                 $relative,

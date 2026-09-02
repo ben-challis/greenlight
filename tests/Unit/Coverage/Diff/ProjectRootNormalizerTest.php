@@ -91,6 +91,7 @@ final class ProjectRootNormalizerTest
             );
     }
 
+    /** @param non-empty-string $path */
     #[Test]
     #[DataSet('absolutePaths')]
     public function absoluteCoveragePathsAreAccepted(string $path): void
@@ -116,6 +117,7 @@ final class ProjectRootNormalizerTest
         yield 'Windows device' => ['\\\\?\C:\project\src\A.php'];
     }
 
+    /** @param non-empty-string $path */
     #[Test]
     #[DataSet('relativePaths')]
     public function relativeCoveragePathsAreRejected(string $path): void
