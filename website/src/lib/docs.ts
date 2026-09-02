@@ -69,7 +69,7 @@ export const docSections = [
       {
         id: 'laravel',
         title: 'Laravel',
-        description: 'This guide explains how tests receive container services from a fresh Laravel application.',
+        description: 'This guide explains how tests receive Laravel container services and configure application refresh.',
       },
       {
         id: 'hyperf',
