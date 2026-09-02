@@ -139,6 +139,22 @@ final class WorkerProtocolSchemaTest
             ->toBe([]);
     }
 
+    #[Test]
+    public function anExternalDataProviderWithoutAMethodIsRejected(): void
+    {
+        /** @var array{slice: array{entries: non-empty-list<array{definition: array{dataProvider: mixed}}>}} $payload */
+        $payload = $this->messages()['assign']->toWire();
+        $payload['slice']['entries'][0]['definition']['dataProvider'] = [
+            'method' => null,
+            'class' => 'App\SharedRows',
+        ];
+
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'assign', 'p' => $payload])))
+            ->because('the schema MUST match the data-provider decoder contract')
+            ->not()
+            ->toBe([]);
+    }
+
     /**
      * @return array<non-empty-string, Message>
      */
