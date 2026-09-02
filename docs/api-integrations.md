@@ -471,8 +471,9 @@ public function configure(array $configuration): void
 PHPDoc:
 
 - `@param mixed[] $configuration`
+- `@throws \InvalidArgumentException if a key is unknown or \`drop_assertion_messages\` is not a boolean`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L113)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L115)
 
 ### `getRuleDefinition()`
 
@@ -480,7 +481,7 @@ PHPDoc:
 public function getRuleDefinition(): RuleDefinition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L137)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L139)
 
 ### `getNodeTypes()`
 
@@ -492,7 +493,7 @@ PHPDoc:
 
 - `@return array<class-string<Node>>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L171)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L173)
 
 ### `refactor()`
 
@@ -500,7 +501,7 @@ PHPDoc:
 public function refactor(Node $node): ?Node
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L176)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L178)
 
 ## `SymfonyPlugin`
 
