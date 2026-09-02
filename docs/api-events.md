@@ -316,7 +316,7 @@ final readonly class TestFinished implements Event
 public TestResult $result
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L15)
 
 ### `$occurredAt`
 
@@ -324,7 +324,7 @@ public TestResult $result
 public float $occurredAt
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L15)
 
 ### `__construct()`
 
@@ -332,7 +332,11 @@ public float $occurredAt
 public function __construct(public TestResult $result, public float $occurredAt)
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L12)
+PHPDoc:
+
+- `@throws \InvalidArgumentException if $occurredAt is not finite`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L15)
 
 ## `TestStarted`
 
@@ -350,7 +354,7 @@ final readonly class TestStarted implements Event
 public TestId $id
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L15)
 
 ### `$occurredAt`
 
@@ -358,7 +362,7 @@ public TestId $id
 public float $occurredAt
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L15)
 
 ### `__construct()`
 
@@ -366,7 +370,11 @@ public float $occurredAt
 public function __construct(public TestId $id, public float $occurredAt)
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L12)
+PHPDoc:
+
+- `@throws \InvalidArgumentException if $occurredAt is not finite`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L15)
 
 ## `WorkerSpawned`
 
