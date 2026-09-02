@@ -64,9 +64,11 @@ If the test deadline comes first, the failure includes the requested poll
 duration. Greenlight cannot interrupt a blocked probe. Therefore, the
 orchestrator process timeout remains the hard limit.
 
-Each test retry has a new instance, scope, deadline, and observation log. The
-first interrupt signal still lets active tests finish. This rule includes tests
-that use a temporal expectation.
+Each test retry has a new instance, scope, deadline, and observation log. With
+`ext-pcntl` available, the first interrupt signal still lets active tests
+finish. This rule includes tests that use a temporal expectation. Without
+PCNTL, the operating system's default immediate termination behavior can stop
+the active test.
 
 `retryOnException()` accepts only `Exception` subclasses, which excludes
 `Error`, `Throwable`, and other broader types.

@@ -90,7 +90,9 @@ Provisioning, bootstrap, worker, protocol, reporter, and test failures also
 trigger teardown. Greenlight runs every registered callback even if one throws.
 A teardown failure fails the run but does not replace an earlier failure.
 
-When the orchestrator receives its first SIGINT or SIGTERM, it drains workers
-before teardown. SIGKILL, a second signal, process loss, and machine loss cannot
-run process-local callbacks. Protect resources from those cases with leases,
-expiry times, or an external reaper.
+With `ext-pcntl` available, the orchestrator drains workers before teardown
+after its first SIGINT or SIGTERM. Without PCNTL, the operating system's
+default immediate termination behavior can prevent teardown callbacks. SIGKILL,
+a second signal, process loss, and machine loss also cannot run process-local
+callbacks. Protect resources from these cases with leases, expiry times, or an
+external reaper.
