@@ -460,11 +460,15 @@ primary.
 
 ## Exit codes
 
-Greenlight uses three exit codes:
+Greenlight uses these exit codes:
 
 * `0` means that the run succeeded.
 * `1` means that the run failed or found no tests.
 * `64` means that the command has a usage error.
+* `128 + signal number` means that a signal interrupted the run.
+
+For example, SIGINT returns `130` and SIGTERM returns `143`. See
+[interruption](configuration.md#interruption) for the graceful shutdown rules.
 
 Exit code `1` includes test failures, test errors, invalid configuration,
 discovery errors, coverage gate failures, coverage export errors, and detected
