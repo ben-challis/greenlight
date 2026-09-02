@@ -184,10 +184,12 @@ public function __construct(
 
 PHPDoc:
 
+- `@param non-empty-string $file`
 - `@param list<int> $coveredLines`
 - `@param list<int> $uncoveredLines`
+- `@throws \InvalidArgumentException if the file path is empty or a line number is not positive`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L34)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L37)
 
 ### `executableLineCount()`
 
@@ -199,7 +201,7 @@ PHPDoc:
 
 - `@return int<0, max>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L59)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L62)
 
 ### `coveredLineCount()`
 
@@ -211,7 +213,7 @@ PHPDoc:
 
 - `@return int<0, max>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L65)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L68)
 
 ### `lineHits()`
 
@@ -225,7 +227,7 @@ PHPDoc:
 
 - `@return array<positive-int, 0|1>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L75)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L78)
 
 ### `percentage()`
 
@@ -237,12 +239,18 @@ A file with no executable lines has full coverage.
 public function percentage(): float
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L93)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L96)
 
 ### `merge()`
+
+Merges coverage for the same file.
 
 ```php
 public function merge(self $other): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L104)
+PHPDoc:
+
+- `@throws \LogicException if the file paths differ`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/FileCoverage.php#L112)

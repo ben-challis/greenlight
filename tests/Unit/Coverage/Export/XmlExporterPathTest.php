@@ -35,6 +35,7 @@ final readonly class XmlExporterPathTest
             ->toBe(\ltrim($path, '/'));
     }
 
+    /** @param non-empty-string $path */
     #[Test]
     #[DataSet('unsafePaths')]
     public function unsafePathBytesAreNormalized(string $path, string $expected): void
@@ -69,6 +70,8 @@ final readonly class XmlExporterPathTest
     }
 
     /**
+     * @param non-empty-string $path
+     *
      * @return array{
      *     cloverDocument: string,
      *     cloverPath: string,

@@ -28,8 +28,11 @@ final readonly class FileCoverage
     public array $uncoveredLines;
 
     /**
+     * @param non-empty-string $file
      * @param list<int> $coveredLines
      * @param list<int> $uncoveredLines
+     *
+     * @throws \InvalidArgumentException if the file path is empty or a line number is not positive
      */
     public function __construct(
         string $file,
@@ -101,6 +104,11 @@ final readonly class FileCoverage
         return \count($this->coveredLines) / $executable * 100.0;
     }
 
+    /**
+     * Merges coverage for the same file.
+     *
+     * @throws \LogicException if the file paths differ
+     */
     public function merge(self $other): self
     {
         if ($other->file !== $this->file) {
