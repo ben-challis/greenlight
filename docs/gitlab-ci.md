@@ -3,6 +3,24 @@
 GitLab reads Greenlight JUnit output through `artifacts:reports:junit`.
 Greenlight does not need a GitLab-specific reporter.
 
+## Run Greenlight
+
+Use this job to run Greenlight without additional CI integration:
+
+```yaml
+tests:
+  stage: test
+  before_script:
+    - composer install --no-interaction --prefer-dist
+  script:
+    - vendor/bin/greenlight run
+```
+
+This example assumes that the runner has PHP and Composer. Greenlight returns a
+nonzero exit code when the run fails. GitLab then marks the job as failed.
+
+The following sections add optional CI integrations.
+
 ## Configure attachment storage
 
 Configure a project-relative parent directory for Greenlight run directories.
