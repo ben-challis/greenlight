@@ -102,7 +102,9 @@ public.
 | `Cli/Discovery` | Selection-plan discovery, sharding, and unmatched exclude-path diagnostics | `Cli/Configuration`, configuration values, and `Discovery` |
 | `Cli/Output`, `Cli/Reporting` | Console output, reporter construction, and reporter destinations | Their engine modules and focused CLI values |
 | `Cli/Coverage` | Final coverage merge, plugin transformations, gates, and exports | Configuration and output CLI modules, coverage modules, plugin and reporting contracts, and internal utilities |
-| `Cli/Signal`, `Cli/State`, `Cli/Watch`, `Cli/WorkerCapacity` | Local runtime adapters and persisted run policy | Focused internal utilities |
+| `Cli/Signal`, `Cli/State` | Local signal and persisted-state adapters | Focused internal process and filesystem utilities |
+| `Cli/Watch` | Local watch runtime and run policy | CLI output, event and plugin contracts, and internal runtime utilities |
+| `Cli/WorkerCapacity` | Local worker-capacity policy | Attributes, the optional CPU-counter seam, and internal utilities |
 | `Cli/Command`, `Cli/Run` | Closed command dispatch and run lifecycle orchestration | Lower CLI modules and engine modules |
 | `Cli/Plugin` | Command-owned plugin catalog and dispatch | `Cli/Command`, `Cli/Configuration`, `Cli/Input`, `Cli/Output`, `Cli/Run`, `Config`, `Coverage`, `Plugin`, `Reporting`, and internal utilities |
 | `Documentation` | Build-time validation of documentation examples | Nothing |
