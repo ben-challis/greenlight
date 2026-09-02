@@ -36,6 +36,9 @@ use function Hyperf\Coroutine\run;
  * The default worker container lifetime matches a long-running Hyperf worker.
  * `#[Service]` selects an explicit container ID. Isolate external test
  * resources by `GREENLIGHT_CHANNEL`.
+ *
+ * Requires `hyperf/framework` and `hyperf/di` 3.2. It also requires Swoole 5
+ * or later and the pcntl extension. It does not support Swow.
  */
 final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemptRunner, WorkerBootstrapSubscriber, WorkerRuntimeRunner
 {
