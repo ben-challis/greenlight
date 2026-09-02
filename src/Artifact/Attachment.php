@@ -14,6 +14,7 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
  */
 readonly class Attachment
 {
+    /** @throws \InvalidArgumentException if the attachment metadata is invalid */
     public function __construct(
         public string $name,
         public AttachmentKind $kind,
