@@ -111,7 +111,8 @@ Each attachment records its name, kind, media type, byte size, SHA-256 digest,
 attempt number, retention policy, and published path. The metadata does not
 include the original source path or the attachment content.
 
-Attachment names are labels, not paths. They cannot contain directory
+Attachment names are labels, not paths. They **MUST** be non-empty, use valid
+UTF-8, and contain no more than 120 bytes. They cannot contain directory
 separators or control characters. They cannot equal `.` or `..`. Repeated names
 within one attempt receive `-2`, `-3`, and later suffixes in their published
 filenames. Their logical names remain unchanged in the result metadata.
