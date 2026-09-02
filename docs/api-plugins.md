@@ -274,7 +274,11 @@ public static function usage(): self
 public static function interrupted(int $signal): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandResult.php#L35)
+PHPDoc:
+
+- `@throws \InvalidArgumentException if the signal is outside 1 through 127`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandResult.php#L39)
 
 ## `CoverageMapTransformer`
 

@@ -31,7 +31,11 @@ final readonly class CommandResult
         return new self(CommandOutcome::UsageError);
     }
 
-    /** @phpstan-assert int<1, 127> $signal */
+    /**
+     * @phpstan-assert int<1, 127> $signal
+     *
+     * @throws \InvalidArgumentException if the signal is outside 1 through 127
+     */
     public static function interrupted(int $signal): self
     {
         if ($signal < 1 || $signal > 127) {
