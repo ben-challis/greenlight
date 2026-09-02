@@ -47,7 +47,9 @@ final class Doubles implements Disposable
      *   classes. An empty string is invalid. The default is a project
      *   directory in the system temporary directory. A hash of the current
      *   working directory identifies it.
-     * @throws InvalidDoubleUsage
+     * @throws \InvalidArgumentException if the proxy directory is empty
+     * @throws InvalidDoubleUsage if PHP cannot resolve the default working
+     *   directory
      */
     public function __construct(?string $proxyDirectory = null)
     {
