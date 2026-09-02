@@ -33,6 +33,10 @@ new LaravelPlugin(static fn(): Application => Application::configure(basePath: _
     ->create());
 ```
 
+A custom factory **MUST** return an application that binds
+`Illuminate\Contracts\Console\Kernel` to an implementation of that interface.
+`Application::configure(...)->create()` registers this binding.
+
 The plugin sets `APP_ENV` while the application is active. The default value is
 `testing`. Pass `env:` to select another environment. Laravel loads `.env`
 without a change to variables that already exist, so the plugin value wins.
