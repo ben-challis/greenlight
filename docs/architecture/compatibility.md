@@ -158,9 +158,9 @@ that end with a newline.
 
 ## Coverage JSON changes
 
-Coverage JSON version 1 **MAY** receive optional top-level or per-file fields.
-Readers **MUST** ignore unknown keys. They **MUST** calculate derived totals
-from `covered` and `uncovered`.
+Coverage JSON version 1 **MAY** receive optional fields at the top level, in
+`totals`, or in each file entry. Readers **MUST** ignore unknown keys. They
+**MUST** calculate derived totals from `covered` and `uncovered`.
 
 A change to path semantics or a line-status definition requires a new version.
 A change to a required field or a field type also requires a new version. For
