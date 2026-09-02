@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Coverage\Diff;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Diff\BaselineDiff;
@@ -88,5 +89,57 @@ final class ProjectRootNormalizerTest
                 \InvalidArgumentException::class,
                 message: 'The target project root must be an absolute path.',
             );
+    }
+
+    #[Test]
+    #[DataSet('absolutePaths')]
+    public function absoluteCoveragePathsAreAccepted(string $path): void
+    {
+        $map = new CoverageMap([new FileCoverage($path, [1], [])]);
+
+        Expect::that(static function () use ($map): void {
+            ProjectRootNormalizer::requireAbsolutePaths($map);
+        })
+            ->because('fully qualified coverage paths MUST be accepted')
+            ->not()->toThrow(\InvalidArgumentException::class);
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function absolutePaths(): iterable
+    {
+        yield 'POSIX' => ['/project/src/A.php'];
+        yield 'Windows drive with slashes' => ['C:/project/src/A.php'];
+        yield 'Windows drive with backslashes' => ['C:\project\src\A.php'];
+        yield 'Windows UNC' => ['\\\\server\share\src\A.php'];
+        yield 'Windows device' => ['\\\\?\C:\project\src\A.php'];
+    }
+
+    #[Test]
+    #[DataSet('relativePaths')]
+    public function relativeCoveragePathsAreRejected(string $path): void
+    {
+        $map = new CoverageMap([new FileCoverage($path, [1], [])]);
+
+        Expect::that(static function () use ($map): void {
+            ProjectRootNormalizer::requireAbsolutePaths($map);
+        })
+            ->because('coverage JSON MUST reject relative file paths')
+            ->toThrow(
+                \InvalidArgumentException::class,
+                message: \sprintf('Coverage JSON requires an absolute file path. Received "%s".', $path),
+            );
+    }
+
+    /**
+     * @return iterable<string, array{non-empty-string}>
+     */
+    public static function relativePaths(): iterable
+    {
+        yield 'plain' => ['src/A.php'];
+        yield 'dot prefix' => ['./src/A.php'];
+        yield 'Windows drive-relative' => ['C:src\A.php'];
+        yield 'Windows current drive root' => ['\src\A.php'];
     }
 }

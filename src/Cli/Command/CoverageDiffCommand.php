@@ -67,6 +67,10 @@ final readonly class CoverageDiffCommand
             }
             try {
                 $maps[$label] = JsonExporter::import($json);
+
+                if ($baselineRoot === null && $currentRoot === null) {
+                    ProjectRootNormalizer::requireAbsolutePaths($maps[$label]);
+                }
             } catch (\Throwable $error) {
                 $this->console->error(
                     \sprintf(

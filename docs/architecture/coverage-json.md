@@ -9,6 +9,8 @@ The coverage difference command also uses this format:
 greenlight coverage:diff --baseline=baseline.json --current=current.json
 ```
 
+Without root options, both input documents **MUST** use absolute file-path keys.
+
 The schema has a version. The fields and meanings in version 1 are stable. See
 [compatibility](compatibility.md) for the change rules.
 
@@ -138,8 +140,8 @@ duplicate inputs, and empty maps do not change the result.
 A file can be absent from an input. The result contains that file if a different
 input contains it.
 
-The command rejects malformed documents and unsupported versions. Without root
-options, each file path must be absolute.
+The command rejects malformed documents and unsupported versions. Each file
+path must be absolute.
 
 For different roots, give one `--input-root` for each input. Give one
 `--project-root` for the output. Greenlight removes each applicable input root

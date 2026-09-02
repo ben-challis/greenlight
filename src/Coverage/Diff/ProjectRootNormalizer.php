@@ -69,4 +69,25 @@ final class ProjectRootNormalizer
 
         return new CoverageMap($files);
     }
+
+    public static function requireAbsolutePaths(CoverageMap $map): void
+    {
+        foreach ($map->files() as $path => $_coverage) {
+            if (self::isAbsolute($path)) {
+                continue;
+            }
+
+            throw new \InvalidArgumentException(\sprintf(
+                'Coverage JSON requires an absolute file path. Received "%s".',
+                $path,
+            ));
+        }
+    }
+
+    private static function isAbsolute(string $path): bool
+    {
+        return \str_starts_with($path, '/')
+            || \str_starts_with($path, '\\\\')
+            || \preg_match('~\A[A-Za-z]:[\\\\/]~D', $path) === 1;
+    }
 }
