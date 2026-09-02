@@ -8,10 +8,12 @@ Greenlight does not need a GitLab-specific reporter.
 Configure a project-relative parent directory for Greenlight run directories.
 Add this configuration to `greenlight.php`:
 
-<!-- php-example {"mode":"display","reason":"Shows one method in an existing Greenlight configuration chain."} -->
+<!-- php-example {"mode":"display","reason":"Shows a configuration call after omitted calls."} -->
 ```php
-->artifacts(fn ($artifacts) => $artifacts
-    ->directory('build/gitlab/greenlight-runs'))
+return GreenlightConfig::create()
+    // ...
+    ->artifacts(fn ($artifacts) => $artifacts
+        ->directory('build/gitlab/greenlight-runs'));
 ```
 
 Greenlight creates a unique run directory below this parent directory. Retained
@@ -93,11 +95,13 @@ and [parallel job variables](https://docs.gitlab.com/ci/variables/predefined_var
 Greenlight can write the Cobertura report that GitLab uses for merge request
 diff annotations. Add this configuration to `greenlight.php`:
 
-<!-- php-example {"mode":"display","reason":"Shows one method in an existing Greenlight configuration chain."} -->
+<!-- php-example {"mode":"display","reason":"Shows a configuration call after omitted calls."} -->
 ```php
-->coverage(fn ($coverage) => $coverage
-    ->include('src')
-    ->export('cobertura', 'build/coverage/cobertura.xml'))
+return GreenlightConfig::create()
+    // ...
+    ->coverage(fn ($coverage) => $coverage
+        ->include('src')
+        ->export('cobertura', 'build/coverage/cobertura.xml'));
 ```
 
 Add the coverage file to the test job artifacts:
