@@ -46,10 +46,11 @@ identifies incorrect test code. It is not an expectation failure.
   `mock(Type::class, $plan)`. An unplanned interaction fails immediately.
 * If the test needs an unused dependency, use `stub(Type::class)`. Each
   intercepted interaction fails immediately.
-* If the test must examine calls that return void, use `spy(Type::class)`. The
-  spy records an unplanned call.
+* If the test must examine calls to a method declared `void` or without a
+  native return type, use `spy(Type::class)`. The spy records an unplanned call.
 
-A call to a spy method that returns a value fails the test.
+These spy calls return `null`. A call to a spy method with any other native
+return type fails the test. PHPDoc return tags do not change this rule.
 
 ## Mock call plans
 
@@ -84,7 +85,9 @@ does not declare.
 
 ## Mock responses
 
-Each mock method that returns a value needs an explicit response:
+Each mock method with a native non-`void` return type needs an explicit
+response. A method declared `void` or without a native return type needs no
+response and returns `null`. PHPDoc return tags do not change this rule.
 
 <!-- php-example {"example":"test-doubles-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
