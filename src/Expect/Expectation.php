@@ -67,6 +67,7 @@ final class Expectation
      *
      * @return self<T>
      *
+     * @throws \BadMethodCallException if no native or registered extension matcher has the requested name
      * @throws ExpectationFailed
      */
     public function __call(string $name, array $arguments): self

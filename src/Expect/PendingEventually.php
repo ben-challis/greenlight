@@ -57,6 +57,8 @@ final class PendingEventually
 
     /**
      * @return self<T>
+     *
+     * @throws \InvalidArgumentException if the interval is not finite or is less than 0.001 seconds
      */
     public function pollEvery(float $seconds): self
     {
@@ -70,6 +72,8 @@ final class PendingEventually
      * @param class-string<\Exception> ...$types
      *
      * @return self<T>
+     *
+     * @throws \InvalidArgumentException if a type does not extend Exception
      */
     public function retryOnException(string ...$types): self
     {
@@ -85,6 +89,8 @@ final class PendingEventually
 
     /**
      * @return EventuallyExpectation<T>
+     *
+     * @throws \InvalidArgumentException if the duration is not finite or is not positive
      */
     public function within(float $seconds): EventuallyExpectation
     {
