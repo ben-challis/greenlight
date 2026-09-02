@@ -19,6 +19,7 @@ final readonly class IntegrationResources
 {
     /**
      * @param array<non-empty-string, FixtureResource> $fixtures
+     * @throws \InvalidArgumentException when a key or value is invalid
      */
     public function __construct(private array $fixtures = [])
     {
@@ -49,6 +50,9 @@ final readonly class IntegrationResources
         return isset($this->fixtures[$id]);
     }
 
+    /**
+     * @throws \OutOfBoundsException when the fixture is not available
+     */
     public function fixture(string $id): FixtureResource
     {
         return $this->fixtures[$id] ?? throw new \OutOfBoundsException(\sprintf(
