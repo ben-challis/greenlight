@@ -119,7 +119,7 @@ The isolated mode uses this lifecycle for each attempt:
 3. Resolve `Hyperf\Contract\ApplicationInterface` to boot the application.
 4. Construct the test and run all hooks, plugins, and the test method.
 5. Close the Greenlight test service scope.
-6. Call the reset callback and disposal callback.
+6. Call the reset callback. If it succeeds, call the disposal callback.
 7. Remove access to the discarded application container.
 8. Clear Swoole timers and resume Hyperf's worker-exit coordinator.
 9. End the coroutine.
@@ -192,8 +192,11 @@ The reset callback runs after Greenlight closes its per-test service scope. It
 runs inside the test coroutine in both modes.
 
 The disposal callback runs before Greenlight discards its container. In worker
-mode, it runs once when the worker exits. In test-attempt mode, it runs after
-each attempt. It always runs inside a coroutine.
+mode, it runs once when the worker exits. In test-attempt mode, the reset
+callback runs first. If reset succeeds, disposal runs after the attempt. If
+reset throws, the attempt has an error and Greenlight does not call disposal
+for that container. Greenlight still removes access to the container, clears
+the coroutine runtime, and ends the coroutine.
 
 The bridge does not reset application static properties or global variables.
 Reset these values in an `#[After]` hook or the `reset:` callback.
