@@ -7,10 +7,13 @@ frames.
 ## Run directories
 
 Each run has a possible public output directory. It also has a private staging
-directory in the system temporary directory. The orchestrator gives both paths
-to workers in the assignment. Greenlight creates staging when a test or plugin
-adds the first attachment. It creates the public directory only when the run
-publishes an attachment.
+directory below the configured temporary storage directory. Greenlight uses the
+system temporary directory by default. Artifact directory configuration
+controls the public output directory independently.
+
+The orchestrator gives both paths to workers in the assignment. Greenlight
+creates staging when a test or plugin adds the first attachment. It creates the
+public directory only when the run publishes an attachment.
 
 When a test or plugin adds an attachment, Greenlight copies it into staging.
 Greenlight serializes structured values at this time. Later source changes
