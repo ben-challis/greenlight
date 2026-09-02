@@ -110,7 +110,7 @@ final readonly class ApiReferenceGenerationTest
             ->toContain('## `InvalidDoubleUsage`')
             ->not()->toContain('DoublesError');
         Expect::that($this->reference('api-integrations.md'))
-            ->toContain('@throws \\Greenlight\\Harness\\ServiceResolutionFailed')
+            ->toContain('@throws Greenlight\\Harness\\ServiceResolutionFailed')
             ->not()->toContain('ServiceResolutionError')
             ->not()->toContain('HyperfBridgeError')
             ->not()->toContain('LaravelBridgeError')

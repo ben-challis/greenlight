@@ -392,7 +392,7 @@ function referencedType(owner, reference, typesByName) {
 }
 
 function projectMixinMember(member, mixin) {
-  const replaceSelf = (value) => value.replace(/\bself\b/gu, `\\${mixin.name}`);
+  const replaceSelf = (value) => value.replace(/\bself\b/gu, mixin.name);
 
   return {
     ...member,
@@ -626,7 +626,7 @@ function qualifiedTypeReference(identifier, declaringContext, displayedNamespace
     return identifier;
   }
 
-  return `\\${resolved}`;
+  return resolved;
 }
 
 function qualifyTypeExpression(expression, declaringContext, displayedNamespace) {

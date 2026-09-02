@@ -395,7 +395,7 @@ public string $condition;
 
 PHPDoc:
 
-- `@var class-string<\Greenlight\Condition\Condition>`
+- `@var class-string<Greenlight\Condition\Condition>`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L19)
 
@@ -422,7 +422,7 @@ public function __construct(
 
 PHPDoc:
 
-- `@param class-string<\Greenlight\Condition\Condition> $condition`
+- `@param class-string<Greenlight\Condition\Condition> $condition`
 - `@throws \InvalidArgumentException`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L31)

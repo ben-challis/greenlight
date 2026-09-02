@@ -341,14 +341,14 @@ final class ImportedEvent
 
     const reference = await readFile(resolve(documentationRoot, 'api-events.md'), 'utf8');
 
-    assert.match(reference, /#\[\\Psr\\Http\\Message\\ResponseInterface\]/);
-    assert.match(reference, /\\Psr\\Http\\Message\\ResponseInterface \$response/);
-    assert.match(reference, /\\Vendor\\ChildTypes\\Context \$context = \\Vendor\\ChildTypes\\Context::Default/);
-    assert.match(reference, /@template TResponse of \\Psr\\Http\\Message\\ResponseInterface/);
-    assert.match(reference, /@method \\Psr\\Http\\Message\\ResponseInterface synthesize\(\\Vendor\\ChildTypes\\Context \$context\) A SharedContext method description\./);
-    assert.match(reference, /@param \\Vendor\\ChildTypes\\Context \$context A SharedContext parameter description\./);
-    assert.match(reference, /@return \\Psr\\Http\\Message\\ResponseInterface A ResponseInterface return description\./);
-    assert.match(reference, /@throws \\Vendor\\ChildTypes\\Failure when the external operation fails/);
+    assert.match(reference, /#\[Psr\\Http\\Message\\ResponseInterface\]/);
+    assert.match(reference, /Psr\\Http\\Message\\ResponseInterface \$response/);
+    assert.match(reference, /Vendor\\ChildTypes\\Context \$context = Vendor\\ChildTypes\\Context::Default/);
+    assert.match(reference, /@template TResponse of Psr\\Http\\Message\\ResponseInterface/);
+    assert.match(reference, /@method Psr\\Http\\Message\\ResponseInterface synthesize\(Vendor\\ChildTypes\\Context \$context\) A SharedContext method description\./);
+    assert.match(reference, /@param Vendor\\ChildTypes\\Context \$context A SharedContext parameter description\./);
+    assert.match(reference, /@return Psr\\Http\\Message\\ResponseInterface A ResponseInterface return description\./);
+    assert.match(reference, /@throws Vendor\\ChildTypes\\Failure when the external operation fails/);
     assert.doesNotMatch(reference, /UnusedInternal|Greenlight\\Internal\\Hidden/);
   } finally {
     await rm(sourceRoot, { recursive: true, force: true });
@@ -412,12 +412,12 @@ final class ImportedEvent extends ParentAlias
 
     const reference = await readFile(resolve(documentationRoot, 'api-events.md'), 'utf8');
 
-    assert.match(reference, /final class ImportedEvent extends \\Greenlight\\Result\\ImportedParent/);
-    assert.match(reference, /@mixin \\Greenlight\\Doubles\\ImportedMixin/);
-    assert.match(reference, /public function inherited\(\\Vendor\\ParentTypes\\Context \$context\): \\Vendor\\ParentTypes\\Outcome/);
-    assert.match(reference, /@param \\Vendor\\ParentTypes\\Context \$context The parent SharedContext description\./);
-    assert.match(reference, /public function mixed\(\\Vendor\\MixinTypes\\Context \$context\): \\Greenlight\\Doubles\\ImportedMixin/);
-    assert.match(reference, /public function local\(\\Vendor\\ChildTypes\\Context \$context\): void/);
+    assert.match(reference, /final class ImportedEvent extends Greenlight\\Result\\ImportedParent/);
+    assert.match(reference, /@mixin Greenlight\\Doubles\\ImportedMixin/);
+    assert.match(reference, /public function inherited\(Vendor\\ParentTypes\\Context \$context\): Vendor\\ParentTypes\\Outcome/);
+    assert.match(reference, /@param Vendor\\ParentTypes\\Context \$context The parent SharedContext description\./);
+    assert.match(reference, /public function mixed\(Vendor\\MixinTypes\\Context \$context\): Greenlight\\Doubles\\ImportedMixin/);
+    assert.match(reference, /public function local\(Vendor\\ChildTypes\\Context \$context\): void/);
     assert.doesNotMatch(reference, /ParentAlias|MixinAlias/);
   } finally {
     await rm(sourceRoot, { recursive: true, force: true });
