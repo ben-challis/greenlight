@@ -43,8 +43,9 @@ channel's overlay before it sends them to a worker.
 ## Resource transport
 
 `FixtureResource` accepts JSON-safe nulls, booleans, finite numbers, UTF-8
-strings, lists, and maps. Greenlight rejects a complete channel payload larger
-than 1 MiB.
+strings, lists, and maps. Map keys must be non-empty UTF-8 strings. Lists and
+maps can have a maximum nesting depth of 16. Greenlight rejects a complete
+channel payload larger than 1 MiB.
 
 Store credentials in the separate secrets map. Worker code receives each secret
 as a `SensitiveValue` and must call `reveal()` to read it. Object dumps and
