@@ -637,11 +637,15 @@ PHPDoc:
 
 Namespace: `Greenlight\Config`
 
+Configures additional watch inputs and polling limits. The defaults are a
+200 millisecond debounce, no additional paths or patterns, and a 100,000-file
+limit for each poll.
+
 ```php
 final class WatchBuilder
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L7)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L12)
 
 ### `debounceMilliseconds()`
 
@@ -657,7 +661,7 @@ PHPDoc:
 - `@param positive-int $milliseconds`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L36)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L41)
 
 ### `paths()`
 
@@ -672,7 +676,7 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L53)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L58)
 
 ### `include()`
 
@@ -687,7 +691,7 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L66)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L71)
 
 ### `exclude()`
 
@@ -703,7 +707,7 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L80)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L85)
 
 ### `maximumFiles()`
 
@@ -717,4 +721,4 @@ PHPDoc:
 
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L92)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/WatchBuilder.php#L97)
