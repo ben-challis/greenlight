@@ -390,8 +390,8 @@ Queue size and resource capacity can reduce this target below the configured
 worker count.
 
 `IntegrationFixtureContext::configuredWorkers()` returns the configured worker
-count. `IntegrationFixtureContext::channels()` returns the channel numbers that
-this run can use.
+ceiling. `IntegrationFixtureContext::channels()` returns the consecutive channel
+numbers that this selected plan can use.
 
 The allocator gives out the lowest free number and returns it when a worker
 retires. A replacement can use a released channel.

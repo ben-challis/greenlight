@@ -32,6 +32,12 @@ before it provisions anything, then provisions dependencies first.
 Fixture IDs are non-empty UTF-8 strings. They cannot use integer strings
 because PHP converts those map keys to integers.
 
+`IntegrationFixtureContext::configuredWorkers()` returns the configured worker
+ceiling. `IntegrationFixtureContext::channels()` returns the consecutive channel
+numbers that the selected plan can use. Selected work and resource capacity can
+reduce the number of channels below the ceiling. Providers MUST create overlays
+only for these numbers. Replacement workers reuse released numbers.
+
 Call `IntegrationFixtureContext::defer()` as soon as the provisioner acquires a
 resource. The callback will then run even if the rest of the provisioner fails.
 Greenlight runs cleanup callbacks in reverse registration order.
