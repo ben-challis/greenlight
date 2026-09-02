@@ -285,6 +285,13 @@
             "type": "object",
             "additionalProperties": false,
             "required": ["method", "class"],
+            "not": {
+                "properties": {
+                    "method": {"type": "null"},
+                    "class": {"type": "string"}
+                },
+                "required": ["method", "class"]
+            },
             "properties": {
                 "method": {"type": ["string", "null"], "minLength": 1},
                 "class": {"type": ["string", "null"], "minLength": 1}
