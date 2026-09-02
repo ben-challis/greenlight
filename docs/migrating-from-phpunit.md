@@ -83,18 +83,15 @@ Some attribute conversions are less direct:
 | `#[RequiresPhpExtension]` | `#[SkipUnless]` with `ExtensionLoaded` |
 | `#[RequiresOperatingSystemFamily]` | `#[SkipUnless]` with `OperatingSystemFamily` |
 
-This separate-process conversion applies only to process-pool execution.
-`--workers=1` and automatic in-process fallback cannot give `#[Isolated]`
-tests a dedicated process.
+Greenlight runs each converted `#[Isolated]` test in a dedicated worker process.
 
 The rule removes coverage metadata attributes, for example `#[CoversClass]`,
 because coverage configuration belongs in `greenlight.php`. It also removes
 use metadata, `#[TestDox]`, and `#[DisableReturnValueGenerationForTestDoubles]`.
 
 Rector's printer also reflows each converted class. Run your code-style fixer
-after the conversion. If no test depends on `#[Isolated]`, run the suite one
-time with `--workers=1` before you enable parallel workers. Otherwise, start
-with two process-pool workers.
+after the conversion. Run the suite one time with `--workers=1` before you
+enable more workers.
 
 ## Map the concepts
 

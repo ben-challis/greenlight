@@ -32,12 +32,12 @@ final readonly class ReporterFactory
      * @param non-empty-string $version
      * @throws ReporterSetupFailed
      */
-    public function catalog(ParsedArguments $arguments, array $plugins, ?int $seed, string $configFile, string $workingDirectory, bool $workerFallback = false, string $version = '0.0.0'): ReporterCatalog
+    public function catalog(ParsedArguments $arguments, array $plugins, ?int $seed, string $configFile, string $workingDirectory, string $version = '0.0.0'): ReporterCatalog
     {
         $capabilities = $this->console->capabilities($arguments->has('no-ansi'), $arguments->has('ansi'));
         $prefix = \rtrim($workingDirectory, '/') . '/';
         $displayedConfig = \str_starts_with($configFile, $prefix) ? \substr($configFile, \strlen($prefix)) : $configFile;
-        $header = new RunHeader($version, $displayedConfig, $seed, workerFallback: $workerFallback);
+        $header = new RunHeader($version, $displayedConfig, $seed);
         $definitions = [];
         $bundled = PluginDefinition::fromFactory(
             fn(): BundledReporters => new BundledReporters(

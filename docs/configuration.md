@@ -563,7 +563,7 @@ Two concurrent tests do not share a channel. Channel numbers are from 1 through
 the worker count. The number of worker processes during the run does not change
 this range. After a worker crash, its replacement reuses the freed slot.
 
-A `--workers=1` run executes in-process on channel 1.
+A `--workers=1` run uses one worker process on channel 1.
 
 Greenlight makes the channel available in two ways:
 

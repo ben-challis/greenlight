@@ -71,6 +71,7 @@ final readonly class ApplicationCoverageCleanupTest
         Expect::that(fn() => Application::forStreams($stdout, $stderr)->run(
             ['run', '--reporter=plain', '--no-ansi'],
             $project->directory,
+            \dirname(__DIR__, 3) . '/bin/greenlight',
         ))
             ->because('a run event failure MUST propagate after coverage cleanup')
             ->toThrow(ReportGenerationFailed::class);

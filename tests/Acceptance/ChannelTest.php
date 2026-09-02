@@ -30,13 +30,13 @@ final readonly class ChannelTest
     }
 
     #[Test]
-    public function theInProcessRunnerIsChannelOne(): void
+    public function oneWorkerOccupiesChannelOne(): void
     {
         $project = $this->writeProject(expectedChannels: 1);
         $result = GreenlightCli::run($project->directory, ['run', '--workers=1', '--reporter=jsonl']);
         $events = JsonlEvents::from($result);
         $channels = $this->reportedChannels($events);
-        Expect::that($result->exitCode)->because('the in process runner is channel one')->toBe(0);
+        Expect::that($result->exitCode)->because('one worker occupies channel one')->toBe(0);
         Expect::that(\count($channels))->toBe(4);
         Expect::that(\array_values(\array_unique($channels)))->toBe([1]);
     }

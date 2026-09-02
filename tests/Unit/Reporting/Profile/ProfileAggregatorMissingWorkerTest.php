@@ -14,10 +14,10 @@ use Greenlight\Reporting\Profile\ProfileAggregator;
 use Greenlight\Reporting\Style;
 use Greenlight\Result\ResultSummary;
 
-final class ProfileAggregatorInProcessTest
+final readonly class ProfileAggregatorMissingWorkerTest
 {
     #[Test]
-    public function inProcessClassEventsDoNotCreateAWorkerProfile(): void
+    public function classEventsWithoutWorkerIdsDoNotCreateAWorkerProfile(): void
     {
         $aggregator = new ProfileAggregator();
         $events = [
@@ -32,7 +32,7 @@ final class ProfileAggregatorInProcessTest
         }
 
         Expect::that($aggregator->render(new Style(ansi: false)))
-            ->because('in-process class events MUST NOT invent a worker profile')
+            ->because('class events without worker IDs MUST NOT invent a worker profile')
             ->toBe(
                 "\nProfile:\n"
                 . "  Workers: 1 requested, 0 spawned\n",

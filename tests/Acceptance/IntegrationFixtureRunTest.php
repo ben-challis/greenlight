@@ -35,7 +35,7 @@ final readonly class IntegrationFixtureRunTest
     }
 
     #[Test]
-    public function inProcessFailuresStillTearDownTheFixture(): void
+    public function oneWorkerFailuresStillTearDownTheFixture(): void
     {
         $project = $this->writeProject('failure', workers: 1, failing: true);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
@@ -210,9 +210,9 @@ final readonly class IntegrationFixtureRunTest
     }
 
     #[Test]
-    public function inProcessWorkerBootstrapFailureIsReportedAndTearsDown(): void
+    public function oneWorkerBootstrapFailureIsReportedAndTearsDown(): void
     {
-        $project = $this->writeProject('in-process-bootstrap-failure', workers: 1, failBootstrapChannel: 1);
+        $project = $this->writeProject('one-worker-bootstrap-failure', workers: 1, failBootstrapChannel: 1);
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
         Expect::that($result->exitCode)->toBe(1);
@@ -257,7 +257,7 @@ final readonly class IntegrationFixtureRunTest
      */
     public static function workerModes(): iterable
     {
-        yield 'in-process' => [1, 1];
+        yield 'one worker' => [1, 1];
         yield 'parallel' => [2, 2];
     }
 
@@ -266,7 +266,7 @@ final readonly class IntegrationFixtureRunTest
      */
     public static function runnerWorkerCounts(): iterable
     {
-        yield 'in-process runner' => [1];
+        yield 'one worker' => [1];
         yield 'parallel runner' => [2];
     }
 

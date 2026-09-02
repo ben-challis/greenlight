@@ -67,11 +67,12 @@ final readonly class AttachmentMediaTypeTest
                 ->artifacts(fn(ArtifactBuilder $artifacts) => $artifacts
                     ->directory(__DIR__ . '/artifacts'));
             PHP);
+        $project->writeFile('php.ini', "disable_functions=finfo_open\n");
 
         $result = GreenlightCli::run(
             $project->directory,
             ['run', '--reporter=jsonl'],
-            phpArguments: ['-d', 'disable_functions=finfo_open'],
+            environment: ['PHPRC' => $project->path('php.ini')],
         );
         $finished = null;
 
