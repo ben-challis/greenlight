@@ -912,7 +912,7 @@ The closure receives the call arguments. The call returns the value
 from the closure.
 
 ```php
-public function andReturnsUsing(\Closure $answer): self // @phpstan-ignore missingType.callable (The doubled method determines the answer signature.)
+public function andReturnsUsing(\Closure $answer): self
 ```
 
 PHPDoc:
