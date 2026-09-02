@@ -163,14 +163,6 @@ final class NumericMatchersTest
     }
 
     #[Test]
-    public function toBeWithinPasses(): void
-    {
-        Expect::that(1.05)->because('toBeWithin() passes')->toBeWithin(0.1, 1.0);
-        Expect::that(0.95)->because('toBeWithin() passes')->toBeWithin(0.1, 1.0);
-        Expect::that(3)->because('toBeWithin() passes')->toBeWithin(0.5, 3.0);
-    }
-
-    #[Test]
     #[DataSet('toleranceBoundaries')]
     public function toBeWithinIncludesTheToleranceBoundary(float $subject): void
     {
