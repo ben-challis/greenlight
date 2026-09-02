@@ -70,6 +70,8 @@ final readonly class TestResult
 
     /**
      * @param non-empty-string $transformedBy
+     *
+     * @throws \InvalidArgumentException if the transformation source is empty
      */
     public function withOutcome(Outcome $outcome, string $transformedBy): self
     {
