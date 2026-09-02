@@ -1,0 +1,57 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://raw.githubusercontent.com/ben-challis/greenlight/main/resources/schema/coverage-v1.schema.json",
+    "title": "Greenlight JSON coverage document (version 1)",
+    "description": "One document produced by the Greenlight JSON coverage exporter. Prose reference: docs/architecture/coverage-json.md.",
+    "type": "object",
+    "required": ["v", "files", "totals"],
+    "properties": {
+        "v": {
+            "enum": [1]
+        },
+        "files": {
+            "type": "object",
+            "patternProperties": {
+                "^.+$": {"$ref": "#/definitions/file"}
+            },
+            "additionalProperties": false
+        },
+        "totals": {
+            "$ref": "#/definitions/totals"
+        }
+    },
+    "definitions": {
+        "lineList": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+                "type": "integer",
+                "minimum": 1
+            }
+        },
+        "percentage": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+        },
+        "file": {
+            "type": "object",
+            "required": ["covered", "uncovered", "percentage"],
+            "properties": {
+                "covered": {"$ref": "#/definitions/lineList"},
+                "uncovered": {"$ref": "#/definitions/lineList"},
+                "percentage": {"$ref": "#/definitions/percentage"}
+            }
+        },
+        "totals": {
+            "type": "object",
+            "required": ["files", "coveredLines", "executableLines", "percentage"],
+            "properties": {
+                "files": {"type": "integer", "minimum": 0},
+                "coveredLines": {"type": "integer", "minimum": 0},
+                "executableLines": {"type": "integer", "minimum": 0},
+                "percentage": {"$ref": "#/definitions/percentage"}
+            }
+        }
+    }
+}
