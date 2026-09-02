@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Config;
 
+/**
+ * Configures additional watch inputs and polling limits. The defaults are a
+ * 200 millisecond debounce, no additional paths or patterns, and a 100,000-file
+ * limit for each poll.
+ */
 final class WatchBuilder
 {
     private const int DEFAULT_MAXIMUM_FILES = 100_000;
