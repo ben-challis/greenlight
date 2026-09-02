@@ -2,7 +2,9 @@
 
 The `Greenlight\` Composer namespace makes implementation classes available to
 the PHP autoload mechanism. This availability is not a compatibility promise.
-Only documented interfaces and versioned formats have compatibility promises.
+Only surfaces that the contract-level table identifies as public have
+compatibility promises. Documentation or a version field does not make an
+internal surface public.
 
 ## Contract levels
 
