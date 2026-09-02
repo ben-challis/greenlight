@@ -3,10 +3,10 @@
 The [Laravel](https://laravel.com/) bridge supplies Laravel container services
 and built-in Greenlight harness services to test constructors.
 
-The bridge boots a fresh application for each test that uses it. Register the
-plugin to activate the bridge. The bridge uses the Laravel package that the
-application provides. Greenlight does not declare a runtime dependency on
-Laravel.
+By default, the bridge boots a fresh application for each test attempt that
+uses it. Register the plugin to activate the bridge. The bridge uses the
+Laravel package that the application provides. Greenlight does not declare a
+runtime dependency on Laravel.
 
 ## Setup
 
@@ -112,9 +112,9 @@ application in its own container.
 
 ## State between tests
 
-The bridge discards the application after each test. Configuration changes,
-facade roots, singleton state, and container registrations cannot reach the
-next test.
+By default, the bridge discards the application after each test attempt.
+Configuration changes, facade roots, singleton state, and container
+registrations cannot reach the next attempt.
 
 This scope is smaller than the isolation in Laravel's `TestCase`. Laravel's
 test harness resets framework static state for its helpers and fakes. The
