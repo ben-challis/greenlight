@@ -103,12 +103,14 @@ Enum cases compare by identity.
   the given count.
 * `toBeEmpty()` checks that a string, countable, or traversable subject contains
   nothing.
-* `toHaveLength(int $length)` checks the character length of a string or the
-  count of a countable subject.
+* `toHaveLength(int $length)` checks the code-point count of a valid UTF-8
+  string. If UTF-8 validation fails, it checks the byte count. It uses `count()`
+  for an array or `Countable` subject.
 * `toHaveKey(int|string $key)` checks that an array or `ArrayAccess` subject
   contains the key.
 * `toContainSubset(array $subset)` checks that an array contains every subset
-  key with a deeply equal value.
+  key. Nested arrays are also partial subsets, so the related subject arrays
+  can contain extra keys. Non-array values use the `toEqual()` rules.
 * `toMatch(string $pattern)` checks that a string matches the regular
   expression.
 * `toStartWith(string $prefix)` checks that a string starts with the prefix.
