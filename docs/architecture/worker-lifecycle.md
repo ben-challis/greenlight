@@ -353,11 +353,16 @@ exceeds that budget, the orchestrator fails the run with a diagnostic.
 
 ### Signals
 
-When the orchestrator receives its first SIGINT or SIGTERM, it drains workers,
-emits the partial result, and then tears down integration fixtures. Workers
-ignore terminal SIGINT so the orchestrator controls that sequence. A test that
-is polling can finish like any other test in flight. A second signal restores
-the operating system's default immediate termination behavior.
+With `ext-pcntl` available, the orchestrator drains workers after its first
+SIGINT or SIGTERM. It emits the partial result and then tears down integration
+fixtures. Workers ignore terminal SIGINT so the orchestrator controls that
+sequence. A test that is polling can finish like any other test in flight. A
+second signal restores the operating system's default immediate termination
+behavior.
+
+Without PCNTL, Greenlight cannot install these signal handlers. The operating
+system's default immediate termination behavior can prevent partial results
+and teardown callbacks.
 
 ## Isolated tests
 
