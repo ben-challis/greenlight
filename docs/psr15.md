@@ -114,6 +114,11 @@ test a new handler.
 If the handler keeps no test state, pass it directly. Each harness then uses
 the same handler object.
 
+If you also configure a release callback, Greenlight passes this shared
+handler to the callback when each active harness scope closes. A later scope
+can use the same handler again. Use a factory if the release callback makes
+the handler unusable.
+
 Use a release callback when the handler owns resources:
 
 <!-- php-example {"example":"psr15-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
