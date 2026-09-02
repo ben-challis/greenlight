@@ -150,14 +150,16 @@ The extension reports these mock plan errors:
 * The planned method does not exist or Greenlight cannot intercept it.
 * `withNoArguments()` cannot satisfy the required parameter count.
 * `with()` supplies too few or too many arguments.
-* A value in `with()` has a type that the method parameter does not accept.
+* A value or statically typed matcher in `with()` cannot match the method
+  parameter.
 * A cardinality or capture position is outside its permitted range.
 * A configured result does not match the method return type.
 * An answer closure does not accept the method arguments or return its type.
 * A return sequence has no values.
 
-Argument matchers do not have to match the declared parameter type. They
-describe the values that the mock accepts at run time.
+The extension checks the value type of `ArgumentMatcher<T>`. It reports an
+error when a known `T` cannot overlap the declared parameter type. It leaves
+`mixed` and unresolved matcher types for run-time validation.
 
 Errors use the `greenlight.mockPlan.*` identifiers. The final identifier part
 is `method`, `arity`, `argument`, `cardinality`, `answer`, or `capturePosition`.
