@@ -42,7 +42,7 @@ final readonly class TemporaryDirectoryNestedRestrictionTest
                 ->toThrow(
                     TemporaryDirectoryError::class,
                     matching: \sprintf(
-                        '/^Failed to remove temp directory "%s": .*%s.*Permission denied\.$/',
+                        '/^Failed to remove temp directory "%s": RecursiveDirectoryIterator::__construct\((?:%s)?\): Failed to open directory: Permission denied\.$/',
                         \preg_quote($root, '/'),
                         \preg_quote($nested, '/'),
                     ),
