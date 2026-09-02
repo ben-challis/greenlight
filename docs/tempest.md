@@ -131,8 +131,11 @@ operations:
 4. Reset the container and each discovered `Resettable` implementation.
 5. Dispatch `KernelEvent::RESET` and `KernelEvent::SHUTDOWN`.
 
-The call does not end the worker. The next test uses the reset container from
-the same kernel.
+The call does not end the worker. If shutdown succeeds, the next test uses the
+reset container from the same kernel. If shutdown throws, the attempt has an
+error and the bridge discards the active kernel. It restores the previous
+process environment and global container. The next container request boots a
+new kernel.
 
 Use Tempest's `Resettable` interface to reset container state after each test.
 Reset state outside the container in an `#[After]` hook.
