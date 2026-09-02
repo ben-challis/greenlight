@@ -12,15 +12,15 @@ use Greenlight\Tests\Support\GreenlightCli;
 
 use function Greenlight\expect;
 
-final readonly class SequentialFallbackTest
+final readonly class WorkerCapabilityTest
 {
     public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
     #[DataSet('unavailableParallelCapabilities')]
-    public function unavailableParallelCapabilitiesFallBackToInProcess(string $function): void
+    public function unavailableWorkerCapabilitiesFailBeforeExecution(string $function): void
     {
-        $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'sequential-fallback');
+        $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'worker-capability');
         $result = GreenlightCli::run(
             $project->directory,
             ['run', '--workers=4', '--reporter=plain'],
@@ -28,9 +28,9 @@ final readonly class SequentialFallbackTest
         );
 
         expect($result->exitCode)
-            ->because(\sprintf('the runner uses in-process execution when PHP disables %s', $function))
-            ->toBe(0);
-        expect($result->output())->toContain('1 test, 1 passed')
+            ->because(\sprintf('the run MUST fail when PHP disables %s', $function))
+            ->toBe(1);
+        expect($result->output())->toContain('Greenlight cannot start worker processes.')
             ->not()->toContain($function);
     }
 

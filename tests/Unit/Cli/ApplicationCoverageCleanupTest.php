@@ -71,6 +71,7 @@ final readonly class ApplicationCoverageCleanupTest
         expect(Application::forStreams($stdout, $stderr)->run(
             ['run', '--reporter=plain', '--no-ansi'],
             $project->directory,
+            \dirname(__DIR__, 3) . '/bin/greenlight',
         ))
             ->because('a report failure MUST end the command with the failure exit code, not a fatal error')
             ->toBe(1);

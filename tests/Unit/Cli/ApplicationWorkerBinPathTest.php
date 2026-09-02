@@ -25,7 +25,7 @@ final readonly class ApplicationWorkerBinPathTest
 
     #[Test]
     #[Isolated]
-    public function inaccessibleWorkerBinaryFallsBackWithoutEngineDiagnostics(): void
+    public function inaccessibleWorkerBinaryFailsWithoutEngineDiagnostics(): void
     {
         $this->environment->unset('GREENLIGHT_CHANNEL');
         $project = AcceptanceProject::createWithTwoPassingTests(
@@ -55,11 +55,12 @@ final readonly class ApplicationWorkerBinPathTest
         }
 
         expect($exit)
-            ->because('an inaccessible worker binary MUST use the in-process fallback')
-            ->toBe(0);
+            ->because('an inaccessible worker binary MUST fail before execution')
+            ->toBe(1);
         expect($warning)
             ->because('an inaccessible worker binary MUST not leak an engine diagnostic')
             ->toBeNull();
-        expect($errors)->toBe('');
+        expect($errors)
+            ->toContain('Greenlight cannot start worker processes.');
     }
 }

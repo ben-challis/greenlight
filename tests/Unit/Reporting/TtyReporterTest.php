@@ -222,12 +222,12 @@ final class TtyReporterTest
 
         expect($spawned->buffer())->because('workers line reports spawned workers')->toContain("Workers: 1 spawned\n");
 
-        $inProcess = new BufferOutput();
-        $reporter = new TtyReporter($inProcess, color: false, cursor: false);
+        $noWorkers = new BufferOutput();
+        $reporter = new TtyReporter($noWorkers, color: false, cursor: false);
         $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.3));
         $reporter->finish();
 
-        expect($inProcess->buffer())->because('workers line disappears when none spawned')->not()->toContain('Workers:');
+        expect($noWorkers->buffer())->because('workers line disappears when none spawned')->not()->toContain('Workers:');
     }
 
     #[Test]

@@ -8,7 +8,7 @@ namespace Greenlight\Test;
  * A live worker owns a unique channel from 1 to the worker count. A
  * replacement worker reuses a free channel. Thus, channel resources remain
  * available when Greenlight replaces a worker.
- * In-process runs use channel 1.
+ * One-worker runs use channel 1.
  *
  * `GREENLIGHT_CHANNEL` supplies the same value outside the harness. `label()`
  * adds "gl-" before the number.

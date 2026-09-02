@@ -72,11 +72,11 @@ guarantees, and incomplete-output behavior.
 | `test-finished`  | Test ends             | `result`, `occurredAt`                                                 |
 | `worker-spawned` | Worker process starts | `workerId`, `pid`, `occurredAt`                                        |
 
-`run-started.workers` is the worker-count limit for the selected execution
-method. It does not report the number of processes that Greenlight starts.
+`run-started.workers` is the configured worker-count limit for the run. It does
+not report the number of processes that Greenlight starts.
 
-A process-pool run can start fewer processes when the plan or resource limits
-need fewer workers. An in-process run reports `1`.
+A run can start fewer processes when the plan or resource limits need fewer
+workers.
 
 Use `worker-spawned` events and `run-finished.workerTimings` to identify the
 processes that Greenlight started.

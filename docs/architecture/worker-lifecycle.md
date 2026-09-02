@@ -4,10 +4,8 @@ Greenlight's orchestrator and workers exchange framed JSON messages over a
 local socket. The protocol is internal and can change between releases. Use
 these details to diagnose parallel runs.
 
-This page describes the process pool. With one configured or detected worker,
-the CLI uses an in-process adapter. It also selects that adapter when the
-worker entry point is unavailable. That adapter has no worker sockets,
-worker-process isolation, or separate process to enforce hard timeouts.
+The CLI uses the process pool for every run. A worker count of one uses one
+worker process.
 
 ## Transport ownership
 
@@ -178,10 +176,10 @@ lifetime. Workers rebuild per-class reflection, hooks, and data sets for each
 class.
 
 The orchestrator constructs one instance of each configured orchestrator-side
-plugin for each selected run. The in-process runner also constructs separate
-worker-side instances. Thus, plugin properties cannot transfer data between
-the two sides in any worker mode. A repeat iteration and a watch rerun are new
-selected runs and construct new instances.
+plugin for each selected run. Worker processes construct separate worker-side
+instances. Thus, plugin properties cannot transfer data between the two sides.
+A repeat iteration and a watch rerun are new selected runs and construct new
+instances.
 
 Configured suites add named and tagged path groups to discovery. CLI selectors
 can choose a union of these groups. Suites do not add boundaries to the
@@ -335,8 +333,7 @@ with SIGKILL. It reports the test as failed with a timeout diagnostic.
 
 The worker checks each attempt against the configured test budget after teardown.
 This check changes only a passed result to failed. It cannot interrupt blocked
-code. An in-process run has this check but no separate orchestrator process to
-enforce the hard timeout.
+code.
 
 The worker also gives `eventually()` and `consistently()` the current attempt's
 monotonic deadline. Their polling stops at that deadline, but a probe can still
@@ -409,7 +406,7 @@ Queue size and resource capacity can reduce this target below the configured
 worker count.
 
 `IntegrationFixtureContext::configuredWorkers()` returns the worker limit for
-the selected execution adapter. It returns `1` for in-process execution.
+the process-pool adapter.
 `IntegrationFixtureContext::channels()` returns the consecutive channel numbers
 that this selected plan can use.
 

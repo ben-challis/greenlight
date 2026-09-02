@@ -66,8 +66,8 @@ final readonly class Definition
         Options:
           --config=<path>    Use this configuration file instead of ./greenlight.php
           --workers=<n|auto> Set the maximum worker count. The built-in default is auto.
-                             auto uses the detected CPU count. A count of 1 runs
-                             tests in the command process without process isolation.
+                             auto uses the detected CPU count. A count of 1 uses
+                             one worker process.
           --resource-limit=<name>=<n>
                              Set a named resource limit. You can repeat this option.
           --bail[=<n>]       Stop new work after <n> failed or errored tests.

@@ -12,7 +12,6 @@ final readonly class RunHeader
         public ?string $configFile = null,
         public ?int $seed = null,
         public string $phpVersion = \PHP_VERSION,
-        public bool $workerFallback = false,
     ) {}
 
     public function render(int $workers, Style $style): string
@@ -23,8 +22,7 @@ final readonly class RunHeader
             ? $style->warn('configuration: (none)')
             : 'configuration: ' . $this->configFile;
 
-        $workersSegment = 'workers: ' . $workers;
-        $segments[] = $this->workerFallback ? $style->warn($workersSegment) : $workersSegment;
+        $segments[] = 'workers: ' . $workers;
 
         if ($this->seed !== null) {
             $segments[] = $style->dim('seed: ' . $this->seed);

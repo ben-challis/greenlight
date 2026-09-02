@@ -8,6 +8,7 @@ use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Cli\Run\RunSession;
+use Greenlight\Cli\Run\WatchRunFailed;
 use Greenlight\Cli\Run\WorkerExecutable;
 use Greenlight\Cli\Signal\SignalHandlers;
 use Greenlight\Cli\State\RunState;
@@ -63,6 +64,12 @@ final readonly class WatchRunCommand
             }
 
             $arguments = new Definition()->parser()->parse(\array_slice($argv, 1));
+            $workerBin = WorkerExecutable::resolve($binPath);
+
+            if ($workerBin === false) {
+                throw WatchRunFailed::unavailable();
+            }
+
             $configuration = new ConfigurationLoader()->load($arguments, $workingDirectory);
             $resolved = $configuration->resolved;
             $storage = StorageLayout::resolve($resolved->storage, $workingDirectory, $resolved->suiteSelection->stateIdentity());
@@ -74,7 +81,7 @@ final readonly class WatchRunCommand
                 $arguments,
                 $configuration,
                 $workingDirectory,
-                WorkerExecutable::resolve($binPath),
+                $workerBin,
                 $shutdown,
                 $resolved->selection,
                 RunState::forFile($storage->runStateFile),

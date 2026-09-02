@@ -36,15 +36,9 @@ final readonly class WatchRuns
 {
     public function __construct(private Console $console) {}
 
-    /** @param non-empty-string|false $workerBin */
-    public function run(ParsedArguments $arguments, string $workingDirectory, string|false $workerBin, LoadedConfiguration $configuration, GracefulShutdown $shutdown, ReporterCatalog $reporterCatalog, ReporterOutputPlan $reporterOutputs, Reporter $initialReporter, ?EmergencyCleanups $emergencyCleanups = null): CommandResult
+    /** @param non-empty-string $workerBin */
+    public function run(ParsedArguments $arguments, string $workingDirectory, string $workerBin, LoadedConfiguration $configuration, GracefulShutdown $shutdown, ReporterCatalog $reporterCatalog, ReporterOutputPlan $reporterOutputs, Reporter $initialReporter, ?EmergencyCleanups $emergencyCleanups = null): CommandResult
     {
-        if ($workerBin === false) {
-            $this->console->error(WatchRunFailed::unavailable()->getMessage(), $arguments->has('no-ansi'));
-
-            return CommandResult::failure();
-        }
-
         $resolved = $configuration->resolved;
         $directories = $configuration->directories;
         $watched = $directories;

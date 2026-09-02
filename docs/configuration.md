@@ -596,7 +596,7 @@ range. After a worker crash, its replacement reuses the freed slot.
 Separate runs and CI shards reuse the same channel numbers. Give concurrent
 runs separate resource prefixes when they use the same external service.
 
-A `--workers=1` run executes in-process on channel 1.
+A `--workers=1` run uses one worker process on channel 1.
 
 Greenlight makes the channel available in two ways:
 

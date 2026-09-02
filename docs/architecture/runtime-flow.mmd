@@ -18,7 +18,6 @@ flowchart TD
 
     subgraph group_execution["Execution &amp; Scheduling"]
         node_coordinator["Run Coordinator<br/>[RunCoordinator.php]"]
-        node_inprocess["In-Process<br/>Executor"]
         node_pool["Process-Pool<br/>Executor"]
         node_orchestrator["Process-Pool<br/>Orchestrator<br/>[Orchestrator.php]"]
         node_scheduler["Resource<br/>Scheduler"]
@@ -56,8 +55,7 @@ flowchart TD
     node_discoverer -->|"produces plan"| node_plan
     node_lifecycle -->|"persists durations"| node_runstate
     node_lifecycle -->|"starts execution"| node_coordinator
-    node_coordinator -.->|"selects single worker"| node_inprocess
-    node_coordinator -.->|"selects parallel mode"| node_pool
+    node_coordinator -->|"executes the plan"| node_pool
     node_pool -->|"delegates control"| node_orchestrator
     node_orchestrator -->|"gates assignments"| node_scheduler
     node_orchestrator -->|"provisions fixtures"| node_fixture
@@ -86,7 +84,6 @@ flowchart TD
     click node_plan "https://github.com/ben-challis/greenlight/blob/main/src/Discovery/Plan/ExecutionPlan.php"
     click node_runstate "https://github.com/ben-challis/greenlight/blob/main/src/Cli/State/RunState.php"
     click node_coordinator "https://github.com/ben-challis/greenlight/blob/main/src/Execution/RunCoordinator.php"
-    click node_inprocess "https://github.com/ben-challis/greenlight/blob/main/src/Execution/Adapter/InProcessExecution.php"
     click node_pool "https://github.com/ben-challis/greenlight/blob/main/src/Execution/Adapter/ProcessPoolExecution.php"
     click node_orchestrator "https://github.com/ben-challis/greenlight/blob/main/src/Execution/ProcessPool/Orchestrator/Orchestrator.php"
     click node_scheduler "https://github.com/ben-challis/greenlight/blob/main/src/Execution/ProcessPool/Orchestrator/ResourceScheduler.php"
@@ -109,6 +106,6 @@ flowchart TD
     classDef toneIndigo stroke:#8b7bd8,stroke-width:2px
     class node_launcher,node_app,node_dispatcher,node_lifecycle,node_config toneBlue
     class node_selection,node_discoverer,node_attributes,node_plan,node_runstate toneAmber
-    class node_coordinator,node_inprocess,node_pool,node_orchestrator,node_scheduler,node_worker,node_runner,node_protocol,node_executor toneMint
+    class node_coordinator,node_pool,node_orchestrator,node_scheduler,node_worker,node_runner,node_protocol,node_executor toneMint
     class node_fixture,node_catalog,node_bootstrap,node_consumer,node_doubles toneRose
     class node_reporter,node_artifacts,node_coverage,node_coverage_runtime,node_developer toneIndigo

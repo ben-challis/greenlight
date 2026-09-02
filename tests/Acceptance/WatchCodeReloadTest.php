@@ -47,10 +47,8 @@ final readonly class WatchCodeReloadTest
 
         expect($result->exitCode)->toBe(0);
         expect($output)->toContain('2 tests, 1 passed, 1 errored')->toContain('changed body');
-        if ($workers === 1) {
-            expect($output)->toContain('uncaptured stdout');
-            expect($result->stderr)->toContain('uncaptured stderr');
-        }
+        expect($output)->not()->toContain('uncaptured stdout');
+        expect($result->stderr)->not()->toContain('uncaptured stderr');
         $report = \file_get_contents($project->path('events.jsonl'));
         expect($report === false ? '' : $report)->toContain('changed body');
         expect(\substr_count($report === false ? '' : $report, '"event":"run-finished"'))->toBe(2);
@@ -93,8 +91,18 @@ final readonly class WatchCodeReloadTest
     public function reportsAChildExitAndClosesTheWatchCommand(): void
     {
         $project = AcceptanceProject::create($this->directory, 'watch-child-exit');
-        $project->writeFile('tests/ProbeTest.php', $this->source('exit(23);'));
-        $project->configureWithTestFiles(['tests/ProbeTest.php']);
+        $project->writeFile('tests/ProbeTest.php', $this->source(''));
+        $project->writeFile('greenlight.php', <<<'PHP'
+            <?php
+
+            if (($_SERVER['argv'][1] ?? null) === '__watch-run') {
+                exit(23);
+            }
+
+            require_once __DIR__ . '/tests/ProbeTest.php';
+
+            return \Greenlight\Config\GreenlightConfig::create()->paths([__DIR__ . '/tests']);
+            PHP);
         $process = GreenlightCli::start($project->directory, ['run', '--watch', '--reporter=plain', '--workers=1']);
         $this->cleanup->defer($process->terminate(...));
         $result = $process->wait(10.0);

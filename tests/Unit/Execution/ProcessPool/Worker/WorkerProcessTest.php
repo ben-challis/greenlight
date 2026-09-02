@@ -59,7 +59,7 @@ final readonly class WorkerProcessTest
                 ->because('a connection failure MUST return control to the calling process')
                 ->toEqual(CommandResult::failure());
             expect(\pcntl_signal_get_handler(\SIGINT))
-                ->because('an in-process worker run MUST restore the caller SIGINT handler')
+                ->because('a direct worker run MUST restore the caller SIGINT handler')
                 ->toBe($callerHandler);
         } finally {
             \pcntl_signal(\SIGINT, $before);
