@@ -137,6 +137,54 @@ final readonly class TestManifestTest
     }
 
     #[Test]
+    public function schemaRejectsEmptyNullableStringFields(): void
+    {
+        $manifest = [
+            'version' => 1,
+            'order' => ['tests' => 'plan', 'completion' => 'not-applicable', 'seed' => null],
+            'shard' => null,
+            'tests' => [[
+                'id' => 'App\\ExampleTest::works[case]',
+                'class' => 'App\\ExampleTest',
+                'method' => 'works',
+                'dataSetKey' => 'case',
+                'source' => ['file' => '/app/tests/ExampleTest.php', 'line' => 1],
+                'groups' => [],
+                'suites' => [],
+                'skip' => ['present' => true, 'condition' => 'App\\Condition'],
+                'retry' => ['additionalAttempts' => 1, 'onlyOn' => 'RuntimeException'],
+                'timeoutSeconds' => null,
+                'captureOutput' => true,
+                'noExpectations' => false,
+                'resources' => [],
+                'isolated' => false,
+                'allowParallel' => false,
+            ]],
+        ];
+
+        foreach (['dataSetKey', 'skip.condition', 'retry.onlyOn'] as $field) {
+            $corrupted = $manifest;
+
+            match ($field) {
+                'dataSetKey' => $corrupted['tests'][0]['dataSetKey'] = '',
+                'skip.condition' => $corrupted['tests'][0]['skip']['condition'] = '',
+                'retry.onlyOn' => $corrupted['tests'][0]['retry']['onlyOn'] = '',
+            };
+
+            $validator = new Validator();
+            $decoded = \json_decode(\json_encode($corrupted, \JSON_THROW_ON_ERROR), flags: \JSON_THROW_ON_ERROR);
+            $validator->validate(
+                $decoded,
+                (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/test-manifest-v1.schema.json'],
+            );
+
+            Expect::that($validator->isValid())
+                ->because(\sprintf('the manifest schema MUST reject an empty %s value', $field))
+                ->toBeFalse();
+        }
+    }
+
+    #[Test]
     public function jsonFormatKeepsDiscoveryErrorsOffStandardOutput(): void
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'manifest-error');
