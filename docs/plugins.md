@@ -871,6 +871,7 @@ Priority applies to these capabilities:
 
 * `AttachmentRetentionDecider`
 * `IntegrationFixtureProvider`
+* `TestPlanTransformer`
 * `WorkerBootstrapSubscriber`
 * `WorkerRuntimeRunner`
 * `TestAttemptRunner`
@@ -878,6 +879,7 @@ Priority applies to these capabilities:
 * `AfterTestSubscriber`
 * `RetryDecider`
 * `TerminalResultTransformer`
+* `CoverageMapTransformer`
 * `RunAcceptancePolicy`
 * `WatchSource`
 * `RunLifecycleSubscriber`
