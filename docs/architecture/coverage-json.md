@@ -14,6 +14,14 @@ Without root options, both input documents **MUST** use absolute file-path keys.
 The schema has a version. The fields and meanings in version 1 are stable. See
 [compatibility](compatibility.md) for the change rules.
 
+The version 1 producer schema is at
+[resources/schema/coverage-v1.schema.json](../../resources/schema/coverage-v1.schema.json).
+It defines documents from `export()`. The importer also accepts documents that
+omit derived percentages and totals because it calculates these values again.
+
+The prose below defines path, sorting, and relationship rules that the JSON
+Schema does not express.
+
 ## Document shape
 
 ```json id="b2emxw"
