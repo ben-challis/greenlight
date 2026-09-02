@@ -124,7 +124,7 @@ final readonly class CoverageMergeCommand
                 if ($inputRoot !== null && $targetRoot !== null) {
                     $map = ProjectRootNormalizer::relocate($map, $inputRoot, $targetRoot);
                 } else {
-                    $this->requireAbsolutePaths($map);
+                    ProjectRootNormalizer::requireAbsolutePaths($map);
                 }
             } catch (\Throwable $error) {
                 $this->console->error(\sprintf(
@@ -196,17 +196,5 @@ final readonly class CoverageMergeCommand
     private function rootIdentity(string $root): string
     {
         return $root === '/' ? '/' : \rtrim($root, '/');
-    }
-
-    private function requireAbsolutePaths(CoverageMap $map): void
-    {
-        foreach ($map->files() as $path => $_coverage) {
-            if (!\str_starts_with($path, '/')) {
-                throw new \InvalidArgumentException(\sprintf(
-                    'Coverage JSON requires an absolute file path. Received "%s".',
-                    $path,
-                ));
-            }
-        }
     }
 }

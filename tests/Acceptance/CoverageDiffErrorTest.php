@@ -111,6 +111,35 @@ final readonly class CoverageDiffErrorTest
     }
 
     #[Test]
+    #[DataSet('invalidExportLabels')]
+    public function relativeCoveragePathsNameTheirRole(string $invalidLabel): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'coverage-diff-relative-' . $invalidLabel);
+        $valid = '{"v":1,"files":{}}';
+        $invalid = '{"v":1,"files":{"src/A.php":{"covered":[1],"uncovered":[]}}}';
+
+        foreach (['baseline', 'current'] as $label) {
+            $project->writeFile($label . '.json', $label === $invalidLabel ? $invalid : $valid);
+        }
+
+        $result = GreenlightCli::run($project->directory, [
+            'coverage:diff',
+            '--baseline=baseline.json',
+            '--current=current.json',
+        ]);
+
+        Expect::that($result->exitCode)
+            ->because('relative coverage paths name their role')
+            ->toBe(1);
+        Expect::that($result->output())
+            ->toContain(\sprintf(
+                'The %s file is not a valid coverage export: '
+                . 'Coverage JSON requires an absolute file path. Received "src/A.php".',
+                $invalidLabel,
+            ));
+    }
+
+    #[Test]
     public function projectRootOptionsMustBeUsedTogether(): void
     {
         $project = AcceptanceProject::create($this->tempDirectory, 'coverage-diff-one-root');
