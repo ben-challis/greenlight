@@ -84,6 +84,48 @@ final class JsonlSchemaTest
         Expect::that($validator->isValid())->because('a corrupted outcome is rejected')->toBeFalse();
     }
 
+    #[Test]
+    public function aNonPositiveDiagnosticLineIsRejected(): void
+    {
+        $output = new BufferOutput();
+        CannedStream::feed(new JsonLinesReporter($output));
+        $corrupted = null;
+
+        foreach (\explode("\n", \rtrim($output->buffer(), "\n")) as $line) {
+            if ($this->eventTag($line) !== 'test-finished') {
+                continue;
+            }
+
+            $decoded = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
+
+            if (!\is_array($decoded) || !\is_array($decoded['data']) || !\is_array($decoded['data']['result'])) {
+                continue;
+            }
+
+            $decoded['data']['result']['output'] = [
+                'stdout' => '',
+                'diagnostics' => [[
+                    'severity' => 'warning',
+                    'message' => 'Warning.',
+                    'file' => '/tests/ProbeTest.php',
+                    'line' => 0,
+                ]],
+                'stdoutTruncated' => false,
+                'diagnosticsTruncated' => false,
+            ];
+            $corrupted = \json_decode(\json_encode($decoded, \JSON_THROW_ON_ERROR));
+
+            break;
+        }
+
+        Expect::that($corrupted)->because('a diagnostic line MUST be positive')->not()->toBeNull();
+
+        $validator = new Validator();
+        $validator->validate($corrupted, $this->schema());
+
+        Expect::that($validator->isValid())->because('a diagnostic line MUST be positive')->toBeFalse();
+    }
+
     private function schema(): object
     {
         return (object) ['$ref' => 'file://' . \dirname(__DIR__, 3) . '/resources/schema/jsonl-v1.schema.json'];
