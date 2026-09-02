@@ -52,6 +52,8 @@ final class PendingConsistently
 
     /**
      * @return self<T>
+     *
+     * @throws \InvalidArgumentException if the interval is not finite or is less than 0.001 seconds
      */
     public function pollEvery(float $seconds): self
     {
@@ -68,6 +70,8 @@ final class PendingConsistently
 
     /**
      * @return ConsistentlyExpectation<T>
+     *
+     * @throws \InvalidArgumentException if the duration is not finite or is not positive
      */
     public function for(float $seconds): ConsistentlyExpectation
     {

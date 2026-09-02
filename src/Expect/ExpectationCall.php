@@ -79,6 +79,8 @@ final readonly class ExpectationCall
      * @template T
      *
      * @param Expectation<T> $expectation
+     *
+     * @throws \BadMethodCallException if no native or registered extension matcher has the requested name
      */
     public function invoke(Expectation $expectation): Expectation
     {

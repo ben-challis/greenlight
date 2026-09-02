@@ -80,9 +80,10 @@ abstract class TemporalExpectation
      *
      * @return Expectation<T>
      *
+     * @throws \BadMethodCallException if no native or registered extension matcher has the requested name
      * @throws ExpectationFailed
      */
-    final public function __call(string $name, array $arguments): Expectation
+    final public function __call(string $name, array $arguments): Expectation // @phpstan-ignore throws.unusedType (Dynamic matcher dispatch can throw this exception.)
     {
         $matcher = ExpectationCall::forTemporal($name, $arguments);
 

@@ -21,5 +21,16 @@ final class UnknownMatcherDiagnosticTest
                 \BadMethodCallException::class,
                 message: 'Greenlight has no native or registered extension matcher named toBeUnavailableMatcher.',
             );
+
+        Expect::that(
+            static fn(): Expectation => Expect::eventually(static fn(): int => 4)
+                ->within(0.001)
+                ->__call('toBeUnavailableMatcher', []),
+        )
+            ->because('a temporal unknown matcher MUST identify the missing native or extension registration')
+            ->toThrow(
+                \BadMethodCallException::class,
+                message: 'Greenlight has no native or registered extension matcher named toBeUnavailableMatcher.',
+            );
     }
 }
