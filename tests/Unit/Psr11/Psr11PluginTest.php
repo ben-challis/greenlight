@@ -184,6 +184,27 @@ final readonly class Psr11PluginTest
     }
 
     #[Test]
+    public function anActiveSharedContainerResetsAfterAnAttemptThatDoesNotRequestIt(): void
+    {
+        $resets = 0;
+        $plugin = new Psr11Plugin(
+            static fn(): ContainerInterface => new ArrayContainer([]),
+            refreshBetweenTests: false,
+            reset: static function (ContainerInterface $container) use (&$resets): void {
+                ++$resets;
+            },
+        );
+        $this->containerFrom($plugin);
+
+        $plugin->afterTest($this->context(), $this->result());
+        $plugin->afterTest($this->context(), $this->result());
+
+        Expect::that($resets)
+            ->because('an active shared container MUST reset after each test attempt')
+            ->toBe(2);
+    }
+
+    #[Test]
     public function aFailedResetStillDiscardsAPerTestContainer(): void
     {
         $failure = new \RuntimeException('Reset failed.');

@@ -107,8 +107,8 @@ new Psr11Plugin(
 );
 ```
 
-The callback runs only if a test creates the container. The bridge discards the
-container even if the callback throws.
+With the default refresh, the callback runs only after an attempt that creates
+the container. The bridge discards the container even if the callback throws.
 
 If services keep no test state or `reset:` removes all state, set
 `refreshBetweenTests` to `false`. The worker then keeps one container:
@@ -125,6 +125,9 @@ new Psr11Plugin(
 ```
 
 Tests on the same worker receive the same service instances.
+
+When the shared container is active, the callback runs after each test attempt.
+This includes an attempt that does not request the container.
 
 The bridge controls only container state. It does not isolate databases,
 caches, queues, files, or other external resources.
