@@ -63,7 +63,7 @@ The reason must not be empty. Temporal expectation chains also accept
   identical with `===`.
 * `toEqual(mixed $expected)` passes when the values are deeply equal.
 * `toEqualCanonicalizing(mixed $expected)` passes when the values are deeply
-  equal after the matcher recursively ignores list order.
+  equal after the matcher recursively ignores list order in array values.
 * `toBeOneOf(mixed ...$options)` passes when the subject is identical to one
   option.
 * `toBeIn(iterable $haystack)` passes when the subject is identical to an item
@@ -79,6 +79,9 @@ require equal cycle shapes.
 
 Enum cases compare by identity.
 `DateTimeInterface` values compare by instant at microsecond precision.
+
+Canonicalizing equality does not inspect object properties. Thus, a list in an
+object property keeps its order.
 
 ### Type predicates
 
