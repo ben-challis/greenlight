@@ -109,6 +109,8 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
     /**
      * @param mixed[] $configuration
+     *
+     * @throws \InvalidArgumentException if a key is unknown or `drop_assertion_messages` is not a boolean
      */
     public function configure(array $configuration): void
     {
