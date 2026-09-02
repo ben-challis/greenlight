@@ -66,7 +66,7 @@ guarantees, and incomplete-output behavior.
 | ---------------- | --------------------- | ---------------------------------------------------------------------- |
 | `run-started`    | Run begins            | `runId`, `plannedTests`, `workers`, `occurredAt`, `artifactsDirectory` |
 | `run-finished`   | Run ends              | `runId`, `summary`, `durationSeconds`, `occurredAt`, `workerTimings`   |
-| `class-started`  | Test class begins     | `class`, `occurredAt`, `workerId`, `isolated`                          |
+| `class-started`  | Test class begins     | `class`, `occurredAt`, `workerId`, `isolated` (optional)               |
 | `class-finished` | Test class ends       | `class`, `occurredAt`, `workerId`                                      |
 | `test-started`   | Test begins           | `id`, `occurredAt`                                                     |
 | `test-finished`  | Test ends             | `result`, `occurredAt`                                                 |
@@ -115,7 +115,9 @@ data-set key.
 `class-started.workerId` and `class-finished.workerId` name the worker that
 ran the class.
 
-`class-started.isolated` is true when the worker runs an isolated test.
+`class-started.isolated` is optional. Greenlight emits `isolated: true` when
+the worker runs an isolated test and omits the key otherwise. An absent key
+means that the class is not isolated.
 
 `occurredAt` is a Unix timestamp with microsecond precision. Consumers
 **SHOULD** accept a JSON number with decimals or an integer. Some JSON round
