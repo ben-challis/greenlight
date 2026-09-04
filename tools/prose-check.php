@@ -335,7 +335,10 @@ function proseFiles(string $root): array
 {
     $files = [];
     $iterator = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
+        new RecursiveCallbackFilterIterator(
+            new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
+            fn(SplFileInfo $file): bool => !\proseIsExcluded(\proseRelativePath($root, $file->getPathname())),
+        ),
     );
 
     foreach ($iterator as $file) {
@@ -345,10 +348,6 @@ function proseFiles(string $root): array
 
         $path = $file->getPathname();
         $relative = \proseRelativePath($root, $path);
-
-        if (\proseIsExcluded($relative)) {
-            continue;
-        }
 
         if (
             $relative !== 'bin/greenlight'
