@@ -23,7 +23,9 @@ final class GrowingFileStream implements Fake
 
     public function stream_read(int $count): string
     {
-        foreach (\glob(self::$stagingDirectory . '/*/attempt-*/*.part') ?: [] as $path) {
+        $parts = \glob(self::$stagingDirectory . '/*/attempt-*/*.part');
+
+        foreach ($parts === false ? [] : $parts as $path) {
             \clearstatcache(true, $path);
             self::$maximumStagedBytes = \max(self::$maximumStagedBytes, (int) \filesize($path));
         }
