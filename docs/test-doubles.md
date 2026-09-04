@@ -233,6 +233,29 @@ Expect::that(
 )->toEqual([[new OrderPlaced('order-1')]]);
 ```
 
+## Clone calls
+
+Greenlight intercepts a public, non-final `__clone()` method. It does not run
+the application implementation:
+
+* A mock requires a planned `__clone` call. An unexpected clone fails immediately
+  and at verification, even if application code catches the exception.
+* A spy records the clone call.
+* A stub rejects the clone call.
+
+An intercepted clone is a separate object with the same expectations and call
+history as the original double. This also applies to a clone of a clone.
+`callsTo()` accepts each of these objects and returns the same call history.
+This history contains calls to other methods.
+
+Call counts apply across all these objects.
+A clone does not reset a planned count. For example, `expects('__clone')->once()`
+permits one clone in total.
+
+If a test clones a mock, add a `__clone` expectation to its plan.
+If the test clones a stub, use a mock with an explicit clone expectation.
+A final `__clone()` keeps its implementation and can run application code.
+
 ## Supported types and limits
 
 Double targets are interfaces or non-final, non-readonly classes.
@@ -246,6 +269,4 @@ Greenlight does not run the class constructor when it creates a double. Prefer
 an interface at the application boundary.
 
 Greenlight suppresses a non-final destructor. It cannot suppress a final
-destructor, which can run application code. Greenlight intercepts a public,
-non-final `__clone()`. A final `__clone()` keeps its implementation and can run
-application code.
+destructor, which can run application code.
