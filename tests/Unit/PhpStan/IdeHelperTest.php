@@ -36,6 +36,6 @@ final class IdeHelperTest
 
         Expect::that(IdeHelper::render($map))
             ->because('generated matcher annotations preserve disjunctive normal form types')
-            ->toContain(' * @method self toCompareWith((Countable&Iterator)|string $comparison)');
+            ->toContain(' * @method self toCompareWith((\\Countable&\\Iterator)|string $comparison)');
     }
 }

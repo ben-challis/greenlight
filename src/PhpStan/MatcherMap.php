@@ -207,7 +207,13 @@ final readonly class MatcherMap
 
         $nullable = $type->allowsNull() && !\in_array($type->getName(), ['mixed', 'null'], true);
 
-        return ($nullable ? '?' : '') . self::resolvedTypeName($type->getName(), $scopeClass);
+        $name = $type->getName();
+
+        if (!$type->isBuiltin() && !\in_array($name, ['self', 'static', 'parent'], true)) {
+            $name = '\\' . $name;
+        }
+
+        return ($nullable ? '?' : '') . self::resolvedTypeName($name, $scopeClass);
     }
 
     /** @param ?\ReflectionClass<object> $scopeClass */
