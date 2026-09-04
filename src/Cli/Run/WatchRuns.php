@@ -75,6 +75,9 @@ final readonly class WatchRuns
             return $process->run($workerBin, $arguments, $workingDirectory, $reporter, $priorityClasses, $resolved->order->seed);
         };
         $keys = new StdinKeyInput();
+        $statusOutput = $reporterOutputs->writesReporterToStandardOutput('jsonl')
+            ? $this->console->err(...)
+            : $this->console->out(...);
         try {
             $sources = WatchSourceRuntime::fromDefinitions(
                 $resolved->execution->plugins,
@@ -89,7 +92,7 @@ final readonly class WatchRuns
                     maximumFiles: $resolved->watch->maximumFiles,
                 )],
             );
-            new WatchLoop($sources, new Debouncer($resolved->watch->debounceMilliseconds / 1000), $keys, new SystemWatchClock(), $this->console->out(...), $shutdown)->run($runOnce);
+            new WatchLoop($sources, new Debouncer($resolved->watch->debounceMilliseconds / 1000), $keys, new SystemWatchClock(), $statusOutput, $shutdown)->run($runOnce);
         } catch (ReporterSetupFailed|RunPolicyError|WatchSourceFailed|WatchRunFailed $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
             return CommandResult::failure();
