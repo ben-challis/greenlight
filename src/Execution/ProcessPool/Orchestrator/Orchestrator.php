@@ -662,6 +662,7 @@ final class Orchestrator
         }
 
         $handle->inFlightAttempt = $message->attempt;
+        $handle->inFlightSince = $this->monotonicTime();
     }
 
     /**
