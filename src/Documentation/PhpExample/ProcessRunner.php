@@ -30,10 +30,7 @@ final readonly class ProcessRunner
         );
 
         if (!\is_resource($process)) {
-            throw new DocumentationExampleError(\sprintf(
-                'Cannot start command "%s".',
-                \implode(' ', $command),
-            ));
+            throw DocumentationExampleError::commandStartFailed(\implode(' ', $command));
         }
 
         \fclose($pipes[0]);
@@ -62,14 +59,14 @@ final readonly class ProcessRunner
             $ready = \stream_select($read, $write, $except, 5);
 
             if ($ready === false) {
-                throw new DocumentationExampleError('Cannot read documentation PHP tool output.');
+                throw DocumentationExampleError::toolOutputReadFailed();
             }
 
             foreach ($read as $stream) {
                 $chunk = \stream_get_contents($stream);
 
                 if ($chunk === false) {
-                    throw new DocumentationExampleError('Cannot read documentation PHP tool output.');
+                    throw DocumentationExampleError::toolOutputReadFailed();
                 }
 
                 if ($stream === $pipes[1]) {
