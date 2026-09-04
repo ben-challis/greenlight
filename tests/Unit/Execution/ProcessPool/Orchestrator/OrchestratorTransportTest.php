@@ -10,6 +10,7 @@ use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\TestStarted;
 use Greenlight\Execution\ProcessPool\Orchestrator\Orchestrator;
+use Greenlight\Execution\ProcessPool\Orchestrator\OrchestratorConfiguration;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
@@ -86,6 +87,27 @@ final readonly class OrchestratorTransportTest
         Expect::that($orchestrator->workerTimings())
             ->because('forced transport retirement MUST complete before the run returns')
             ->toHaveCount(1);
+    }
+
+    #[Test]
+    public function aContainedTimeoutReachesTheFailureLimitBeforeAnotherWorkerStarts(): void
+    {
+        $id = new TestId('Example\\ScriptedTest', 'timesOut');
+        $transport = new ScriptedWorkerTransport([[
+            new Ready(),
+            new EventEnvelope(new TestStarted($id, 1.0)),
+        ]], pollSeconds: 3.0);
+        $orchestrator = new Orchestrator($transport, new OrchestratorConfiguration(stopAfterFailures: 1));
+        $plan = new ExecutionPlan([
+            ...$this->plan($id, timeoutSeconds: 0.1)->entries,
+            ...$this->plan(new TestId('Example\\LaterTest', 'passes'))->entries,
+        ]);
+
+        $summary = $orchestrator->run($plan, new CollectingEventSink(), 1);
+
+        Expect::that($summary->failed)->toBe(1);
+        Expect::that($summary->total())->toBe(1);
+        Expect::that($transport->started)->toHaveCount(1);
     }
 
     private function plan(TestId $id, ?float $timeoutSeconds = null): ExecutionPlan

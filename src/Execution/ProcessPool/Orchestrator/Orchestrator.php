@@ -625,8 +625,14 @@ final class Orchestrator
 
         $sink->emit($event);
 
-        if ($event instanceof TestFinished
-            && $this->configuration->stopAfterFailures !== null
+        if ($event instanceof TestFinished) {
+            $this->enforceFailureLimit();
+        }
+    }
+
+    private function enforceFailureLimit(): void
+    {
+        if ($this->configuration->stopAfterFailures !== null
             && !$this->draining
             && $this->summary->failed + $this->summary->errored >= $this->configuration->stopAfterFailures
         ) {
@@ -853,6 +859,7 @@ final class Orchestrator
         unset($this->entriesById[(string) $result->id]);
         $this->summary = $this->summary->add($result->outcome);
         $sink->emit(new TestFinished($result, \microtime(true)));
+        $this->enforceFailureLimit();
     }
 
     private function retireFailedWorker(WorkerState $handle, bool $kill = false): void
