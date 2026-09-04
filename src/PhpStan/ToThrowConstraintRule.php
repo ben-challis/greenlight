@@ -36,7 +36,7 @@ final class ToThrowConstraintRule implements Rule
     #[\Override]
     public function processNode(Node $node, Scope $scope): array
     {
-        if (!$node->name instanceof Identifier || $node->name->toString() !== 'toThrow') {
+        if (!$node->name instanceof Identifier || \strtolower($node->name->toString()) !== 'tothrow') {
             return [];
         }
 
