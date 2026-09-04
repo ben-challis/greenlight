@@ -3,6 +3,7 @@ import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
 
 import { rewriteDocumentationLinks } from './src/lib/remark-documentation-links.mjs';
+import { scrollableTables } from './src/lib/rehype-scrollable-tables.mjs';
 
 export default defineConfig({
   site: 'https://ben-challis.github.io',
@@ -12,6 +13,7 @@ export default defineConfig({
   markdown: {
     processor: unified({
       remarkPlugins: [[rewriteDocumentationLinks, { base: '/greenlight' }]],
+      rehypePlugins: [scrollableTables],
     }),
     shikiConfig: {
       langAlias: {

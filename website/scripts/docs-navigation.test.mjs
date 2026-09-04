@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
+import { setTimeout } from 'node:timers/promises';
 import { preview } from 'astro';
 import { chromium } from 'playwright';
 
@@ -60,3 +61,24 @@ for (const [trigger, dialog] of [
     });
   }
 }
+
+test('wide tables retain their semantics and support keyboard scrolling without scripts', async (t) => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, javaScriptEnabled: false });
+  t.after(() => page.close());
+  await page.goto(`http://127.0.0.1:${server.port}/greenlight/docs/migrating-from-phpunit/`);
+  const table = page.getByRole('table').first();
+  const region = page.getByRole('region', { name: 'Convert tests automatically table', exact: true });
+  assert.equal(await region.getByRole('table').count(), 1);
+  assert.ok(await table.getByRole('columnheader').count() > 0);
+  assert.equal(await region.getAttribute('tabindex'), '0');
+  assert.equal(await region.evaluate((element) => element.scrollWidth > element.clientWidth), true);
+  await region.scrollIntoViewIfNeeded();
+  await region.focus();
+  await page.keyboard.press('ArrowRight');
+  for (let attempt = 0; attempt < 20 && await region.evaluate((element) => element.scrollLeft === 0); attempt++) {
+    await setTimeout(50);
+  }
+  assert.ok(await region.evaluate((element) => element.scrollLeft) > 0);
+  assert.equal(await region.evaluate((element) => element === document.activeElement), true);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+});

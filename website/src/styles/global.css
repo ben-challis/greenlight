@@ -1347,7 +1347,7 @@ code {
 .docs-article ol,
 .docs-article pre,
 .docs-article blockquote,
-.docs-article table {
+.docs-article .table-scroll {
   margin-top: 1.15rem;
   margin-bottom: 1.15rem;
 }
@@ -1478,11 +1478,14 @@ code {
   text-transform: uppercase;
 }
 
-.docs-article table {
-  display: block;
+.docs-article .table-scroll {
   max-width: 100%;
-  border-collapse: collapse;
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.docs-article table {
+  border-collapse: collapse;
   font-size: 0.93rem;
 }
 
