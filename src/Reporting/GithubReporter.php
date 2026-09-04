@@ -13,10 +13,10 @@ use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
 
 /**
- * Writes GitHub Actions workflow commands for test failures and errors.
+ * Writes GitHub Actions errors for test failures and errors.
  *
- * Only failures and errors produce output. Thus, annotations occur on the
- * pull request diff, and passed tests do not add log output.
+ * Retried passes produce warnings. Retained attachments produce a notice
+ * with the artifact directory when the run finishes.
  *
  * The reporter escapes messages and properties with the workflow-command rules.
  *

@@ -10,8 +10,8 @@ declare(strict_types=1);
  */
 
 // A small set of methods runs many times with data sets. Per-method runtime
-// caches reach their limit during engine warmup. Thus, a remaining slope
-// identifies a per-test lifecycle leak.
+// caches can stabilize during engine warmup. Growth after warmup can indicate
+// a per-test lifecycle leak. The measurements do not identify its cause.
 const CLASS_COUNT = 20;
 const METHODS_PER_CLASS = 5;
 const ROWS_PER_METHOD = 100;
@@ -210,7 +210,7 @@ echo \sprintf(
 $cleanup();
 
 if ($drift > MAX_DRIFT_BYTES) {
-    \fwrite(\STDERR, "FLAT-MEMORY GATE FAILED: Greenlight leaks memory during a long run.\n");
+    \fwrite(\STDERR, "Flat-memory gate failed: measured memory growth exceeds the limit.\n");
     exit(1);
 }
 

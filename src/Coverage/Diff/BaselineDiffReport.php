@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Coverage\Diff;
 
 /**
- * Omits files with no percentage change and no new uncovered lines.
+ * Contains changed, added, and removed files from a baseline comparison.
+ * Unchanged files appear only when the caller supplies them directly.
  * hasRegressions() compares the total coverage of files that are in both maps.
  * Thus, a removed file cannot cause a regression.
  *

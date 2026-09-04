@@ -13,7 +13,8 @@ use Greenlight\Internal\Php\ErrorTrap;
  *
  * Discovery executes only data providers. Providers MUST be pure. For the
  * same inputs, a provider MUST supply the same data. A provider MUST NOT
- * change external state. Each provider has a time limit.
+ * change external state. Greenlight checks the time budget between rows and
+ * after iteration. The budget cannot interrupt a blocked provider.
  *
  * Greenlight does not change a printable string key. It converts an integer
  * key to "#<value>". For an empty or nonprintable string key, it uses the
