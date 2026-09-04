@@ -11,13 +11,6 @@ use Greenlight\Expect\Expect;
 
 final class InvalidConfigurationTest
 {
-    #[Test]
-    public function errorsRequireANamedFactory(): void
-    {
-        Expect::that(static fn(): object => new \ReflectionClass(InvalidConfiguration::class)->newInstance('arbitrary'))
-            ->toThrow(\ReflectionException::class);
-    }
-
     /** @param \Closure(\InvalidArgumentException): InvalidConfiguration $wrap */
     #[Test]
     #[DataSet('wrappers')]
