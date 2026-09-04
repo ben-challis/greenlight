@@ -47,8 +47,9 @@ final readonly class Definition
                          Use --format=json for a machine-readable test manifest.
           coverage:merge Merge coverage JSON exports. Supply at least two --input
                          options and at least one --export option.
-          coverage:diff  Compare two coverage JSON exports. Fail if total coverage
-                         decreases or a line becomes newly uncovered.
+          coverage:diff  Compare two coverage JSON exports. Fail if coverage across
+                         files in both maps decreases or a line becomes newly uncovered.
+                         Removed files do not cause a regression.
           profile:report Create a run profile from a saved JSONL stream (--input)
           artifacts:prune Apply configured retention to completed artifact runs.
                          Use --dry-run to list selected runs without deletion.
