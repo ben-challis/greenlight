@@ -20,7 +20,7 @@ final class Psr15Error extends \RuntimeException
     public static function invalidHandler(mixed $handler): self
     {
         return new self(\sprintf(
-            'The PSR-15 handler factory returned "%s". It MUST return an instance of "Psr\\Http\\Server\\RequestHandlerInterface".',
+            'The PSR-15 handler factory returned "%s". Return an instance of "Psr\\Http\\Server\\RequestHandlerInterface".',
             \get_debug_type($handler),
         ));
     }

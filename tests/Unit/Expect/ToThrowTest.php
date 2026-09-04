@@ -382,47 +382,47 @@ final class ToThrowTest
     {
         yield 'no throwable parameter' => [
             static function (): void {},
-            'The throwable callback for toThrow() MUST accept one typed Throwable argument.',
+            'Give the throwable callback for toThrow() one typed Throwable argument.',
         ];
         yield 'too many required parameters' => [
             static function (\DomainException $error, string $context): void {},
-            'The throwable callback for toThrow() MUST accept one typed Throwable argument.',
+            'Give the throwable callback for toThrow() one typed Throwable argument.',
         ];
         yield 'variadic throwable parameter' => [
             static function (\DomainException ...$error): void {},
-            'The throwable callback for toThrow() MUST accept one typed Throwable argument.',
+            'Give the throwable callback for toThrow() one typed Throwable argument.',
         ];
         yield 'parameter by reference' => [
             static function (\DomainException &$error): void {},
-            'The throwable callback for toThrow() MUST accept its argument by value.',
+            'Pass the throwable callback argument for toThrow() by value.',
         ];
         yield 'declared return value' => [
             static fn(\DomainException $error): int => 1,
-            'The throwable callback for toThrow() MUST return void. Its return type is int.',
+            'Return void from the throwable callback for toThrow(). Its return type is int.',
         ];
         yield 'missing parameter type' => [
             static function ($error): void {},
-            'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is missing.',
+            'Declare one named, non-null Throwable parameter type for the toThrow() callback. Its parameter type is missing.',
         ];
         yield 'built-in parameter type' => [
             static function (string $error): void {},
-            'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is string.',
+            'Declare one named, non-null Throwable parameter type for the toThrow() callback. Its parameter type is string.',
         ];
         yield 'nullable parameter type' => [
             static function (?\DomainException $error): void {},
-            'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is ?DomainException.',
+            'Declare one named, non-null Throwable parameter type for the toThrow() callback. Its parameter type is ?DomainException.',
         ];
         yield 'union parameter type' => [
             static function (\LengthException|\OutOfBoundsException $error): void {},
-            'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is LengthException|OutOfBoundsException.',
+            'Declare one named, non-null Throwable parameter type for the toThrow() callback. Its parameter type is LengthException|OutOfBoundsException.',
         ];
         yield 'intersection parameter type' => [
             static function (\Throwable&\Countable $error): void {},
-            'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is Throwable&Countable.',
+            'Declare one named, non-null Throwable parameter type for the toThrow() callback. Its parameter type is Throwable&Countable.',
         ];
         yield 'non-throwable class parameter type' => [
             static function (\stdClass $error): void {},
-            'The throwable callback for toThrow() MUST declare a Throwable parameter type. Its parameter type is stdClass.',
+            'Declare a Throwable parameter type for the toThrow() callback. Its parameter type is stdClass.',
         ];
     }
 
@@ -471,7 +471,7 @@ final class ToThrowTest
         );
 
         Expect::that($detail->message)->toBe(
-            'The throwable callback for toThrow() MUST return void. It returned int.',
+            'Return void from the throwable callback for toThrow(). It returned int.',
         );
     }
 }

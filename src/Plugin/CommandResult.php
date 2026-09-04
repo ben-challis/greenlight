@@ -39,7 +39,7 @@ final readonly class CommandResult
     public static function interrupted(int $signal): self
     {
         if ($signal < 1 || $signal > 127) {
-            throw new \InvalidArgumentException('Signal number MUST be from 1 through 127.');
+            throw new \InvalidArgumentException('Use a signal number from 1 through 127.');
         }
 
         return new self(CommandOutcome::Interrupted, $signal);

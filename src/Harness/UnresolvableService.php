@@ -51,7 +51,7 @@ final class UnresolvableService extends ServiceResolutionFailed
     public static function factoryTypeMismatch(string $type, mixed $actual): self
     {
         return new self(\sprintf(
-            'Service definition for type "%s" created "%s". Its factory MUST return an instance of "%s".',
+            'Service definition for type "%s" created "%s". Make its factory return an instance of "%s".',
             $type,
             \get_debug_type($actual),
             $type,

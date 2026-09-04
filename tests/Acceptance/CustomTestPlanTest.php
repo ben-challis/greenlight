@@ -66,7 +66,7 @@ final readonly class CustomTestPlanTest
 
         Expect::that($result->exitCode)->toBe(1);
         Expect::that($result->stderr)->toBe(
-            'greenlight: Plugin "InvalidPlan" added unknown test "UnknownTest::passes" during transformTestPlan(). A plan transformer MAY only remove or reorder selected tests.',
+            'greenlight: Plugin "InvalidPlan" added unknown test "UnknownTest::passes" during transformTestPlan(). A plan transformer can only remove or reorder selected tests.',
         );
     }
 

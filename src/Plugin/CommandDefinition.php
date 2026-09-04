@@ -27,12 +27,12 @@ final readonly class CommandDefinition
     ) {
         if (\preg_match('/^[a-z][a-z0-9]*(?:[:-][a-z0-9]+)*$/D', $name) !== 1) {
             throw new \InvalidArgumentException(
-                'Command names MUST start with a lowercase ASCII letter. They MUST contain only lowercase ASCII letters, digits, hyphens, or colons.',
+                'Start command names with a lowercase ASCII letter. Use lowercase ASCII letters and digits, with single hyphens or colons between segments.',
             );
         }
 
         if ($description === '' || \str_contains($description, "\n") || \str_contains($description, "\r")) {
-            throw new \InvalidArgumentException('Command descriptions MUST be non-empty single-line strings.');
+            throw new \InvalidArgumentException('Use a non-empty single-line string for each command description.');
         }
 
         $this->name = $name;

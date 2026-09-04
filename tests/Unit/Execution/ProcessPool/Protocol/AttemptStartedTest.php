@@ -22,7 +22,7 @@ final class AttemptStartedTest
             ->because('attempt-started messages MUST identify a positive attempt number')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: \sprintf('Attempt numbers MUST be positive. Actual value: %d.', $attempt),
+                message: \sprintf('Use positive attempt numbers. Actual value: %d.', $attempt),
             );
     }
 
