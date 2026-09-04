@@ -82,7 +82,7 @@ final readonly class WorkerEventFailureCleanupTest
 
     private function failingSink(\Throwable $failure): EventSink
     {
-        return new class ($failure) implements EventSink {
+        return new readonly class ($failure) implements EventSink {
             public function __construct(private \Throwable $failure) {}
 
             public function emit(Event $event): void
