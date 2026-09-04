@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Attribute;
 
+/** Skips a test method or all tests in a class with the specified reason. */
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class Skip
 {

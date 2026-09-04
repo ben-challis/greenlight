@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Condition;
 
+/** Passes when the named PHP extension is loaded. */
 final readonly class ExtensionLoaded implements Condition
 {
     /**
