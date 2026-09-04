@@ -48,9 +48,9 @@ use Greenlight\Test\TestId;
  *
  * An `After` hook runs if constructor injection created a test instance. It
  * runs even when a previous test-body operation did not complete.
- * `applyAfterSubscribers()` preserves the test identity. It validates each
- * outcome change against the transformation log. Greenlight removes each
- * reference to the test instance when the attempt ends.
+ * The plugin runtime preserves the test identity when it applies `afterTest()`
+ * results. It validates each outcome change against the transformation log.
+ * The executor releases its test-instance references when the attempt ends.
  *
  * @internal
  */
