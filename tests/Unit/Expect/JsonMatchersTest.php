@@ -59,9 +59,9 @@ final class JsonMatchersTest
             static fn() => Expect::that('{"a": 2}')->toMatchJson('{"a": 1}'),
         );
 
-        Expect::that($detail->message)->because('toMatchJson() fails on structural mismatch')->toBe("Expected ['a' => 2] to match the JSON structure ['a' => 1].");
-        Expect::that($detail->expected)->because('toMatchJson() fails on structural mismatch')->toBe("['a' => 1]");
-        Expect::that($detail->actual)->because('toMatchJson() fails on structural mismatch')->toBe("['a' => 2]");
+        Expect::that($detail->message)->because('toMatchJson() fails on structural mismatch')->toBe('Expected stdClass {a: 2} to match the JSON structure stdClass {a: 1}.');
+        Expect::that($detail->expected)->because('toMatchJson() fails on structural mismatch')->toBe('stdClass {a: 1}');
+        Expect::that($detail->actual)->because('toMatchJson() fails on structural mismatch')->toBe('stdClass {a: 2}');
     }
 
     #[Test]
@@ -71,7 +71,7 @@ final class JsonMatchersTest
             static fn() => Expect::that('nope')->toMatchJson('{"a": 1}'),
         );
 
-        Expect::that($detail->message)->because('toMatchJson() fails distinctly on invalid subject JSON')->toBe("Expected 'nope' to be valid JSON matching ['a' => 1].");
+        Expect::that($detail->message)->because('toMatchJson() fails distinctly on invalid subject JSON')->toBe("Expected 'nope' to be valid JSON matching stdClass {a: 1}.");
     }
 
     #[Test]

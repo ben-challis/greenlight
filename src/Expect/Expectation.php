@@ -738,7 +738,7 @@ final class Expectation
         $subject = $this->stringSubject('toMatchJson');
 
         try {
-            $decodedExpected = \json_decode($expected, true, 512, \JSON_THROW_ON_ERROR);
+            $decodedExpected = \json_decode($expected, false, 512, \JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
             $this->usageFailure('Pass valid JSON as the expected value to toMatchJson().');
         }
@@ -746,7 +746,7 @@ final class Expectation
         $renderedExpected = $this->renderer->render($decodedExpected);
 
         try {
-            $decodedSubject = \json_decode($subject, true, 512, \JSON_THROW_ON_ERROR);
+            $decodedSubject = \json_decode($subject, false, 512, \JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
             return $this->verify(
                 false,
