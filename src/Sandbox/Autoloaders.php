@@ -17,8 +17,12 @@ final class Autoloaders implements Disposable
     /** @param callable(string): void $autoloader */
     public function register(callable $autoloader): void
     {
+        $count = \count(\spl_autoload_functions());
         \spl_autoload_register($autoloader);
-        $this->autoloaders[] = $autoloader;
+
+        if (\count(\spl_autoload_functions()) > $count) {
+            $this->autoloaders[] = $autoloader;
+        }
     }
 
     #[\Override]
