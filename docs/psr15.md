@@ -147,8 +147,10 @@ new Psr15Plugin(
 Greenlight calls the callback only if the harness has an active handler. It
 calls the callback when the configured service scope closes.
 
-The callback runs once for each active handler. If the callback throws,
-Greenlight reports a test error and keeps the throwable as its cause.
+The callback runs once when each active harness closes. With the default
+per-test scope, a callback failure gives an otherwise passed test an error.
+With per-worker scope, the failure makes the worker run unsuccessful.
+Greenlight keeps the throwable as the cause.
 
 ### Worker lifetime
 
@@ -180,5 +182,7 @@ The PSR-15 harness reports:
 A request failure identifies the handler, HTTP method, and URI path. The
 diagnostic omits the query because it can contain sensitive values.
 
-Each harness error keeps the original throwable as its cause. Greenlight also
-reports the application stack trace.
+When an application callback throws, the harness error keeps that throwable
+as its cause. Greenlight also reports its application stack trace. Errors such
+as an invalid handler or a closed harness have no original application
+throwable.
