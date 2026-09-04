@@ -322,14 +322,15 @@ that kills its process would kill each replacement in turn.
 ### Timeouts
 
 The orchestrator enforces each test timeout with a grace window of twice the
-budget plus two seconds. Each valid attempt-start message resets this window.
-The worker may be too stuck to enforce the timeout
+budget plus two seconds. The worker may be too stuck to enforce the timeout
 itself. When the grace window expires, the orchestrator kills the process with
 SIGKILL and handles it as a crash. It reports the test as timed out.
 
 The worker also gives `eventually()` and `consistently()` the current attempt's
 monotonic deadline. Their polling stops at that deadline, but a probe can still
 block. The orchestrator's grace window remains the hard limit.
+
+Each valid attempt-start message resets the orchestrator's grace window.
 
 ### Fatal errors
 

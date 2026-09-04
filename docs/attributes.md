@@ -380,8 +380,6 @@ Greenlight enforces a timeout in two layers. The worker checks elapsed time
 cooperatively and fails a test that exceeds its budget. If the worker does not
 return, the orchestrator terminates it after the hard-kill grace period.
 
-Each retry starts a new timeout budget and a new hard-kill grace period.
-
 The orchestrator replaces the stopped worker and continues the run.
 
 An `eventually()` or `consistently()` matcher cannot run past the current test
@@ -395,6 +393,8 @@ period.
 #[Timeout(seconds: 5.0)]
 public function convergesQuickly(): void { ... }
 ```
+
+Each retry starts a new timeout budget and a new hard-kill grace period.
 
 ## AllowParallel
 
