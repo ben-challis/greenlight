@@ -27,7 +27,7 @@ final readonly class WorkspaceSymbolicLinkTest
         \file_put_contents($target . '/sentinel.txt', 'keep');
         \symlink($target, $path);
 
-        (new Workspace())->publish($root, []);
+        new Workspace()->publish($root, []);
 
         Expect::that(\file_get_contents($target . '/sentinel.txt'))->toBe('keep');
         Expect::that(\is_link($path))->toBeFalse();
@@ -41,7 +41,7 @@ final readonly class WorkspaceSymbolicLinkTest
         \mkdir($root . '/build');
         \symlink($root . '/missing', $root . '/build/docs-php');
 
-        (new Workspace())->publish($root, []);
+        new Workspace()->publish($root, []);
 
         Expect::that(\is_link($root . '/build/docs-php'))->toBeFalse();
         Expect::that(\is_file($root . '/build/docs-php/manifest.json'))->toBeTrue();
