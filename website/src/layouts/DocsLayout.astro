@@ -188,7 +188,6 @@ const { previous, next } = adjacentDocs(doc.id);
         if (dialog instanceof HTMLDialogElement) {
           trigger.focus();
           dialog.showModal();
-          dialog.addEventListener('close', () => trigger.focus(), { once: true });
         }
       });
     });
