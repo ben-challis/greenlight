@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
+use Greenlight\Cli\Command\WatchRunCommand;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Cli\Plugin\CommandDispatcher;
 use Greenlight\Coverage\CoverageError;
@@ -59,6 +60,10 @@ final readonly class Application
      */
     public function run(array $argv, string $workingDirectory, ?string $binPath = null): int
     {
+        if (($argv[0] ?? null) === '__watch-run') {
+            return new WatchRunCommand($this->console)->run(\array_slice($argv, 1), $workingDirectory, $binPath);
+        }
+
         // The orchestrator starts this internal worker entry. It does not use
         // the normal parser. No documentation or compatibility guarantee
         // applies to it.
