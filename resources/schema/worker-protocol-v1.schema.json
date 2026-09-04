@@ -112,7 +112,10 @@
             "oneOf": [
                 {
                     "type": "object",
-                    "additionalProperties": {"$ref": "#/definitions/fixtureResource"}
+                    "patternProperties": {
+                        "^[\\s\\S]+$": {"$ref": "#/definitions/fixtureResource"}
+                    },
+                    "additionalProperties": false
                 },
                 {"$ref": "#/definitions/emptyMap"}
             ]
@@ -130,7 +133,10 @@
             "oneOf": [
                 {
                     "type": "object",
-                    "additionalProperties": {"$ref": "#/definitions/jsonValue"}
+                    "patternProperties": {
+                        "^[\\s\\S]+$": {"$ref": "#/definitions/jsonValue"}
+                    },
+                    "additionalProperties": false
                 },
                 {"$ref": "#/definitions/emptyMap"}
             ]
@@ -147,7 +153,10 @@
                 },
                 {
                     "type": "object",
-                    "additionalProperties": {"$ref": "#/definitions/jsonValue"}
+                    "patternProperties": {
+                        "^[\\s\\S]+$": {"$ref": "#/definitions/jsonValue"}
+                    },
+                    "additionalProperties": false
                 }
             ]
         },
@@ -155,7 +164,10 @@
             "oneOf": [
                 {
                     "type": "object",
-                    "additionalProperties": {"type": "string"}
+                    "patternProperties": {
+                        "^[\\s\\S]+$": {"type": "string"}
+                    },
+                    "additionalProperties": false
                 },
                 {"$ref": "#/definitions/emptyMap"}
             ]
@@ -404,7 +416,10 @@
                     "oneOf": [
                         {
                             "type": "object",
-                            "additionalProperties": {"$ref": "#/definitions/coverageLineSets"}
+                            "patternProperties": {
+                                "^[\\s\\S]+$": {"$ref": "#/definitions/coverageLineSets"}
+                            },
+                            "additionalProperties": false
                         },
                         {"$ref": "#/definitions/emptyMap"}
                     ]

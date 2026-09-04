@@ -52,7 +52,7 @@ final class TemporaryDirectoryTest
             ->because('the fixture MUST reject an invalid temporary root before a file-system operation')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Temporary root MUST NOT contain a null byte.',
+                message: 'Temporary root cannot contain a null byte.',
             );
     }
 
@@ -221,7 +221,7 @@ final class TemporaryDirectoryTest
         ];
         yield 'null byte' => [
             "a\0b",
-            'Subdirectory name MUST NOT contain a null byte.',
+            'Subdirectory name cannot contain a null byte.',
         ];
     }
 

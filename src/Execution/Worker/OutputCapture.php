@@ -15,10 +15,8 @@ use Greenlight\Result\DiagnosticSeverity;
  * Direct writes to stream resources bypass output capture. Examples include
  * fwrite(STDERR, ...) and fwrite(STDOUT, ...).
  *
- * If output is too long, Greenlight keeps the first part. This part usually
- * contains useful error information. The final part frequently contains
- * repeated information. Greenlight removes a partial multibyte character at
- * the size limit.
+ * If output is too long, Greenlight keeps the first part and records truncation.
+ * Greenlight removes a partial multibyte character at the size limit.
  *
  * @internal
  */
@@ -162,15 +160,13 @@ final class OutputCapture
             return '';
         }
 
-        $combined = $this->stdout . $chunk;
-
-        if (\strlen($combined) <= $this->maxStdoutBytes) {
-            $this->stdout = $combined;
+        if (\strlen($chunk) <= $this->maxStdoutBytes - \strlen($this->stdout)) {
+            $this->stdout .= $chunk;
 
             return '';
         }
 
-        $this->stdout = Utf8::headBytes($combined, $this->maxStdoutBytes);
+        $this->stdout = Utf8::headBytes($this->stdout . $chunk, $this->maxStdoutBytes);
         $this->stdoutTruncated = true;
 
         return '';

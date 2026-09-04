@@ -202,7 +202,7 @@ final readonly class ConditionsTest
             ->because('a class availability condition MUST identify the class')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Class name MUST NOT be empty.',
+                message: 'Class name cannot be empty.',
             );
     }
 

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Extension matchers are worker-local state. `install()` stores the configured
- * `ExpectationExtension` list when the worker starts. Each chain from `that()`
- * uses a snapshot of this list. The runner changes the list before test
- * execution starts. Before `install()` runs, `that()` uses no extensions.
+ * Creates immediate and temporal expectations.
+ *
+ * The worker loads the configured expectation extensions before test execution.
+ * Each expectation chain uses a snapshot of those extensions.
  */
 final class Expect
 {
@@ -82,9 +82,20 @@ final class Expect
      * @param list<ExpectationExtension> $extensions
      *
      * @return \Closure(): void A callback that restores the previous extension list.
+     * @throws ExpectationExtensionError
      */
     public static function install(array $extensions): \Closure
     {
+        $nativeMethods = \array_fill_keys(\array_map(\strtolower(...), \get_class_methods(Expectation::class)), true);
+
+        foreach ($extensions as $extension) {
+            foreach (\array_keys($extension->matchers()) as $name) {
+                if (isset($nativeMethods[\strtolower($name)])) {
+                    throw ExpectationExtensionError::nativeMethod($name);
+                }
+            }
+        }
+
         $previous = self::$extensions;
         self::$extensions = $extensions;
 

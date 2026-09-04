@@ -149,7 +149,9 @@ PHPDoc:
 
 Namespace: `Greenlight\Laravel`
 
-Boots one Laravel application lazily for a test and resolves bound services.
+Boots a Laravel application on first use and resolves bound services.
+By default, Greenlight releases the application after each test attempt.
+
 `#[Service]` selects an explicit binding ID. Isolate external test resources
 by `GREENLIGHT_CHANNEL`.
 
@@ -157,7 +159,7 @@ by `GREENLIGHT_CHANNEL`.
 final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L29)
 
 ### `__construct()`
 
@@ -171,11 +173,11 @@ public function __construct(
 
 PHPDoc:
 
-- `@param string|\Closure(): Application $application A path to the file that returns the application, usually bootstrap/app.php, or a closure returning the application when exotic construction is needed.`
+- `@param string|\Closure(): Application $application A path to a file that returns the application, usually bootstrap/app.php. For other application setup, pass a closure that returns the application.`
 - `@param non-empty-string $env`
-- `@param bool $refreshBetweenTests Set to false only when no service carries state; tests on one worker then share one unreset application for the worker lifetime.`
+- `@param bool $refreshBetweenTests Set to false only when no service keeps state between tests. Tests on one worker then share one application without resets.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L48)
 
 ### `services()`
 
@@ -187,7 +189,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L75)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L76)
 
 ### `resolve()`
 
@@ -201,7 +203,7 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L92)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L93)
 
 ### `afterTest()`
 
@@ -209,7 +211,7 @@ PHPDoc:
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L128)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L129)
 
 ## `Psr11Plugin`
 
@@ -288,13 +290,15 @@ PHPDoc:
 Namespace: `Greenlight\Psr15`
 
 Sends PSR-7 server requests directly to one PSR-15 request handler.
-The optional release callback closes handler state when the harness scope closes.
+If a factory supplies the handler, the first request creates it.
+
+Disposal calls the optional release callback only if a handler exists.
 
 ```php
 final class HttpHarness implements Disposable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L18)
 
 ### `__construct()`
 
@@ -310,7 +314,7 @@ PHPDoc:
 - `@param RequestHandlerInterface|\Closure(): RequestHandlerInterface $handler`
 - `@param null|\Closure(RequestHandlerInterface): void $release`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L31)
 
 ### `send()`
 
@@ -322,7 +326,7 @@ PHPDoc:
 
 - `@throws Psr15Error`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L46)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L48)
 
 ### `dispose()`
 
@@ -334,7 +338,7 @@ PHPDoc:
 
 - `@throws Psr15Error`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L72)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L74)
 
 ## `Psr15Error`
 
@@ -397,14 +401,17 @@ public static function disposed(): self
 
 Namespace: `Greenlight\Psr15`
 
-Supplies one HTTP harness in the configured service scope. A handler factory
-with the per-test scope gives each test a new application handler.
+Supplies one HTTP harness in the configured service scope.
+Each harness calls its handler factory on the first request.
+
+For a new application handler in each test attempt, use the per-test scope.
+Supply a factory that creates a new handler each time.
 
 ```php
 final readonly class Psr15Plugin implements HarnessProvider
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L19)
 
 ### `__construct()`
 
@@ -421,7 +428,7 @@ PHPDoc:
 - `@param RequestHandlerInterface|\Closure(): RequestHandlerInterface $handler A handler or a factory that returns a handler.`
 - `@param null|\Closure(RequestHandlerInterface): void $release A callback that releases the active handler when its scope closes.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L30)
 
 ### `services()`
 
@@ -433,7 +440,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L44)
 
 ## `PhpUnitToGreenlightRector`
 
@@ -453,8 +460,8 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 ### `DROP_ASSERTION_MESSAGES`
 
 Configuration key: remove PHPUnit failure-message arguments. Without
-this option, a custom message rejects the class. Greenlight
-expectations carry no custom message.
+this option, a custom message rejects the class. A manual migration can
+preserve the message with `because()`.
 
 ```php
 public const string DROP_ASSERTION_MESSAGES = 'drop_assertion_messages';

@@ -15,7 +15,7 @@ final readonly class TestStarted implements WireEvent
     public function __construct(public TestId $id, public float $occurredAt)
     {
         if (!\is_finite($occurredAt)) {
-            throw new \InvalidArgumentException('Event timestamp MUST be finite.');
+            throw new \InvalidArgumentException('Use a finite event timestamp.');
         }
     }
 

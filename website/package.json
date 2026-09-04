@@ -8,8 +8,10 @@
   "scripts": {
     "api:check": "node --test scripts/generate-api-reference.test.mjs && node scripts/generate-api-reference.mjs --check",
     "api:generate": "node scripts/generate-api-reference.mjs",
-    "build": "npm run api:check && astro build --force && pagefind --site dist --output-subdir _pagefind && node scripts/check-built-site.mjs",
-    "check": "npm run api:check && astro check && astro build --force && pagefind --site dist --output-subdir _pagefind && node scripts/check-built-site.mjs",
+    "build": "npm run api:check && npm run test:links && astro build --force && pagefind --site dist --output-subdir _pagefind && node scripts/check-built-site.mjs",
+    "check": "npm run api:check && npm run test:links && astro check && astro build --force && pagefind --site dist --output-subdir _pagefind && node scripts/check-built-site.mjs && npm run test:browser",
+    "test:links": "node --test scripts/remark-documentation-links.test.mjs",
+    "test:browser": "node --test scripts/docs-navigation.test.mjs",
     "dev": "astro dev",
     "preview": "astro preview"
   },
@@ -24,6 +26,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "playwright": "^1.62.1",
     "typescript": "^6.0.3"
   }
 }

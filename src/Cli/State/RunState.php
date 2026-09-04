@@ -9,8 +9,9 @@ use Greenlight\Internal\Filesystem\AtomicFileError;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
- * Stores failures and class durations in the system temporary directory.
- * The project directory identifies the state.
+ * Stores failed test IDs and class durations in a selected file.
+ * forWorkingDirectory() selects a project-specific file in the system temporary
+ * directory. CLI runs use forFile() with the resolved storage configuration.
  *
  * @internal
  */
@@ -43,8 +44,8 @@ final class RunState
      * Returns failed test IDs from the previous run.
      *
      * Returns null if no usable state exists. This occurs before the first run
-     * or when the file is unreadable or corrupt. An empty list means that all
-     * tests passed in the previous run.
+     * or when the file is unreadable or corrupt. An empty list means that no
+     * test failed or errored in the recorded run.
      *
      * @return list<non-empty-string>|null
      */

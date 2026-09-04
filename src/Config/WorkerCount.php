@@ -31,7 +31,7 @@ final readonly class WorkerCount
     public static function exactly(int $count): self
     {
         if ($count < 1) {
-            throw new InvalidConfiguration(\sprintf('Worker count must be at least 1, got %d.', $count));
+            throw InvalidConfiguration::nonPositiveWorkerCount($count);
         }
 
         return new self($count);

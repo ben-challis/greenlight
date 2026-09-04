@@ -36,7 +36,7 @@ PHPDoc:
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/Autoloaders.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/Autoloaders.php#L29)
 
 ## `EnvironmentVariables`
 
@@ -162,8 +162,8 @@ PHPDoc:
 
 Namespace: `Greenlight\Sandbox`
 
-Creates one root directory on first use. A path inside it cannot escape the
-root.
+Creates one root directory on first use. `subdirectory()` rejects traversal
+segments and symbolic links in the requested path.
 Disposal removes a symbolic link and leaves its target unchanged.
 
 ```php

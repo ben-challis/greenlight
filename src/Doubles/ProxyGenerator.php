@@ -200,7 +200,7 @@ final readonly class ProxyGenerator
     {
         $name = \strtolower($method->name);
 
-        if (\in_array($name, ['__construct', '__destruct', '__clone'], true)) {
+        if (\in_array($name, ['__construct', '__destruct'], true)) {
             return null;
         }
 

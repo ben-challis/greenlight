@@ -17,7 +17,7 @@ final readonly class FunctionAvailableTest
             ->because('a function availability condition MUST identify the function')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Function name MUST NOT be empty.',
+                message: 'Function name cannot be empty.',
             );
     }
 }

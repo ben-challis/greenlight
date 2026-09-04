@@ -61,7 +61,7 @@ final class LcovExporterTest
             ->because('LCOV SF records MUST stay on one line')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'LCOV file paths MUST NOT contain line breaks.',
+                message: 'LCOV file paths cannot contain line breaks.',
             );
     }
 

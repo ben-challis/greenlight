@@ -112,7 +112,7 @@ final readonly class RunSession
     public function persist(array $failedTests, array $classSeconds): void
     {
         if (!$this->state->record($failedTests, $classSeconds)) {
-            $this->console->err("Greenlight did not save run state. On the next run, --failed and longest-first scheduling have no prior data.\n");
+            $this->console->err("Greenlight did not save run state. The next run will use older or missing data for --failed and longest-first scheduling.\n");
         }
     }
 

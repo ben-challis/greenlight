@@ -3,6 +3,43 @@
 Greenlight can publish test annotations and retained attachments in GitHub
 Actions. It can also reuse run state and merge coverage from parallel shards.
 
+## Run Greenlight
+
+Use this workflow to run Greenlight without additional CI integration:
+
+```yaml
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Run tests
+        run: vendor/bin/greenlight run
+```
+
+Greenlight returns a nonzero exit code when the run fails. GitHub Actions then
+marks the job as failed. The following sections add optional CI integrations.
+
 ## Publish test results and attachments
 
 The `github` reporter writes GitHub workflow annotations for failed and errored
@@ -116,6 +153,15 @@ jobs:
         php: ['8.4', '8.5']
     steps:
       - uses: actions/checkout@v7
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
 
       - name: Restore Greenlight run state
         uses: actions/cache/restore@v6

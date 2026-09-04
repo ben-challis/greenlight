@@ -6,6 +6,7 @@ namespace Greenlight\Condition;
 
 use Greenlight\Internal\Process\EnvironmentVariableName;
 
+/** Passes when `getenv()` returns the exact expected string for the variable. */
 final readonly class EnvironmentVariableEquals implements Condition
 {
     /**

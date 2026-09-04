@@ -8,10 +8,10 @@ and **MAY** specify normative requirements.
 
 ## Technical prose
 
-Repository-owned technical prose **MUST** comply with
-[the technical writing standard](technical-writing.md). The standard applies
-ASD-STE100 Issue 9 to documentation, PHPDoc, comments, contributor material,
-accessibility copy, diagnostics, CLI help, and human-readable output.
+Follow [the technical writing policy](technical-writing.md) for repository-owned
+technical prose. It applies to documentation, PHPDoc, comments, contributor
+material, accessibility text, diagnostics, CLI help, and human-readable output.
+Do not claim formal ASD-STE100 compliance without a complete review.
 
 Authors **MUST** manually review the meaning and the controlled vocabulary.
 They **MUST** also review active voice, verbal `-ing` forms, and instruction

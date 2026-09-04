@@ -9,8 +9,9 @@ namespace Greenlight\Test;
  * in reverse registration order after the `After` hooks. Per-test service
  * disposal starts after the callbacks finish.
  *
- * Greenlight runs all callbacks if one fails. A cleanup failure errors a passed
- * or skipped test. It does not replace an earlier test failure or error.
+ * Greenlight runs all callbacks if one fails. An expectation failure during
+ * cleanup fails a passed or skipped test. Other cleanup exceptions cause an
+ * errored result. Cleanup does not replace an earlier test failure or error.
  */
 final class Cleanup
 {

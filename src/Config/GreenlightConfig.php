@@ -108,29 +108,29 @@ final class GreenlightConfig
     private function validatePaths(array $tests): array
     {
         if (!\array_is_list($tests)) {
-            throw new InvalidConfiguration('Test paths must be a list.');
+            throw InvalidConfiguration::testPathsNotAList();
         }
 
         $validated = [];
 
         foreach ($tests as $path) {
             if (!\is_string($path)) {
-                throw new InvalidConfiguration('Test paths must contain only strings.');
+                throw InvalidConfiguration::testPathNotAString();
             }
 
             if ($path === '') {
-                throw new InvalidConfiguration('Test paths cannot be empty strings.');
+                throw InvalidConfiguration::emptyTestPath();
             }
 
             if (\str_contains($path, "\0")) {
-                throw new InvalidConfiguration('Test paths cannot contain a null byte.');
+                throw InvalidConfiguration::testPathContainsNullByte();
             }
 
             $validated[] = $path;
         }
 
         if ($validated === []) {
-            throw new InvalidConfiguration('paths() needs at least one directory.');
+            throw InvalidConfiguration::missingTestPaths();
         }
 
         return $validated;
@@ -152,11 +152,11 @@ final class GreenlightConfig
     public function suite(string $name, callable $configurator): self
     {
         if ($name === '') {
-            throw new InvalidConfiguration('Suite names cannot be empty.');
+            throw InvalidConfiguration::emptySuiteName();
         }
 
         if (isset($this->suites[$name])) {
-            throw new InvalidConfiguration(\sprintf('Suite "%s" is declared twice.', $name));
+            throw InvalidConfiguration::duplicateSuite($name);
         }
 
         $builder = new SuiteBuilder($name);
@@ -196,19 +196,15 @@ final class GreenlightConfig
         try {
             ResourceName::assertValid($name);
         } catch (\InvalidArgumentException $error) {
-            throw new InvalidConfiguration($error->getMessage(), $error->getCode(), previous: $error);
+            throw InvalidConfiguration::invalidResourceName($error);
         }
 
         if ($limit < 1) {
-            throw new InvalidConfiguration(\sprintf(
-                'Resource "%s" must have a limit of at least 1, got %d.',
-                $name,
-                $limit,
-            ));
+            throw InvalidConfiguration::invalidResourceLimit($name, $limit);
         }
 
         if (\array_key_exists($name, $this->resourceLimits)) {
-            throw new InvalidConfiguration(\sprintf('Resource limit "%s" is declared twice.', $name));
+            throw InvalidConfiguration::duplicateResourceLimit($name);
         }
 
         $this->resourceLimits[$name] = $limit;
@@ -255,7 +251,7 @@ final class GreenlightConfig
 
     /**
      * Sets directories for persistent state, caches, generated code, and
-     * temporary run data. Multiple calls use the same builder.
+     * temporary run data. Each call starts with the current configuration.
      *
      * @param callable(StorageBuilder): mixed $configurator
      */
@@ -270,8 +266,8 @@ final class GreenlightConfig
 
     /**
      * Fails an otherwise passed test if captured output contains a
-     * deprecation. The diagnostic becomes the failure detail. Use a regular
-     * expression to exempt known dependency messages.
+     * deprecation. The diagnostic becomes the failure detail. Use
+     * `ignoreDeprecationsMatching()` to exempt known dependency messages.
      *
      * @see self::ignoreDeprecationsMatching()
      */
@@ -347,7 +343,7 @@ final class GreenlightConfig
 
         foreach ($patterns as $pattern) {
             if ($pattern === '') {
-                throw new InvalidConfiguration('ignoreDeprecationsMatching() patterns cannot be empty.');
+                throw InvalidConfiguration::emptyDeprecationPattern();
             }
 
             $validated[] = $pattern;
@@ -370,7 +366,7 @@ final class GreenlightConfig
             try {
                 $definitions[] = PluginDefinition::fromFactory($factory);
             } catch (\InvalidArgumentException $error) {
-                throw new InvalidConfiguration($error->getMessage(), $error->getCode(), previous: $error);
+                throw InvalidConfiguration::invalidPluginFactory($error);
             }
         }
 
@@ -395,10 +391,7 @@ final class GreenlightConfig
     public function randomizeOrder(?int $seed = null): self
     {
         if ($seed !== null && $seed < 0) {
-            throw new InvalidConfiguration(\sprintf(
-                'Random order seed must be a nonnegative integer. Actual value: %d.',
-                $seed,
-            ));
+            throw InvalidConfiguration::negativeRandomSeed($seed);
         }
 
         $this->randomizeOrder = true;
@@ -425,10 +418,7 @@ final class GreenlightConfig
             return WorkerCount::auto();
         }
 
-        throw new InvalidConfiguration(\sprintf(
-            'Worker count must be a positive integer or "auto", got "%s".',
-            $count,
-        ));
+        throw InvalidConfiguration::invalidWorkerCountString($count);
     }
 
     /**

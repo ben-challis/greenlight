@@ -19,7 +19,7 @@ final readonly class Definition
     /** @var array<non-empty-string, non-empty-string> */
     public const array COMMAND_DESCRIPTIONS = [
         'run' => 'Find and run tests (default)',
-        'list-tests' => 'List each found test ID, one per line',
+        'list-tests' => 'List selected test IDs and the total test count',
         'coverage:merge' => 'Merge coverage JSON exports',
         'coverage:diff' => 'Compare two coverage JSON exports',
         'profile:report' => 'Create a run profile from a saved JSONL stream',
@@ -43,7 +43,8 @@ final readonly class Definition
 
         Commands:
           run            Find and run tests (default)
-          list-tests     List each found test ID, one per line
+          list-tests     List selected test IDs and the total test count.
+                         Use --format=json for a machine-readable test manifest.
           coverage:merge Merge coverage JSON exports. Repeat --input for each
                          source and --export for each output.
           coverage:diff  Compare two coverage JSON exports. Fail if total coverage
@@ -125,20 +126,27 @@ final readonly class Definition
           --require-coverage-driver
                              Fail if no configured coverage driver is available.
           --input=<path>     Read an input file. Repeat for coverage:merge.
+          --output=<path>    Set the ide-helper output file
+                             (default _greenlight_ide_helper.php).
           --export=<format>=<path>
                              Write merged coverage. Repeat for more formats.
+                             Formats: json, lcov, clover, cobertura, html.
           --input-root=<path>
-                             Set one source root. Repeat once for each input.
+                             Set one coverage:merge source root per --input.
+                             Use with --project-root.
           --project-root=<path>
                              Set the project root for merged coverage paths.
+                             Use with --input-root for each input.
           --baseline=<path>  Read the baseline coverage JSON for coverage:diff.
           --current=<path>   Read the current coverage JSON for coverage:diff.
           --baseline-root=<path>
                              Set the baseline project root for coverage:diff.
+                             Use with --current-root.
           --current-root=<path>
                              Set the current project root for coverage:diff.
-          --dry-run          Print a run-settings summary without test discovery
-                             or execution.
+                             Use with --baseline-root.
+          --dry-run          For run, print settings without test discovery or execution.
+                             For artifacts:prune, list selected runs without deletion.
           -h, --help         Show this help
           -V, --version      Show the version
 

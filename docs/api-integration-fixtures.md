@@ -26,7 +26,8 @@ final readonly class FixtureResource
 Creates one resource from ordinary values and secrets.
 
 Values can contain null, integers, booleans, finite floats, UTF-8 strings, lists, and maps.
-Map keys must be non-empty UTF-8 strings. The maximum container depth is 16.
+Map keys must be non-empty UTF-8 strings.
+Values can contain up to 16 nested lists or maps below the top-level map.
 Secrets must map non-empty UTF-8 string keys to UTF-8 string values.
 
 ```php
@@ -39,7 +40,7 @@ PHPDoc:
 - `@param array<mixed> $secrets`
 - `@throws \InvalidArgumentException when an input does not satisfy these requirements`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L48)
 
 ### `empty()`
 
@@ -47,7 +48,7 @@ PHPDoc:
 public static function empty(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L68)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L69)
 
 ### `has()`
 
@@ -55,7 +56,7 @@ public static function empty(): self
 public function has(string $key): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L73)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L74)
 
 ### `value()`
 
@@ -67,7 +68,7 @@ PHPDoc:
 
 - `@throws \OutOfBoundsException when no ordinary value has the key`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L81)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L82)
 
 ### `string()`
 
@@ -80,7 +81,7 @@ PHPDoc:
 - `@throws \OutOfBoundsException when no ordinary value has the key`
 - `@throws \UnexpectedValueException when the value is not a string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L94)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L95)
 
 ### `int()`
 
@@ -93,7 +94,7 @@ PHPDoc:
 - `@throws \OutOfBoundsException when no ordinary value has the key`
 - `@throws \UnexpectedValueException when the value is not an integer`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L109)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L110)
 
 ### `float()`
 
@@ -106,7 +107,7 @@ PHPDoc:
 - `@throws \OutOfBoundsException when no ordinary value has the key`
 - `@throws \UnexpectedValueException when the value is not an integer or float`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L124)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L125)
 
 ### `bool()`
 
@@ -119,7 +120,7 @@ PHPDoc:
 - `@throws \OutOfBoundsException when no ordinary value has the key`
 - `@throws \UnexpectedValueException when the value is not a boolean`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L139)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L140)
 
 ### `list()`
 
@@ -133,7 +134,7 @@ PHPDoc:
 - `@throws \OutOfBoundsException when no ordinary value has the key`
 - `@throws \UnexpectedValueException when the value is not a list`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L155)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L156)
 
 ### `map()`
 
@@ -147,7 +148,7 @@ PHPDoc:
 - `@throws \OutOfBoundsException when no ordinary value has the key`
 - `@throws \UnexpectedValueException when the value is not a map`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L171)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L172)
 
 ### `secret()`
 
@@ -159,7 +160,7 @@ PHPDoc:
 
 - `@throws \OutOfBoundsException when no secret has the key`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L186)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L187)
 
 ### `mergedWith()`
 
@@ -167,7 +168,7 @@ PHPDoc:
 public function mergedWith(self $channel): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L197)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L198)
 
 ### `__debugInfo()`
 
@@ -179,7 +180,7 @@ PHPDoc:
 
 - `@return array{values: array<string, mixed>, secrets: array<string, string>}`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L248)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/FixtureResource.php#L249)
 
 ## `IntegrationFixtureContext`
 
@@ -364,8 +365,8 @@ Namespace: `Greenlight\IntegrationFixture`
 
 The integration fixtures visible to one worker channel.
 
-A worker receives shared data merged with only its own channel data. It
-cannot inspect credentials allocated to another concurrent lane.
+A worker receives shared data merged with only its own channel data.
+This object does not contain data allocated only to other channels.
 Fixture IDs must remain string keys in PHP maps.
 
 ```php

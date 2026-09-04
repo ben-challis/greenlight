@@ -26,10 +26,7 @@ final readonly class Workspace
         $this->removeDirectory($staging, $root . '/build');
 
         if (!\is_dir($staging) && !\mkdir($staging, 0o777, true) && !\is_dir($staging)) {
-            throw new DocumentationExampleError(\sprintf(
-                'Cannot create generated directory "%s".',
-                $staging,
-            ));
+            throw DocumentationExampleError::generatedDirectoryCreationFailed($staging);
         }
 
         foreach ($materialized as $snippet) {
@@ -38,17 +35,11 @@ final readonly class Workspace
             $parent = \dirname($path);
 
             if (!\is_dir($parent) && !\mkdir($parent, 0o777, true) && !\is_dir($parent)) {
-                throw new DocumentationExampleError(\sprintf(
-                    'Cannot create generated directory "%s".',
-                    $parent,
-                ));
+                throw DocumentationExampleError::generatedDirectoryCreationFailed($parent);
             }
 
             if (\file_put_contents($path, $snippet->contents) !== \strlen($snippet->contents)) {
-                throw new DocumentationExampleError(\sprintf(
-                    'Cannot write generated file "%s".',
-                    $path,
-                ));
+                throw DocumentationExampleError::generatedFileWriteFailed($path);
             }
         }
 
@@ -58,13 +49,13 @@ final readonly class Workspace
         ) . "\n";
 
         if (\file_put_contents($staging . '/manifest.json', $manifest) !== \strlen($manifest)) {
-            throw new DocumentationExampleError('Cannot write the documentation PHP manifest.');
+            throw DocumentationExampleError::manifestWriteFailed();
         }
 
         $this->removeDirectory($destination, $root . '/build');
 
         if (!\rename($staging, $destination)) {
-            throw new DocumentationExampleError('Cannot publish the generated documentation PHP directory.');
+            throw DocumentationExampleError::generatedDirectoryPublishFailed();
         }
 
         return $materialized;
@@ -261,10 +252,7 @@ final readonly class Workspace
         $normalizedParent = \rtrim(\str_replace('\\', '/', $allowedParent), '/');
 
         if (!\str_starts_with($normalizedDirectory, $normalizedParent . '/docs-php')) {
-            throw new DocumentationExampleError(\sprintf(
-                'Refusing to remove unexpected directory "%s".',
-                $directory,
-            ));
+            throw DocumentationExampleError::unexpectedRemovalDirectory($directory);
         }
 
         $iterator = new \RecursiveIteratorIterator(
@@ -274,29 +262,20 @@ final readonly class Workspace
 
         foreach ($iterator as $item) {
             if (!$item instanceof \SplFileInfo) {
-                throw new DocumentationExampleError('Generated directory contains an unknown file entry.');
+                throw DocumentationExampleError::unknownGeneratedEntry();
             }
 
             if ($item->isDir()) {
                 if (!\rmdir($item->getPathname())) {
-                    throw new DocumentationExampleError(\sprintf(
-                        'Cannot remove generated directory "%s".',
-                        $item->getPathname(),
-                    ));
+                    throw DocumentationExampleError::generatedDirectoryRemovalFailed($item->getPathname());
                 }
             } elseif (!\unlink($item->getPathname())) {
-                throw new DocumentationExampleError(\sprintf(
-                    'Cannot remove generated file "%s".',
-                    $item->getPathname(),
-                ));
+                throw DocumentationExampleError::generatedFileRemovalFailed($item->getPathname());
             }
         }
 
         if (!\rmdir($directory)) {
-            throw new DocumentationExampleError(\sprintf(
-                'Cannot remove generated directory "%s".',
-                $directory,
-            ));
+            throw DocumentationExampleError::generatedDirectoryRemovalFailed($directory);
         }
     }
 }

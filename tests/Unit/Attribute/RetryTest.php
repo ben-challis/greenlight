@@ -32,7 +32,7 @@ final class RetryTest
             ->because('a retry filter MUST name a Throwable type')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Retry onlyOn MUST name a Throwable type.',
+                message: 'Set Retry onlyOn to a Throwable type.',
             );
     }
 

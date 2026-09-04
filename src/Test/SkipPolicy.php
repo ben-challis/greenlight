@@ -49,7 +49,7 @@ final readonly class SkipPolicy
             }
 
             if (\is_float($argument) && !\is_finite($argument)) {
-                throw new \InvalidArgumentException('Skip condition arguments MUST use finite floats.');
+                throw new \InvalidArgumentException('Use finite floats in skip condition arguments.');
             }
 
             $validated[] = $argument;

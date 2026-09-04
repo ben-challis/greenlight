@@ -10,8 +10,8 @@ These signatures are the public API.
 
 Namespace: `Greenlight\Result`
 
-When output is too long, Greenlight keeps the first part. This part usually
-identifies the cause. The last part usually contains repeated information.
+Contains standard output, diagnostics, and truncation flags for one attempt.
+When output exceeds the capture limit, Greenlight keeps the first part.
 
 Greenlight converts captured standard output to valid UTF-8 before it adds
 the output to a test result.
@@ -701,7 +701,7 @@ PHPDoc:
 
 Namespace: `Greenlight\Result`
 
-Greenlight records at most 32 stack frames when it creates this value.
+Contains a throwable's class, message, source location, and stack trace.
 
 ```php
 final readonly class ThrowableDetail
@@ -782,8 +782,10 @@ PHPDoc:
 
 ### `fromThrowable()`
 
+Records at most 32 stack frames. Adds a truncation marker if more frames exist.
+
 ```php
 public static function fromThrowable(\Throwable $throwable): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L60)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L63)

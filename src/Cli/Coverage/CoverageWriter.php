@@ -62,7 +62,7 @@ final readonly class CoverageWriter
                 return false;
             }
             $target = ConfigurationLoader::absolutePath($export->target, $workingDirectory);
-            if (\count($files) === 1) {
+            if ($export->format !== 'html') {
                 ErrorTrap::run(static fn() => \mkdir(\dirname($target), 0o777, true));
                 try {
                     AtomicFile::write($target, \reset($files));

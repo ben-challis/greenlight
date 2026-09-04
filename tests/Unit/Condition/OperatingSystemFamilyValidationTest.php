@@ -17,7 +17,7 @@ final readonly class OperatingSystemFamilyValidationTest
             ->because('an operating-system condition MUST identify the family')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Operating system family MUST NOT be empty.',
+                message: 'Operating system family cannot be empty.',
             );
     }
 }

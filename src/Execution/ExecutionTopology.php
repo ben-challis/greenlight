@@ -24,7 +24,7 @@ final readonly class ExecutionTopology
     public function __construct(int $workers, int $fixtureChannels)
     {
         if ($workers < 1 || $fixtureChannels < 1) {
-            throw new \InvalidArgumentException('Execution topology counts MUST be positive.');
+            throw new \InvalidArgumentException('Use positive execution topology counts.');
         }
 
         $this->workers = $workers;

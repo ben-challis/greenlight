@@ -47,37 +47,37 @@ final readonly class OptionSpecTest
         yield 'long name with leading hyphen' => [
             '-workers',
             null,
-            'Option name "-workers" MUST start with an ASCII letter or digit and MUST contain only ASCII letters, digits, or hyphens.',
+            'Start option name "-workers" with an ASCII letter or digit. Use only ASCII letters, digits, or hyphens.',
         ];
         yield 'long name with value delimiter' => [
             'workers=fast',
             null,
-            'Option name "workers=fast" MUST start with an ASCII letter or digit and MUST contain only ASCII letters, digits, or hyphens.',
+            'Start option name "workers=fast" with an ASCII letter or digit. Use only ASCII letters, digits, or hyphens.',
         ];
         yield 'long name with whitespace' => [
             'worker count',
             null,
-            'Option name "worker count" MUST start with an ASCII letter or digit and MUST contain only ASCII letters, digits, or hyphens.',
+            'Start option name "worker count" with an ASCII letter or digit. Use only ASCII letters, digits, or hyphens.',
         ];
         yield 'long name with non-ASCII letter' => [
             'wörkers',
             null,
-            'Option name "wörkers" MUST start with an ASCII letter or digit and MUST contain only ASCII letters, digits, or hyphens.',
+            'Start option name "wörkers" with an ASCII letter or digit. Use only ASCII letters, digits, or hyphens.',
         ];
         yield 'empty short alias' => [
             'help',
             '',
-            'Short option alias "" MUST be one ASCII letter.',
+            'Use one ASCII letter for short option alias "".',
         ];
         yield 'multi-letter short alias' => [
             'help',
             'help',
-            'Short option alias "help" MUST be one ASCII letter.',
+            'Use one ASCII letter for short option alias "help".',
         ];
         yield 'numeric short alias' => [
             'workers',
             '1',
-            'Short option alias "1" MUST be one ASCII letter.',
+            'Use one ASCII letter for short option alias "1".',
         ];
     }
 }

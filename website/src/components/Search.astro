@@ -16,7 +16,10 @@ const pagefindScript = sitePath('_pagefind/pagefind-ui.js');
     aria-expanded="false"
   >
     <span class="search-label-full">Search</span>
-    <span class="search-label-short" aria-hidden="true">Find</span>
+    <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="10.5" cy="10.5" r="6.5"></circle>
+      <path d="m16 16 4 4"></path>
+    </svg>
     <kbd aria-hidden="true">/</kbd>
   </summary>
   <div
@@ -25,18 +28,39 @@ const pagefindScript = sitePath('_pagefind/pagefind-ui.js');
     role="region"
     aria-label="Documentation search results"
   >
-    <div id="pagefind-search">
+    <div id="pagefind-search" data-search-input-label="Search documentation">
       <p class="search-loading">Enter text to search the documentation.</p>
     </div>
   </div>
 </details>
+<p class="visually-hidden" role="status" aria-live="polite" aria-atomic="true" data-search-status></p>
 
 <script is:inline define:vars={{ pagefindScript }}>
   const search = document.querySelector('[data-search]');
+  const pagefindSearch = document.querySelector('#pagefind-search');
+  const searchStatus = document.querySelector('[data-search-status]');
   let pagefindLoaded = false;
+  let searchError = '';
+
+  const updateSearchAccessibility = () => {
+    const input = pagefindSearch?.querySelector('input');
+    const inputLabel = pagefindSearch instanceof HTMLElement ? pagefindSearch.dataset.searchInputLabel : undefined;
+    const message = search?.open
+      ? searchError || pagefindSearch?.querySelector('.pagefind-ui__message')?.textContent?.trim() || ''
+      : '';
+
+    if (input && inputLabel) {
+      input.setAttribute('aria-label', inputLabel);
+    }
+
+    if (searchStatus instanceof HTMLElement && searchStatus.textContent !== message) {
+      searchStatus.textContent = message;
+    }
+  };
 
   const focusSearchInput = () => {
     requestAnimationFrame(() => {
+      updateSearchAccessibility();
       search?.querySelector('input')?.focus();
     });
   };
@@ -58,6 +82,13 @@ const pagefindScript = sitePath('_pagefind/pagefind-ui.js');
         showSubResults: true,
         resetStyles: false,
       });
+      if (pagefindSearch) {
+        new MutationObserver(updateSearchAccessibility).observe(pagefindSearch, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        });
+      }
       focusSearchInput();
     };
     script.onerror = () => {
@@ -65,12 +96,15 @@ const pagefindScript = sitePath('_pagefind/pagefind-ui.js');
       if (loading) {
         loading.textContent = 'Search is not available.';
       }
+      searchError = 'Search is not available.';
+      updateSearchAccessibility();
     };
     document.head.append(script);
   };
 
   search?.addEventListener('toggle', () => {
     search.querySelector('summary')?.setAttribute('aria-expanded', String(search.open));
+    updateSearchAccessibility();
 
     if (search.open) {
       loadPagefind();

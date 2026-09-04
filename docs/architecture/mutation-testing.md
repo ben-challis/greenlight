@@ -4,7 +4,7 @@ Status: deferred until Greenlight has a per-test coverage map.
 
 ## Requirement
 
-Infection needs the tests that cover each mutated line.
+The planned Infection adapter needs the tests that cover each mutated line.
 
 Its adapter can then run this loop:
 
@@ -14,8 +14,8 @@ Its adapter can then run this loop:
 4. Run only those tests.
 5. Treat a run with a test failure or test error as a killed mutant.
 
-This process keeps mutation tests within a practical limit. Infection can run
-the complete suite for every mutant, but that integration is too slow.
+This process avoids a complete suite run for each mutant. Greenlight defers an
+adapter that repeats the complete suite until per-test selection is available.
 
 ## Current Greenlight support
 
@@ -60,7 +60,8 @@ The export layer **MUST** then write a format Infection can consume.
 ## Adapter shape
 
 After per-test coverage exists, a small external package can add Infection
-support. The package contains an Infection `TestFrameworkAdapter` and a factory.
+support. The package implements Infection
+[`TestFrameworkAdapter` and `TestFrameworkAdapterFactory`](https://github.com/infection/abstract-testframework-adapter).
 
 The adapter has these responsibilities:
 
@@ -73,5 +74,5 @@ The adapter has these responsibilities:
 
 Defer the adapter until a per-test coverage map exists.
 
-Before that work is complete, the adapter **MUST** run the complete suite for
-each mutant. This process is too slow for a useful Greenlight integration.
+Without per-test coverage, the proposed adapter would run the complete suite for
+each mutant. This does not meet the selected-test execution goal.

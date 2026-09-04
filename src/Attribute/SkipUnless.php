@@ -7,6 +7,8 @@ namespace Greenlight\Attribute;
 use Greenlight\Condition\Condition;
 
 /**
+ * Skips a test unless the condition returns true.
+ *
  * A worker evaluates the condition. Use only scalar values or null for
  * constructor arguments. Use finite float values.
  */
@@ -34,7 +36,7 @@ final readonly class SkipUnless
     ) {
         if (!\is_a($condition, Condition::class, true)) {
             throw new \InvalidArgumentException(
-                'SkipUnless condition MUST name an instantiable Condition class.',
+                'Set the SkipUnless condition to an instantiable Condition class.',
             );
         }
 
@@ -42,7 +44,7 @@ final readonly class SkipUnless
 
         if (!$reflection->isInstantiable()) {
             throw new \InvalidArgumentException(
-                'SkipUnless condition MUST name an instantiable Condition class.',
+                'Set the SkipUnless condition to an instantiable Condition class.',
             );
         }
 
@@ -50,7 +52,7 @@ final readonly class SkipUnless
 
         foreach ($arguments as $argument) {
             if (\is_float($argument) && !\is_finite($argument)) {
-                throw new \InvalidArgumentException('SkipUnless arguments MUST use finite floats.');
+                throw new \InvalidArgumentException('Use finite floats in SkipUnless arguments.');
             }
         }
 

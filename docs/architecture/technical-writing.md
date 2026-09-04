@@ -1,7 +1,8 @@
 # Technical writing
 
-Greenlight technical prose follows ASD-STE100 Simplified Technical English,
-Issue 9, dated January 15, 2025.
+Greenlight uses Simplified Technical English principles to make technical prose
+clear and consistent. ASD-STE100 Issue 9 is a reference for this policy.
+This policy does not certify that project prose complies with the standard.
 
 This policy applies to repository-owned technical prose:
 
@@ -56,13 +57,16 @@ and proper names also count as one word.
 
 ## Normative requirements
 
-Architecture rules use the uppercase control terms **MUST**, **MUST NOT**,
+Formal specifications and protocol requirements use the uppercase control terms **MUST**, **MUST NOT**,
 **SHOULD**, **SHOULD NOT**, and **MAY**. These terms preserve distinct
 requirement levels and are explicit project exceptions.
 
-Use these terms only in normative rules. Do not replace one control term with
-another during a language rewrite. Such a replacement can change a
-requirement.
+Preserve these terms in formal rules and exact quotations. Do not replace one
+control term with another during a language rewrite. This can change a requirement.
+
+In user-facing prose, use direct instructions for requirements. Use explicit
+recommendations for preferred actions and `can` for options. Preserve the
+requirement level when you rewrite a sentence.
 
 Do not use lowercase modal `should` or `may` in other technical prose. Rewrite
 the sentence with an approved construction.

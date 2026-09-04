@@ -41,7 +41,7 @@ final class WatchBuilder
     public function debounceMilliseconds(int $milliseconds): self
     {
         if ($milliseconds < 1) {
-            throw new InvalidConfiguration(\sprintf('The watch debounce must be at least 1 millisecond, got %d.', $milliseconds));
+            throw InvalidConfiguration::invalidWatchDebounce($milliseconds);
         }
 
         $this->debounceMilliseconds = $milliseconds;
@@ -97,7 +97,7 @@ final class WatchBuilder
     public function maximumFiles(int $maximumFiles): self
     {
         if ($maximumFiles < 1) {
-            throw new InvalidConfiguration(\sprintf('The watch file limit must be at least 1, got %d.', $maximumFiles));
+            throw InvalidConfiguration::invalidWatchFileLimit($maximumFiles);
         }
 
         $this->maximumFiles = $maximumFiles;
@@ -129,11 +129,11 @@ final class WatchBuilder
     {
         foreach ($values as $value) {
             if ($value === '') {
-                throw new InvalidConfiguration($name . ' cannot contain an empty string.');
+                throw InvalidConfiguration::emptyWatchPath($name);
             }
 
             if (\str_contains($value, "\0")) {
-                throw new InvalidConfiguration($name . ' cannot contain a null byte.');
+                throw InvalidConfiguration::watchPathContainsNullByte($name);
             }
         }
 

@@ -16,20 +16,20 @@ Greenlight applies configuration in this order:
 
 Later layers override earlier ones.
 
-For example, use this configuration:
+For example, configure automatic worker selection:
 
 <!-- php-example {"example":"configuration-example-01","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 ->workers('auto')
 ```
 
-combined with this CLI flag:
+Then select one worker for a run:
 
 ```sh
 greenlight run --workers=1
 ```
 
-runs with one worker.
+The CLI flag overrides the configured worker count.
 
 ## GreenlightConfig
 
@@ -40,7 +40,7 @@ Create the builder with:
 GreenlightConfig::create()
 ```
 
-Every builder method returns `$this`. Thus, you can chain method calls.
+Configuration setters return `$this`, so you can chain their calls.
 
 ### `paths(array $tests): self`
 
@@ -159,8 +159,7 @@ Default: coverage off.
 The `coverage()` method enables coverage collection. Greenlight gives a
 `CoverageBuilder` to the configurator.
 
-Multiple calls to `coverage()` use the same builder. Thus, its settings
-accumulate.
+Repeated calls to `coverage()` preserve earlier settings.
 
 `CoverageBuilder` methods:
 
@@ -433,8 +432,8 @@ A `ReporterProvider` plugin registers custom names for `--reporter`. See
 
 Default: output below `build/greenlight-artifacts`, with failure-only retention.
 
-Greenlight gives an `ArtifactBuilder` to the configurator. Repeated calls use
-the same builder.
+Greenlight gives an `ArtifactBuilder` to the configurator. Repeated calls
+preserve earlier settings.
 
 <!-- php-example {"example":"configuration-example-07","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
@@ -468,8 +467,8 @@ See [test attachments](attachments.md) for the runtime API and security model.
 
 Default: all storage uses the system temporary directory.
 
-The configurator receives a `StorageBuilder`. Repeated calls use the same
-builder.
+The configurator receives a `StorageBuilder`. Repeated calls preserve earlier
+settings.
 
 Use `rootDirectory()` to put all Greenlight storage below one directory. An
 area-specific directory replaces its directory below the root.
@@ -961,7 +960,7 @@ Built-in reporters:
 * `github`
 * `teamcity`
 
-Repeatable. Multiple reporters write concurrently.
+Repeatable. Greenlight sends each event to the reporters in flag order.
 
 `ReporterProvider` plugins can add names. Greenlight creates reporters in flag
 order. A repeated name creates a separate reporter for each occurrence.
@@ -1280,8 +1279,8 @@ Both human reporters start with a one-line header that contains:
 * seed, when randomized
 * worker count
 
-They end with a "Slowest tests" block when a test took at least 500 ms. The
-block lists the five slowest tests.
+They end with a "Slowest tests" block when a test took more than 500 ms. The
+block lists up to five tests that exceed this threshold.
 
 Fast suites do not print the block.
 

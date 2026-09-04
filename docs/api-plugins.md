@@ -562,15 +562,16 @@ PHPDoc:
 
 Namespace: `Greenlight\Plugin`
 
-`service()` is available during `beforeTest()` and the test. The per-test
-service scope closes before `afterTest()`, so `service()` throws during
-`afterTest()`.
+Supplies the test instance, identity, attachments, and service access to plugins.
+
+The per-test service scope closes before `afterTest()`. A `service()` call
+for a per-test service then throws. Other service scopes remain available.
 
 ```php
 final readonly class TestContext
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L22)
 
 ### `$attachments`
 
@@ -578,7 +579,7 @@ final readonly class TestContext
 public Attachments $attachments;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L24)
 
 ### `$instance`
 
@@ -586,7 +587,7 @@ public Attachments $attachments;
 public object $instance
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L28)
 
 ### `$id`
 
@@ -594,7 +595,7 @@ public object $instance
 public TestId $id
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L29)
 
 ### `$definition`
 
@@ -602,7 +603,7 @@ public TestId $id
 public TestDefinition $definition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L30)
 
 ### `service()`
 
@@ -617,7 +618,7 @@ PHPDoc:
 - `@return T`
 - `@throws ServiceResolutionFailed when a service resolver cannot supply a valid service`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L45)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L46)
 
 ### `skip()`
 
@@ -633,7 +634,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws SkipTest`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L65)
 
 ## `TestPlan`
 

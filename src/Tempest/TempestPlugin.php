@@ -53,11 +53,11 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
         private readonly array $discoveryLocations = [],
     ) {
         if ($root === '') {
-            throw new \InvalidArgumentException('Tempest application root MUST NOT be empty.');
+            throw new \InvalidArgumentException('Tempest application root cannot be empty.');
         }
 
         if ($environment === '') {
-            throw new \InvalidArgumentException('Tempest environment MUST NOT be empty.');
+            throw new \InvalidArgumentException('Tempest environment cannot be empty.');
         }
     }
 

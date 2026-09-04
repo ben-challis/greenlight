@@ -71,7 +71,7 @@ final readonly class OrchestratorPluginRuntimeFixtureTest
                 IntegrationFixtureError::class,
                 message: 'Integration fixture provider "'
                     . FakeIntegrationFixtureProvider::class
-                    . '" returned stdClass. It MUST return IntegrationFixtureDefinition instances.',
+                    . '" returned stdClass. Return IntegrationFixtureDefinition instances.',
             );
     }
 

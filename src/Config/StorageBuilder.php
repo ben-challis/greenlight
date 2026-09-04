@@ -96,11 +96,11 @@ final class StorageBuilder
     private function validate(string $directory, string $name): string
     {
         if ($directory === '') {
-            throw new InvalidConfiguration($name . ' cannot be empty.');
+            throw InvalidConfiguration::emptyStoragePath($name);
         }
 
         if (\str_contains($directory, "\0")) {
-            throw new InvalidConfiguration($name . ' cannot contain a null byte.');
+            throw InvalidConfiguration::storagePathContainsNullByte($name);
         }
 
         return $directory;

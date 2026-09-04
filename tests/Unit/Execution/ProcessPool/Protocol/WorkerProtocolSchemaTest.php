@@ -147,7 +147,28 @@ final class WorkerProtocolSchemaTest
         ]);
 
         Expect::that($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'event', 'p' => $payload])))
-            ->because('the worker schema MUST require the private attachment staging coordinate')
+            ->because('the worker schema requires the attachment storage key')
+            ->not()
+            ->toBe([]);
+    }
+
+    #[Test]
+    public function emptyMapKeysAreRejected(): void
+    {
+        /** @var array{resources: array{fixtures: array<string, mixed>}} $bootstrapPayload */
+        $bootstrapPayload = $this->messages()['bootstrap']->toWire();
+        $bootstrapPayload['resources']['fixtures'][''] = $bootstrapPayload['resources']['fixtures']['postgres'];
+
+        /** @var array{coverage: array{files: array<string, mixed>}} $donePayload */
+        $donePayload = $this->messages()['done']->toWire();
+        $donePayload['coverage']['files'][''] = [[1], []];
+
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'bootstrap', 'p' => $bootstrapPayload])))
+            ->because('the schema MUST reject an empty fixture ID')
+            ->not()
+            ->toBe([]);
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'done', 'p' => $donePayload])))
+            ->because('the schema MUST reject an empty coverage path')
             ->not()
             ->toBe([]);
     }

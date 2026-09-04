@@ -462,7 +462,7 @@ final class Orchestrator
                 // Crash detection processes a worker that is already gone.
             }
 
-            $handle->requestStop();
+            $handle->requestStop($this->monotonicTime());
 
             return;
         }
@@ -549,7 +549,7 @@ final class Orchestrator
                     // The worker is already gone after Done. No drain is necessary.
                 }
 
-                $handle->requestStop();
+                $handle->requestStop($this->monotonicTime());
 
                 return;
             }
@@ -625,8 +625,14 @@ final class Orchestrator
 
         $sink->emit($event);
 
-        if ($event instanceof TestFinished
-            && $this->configuration->stopAfterFailures !== null
+        if ($event instanceof TestFinished) {
+            $this->enforceFailureLimit();
+        }
+    }
+
+    private function enforceFailureLimit(): void
+    {
+        if ($this->configuration->stopAfterFailures !== null
             && !$this->draining
             && $this->summary->failed + $this->summary->errored >= $this->configuration->stopAfterFailures
         ) {
@@ -687,7 +693,7 @@ final class Orchestrator
                     // Crash detection processes a worker that is already gone.
                 }
 
-                $handle->requestStop();
+                $handle->requestStop($this->monotonicTime());
             }
         }
     }
@@ -737,7 +743,7 @@ final class Orchestrator
             }
 
             if ($handle->inFlight === null) {
-                if ($handle->assigned === null && $handle->ready) {
+                if ($handle->assigned === null && $handle->ready && !$handle->stopRequested) {
                     // The scheduler keeps this connected worker idle until a
                     // resource lease is available.
                     continue;
@@ -853,6 +859,7 @@ final class Orchestrator
         unset($this->entriesById[(string) $result->id]);
         $this->summary = $this->summary->add($result->outcome);
         $sink->emit(new TestFinished($result, \microtime(true)));
+        $this->enforceFailureLimit();
     }
 
     private function retireFailedWorker(WorkerState $handle, bool $kill = false): void

@@ -54,7 +54,7 @@ final class Doubles implements Disposable
     public function __construct(?string $proxyDirectory = null)
     {
         if ($proxyDirectory === '') {
-            throw new \InvalidArgumentException('Proxy directory MUST NOT be empty.');
+            throw new \InvalidArgumentException('Proxy directory cannot be empty.');
         }
 
         if ($proxyDirectory === null) {
@@ -211,7 +211,7 @@ final class Doubles implements Disposable
         $double = new \ReflectionClass($proxyClass)->newInstanceWithoutConstructor();
 
         \assert($double instanceof GeneratedProxy);
-        $double->__greenlightAttachHandler(new CallHandler($state, $this->renderer));
+        $double->__greenlightAttachHandler(new CallHandler($state, $this->renderer, $this->doubles));
 
         \assert($double instanceof $type);
 

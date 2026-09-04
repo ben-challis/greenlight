@@ -149,7 +149,7 @@ final class Expectation
 
     /**
      * Passes when the subject and expected value satisfy the rules for deep
-     * equality on this class.
+     * equality in the `Expectation` class description.
      *
      * @return self<T>
      *
@@ -374,8 +374,8 @@ final class Expectation
 
     /**
      * For a string subject, checks for a string needle. For an iterable
-     * subject, checks for the value by identity (===). The check consumes a
-     * `Traversable` subject.
+     * subject, checks for the value by identity (===). Iteration stops at the
+     * first match or the end of the subject.
      *
      * @return self<T>
      *
@@ -423,8 +423,8 @@ final class Expectation
     }
 
     /**
-     * The subject must be `Countable` or `Traversable`. The count consumes a
-     * `Traversable` subject.
+     * Accepts an array, `Countable`, or `Traversable` subject. Uses `count()`
+     * for arrays and `Countable` objects. Otherwise, consumes the iterator.
      *
      * @return self<T>
      *
@@ -453,8 +453,9 @@ final class Expectation
 
     /**
      * Passes when the subject is an empty string or contains no elements.
-     * The subject must be a string, array, `Countable`, or iterable. The check
-     * consumes a `Traversable` subject.
+     * Accepts a string, array, `Countable`, or `Traversable` subject. Uses
+     * `count()` for arrays and `Countable` objects. For other `Traversable`
+     * objects, consumes the iterator.
      *
      * @return self<T>
      *
@@ -737,15 +738,15 @@ final class Expectation
         $subject = $this->stringSubject('toMatchJson');
 
         try {
-            $decodedExpected = \json_decode($expected, true, 512, \JSON_THROW_ON_ERROR);
+            $decodedExpected = $this->decodeJsonForComparison($expected);
         } catch (\JsonException) {
             $this->usageFailure('Pass valid JSON as the expected value to toMatchJson().');
         }
 
-        $renderedExpected = $this->renderer->render($decodedExpected);
+        $renderedExpected = $this->renderer->render($expected);
 
         try {
-            $decodedSubject = \json_decode($subject, true, 512, \JSON_THROW_ON_ERROR);
+            $decodedSubject = $this->decodeJsonForComparison($subject);
         } catch (\JsonException) {
             return $this->verify(
                 false,
@@ -758,7 +759,7 @@ final class Expectation
             Equality::equals($decodedSubject, $decodedExpected),
             'to match the JSON structure ' . $renderedExpected,
             $renderedExpected,
-            $this->renderer->render($decodedSubject),
+            $this->renderer->render($subject),
         );
     }
 
@@ -771,8 +772,8 @@ final class Expectation
      * The throwable can instead be a callback with one typed Throwable
      * parameter. Its parameter type specifies the expected throwable class.
      * Greenlight gives the caught throwable to the callback after its type
-     * matches. The callback matches when it returns without an expectation
-     * failure.
+     * matches. The callback matches when it returns no value without an
+     * expectation failure.
      *
      * The optional `matching:` argument checks the message with a regular
      * expression. The `message:` argument checks the exact message. Do not use
@@ -853,7 +854,7 @@ final class Expectation
 
             if ($result !== null) {
                 $this->usageFailure(\sprintf(
-                    'The throwable callback for toThrow() MUST return void. It returned %s.',
+                    'Return void from the throwable callback for toThrow(). It returned %s.',
                     \get_debug_type($result),
                 ));
             }
@@ -1007,11 +1008,11 @@ final class Expectation
             || $parameter->isVariadic()
             || $reflection->getNumberOfRequiredParameters() > 1
         ) {
-            $this->usageFailure('The throwable callback for toThrow() MUST accept one typed Throwable argument.');
+            $this->usageFailure('Give the throwable callback for toThrow() one typed Throwable argument.');
         }
 
         if ($parameter->isPassedByReference()) {
-            $this->usageFailure('The throwable callback for toThrow() MUST accept its argument by value.');
+            $this->usageFailure('Pass the throwable callback argument for toThrow() by value.');
         }
 
         $returnType = $reflection->getReturnType();
@@ -1021,7 +1022,7 @@ final class Expectation
                 || ($returnType->getName() !== 'void' && $returnType->getName() !== 'never'))
         ) {
             $this->usageFailure(\sprintf(
-                'The throwable callback for toThrow() MUST return void. Its return type is %s.',
+                'Return void from the throwable callback for toThrow(). Its return type is %s.',
                 $this->renderReflectionType($returnType),
             ));
         }
@@ -1030,7 +1031,7 @@ final class Expectation
 
         if (!$type instanceof \ReflectionNamedType || $type->isBuiltin() || $type->allowsNull()) {
             $this->usageFailure(\sprintf(
-                'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is %s.',
+                'Declare one named, non-null Throwable parameter type for the toThrow() callback. Its parameter type is %s.',
                 $type instanceof \ReflectionType ? $this->renderReflectionType($type) : 'missing',
             ));
         }
@@ -1045,7 +1046,7 @@ final class Expectation
 
         if (!\is_a($throwable, \Throwable::class, true)) {
             $this->usageFailure(\sprintf(
-                'The throwable callback for toThrow() MUST declare a Throwable parameter type. Its parameter type is %s.',
+                'Declare a Throwable parameter type for the toThrow() callback. Its parameter type is %s.',
                 $type->getName(),
             ));
         }
@@ -1103,5 +1104,40 @@ final class Expectation
                 $warning === null ? '' : ' (' . $warning . ')',
             ));
         }
+    }
+
+    /**
+     * Prefixes every JSON string for comparison. This keeps string equality
+     * and prevents PHP from rejecting object keys that start with a null byte.
+     * The original JSON is used for diagnostics.
+     */
+    private function decodeJsonForComparison(string $json): mixed
+    {
+        $prefixed = '';
+        $insideString = false;
+        $offset = 0;
+        $bytes = \strlen($json);
+
+        while ($offset < $bytes) {
+            $span = \strcspn($json, '"\\', $offset);
+            $prefixed .= \substr($json, $offset, $span);
+            $offset += $span;
+
+            if ($offset === $bytes) {
+                break;
+            }
+
+            if ($json[$offset] === '\\') {
+                $prefixed .= \substr($json, $offset, 2);
+                $offset += 2;
+                continue;
+            }
+
+            $insideString = !$insideString;
+            $prefixed .= $insideString ? '"_' : '"';
+            ++$offset;
+        }
+
+        return \json_decode($prefixed, false, 512, \JSON_THROW_ON_ERROR);
     }
 }

@@ -30,11 +30,14 @@ Each test entry has these identity and source fields:
 - `dataSetKey`: The normalized data-set key, or `null`.
 - `source.file`: The absolute declaring file.
 - `source.line`: The test method declaration line.
-- `groups`: The selected test groups.
+- `groups`: All groups declared for the test, sorted by name.
 - `suites`: Each configured suite whose path contains the test class file.
 
 A labeled data row or provider key keeps its printable label in `dataSetKey`.
 An integer key uses `#<value>`. Greenlight hashes an empty or nonprintable key.
+
+Group selection filters tests. It does not remove other groups from a selected
+test entry.
 
 Each entry also contains this execution metadata:
 

@@ -34,7 +34,7 @@ final class CompletionScriptsTest
 
         Expect::that($script)
             ->toContain('Find and run tests (default)')
-            ->toContain('List each found test ID, one per line')
+            ->toContain('List selected test IDs and the total test count')
             ->toContain('Merge coverage JSON exports')
             ->toContain('Compare two coverage JSON exports')
             ->toContain('Create a run profile from a saved JSONL stream')

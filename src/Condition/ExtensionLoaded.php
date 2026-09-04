@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Condition;
 
+/** Passes when the named PHP extension is loaded. */
 final readonly class ExtensionLoaded implements Condition
 {
     /**
@@ -19,7 +20,7 @@ final readonly class ExtensionLoaded implements Condition
     public function __construct(string $extension)
     {
         if ($extension === '') {
-            throw new \InvalidArgumentException('Extension name MUST NOT be empty.');
+            throw new \InvalidArgumentException('Extension name cannot be empty.');
         }
 
         $this->extension = $extension;

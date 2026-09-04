@@ -271,7 +271,7 @@ final readonly class CoverageMergeErrorTest
         Expect::that($result->exitCode)->toBe(1);
         Expect::that($result->output())
             ->toContain('Greenlight could not create the "lcov" coverage export')
-            ->toContain('LCOV file paths MUST NOT contain line breaks.');
+            ->toContain('LCOV file paths cannot contain line breaks.');
         Expect::that(\file_exists($directory . '/coverage.lcov'))->toBeFalse();
     }
 }

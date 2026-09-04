@@ -36,13 +36,13 @@ final readonly class DataSet
         if ($provider === '') {
             throw new \InvalidArgumentException(
                 $method === null
-                    ? 'Data set provider MUST NOT be empty.'
-                    : 'Data set provider class MUST NOT be empty.',
+                    ? 'Data set provider cannot be empty.'
+                    : 'Data set provider class cannot be empty.',
             );
         }
 
         if ($method === '') {
-            throw new \InvalidArgumentException('Data set provider method MUST NOT be empty.');
+            throw new \InvalidArgumentException('Data set provider method cannot be empty.');
         }
 
         $this->provider = $method ?? $provider;

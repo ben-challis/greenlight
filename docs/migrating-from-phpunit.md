@@ -53,9 +53,9 @@ A class does not convert when it uses:
 * `#[RunClassInSeparateProcess]` or `#[PreserveGlobalState]`
 * other inherited `TestCase` API that the rule cannot prove safe
 
-A custom failure message on an assertion has no Greenlight equivalent. By
-default, a message prevents the conversion of the class. Use this
-configuration to remove the messages:
+The Rector rule does not translate a custom assertion failure message to
+`because()`. By default, a message prevents the conversion of the class. Use
+this configuration to drop assertion messages during automatic conversion:
 
 <!-- php-example {"example":"migrating-from-phpunit-example-02","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
@@ -301,16 +301,14 @@ Replace `setUpBeforeClass()` and static fixture properties with per-class
 harness services.
 
 A per-class harness service is a typed object with `PerClass` scope. Greenlight
-creates one instance for each test class.
+creates one instance for each test class. It injects the instance into each test
+constructor and disposes it after the class completes.
 
 External infrastructure such as database servers, message brokers, or
 containers belongs in an `IntegrationFixtureProvider`. It provisions in the
 orchestrator, can allocate one resource per worker channel, and tears down after
 the run even if workers fail. Worker-side tests consume its serializable
 connection data through `IntegrationResources` or a `HarnessProvider` bridge.
-
-Greenlight injects this instance into each test constructor. It disposes the
-instance after the class completes.
 
 Plugins register harness services. A plugin implements `HarnessProvider` and
 returns service definitions with their scopes.

@@ -10,8 +10,11 @@ use Greenlight\Plugin\HarnessProvider;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
- * Supplies one HTTP harness in the configured service scope. A handler factory
- * with the per-test scope gives each test a new application handler.
+ * Supplies one HTTP harness in the configured service scope.
+ * Each harness calls its handler factory on the first request.
+ *
+ * For a new application handler in each test attempt, use the per-test scope.
+ * Supply a factory that creates a new handler each time.
  */
 final readonly class Psr15Plugin implements HarnessProvider
 {

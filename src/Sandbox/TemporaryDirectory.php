@@ -8,8 +8,8 @@ use Greenlight\Harness\Disposable;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
- * Creates one root directory on first use. A path inside it cannot escape the
- * root.
+ * Creates one root directory on first use. `subdirectory()` rejects traversal
+ * segments and symbolic links in the requested path.
  * Disposal removes a symbolic link and leaves its target unchanged.
  */
 final class TemporaryDirectory implements Disposable
@@ -22,7 +22,7 @@ final class TemporaryDirectory implements Disposable
     public function __construct(?string $temporaryRoot = null)
     {
         if ($temporaryRoot !== null && \str_contains($temporaryRoot, "\0")) {
-            throw new \InvalidArgumentException('Temporary root MUST NOT contain a null byte.');
+            throw new \InvalidArgumentException('Temporary root cannot contain a null byte.');
         }
 
         $this->temporaryRoot = $temporaryRoot;
@@ -60,7 +60,7 @@ final class TemporaryDirectory implements Disposable
     public function subdirectory(string $name): string
     {
         if (\str_contains($name, "\0")) {
-            throw new \InvalidArgumentException('Subdirectory name MUST NOT contain a null byte.');
+            throw new \InvalidArgumentException('Subdirectory name cannot contain a null byte.');
         }
 
         if ($name === '' || \str_starts_with($name, '/') || \str_contains($name, '\\')) {

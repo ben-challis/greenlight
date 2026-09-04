@@ -80,7 +80,7 @@ final class PluginRuntimeError extends \RuntimeException
     public static function addedUnknownTest(string $plugin, TestId $test): self
     {
         return new self(\sprintf(
-            'Plugin "%s" added unknown test "%s" during transformTestPlan(). A plan transformer MAY only remove or reorder selected tests.',
+            'Plugin "%s" added unknown test "%s" during transformTestPlan(). A plan transformer can only remove or reorder selected tests.',
             $plugin,
             $test,
         ));

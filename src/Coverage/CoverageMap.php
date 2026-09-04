@@ -9,16 +9,10 @@ use Greenlight\Internal\Wire\Wire;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
- * The map sorts files by path. Thus, identical coverage always has identical
- * serialized data.
+ * Contains line coverage for source files in path order.
  *
- * `merge()` is commutative, associative, and idempotent. Thus, the orchestrator
- * can merge worker payloads in all arrival orders. It does not require a final
- * merge operation at the end of a run.
- *
- * The wire payload is compact. Under "files", each path maps to a two-item
- * list. The covered line list is first. The uncovered line list is second.
- *
+ * `merge()` combines covered and uncovered lines for each file. Covered lines
+ * take priority. Merge order and repeated inputs do not change the result.
  */
 final readonly class CoverageMap
 {

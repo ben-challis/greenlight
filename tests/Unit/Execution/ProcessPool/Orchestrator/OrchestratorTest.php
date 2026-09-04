@@ -344,6 +344,30 @@ final class OrchestratorTest
 
     #[Test]
     #[Timeout(30.0)]
+    public function aWorkerCrashReachesTheFailureLimitBeforeReassignment(): void
+    {
+        $root = \dirname(__DIR__, 5);
+        $sink = new CollectingEventSink();
+        $orchestrator = NativeOrchestrator::create(
+            workerCommand: PhpSubprocess::command([$root . '/bin/greenlight']),
+            workingDirectory: $root,
+            stopAfterFailures: 1,
+        );
+
+        $summary = $orchestrator->run(
+            $this->crashThenPassingPlan(),
+            $sink,
+            1,
+            [CrashDiagnosticsTest::class => 0.001, CleanTest::class => 0.001],
+        );
+
+        Expect::that($summary->errored)->toBe(1);
+        Expect::that($summary->total())->toBe(1);
+        Expect::that($sink->results())->toHaveCount(1);
+    }
+
+    #[Test]
+    #[Timeout(30.0)]
     public function crashedWorkerKeepsACompleteUnicodeDiagnosticTail(): void
     {
         $root = \dirname(__DIR__, 5);

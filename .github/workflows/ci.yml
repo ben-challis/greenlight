@@ -38,6 +38,9 @@ jobs:
       - name: "Install dependencies"
         run: "npm --prefix website ci"
 
+      - name: "Install browser"
+        run: "npm --prefix website exec -- playwright install --with-deps chromium"
+
       - name: "Check and build"
         run: "npm --prefix website run check"
 
@@ -64,7 +67,7 @@ jobs:
           node-version: "24"
 
       - name: "Validate Renovate configuration"
-        run: "npx --yes --package renovate@44.56.3 -- renovate-config-validator --strict"
+        run: "npx --yes --package renovate@44.64.3 -- renovate-config-validator --strict"
 
   zizmor:
     name: "GitHub Actions security"
@@ -219,6 +222,10 @@ jobs:
       - name: "Verify Hyperf attempt-container disposal"
         working-directory: ".github/fixtures/hyperf-bridge"
         run: "php verify-lifecycle.php attempt"
+
+      - name: "Run Hyperf cleanup failure acceptance tests"
+        working-directory: ".github/fixtures/hyperf-bridge"
+        run: "vendor/bin/greenlight run --config=cleanup.php --no-ansi --reporter=plain"
 
   ci:
     name: "CI (PHP ${{ matrix.php-version }}, ${{ matrix.dependencies }} deps${{ matrix.symfony-version && format(', Symfony {0}', matrix.symfony-version) || '' }})"
@@ -709,6 +716,7 @@ jobs:
       - "actionlint"
       - "markdownlint"
       - "installed-package"
+      - "hyperf-bridge"
       - "ci"
       - "macos-portability"
       - "tempest"
@@ -727,6 +735,7 @@ jobs:
           CI_RESULT: "${{ needs.ci.result }}"
           COVERAGE_RESULT: "${{ needs.coverage.result }}"
           DOCUMENTATION_RESULT: "${{ needs.documentation.result }}"
+          HYPERF_BRIDGE_RESULT: "${{ needs.hyperf-bridge.result }}"
           INSTALLED_PACKAGE_RESULT: "${{ needs.installed-package.result }}"
           MACOS_PORTABILITY_RESULT: "${{ needs.macos-portability.result }}"
           MARKDOWNLINT_RESULT: "${{ needs.markdownlint.result }}"
@@ -743,6 +752,7 @@ jobs:
           test "${ACTIONLINT_RESULT}" = "success"
           test "${MARKDOWNLINT_RESULT}" = "success"
           test "${INSTALLED_PACKAGE_RESULT}" = "success"
+          test "${HYPERF_BRIDGE_RESULT}" = "success"
           test "${CI_RESULT}" = "success"
           test "${MACOS_PORTABILITY_RESULT}" = "success"
           test "${TEMPEST_RESULT}" = "success"

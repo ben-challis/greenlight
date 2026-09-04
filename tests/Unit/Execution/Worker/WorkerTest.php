@@ -313,7 +313,7 @@ final class WorkerTest
         Expect::that($result->error?->message)
             ->toBe(\sprintf(
                 'Constructor parameter $value of "%s" has no resolvable type. '
-                . 'A test constructor can declare only harness service types.',
+                . 'Use one class or interface type, or give the parameter a default value.',
                 UnsupportedConstructorProbe::class,
             ));
     }

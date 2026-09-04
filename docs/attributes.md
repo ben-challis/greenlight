@@ -102,17 +102,19 @@ or:
 #[DataSet(CurrencyDataSets::class, 'currencies')]
 ```
 
-The provider **MUST** return a non-empty iterable. Each value **MUST** be the
-argument array for one test invocation.
+Return a non-empty iterable from the provider. Use one argument array for each
+test invocation.
 
 Greenlight invokes the provider during discovery to create the execution plan.
 The plan contains data-set keys, not argument values. Greenlight invokes the
 provider again once for each worker-side class assignment to create the values
-in that worker. The provider **MUST** return every planned key on each
-invocation. Keep providers pure, deterministic, and free of I/O and global
-state. Each invocation has a five-second time budget.
+in that worker. Return every planned key on each invocation.
 
-A provider key **MUST** be an integer or a string. Greenlight changes an integer
+Keep providers pure, deterministic, and free of I/O and global state. Each
+invocation has a five-second time budget. Greenlight checks elapsed time after the call and as
+it reads rows. This check cannot interrupt a blocked provider.
+
+Use an integer or string for each provider key. Greenlight changes an integer
 key to `#<key>`. It keeps a non-empty printable string key unchanged. It changes
 an empty or nonprintable string key to the first eight hexadecimal characters
 of its SHA-256 hash. The normalized key appears in test IDs and reports.

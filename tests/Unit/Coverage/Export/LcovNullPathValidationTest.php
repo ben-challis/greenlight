@@ -23,7 +23,7 @@ final class LcovNullPathValidationTest
             ->because('LCOV source records MUST contain valid file paths')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'LCOV file paths MUST NOT contain null bytes.',
+                message: 'LCOV file paths cannot contain null bytes.',
             );
     }
 }

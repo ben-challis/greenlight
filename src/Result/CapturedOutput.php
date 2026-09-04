@@ -9,8 +9,8 @@ use Greenlight\Internal\Wire\Wire;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
- * When output is too long, Greenlight keeps the first part. This part usually
- * identifies the cause. The last part usually contains repeated information.
+ * Contains standard output, diagnostics, and truncation flags for one attempt.
+ * When output exceeds the capture limit, Greenlight keeps the first part.
  *
  * Greenlight converts captured standard output to valid UTF-8 before it adds
  * the output to a test result.
@@ -38,7 +38,7 @@ final readonly class CapturedOutput
         foreach ($diagnostics as $index => $diagnostic) {
             if ($index !== \count($validatedDiagnostics) || !$diagnostic instanceof Diagnostic) {
                 throw new \InvalidArgumentException(
-                    'Captured output diagnostics MUST be a list of Diagnostic instances.',
+                    'Use a list of Diagnostic instances for captured output diagnostics.',
                 );
             }
 
