@@ -319,6 +319,10 @@ final readonly class ArgumentType
             return true;
         }
 
+        if ($leftReflection->getName() === $rightReflection->getName()) {
+            return true;
+        }
+
         if ($leftReflection->isSubclassOf($right) || $rightReflection->isSubclassOf($left)) {
             return true;
         }
