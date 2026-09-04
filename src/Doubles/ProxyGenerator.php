@@ -39,6 +39,14 @@ final readonly class ProxyGenerator
      */
     public function proxyClass(string $type): string
     {
+        /** @var array<string, class-string> $classes */
+        static $classes = [];
+        $key = \strtolower($type);
+
+        if (isset($classes[$key])) {
+            return $classes[$key];
+        }
+
         $reflection = $this->reflectDoubleable($type);
 
         $body = $this->renderBody($reflection);
@@ -67,7 +75,7 @@ final readonly class ProxyGenerator
             }
         }
 
-        return $proxyClass;
+        return $classes[$key] = $proxyClass;
     }
 
     /**
