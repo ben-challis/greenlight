@@ -78,6 +78,22 @@ final readonly class CliTest
     }
 
     #[Test]
+    public function helpDescribesFilterRulesAndPolicyExceptions(): void
+    {
+        $result = $this->runCli(['--help']);
+
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->output())
+            ->toContain('a full match with * and ? wildcards.')
+            ->toContain('Matching is case-insensitive.')
+            ->toContain('Matching is case-sensitive.')
+            ->toContain('Configured deprecation ignore patterns still apply.')
+            ->toContain('except tests marked #[NoExpectations].')
+            ->toContain('Supply at least two --input')
+            ->toContain('options and at least one --export option.');
+    }
+
+    #[Test]
     public function runExecutesAPassingSuiteAndExitsZero(): void
     {
         $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'cli-run');

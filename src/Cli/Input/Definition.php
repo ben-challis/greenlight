@@ -45,8 +45,8 @@ final readonly class Definition
           run            Find and run tests (default)
           list-tests     List selected test IDs and the total test count.
                          Use --format=json for a machine-readable test manifest.
-          coverage:merge Merge coverage JSON exports. Repeat --input for each
-                         source and --export for each output.
+          coverage:merge Merge coverage JSON exports. Supply at least two --input
+                         options and at least one --export option.
           coverage:diff  Compare two coverage JSON exports. Fail if total coverage
                          decreases or a line becomes newly uncovered.
           profile:report Create a run profile from a saved JSONL stream (--input)
@@ -68,15 +68,18 @@ final readonly class Definition
           --suite-tag=<tag>  Select suites with this tag. You can repeat this option.
           --group=<name>     Run only this group. You can repeat this option.
           --filter=<pattern> Run only tests with a matching test ID. Use a
-                             substring or a full match with * wildcards.
+                             substring or a full match with * and ? wildcards.
+                             Matching is case-insensitive.
                              You can repeat this option.
           --test-id=<id>     Run only this exact test ID. You can repeat this option.
           --exclude-group=<name>     Skip tests in this group. You can repeat this option.
           --exclude-class=<pattern>  Skip classes that match this pattern.
-                             Matching is case-sensitive. Use a substring or * wildcards.
+                             Matching is case-sensitive. Use a substring or
+                             a full match with * and ? wildcards.
                              You can repeat this option.
           --exclude-method=<pattern> Skip methods that match this pattern.
-                             Matching is case-sensitive. Use a substring or * wildcards.
+                             Matching is case-sensitive. Use a substring or
+                             a full match with * and ? wildcards.
                              You can repeat this option.
           --exclude-path=<prefix>    Skip test files under this path prefix.
                              Greenlight resolves relative prefixes against the
@@ -109,10 +112,12 @@ final readonly class Definition
           --ansi             Enable colors in append-only reporter output.
           --no-ansi          Disable colors and the live progress window.
                              Use plain append-only output.
-          --fail-on-deprecation  Fail passed tests that captured a deprecation
+          --fail-on-deprecation  Fail passed tests that captured a deprecation.
+                             Configured deprecation ignore patterns still apply.
           --fail-on-notice   Fail passed tests that captured a notice
           --fail-on-warning  Fail passed tests that captured a warning
-          --fail-on-risky    Fail passed tests that verified no expectations
+          --fail-on-risky    Fail passed tests that verified no expectations,
+                             except tests marked #[NoExpectations].
           --fail-on-skipped  Fail the run if its final summary contains a skipped test
           --fail-on-retried-pass
                              Fail the run if a test passes after retry
