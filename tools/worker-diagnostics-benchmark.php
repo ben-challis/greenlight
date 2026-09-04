@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Greenlight\Tools;
+
 use Greenlight\Execution\ProcessPool\Orchestrator\NativeWorkerTransport;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerTransportEventKind;
 
