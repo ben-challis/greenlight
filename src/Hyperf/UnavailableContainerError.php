@@ -13,10 +13,15 @@ use Psr\Container\ContainerExceptionInterface;
  */
 final class UnavailableContainerError extends \RuntimeException implements ContainerExceptionInterface
 {
-    public function __construct()
+    private function __construct()
     {
         parent::__construct(
             'The Hyperf container is not active. Resolve Hyperf services only during a Greenlight test attempt.',
         );
+    }
+
+    public static function outsideTestAttempt(): self
+    {
+        return new self();
     }
 }
