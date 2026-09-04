@@ -119,6 +119,12 @@ final class NativeWorkerTransport implements WorkerTransport
             if ($handle->lifecycle === WorkerLifecycle::Active && $handle->channel !== null) {
                 $read[] = $handle->channel->stream();
             }
+
+            foreach ([$handle->stdout, $handle->stderr] as $pipe) {
+                if (\is_resource($pipe) && !\feof($pipe)) {
+                    $read[] = $pipe;
+                }
+            }
         }
 
         $waitMicroseconds = $this->hasRetiringWorkers() ? 10_000 : 200_000;
