@@ -8,8 +8,8 @@ use Greenlight\Harness\Disposable;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
- * Creates one root directory on first use. A path inside it cannot escape the
- * root.
+ * Creates one root directory on first use. `subdirectory()` rejects traversal
+ * segments and symbolic links in the requested path.
  * Disposal removes a symbolic link and leaves its target unchanged.
  */
 final class TemporaryDirectory implements Disposable
