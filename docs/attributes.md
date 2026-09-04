@@ -383,8 +383,7 @@ This check cannot interrupt PHP code that is still active. Each retry starts
 a new attempt budget.
 
 With process-pool execution, the orchestrator also stops a worker that exceeds
-the timeout plus a grace period. This outer deadline starts with the test and
-does not restart for retries. Greenlight replaces the stopped worker and
+the timeout plus a grace period. Greenlight replaces the stopped worker and
 continues the run.
 
 In-process execution has no separate worker to stop. This includes
