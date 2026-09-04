@@ -24,6 +24,53 @@ async function openDocumentation(t) {
   return page;
 }
 
+test('keyboard focus has sufficient contrast on documentation controls', async (t) => {
+  const page = await openDocumentation(t);
+  await page.keyboard.press('Tab');
+
+  const checkFocus = async (selector) => {
+    const control = page.locator(selector).first();
+    await control.focus();
+    const contrast = await control.evaluate((element) => {
+      const style = getComputedStyle(element);
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 1;
+      const context = canvas.getContext('2d');
+      const luminance = (color) => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        const channels = [...context.getImageData(0, 0, 1, 1).data].slice(0, 3).map((value) => {
+          const channel = value / 255;
+          return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+        });
+        return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+      };
+      const outline = luminance(style.outlineColor);
+      const backgrounds = ['--canvas', '--surface', '--code-surface', '--signal-soft'].map((token) =>
+        luminance(style.getPropertyValue(token)),
+      );
+      return {
+        visible: element.matches(':focus-visible') && style.outlineStyle !== 'none',
+        ratio: Math.min(...backgrounds.map((background) =>
+          (Math.max(outline, background) + 0.05) / (Math.min(outline, background) + 0.05),
+        )),
+      };
+    });
+    assert.equal(contrast.visible, true, `${selector} has a visible focus indicator.`);
+    assert.ok(contrast.ratio >= 3, `${selector} has a contrast ratio of ${contrast.ratio.toFixed(2)}.`);
+  };
+
+  await checkFocus('.mobile-doc-trigger');
+  await checkFocus('.command-copy');
+  await checkFocus('.site-search summary');
+  await page.keyboard.press('Enter');
+  await page.locator('#pagefind-search input').waitFor();
+  await checkFocus('#pagefind-search input');
+  await page.locator('#pagefind-search input').fill('test');
+  await checkFocus('.pagefind-ui__search-clear');
+});
+
 test('page-index navigation preserves the keyboard position in the selected section', async (t) => {
   const page = await openDocumentation(t);
   await page.locator('.mobile-index-trigger').click();
