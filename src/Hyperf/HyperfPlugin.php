@@ -415,10 +415,15 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
 
         try {
             if ($container instanceof ContainerInterface) {
-                $this->resetContainer($container);
+                $failure = null;
+                $this->captureCleanup($failure, fn() => $this->resetContainer($container));
 
                 if ($this->dispose instanceof \Closure) {
-                    ($this->dispose)($container);
+                    $this->captureCleanup($failure, fn() => ($this->dispose)($container));
+                }
+
+                if ($failure instanceof \Throwable) {
+                    throw $failure;
                 }
             }
         } finally {
