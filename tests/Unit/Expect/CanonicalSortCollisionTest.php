@@ -27,6 +27,7 @@ final class CanonicalSortCollisionTest
         $second = 1.000000000000002;
 
         Expect::that([$first, $second])->toEqualCanonicalizing([$second, $first]);
+        Expect::that([$first, $first])->not()->toEqualCanonicalizing([$first, $second]);
     }
 
     #[Test]
@@ -35,6 +36,14 @@ final class CanonicalSortCollisionTest
         $integer = 2 ** 54;
 
         Expect::that([$integer, 17.0])->toEqualCanonicalizing([17.0, (float) $integer]);
+    }
+
+    #[Test]
+    public function exactLargeNegativeIntegerAndFloatValuesShareSortPositions(): void
+    {
+        $integer = -(2 ** 54);
+
+        Expect::that([$integer, -17.0])->toEqualCanonicalizing([-17.0, (float) $integer]);
     }
 
     #[Test]
