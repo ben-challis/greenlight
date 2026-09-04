@@ -426,10 +426,14 @@ PHPDoc:
 
 Namespace: `Greenlight\Plugin`
 
-A worker calls a retry decider after each unsuccessful attempt.
+A worker checks retry deciders after each failed or errored attempt.
+Greenlight runs lower priorities first and uses registration order for equal
+priorities. It stops at the first decider that returns true.
 
 A `true` result starts a new attempt with a new test instance and a new
 service scope.
+A false result permits the next decider to check the attempt. It does not
+prevent another decider, including the built-in retry policy, from retrying.
 
 `shouldRetry()` receives the retry policy, result, attempt number, and
 optional cause. It does not receive `TestContext` because the attempt is
@@ -439,7 +443,7 @@ complete.
 interface RetryDecider extends Plugin
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RetryDecider.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RetryDecider.php#L24)
 
 ### `shouldRetry()`
 
@@ -447,7 +451,7 @@ interface RetryDecider extends Plugin
 public function shouldRetry(RetryPolicy $policy, TestResult $result, int $attempt, ?\Throwable $cause): bool;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RetryDecider.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RetryDecider.php#L26)
 
 ## `RunAcceptancePolicy`
 
@@ -641,12 +645,13 @@ PHPDoc:
 Namespace: `Greenlight\Plugin`
 
 Contains the selected tests for one run in execution order.
+Each test ID occurs once. Tests from each class form one consecutive block.
 
 ```php
 final readonly class TestPlan
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlan.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlan.php#L13)
 
 ### `$tests`
 
@@ -654,11 +659,12 @@ final readonly class TestPlan
 public array $tests
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlan.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlan.php#L20)
 
 ### `withTests()`
 
-Return a plan with replacement test selection and order.
+Returns a plan with replacement test selection and order.
+Keep each test ID unique and each class in one consecutive block.
 
 ```php
 public function withTests(array $tests): self
@@ -667,21 +673,23 @@ public function withTests(array $tests): self
 PHPDoc:
 
 - `@param list<TestId> $tests`
-- `@throws \InvalidArgumentException`
+- `@throws \InvalidArgumentException if a test ID repeats or a class occurs in separate blocks`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlan.php#L58)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlan.php#L62)
 
 ## `TestPlanTransformer`
 
 Namespace: `Greenlight\Plugin`
 
-Changes the selected tests or their execution order before a run starts.
+Removes or reorders selected tests before a run starts.
+Each replacement can contain only tests from the plan the plugin receives.
+A later transformer cannot restore a test that an earlier transformer removed.
 
 ```php
 interface TestPlanTransformer extends Plugin
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlanTransformer.php#L8)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlanTransformer.php#L12)
 
 ### `transformTestPlan()`
 
@@ -689,7 +697,7 @@ interface TestPlanTransformer extends Plugin
 public function transformTestPlan(TestPlan $plan): TestPlan;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlanTransformer.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlanTransformer.php#L14)
 
 ## `WatchSource`
 
