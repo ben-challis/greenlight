@@ -94,9 +94,10 @@ final class WorkerState
         return !$this->retiring;
     }
 
-    public function requestStop(): void
+    public function requestStop(float $at): void
     {
         $this->stopRequested = true;
+        $this->lastProgressAt = $at;
     }
 
     /** @return list<TestId> */

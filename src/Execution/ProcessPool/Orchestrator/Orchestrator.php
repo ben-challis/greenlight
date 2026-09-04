@@ -462,7 +462,7 @@ final class Orchestrator
                 // Crash detection processes a worker that is already gone.
             }
 
-            $handle->requestStop();
+            $handle->requestStop($this->monotonicTime());
 
             return;
         }
@@ -549,7 +549,7 @@ final class Orchestrator
                     // The worker is already gone after Done. No drain is necessary.
                 }
 
-                $handle->requestStop();
+                $handle->requestStop($this->monotonicTime());
 
                 return;
             }
@@ -687,7 +687,7 @@ final class Orchestrator
                     // Crash detection processes a worker that is already gone.
                 }
 
-                $handle->requestStop();
+                $handle->requestStop($this->monotonicTime());
             }
         }
     }
@@ -737,7 +737,7 @@ final class Orchestrator
             }
 
             if ($handle->inFlight === null) {
-                if ($handle->assigned === null && $handle->ready) {
+                if ($handle->assigned === null && $handle->ready && !$handle->stopRequested) {
                     // The scheduler keeps this connected worker idle until a
                     // resource lease is available.
                     continue;
