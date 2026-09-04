@@ -322,7 +322,8 @@ that kills its process would kill each replacement in turn.
 ### Timeouts
 
 The orchestrator enforces each test timeout with a grace window of twice the
-budget plus two seconds. The worker may be too stuck to enforce the timeout
+budget plus two seconds. Each valid attempt-start message resets this window.
+The worker may be too stuck to enforce the timeout
 itself. When the grace window expires, the orchestrator kills the process with
 SIGKILL and handles it as a crash. It reports the test as timed out.
 
