@@ -194,8 +194,9 @@ runs inside the test coroutine in both modes.
 The disposal callback runs before Greenlight discards its container. In worker
 mode, it runs once when the worker exits. In test-attempt mode, the reset
 callback runs first. Greenlight calls disposal even if reset throws. If either
-callback throws, the attempt has an error. The first throwable remains the
-cause. Greenlight still removes access to the container, clears the coroutine
+callback throws, the attempt has an error.
+
+The first throwable remains the cause. Greenlight still removes access to the container, clears the coroutine
 runtime, and ends the coroutine.
 
 The bridge does not reset application static properties or global variables.
