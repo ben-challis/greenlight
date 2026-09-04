@@ -552,8 +552,8 @@ object.
 The throwable can instead be a callback with one typed Throwable
 parameter. Its parameter type specifies the expected throwable class.
 Greenlight gives the caught throwable to the callback after its type
-matches. The callback matches when it returns without an expectation
-failure.
+matches. The callback matches when it returns no value without an
+expectation failure.
 
 The optional `matching:` argument checks the message with a regular
 expression. The `message:` argument checks the exact message. Do not use
@@ -1127,8 +1127,8 @@ object.
 The throwable can instead be a callback with one typed Throwable
 parameter. Its parameter type specifies the expected throwable class.
 Greenlight gives the caught throwable to the callback after its type
-matches. The callback matches when it returns without an expectation
-failure.
+matches. The callback matches when it returns no value without an
+expectation failure.
 
 The optional `matching:` argument checks the message with a regular
 expression. The `message:` argument checks the exact message. Do not use
@@ -1796,8 +1796,8 @@ object.
 The throwable can instead be a callback with one typed Throwable
 parameter. Its parameter type specifies the expected throwable class.
 Greenlight gives the caught throwable to the callback after its type
-matches. The callback matches when it returns without an expectation
-failure.
+matches. The callback matches when it returns no value without an
+expectation failure.
 
 The optional `matching:` argument checks the message with a regular
 expression. The `message:` argument checks the exact message. Do not use
@@ -2580,8 +2580,8 @@ object.
 The throwable can instead be a callback with one typed Throwable
 parameter. Its parameter type specifies the expected throwable class.
 Greenlight gives the caught throwable to the callback after its type
-matches. The callback matches when it returns without an expectation
-failure.
+matches. The callback matches when it returns no value without an
+expectation failure.
 
 The optional `matching:` argument checks the message with a regular
 expression. The `message:` argument checks the exact message. Do not use
