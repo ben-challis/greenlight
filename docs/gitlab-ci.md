@@ -111,7 +111,8 @@ and [parallel job variables](https://docs.gitlab.com/ci/variables/predefined_var
 ## Add coverage annotations
 
 Greenlight can write the Cobertura report that GitLab uses for merge request
-diff annotations. Add this configuration to `greenlight.php`:
+diff annotations. Enable PCOV or Xdebug coverage mode in the test job. Add this
+configuration to `greenlight.php`:
 
 <!-- php-example {"mode":"display","reason":"Shows a configuration call after omitted calls."} -->
 ```php
@@ -119,6 +120,7 @@ return GreenlightConfig::create()
     // ...
     ->coverage(fn ($coverage) => $coverage
         ->include('src')
+        ->requireDriver()
         ->export('cobertura', 'build/coverage/cobertura.xml'));
 ```
 

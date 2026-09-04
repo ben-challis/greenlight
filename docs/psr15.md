@@ -42,28 +42,39 @@ handler from the factory.
 
 [Mezzio](https://docs.mezzio.dev/mezzio/) is a framework for PSR-15 middleware
 applications. A Mezzio `Application` implements `RequestHandlerInterface`.
-Return the application from the factory:
+Create `bootstrap/http.php` for the factory in the setup example. Load the
+container, middleware pipeline, and routes, then return the application:
 
 <!-- php-example {"example":"psr15-example-02","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Mezzio\Application;
+use Mezzio\MiddlewareFactory;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
-return static function (): RequestHandlerInterface {
-    /** @var ContainerInterface $container */
-    $container = require __DIR__ . '/config/container.php';
-    $application = $container->get(Application::class);
+/** @var ContainerInterface $container */
+$container = require __DIR__ . '/../config/container.php';
+$application = $container->get(Application::class);
+$middlewareFactory = $container->get(MiddlewareFactory::class);
 
-    if (!$application instanceof RequestHandlerInterface) {
-        throw new \RuntimeException('The application service is not a PSR-15 request handler.');
-    }
+if (!$application instanceof Application) {
+    throw new \RuntimeException('The application service is not a Mezzio application.');
+}
 
-    return $application;
-};
+if (!$middlewareFactory instanceof MiddlewareFactory) {
+    throw new \RuntimeException('The middleware factory service has an incorrect type.');
+}
+
+(require __DIR__ . '/../config/pipeline.php')($application, $middlewareFactory, $container);
+(require __DIR__ . '/../config/routes.php')($application, $middlewareFactory, $container);
+
+return $application;
 ```
 
-This factory uses the PSR-11 container to get the Mezzio request handler.
+The Mezzio skeleton keeps pipeline and route setup outside the container.
+Without these steps, the handler cannot dispatch application routes. See the
+[Mezzio quick start](https://docs.mezzio.dev/mezzio/v3/getting-started/quick-start/).
+
+This bootstrap file returns the handler that the plugin factory expects.
 `Psr15Plugin` does not supply container services to test constructors.
 
 If tests need application services, also register the

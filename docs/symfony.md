@@ -136,8 +136,12 @@ doctrine:
         dbname: 'app_test_%env(default:fallback_channel:GREENLIGHT_CHANNEL)%'
 
 parameters:
-    env(fallback_channel): '1'
+    fallback_channel: '1'
 ```
+
+The `default:` processor reads the `fallback_channel` container parameter when
+`GREENLIGHT_CHANNEL` is absent. See the Symfony
+[environment variable processors](https://symfony.com/doc/current/configuration/env_var_processors.html).
 
 The same pattern works for cache directories, upload paths, message transport
 names, and similar resources.
