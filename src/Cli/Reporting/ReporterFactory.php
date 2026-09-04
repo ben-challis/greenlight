@@ -16,6 +16,7 @@ use Greenlight\Reporting\Profile\ProfileReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReporterDefinition;
 use Greenlight\Reporting\RunHeader;
+use Greenlight\Reporting\StreamOutput;
 use Greenlight\Reporting\Style;
 
 /**
@@ -107,9 +108,12 @@ final readonly class ReporterFactory
         $reporters = $outputs->createReporters($catalog);
 
         if ($arguments->has('profile')) {
+            $machineOutput = $outputs->writesOnlyReportersToStandardOutput('jsonl', 'junit');
             $reporters[] = new ProfileReporter(
-                $outputs->standardOutput,
-                new Style($outputs->standardOutput->capabilities->color),
+                $machineOutput ? new StreamOutput($this->console->stderr()) : $outputs->standardOutput,
+                $machineOutput
+                    ? $this->console->stderrStyle($arguments->has('no-ansi'))
+                    : new Style($outputs->standardOutput->capabilities->color),
             );
         }
 
