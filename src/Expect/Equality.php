@@ -44,7 +44,10 @@ final class Equality
             // Compute each key one time for each element. A comparator
             // serializes both operands again for each comparison.
             $keys = \array_map(static fn(mixed $item): string => self::sortKey($item, []), $canonical);
-            \array_multisort($keys, \SORT_ASC, \SORT_STRING, $canonical);
+            // Sort keys only. A native comparison of equal-key values can
+            // recurse without a limit when those values contain cycles.
+            \asort($keys, \SORT_STRING);
+            $canonical = \array_map(static fn(int $index): mixed => $canonical[$index], \array_keys($keys));
         }
 
         return $canonical;
@@ -71,17 +74,15 @@ final class Equality
             return '[' . \implode(',', $parts) . ']';
         }
 
-        if (\is_int($value)) {
-            // A float cannot hold an integer above 2**53 exactly. Keep the
-            // exact digits to give different large integers different keys.
-            // Otherwise, the integers can remain in their initial positions.
-            return \abs($value) <= 2 ** 53
-                ? 'number:' . (float) $value
-                : 'number:' . $value;
+        if (\is_int($value) && (int) (float) $value !== $value) {
+            // Keep exact digits when a float cannot represent the integer.
+            return 'integer:' . $value;
         }
 
-        if (\is_float($value)) {
-            return 'number:' . $value;
+        if (\is_int($value) || \is_float($value)) {
+            // Seventeen significant digits distinguish finite doubles. Zero
+            // has one key because positive and negative zero are equal.
+            return 'number:' . ($value === 0 || $value === 0.0 ? '0' : \sprintf('%.17g', $value));
         }
 
         if ($value instanceof \DateTimeInterface) {
