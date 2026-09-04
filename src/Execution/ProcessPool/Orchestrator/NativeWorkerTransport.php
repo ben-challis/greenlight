@@ -121,7 +121,8 @@ final class NativeWorkerTransport implements WorkerTransport
             }
 
             foreach ([$handle->stdout, $handle->stderr] as $pipe) {
-                if (\is_resource($pipe) && !\feof($pipe)) {
+                // Windows cannot select process pipes.
+                if (\PHP_OS_FAMILY !== 'Windows' && \is_resource($pipe) && !\feof($pipe)) {
                     $read[] = $pipe;
                 }
             }
