@@ -11,6 +11,11 @@ namespace Greenlight\Expect;
  */
 final class ExpectationExtensionError extends \InvalidArgumentException
 {
+    private function __construct(string $message)
+    {
+        parent::__construct($message);
+    }
+
     public static function nativeMethod(string $name): self
     {
         return new self(\sprintf(
