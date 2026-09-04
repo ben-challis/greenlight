@@ -84,6 +84,10 @@ final class Equality
             return 'number:' . $value;
         }
 
+        if ($value instanceof \DateTimeInterface) {
+            return 'DateTime:' . $value->format('U.u');
+        }
+
         if ($value instanceof \Closure) {
             return 'Closure#' . \spl_object_id($value);
         }
