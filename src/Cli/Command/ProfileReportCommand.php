@@ -40,33 +40,30 @@ final readonly class ProfileReportCommand
         }
         $aggregator = new ProfileAggregator();
         try {
-            $result = ErrorTrap::run(function () use ($stream, $aggregator, $arguments): ?CommandResult {
-                while (($line = \fgets($stream)) !== false) {
-                    if (\trim($line) === '') {
-                        continue;
-                    }
-
-                    try {
-                        $aggregator->onEvent(EventCodec::decodeJsonLine($line));
-                    } catch (EventCodecFailed $failure) {
-                        $result = $this->handleCodecFailure($failure, $arguments->has('no-ansi'));
-
-                        if ($result instanceof CommandResult) {
-                            return $result;
-                        }
-                    }
+            while (true) {
+                $line = ErrorTrap::run(static fn() => \fgets($stream), $warning);
+                if ($warning !== null || ($line === false && !\feof($stream))) {
+                    $this->console->err(\sprintf("Greenlight could not read \"%s\"%s.\n", $path, $warning === null ? '' : ': ' . $warning));
+                    return CommandResult::failure();
                 }
 
-                return null;
-            }, $warning);
+                if ($line === false) {
+                    break;
+                }
 
-            if ($result instanceof CommandResult) {
-                return $result;
-            }
+                if (\trim($line) === '') {
+                    continue;
+                }
 
-            if (!\feof($stream)) {
-                $this->console->err(\sprintf("Greenlight could not read \"%s\"%s.\n", $path, $warning === null ? '' : ': ' . $warning));
-                return CommandResult::failure();
+                try {
+                    $aggregator->onEvent(EventCodec::decodeJsonLine($line));
+                } catch (EventCodecFailed $failure) {
+                    $result = $this->handleCodecFailure($failure, $arguments->has('no-ansi'));
+
+                    if ($result instanceof CommandResult) {
+                        return $result;
+                    }
+                }
             }
         } finally {
             \fclose($stream);
