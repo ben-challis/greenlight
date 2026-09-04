@@ -7,6 +7,7 @@ namespace Greenlight\PhpStan;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\InvalidConfiguration;
+use Greenlight\Expect\Expectation;
 use Greenlight\Expect\ExpectationExtension;
 
 /**
@@ -43,6 +44,7 @@ final readonly class MatcherMap
         $loader = new ConfigLoader();
         $matchers = [];
         $declaredIn = [];
+        $nativeMethods = \array_fill_keys(\array_map(\strtolower(...), \get_class_methods(Expectation::class)), true);
 
         foreach ($configFiles as $file) {
             if (!\str_starts_with($file, '/')) {
@@ -63,6 +65,10 @@ final readonly class MatcherMap
                 }
 
                 foreach ($plugin->matchers() as $name => $matcher) {
+                    if (isset($nativeMethods[\strtolower($name)])) {
+                        continue;
+                    }
+
                     $reflection = new \ReflectionFunction($matcher);
                     $signature = self::signature($reflection);
                     $existingSignature = isset($matchers[$name]) ? self::signature($matchers[$name]) : null;
