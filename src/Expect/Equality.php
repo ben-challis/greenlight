@@ -79,9 +79,13 @@ final class Equality
 
             $number = (float) $value;
 
-            // Keep every float bit without depending on display precision.
             // Both signs of zero compare equal and need the same key.
-            return 'number:' . \bin2hex(\pack('E', $number === 0.0 ? 0.0 : $number));
+            if ($number === 0.0) {
+                return 'number:zero';
+            }
+
+            // Keep every float bit without depending on display precision.
+            return 'number:' . \bin2hex(\pack('E', $number));
         }
 
         if ($value instanceof \DateTimeInterface) {
