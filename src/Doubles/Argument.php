@@ -101,7 +101,7 @@ final class Argument
     }
 
     /**
-     * This matcher uses the same deep equality as `Expect::toEqual()`.
+     * This matcher uses the same deep equality as `Expectation::toEqual()`.
      * Use it when `with()` must compare by value instead of identity.
      *
      * @template T

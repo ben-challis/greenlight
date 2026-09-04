@@ -6,7 +6,7 @@ namespace Greenlight\Doubles;
 
 /**
  * Identifies incorrect use of the doubles API. Examples include an
- * unsupported type or a method that Doubles cannot intercept. Other examples
+ * unsupported type or a method that `Doubles` cannot intercept. Other examples
  * are a prohibited interaction or a return value without a configured
  * result.
  *

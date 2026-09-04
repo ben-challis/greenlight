@@ -35,7 +35,7 @@ Namespace: `Greenlight\Harness`
 
 Defines the lifetime of a harness service.
 
-PerWorker matches the physical worker lifetime.
+`PerWorker` matches the physical worker lifetime.
 
 ```php
 enum Scope: string

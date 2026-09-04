@@ -10,21 +10,16 @@ These signatures are the public API.
 
 Namespace: `Greenlight\Coverage`
 
-The map sorts files by path. Thus, identical coverage always has identical
-serialized data.
+Contains line coverage for source files in path order.
 
-`merge()` is commutative, associative, and idempotent. Thus, the orchestrator
-can merge worker payloads in all arrival orders. It does not require a final
-merge operation at the end of a run.
-
-The wire payload is compact. Under "files", each path maps to a two-item
-list. The covered line list is first. The uncovered line list is second.
+`merge()` combines covered and uncovered lines for each file. Covered lines
+take priority. Merge order and repeated inputs do not change the result.
 
 ```php
 final readonly class CoverageMap
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L17)
 
 ### `__construct()`
 
@@ -36,7 +31,7 @@ PHPDoc:
 
 - `@param list<FileCoverage> $files duplicated paths are merged, covered wins`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L27)
 
 ### `empty()`
 
@@ -44,7 +39,7 @@ PHPDoc:
 public static function empty(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L41)
 
 ### `files()`
 
@@ -56,7 +51,7 @@ PHPDoc:
 
 - `@return array<non-empty-string, FileCoverage> keyed by file path, sorted by path`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L55)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L49)
 
 ### `isEmpty()`
 
@@ -64,7 +59,7 @@ PHPDoc:
 public function isEmpty(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L60)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L54)
 
 ### `merge()`
 
@@ -72,7 +67,7 @@ public function isEmpty(): bool
 public function merge(self $other): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L65)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L59)
 
 ### `coveredLineTotal()`
 
@@ -84,7 +79,7 @@ PHPDoc:
 
 - `@return int<0, max>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L71)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L65)
 
 ### `executableLineTotal()`
 
@@ -96,7 +91,7 @@ PHPDoc:
 
 - `@return int<0, max>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L83)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L77)
 
 ### `uncoveredLineTotal()`
 
@@ -108,7 +103,7 @@ PHPDoc:
 
 - `@return int<0, max>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L95)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L89)
 
 ### `totalPercentage()`
 
@@ -120,7 +115,7 @@ An empty map has full coverage because it has no executable lines.
 public function totalPercentage(): float
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L111)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L105)
 
 ## `FileCoverage`
 
