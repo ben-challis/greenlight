@@ -89,7 +89,7 @@ final readonly class BoundaryTest
     }
 
     #[Test]
-    public function mixedCaseConstructorAndCloneMethodsAreNotIntercepted(): void
+    public function mixedCaseLifecycleMethodsUseTheirInterceptionRules(): void
     {
         $double = $this->doubles->stub(MixedCaseMagicMethods::class);
         $reflection = new \ReflectionClass($double);
@@ -99,7 +99,7 @@ final readonly class BoundaryTest
         Expect::that($constructor->getDeclaringClass()->name)
             ->because('PHP magic method names MUST remain case-insensitive in generated proxies')
             ->toBe(MixedCaseMagicMethods::class);
-        Expect::that($clone->getDeclaringClass()->name)->toBe(MixedCaseMagicMethods::class);
+        Expect::that($clone->getDeclaringClass()->name)->toBe($double::class);
     }
 
     #[Test]
