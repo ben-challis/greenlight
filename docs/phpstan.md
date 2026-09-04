@@ -194,7 +194,7 @@ final class DigestMatchers implements ExpectationExtension
     {
         return [
             'toBeValidUuid' => static fn(string $subject): bool =>
-                \preg_match('/^[0-9a-f-]{36}$/', $subject) === 1,
+                \preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $subject) === 1,
             'toHaveDigestLength' => static fn(string $subject, int $length): bool =>
                 \strlen($subject) === $length,
         ];
@@ -400,7 +400,7 @@ a known incompatible subject before the test runs:
 | Required subject | Matchers |
 | --- | --- |
 | `string` or `iterable` | `toContain()` |
-| `Countable` or `Traversable` | `toHaveCount()` |
+| `array`, `Countable`, or `Traversable` | `toHaveCount()` |
 | `string`, `array`, `Countable`, or `Traversable` | `toBeEmpty()` |
 | `string`, `array`, or `Countable` | `toHaveLength()` |
 | `array` or `ArrayAccess` | `toHaveKey()` |

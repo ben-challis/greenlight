@@ -244,7 +244,7 @@ transformers.
 
 ### CoverageMapTransformer
 
-Command-side, once for each completed standard or repeat run.
+Command-side, for a completed standard run with coverage enabled.
 
 A `CoverageMapTransformer` changes merged coverage before Greenlight writes
 coverage reports or checks thresholds. Greenlight first removes lines that
@@ -511,7 +511,7 @@ final class BrokerPlugin implements WorkerBootstrapSubscriber, HarnessProvider
 ```
 
 `WorkerBootstrapContext` contains the `workerId`, `TestChannel`, and
-`IntegrationResources`. Subscribers may implement `Prioritized`. Lower values
+`IntegrationResources`. Subscribers can implement `Prioritized`. Lower values
 run first. An exception fails the run before tests begin.
 
 ### WorkerRuntimeRunner
