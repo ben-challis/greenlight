@@ -11,7 +11,7 @@ Swow engine.
 Install the Hyperf framework and dependency injector in the application:
 
 ```console
-composer require hyperf/framework:^3.2 hyperf/di:^3.2
+composer require hyperf/framework:~3.2.0 hyperf/di:~3.2.0
 ```
 
 Enable the Swoole and pcntl extensions for the PHP command that runs
@@ -168,7 +168,7 @@ available only during the current test attempt.
 Hyperf does not supply one reset operation for all application services. The
 application keeps request state in coroutine context or resets that state after
 each attempt. See Hyperf's
-[coroutine guidance](https://hyperf.wiki/3.1/#/en/coroutine).
+[coroutine guidance](https://github.com/hyperf/hyperf/blob/3.2/docs/en/coroutine.md).
 
 Use `reset:` to reset project state after each attempt. Use
 `dispose:` for resources that belong to the selected container lifetime:

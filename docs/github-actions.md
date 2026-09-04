@@ -154,6 +154,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
       - name: Restore Greenlight run state
         uses: actions/cache/restore@v6
         with:

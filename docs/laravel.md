@@ -33,7 +33,7 @@ new LaravelPlugin(static fn(): Application => Application::configure(basePath: _
     ->create());
 ```
 
-A custom factory **MUST** return an application that binds
+For a custom factory, return an application that binds
 `Illuminate\Contracts\Console\Kernel` to an implementation of that interface.
 `Application::configure(...)->create()` registers this binding.
 
@@ -178,9 +178,9 @@ return GreenlightConfig::create()
     ->resourceLimit('payments-sandbox', 2);
 ```
 
-The limit controls how many classes that require this resource can run. It does
-not choose a service instance, and it does not coordinate another Greenlight
-process or CI shard. See [configuration](configuration.md) for the complete
+The limit controls how many assignments that require this resource can run. It
+does not choose a service instance or coordinate another Greenlight process or
+CI shard. See [configuration](configuration.md) for the complete
 resource rules.
 
 ## Doubles and the container
