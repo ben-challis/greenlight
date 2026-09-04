@@ -23,7 +23,7 @@ final class SkipUnlessTest
             ->because('a skip condition MUST name an instantiable Condition class')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'SkipUnless condition MUST name an instantiable Condition class.',
+                message: 'Set the SkipUnless condition to an instantiable Condition class.',
             );
     }
 
@@ -51,7 +51,7 @@ final class SkipUnlessTest
             ->because('skip condition arguments MUST be safe for the JSON worker protocol')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'SkipUnless arguments MUST use finite floats.',
+                message: 'Use finite floats in SkipUnless arguments.',
             );
     }
 

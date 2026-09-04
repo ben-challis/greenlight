@@ -20,7 +20,7 @@ final readonly class FunctionAvailable implements Condition
     public function __construct(string $function)
     {
         if ($function === '') {
-            throw new \InvalidArgumentException('Function name MUST NOT be empty.');
+            throw new \InvalidArgumentException('Function name cannot be empty.');
         }
 
         $this->function = $function;

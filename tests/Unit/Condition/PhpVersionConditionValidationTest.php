@@ -24,7 +24,7 @@ final readonly class PhpVersionConditionValidationTest
             ->because('a PHP version condition MUST identify its comparison version')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'PHP version MUST NOT be empty.',
+                message: 'PHP version cannot be empty.',
             );
     }
 

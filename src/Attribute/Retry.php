@@ -38,7 +38,7 @@ final readonly class Retry
         $this->times = $times;
 
         if ($onlyOn !== null && !\is_a($onlyOn, \Throwable::class, true)) {
-            throw new \InvalidArgumentException('Retry onlyOn MUST name a Throwable type.');
+            throw new \InvalidArgumentException('Set Retry onlyOn to a Throwable type.');
         }
 
         $this->onlyOn = $onlyOn;

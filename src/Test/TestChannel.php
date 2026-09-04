@@ -26,7 +26,7 @@ final readonly class TestChannel
     public function __construct(int $number)
     {
         if ($number < 1) {
-            throw new \InvalidArgumentException('Test channel number MUST be greater than zero.');
+            throw new \InvalidArgumentException('Use a test channel number greater than zero.');
         }
 
         $this->number = $number;
