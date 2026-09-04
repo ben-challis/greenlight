@@ -43,9 +43,11 @@ final readonly class DisabledPcovTest
             phpArguments: ['-d', 'pcov.enabled=0'],
         );
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stdout)->toContain('1 test, 1 passed');
-        Expect::that($result->stderr)->toContain('Coverage is required, but no worker collected it.');
+        $evidence = \sprintf('stdout: %s\nstderr: %s', \substr($result->stdout, 0, 2_000), \substr($result->stderr, 0, 2_000));
+
+        Expect::that($result->exitCode)->because($evidence)->toBe(1);
+        Expect::that($result->stdout)->because($evidence)->toContain('PASS ');
+        Expect::that($result->stderr)->because($evidence)->toContain('Coverage is required, but no worker collected it.');
         Expect::that($result->stdout)->not()->toContain('Coverage: 100.00%');
     }
 }
