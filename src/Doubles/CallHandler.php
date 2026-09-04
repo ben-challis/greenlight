@@ -33,7 +33,7 @@ final readonly class CallHandler
 
     /**
      * @param non-empty-string $method
-     * @param list<mixed> $arguments
+     * @param array<array-key, mixed> $arguments
      *
      * @throws ExpectationFailed
      * @throws InvalidDoubleUsage
@@ -45,35 +45,37 @@ final readonly class CallHandler
         $this->contracts->get($this->state->type, $method)
             ->assertCallArgumentCount(\count($arguments));
 
-        $this->state->recordedCalls[$method][] = $arguments;
+        $positionalArguments = \array_values($arguments);
+        $this->state->recordedCalls[$method][] = $positionalArguments;
 
         return match ($this->state->kind) {
-            DoubleKind::Mock => $this->invokeOnMock($double, $method, $arguments),
+            DoubleKind::Mock => $this->invokeOnMock($double, $method, $arguments, $positionalArguments),
             DoubleKind::Stub => throw InvalidDoubleUsage::stubWasCalled($this->state->type, $method),
             DoubleKind::Spy => $this->invokeOnSpy($double, $method),
         };
     }
 
     /**
-     * @param list<mixed> $arguments
+     * @param array<array-key, mixed> $arguments
+     * @param list<mixed> $positionalArguments
      *
      * @throws ExpectationFailed
      * @throws InvalidDoubleUsage
      */
-    private function invokeOnMock(object $double, string $method, array $arguments): mixed
+    private function invokeOnMock(object $double, string $method, array $arguments, array $positionalArguments): mixed
     {
         foreach ($this->state->expectationsFor($method) as $expectation) {
-            if ($expectation->isSaturated() || !$expectation->matchesArguments($arguments)) {
+            if ($expectation->isSaturated() || !$expectation->matchesArguments($positionalArguments)) {
                 continue;
             }
 
             ++$expectation->actualCalls;
-            $expectation->recordMatchedCall($arguments);
+            $expectation->recordMatchedCall($positionalArguments);
 
             return $this->answer($expectation, $double, $method, $arguments);
         }
 
-        $detail = $this->unexpectedCallDetail($method, $arguments);
+        $detail = $this->unexpectedCallDetail($method, $positionalArguments);
         $this->state->callFailures[] = $detail;
 
         throw ExpectationFailed::fromDetail($detail);
@@ -92,7 +94,7 @@ final readonly class CallHandler
     }
 
     /**
-     * @param list<mixed> $arguments
+     * @param array<array-key, mixed> $arguments
      * @throws InvalidDoubleUsage
      */
     private function answer(MethodExpectation $expectation, object $double, string $method, array $arguments): mixed
