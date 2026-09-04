@@ -318,6 +318,6 @@ final class JUnitReporter implements Reporter
             $seconds = \PHP_FLOAT_MAX;
         }
 
-        return \sprintf('%.6f', $seconds);
+        return \sprintf('%.6F', $seconds);
     }
 }
