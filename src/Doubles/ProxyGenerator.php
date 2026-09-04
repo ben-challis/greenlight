@@ -372,7 +372,7 @@ final readonly class ProxyGenerator
             }
 
             if (\str_starts_with($constant, 'self::')) {
-                return '\\' . $context->name . '::' . \substr($constant, 6);
+                $constant = $context->name . '::' . \substr($constant, 6);
             }
 
             if (\str_starts_with($constant, 'parent::')) {
@@ -382,7 +382,22 @@ final readonly class ProxyGenerator
                     throw InvalidDoubleUsage::parentTypeWithoutParent($context->name);
                 }
 
-                return '\\' . $parent->name . '::' . \substr($constant, 8);
+                $constant = $parent->name . '::' . \substr($constant, 8);
+            }
+
+            $separator = \strrpos($constant, '::');
+
+            if ($separator !== false) {
+                $owner = \substr($constant, 0, $separator);
+
+                if (\class_exists($owner)) {
+                    $member = new \ReflectionClass($owner)->getReflectionConstant(\substr($constant, $separator + 2));
+
+                    if ($member instanceof \ReflectionClassConstant && $member->isPrivate()) {
+                        // A child proxy cannot access the parent's private constant.
+                        return \var_export($parameter->getDefaultValue(), true);
+                    }
+                }
             }
 
             return '\\' . $constant;
