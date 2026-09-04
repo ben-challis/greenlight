@@ -108,9 +108,10 @@ test invocation.
 Greenlight invokes the provider during discovery to create the execution plan.
 The plan contains data-set keys, not argument values. Greenlight invokes the
 provider again once for each worker-side class assignment to create the values
-in that worker. Return every planned key on each invocation. Keep providers
-pure, deterministic, and free of I/O and global state. Each invocation has a
-five-second time budget. Greenlight checks elapsed time after the call and as
+in that worker. Return every planned key on each invocation.
+
+Keep providers pure, deterministic, and free of I/O and global state. Each
+invocation has a five-second time budget. Greenlight checks elapsed time after the call and as
 it reads rows. This check cannot interrupt a blocked provider.
 
 Use an integer or string for each provider key. Greenlight changes an integer
