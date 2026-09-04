@@ -25,18 +25,15 @@ final readonly class CoverageExport
     public function __construct(string $format, string $target)
     {
         if ($format === '' || $target === '') {
-            throw new InvalidConfiguration('Coverage exports need a non-empty format and target.');
+            throw InvalidConfiguration::emptyCoverageExport();
         }
 
         if (!\in_array($format, self::FORMATS, true)) {
-            throw new InvalidConfiguration(\sprintf(
-                'Unknown coverage export format "%s". Use "json", "lcov", "clover", "cobertura", or "html".',
-                $format,
-            ));
+            throw InvalidConfiguration::unknownCoverageFormat($format);
         }
 
         if (\str_contains($target, "\0")) {
-            throw new InvalidConfiguration('Coverage export target cannot contain a null byte.');
+            throw InvalidConfiguration::coverageTargetContainsNullByte();
         }
 
         $this->format = $format;

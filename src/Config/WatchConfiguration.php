@@ -39,14 +39,11 @@ final readonly class WatchConfiguration
         int $maximumFiles = 100_000,
     ) {
         if ($debounceMilliseconds < 1) {
-            throw new InvalidConfiguration(\sprintf(
-                'The watch debounce must be at least 1 millisecond, got %d.',
-                $debounceMilliseconds,
-            ));
+            throw InvalidConfiguration::invalidWatchDebounce($debounceMilliseconds);
         }
 
         if ($maximumFiles < 1) {
-            throw new InvalidConfiguration(\sprintf('The watch file limit must be at least 1, got %d.', $maximumFiles));
+            throw InvalidConfiguration::invalidWatchFileLimit($maximumFiles);
         }
 
         $this->debounceMilliseconds = $debounceMilliseconds;
@@ -64,17 +61,17 @@ final readonly class WatchConfiguration
     private function validate(array $values, string $name): array
     {
         if (!\array_is_list($values)) {
-            throw new InvalidConfiguration($name . ' must be a list.');
+            throw InvalidConfiguration::watchPathsNotAList($name);
         }
 
         $validated = [];
         foreach ($values as $value) {
             if (!\is_string($value) || $value === '') {
-                throw new InvalidConfiguration($name . ' must contain non-empty strings.');
+                throw InvalidConfiguration::watchPathNotANonEmptyString($name);
             }
 
             if (\str_contains($value, "\0")) {
-                throw new InvalidConfiguration($name . ' cannot contain a null byte.');
+                throw InvalidConfiguration::watchPathContainsNullByte($name);
             }
 
             $validated[] = $value;

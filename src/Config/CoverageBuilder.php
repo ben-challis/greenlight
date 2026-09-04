@@ -40,11 +40,11 @@ final class CoverageBuilder
 
         foreach ($paths as $path) {
             if ($path === '') {
-                throw new InvalidConfiguration('Coverage include paths cannot be empty.');
+                throw InvalidConfiguration::emptyCoveragePath();
             }
 
             if (\str_contains($path, "\0")) {
-                throw new InvalidConfiguration('Coverage include paths cannot contain a null byte.');
+                throw InvalidConfiguration::coveragePathContainsNullByte();
             }
 
             $validated[] = $path;
@@ -63,7 +63,7 @@ final class CoverageBuilder
     public function driver(string $driver): self
     {
         if ($driver === '') {
-            throw new InvalidConfiguration('Coverage driver cannot be empty.');
+            throw InvalidConfiguration::emptyCoverageDriver();
         }
 
         $this->driver = $driver;
@@ -81,11 +81,11 @@ final class CoverageBuilder
     public function minimumPercentage(float $percentage): self
     {
         if (!\is_finite($percentage) || $percentage < 0.0 || $percentage > 100.0) {
-            throw new InvalidConfiguration('Minimum coverage percentage must be from 0 through 100.');
+            throw InvalidConfiguration::coveragePercentageOutOfRange();
         }
 
         if (\round($percentage, 2) !== $percentage) {
-            throw new InvalidConfiguration('Minimum coverage percentage can have at most two decimal places.');
+            throw InvalidConfiguration::coveragePercentageTooPrecise();
         }
 
         $this->minimumPercentage = $percentage;
@@ -102,7 +102,7 @@ final class CoverageBuilder
     public function maximumUncoveredLines(int $lines): self
     {
         if ($lines < 0) {
-            throw new InvalidConfiguration('Maximum uncovered lines cannot be negative.');
+            throw InvalidConfiguration::negativeUncoveredLineLimit();
         }
 
         $this->maximumUncoveredLines = $lines;
@@ -127,11 +127,11 @@ final class CoverageBuilder
     public function export(string $format, string $target): self
     {
         if ($format === '') {
-            throw new InvalidConfiguration('Coverage exports need a non-empty format and target.');
+            throw InvalidConfiguration::emptyCoverageExport();
         }
 
         if ($target === '') {
-            throw new InvalidConfiguration('Coverage exports need a non-empty format and target.');
+            throw InvalidConfiguration::emptyCoverageExport();
         }
 
         $this->exports[] = new CoverageExport($format, $target);

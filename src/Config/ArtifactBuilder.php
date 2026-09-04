@@ -44,11 +44,11 @@ final class ArtifactBuilder
     public function directory(string $directory): self
     {
         if ($directory === '') {
-            throw new InvalidConfiguration('Artifact directory cannot be empty.');
+            throw InvalidConfiguration::emptyArtifactDirectory();
         }
 
         if (\str_contains($directory, "\0")) {
-            throw new InvalidConfiguration('Artifact directory cannot contain a null byte.');
+            throw InvalidConfiguration::artifactDirectoryContainsNullByte();
         }
 
         $this->directory = $directory;
@@ -64,7 +64,7 @@ final class ArtifactBuilder
     public function maxAttachmentsPerTest(int $count): self
     {
         if ($count < 1) {
-            throw new InvalidConfiguration('Artifact count per test must be at least 1.');
+            throw InvalidConfiguration::invalidArtifactCountPerTest();
         }
 
         $this->maxAttachmentsPerTest = $count;
@@ -104,7 +104,7 @@ final class ArtifactBuilder
     public function maxRunAttachments(int $count): self
     {
         if ($count < 1) {
-            throw new InvalidConfiguration('Artifact count per run must be at least 1.');
+            throw InvalidConfiguration::invalidArtifactCountPerRun();
         }
 
         $this->maxRunAttachments = $count;
@@ -132,7 +132,7 @@ final class ArtifactBuilder
     public function maxCompletedRuns(int $count): self
     {
         if ($count < 1) {
-            throw new InvalidConfiguration('Completed artifact run count must be at least 1.');
+            throw InvalidConfiguration::invalidCompletedRunCount();
         }
 
         $this->maxCompletedRuns = $count;
@@ -148,7 +148,7 @@ final class ArtifactBuilder
     public function maxCompletedRunAge(int $seconds): self
     {
         if ($seconds < 1) {
-            throw new InvalidConfiguration('Completed artifact run age must be at least 1 second.');
+            throw InvalidConfiguration::invalidCompletedRunAge();
         }
 
         $this->maxCompletedRunAgeSeconds = $seconds;
