@@ -28,7 +28,7 @@ final readonly class TestChannelTest
             ->because('a test channel MUST identify a positive worker slot')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Test channel number MUST be greater than zero.',
+                message: 'Use a test channel number greater than zero.',
             );
     }
 

@@ -54,7 +54,7 @@ final class Doubles implements Disposable
     public function __construct(?string $proxyDirectory = null)
     {
         if ($proxyDirectory === '') {
-            throw new \InvalidArgumentException('Proxy directory MUST NOT be empty.');
+            throw new \InvalidArgumentException('Proxy directory cannot be empty.');
         }
 
         if ($proxyDirectory === null) {

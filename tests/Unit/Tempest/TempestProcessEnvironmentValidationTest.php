@@ -17,7 +17,7 @@ final readonly class TempestProcessEnvironmentValidationTest
             ->because('environment validation MUST run before Tempest framework access')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Tempest environment MUST NOT contain a null byte.',
+                message: 'Tempest environment cannot contain a null byte.',
             );
     }
 }

@@ -26,7 +26,7 @@ final readonly class LaravelProcessEnvironmentValidationTest
             ->because('a NUL environment MUST be rejected before putenv truncates it')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Laravel environment MUST NOT contain a null byte.',
+                message: 'Laravel environment cannot contain a null byte.',
             );
         Expect::that(\getenv('APP_ENV'))
             ->because('a rejected Laravel environment MUST NOT change the process environment')

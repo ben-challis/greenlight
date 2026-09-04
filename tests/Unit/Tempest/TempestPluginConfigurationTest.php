@@ -46,14 +46,14 @@ final readonly class TempestPluginConfigurationTest
     public function rejectsAnEmptyApplicationRoot(): void
     {
         Expect::that(static fn(): TempestPlugin => new TempestPlugin(''))
-            ->toThrow(\InvalidArgumentException::class, message: 'Tempest application root MUST NOT be empty.');
+            ->toThrow(\InvalidArgumentException::class, message: 'Tempest application root cannot be empty.');
     }
 
     #[Test]
     public function rejectsAnEmptyEnvironment(): void
     {
         Expect::that(static fn(): TempestPlugin => new TempestPlugin('/project', environment: ''))
-            ->toThrow(\InvalidArgumentException::class, message: 'Tempest environment MUST NOT be empty.');
+            ->toThrow(\InvalidArgumentException::class, message: 'Tempest environment cannot be empty.');
     }
 
     private function context(): TestContext

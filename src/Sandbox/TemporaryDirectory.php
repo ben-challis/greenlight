@@ -22,7 +22,7 @@ final class TemporaryDirectory implements Disposable
     public function __construct(?string $temporaryRoot = null)
     {
         if ($temporaryRoot !== null && \str_contains($temporaryRoot, "\0")) {
-            throw new \InvalidArgumentException('Temporary root MUST NOT contain a null byte.');
+            throw new \InvalidArgumentException('Temporary root cannot contain a null byte.');
         }
 
         $this->temporaryRoot = $temporaryRoot;
@@ -60,7 +60,7 @@ final class TemporaryDirectory implements Disposable
     public function subdirectory(string $name): string
     {
         if (\str_contains($name, "\0")) {
-            throw new \InvalidArgumentException('Subdirectory name MUST NOT contain a null byte.');
+            throw new \InvalidArgumentException('Subdirectory name cannot contain a null byte.');
         }
 
         if ($name === '' || \str_starts_with($name, '/') || \str_contains($name, '\\')) {

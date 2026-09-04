@@ -17,7 +17,7 @@ final class DoublesProxyDirectoryValidationTest
             ->because('an empty proxy directory MUST NOT resolve generated files from the filesystem root')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Proxy directory MUST NOT be empty.',
+                message: 'Proxy directory cannot be empty.',
             );
     }
 }

@@ -21,7 +21,7 @@ final readonly class ExtensionConditionValidationTest
             ->because('an extension availability condition MUST identify the extension')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Extension name MUST NOT be empty.',
+                message: 'Extension name cannot be empty.',
             );
     }
 

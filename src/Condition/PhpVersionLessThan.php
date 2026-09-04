@@ -19,7 +19,7 @@ final readonly class PhpVersionLessThan implements Condition
     public function __construct(string $version)
     {
         if ($version === '') {
-            throw new \InvalidArgumentException('PHP version MUST NOT be empty.');
+            throw new \InvalidArgumentException('PHP version cannot be empty.');
         }
 
         $this->version = $version;

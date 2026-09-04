@@ -32,19 +32,19 @@ final class DataSetTest
         yield 'local provider' => [
             '',
             null,
-            'Data set provider MUST NOT be empty.',
+            'Data set provider cannot be empty.',
         ];
 
         yield 'external provider class' => [
             '',
             'rows',
-            'Data set provider class MUST NOT be empty.',
+            'Data set provider class cannot be empty.',
         ];
 
         yield 'external provider method' => [
             self::class,
             '',
-            'Data set provider method MUST NOT be empty.',
+            'Data set provider method cannot be empty.',
         ];
     }
 }

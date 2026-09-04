@@ -22,7 +22,7 @@ final readonly class ClassAvailable implements Condition
     public function __construct(string $class)
     {
         if ($class === '') {
-            throw new \InvalidArgumentException('Class name MUST NOT be empty.');
+            throw new \InvalidArgumentException('Class name cannot be empty.');
         }
 
         $this->class = $class;

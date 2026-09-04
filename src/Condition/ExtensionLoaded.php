@@ -19,7 +19,7 @@ final readonly class ExtensionLoaded implements Condition
     public function __construct(string $extension)
     {
         if ($extension === '') {
-            throw new \InvalidArgumentException('Extension name MUST NOT be empty.');
+            throw new \InvalidArgumentException('Extension name cannot be empty.');
         }
 
         $this->extension = $extension;
