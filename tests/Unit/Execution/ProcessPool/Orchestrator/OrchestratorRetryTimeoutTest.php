@@ -79,8 +79,8 @@ final readonly class OrchestratorRetryTimeoutTest
         return new ExecutionPlan([new PlanEntry(new TestDefinition(
             $id->class,
             $id->method,
-            execution: new ExecutionPolicy(timeoutSeconds: 0.1),
             retry: new RetryPolicy(39),
+            execution: new ExecutionPolicy(timeoutSeconds: 0.1),
         ))]);
     }
 }
