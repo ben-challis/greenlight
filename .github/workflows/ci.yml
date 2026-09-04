@@ -223,6 +223,10 @@ jobs:
         working-directory: ".github/fixtures/hyperf-bridge"
         run: "php verify-lifecycle.php attempt"
 
+      - name: "Run Hyperf cleanup failure acceptance tests"
+        working-directory: ".github/fixtures/hyperf-bridge"
+        run: "vendor/bin/greenlight run --config=cleanup.php --no-ansi --reporter=plain"
+
   ci:
     name: "CI (PHP ${{ matrix.php-version }}, ${{ matrix.dependencies }} deps${{ matrix.symfony-version && format(', Symfony {0}', matrix.symfony-version) || '' }})"
     runs-on: "ubuntu-latest"
