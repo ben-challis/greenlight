@@ -28,7 +28,7 @@ final class ReportGenerationFailedTest
         Expect::that(static fn() => ReportGenerationFailed::because(" \n\t "))
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Report generation failure reason MUST NOT be empty.',
+                message: 'Report generation failure reason cannot be empty.',
             );
     }
 

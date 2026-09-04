@@ -39,7 +39,7 @@ final readonly class WorkerTimingTest
             ->because('worker timing durations MUST be nonnegative')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Worker timing durations MUST be finite and nonnegative.',
+                message: 'Use finite, nonnegative worker timing durations.',
             );
     }
 }

@@ -52,7 +52,7 @@ final readonly class ResultPolicy
         foreach ($ignoreDeprecations as $index => $pattern) {
             if ($index !== \count($validatedPatterns) || !\is_string($pattern) || $pattern === '') {
                 throw new \InvalidArgumentException(
-                    'Deprecation ignore patterns MUST be a list of non-empty strings.',
+                    'Use a list of non-empty strings for deprecation ignore patterns.',
                 );
             }
 

@@ -30,7 +30,7 @@ final class TestResultExpectationValidationTest
             ->because('a result MUST NOT contain a negative expectation count')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Expectation count MUST NOT be negative.',
+                message: 'Expectation count cannot be negative.',
             );
     }
 }

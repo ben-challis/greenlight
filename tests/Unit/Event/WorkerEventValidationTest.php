@@ -33,7 +33,7 @@ final readonly class WorkerEventValidationTest
             ->because('a spawned-worker event MUST identify its worker')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Worker ID MUST NOT be empty.',
+                message: 'Worker ID cannot be empty.',
             );
     }
 
@@ -45,7 +45,7 @@ final readonly class WorkerEventValidationTest
             ->because('a spawned-worker event MUST identify a positive process ID')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Worker PID MUST be greater than zero.',
+                message: 'Use a worker PID greater than zero.',
             );
     }
 
@@ -61,7 +61,7 @@ final readonly class WorkerEventValidationTest
             ->because('a spawned-worker wire event MUST identify a positive process ID')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Worker PID MUST be greater than zero.',
+                message: 'Use a worker PID greater than zero.',
             );
     }
 

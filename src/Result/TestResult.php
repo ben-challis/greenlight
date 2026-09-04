@@ -61,7 +61,7 @@ final readonly class TestResult
         }
 
         if ($expectations < 0) {
-            throw new \InvalidArgumentException('Expectation count MUST NOT be negative.');
+            throw new \InvalidArgumentException('Expectation count cannot be negative.');
         }
 
         $this->attempts = $attempts;

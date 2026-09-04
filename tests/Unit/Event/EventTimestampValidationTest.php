@@ -33,7 +33,7 @@ final readonly class EventTimestampValidationTest
             ->because('direct and wire event construction MUST enforce the same timestamp invariant')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Event timestamp MUST be finite.',
+                message: 'Use a finite event timestamp.',
             );
     }
 

@@ -38,7 +38,7 @@ final readonly class CapturedOutput
         foreach ($diagnostics as $index => $diagnostic) {
             if ($index !== \count($validatedDiagnostics) || !$diagnostic instanceof Diagnostic) {
                 throw new \InvalidArgumentException(
-                    'Captured output diagnostics MUST be a list of Diagnostic instances.',
+                    'Use a list of Diagnostic instances for captured output diagnostics.',
                 );
             }
 

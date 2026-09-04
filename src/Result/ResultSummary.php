@@ -40,19 +40,19 @@ final readonly class ResultSummary
         int $skipped = 0,
     ) {
         if ($passed < 0) {
-            throw new \InvalidArgumentException('Result summary passed count MUST NOT be negative.');
+            throw new \InvalidArgumentException('Result summary passed count cannot be negative.');
         }
 
         if ($failed < 0) {
-            throw new \InvalidArgumentException('Result summary failed count MUST NOT be negative.');
+            throw new \InvalidArgumentException('Result summary failed count cannot be negative.');
         }
 
         if ($errored < 0) {
-            throw new \InvalidArgumentException('Result summary errored count MUST NOT be negative.');
+            throw new \InvalidArgumentException('Result summary errored count cannot be negative.');
         }
 
         if ($skipped < 0) {
-            throw new \InvalidArgumentException('Result summary skipped count MUST NOT be negative.');
+            throw new \InvalidArgumentException('Result summary skipped count cannot be negative.');
         }
 
         $this->passed = $passed;
