@@ -254,8 +254,14 @@ code {
   display: none;
 }
 
-.search-label-short {
+.search-icon {
   display: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.8;
 }
 
 .site-search kbd {
@@ -2066,8 +2072,15 @@ code {
     display: none;
   }
 
-  .search-label-short {
-    display: inline;
+  .site-search summary {
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+  }
+
+  .search-icon {
+    display: block;
   }
 
   .capability-list p {
