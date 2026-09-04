@@ -82,9 +82,20 @@ final class Expect
      * @param list<ExpectationExtension> $extensions
      *
      * @return \Closure(): void A callback that restores the previous extension list.
+     * @throws ExpectationExtensionError
      */
     public static function install(array $extensions): \Closure
     {
+        $nativeMethods = \array_fill_keys(\array_map(\strtolower(...), \get_class_methods(Expectation::class)), true);
+
+        foreach ($extensions as $extension) {
+            foreach (\array_keys($extension->matchers()) as $name) {
+                if (isset($nativeMethods[\strtolower($name)])) {
+                    throw ExpectationExtensionError::nativeMethod($name);
+                }
+            }
+        }
+
         $previous = self::$extensions;
         self::$extensions = $extensions;
 
