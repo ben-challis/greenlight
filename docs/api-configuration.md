@@ -357,7 +357,7 @@ PHPDoc:
 ### `storage()`
 
 Sets directories for persistent state, caches, generated code, and
-temporary run data. Multiple calls use the same builder.
+temporary run data. Each call starts with the current configuration.
 
 ```php
 public function storage(callable $configurator): self
@@ -372,8 +372,8 @@ PHPDoc:
 ### `failOnDeprecation()`
 
 Fails an otherwise passed test if captured output contains a
-deprecation. The diagnostic becomes the failure detail. Use a regular
-expression to exempt known dependency messages.
+deprecation. The diagnostic becomes the failure detail. Use
+`ignoreDeprecationsMatching()` to exempt known dependency messages.
 
 ```php
 public function failOnDeprecation(bool $enabled = true): self

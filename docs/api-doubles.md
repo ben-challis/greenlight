@@ -95,7 +95,7 @@ PHPDoc:
 
 ### `equals()`
 
-This matcher uses the same deep equality as `Expect::toEqual()`.
+This matcher uses the same deep equality as `Expectation::toEqual()`.
 Use it when `with()` must compare by value instead of identity.
 
 ```php
@@ -394,7 +394,7 @@ This type does not declare public members.
 Namespace: `Greenlight\Doubles`
 
 Identifies incorrect use of the doubles API. Examples include an
-unsupported type or a method that Doubles cannot intercept. Other examples
+unsupported type or a method that `Doubles` cannot intercept. Other examples
 are a prohibited interaction or a return value without a configured
 result.
 

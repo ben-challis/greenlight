@@ -701,7 +701,7 @@ PHPDoc:
 
 Namespace: `Greenlight\Result`
 
-Greenlight records at most 32 stack frames when it creates this value.
+Contains a throwable's class, message, source location, and stack trace.
 
 ```php
 final readonly class ThrowableDetail
@@ -782,8 +782,10 @@ PHPDoc:
 
 ### `fromThrowable()`
 
+Records at most 32 stack frames. Adds a truncation marker if more frames exist.
+
 ```php
 public static function fromThrowable(\Throwable $throwable): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L60)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L63)

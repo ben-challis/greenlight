@@ -149,7 +149,7 @@ final class Expectation
 
     /**
      * Passes when the subject and expected value satisfy the rules for deep
-     * equality on this class.
+     * equality in the `Expectation` class description.
      *
      * @return self<T>
      *
@@ -374,8 +374,8 @@ final class Expectation
 
     /**
      * For a string subject, checks for a string needle. For an iterable
-     * subject, checks for the value by identity (===). The check consumes a
-     * `Traversable` subject.
+     * subject, checks for the value by identity (===). Iteration stops at the
+     * first match or the end of the subject.
      *
      * @return self<T>
      *
@@ -423,8 +423,8 @@ final class Expectation
     }
 
     /**
-     * The subject must be `Countable` or `Traversable`. The count consumes a
-     * `Traversable` subject.
+     * Accepts an array, `Countable`, or `Traversable` subject. Uses `count()`
+     * for arrays and `Countable` objects. Otherwise, consumes the iterator.
      *
      * @return self<T>
      *
@@ -453,8 +453,9 @@ final class Expectation
 
     /**
      * Passes when the subject is an empty string or contains no elements.
-     * The subject must be a string, array, `Countable`, or iterable. The check
-     * consumes a `Traversable` subject.
+     * Accepts a string, array, `Countable`, or `Traversable` subject. Uses
+     * `count()` for arrays and `Countable` objects. For other `Traversable`
+     * objects, consumes the iterator.
      *
      * @return self<T>
      *

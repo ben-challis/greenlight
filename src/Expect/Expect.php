@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Extension matchers are worker-local state. `install()` stores the configured
- * `ExpectationExtension` list when the worker starts. Each chain from `that()`
- * uses a snapshot of this list. The runner changes the list before test
- * execution starts. Before `install()` runs, `that()` uses no extensions.
+ * Creates immediate and temporal expectations.
+ *
+ * The worker loads the configured expectation extensions before test execution.
+ * Each expectation chain uses a snapshot of those extensions.
  */
 final class Expect
 {
