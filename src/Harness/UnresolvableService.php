@@ -72,7 +72,7 @@ final class UnresolvableService extends ServiceResolutionFailed
     {
         return new self(\sprintf(
             'Constructor parameter $%s of "%s" has no resolvable type. '
-            . 'A test constructor can declare only harness service types.',
+            . 'Use one class or interface type, or give the parameter a default value.',
             $parameter,
             $consumer,
         ));

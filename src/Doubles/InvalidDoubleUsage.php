@@ -102,7 +102,7 @@ final class InvalidDoubleUsage extends \LogicException
 
     public static function cannotDoubleReadonly(string $type): self
     {
-        return new self(\sprintf('%s is a readonly class. Doubles v1 does not support readonly classes. Use an interface instead.', $type));
+        return new self(\sprintf('%s is a readonly class. Doubles does not support readonly classes. Use an interface instead.', $type));
     }
 
     public static function cannotDoubleFinal(string $type): self
