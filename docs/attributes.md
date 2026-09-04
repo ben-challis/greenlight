@@ -54,8 +54,9 @@ Marks a public method to run before each test in the class.
 If a class has multiple before-hooks, Greenlight runs them in declaration
 order.
 
-A before-hook can throw `SkipTest` to skip the test. A throwable other than
-`SkipTest` gives the test an error.
+A before-hook can throw `SkipTest` to skip the test. An `ExpectationFailed`
+from the hook fails the test. Another throwable gives the test an error.
+In each case, Greenlight skips the test method and runs the after-hooks.
 
 ## After
 
@@ -319,7 +320,7 @@ environment checks, so most `#[SkipUnless]` uses need no hand-written class:
 * `ClassAvailable(Redis::class)` checks that the class exists.
 
 The skip reason names the condition and its arguments, for example
-`Condition ExtensionLoaded("redis") is not satisfied.`
+`Condition ExtensionLoaded("redis") is not satisfied`.
 
 ## Retry
 
@@ -342,7 +343,9 @@ only when the attempt cause has that throwable type. It does not retry an
 unsuccessful attempt that has no matching cause.
 
 Greenlight gives each attempt a new test instance and a new per-test scope.
-Thus, state does not pass between attempts.
+Per-class services, per-worker services, plugin instances, and process-global
+state remain in the same worker. Reset shared state before another attempt
+uses it. Retries do not start a new worker, even for an isolated test.
 
 Each retry also starts `eventually()` and `consistently()` with a new deadline
 and an empty observation log. `retryOnException()` retries a probe within the
@@ -374,18 +377,23 @@ float $seconds
 
 `$seconds` must be finite and greater than zero.
 
-Fails the test if it runs longer than the configured budget.
+The worker checks elapsed time after hooks, deferred cleanup, and per-test
+service disposal. An otherwise passed attempt fails if it exceeds the budget.
+This check cannot interrupt PHP code that is still active. Each retry starts
+a new attempt budget.
 
-Greenlight enforces a timeout in two layers. The worker checks elapsed time
-cooperatively and fails a test that exceeds its budget. If the worker does not
-return, the orchestrator terminates it after the hard-kill grace period.
+With process-pool execution, the orchestrator also stops a worker that exceeds
+the timeout plus a grace period. This outer deadline starts with the test and
+does not restart for retries. Greenlight replaces the stopped worker and
+continues the run.
 
-The orchestrator replaces the stopped worker and continues the run.
+In-process execution has no separate worker to stop. This includes
+`--workers=1` and automatic fallback when process functions are unavailable.
+A blocked test can therefore prevent an in-process run from completing.
 
-An `eventually()` or `consistently()` matcher cannot run past the current test
-timeout. If the test timeout occurs first, the failure gives the requested
-duration. A blocked probe remains subject to the orchestrator hard-kill grace
-period.
+An `eventually()` or `consistently()` matcher checks the current attempt
+deadline between probe calls. A blocked probe cannot check this deadline.
+Only process-pool execution provides the outer timeout for a blocked probe.
 
 <!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
