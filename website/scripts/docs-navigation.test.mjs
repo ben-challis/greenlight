@@ -40,6 +40,20 @@ test('page-index navigation preserves the keyboard position in the selected sect
   );
 });
 
+for (const route of ['getting-started', 'api-expectations', 'phpstan', 'migrating-from-phpunit']) {
+  test(`${route} keeps prose within a narrow viewport`, async (t) => {
+    const page = await openDocumentation(t);
+    await page.setViewportSize({ width: 320, height: 844 });
+    await page.goto(`http://127.0.0.1:${server.port}/greenlight/docs/${route}/`);
+    await page.evaluate(() => document.fonts.ready);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+    assert.equal(await page.locator('.docs-article pre').first().evaluate((element) => {
+      const style = getComputedStyle(element);
+      return style.whiteSpace === 'pre' && style.overflowX === 'auto';
+    }), true);
+  });
+}
+
 for (const [trigger, dialog] of [
   ['.mobile-doc-trigger', '#mobile-documentation-menu'],
   ['.mobile-index-trigger', '#mobile-page-index'],
