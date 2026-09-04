@@ -160,15 +160,13 @@ final class OutputCapture
             return '';
         }
 
-        $combined = $this->stdout . $chunk;
-
-        if (\strlen($combined) <= $this->maxStdoutBytes) {
-            $this->stdout = $combined;
+        if (\strlen($chunk) <= $this->maxStdoutBytes - \strlen($this->stdout)) {
+            $this->stdout .= $chunk;
 
             return '';
         }
 
-        $this->stdout = Utf8::headBytes($combined, $this->maxStdoutBytes);
+        $this->stdout = Utf8::headBytes($this->stdout . $chunk, $this->maxStdoutBytes);
         $this->stdoutTruncated = true;
 
         return '';
