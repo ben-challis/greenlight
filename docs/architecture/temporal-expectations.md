@@ -25,8 +25,10 @@ The PHPStan extension supplies the native methods on temporal chains. The IDE
 helper supplies the same methods as annotations. Thus, normal temporal matcher
 syntax keeps its static signatures in these tools.
 
-An exception from matcher code stops the poll operation. `eventually()` retries
-a probe exception only if `retryOnException()` lists its type.
+An `ExpectationFailed` from matcher code records a mismatch. `eventually()`
+continues after a mismatch, while `consistently()` fails. Other exceptions from
+matcher code stop the poll operation. `eventually()` retries a probe exception
+only if `retryOnException()` lists its type.
 
 A successful temporal matcher returns an ordinary `Expectation` for the last
 value. Each matcher after it checks that value one time.
@@ -46,8 +48,9 @@ interval and call the probe again. Probe calls never overlap.
 `eventually()` sets its deadline before the first call and returns after the
 first match. `consistently()` requires its first call to match, starts its
 stability period after that call, and fails on the first mismatch.
-`eventually()` makes a final call at its deadline if no earlier call matches.
-`consistently()` makes a final call at the end of its stability period.
+The next wait ends at the applicable deadline if a full interval would exceed
+it. Greenlight then calls the probe again. An earlier probe call that reaches
+or exceeds the deadline can end the operation without another call.
 
 The poll operation has no backoff or jitter. A fixed interval gives a
 predictable schedule. It does not guarantee detection of states between probe
@@ -62,7 +65,8 @@ deadline is the earlier of its own deadline and the test deadline.
 
 If the test deadline comes first, the failure includes the requested poll
 duration. Greenlight cannot interrupt a blocked probe. Therefore, the
-orchestrator process timeout remains the hard limit.
+process-pool orchestrator timeout remains the hard limit. An in-process run
+cannot forcibly stop a blocked probe.
 
 Each test retry has a new instance, scope, deadline, and observation log. With
 `ext-pcntl` available, the first interrupt signal still lets active tests
