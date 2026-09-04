@@ -33,28 +33,43 @@ final readonly class ProfileReportCommand
             return CommandResult::usage();
         }
         $path = ConfigurationLoader::absolutePath($input, $workingDirectory);
-        $raw = ErrorTrap::run(static fn() => \file_get_contents($path), $warning);
-        if (!\is_string($raw)) {
+        $stream = ErrorTrap::run(static fn() => \fopen($path, 'rb'), $warning);
+        if ($stream === false) {
             $this->console->err(\sprintf("Greenlight could not read \"%s\"%s.\n", $path, $warning === null ? '' : ': ' . $warning));
             return CommandResult::failure();
         }
         $aggregator = new ProfileAggregator();
-        foreach (\explode("\n", $raw) as $line) {
-            if (\trim($line) === '') {
-                continue;
-            }
+        try {
+            $result = ErrorTrap::run(function () use ($stream, $aggregator, $arguments): ?CommandResult {
+                while (($line = \fgets($stream)) !== false) {
+                    if (\trim($line) === '') {
+                        continue;
+                    }
 
-            try {
-                $aggregator->onEvent(EventCodec::decodeJsonLine($line));
-            } catch (EventCodecFailed $failure) {
-                $result = $this->handleCodecFailure($failure, $arguments->has('no-ansi'));
+                    try {
+                        $aggregator->onEvent(EventCodec::decodeJsonLine($line));
+                    } catch (EventCodecFailed $failure) {
+                        $result = $this->handleCodecFailure($failure, $arguments->has('no-ansi'));
 
-                if (!$result instanceof CommandResult) {
-                    continue;
+                        if ($result instanceof CommandResult) {
+                            return $result;
+                        }
+                    }
                 }
 
+                return null;
+            }, $warning);
+
+            if ($result instanceof CommandResult) {
                 return $result;
             }
+
+            if (!\feof($stream)) {
+                $this->console->err(\sprintf("Greenlight could not read \"%s\"%s.\n", $path, $warning === null ? '' : ': ' . $warning));
+                return CommandResult::failure();
+            }
+        } finally {
+            \fclose($stream);
         }
         $report = $aggregator->render(new Style($this->console->capabilities($arguments->has('no-ansi'), $arguments->has('ansi'))->color));
         if ($report === '') {
