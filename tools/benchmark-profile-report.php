@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Greenlight\Tools;
+
 /**
  * Measures profile-report time and peak memory with a synthetic JSONL stream.
  * Run: php tools/benchmark-profile-report.php [test-count]
@@ -24,11 +26,11 @@ use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
 
 if (($argv[1] ?? null) === '--measure') {
-    $input = $argv[2] ?? throw new InvalidArgumentException('Supply the input path.');
+    $input = $argv[2] ?? throw new \InvalidArgumentException('Supply the input path.');
     $output = \fopen('php://temp', 'w+');
 
     if ($output === false) {
-        throw new RuntimeException('Cannot open the report output.');
+        throw new \RuntimeException('Cannot open the report output.');
     }
 
     $start = \hrtime(true);
@@ -50,20 +52,20 @@ if (($argv[1] ?? null) === '--measure') {
 $count = \filter_var($argv[1] ?? '100000', \FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
 if (!\is_int($count)) {
-    throw new InvalidArgumentException('Supply a positive test count.');
+    throw new \InvalidArgumentException('Supply a positive test count.');
 }
 
 $path = \tempnam(\sys_get_temp_dir(), 'greenlight-profile-benchmark-');
 
 if ($path === false) {
-    throw new RuntimeException('Cannot create the benchmark input.');
+    throw new \RuntimeException('Cannot create the benchmark input.');
 }
 
 try {
     $stream = \fopen($path, 'wb');
 
     if ($stream === false) {
-        throw new RuntimeException('Cannot open the benchmark input.');
+        throw new \RuntimeException('Cannot open the benchmark input.');
     }
 
     try {
@@ -85,7 +87,7 @@ try {
     $process = \proc_open([\PHP_BINARY, '-d', 'memory_limit=-1', __FILE__, '--measure', $path], [0 => \STDIN, 1 => \STDOUT, 2 => \STDERR], $pipes);
 
     if (!\is_resource($process)) {
-        throw new RuntimeException('Cannot start the profile measurement.');
+        throw new \RuntimeException('Cannot start the profile measurement.');
     }
 
     $exit = \proc_close($process);
