@@ -26,7 +26,7 @@ Greenlight runs its own test suite with `bin/greenlight run`.
 * Leak detection, crash recovery, timeouts, and process isolation
 * Strict mocks, stubs, and spies with automatic verification
 * Typed expectations with clear differences
-* Stable CI shards and deterministic reports
+* Stable CI shards and machine-readable reports
 * Test attachments for values, text, bytes, and files
 * Coverage through pcov or Xdebug
 * Plain PHP test classes and PHP configuration
@@ -68,6 +68,9 @@ final class PriceTest
     }
 }
 ```
+
+`Price` represents application code in this example. See the
+[start guide](docs/getting-started.md) for a complete application and test.
 
 Tests use typed PHP classes. Attributes identify tests, before and after
 methods, data sets, retries, timeouts, skip conditions, groups, resource
@@ -118,8 +121,9 @@ Greenlight normally schedules complete test classes. It schedules each
 `#[Isolated]` test separately. Add `#[AllowParallel]` to split an independent
 large class into one assignment for each selected test or data set.
 
-Greenlight preserves execution-plan order. Worker placement and completion
-order remain load-dependent.
+Greenlight assigns scheduling units in execution-plan order as resource capacity
+permits. Worker placement and completion order depend on the run. Reporters
+receive events as they arrive.
 
 Use a channel to give each worker a separate external resource. Use
 `#[RequiresResource]` to limit concurrent access to a shared resource.
