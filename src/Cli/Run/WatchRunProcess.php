@@ -116,18 +116,21 @@ final readonly class WatchRunProcess
                 ? $failure
                 : WatchRunFailed::operation($failure->getMessage(), $failure);
         } finally {
-            if (\proc_get_status($process)['running']) {
+            $status = \proc_get_status($process);
+
+            if ($status['running']) {
                 ErrorTrap::run(static fn() => \proc_terminate($process));
                 $deadline = \hrtime(true) + 5_000_000_000;
 
-                while (\proc_get_status($process)['running'] && \hrtime(true) < $deadline) {
+                do {
                     if ($nonBlocking) {
                         ErrorTrap::run(static fn() => \stream_get_contents($events));
                     }
                     \usleep(10_000);
-                }
+                    $status = \proc_get_status($process);
+                } while ($status['running'] && \hrtime(true) < $deadline);
 
-                if (\proc_get_status($process)['running']) {
+                if ($status['running']) {
                     ErrorTrap::run(static fn() => \proc_terminate($process, 9));
                 }
             }
