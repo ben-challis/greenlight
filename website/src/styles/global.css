@@ -62,7 +62,7 @@ a:hover {
 }
 
 :focus-visible {
-  outline: 3px solid var(--signal);
+  outline: 3px solid var(--action);
   outline-offset: 4px;
 }
 
@@ -340,7 +340,7 @@ code {
 
 #pagefind-search .pagefind-ui__search-input:focus-visible {
   border-color: var(--action);
-  outline: 3px solid var(--signal);
+  outline: 3px solid var(--action);
   outline-offset: 2px;
 }
 
@@ -369,7 +369,7 @@ code {
 }
 
 #pagefind-search .pagefind-ui__search-clear:focus-visible {
-  outline: 2px solid var(--signal);
+  outline: 2px solid var(--action);
   outline-offset: 1px;
 }
 
