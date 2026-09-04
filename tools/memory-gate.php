@@ -163,7 +163,7 @@ $cleanup = static function () use ($workDir): void {
 
 $process = \proc_open(
     [\PHP_BINARY, $root . '/bin/greenlight', 'run', '--reporter=plain'],
-    [0 => \STDIN, 1 => ['pipe', 'w'], 2 => ['redirect', 1]],
+    [0 => \STDIN, 1 => ['pipe', 'w'], 2 => ['redirect', '1']],
     $pipes,
     $workDir,
 );
