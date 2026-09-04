@@ -322,9 +322,8 @@ that kills its process would kill each replacement in turn.
 
 ### Timeouts
 
-The orchestrator measures a hard timeout from its receipt of `TestStarted`.
-The limit is twice the configured test budget plus two seconds. Retries do not
-restart this clock. When the limit expires, the orchestrator kills the process
+The orchestrator enforces a hard timeout of twice the configured test budget
+plus two seconds. When the limit expires, the orchestrator kills the process
 with SIGKILL. It reports the test as failed with a timeout diagnostic.
 
 The worker checks each attempt against the configured test budget after teardown.
