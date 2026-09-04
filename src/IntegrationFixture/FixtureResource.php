@@ -37,7 +37,8 @@ final readonly class FixtureResource
      * Creates one resource from ordinary values and secrets.
      *
      * Values can contain null, integers, booleans, finite floats, UTF-8 strings, lists, and maps.
-     * Map keys must be non-empty UTF-8 strings. The maximum container depth is 16.
+     * Map keys must be non-empty UTF-8 strings.
+     * Values can contain up to 16 nested lists or maps below the top-level map.
      * Secrets must map non-empty UTF-8 string keys to UTF-8 string values.
      *
      * @param array<string, mixed> $values

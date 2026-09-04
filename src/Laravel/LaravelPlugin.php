@@ -20,7 +20,9 @@ use Illuminate\Foundation\Bootstrap\HandleExceptions;
 use Illuminate\Foundation\Bootstrap\RegisterProviders;
 
 /**
- * Boots one Laravel application lazily for a test and resolves bound services.
+ * Boots a Laravel application on first use and resolves bound services.
+ * By default, Greenlight releases the application after each test attempt.
+ *
  * `#[Service]` selects an explicit binding ID. Isolate external test resources
  * by `GREENLIGHT_CHANNEL`.
  */
@@ -36,13 +38,12 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
 
     /**
      * @param string|\Closure(): Application $application
-     *   A path to the file that returns the application, usually
-     *   bootstrap/app.php, or a closure returning the application when
-     *   exotic construction is needed.
+     *   A path to a file that returns the application, usually bootstrap/app.php.
+     *   For other application setup, pass a closure that returns the application.
      * @param non-empty-string $env
      * @param bool $refreshBetweenTests
-     *   Set to false only when no service carries state; tests on one worker
-     *   then share one unreset application for the worker lifetime.
+     *   Set to false only when no service keeps state between tests.
+     *   Tests on one worker then share one application without resets.
      */
     public function __construct(
         string|\Closure $application,
