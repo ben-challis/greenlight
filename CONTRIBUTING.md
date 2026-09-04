@@ -10,6 +10,29 @@ Greenlight requires PHP 8.4 or later. The documentation checks require Node.js
 Run `make docs-install` to install the documentation dependencies and Chromium
 for the browser tests.
 
+## Documentation sources
+
+Edit guides in `docs/`. The website uses these Markdown files directly.
+Architecture pages in `docs/architecture/` remain repository documentation.
+
+The API reference is generated from public PHP declarations and PHPDoc in
+`src/`. Edit those sources, then run:
+
+```sh
+npm --prefix website run api:generate
+```
+
+Commit the updated API pages with their source changes. Do not edit generated
+`docs/api.md` or `docs/api-*.md` pages directly. The generator is
+`website/scripts/generate-api-reference.mjs`.
+
+Edit website text and accessibility labels in `website/src/`. Do not edit
+`website/dist/`, `build/docs-php/`, or `.phpstan-api-stubs/`. Build and
+development tools generate these directories.
+
+The [PHP example guide](docs/architecture/documentation-php-examples.md)
+explains the metadata required for PHP code fences in `README.md` and `docs/`.
+
 ## Technical prose
 
 Use the [technical writing standard](docs/architecture/technical-writing.md)

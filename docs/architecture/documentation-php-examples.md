@@ -5,6 +5,10 @@ Rector. The check uses generated files because both tools operate most reliably
 on PHP files and projects. It does not change the documentation or extend the
 tools.
 
+The extractor reads `README.md` and Markdown files below `docs/`. It does not
+read PHP examples in website components, issue templates, or other root files.
+Review those examples separately.
+
 The generated workspace is disposable. It is in `build/docs-php`. Do not commit
 its contents. `composer docs:php:check` replaces this
 directory on each run.
@@ -47,7 +51,7 @@ members. The extractor keeps the imports outside the class.
 
 Use `display` only when analysis would make the example less useful. Give each display
 example a nonempty `reason`. Do not use the other fields for that example. Add
-metadata to every PHP fence in a manually maintained document. The command
+metadata to every PHP fence in a manually maintained document within this scope. The command
 fails when metadata is absent. Generated reference documents are excluded from
 the inventory because their source generator owns their PHP examples.
 
