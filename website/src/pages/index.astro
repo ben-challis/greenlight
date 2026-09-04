@@ -56,7 +56,7 @@ final class PriceTest
     </section>
 
     <section class="proof-line" aria-label="Greenlight characteristics">
-      <p><strong>Use every available core</strong><span>The runner executes test classes in parallel.</span></p>
+      <p><strong>Use parallel workers</strong><span>The runner executes test classes in parallel.</span></p>
       <p><strong>Use plain PHP tests</strong><span>Tests need no base class or method-name convention.</span></p>
       <p><strong>Use your current tools</strong><span>Typed APIs work with your IDE and PHPStan.</span></p>
     </section>
@@ -82,8 +82,8 @@ final class PriceTest
           <p class="eyebrow">Run the suite</p>
           <h2>Greenlight manages the worker pool for you.</h2>
           <p>
-            The runner discovers the suite once, keeps the available workers busy,
-            and returns one ordered result.
+            The runner discovers the suite once, assigns work as resources become
+            available, and combines the results in one report.
           </p>
         </div>
       </div>
@@ -98,7 +98,7 @@ final class PriceTest
         <li>
           <span>02</span>
           <div>
-            <h3>Keep every worker busy</h3>
+            <h3>Assign work to available workers</h3>
             <p>The orchestrator assigns one scheduling unit to each available worker. Greenlight starts known slow classes and previously failed classes early.</p>
           </div>
         </li>
@@ -106,7 +106,7 @@ final class PriceTest
           <span>03</span>
           <div>
             <h3>Read one clear result</h3>
-            <p>Greenlight checks every worker result and prints one ordered report.</p>
+            <p>Greenlight checks every worker result and combines the results in one report.</p>
           </div>
         </li>
       </ol>
@@ -118,7 +118,7 @@ final class PriceTest
         <h2>Failures stay contained and readable.</h2>
         <div class="capability-list">
           <p><strong>Crashed worker</strong><span>The orchestrator returns the rest of the assignment to the queue and starts a replacement worker.</span></p>
-          <p><strong>Hung test</strong><span>A hard timeout stops the worker. A replacement worker continues the suite.</span></p>
+          <p><strong>Hung test</strong><span>Set a test timeout to stop a blocked worker after the timeout grace period. A replacement worker continues the suite.</span></p>
           <p><strong>External resources</strong><span>Use channels to select separate resources for each worker. Resource limits restrict concurrent access to shared dependencies.</span></p>
           <p><strong>Missed mock call</strong><span>When the test ends, Greenlight verifies strict doubles and reports unmet expectations.</span></p>
         </div>
@@ -172,7 +172,7 @@ final class PriceTest
     <section class="closing-cta">
       <div class="closing-cta-intro">
         <p class="eyebrow">Run Greenlight</p>
-        <h2>Put every available core to work.</h2>
+        <h2>Run your tests in parallel.</h2>
         <p>
           Start with a complete configuration and one small test class, or move an
           existing PHPUnit class when you are ready.
