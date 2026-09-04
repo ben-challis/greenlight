@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Greenlight\Tools;
+
 /**
  * Measures output capture for repeated four-byte writes up to the default limit.
  * Run on an idle machine with Xdebug disabled. Compare the same command at each revision.
