@@ -81,7 +81,7 @@ public.
 | `Plugin` | Public capability interfaces and immutable plugin factory definitions | Artifact, coverage, event, harness, fixture, reporting, result, and test contracts |
 | `Doubles`, `Sandbox` | Test-author tools that use harness scopes | Lower test-author modules |
 | `Discovery` | PHP declaration discovery, metadata, and caching | Public contracts, `Discovery/Plan`, `Test/DataSet`, internal utilities, and `Attribute` |
-| `Discovery/Plan` | Immutable execution plans, ordering, and sharding | `Attribute`, `Test`, and `Internal/Wire` |
+| `Discovery/Plan` | Immutable execution plans, ordering, and sharding | `Attribute`, `Plugin`, `Test`, and `Internal/Wire` |
 | `Coverage` | Line-coverage values and errors | `Internal/Wire` |
 | `Coverage/Collection` | Coverage drivers and raw coverage collection | `Coverage` |
 | `Coverage/Diff` | Baseline coverage comparison | `Coverage` |
@@ -112,8 +112,11 @@ public.
 
 Dependencies point from modules near the bottom of the table to modules near
 the top. Modules near the top do not depend on the `Execution` or `Cli` modules.
-Public contract modules **MUST NOT** know about discovery, reporters, or integrations.
-Internal utility modules **MUST NOT** depend on public contract modules.
+
+Public contract modules do not depend on discovery or integration implementations.
+`Plugin` depends on public reporting contracts. `Internal/Event` depends on
+`Event` to encode and decode events. Other internal utility modules do not
+depend on public contract modules.
 Reporters **MUST NOT** control execution. Optional integrations **MUST NOT**
 become runtime package dependencies.
 

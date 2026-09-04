@@ -13,10 +13,11 @@ execution adapter.
 
 The provider instance belongs to the orchestrator. If the same plugin class has
 worker capabilities, those capabilities use a separate instance in each
-worker. Plugin properties do not cross this seam. The provider MUST use
+worker. Plugin properties do not cross this seam. Use
 `IntegrationFixtureContext::expose()` to transfer supported fixture data.
 
-Greenlight provisions one fixture graph per selected run. Each repeat iteration
+Greenlight provisions one fixture graph per nonempty selected run. An empty plan
+emits run lifecycle events without fixture provisioning. Each repeat iteration
 and watch rerun gets a fresh graph. CI shards provision independently because
 Greenlight does not coordinate them across machines.
 
@@ -35,8 +36,8 @@ because PHP converts those map keys to integers.
 `IntegrationFixtureContext::configuredWorkers()` returns the configured worker
 ceiling. `IntegrationFixtureContext::channels()` returns the consecutive channel
 numbers that the selected plan can use. Selected work and resource capacity can
-reduce the number of channels below the ceiling. Providers MUST create overlays
-only for these numbers. Replacement workers reuse released numbers.
+reduce the number of channels below the ceiling. Create overlays only for these
+numbers. Replacement workers reuse released numbers.
 
 Call `IntegrationFixtureContext::defer()` as soon as the provisioner acquires a
 resource. The callback will then run even if the rest of the provisioner fails.
@@ -64,7 +65,7 @@ stderr. A worker receives only its own channel overlay.
 ## Worker bootstrap
 
 After a worker sends `hello`, the orchestrator replies with a `bootstrap`
-message that contains the channel, config path, and resources. The worker loads
+message that contains the channel, configuration path, and resources. The worker loads
 its plugin definitions and creates its worker-side instances. It calls
 `WorkerBootstrapSubscriber`, builds the harness service scopes, and then replies
 with `ready`.
