@@ -126,7 +126,7 @@
         "code-style:check": "Checks code style without changes to files.",
         "code-style:fix": "Corrects code-style violations.",
         "deptrac": "Checks the dependency boundaries.",
-        "docs:php:check": "Checks the PHP API documentation.",
+        "docs:php:check": "Checks classified PHP examples in the documentation.",
         "lint": "Checks the PHP syntax.",
         "memory-gate": "Checks for memory growth during a long test run.",
         "phpstan": "Analyzes PHP types with PHPStan.",
