@@ -1845,7 +1845,7 @@ code {
 
   .mobile-nav-popover {
     inset: 0;
-    width: 100%;
+    width: 100dvw;
     height: 100dvh;
     max-width: none;
     max-height: none;
@@ -1975,7 +1975,7 @@ code {
 
   .mobile-index-popover {
     inset: auto 0 0;
-    width: 100%;
+    width: 100dvw;
     max-width: none;
     max-height: min(72dvh, 38rem);
     margin: 0;
