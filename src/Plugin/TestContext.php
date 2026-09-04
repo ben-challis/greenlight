@@ -14,9 +14,10 @@ use Greenlight\Test\TestDefinition;
 use Greenlight\Test\TestId;
 
 /**
- * `service()` is available during `beforeTest()` and the test. The per-test
- * service scope closes before `afterTest()`, so `service()` throws during
- * `afterTest()`.
+ * Supplies the test instance, identity, attachments, and service access to plugins.
+ *
+ * The per-test service scope closes before `afterTest()`. A `service()` call
+ * for a per-test service then throws. Other service scopes remain available.
  */
 final readonly class TestContext
 {

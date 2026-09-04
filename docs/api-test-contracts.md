@@ -14,14 +14,15 @@ Stores cleanup callbacks for one test attempt. Greenlight runs the callbacks
 in reverse registration order after the `After` hooks. Per-test service
 disposal starts after the callbacks finish.
 
-Greenlight runs all callbacks if one fails. A cleanup failure errors a passed
-or skipped test. It does not replace an earlier test failure or error.
+Greenlight runs all callbacks if one fails. An expectation failure during
+cleanup fails a passed or skipped test. Other cleanup exceptions cause an
+errored result. Cleanup does not replace an earlier test failure or error.
 
 ```php
 final class Cleanup
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/Cleanup.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/Cleanup.php#L16)
 
 ### `defer()`
 
@@ -39,7 +40,7 @@ PHPDoc:
 - `@param \Closure(): TReturn $cleanup`
 - `@throws \LogicException If test cleanup has started.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/Cleanup.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Test/Cleanup.php#L34)
 
 ## `DataProvider`
 
