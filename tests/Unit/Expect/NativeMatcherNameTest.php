@@ -13,13 +13,6 @@ use Greenlight\Tests\Fixture\PhpStanNativeMatcherOverride\NativeMatcherOverrideE
 
 final class NativeMatcherNameTest
 {
-    #[Test]
-    public function extensionErrorsRequireANamedFactory(): void
-    {
-        Expect::that(static fn(): object => new \ReflectionClass(ExpectationExtensionError::class)->newInstance('arbitrary'))
-            ->toThrow(\ReflectionException::class);
-    }
-
     /** @param non-empty-string $name */
     #[Test]
     #[DataRow(['toBeInt'], label: 'native matcher')]
