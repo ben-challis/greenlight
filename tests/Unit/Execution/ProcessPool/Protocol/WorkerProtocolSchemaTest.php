@@ -140,6 +140,19 @@ final class WorkerProtocolSchemaTest
     }
 
     #[Test]
+    public function aStagedAttachmentWithoutAStorageKeyIsRejected(): void
+    {
+        $payload = $this->withoutPaths($this->messages()['event']->toWire(), [
+            ['data', 'result', 'attachments', 0, 'storageKey'],
+        ]);
+
+        Expect::that($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'event', 'p' => $payload])))
+            ->because('the worker schema requires the attachment storage key')
+            ->not()
+            ->toBe([]);
+    }
+
+    #[Test]
     public function emptyMapKeysAreRejected(): void
     {
         /** @var array{resources: array{fixtures: array<string, mixed>}} $bootstrapPayload */

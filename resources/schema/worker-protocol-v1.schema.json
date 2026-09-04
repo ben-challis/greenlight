@@ -752,7 +752,7 @@
         "attachment": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["name", "kind", "mediaType", "sizeBytes", "sha256", "attempt", "path"],
+            "required": ["name", "kind", "mediaType", "sizeBytes", "sha256", "attempt", "path", "storageKey"],
             "properties": {
                 "name": {"type": "string", "minLength": 1},
                 "kind": {"enum": ["value", "text", "binary", "file"]},
