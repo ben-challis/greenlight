@@ -210,7 +210,7 @@ echo \sprintf(
 $cleanup();
 
 if ($drift > MAX_DRIFT_BYTES) {
-    \fwrite(\STDERR, "FLAT-MEMORY GATE FAILED: Greenlight leaks memory during a long run.\n");
+    \fwrite(\STDERR, "Flat-memory gate failed: measured memory growth exceeds the limit.\n");
     exit(1);
 }
 
