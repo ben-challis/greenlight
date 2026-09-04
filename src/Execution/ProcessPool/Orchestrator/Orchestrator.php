@@ -609,6 +609,7 @@ final class Orchestrator
         if ($event instanceof TestStarted) {
             $handle->inFlight = $event->id;
             $handle->inFlightSince = $this->monotonicTime();
+            $handle->inFlightAttemptSince = $handle->inFlightSince;
             $handle->inFlightAttempt = 0;
         }
 
@@ -662,7 +663,7 @@ final class Orchestrator
         }
 
         $handle->inFlightAttempt = $message->attempt;
-        $handle->inFlightSince = $this->monotonicTime();
+        $handle->inFlightAttemptSince = $this->monotonicTime();
     }
 
     /**
@@ -777,7 +778,7 @@ final class Orchestrator
                 continue;
             }
 
-            $deadline = $handle->inFlightSince + $budget * self::TIMEOUT_GRACE_FACTOR + self::TIMEOUT_GRACE_FLAT_SECONDS;
+            $deadline = $handle->inFlightAttemptSince + $budget * self::TIMEOUT_GRACE_FACTOR + self::TIMEOUT_GRACE_FLAT_SECONDS;
 
             if ($this->monotonicTime() > $deadline) {
                 $this->containTimeout($handle, $sink, $budget);
