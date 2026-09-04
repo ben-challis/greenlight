@@ -72,16 +72,13 @@ final readonly class Command
         $command = $arguments[1] ?? 'check';
 
         if (!\in_array($command, ['check', 'extract'], true)) {
-            throw new DocumentationExampleError(\sprintf(
-                'Unknown documentation PHP command "%s".',
-                $command,
-            ));
+            throw DocumentationExampleError::unknownCommand($command);
         }
 
         $root = \getcwd();
 
         if ($root === false) {
-            throw new DocumentationExampleError('Cannot identify the current directory.');
+            throw DocumentationExampleError::currentDirectoryUnavailable();
         }
 
         $phpstan = null;
@@ -95,20 +92,14 @@ final readonly class Command
             } elseif (\str_starts_with($argument, '--rector-bin=')) {
                 $rector = \substr($argument, \strlen('--rector-bin='));
             } else {
-                throw new DocumentationExampleError(\sprintf(
-                    'Unknown documentation PHP option "%s".',
-                    $argument,
-                ));
+                throw DocumentationExampleError::unknownOption($argument);
             }
         }
 
         $realRoot = \realpath($root);
 
         if ($realRoot === false || !\is_dir($realRoot)) {
-            throw new DocumentationExampleError(\sprintf(
-                'Documentation PHP root "%s" does not exist.',
-                $root,
-            ));
+            throw DocumentationExampleError::rootNotFound($root);
         }
 
         return [
