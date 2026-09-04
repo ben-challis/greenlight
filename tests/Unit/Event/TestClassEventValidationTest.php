@@ -23,7 +23,7 @@ final readonly class TestClassEventValidationTest
             ->because('a test-class lifecycle event MUST identify its class')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Test class name MUST NOT be empty.',
+                message: 'Test class name cannot be empty.',
             );
     }
 

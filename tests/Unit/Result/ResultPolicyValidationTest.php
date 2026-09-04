@@ -24,7 +24,7 @@ final class ResultPolicyValidationTest
             ->because('deprecation ignore patterns MUST be a list of non-empty strings')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Deprecation ignore patterns MUST be a list of non-empty strings.',
+                message: 'Use a list of non-empty strings for deprecation ignore patterns.',
             );
     }
 

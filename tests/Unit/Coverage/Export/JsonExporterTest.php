@@ -61,7 +61,7 @@ final class JsonExporterTest
             ->because('distinct coverage paths MUST NOT collapse to the same JSON object key')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Coverage JSON file paths MUST contain valid UTF-8.',
+                message: 'Use valid UTF-8 in coverage JSON file paths.',
             );
     }
 

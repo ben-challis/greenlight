@@ -22,7 +22,7 @@ final class DiagnosticValidationTest
             ->because('a diagnostic MUST identify a positive source line')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Diagnostic line MUST be greater than zero.',
+                message: 'Use a diagnostic line number greater than zero.',
             );
     }
 

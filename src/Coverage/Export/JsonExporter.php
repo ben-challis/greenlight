@@ -28,7 +28,7 @@ final readonly class JsonExporter implements CoverageExporter
 
         foreach ($map->files() as $path => $file) {
             if (\preg_match('//u', $path) !== 1) {
-                throw new \InvalidArgumentException('Coverage JSON file paths MUST contain valid UTF-8.');
+                throw new \InvalidArgumentException('Use valid UTF-8 in coverage JSON file paths.');
             }
 
             $files[$path] = [

@@ -24,7 +24,7 @@ final class CapturedOutputValidationTest
             ->because('captured output diagnostics MUST be a list of Diagnostic instances')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Captured output diagnostics MUST be a list of Diagnostic instances.',
+                message: 'Use a list of Diagnostic instances for captured output diagnostics.',
             );
     }
 

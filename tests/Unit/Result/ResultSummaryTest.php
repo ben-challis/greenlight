@@ -43,7 +43,7 @@ final class ResultSummaryTest
         foreach (['passed', 'failed', 'errored', 'skipped'] as $field) {
             yield $field => [
                 $field,
-                \sprintf('Result summary %s count MUST NOT be negative.', $field),
+                \sprintf('Result summary %s count cannot be negative.', $field),
             ];
         }
     }
