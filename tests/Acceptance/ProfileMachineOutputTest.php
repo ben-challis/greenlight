@@ -35,7 +35,9 @@ final readonly class ProfileMachineOutputTest
                 static fn(string $line): mixed => \json_decode($line, true, flags: \JSON_THROW_ON_ERROR),
                 \explode("\n", \trim($report)),
             );
-            Expect::that(\array_column($events, 'event'))->toContain('run-started', 'run-finished');
+            Expect::that(\array_column($events, 'event'))
+                ->toContain('run-started')
+                ->toContain('run-finished');
         } else {
             $document = \simplexml_load_string($report);
             Expect::that($document)->toBeInstanceOf(\SimpleXMLElement::class);
