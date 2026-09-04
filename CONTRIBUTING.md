@@ -13,13 +13,13 @@ for the browser tests.
 ## Technical prose
 
 Use the [technical writing standard](docs/architecture/technical-writing.md)
-for all repository-owned technical prose. The standard applies ASD-STE100 Issue
-9 to documentation, PHPDoc, comments, contributor material, accessibility text,
+for all repository-owned technical prose. The policy uses Simplified Technical English principles
+for documentation, PHPDoc, comments, contributor material, accessibility text,
 diagnostics, CLI help, and human-readable output.
 
-Use uppercase `MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, and `MAY` as
-normative tokens. Use STE clarity principles for marketing copy. The
-controlled vocabulary is optional for marketing copy.
+Write direct instructions for requirements. Identify recommendations and options
+clearly. Preserve normative terms in formal specifications and protocol rules.
+Use the same clarity principles for marketing copy.
 
 Before you push prose changes, review the prose:
 
@@ -39,7 +39,8 @@ composer tests
 make docs-check
 ```
 
-CI runs the same checks. All three MUST pass locally.
+All three commands must pass before you push. CI also runs these checks across
+its supported environments.
 
 The Composer CI commands use one shared local slot by default. The slot applies
 across Git worktrees. Set `GREENLIGHT_LOCAL_CI_MAX_PARALLELISM` to a positive
@@ -50,7 +51,7 @@ integer to permit more concurrent commands. Hosted CI does not use this limit.
 Submit changes in pull requests to `main`.
 
 Greenlight uses squash merges. The pull request title becomes the commit
-message. It MUST use the
+message. Use the
 [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 format:
 
@@ -123,8 +124,7 @@ composer phpstan:stubs
 Greenlight is a development dependency. A runtime dependency can conflict with
 the project under test. Implement each necessary capability in Greenlight.
 
-You MAY add development dependencies for tools. You MUST NOT add runtime
-dependencies.
+You can add development dependencies for tools. Do not add runtime dependencies.
 
 ## Questions
 
