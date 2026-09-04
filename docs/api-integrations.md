@@ -545,9 +545,9 @@ PHPDoc:
 
 - `@param class-string<KernelInterface>|\Closure(): KernelInterface $kernel A kernel class name that Greenlight constructs as new $kernel($env, $debug), or a closure that constructs the kernel. Use a closure for other constructor requirements.`
 - `@param non-empty-string $env`
-- `@param bool $resetBetweenTests For a container without stateful services, use false to disable resets. Tests on one worker then share all service instances.`
+- `@param bool $resetBetweenTests For a container without stateful services, use false to disable resets. Tests on one worker then reuse the container without resets. Symfony service configuration determines which instances are shared.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L54)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L55)
 
 ### `services()`
 
@@ -559,7 +559,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L75)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L76)
 
 ### `resolve()`
 
@@ -573,7 +573,7 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L88)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L89)
 
 ### `afterTest()`
 
@@ -581,7 +581,7 @@ PHPDoc:
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L124)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L125)
 
 ## `TempestPlugin`
 
