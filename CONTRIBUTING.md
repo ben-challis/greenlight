@@ -7,6 +7,9 @@ Thank you for your interest in Greenlight. These rules apply to every change.
 Greenlight requires PHP 8.4 or later. The documentation checks require Node.js
 24 or later and npm.
 
+Run `make docs-install` to install the documentation dependencies and Chromium
+for the browser tests.
+
 ## Technical prose
 
 Use the [technical writing standard](docs/architecture/technical-writing.md)

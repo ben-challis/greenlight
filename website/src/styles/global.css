@@ -1819,15 +1819,15 @@ code {
       display 180ms allow-discrete;
   }
 
-  .mobile-nav-popover:popover-open,
-  .mobile-index-popover:popover-open {
+  .mobile-nav-popover[open],
+  .mobile-index-popover[open] {
     opacity: 1;
     transform: translateY(0);
   }
 
   @starting-style {
-    .mobile-nav-popover:popover-open,
-    .mobile-index-popover:popover-open {
+    .mobile-nav-popover[open],
+    .mobile-index-popover[open] {
       opacity: 0;
       transform: translateY(1rem);
     }
@@ -1838,8 +1838,8 @@ code {
     background: color-mix(in oklch, var(--ink) 28%, transparent);
   }
 
-  body:has(.mobile-nav-popover:popover-open),
-  body:has(.mobile-index-popover:popover-open) {
+  body:has(.mobile-nav-popover[open]),
+  body:has(.mobile-index-popover[open]) {
     overflow: hidden;
   }
 
