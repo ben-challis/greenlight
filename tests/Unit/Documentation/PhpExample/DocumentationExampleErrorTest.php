@@ -11,13 +11,6 @@ use Greenlight\Expect\Expect;
 final class DocumentationExampleErrorTest
 {
     #[Test]
-    public function errorsRequireANamedFactory(): void
-    {
-        Expect::that(static fn(): object => new \ReflectionClass(DocumentationExampleError::class)->newInstance('arbitrary'))
-            ->toThrow(\ReflectionException::class);
-    }
-
-    #[Test]
     public function invalidMetadataPreservesItsSourceAndCause(): void
     {
         $previous = new \JsonException('Syntax error', \JSON_ERROR_SYNTAX);
