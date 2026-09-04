@@ -107,7 +107,7 @@ $plan->expects('load')
 `andReturnsSequence()` consumes one value for each call that matches. Greenlight
 reports an error if a call occurs after the sequence is empty.
 
-Methods that declare `never` MUST use `andThrows()`. If a configured answer
+For a method that declares `never`, use `andThrows()`. If a configured answer
 returns, Greenlight reports an `InvalidDoubleUsage` error.
 
 ## Argument matches
@@ -213,7 +213,7 @@ Expect::that($captor->value())->toBeInstanceOf(Order::class);
 ```
 
 `values()` returns each captured value. `value()` returns the last value. It
-fails if `Argument::captor()` did not capture a value.
+fails if the captor did not capture a value.
 
 If a plan must capture more than one argument, put an explicit
 `Argument::captor()` inside `with()` for each argument.
