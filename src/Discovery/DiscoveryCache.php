@@ -11,8 +11,8 @@ use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Stores one discovery cache entry for each file. The path, modification time,
- * size, content hash, and external provider files identify an entry. Entries
- * do not contain filter results. Thus, a filter change does not require
+ * size, content hash, inherited sources, and provider files identify an entry.
+ * Entries do not contain filter results. Thus, a filter change does not require
  * another parse operation.
  *
  * Discovery parses the file after a cache miss, stale file, corrupt cache, or
@@ -23,7 +23,7 @@ use Greenlight\Internal\Php\ErrorTrap;
  */
 final class DiscoveryCache
 {
-    private const int VERSION = 1;
+    private const int VERSION = 2;
 
     /**
      * @var array<string, DiscoveryCacheEntry>
@@ -108,8 +108,9 @@ final class DiscoveryCache
     /**
      * @param non-empty-string $file
      * @param list<PlanEntry> $entries
+     * @param class-string|null $class The declared class, including classes with no test entries.
      */
-    public function store(string $file, array $entries): void
+    public function store(string $file, array $entries, ?string $class = null): void
     {
         $stat = $this->stat($file);
 
@@ -121,47 +122,75 @@ final class DiscoveryCache
             $stat['mtime'],
             $stat['size'],
             \array_map(static fn(PlanEntry $entry): array => $entry->toWire(), $entries),
-            $this->providerDependencies($entries),
+            $this->dependencies($file, $entries, $class),
             $stat['contentHash'],
         );
     }
 
     /**
      * @param list<PlanEntry> $entries
+     * @param class-string|null $class
      *
      * @return array<non-empty-string, array{mtime: int, size: int, contentHash?: string}>
      */
-    private function providerDependencies(array $entries): array
+    private function dependencies(string $source, array $entries, ?string $class): array
     {
-        $dependencies = [];
+        $classes = $class === null ? [] : [$class => true];
 
         foreach ($entries as $entry) {
-            $class = $entry->definition->dataProvider->class;
+            $classes[$entry->definition->class] = true;
 
-            if ($class === null || !\class_exists($class)) {
+            if ($entry->definition->dataProvider->class !== null) {
+                $classes[$entry->definition->dataProvider->class] = true;
+            }
+        }
+
+        $pending = [];
+
+        foreach (\array_keys($classes) as $name) {
+            if (\class_exists($name, false)) {
+                $pending[] = new \ReflectionClass($name);
+            }
+        }
+
+        $seen = [];
+        $files = [];
+
+        while ($pending !== []) {
+            $reflection = \array_pop($pending);
+            $name = $reflection->getName();
+
+            if (isset($seen[$name])) {
                 continue;
             }
 
-            $reflection = new \ReflectionClass($class);
-            $files = [$reflection->getFileName()];
-            $provider = $entry->definition->dataProvider->method;
+            $seen[$name] = true;
+            $file = $reflection->getFileName();
 
-            if ($provider !== null && $reflection->hasMethod($provider)) {
-                $files[] = $reflection->getMethod($provider)->getFileName();
+            if (\is_string($file) && $file !== '' && $file !== $source) {
+                $files[$file] = true;
             }
 
-            foreach ($files as $file) {
-                if (!\is_string($file) || $file === '') {
-                    continue;
-                }
+            $parent = $reflection->getParentClass();
 
-                $stat = $this->stat($file);
+            if ($parent !== false) {
+                $pending[] = $parent;
+            }
 
-                if ($stat !== null) {
-                    $dependencies[$file] = $stat['contentHash'] === null
-                        ? ['mtime' => $stat['mtime'], 'size' => $stat['size']]
-                        : ['mtime' => $stat['mtime'], 'size' => $stat['size'], 'contentHash' => $stat['contentHash']];
-                }
+            foreach ($reflection->getTraits() as $trait) {
+                $pending[] = $trait;
+            }
+        }
+
+        $dependencies = [];
+
+        foreach (\array_keys($files) as $file) {
+            $stat = $this->stat($file);
+
+            if ($stat !== null) {
+                $dependencies[$file] = $stat['contentHash'] === null
+                    ? ['mtime' => $stat['mtime'], 'size' => $stat['size']]
+                    : ['mtime' => $stat['mtime'], 'size' => $stat['size'], 'contentHash' => $stat['contentHash']];
             }
         }
 
