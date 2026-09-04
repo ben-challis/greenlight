@@ -14,9 +14,12 @@ use Greenlight\Test\TestId;
  * A plugin does not change a result object. It uses `withOutcome()` to produce
  * a replacement and record the source of the change.
  *
- * The expectations value counts each matcher in a chain separately. It counts
- * each mock expectation when disposal verifies it. Stubs do not add to the
- * count. An unsuccessful result contains the count at the time of the abort.
+ * The expectations value counts each immediate matcher and each mock
+ * expectation that disposal verifies. Each temporal matcher counts once,
+ * regardless of the number of polls. Stubs do not add to the count.
+ *
+ * The worker records the count after cleanup and per-test service disposal,
+ * before `afterTest()` subscribers. Retries report the final attempt's count.
  */
 final readonly class TestResult
 {
