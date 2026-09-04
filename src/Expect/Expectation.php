@@ -738,15 +738,15 @@ final class Expectation
         $subject = $this->stringSubject('toMatchJson');
 
         try {
-            $decodedExpected = \json_decode($expected, true, 512, \JSON_THROW_ON_ERROR);
+            $decodedExpected = $this->decodeJsonForComparison($expected);
         } catch (\JsonException) {
             $this->usageFailure('Pass valid JSON as the expected value to toMatchJson().');
         }
 
-        $renderedExpected = $this->renderer->render($decodedExpected);
+        $renderedExpected = $this->renderer->render($expected);
 
         try {
-            $decodedSubject = \json_decode($subject, true, 512, \JSON_THROW_ON_ERROR);
+            $decodedSubject = $this->decodeJsonForComparison($subject);
         } catch (\JsonException) {
             return $this->verify(
                 false,
@@ -759,7 +759,7 @@ final class Expectation
             Equality::equals($decodedSubject, $decodedExpected),
             'to match the JSON structure ' . $renderedExpected,
             $renderedExpected,
-            $this->renderer->render($decodedSubject),
+            $this->renderer->render($subject),
         );
     }
 
@@ -1104,5 +1104,40 @@ final class Expectation
                 $warning === null ? '' : ' (' . $warning . ')',
             ));
         }
+    }
+
+    /**
+     * Prefixes every JSON string for comparison. This keeps string equality
+     * and prevents PHP from rejecting object keys that start with a null byte.
+     * The original JSON is used for diagnostics.
+     */
+    private function decodeJsonForComparison(string $json): mixed
+    {
+        $prefixed = '';
+        $insideString = false;
+        $offset = 0;
+        $bytes = \strlen($json);
+
+        while ($offset < $bytes) {
+            $span = \strcspn($json, '"\\', $offset);
+            $prefixed .= \substr($json, $offset, $span);
+            $offset += $span;
+
+            if ($offset === $bytes) {
+                break;
+            }
+
+            if ($json[$offset] === '\\') {
+                $prefixed .= \substr($json, $offset, 2);
+                $offset += 2;
+                continue;
+            }
+
+            $insideString = !$insideString;
+            $prefixed .= $insideString ? '"_' : '"';
+            ++$offset;
+        }
+
+        return \json_decode($prefixed, false, 512, \JSON_THROW_ON_ERROR);
     }
 }
