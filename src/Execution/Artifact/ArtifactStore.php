@@ -499,6 +499,12 @@ final class ArtifactStore
         $this->runHandle?->close();
         $directory = $this->session->stagingDirectory;
 
+        if (\is_link($directory)) {
+            ErrorTrap::run(static fn() => \unlink($directory));
+
+            return;
+        }
+
         if (!\is_dir($directory)) {
             return;
         }
