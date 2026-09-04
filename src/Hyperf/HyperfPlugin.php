@@ -92,10 +92,12 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
     public function resolve(string $type, array $attributes): ?object
     {
         $id = $type;
+        $explicit = false;
 
         foreach ($attributes as $attribute) {
             if ($attribute instanceof Service) {
                 $id = $attribute->id;
+                $explicit = true;
             }
         }
 
@@ -103,7 +105,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
             $container = $this->container();
 
             if (!$container->has($id)) {
-                if ($id !== $type) {
+                if ($explicit) {
                     throw HyperfBridgeError::unknownServiceId($id, $type);
                 }
 

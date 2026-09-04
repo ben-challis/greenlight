@@ -137,6 +137,20 @@ final class LaravelPluginTest
     }
 
     #[Test]
+    public function anExplicitTypeIdStopsTheResolverChainWhenTheBindingIsMissing(): void
+    {
+        $later = new ServiceResolverProbe(new \ArrayObject());
+        $scopes = new HarnessScopes([], [$this->plugin(), $later]);
+
+        Expect::that(static fn(): object => $scopes->resolve(
+            \ArrayObject::class,
+            'test',
+            [new Service(\ArrayObject::class)],
+        ))->toThrow(LaravelBridgeError::class);
+        Expect::that($later->calls)->toBe(0);
+    }
+
+    #[Test]
     public function anUnknownExplicitIdFailsLoudly(): void
     {
         $plugin = $this->plugin();

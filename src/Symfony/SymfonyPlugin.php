@@ -89,10 +89,12 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     public function resolve(string $type, array $attributes): ?object
     {
         $id = $type;
+        $explicit = false;
 
         foreach ($attributes as $attribute) {
             if ($attribute instanceof Service) {
                 $id = $attribute->id;
+                $explicit = true;
             }
         }
 
@@ -100,7 +102,7 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             $container = $this->container();
 
             if (!$container->has($id)) {
-                if ($id !== $type) {
+                if ($explicit) {
                     throw SymfonyBridgeError::unknownServiceId($id, $type);
                 }
 

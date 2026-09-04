@@ -93,10 +93,12 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     public function resolve(string $type, array $attributes): ?object
     {
         $id = $type;
+        $explicit = false;
 
         foreach ($attributes as $attribute) {
             if ($attribute instanceof Service) {
                 $id = $attribute->id;
+                $explicit = true;
             }
         }
 
@@ -104,7 +106,7 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             $app = $this->application();
 
             if (!$app->bound($id)) {
-                if ($id !== $type) {
+                if ($explicit) {
                     throw LaravelBridgeError::unknownServiceId($id, $type);
                 }
 
