@@ -76,10 +76,10 @@ final class ClassContext
      *
      * The method gets them from #[DataRow] attributes and the #[DataSet] data
      * provider.
- *
-     * The execution plan supplies the key. If the method data sets do not
-     * contain it, the code changed after discovery. This condition is an
-     * error.
+     *
+     * The execution plan supplies the key. If the current data sets do not
+     * contain it, Greenlight reports an error. The code or provider output
+     * can differ from discovery.
      *
      * @param non-empty-string|null $provider
      * @param non-empty-string|null $providerClass
