@@ -8,11 +8,14 @@ use Greenlight\Expect\ExpectationExtension;
 
 final class NativeMatcherOverrideExtension implements ExpectationExtension
 {
+    /** @param non-empty-string $name */
+    public function __construct(private readonly string $name = 'toBeInt') {}
+
+    /** @return array<non-empty-string, \Closure(string): string> */
     public function matchers(): array
     {
         return [
-            'toBeInt' => static fn(string $subject): string => $subject,
-            'toHavePositiveValue' => static fn(int $subject): bool => $subject > 0,
+            $this->name => static fn(string $subject): string => $subject,
         ];
     }
 }

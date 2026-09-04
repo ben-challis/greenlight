@@ -7,70 +7,43 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\PhpStan\IdeHelper;
 use Greenlight\PhpStan\MatcherMap;
-use Greenlight\Sandbox\TemporaryDirectory;
-use Greenlight\Tests\Fixture\PhpStanNativeMatcherOverride\NativeMatcherOverrideExtension;
+use Greenlight\PhpStan\MatcherMapError;
 use Greenlight\Tests\Support\FixturePath;
-use Greenlight\Tests\Support\PhpStanProbe;
+use Greenlight\Tests\Support\GreenlightCli;
+use Greenlight\Tests\Support\PhpSubprocess;
 
 #[RequiresResource('analysis-process')]
-final readonly class PhpStanNativeMatcherOverrideTest
+final class PhpStanNativeMatcherOverrideTest
 {
-    public function __construct(private TemporaryDirectory $tempDirectory) {}
+    private const string MESSAGE = 'Extension matcher "toBeInt" conflicts with a native expectation method. Rename the extension matcher.';
 
     #[Test]
-    public function nativeMatchersKeepTheirSignaturesWhenAnExtensionReusesTheirNames(): void
+    public function runtimeAndToolingRejectNativeMatcherNames(): void
     {
-        $restore = Expect::install([new NativeMatcherOverrideExtension()]);
+        $root = \dirname(__DIR__, 2);
+        $config = FixturePath::get('PhpStanNativeMatcherOverride/greenlight.php');
 
-        try {
-            Expect::that(1)->toBeInt();
-        } finally {
-            $restore();
-        }
+        Expect::that(static fn() => MatcherMap::fromConfigFiles([$config]))
+            ->toThrow(MatcherMapError::class, message: self::MESSAGE);
 
-        $probe = PhpStanProbe::analyze(
-            $this->tempDirectory,
-            <<<'PHP'
-            <?php
+        $run = GreenlightCli::run($root, ['run', '--config=' . $config, '--workers=1', '--no-ansi']);
+        Expect::that($run->exitCode)->not()->toBe(0);
+        Expect::that($run->output())->toContain(self::MESSAGE);
 
-            declare(strict_types=1);
+        $helper = GreenlightCli::run($root, ['ide-helper', '--config=' . $config, '--no-ansi']);
+        Expect::that($helper->exitCode)->not()->toBe(0);
+        Expect::that($helper->output())->toContain(self::MESSAGE);
 
-            use Greenlight\Expect\Expect;
-
-            function nativeMatcherOverrideGoodProbe(): void
-            {
-                Expect::that(1)->toBeInt();
-                Expect::eventually(static fn(): int => 1)->within(0.1)->toBeInt();
-                Expect::consistently(static fn(): int => 1)->for(0.1)->toBeInt();
-                Expect::that(1)->toHavePositiveValue();
-            }
-            PHP,
-            <<<'PHP'
-            <?php
-
-            declare(strict_types=1);
-
-            use Greenlight\Expect\Expect;
-
-            function nativeMatcherOverrideBadProbe(): void
-            {
-                Expect::that('wrong subject')->toHavePositiveValue();
-            }
-            PHP,
-            FixturePath::get('PhpStanNativeMatcherOverride/probe.neon'),
-        );
-
-        Expect::that($probe->exitCode)->toBe(1);
-        Expect::that($probe->goodErrors)->toBe([]);
-        Expect::that(\count($probe->errors))->toBe(1);
-        Expect::that($probe->messages())->toContain('requires subject type int, but the subject has type string');
-
-        $helper = IdeHelper::render(MatcherMap::fromConfigFiles([
-            FixturePath::get('PhpStanNativeMatcherOverride/greenlight.php'),
-        ]));
-        Expect::that($helper)->not()->toContain('@method self toBeInt(');
-        Expect::that($helper)->toContain('@method self toHavePositiveValue()');
+        $analysis = PhpSubprocess::run($root, [
+            $root . '/vendor/bin/phpstan',
+            'analyse',
+            '--no-progress',
+            '--error-format=json',
+            '--configuration=' . FixturePath::get('PhpStanNativeMatcherOverride/probe.neon'),
+            FixturePath::get('PhpStanNativeMatcherOverride/Probe.php'),
+        ]);
+        Expect::that($analysis->exitCode)->not()->toBe(0);
+        Expect::that($analysis->output())->toContain('conflicts with a native expectation method. Rename the extension matcher.');
     }
 }

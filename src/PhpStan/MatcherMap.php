@@ -9,6 +9,7 @@ use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Expect\Expectation;
 use Greenlight\Expect\ExpectationExtension;
+use Greenlight\Expect\ExpectationExtensionError;
 
 /**
  * Combines extension matchers from a set of Greenlight configuration files.
@@ -66,7 +67,7 @@ final readonly class MatcherMap
 
                 foreach ($plugin->matchers() as $name => $matcher) {
                     if (isset($nativeMethods[\strtolower($name)])) {
-                        continue;
+                        throw MatcherMapError::invalidExtension(ExpectationExtensionError::nativeMethod($name));
                     }
 
                     $reflection = new \ReflectionFunction($matcher);
