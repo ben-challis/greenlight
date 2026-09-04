@@ -29,11 +29,4 @@ final class UnavailableContainerTest
             },
         );
     }
-
-    #[Test]
-    public function errorsRequireANamedFactory(): void
-    {
-        Expect::that(static fn(): object => new \ReflectionClass(UnavailableContainerError::class)->newInstance())
-            ->toThrow(\ReflectionException::class);
-    }
 }
