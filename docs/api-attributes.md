@@ -43,12 +43,14 @@ This type does not declare public members.
 
 Namespace: `Greenlight\Attribute`
 
+Runs the method before each test attempt in the class.
+
 ```php
 #[\Attribute(\Attribute::TARGET_METHOD)]
 final readonly class Before
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Before.php#L8)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Before.php#L9)
 
 This type does not declare public members.
 
@@ -182,12 +184,15 @@ PHPDoc:
 
 Namespace: `Greenlight\Attribute`
 
+Adds a group name to a test method or all tests in a class.
+Class and method groups combine. Repeat the attribute to add more groups.
+
 ```php
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
 final readonly class Group
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Group.php#L8)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Group.php#L12)
 
 ### `$name`
 
@@ -199,7 +204,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Group.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Group.php#L17)
 
 ### `__construct()`
 
@@ -212,7 +217,7 @@ PHPDoc:
 - `@param non-empty-string $name`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Group.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Group.php#L24)
 
 ## `Isolated`
 
@@ -341,12 +346,14 @@ PHPDoc:
 
 Namespace: `Greenlight\Attribute`
 
+Skips a test method or all tests in a class with the specified reason.
+
 ```php
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class Skip
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Skip.php#L8)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Skip.php#L9)
 
 ### `$reason`
 
@@ -358,7 +365,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Skip.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Skip.php#L14)
 
 ### `__construct()`
 
@@ -371,11 +378,13 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws \InvalidArgumentException If $reason is empty.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Skip.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Skip.php#L21)
 
 ## `SkipUnless`
 
 Namespace: `Greenlight\Attribute`
+
+Skips a test unless the condition returns true.
 
 A worker evaluates the condition. Use only scalar values or null for
 constructor arguments. Use finite float values.
@@ -385,7 +394,7 @@ constructor arguments. Use finite float values.
 final readonly class SkipUnless
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L16)
 
 ### `$condition`
 
@@ -397,7 +406,7 @@ PHPDoc:
 
 - `@var class-string<Condition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L21)
 
 ### `$arguments`
 
@@ -409,7 +418,7 @@ PHPDoc:
 
 - `@var list<mixed>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L26)
 
 ### `__construct()`
 
@@ -425,20 +434,20 @@ PHPDoc:
 - `@param class-string<Condition> $condition`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/SkipUnless.php#L33)
 
 ## `Test`
 
 Namespace: `Greenlight\Attribute`
 
-Greenlight captures test output by default.
+Identifies a test method. Greenlight captures test output by default.
 
 ```php
 #[\Attribute(\Attribute::TARGET_METHOD)]
 final readonly class Test
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Test.php#L9)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Test.php#L11)
 
 ### `$capture`
 
@@ -446,7 +455,7 @@ final readonly class Test
 public bool $capture
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Test.php#L11)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Test.php#L13)
 
 ### `__construct()`
 
@@ -454,7 +463,7 @@ public bool $capture
 public function __construct(public bool $capture = true)
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Test.php#L11)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Test.php#L13)
 
 ## `Timeout`
 
@@ -496,11 +505,13 @@ PHPDoc:
 
 Namespace: `Greenlight\Condition`
 
+Passes when `class_exists()` finds the named class, with autoloading enabled.
+
 ```php
 final readonly class ClassAvailable implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L7)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L8)
 
 ### `__construct()`
 
@@ -513,7 +524,7 @@ PHPDoc:
 - `@param non-empty-string $class`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L23)
 
 ### `isSatisfied()`
 
@@ -521,7 +532,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ClassAvailable.php#L33)
 
 ## `Condition`
 
@@ -551,11 +562,13 @@ public function isSatisfied(): bool;
 
 Namespace: `Greenlight\Condition`
 
+Passes when `getenv()` returns the exact expected string for the variable.
+
 ```php
 final readonly class EnvironmentVariableEquals implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L9)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L10)
 
 ### `__construct()`
 
@@ -568,7 +581,7 @@ PHPDoc:
 - `@param non-empty-string $name`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L22)
 
 ### `isSatisfied()`
 
@@ -576,17 +589,19 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableEquals.php#L30)
 
 ## `EnvironmentVariableSet`
 
 Namespace: `Greenlight\Condition`
 
+Passes when `getenv()` finds the variable, including an empty string value.
+
 ```php
 final readonly class EnvironmentVariableSet implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L9)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L10)
 
 ### `__construct()`
 
@@ -599,7 +614,7 @@ PHPDoc:
 - `@param non-empty-string $name`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L22)
 
 ### `isSatisfied()`
 
@@ -607,17 +622,19 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/EnvironmentVariableSet.php#L30)
 
 ## `ExtensionLoaded`
 
 Namespace: `Greenlight\Condition`
 
+Passes when the named PHP extension is loaded.
+
 ```php
 final readonly class ExtensionLoaded implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L7)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L8)
 
 ### `__construct()`
 
@@ -630,7 +647,7 @@ PHPDoc:
 - `@param non-empty-string $extension`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L20)
 
 ### `isSatisfied()`
 
@@ -638,17 +655,19 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionLoaded.php#L30)
 
 ## `ExtensionMissing`
 
 Namespace: `Greenlight\Condition`
 
+Passes when the named PHP extension is not loaded.
+
 ```php
 final readonly class ExtensionMissing implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L7)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L8)
 
 ### `__construct()`
 
@@ -661,7 +680,7 @@ PHPDoc:
 - `@param non-empty-string $extension`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L20)
 
 ### `isSatisfied()`
 
@@ -669,17 +688,19 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/ExtensionMissing.php#L30)
 
 ## `FunctionAvailable`
 
 Namespace: `Greenlight\Condition`
 
+Passes when `function_exists()` finds the named function.
+
 ```php
 final readonly class FunctionAvailable implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L7)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L8)
 
 ### `__construct()`
 
@@ -692,7 +713,7 @@ PHPDoc:
 - `@param non-empty-string $function`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L20)
 
 ### `isSatisfied()`
 
@@ -700,7 +721,7 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/FunctionAvailable.php#L30)
 
 ## `OperatingSystemFamily`
 
@@ -739,11 +760,13 @@ public function isSatisfied(): bool
 
 Namespace: `Greenlight\Condition`
 
+Passes when `PHP_VERSION` is at least the specified version, as compared by `version_compare()`.
+
 ```php
 final readonly class PhpVersionAtLeast implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L7)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L8)
 
 ### `__construct()`
 
@@ -756,7 +779,7 @@ PHPDoc:
 - `@param non-empty-string $version`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L20)
 
 ### `isSatisfied()`
 
@@ -764,17 +787,19 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionAtLeast.php#L30)
 
 ## `PhpVersionLessThan`
 
 Namespace: `Greenlight\Condition`
 
+Passes when `PHP_VERSION` is less than the specified version, as compared by `version_compare()`.
+
 ```php
 final readonly class PhpVersionLessThan implements Condition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L7)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L8)
 
 ### `__construct()`
 
@@ -787,7 +812,7 @@ PHPDoc:
 - `@param non-empty-string $version`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L20)
 
 ### `isSatisfied()`
 
@@ -795,4 +820,4 @@ PHPDoc:
 public function isSatisfied(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Condition/PhpVersionLessThan.php#L30)

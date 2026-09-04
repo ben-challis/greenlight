@@ -7,6 +7,8 @@ namespace Greenlight\Attribute;
 use Greenlight\Condition\Condition;
 
 /**
+ * Skips a test unless the condition returns true.
+ *
  * A worker evaluates the condition. Use only scalar values or null for
  * constructor arguments. Use finite float values.
  */

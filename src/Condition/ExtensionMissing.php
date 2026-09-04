@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Condition;
 
+/** Passes when the named PHP extension is not loaded. */
 final readonly class ExtensionMissing implements Condition
 {
     /**

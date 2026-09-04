@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Condition;
 
+/** Passes when `class_exists()` finds the named class, with autoloading enabled. */
 final readonly class ClassAvailable implements Condition
 {
     /**
