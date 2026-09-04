@@ -275,7 +275,13 @@ final readonly class ProxyGenerator
         $arguments = $this->renderPositionalArguments($method);
 
         if (!$method->isVariadic()) {
-            return $arguments;
+            return $arguments === '\\func_get_args()'
+                ? $arguments
+                : \sprintf(
+                    '\\array_merge(%s, \\array_slice(\\func_get_args(), %d))',
+                    $arguments,
+                    $method->getNumberOfParameters(),
+                );
         }
 
         $parameters = $method->getParameters();
