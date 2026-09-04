@@ -1,0 +1,105 @@
+@media print {
+  @page {
+    margin: 15mm;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  html,
+  body {
+    overflow: visible !important;
+  }
+
+  body {
+    display: block;
+    min-height: 0;
+    background: none;
+    font-size: 11pt;
+  }
+
+  .site-header,
+  .site-footer,
+  .skip-link,
+  .docs-sidebar,
+  .page-index,
+  .mobile-doc-toolbar,
+  .mobile-nav-popover,
+  .mobile-index-popover,
+  .doc-pagination,
+  .command-copy {
+    display: none !important;
+  }
+
+  dialog::backdrop {
+    background: none;
+  }
+
+  .docs-shell {
+    display: block;
+    width: auto;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .docs-article {
+    max-width: none;
+    overflow-wrap: anywhere;
+  }
+
+  .docs-article h1 {
+    font-size: 24pt;
+  }
+
+  .docs-article h2 {
+    margin-top: 2rem;
+    font-size: 18pt;
+  }
+
+  .docs-article h3 {
+    font-size: 14pt;
+  }
+
+  .docs-article :is(h1, h2, h3, h4, h5, h6) {
+    break-after: avoid;
+  }
+
+  .docs-article p {
+    orphans: 3;
+    widows: 3;
+  }
+
+  .docs-article pre,
+  .docs-article pre code,
+  .docs-article pre .line {
+    overflow-wrap: anywhere !important;
+    white-space: pre-wrap !important;
+  }
+
+  .docs-article pre {
+    overflow: visible;
+    padding: 0.5rem;
+    background: none !important;
+    font-size: 8pt;
+  }
+
+  .docs-article .table-scroll {
+    overflow: visible;
+  }
+
+  .docs-article table {
+    display: table;
+    width: 100%;
+    overflow: visible;
+    table-layout: fixed;
+    font-size: 9pt;
+  }
+
+  .docs-article tr {
+    break-inside: avoid;
+  }
+}

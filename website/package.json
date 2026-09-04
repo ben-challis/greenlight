@@ -10,7 +10,7 @@
     "api:generate": "node scripts/generate-api-reference.mjs",
     "build": "npm run api:check && astro build --force && pagefind --site dist --output-subdir _pagefind && node scripts/check-built-site.mjs",
     "check": "npm run api:check && astro check && astro build --force && pagefind --site dist --output-subdir _pagefind && node scripts/check-built-site.mjs && npm run test:browser",
-    "test:browser": "node --test scripts/docs-navigation.test.mjs",
+    "test:browser": "node --test scripts/docs-*.test.mjs",
     "dev": "astro dev",
     "preview": "astro preview"
   },
