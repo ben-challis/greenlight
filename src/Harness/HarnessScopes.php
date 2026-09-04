@@ -51,7 +51,7 @@ final class HarnessScopes
 
         foreach ($resolvers as $resolver) {
             if ($terminalSeen) {
-                throw new \InvalidArgumentException('A terminal service resolver MUST be the final resolver.');
+                throw new \InvalidArgumentException('Place a terminal service resolver last.');
             }
 
             $terminalSeen = $resolver instanceof TerminalServiceResolver;

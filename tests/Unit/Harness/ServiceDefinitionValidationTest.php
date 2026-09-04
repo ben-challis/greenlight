@@ -22,7 +22,7 @@ final readonly class ServiceDefinitionValidationTest
             ->because('a harness service definition MUST identify its injected type')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Harness service type MUST NOT be empty.',
+                message: 'Harness service type cannot be empty.',
             );
     }
 }

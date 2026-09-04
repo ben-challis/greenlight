@@ -309,7 +309,7 @@ final class HarnessScopesTest
 
         Expect::that(static fn(): HarnessScopes => new HarnessScopes([], [$terminal, $fallback]))
             ->because('a terminal resolver MUST be the final resolver')
-            ->toThrow(\InvalidArgumentException::class, message: 'A terminal service resolver MUST be the final resolver.');
+            ->toThrow(\InvalidArgumentException::class, message: 'Place a terminal service resolver last.');
     }
 
     #[Test]

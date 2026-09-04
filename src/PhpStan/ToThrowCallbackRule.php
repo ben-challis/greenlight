@@ -107,7 +107,7 @@ final class ToThrowCallbackRule implements Rule
 
         if ($parameters === [] || $parameters[0]->isVariadic()) {
             return $this->error(
-                'The throwable callback for toThrow() MUST accept one typed Throwable argument.',
+                'Give the throwable callback for toThrow() one typed Throwable argument.',
                 $line,
             );
         }
@@ -118,7 +118,7 @@ final class ToThrowCallbackRule implements Rule
 
         if ($parameters[0]->passedByReference()->yes()) {
             return $this->error(
-                'The throwable callback for toThrow() MUST accept its argument by value.',
+                'Pass the throwable callback argument for toThrow() by value.',
                 $line,
             );
         }
@@ -138,7 +138,7 @@ final class ToThrowCallbackRule implements Rule
             || !$throwable->isSuperTypeOf($parameterType)->yes()
         ) {
             return $this->error(\sprintf(
-                'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is %s.',
+                'Declare one named, non-null Throwable parameter type for the toThrow() callback. Its parameter type is %s.',
                 $parameterType->describe(VerbosityLevel::typeOnly()),
             ), $line);
         }

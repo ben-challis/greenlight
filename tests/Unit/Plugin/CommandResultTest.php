@@ -16,13 +16,13 @@ final readonly class CommandResultTest
         Expect::that(static fn(): CommandResult => CommandResult::interrupted(0))
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Signal number MUST be from 1 through 127.',
+                message: 'Use a signal number from 1 through 127.',
             );
 
         Expect::that(static fn(): CommandResult => CommandResult::interrupted(128))
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Signal number MUST be from 1 through 127.',
+                message: 'Use a signal number from 1 through 127.',
             );
     }
 }

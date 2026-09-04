@@ -246,10 +246,10 @@ final readonly class PhpStanToThrowRuleTest
         Expect::that($probe->goodPassed)->toBeTrue();
         Expect::that(\count($probe->errors))->toBe(7);
         Expect::that($probe->messages())->toContain(
-            'The throwable callback for toThrow() MUST accept one typed Throwable argument.',
+            'Give the throwable callback for toThrow() one typed Throwable argument.',
         );
         Expect::that($probe->messages())->toContain(
-            'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type.',
+            'Declare one named, non-null Throwable parameter type for the toThrow() callback.',
         );
         Expect::that($probe->messages())->toContain(
             'Parameter #1 $throwable of method Greenlight\\Expect\\Expectation<Closure>::toThrow() expects',

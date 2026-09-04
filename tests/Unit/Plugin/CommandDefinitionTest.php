@@ -30,22 +30,32 @@ final readonly class CommandDefinitionTest
         yield 'empty name' => [
             '',
             'Description',
-            'Command names MUST start with a lowercase ASCII letter. They MUST contain only lowercase ASCII letters, digits, hyphens, or colons.',
+            'Start command names with a lowercase ASCII letter. Use lowercase ASCII letters and digits, with single hyphens or colons between segments.',
         ];
         yield 'uppercase name' => [
             'Company:hello',
             'Description',
-            'Command names MUST start with a lowercase ASCII letter. They MUST contain only lowercase ASCII letters, digits, hyphens, or colons.',
+            'Start command names with a lowercase ASCII letter. Use lowercase ASCII letters and digits, with single hyphens or colons between segments.',
         ];
         yield 'empty description' => [
             'company:hello',
             '',
-            'Command descriptions MUST be non-empty single-line strings.',
+            'Use a non-empty single-line string for each command description.',
+        ];
+        yield 'repeated separator' => [
+            'company::hello',
+            'Description',
+            'Start command names with a lowercase ASCII letter. Use lowercase ASCII letters and digits, with single hyphens or colons between segments.',
+        ];
+        yield 'trailing separator' => [
+            'company:',
+            'Description',
+            'Start command names with a lowercase ASCII letter. Use lowercase ASCII letters and digits, with single hyphens or colons between segments.',
         ];
         yield 'multiline description' => [
             'company:hello',
             "First line\nsecond line",
-            'Command descriptions MUST be non-empty single-line strings.',
+            'Use a non-empty single-line string for each command description.',
         ];
     }
 }

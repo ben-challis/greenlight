@@ -32,7 +32,7 @@ final readonly class AttemptStarted implements Message
     ) {
         if ($attempt < 1) {
             throw new \InvalidArgumentException(\sprintf(
-                'Attempt numbers MUST be positive. Actual value: %d.',
+                'Use positive attempt numbers. Actual value: %d.',
                 $attempt,
             ));
         }

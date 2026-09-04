@@ -45,7 +45,7 @@ final class IntegrationFixtureError extends \RuntimeException
     {
         return new self(\sprintf(
             'Integration fixture provider "%s" returned %s. '
-            . 'It MUST return IntegrationFixtureDefinition instances.',
+            . 'Return IntegrationFixtureDefinition instances.',
             $provider,
             \get_debug_type($definition),
         ));

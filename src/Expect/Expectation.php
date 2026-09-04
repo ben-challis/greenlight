@@ -853,7 +853,7 @@ final class Expectation
 
             if ($result !== null) {
                 $this->usageFailure(\sprintf(
-                    'The throwable callback for toThrow() MUST return void. It returned %s.',
+                    'Return void from the throwable callback for toThrow(). It returned %s.',
                     \get_debug_type($result),
                 ));
             }
@@ -1007,11 +1007,11 @@ final class Expectation
             || $parameter->isVariadic()
             || $reflection->getNumberOfRequiredParameters() > 1
         ) {
-            $this->usageFailure('The throwable callback for toThrow() MUST accept one typed Throwable argument.');
+            $this->usageFailure('Give the throwable callback for toThrow() one typed Throwable argument.');
         }
 
         if ($parameter->isPassedByReference()) {
-            $this->usageFailure('The throwable callback for toThrow() MUST accept its argument by value.');
+            $this->usageFailure('Pass the throwable callback argument for toThrow() by value.');
         }
 
         $returnType = $reflection->getReturnType();
@@ -1021,7 +1021,7 @@ final class Expectation
                 || ($returnType->getName() !== 'void' && $returnType->getName() !== 'never'))
         ) {
             $this->usageFailure(\sprintf(
-                'The throwable callback for toThrow() MUST return void. Its return type is %s.',
+                'Return void from the throwable callback for toThrow(). Its return type is %s.',
                 $this->renderReflectionType($returnType),
             ));
         }
@@ -1030,7 +1030,7 @@ final class Expectation
 
         if (!$type instanceof \ReflectionNamedType || $type->isBuiltin() || $type->allowsNull()) {
             $this->usageFailure(\sprintf(
-                'The throwable callback for toThrow() MUST declare one named, non-null Throwable parameter type. Its parameter type is %s.',
+                'Declare one named, non-null Throwable parameter type for the toThrow() callback. Its parameter type is %s.',
                 $type instanceof \ReflectionType ? $this->renderReflectionType($type) : 'missing',
             ));
         }
@@ -1045,7 +1045,7 @@ final class Expectation
 
         if (!\is_a($throwable, \Throwable::class, true)) {
             $this->usageFailure(\sprintf(
-                'The throwable callback for toThrow() MUST declare a Throwable parameter type. Its parameter type is %s.',
+                'Declare a Throwable parameter type for the toThrow() callback. Its parameter type is %s.',
                 $type->getName(),
             ));
         }

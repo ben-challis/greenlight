@@ -29,7 +29,7 @@ final readonly class ServiceDefinition
         public \Closure $factory,
     ) {
         if ($type === '') {
-            throw new \InvalidArgumentException('Harness service type MUST NOT be empty.');
+            throw new \InvalidArgumentException('Harness service type cannot be empty.');
         }
 
         $this->type = $type;

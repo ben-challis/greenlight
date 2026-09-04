@@ -99,7 +99,7 @@ final class HttpHarnessTest
         ))->toThrow(
             Psr15Error::class,
             message: 'The PSR-15 handler factory returned "stdClass". '
-                . 'It MUST return an instance of "Psr\\Http\\Server\\RequestHandlerInterface".',
+                . 'Return an instance of "Psr\\Http\\Server\\RequestHandlerInterface".',
         );
     }
 

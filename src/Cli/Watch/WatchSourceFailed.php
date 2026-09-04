@@ -31,7 +31,7 @@ final class WatchSourceFailed extends \RuntimeException
     public static function invalidChange(string $plugin, mixed $change): self
     {
         return new self(\sprintf(
-            'Watch source plugin "%s" returned %s. It MUST return non-empty string paths or labels.',
+            'Watch source plugin "%s" returned %s. Return non-empty string paths or labels.',
             $plugin,
             \get_debug_type($change),
         ));

@@ -35,7 +35,7 @@ final class HarnessServiceFactoryContractTest
                 UnresolvableService::class,
                 message: \sprintf(
                     'Service definition for type "Countable" created "%s". '
-                    . 'Its factory MUST return an instance of "Countable".',
+                    . 'Make its factory return an instance of "Countable".',
                     $type,
                 ),
             );
@@ -60,7 +60,7 @@ final class HarnessServiceFactoryContractTest
             ->toThrow(
                 UnresolvableService::class,
                 message: 'Service definition for type "Countable" created "stdClass". '
-                . 'Its factory MUST return an instance of "Countable".',
+                . 'Make its factory return an instance of "Countable".',
             );
     }
 
@@ -74,7 +74,7 @@ final class HarnessServiceFactoryContractTest
             ->toThrow(
                 UnresolvableService::class,
                 message: 'Service definition for type "Greenlight\\Tests\\Fixture\\Harness\\FactoryContractTarget" '
-                . 'created "stdClass". Its factory MUST return an instance of '
+                . 'created "stdClass". Make its factory return an instance of '
                 . '"Greenlight\\Tests\\Fixture\\Harness\\FactoryContractTarget".',
             );
     }

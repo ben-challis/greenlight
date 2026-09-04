@@ -21,7 +21,7 @@ final readonly class DoneValidationTest
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: \sprintf(
-                    'Done message peak memory MUST NOT be negative. Actual value: %d.',
+                    'Done message peak memory cannot be negative. Actual value: %d.',
                     $peakMemoryBytes,
                 ),
             );
