@@ -1,0 +1,838 @@
+{
+  "scope/artifact": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Artifact/**",
+            "tests/Unit/Artifact/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/attribute": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Attribute/**",
+            "tests/Unit/Attribute/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/condition": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Condition/**",
+            "tests/Unit/Condition/**",
+            "tests/Fixture/Condition/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/config": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Config/**",
+            "tests/Unit/Config/**",
+            "tests/Fixture/ConfigFiles/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/event": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Event/**",
+            "tests/Unit/Event/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/expect": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Expect/**",
+            "tests/Unit/Expect/**",
+            "tests/Fixture/Expect/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/harness": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Harness/**",
+            "tests/Unit/Harness/**",
+            "tests/Fixture/Harness*/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/integration-fixture": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/IntegrationFixture/**",
+            "tests/Unit/IntegrationFixture/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/doubles": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Doubles/**",
+            "tests/Unit/Doubles/**",
+            "tests/Fixture/Doubles/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/sandbox": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Sandbox/**",
+            "tests/Unit/Sandbox/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/plugin": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Plugin/**",
+            "tests/Unit/Plugin/**",
+            "tests/Fixture/Plugin*/**",
+            "tests/Fixture/Plugins/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/result": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Result/**",
+            "tests/Unit/Result/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/test": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Test/**",
+            "tests/Unit/Test/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/test-data-set": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Test/DataSet/**",
+            "tests/Unit/Test/DataSet/**",
+            "tests/Fixture/DataRows*/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/discovery": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Discovery/**",
+            "tests/Unit/Discovery/**",
+            "tests/Fixture/Discovery*/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/discovery-plan": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Discovery/Plan/**",
+            "tests/Unit/Discovery/Plan/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/coverage": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Coverage/**",
+            "tests/Unit/Coverage/**",
+            "tests/Fixture/Coverage*/**",
+            "greenlight.coverage.php"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/coverage-collection": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Coverage/Collection/**",
+            "tests/Unit/Coverage/Collection/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/coverage-diff": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Coverage/Diff/**",
+            "tests/Unit/Coverage/Diff/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/coverage-export": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Coverage/Export/**",
+            "tests/Unit/Coverage/Export/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/coverage-ignore": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Coverage/Ignore/**",
+            "tests/Unit/Coverage/Ignore/**",
+            "tests/Fixture/CoverageIgnore*/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/coverage-relay": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Coverage/Relay/**",
+            "tests/Unit/Coverage/Relay/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/reporting": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Reporting/**",
+            "tests/Unit/Reporting/**",
+            "tests/Fixture/Reporting/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/reporting-profile": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Reporting/Profile/**",
+            "tests/Unit/Reporting/Profile/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/execution": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Execution/**",
+            "tests/Unit/Execution/**",
+            "tests/Fixture/Execution/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/execution-adapter": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Execution/Adapter/**",
+            "tests/Unit/Execution/Adapter/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/execution-artifact": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Execution/Artifact/**",
+            "tests/Unit/Execution/Artifact/**",
+            "tests/Fixture/Execution/Artifact/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/execution-plugin": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Execution/Plugin/**",
+            "tests/Unit/Execution/Plugin/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/execution-worker": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Execution/Worker/**",
+            "tests/Unit/Execution/Worker/**",
+            "tests/Fixture/Execution/Worker/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/execution-process-pool": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Execution/ProcessPool/**",
+            "tests/Unit/Execution/ProcessPool/**",
+            "tests/Fixture/Execution/ProcessPool/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/execution-process-protocol": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Execution/ProcessPool/Protocol/**",
+            "tests/Unit/Execution/ProcessPool/Protocol/**",
+            "tests/Fixture/Execution/ProcessPool/Protocol/**",
+            "resources/schema/worker-protocol-*.schema.json"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/execution-process-worker": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Execution/ProcessPool/Worker/**",
+            "tests/Unit/Execution/ProcessPool/Worker/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/execution-process-orchestrator": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Execution/ProcessPool/Orchestrator/**",
+            "tests/Unit/Execution/ProcessPool/Orchestrator/**",
+            "tests/Fixture/Execution/ProcessPool/Orchestrator/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/cli": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "bin/greenlight",
+            "src/Cli/**",
+            "tests/Unit/Cli/**",
+            "tests/Fixture/Cli/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/cli-input": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Cli/Input/**",
+            "tests/Unit/Cli/Input/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/cli-configuration": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Cli/Configuration/**",
+            "tests/Unit/Cli/Configuration/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/cli-discovery": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Cli/Discovery/**",
+            "tests/Unit/Cli/Discovery/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/cli-output": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Cli/Output/**",
+            "tests/Unit/Cli/Output/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/cli-reporting": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Cli/Reporting/**",
+            "tests/Unit/Cli/Reporting/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/cli-coverage": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Cli/Coverage/**",
+            "tests/Unit/Cli/Coverage/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/cli-signal": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Cli/Signal/**",
+            "tests/Unit/Cli/Signal/**",
+            "tests/Fixture/Cli/Signal/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/cli-state": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Cli/State/**",
+            "tests/Unit/Cli/State/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/cli-watch": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Cli/Watch/**",
+            "tests/Unit/Cli/Watch/**",
+            "tests/Fixture/Cli/Watch/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/cli-worker-capacity": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Cli/WorkerCapacity/**",
+            "tests/Unit/Cli/WorkerCapacity/**",
+            "tests/Fixture/Cli/WorkerCapacity/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/cli-command": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Cli/Command/**",
+            "tests/Unit/Cli/Command/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/cli-run": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Cli/Run/**",
+            "tests/Unit/Cli/Run/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/phpstan": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/PhpStan/**",
+            "tests/Unit/PhpStan/**",
+            "tests/Fixture/PhpStan*/**",
+            "extension.neon",
+            "phpstan*.neon"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/rector": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Rector/**",
+            "tests/Unit/Rector/**",
+            "tests/Fixture/Rector*/**",
+            "rector*.php"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/documentation": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Documentation/**",
+            "tests/Unit/Documentation/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/symfony": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Symfony/**",
+            "tests/Unit/Symfony/**",
+            "tests/Fixture/Symfony/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/laravel": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Laravel/**",
+            "tests/Unit/Laravel/**",
+            "tests/Fixture/Laravel/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/hyperf": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Hyperf/**",
+            "tests/Unit/Hyperf/**",
+            ".github/fixtures/hyperf-bridge/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/psr11": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Psr11/**",
+            "tests/Unit/Psr11/**",
+            "tests/Support/Psr11/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/psr15": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Psr15/**",
+            "tests/Unit/Psr15/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/tempest": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Tempest/**",
+            "tests/Unit/Tempest/**",
+            ".github/fixtures/tempest-bridge/**",
+            "greenlight.tempest-coverage.php"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/internal-filesystem": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Internal/Filesystem/**",
+            "tests/Unit/Internal/Filesystem/**",
+            "tests/Fixture/Filesystem/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/internal-php": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Internal/Php/**",
+            "tests/Unit/Internal/Php/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/internal-process": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Internal/Process/**",
+            "tests/Unit/Internal/Process/**",
+            "tests/Fixture/WorkerProcess/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/internal-text": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Internal/Text/**",
+            "tests/Unit/Internal/Text/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/internal-wire": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "src/Internal/Wire/**",
+            "tests/Unit/Internal/Wire/**",
+            "resources/schema/jsonl-*.schema.json"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/docs": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "**/*.md",
+            "docs/**",
+            "website/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/ci": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            ".github/**",
+            "codecov.yml",
+            "renovate.json"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/deps": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "composer.json",
+            "composer.lock",
+            "package.json",
+            "package-lock.json",
+            "website/package.json",
+            "website/package-lock.json",
+            "renovate.json"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/release": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            ".release-please-manifest.json",
+            "release-please-config.json",
+            ".github/workflows/release-please.yml"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope/tooling": [
+    {
+      "changed-files": [
+        {
+          "any-glob-to-any-file": [
+            "tools/**",
+            "Makefile",
+            ".gitattributes",
+            ".gitignore",
+            ".php-cs-fixer.dist.php",
+            "commitlint.config.js",
+            "deptrac.yaml",
+            "phpstan*.neon",
+            "rector*.php",
+            ".markdownlint-cli2.jsonc",
+            ".yamllint.yml"
+          ]
+        }
+      ]
+    }
+  ]
+}

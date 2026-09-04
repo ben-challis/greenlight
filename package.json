@@ -1,0 +1,10 @@
+{
+  "name": "greenlight-repository-tooling",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "npm run check:metadata",
+    "check:metadata": "node tools/repository-metadata.mjs --check",
+    "generate:metadata": "node tools/repository-metadata.mjs"
+  }
+}

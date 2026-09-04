@@ -1,0 +1,27 @@
+name: "Pull request labels"
+
+on: # zizmor: ignore[dangerous-triggers] The workflow does not load or run pull request code.
+  pull_request_target:
+    types:
+      - "opened"
+      - "reopened"
+      - "synchronize"
+
+permissions: {}
+
+jobs:
+  paths:
+    name: "Path labels"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 5
+    permissions:
+      contents: "read"
+      pull-requests: "write"
+
+    steps:
+      - name: "Apply path labels"
+        uses: "actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13" # v7.0.0
+        with:
+          configuration-path: ".github/labeler.yml"
+          dot: true
+          sync-labels: true
