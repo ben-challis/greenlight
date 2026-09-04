@@ -657,6 +657,9 @@ jobs:
       - name: "Collect and export coverage with PCOV"
         run: "php bin/greenlight run --ansi --filter='Greenlight\\Tests\\Acceptance\\CoverageRunTest::collectsAndExportsCoverageThroughTheProcessPool'"
 
+      - name: "Reject disabled PCOV coverage"
+        run: "php bin/greenlight run --ansi --filter='Greenlight\\Tests\\Acceptance\\DisabledPcovTest'"
+
   benchmark-harness:
     name: "Benchmark harness smoke (numbers not published)"
     runs-on: "ubuntu-latest"
