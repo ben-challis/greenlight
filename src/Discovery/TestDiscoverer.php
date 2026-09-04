@@ -59,12 +59,12 @@ final readonly class TestDiscoverer
 
             if ($unfiltered === null) {
                 try {
-                    $unfiltered = $this->entriesForFile($file);
+                    $unfiltered = $this->entriesForFile($file, $class);
                 } catch (DataSetError $error) {
                     throw DiscoveryError::invalidDataSet($error);
                 }
 
-                $cache?->store($file, $unfiltered);
+                $cache?->store($file, $unfiltered, $class);
             }
 
             $entries = $this->filtered($unfiltered, $selection, $file);
@@ -122,11 +122,13 @@ final readonly class TestDiscoverer
      *
      * @param non-empty-string $file
      *
+     * @param-out class-string|null $class
+     *
      * @return list<PlanEntry>
      * @throws DataSetError
      * @throws DiscoveryError
      */
-    private function entriesForFile(string $file): array
+    private function entriesForFile(string $file, ?string &$class): array
     {
         $class = $this->resolveClass($file);
 
