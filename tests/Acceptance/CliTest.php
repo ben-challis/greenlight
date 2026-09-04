@@ -67,7 +67,10 @@ final readonly class CliTest
             ->because('help and version exit zero and lists required coverage diff inputs')
             ->toContain('Usage:')
             ->toContain('--baseline=<path>')
-            ->toContain('--current=<path>');
+            ->toContain('--current=<path>')
+            ->toContain('--output=<path>')
+            ->toContain('Use with --project-root.')
+            ->toContain('For artifacts:prune, list selected runs without deletion.');
 
         $result = $this->runCli(['--version']);
         Expect::that($result->exitCode)->because('help and version exit zero')->toBe(0);

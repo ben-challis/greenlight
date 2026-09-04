@@ -153,7 +153,7 @@ final readonly class WatchTest
             },
         )->run(static fn(array $priorityClasses): array => [], maxIterations: 2);
 
-        $ready = "\nWaiting for changes. Press Enter to run all tests. Press q to quit.\n";
+        $ready = "\nWaiting for changes. Press Enter to rerun the selected tests. Press q to quit.\n";
 
         Expect::that($output)
             ->because('a multi-file watch batch MUST use the plural notification')
