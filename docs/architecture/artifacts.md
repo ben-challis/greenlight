@@ -31,9 +31,14 @@ to a temporary file beside the destination. It then renames the file into place
 atomically. The public `TestResult` contains the published metadata without the
 storage key.
 
-The terminal result retains attachments from failed attempts across retries. A
-successful attempt retains only attachments with the `always` value. A sealed
-attempt cannot receive more attachments. This seal does not apply retention.
+By default, the terminal result retains attachments from earlier retry attempts.
+It also retains attachments when the final outcome is failed or errored, or a
+plugin changed an earlier failed or errored outcome.
+
+For a passed or skipped result without such a transformation, the final attempt
+retains only attachments with the `always` value. An `AttachmentRetentionDecider`
+plugin can change these decisions. A sealed attempt cannot receive more
+attachments. This seal does not apply retention.
 
 The publication process decides retention after all result changes. These
 changes include retries, teardown, plugin transformations, and result policy.
