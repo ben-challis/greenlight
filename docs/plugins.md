@@ -599,7 +599,9 @@ includes an attachment after a failure inspection in `afterTest()`. The usual
 retention and size limits apply. See [attachments](attachments.md).
 
 The `service()` method is available during `beforeTest()` and the test. The
-per-test scope closes before `afterTest()`, so `service()` throws in that hook.
+per-test scope closes before `afterTest()`. A request for a per-test service
+then throws. Per-class and per-worker services remain available. Fallback
+resolvers can also supply services if their own lifecycle permits it.
 
 ### TestAttemptRunner
 

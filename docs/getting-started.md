@@ -454,9 +454,10 @@ final readonly class ServerTest
 Greenlight runs cleanup callbacks once in reverse registration order. It runs
 them after `After` hooks and before per-test sandbox disposal.
 
-A callback failure does not prevent the remaining callbacks. A cleanup failure
-errors a passed or skipped test. An earlier test failure or error remains
-primary.
+A callback failure does not prevent the remaining callbacks. For a passed or
+skipped test, the first cleanup failure determines the new outcome. An
+`ExpectationFailed` changes the outcome to failed. Another throwable changes
+it to errored. An earlier test failure or error remains primary.
 
 ## Exit codes
 
