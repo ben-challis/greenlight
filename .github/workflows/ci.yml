@@ -459,8 +459,8 @@ jobs:
             --filter=ServerSocketUnixCleanupTest \
             --filter=SocketChannelTest \
             --filter=SuitePathDiscoveryTest \
-            --filter=TempDirectoryRootSymbolicLinkTest \
-            --filter=TempDirectorySubdirectoryLinkTest \
+            --filter=TemporaryDirectoryRootSymbolicLinkTest \
+            --filter=TemporaryDirectorySubdirectoryLinkTest \
             --filter=TerminalTest \
             --filter=WorkerProcessRunTest
 
