@@ -11,7 +11,9 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * Sends PSR-7 server requests directly to one PSR-15 request handler.
- * The optional release callback closes handler state when the harness scope closes.
+ * If a factory supplies the handler, the first request creates it.
+ *
+ * Disposal calls the optional release callback only if a handler exists.
  */
 final class HttpHarness implements Disposable
 {

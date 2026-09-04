@@ -364,8 +364,8 @@ Namespace: `Greenlight\IntegrationFixture`
 
 The integration fixtures visible to one worker channel.
 
-A worker receives shared data merged with only its own channel data. It
-cannot inspect credentials allocated to another concurrent lane.
+A worker receives shared data merged with only its own channel data.
+This object does not contain data allocated only to other channels.
 Fixture IDs must remain string keys in PHP maps.
 
 ```php
