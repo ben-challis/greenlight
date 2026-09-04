@@ -277,8 +277,9 @@ Greenlight verifies it. Stubs do not count.
 An `eventually()` or `consistently()` matcher counts once. Calls to its probe do
 not count separately.
 
-Failed, errored, and skipped tests contain the partial count from before the
-test stopped.
+Greenlight takes this count after the final attempt's cleanup and per-test
+service disposal. Cleanup can therefore add expectations after the test body
+fails, errors, or skips. Earlier retry attempts do not contribute to this count.
 
 ### attachments
 
