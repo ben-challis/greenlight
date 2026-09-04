@@ -1279,8 +1279,8 @@ Both human reporters start with a one-line header that contains:
 * seed, when randomized
 * worker count
 
-They end with a "Slowest tests" block when a test took at least 500 ms. The
-block lists the five slowest tests.
+They end with a "Slowest tests" block when a test took more than 500 ms. The
+block lists up to five tests that exceed this threshold.
 
 Fast suites do not print the block.
 
