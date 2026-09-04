@@ -155,6 +155,10 @@ final class NativeMatcherSubjectRule implements Rule
 
         $needle = $scope->getType($argument->value);
 
+        if ($argument->unpack) {
+            $needle = $needle->getIterableValueType();
+        }
+
         if ($needle instanceof ErrorType || $needle instanceof MixedType || !new StringType()->accepts($needle, true)->no()) {
             return [];
         }
