@@ -22,7 +22,8 @@ const { previous, next } = adjacentDocs(doc.id);
       <button
         class="mobile-doc-trigger"
         type="button"
-        popovertarget="mobile-documentation-menu"
+        aria-controls="mobile-documentation-menu"
+        aria-haspopup="dialog"
         aria-label={`Browse documentation. Current page: ${doc.title}.`}
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -36,7 +37,12 @@ const { previous, next } = adjacentDocs(doc.id);
 
       {
         onThisPage.length > 0 && (
-          <button class="mobile-index-trigger" type="button" popovertarget="mobile-page-index">
+          <button
+            class="mobile-index-trigger"
+            type="button"
+            aria-controls="mobile-page-index"
+            aria-haspopup="dialog"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"></path>
             </svg>
@@ -46,12 +52,11 @@ const { previous, next } = adjacentDocs(doc.id);
       }
     </div>
 
-    <div
+    <dialog
       id="mobile-documentation-menu"
       class="mobile-nav-popover"
-      popover
-      role="dialog"
       aria-labelledby="mobile-documentation-title"
+      closedby="any"
       data-pagefind-ignore="all"
     >
       <header class="mobile-popover-header">
@@ -59,12 +64,14 @@ const { previous, next } = adjacentDocs(doc.id);
           <span>Greenlight</span>
           <h2 id="mobile-documentation-title">Documentation</h2>
         </div>
-        <button type="button" popovertarget="mobile-documentation-menu" popovertargetaction="hide">
-          <span>Close</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="m6 6 12 12M18 6 6 18"></path>
-          </svg>
-        </button>
+        <form method="dialog">
+          <button type="submit" autofocus>
+            <span>Close</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m6 6 12 12M18 6 6 18"></path>
+            </svg>
+          </button>
+        </form>
       </header>
 
       <nav class="mobile-nav-content" aria-label="Documentation">
@@ -75,16 +82,15 @@ const { previous, next } = adjacentDocs(doc.id);
         <a href={sitePath()}>Home</a>
         <a href={githubUrl}>GitHub</a>
       </nav>
-    </div>
+    </dialog>
 
     {
       onThisPage.length > 0 && (
-        <div
+        <dialog
           id="mobile-page-index"
           class="mobile-index-popover"
-          popover
-          role="dialog"
           aria-labelledby="mobile-page-index-title"
+          closedby="any"
           data-pagefind-ignore="all"
         >
           <header class="mobile-popover-header">
@@ -92,12 +98,14 @@ const { previous, next } = adjacentDocs(doc.id);
               <span>{doc.section}</span>
               <h2 id="mobile-page-index-title">On this page</h2>
             </div>
-            <button type="button" popovertarget="mobile-page-index" popovertargetaction="hide">
-              <span>Close</span>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m6 6 12 12M18 6 6 18"></path>
-              </svg>
-            </button>
+            <form method="dialog">
+              <button type="submit" autofocus>
+                <span>Close</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m6 6 12 12M18 6 6 18"></path>
+                </svg>
+              </button>
+            </form>
           </header>
 
           <nav aria-label="On this page">
@@ -109,7 +117,7 @@ const { previous, next } = adjacentDocs(doc.id);
               ))}
             </ol>
           </nav>
-        </div>
+        </dialog>
       )
     }
 
@@ -163,11 +171,72 @@ const { previous, next } = adjacentDocs(doc.id);
   </main>
 
   <script>
+    const focusableSelector = [
+      'a[href]',
+      'button:not([disabled])',
+      'input:not([disabled])',
+      'select:not([disabled])',
+      'textarea:not([disabled])',
+      '[tabindex]:not([tabindex="-1"])',
+    ].join(',');
+
+    document.querySelectorAll<HTMLElement>('[aria-haspopup="dialog"][aria-controls]').forEach((trigger) => {
+      trigger.addEventListener('click', () => {
+        const target = trigger.getAttribute('aria-controls');
+        const dialog = target ? document.getElementById(target) : null;
+
+        if (dialog instanceof HTMLDialogElement) {
+          trigger.focus();
+          dialog.showModal();
+          dialog.addEventListener('close', () => trigger.focus(), { once: true });
+        }
+      });
+    });
+
+    document.querySelectorAll<HTMLDialogElement>('dialog.mobile-nav-popover, dialog.mobile-index-popover').forEach(
+      (dialog) => {
+        if (!Reflect.has(dialog, 'closedBy')) {
+          dialog.addEventListener('click', (event) => {
+            const bounds = dialog.getBoundingClientRect();
+            const isInside =
+              event.clientX >= bounds.left &&
+              event.clientX <= bounds.right &&
+              event.clientY >= bounds.top &&
+              event.clientY <= bounds.bottom;
+
+            if (event.target === dialog && !isInside) {
+              dialog.close();
+            }
+          });
+        }
+
+        dialog.addEventListener('keydown', (event) => {
+          if (event.key !== 'Tab') {
+            return;
+          }
+
+          const focusableElements = [...dialog.querySelectorAll<HTMLElement>(focusableSelector)].filter(
+            (element) => element.getClientRects().length > 0,
+          );
+          const firstElement = focusableElements.at(0);
+          const lastElement = focusableElements.at(-1);
+
+          if (event.shiftKey && document.activeElement === firstElement) {
+            event.preventDefault();
+            lastElement?.focus();
+          } else if (!event.shiftKey && document.activeElement === lastElement) {
+            event.preventDefault();
+            firstElement?.focus();
+          }
+        });
+      },
+    );
+
     const pageIndex = document.querySelector('#mobile-page-index');
 
     pageIndex?.addEventListener('click', (event) => {
-      if (event.target instanceof Element && event.target.closest('a') && pageIndex instanceof HTMLElement) {
-        pageIndex.hidePopover();
+      if (event.target instanceof Element && event.target.closest('a') && pageIndex instanceof HTMLDialogElement) {
+        pageIndex.close();
       }
     });
   </script>
