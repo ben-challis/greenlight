@@ -42,7 +42,7 @@ $workingDirectory = \getcwd();
 if ($workingDirectory === false) {
     \fwrite(\STDERR, "Could not determine the current working directory.\n");
 
-    exit(1);
+    exit(\Greenlight\Cli\ExitCode::fromCommandResult(\Greenlight\Plugin\CommandResult::failure())->value());
 }
 
 /** @var list<string> $arguments */
