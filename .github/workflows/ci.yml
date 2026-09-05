@@ -470,7 +470,6 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: "read"
-      id-token: "write"
     env:
       XDEBUG_MODE: "off"
 
@@ -505,15 +504,14 @@ jobs:
             --minimum-coverage=90 \
             --filter='*Tempest*Test::*'
 
-      - name: "Upload Tempest coverage to Codecov"
-        if: "always()"
-        continue-on-error: true
-        uses: "codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f" # v7.0.0
+      - name: "Save Tempest coverage"
+        if: "${{ !cancelled() }}"
+        uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # v7.0.1
         with:
-          disable_search: true
-          fail_ci_if_error: false
-          files: "build/coverage/cobertura.xml"
-          use_oidc: true
+          name: "coverage-tempest"
+          path: "build/coverage/cobertura.xml"
+          if-no-files-found: "error"
+          retention-days: 30
 
   php-next:
     name: "PHP 8.6 pre-release compatibility"
@@ -593,7 +591,6 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: "read"
-      id-token: "write"
 
     steps:
       - name: "Checkout"
@@ -617,14 +614,54 @@ jobs:
       - name: "Run the suite with coverage"
         run: "composer tests:coverage -- --ansi --minimum-coverage=90"
 
+      - name: "Save full-suite coverage"
+        if: "${{ !cancelled() }}"
+        uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # v7.0.1
+        with:
+          name: "coverage-full"
+          path: "build/coverage/cobertura.xml"
+          if-no-files-found: "error"
+          retention-days: 30
+
+  coverage-upload:
+    name: "Publish complete coverage"
+    if: "${{ !cancelled() }}"
+    needs:
+      - "coverage"
+      - "tempest"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 10
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
+
+      # Require both artifacts before the single Codecov upload. A canceled run
+      # MUST NOT publish a report that contains only the Tempest bridge.
+      - name: "Download full-suite coverage"
+        uses: "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c" # v8.0.1
+        with:
+          name: "coverage-full"
+          path: "build/coverage/full"
+
+      - name: "Download Tempest coverage"
+        uses: "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c" # v8.0.1
+        with:
+          name: "coverage-tempest"
+          path: "build/coverage/tempest"
+
       - name: "Upload coverage to Codecov"
-        if: "always()"
         continue-on-error: true
         uses: "codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f" # v7.0.0
         with:
           disable_search: true
           fail_ci_if_error: false
-          files: "build/coverage/cobertura.xml"
+          files: "build/coverage/full/cobertura.xml,build/coverage/tempest/cobertura.xml"
           use_oidc: true
 
   pcov:
@@ -725,6 +762,7 @@ jobs:
       - "tempest"
       - "memory"
       - "coverage"
+      - "coverage-upload"
       - "pcov"
       - "benchmark-harness"
     runs-on: "ubuntu-latest"
@@ -737,6 +775,7 @@ jobs:
           BENCHMARK_HARNESS_RESULT: "${{ needs.benchmark-harness.result }}"
           CI_RESULT: "${{ needs.ci.result }}"
           COVERAGE_RESULT: "${{ needs.coverage.result }}"
+          COVERAGE_UPLOAD_RESULT: "${{ needs.coverage-upload.result }}"
           DOCUMENTATION_RESULT: "${{ needs.documentation.result }}"
           HYPERF_BRIDGE_RESULT: "${{ needs.hyperf-bridge.result }}"
           INSTALLED_PACKAGE_RESULT: "${{ needs.installed-package.result }}"
@@ -761,5 +800,6 @@ jobs:
           test "${TEMPEST_RESULT}" = "success"
           test "${MEMORY_RESULT}" = "success"
           test "${COVERAGE_RESULT}" = "success"
+          test "${COVERAGE_UPLOAD_RESULT}" = "success"
           test "${PCOV_RESULT}" = "success"
           test "${BENCHMARK_HARNESS_RESULT}" = "success"
