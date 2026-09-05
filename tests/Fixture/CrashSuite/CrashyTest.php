@@ -15,7 +15,7 @@ final class CrashyTest
     public function killsTheWholeProcess(): never
     {
         // Simulates a segfault or fatal: the worker dies mid-test with no
-        // TestFinished event. Never run this suite in-process.
+        // TestFinished event.
         exit(9);
     }
 }

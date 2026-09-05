@@ -28,7 +28,7 @@ final class PlainReporterWorkerSummaryTest
     }
 
     #[Test]
-    public function inProcessRunsDoNotRenderAWorkerSummary(): void
+    public function runsWithoutWorkerEventsDoNotRenderAWorkerSummary(): void
     {
         $output = new BufferOutput();
         $reporter = new PlainReporter($output);
@@ -36,7 +36,7 @@ final class PlainReporterWorkerSummaryTest
         $reporter->finish();
 
         Expect::that($output->buffer())
-            ->because('an in-process run MUST NOT report a spawned worker')
+            ->because('a run without worker events MUST NOT report a spawned worker')
             ->not()
             ->toContain('Workers:');
     }

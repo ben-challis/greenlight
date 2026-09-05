@@ -19,15 +19,15 @@ final readonly class WorkerProcessRunTest
     public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
-    public function parallelResultsMatchSequentialResults(): void
+    public function workerCountsProduceTheSameResults(): void
     {
         $project = AcceptanceProject::createWithTwoPassingTests($this->tempDirectory, 'parallel');
-        $sequential = GreenlightCli::run($project->directory, ['run', '--workers=1']);
-        $parallel = GreenlightCli::run($project->directory, ['run', '--workers=3']);
-        Expect::that($sequential->exitCode)->because('parallel results match sequential results')->toBe(0);
-        Expect::that($parallel->exitCode)->toBe(0);
-        Expect::that($this->summaryLine($sequential->output()))->toBe('2 tests, 2 passed, 0 expectations');
-        Expect::that($this->summaryLine($parallel->output()))->toBe('2 tests, 2 passed, 0 expectations');
+        $oneWorker = GreenlightCli::run($project->directory, ['run', '--workers=1']);
+        $threeWorkers = GreenlightCli::run($project->directory, ['run', '--workers=3']);
+        Expect::that($oneWorker->exitCode)->because('worker counts produce the same results')->toBe(0);
+        Expect::that($threeWorkers->exitCode)->toBe(0);
+        Expect::that($this->summaryLine($oneWorker->output()))->toBe('2 tests, 2 passed, 0 expectations');
+        Expect::that($this->summaryLine($threeWorkers->output()))->toBe('2 tests, 2 passed, 0 expectations');
     }
 
     #[Test]
@@ -42,15 +42,15 @@ final readonly class WorkerProcessRunTest
     /** @param list<string> $arguments */
     #[Test]
     #[DataSet('workerDisposalModes')]
-    public function workerDisposalFailuresAreEquivalentAcrossExecutionModes(array $arguments): void
+    public function workerDisposalFailuresAreEquivalentAcrossWorkerCounts(array $arguments): void
     {
         $result = $this->runIn('HarnessDisposalRun', $arguments);
 
         Expect::that($result->exitCode)
-            ->because('worker disposal MUST make each execution mode unsuccessful')
+            ->because('worker disposal MUST make each worker count unsuccessful')
             ->toBe(1);
         Expect::that($result->output())
-            ->because('each execution mode MUST report the worker disposal failure')
+            ->because('each worker count MUST report the worker disposal failure')
             ->toContain('test broke first')
             ->toContain('Worker harness service disposal failed.')
             ->toContain('harness service disposal broke');
@@ -61,7 +61,7 @@ final readonly class WorkerProcessRunTest
      */
     public static function workerDisposalModes(): iterable
     {
-        yield 'in-process' => [['run', '--workers=1']];
+        yield 'one worker' => [['run', '--workers=1']];
         yield 'parallel drain' => [['run', '--workers=2']];
     }
 

@@ -37,6 +37,7 @@ final readonly class ApplicationReporterStreamTest
         $exit = Application::forStreams($stdout, $stderr)->run(
             ['run', '--workers=1', '--reporter=plain', '--no-ansi'],
             $project->directory,
+            \dirname(__DIR__, 3) . '/bin/greenlight',
         );
         \rewind($stdout);
         \rewind($stderr);
@@ -72,6 +73,7 @@ final readonly class ApplicationReporterStreamTest
         $exit = Application::forStreams($stdout, $stderr)->run(
             ['run', '--workers=1', '--ansi'],
             $project->directory,
+            \dirname(__DIR__, 3) . '/bin/greenlight',
         );
         \rewind($stdout);
         \rewind($stderr);
