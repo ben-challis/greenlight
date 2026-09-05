@@ -793,7 +793,8 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
                 return false;
             }
 
-            return \count($arguments) === $conversion->arity || $this->dropAssertionMessages;
+            return (\count($arguments) === $conversion->arity || $this->dropAssertionMessages)
+                && $this->argumentOrderConverts($conversion, $arguments);
         }
 
         if ($name === self::FAIL) {
@@ -817,6 +818,79 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         }
 
         return false;
+    }
+
+    /**
+     * @param list<Arg> $arguments
+     */
+    private function argumentOrderConverts(AssertionConversion $conversion, array $arguments): bool
+    {
+        $order = [$conversion->subject, ...$conversion->matcherArguments];
+
+        foreach ($order as $position => $index) {
+            foreach (\array_slice($order, $position + 1) as $laterIndex) {
+                if ($index < $laterIndex) {
+                    continue;
+                }
+
+                $first = $arguments[$index]->value;
+                $second = $arguments[$laterIndex]->value;
+
+                if ($this->isLiteralValue($first) || $this->isLiteralValue($second)) {
+                    continue;
+                }
+
+                if ($first instanceof Variable && \is_string($first->name)
+                    && $second instanceof Variable && \is_string($second->name)
+                ) {
+                    continue;
+                }
+
+                // Calls and property hooks can change the other argument.
+                // Keep the PHPUnit class when their order cannot stay safe.
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function isLiteralValue(Expr $expression): bool
+    {
+        if ($expression instanceof String_ || $expression instanceof Node\Scalar\Int_
+            || $expression instanceof Node\Scalar\Float_ || $expression instanceof Node\Scalar\MagicConst
+        ) {
+            return true;
+        }
+
+        if ($expression instanceof Expr\ConstFetch) {
+            return \in_array($expression->name->toLowerString(), ['true', 'false', 'null'], true);
+        }
+
+        if ($expression instanceof ClassConstFetch) {
+            return $expression->class instanceof Name
+                && $expression->name instanceof Identifier
+                && $expression->name->toLowerString() === 'class';
+        }
+
+        if ($expression instanceof Expr\UnaryMinus || $expression instanceof Expr\UnaryPlus) {
+            return $this->isLiteralValue($expression->expr);
+        }
+
+        if (!$expression instanceof Expr\Array_) {
+            return false;
+        }
+
+        foreach ($expression->items as $item) {
+            if ($item === null || $item->byRef || $item->unpack
+                || ($item->key !== null && !$this->isLiteralValue($item->key))
+                || !$this->isLiteralValue($item->value)
+            ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function isSelfReceiver(MethodCall|StaticCall $call): bool
