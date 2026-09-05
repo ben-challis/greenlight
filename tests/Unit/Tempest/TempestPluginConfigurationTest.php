@@ -17,6 +17,20 @@ use Tempest\Core\Kernel;
 final readonly class TempestPluginConfigurationTest
 {
     #[Test]
+    public function exposesTheConfiguredSource(): void
+    {
+        Expect::that(new TempestPlugin('/project')->source())->toBeNull();
+        Expect::that(new TempestPlugin('/project', source: 'application')->source())->toBe('application');
+    }
+
+    #[Test]
+    public function rejectsAnEmptySource(): void
+    {
+        Expect::that(static fn(): TempestPlugin => new TempestPlugin('/project', source: ''))
+            ->toThrow(\InvalidArgumentException::class, message: 'Service source must not be empty.');
+    }
+
+    #[Test]
     public function exposesTheKernelAndContainerAsPerWorkerServices(): void
     {
         $definitions = new TempestPlugin('/project')->services();

@@ -18,7 +18,7 @@ namespace Greenlight\Harness;
 final class ScopeContainer
 {
     /**
-     * @var array<class-string, object>
+     * @var array<string, array<class-string, object>>
      */
     private array $services = [];
 
@@ -30,14 +30,15 @@ final class ScopeContainer
      */
     public function get(ServiceDefinition $definition): object
     {
-        $existing = $this->services[$definition->type] ?? null;
+        $source = $definition->source ?? '';
+        $existing = $this->services[$source][$definition->type] ?? null;
 
         if ($existing !== null) {
             return $existing;
         }
 
         $service = $this->instantiate($definition);
-        $this->services[$definition->type] = $service;
+        $this->services[$source][$definition->type] = $service;
 
         return $service;
     }

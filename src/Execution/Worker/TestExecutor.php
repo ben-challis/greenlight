@@ -17,6 +17,7 @@ use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Harness\HarnessScopes;
+use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\UnresolvableService;
 use Greenlight\Plugin\TestContext;
@@ -391,22 +392,27 @@ final readonly class TestExecutor
             /** @var class-string $serviceType */
             $serviceType = $type->getName();
 
-            if ($serviceType === Attachments::class) {
+            $attributes = \array_map(
+                static fn(\ReflectionAttribute $attribute): object => $attribute->newInstance(),
+                $parameter->getAttributes(),
+            );
+            $hasSource = \array_any(
+                $attributes,
+                static fn(object $attribute): bool => $attribute instanceof Service && $attribute->source !== null,
+            );
+
+            if ($serviceType === Attachments::class && !$hasSource) {
                 $arguments[] = $attachments;
 
                 continue;
             }
 
-            if ($serviceType === Cleanup::class) {
+            if ($serviceType === Cleanup::class && !$hasSource) {
                 $arguments[] = $cleanup;
 
                 continue;
             }
 
-            $attributes = \array_map(
-                static fn(\ReflectionAttribute $attribute): object => $attribute->newInstance(),
-                $parameter->getAttributes(),
-            );
             $arguments[] = $this->scopes->resolve($serviceType, $class, $attributes);
         }
 

@@ -25,4 +25,15 @@ final readonly class ServiceDefinitionValidationTest
                 message: 'Harness service type cannot be empty.',
             );
     }
+
+    #[Test]
+    public function rejectsAnEmptySourceName(): void
+    {
+        Expect::that(static fn(): ServiceDefinition => new ServiceDefinition(
+            \stdClass::class,
+            Scope::PerTest,
+            static fn(): \stdClass => new \stdClass(),
+            source: '',
+        ))->toThrow(\InvalidArgumentException::class, message: 'Service source must not be empty.');
+    }
 }

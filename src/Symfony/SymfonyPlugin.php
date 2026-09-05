@@ -9,6 +9,7 @@ use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
+use Greenlight\Harness\ServiceSource;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\TestContext;
@@ -25,11 +26,14 @@ use Symfony\Contracts\Service\ResetInterface;
  * does not disable resets, the container must expose `services_resetter`. If a
  * service keeps state between tests, do not disable resets.
  *
- * `#[Service]` selects an explicit ID instead of a type-based search. Isolate
- * external resources with `GREENLIGHT_CHANNEL`.
+ * `#[Service]` selects a service ID or a named source. Isolate external
+ * resources with `GREENLIGHT_CHANNEL`.
  */
-final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
+final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver, ServiceSource
 {
+    /** @var non-empty-string|null */
+    private readonly ?string $source;
+
     /**
      * @var \Closure(): KernelInterface
      */
@@ -51,13 +55,20 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
      *   For a container without stateful services, use false to disable
      *   resets. Tests on one worker then reuse the container without resets.
      *   Symfony service configuration determines which instances are shared.
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         string|\Closure $kernel,
         string $env = 'test',
         bool $debug = false,
         private readonly bool $resetBetweenTests = true,
+        ?string $source = null,
     ) {
+        if ($source === '') {
+            throw new \InvalidArgumentException('Service source must not be empty.');
+        }
+
+        $this->source = $source;
         $this->factory = $kernel instanceof \Closure
             ? $kernel
             : static function () use ($kernel, $env, $debug): KernelInterface {
@@ -67,6 +78,12 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
 
                 return new $kernel($env, $debug);
             };
+    }
+
+    #[\Override]
+    public function source(): ?string
+    {
+        return $this->source;
     }
 
     /**
@@ -89,10 +106,12 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     public function resolve(string $type, array $attributes): ?object
     {
         $id = $type;
+        $explicit = false;
 
         foreach ($attributes as $attribute) {
             if ($attribute instanceof Service) {
-                $id = $attribute->id;
+                $id = $attribute->id ?? $type;
+                $explicit = true;
             }
         }
 
@@ -100,7 +119,7 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             $container = $this->container();
 
             if (!$container->has($id)) {
-                if ($id !== $type) {
+                if ($explicit) {
                     throw SymfonyBridgeError::unknownServiceId($id, $type);
                 }
 

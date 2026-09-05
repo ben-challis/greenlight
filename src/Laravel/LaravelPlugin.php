@@ -9,6 +9,7 @@ use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
+use Greenlight\Harness\ServiceSource;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
@@ -23,11 +24,14 @@ use Illuminate\Foundation\Bootstrap\RegisterProviders;
  * Boots a Laravel application on first use and resolves bound services.
  * By default, Greenlight releases the application after each test attempt.
  *
- * `#[Service]` selects an explicit binding ID. Isolate external test resources
+ * `#[Service]` selects a binding ID or a named source. Isolate external test resources
  * by `GREENLIGHT_CHANNEL`.
  */
-final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
+final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver, ServiceSource
 {
+    /** @var non-empty-string|null */
+    private readonly ?string $source;
+
     /** @var \Closure(): Application */
     private readonly \Closure $factory;
 
@@ -44,12 +48,19 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
      * @param bool $refreshBetweenTests
      *   Set to false only when no service keeps state between tests.
      *   Tests on one worker then share one application without resets.
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         string|\Closure $application,
         private readonly string $env = 'testing',
         private readonly bool $refreshBetweenTests = true,
+        ?string $source = null,
     ) {
+        if ($source === '') {
+            throw new \InvalidArgumentException('Service source must not be empty.');
+        }
+
+        $this->source = $source;
         $this->factory = $application instanceof \Closure
             ? $application
             : static function () use ($application): Application {
@@ -67,6 +78,12 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
 
                 return $app;
             };
+    }
+
+    #[\Override]
+    public function source(): ?string
+    {
+        return $this->source;
     }
 
     /**
@@ -93,10 +110,12 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     public function resolve(string $type, array $attributes): ?object
     {
         $id = $type;
+        $explicit = false;
 
         foreach ($attributes as $attribute) {
             if ($attribute instanceof Service) {
-                $id = $attribute->id;
+                $id = $attribute->id ?? $type;
+                $explicit = true;
             }
         }
 
@@ -104,7 +123,7 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             $app = $this->application();
 
             if (!$app->bound($id)) {
-                if ($id !== $type) {
+                if ($explicit) {
                     throw LaravelBridgeError::unknownServiceId($id, $type);
                 }
 

@@ -50,6 +50,44 @@ final class LaravelPluginTest
         private readonly Doubles $doubles,
     ) {}
 
+    #[Test]
+    public function exposesTheConfiguredSource(): void
+    {
+        Expect::that(new LaravelPlugin('/project/bootstrap/app.php')->source())->toBeNull();
+        Expect::that(new LaravelPlugin('/project/bootstrap/app.php', source: 'application')->source())->toBe('application');
+    }
+
+    #[Test]
+    public function rejectsAnEmptySource(): void
+    {
+        Expect::that(static fn(): LaravelPlugin => new LaravelPlugin('/project/bootstrap/app.php', source: ''))
+            ->toThrow(\InvalidArgumentException::class, message: 'Service source must not be empty.');
+    }
+
+    #[Test]
+    public function aServiceWithoutAnIdUsesTheParameterType(): void
+    {
+        Expect::that($this->plugin()->resolve(Greeter::class, [new Service()]))->toBeInstanceOf(Greeter::class);
+    }
+
+    #[Test]
+    public function anExplicitIdEqualToTheMissingTypeFails(): void
+    {
+        $plugin = $this->plugin();
+
+        Expect::that(static fn(): ?object => $plugin->resolve(\ArrayObject::class, [new Service(\ArrayObject::class)]))
+            ->toThrow(LaravelBridgeError::class, matching: '/no binding "ArrayObject"/');
+    }
+
+    #[Test]
+    public function aServiceWithoutAnIdFailsWhenTheTypeIsMissing(): void
+    {
+        $plugin = $this->plugin();
+
+        Expect::that(static fn(): ?object => $plugin->resolve(\ArrayObject::class, [new Service()]))
+            ->toThrow(LaravelBridgeError::class, matching: '/no binding "ArrayObject"/');
+    }
+
     /** A failed expectation MUST NOT leak a Laravel application into another test. */
     #[After]
     public function releaseLaravelApplications(): void

@@ -9,6 +9,7 @@ use Greenlight\Expect\ExpectationExtension;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolver;
+use Greenlight\Harness\ServiceSource;
 use Greenlight\Harness\TerminalServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\BeforeTestSubscriber;
@@ -100,8 +101,41 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
 
         Expect::install($this->matching(ExpectationExtension::class));
 
+        $sources = [];
+
+        foreach ($this->ordered(ServiceSource::class) as $plugin) {
+            $source = $plugin->source();
+
+            if ($source === null) {
+                continue;
+            }
+
+            if (isset($sources[$source])) {
+                throw new \InvalidArgumentException(\sprintf('Service source "%s" is already registered.', $source));
+            }
+
+            $sources[$source] = true;
+        }
+
         foreach ($this->ordered(HarnessProvider::class) as $provider) {
-            $definitions = [...$definitions, ...$provider->services()];
+            $source = $provider instanceof ServiceSource ? $provider->source() : null;
+
+            foreach ($provider->services() as $definition) {
+                if ($source !== null && $definition->source !== null && $definition->source !== $source) {
+                    throw new \InvalidArgumentException(\sprintf(
+                        'Service source "%s" defines a service for source "%s". Use the provider source name.',
+                        $source,
+                        $definition->source,
+                    ));
+                }
+
+                $definitions[] = $source === null ? $definition : new ServiceDefinition(
+                    $definition->type,
+                    $definition->scope,
+                    $definition->factory,
+                    $source,
+                );
+            }
         }
 
         $resolvers = $this->ordered(ServiceResolver::class);
