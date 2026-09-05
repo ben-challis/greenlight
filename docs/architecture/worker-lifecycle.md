@@ -315,16 +315,21 @@ stateDiagram-v2
 ### Crashes
 
 If a worker dies mid-assignment, the orchestrator reports its in-flight test as
-errored and attaches the tail of the worker's stderr. It returns the rest of the
+errored and includes the tail of its combined stdout and stderr diagnostics.
+It returns the rest of the
 assignment to the queue. It does not re-queue the crashed test because a test
 that kills its process would kill each replacement in turn.
 
 ### Timeouts
 
-The orchestrator enforces each test timeout with a grace window of twice the
-budget plus two seconds. The worker may be too stuck to enforce the timeout
-itself. When the grace window expires, the orchestrator kills the process with
-SIGKILL and handles it as a crash. It reports the test as timed out.
+The orchestrator enforces a hard timeout of twice the configured test budget
+plus two seconds. When the limit expires, the orchestrator kills the process
+with SIGKILL. It reports the test as failed with a timeout diagnostic.
+
+The worker checks each attempt against the configured test budget after teardown.
+This check changes only a passed result to failed. It cannot interrupt blocked
+code. An in-process run has this check but no separate orchestrator process to
+enforce the hard timeout.
 
 The worker also gives `eventually()` and `consistently()` the current attempt's
 monotonic deadline. Their polling stops at that deadline, but a probe can still
