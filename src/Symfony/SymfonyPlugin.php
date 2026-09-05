@@ -49,7 +49,8 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
      * @param non-empty-string $env
      * @param bool $resetBetweenTests
      *   For a container without stateful services, use false to disable
-     *   resets. Tests on one worker then share all service instances.
+     *   resets. Tests on one worker then reuse the container without resets.
+     *   Symfony service configuration determines which instances are shared.
      */
     public function __construct(
         string|\Closure $kernel,
