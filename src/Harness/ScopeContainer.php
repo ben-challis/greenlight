@@ -22,6 +22,9 @@ final class ScopeContainer
      */
     private array $services = [];
 
+    /** @var list<object> */
+    private array $initializedServices = [];
+
     /**
      * @throws UnresolvableService
      */
@@ -49,7 +52,7 @@ final class ScopeContainer
     {
         $failures = [];
 
-        foreach (\array_reverse($this->services) as $service) {
+        while (($service = \array_pop($this->initializedServices)) !== null) {
             $reflection = new \ReflectionClass($service);
 
             if ($reflection->isUninitializedLazyObject($service)) {
@@ -78,7 +81,8 @@ final class ScopeContainer
     private function instantiate(ServiceDefinition $definition): object
     {
         $reflection = new \ReflectionClass($definition->type);
-        $factory = static function () use ($definition): object {
+        $initializedServices = &$this->initializedServices;
+        $factory = static function () use ($definition, &$initializedServices): object {
             $service = ($definition->factory)();
 
             if (!$service instanceof $definition->type) {
@@ -88,16 +92,21 @@ final class ScopeContainer
                 );
             }
 
+            $initializedServices[] = $service;
+
             return $service;
         };
 
         try {
-            return $reflection->newLazyProxy($factory);
+            $proxy = $reflection->newLazyProxy($factory);
         } catch (\ReflectionException|\Error) {
             // Greenlight constructs a class immediately if PHP cannot create a
             // lazy proxy for it. The factory has not run, so this catch does
             // not hide a factory error.
             return $factory();
         }
+
+        // PHP does not make stateless classes lazy and does not call their initializer.
+        return $reflection->isUninitializedLazyObject($proxy) ? $proxy : $factory();
     }
 }
