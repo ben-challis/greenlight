@@ -90,6 +90,12 @@ final readonly class CaptureArgumentReturnTypeExtension implements DynamicMethod
 
     private function position(MethodCall $call, Scope $scope): ?int
     {
+        foreach ($call->getArgs() as $argument) {
+            if ($argument->unpack) {
+                return null;
+            }
+        }
+
         $argument = $this->argument($call, 'position', 0);
 
         if (!$argument instanceof Arg) {
