@@ -155,6 +155,26 @@ final class InvalidDoubleUsage extends \LogicException
         ));
     }
 
+    public static function objectDefaultSourceUnavailable(string $parameter, string $class, string $method): self
+    {
+        return new self(\sprintf(
+            'Doubles cannot read the object default of parameter "$%s" from "%s::%s()". Declare the method on a separate line in a readable PHP file.',
+            $parameter,
+            $class,
+            $method,
+        ));
+    }
+
+    public static function objectDefaultScopeUnavailable(string $parameter, string $class, string $method): self
+    {
+        return new self(\sprintf(
+            'Doubles cannot access the object default of parameter "$%s" from "%s::%s()" in a proxy. Use a public constructor and accessible constants.',
+            $parameter,
+            $class,
+            $method,
+        ));
+    }
+
     public static function proxyDirectoryNotCreated(string $directory, ?string $reason = null): self
     {
         return new self(\sprintf(
