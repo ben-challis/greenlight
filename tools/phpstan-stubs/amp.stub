@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Amp;
+
+class CancelledException extends \Exception {}
+
+/** @template-covariant T */
+final class Future {}
+
+/** Supplies PHPStan-compatible signatures for the Amp cancellation callback. */
+interface Cancellation
+{
+    /** @param \Closure(CancelledException): mixed $callback */
+    public function subscribe(\Closure $callback): string;
+}
+
+/**
+ * Preserves the child callback's return type through Amp's future.
+ *
+ * @template T
+ *
+ * @param \Closure(mixed...): T $closure
+ * @param mixed ...$args
+ *
+ * @return Future<T>
+ */
+function async(\Closure $closure, mixed ...$args): Future {}

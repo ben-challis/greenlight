@@ -145,6 +145,7 @@ for the complete model.
 * [Static analysis with PHPStan](docs/phpstan.md)
 * [Test Symfony applications](docs/symfony.md)
 * [Test Laravel applications](docs/laravel.md)
+* [Test Amp applications](docs/amp.md)
 * [Test Hyperf applications](docs/hyperf.md)
 * [Test with PSR-11 containers](docs/psr11.md)
 * [Test PSR-15 applications](docs/psr15.md)

@@ -627,6 +627,29 @@ the normal retry policy.
 The Hyperf bridge uses this capability to run each attempt in one Swoole
 coroutine. See [Hyperf applications](hyperf.md).
 
+### TestAttemptLifecycle
+
+Worker-side.
+
+This additive capability receives the precise attempt deadline before
+constructor injection. `TestAttemptRunner` keeps its existing callback interface.
+
+`enterTestAttempt(?float $deadline)` opens the scope. The deadline is an absolute
+monotonic time in seconds, or `null` when the test has no time limit.
+Do not restart the timeout budget in this callback.
+
+`leaveTestBody()` runs before `After` hooks, including when construction or the
+body fails. Cancel and join owned child work before this method returns.
+`leaveTestAttempt()` releases the scope after deferred cleanup and service
+disposal. Greenlight calls exit methods in reverse entry order.
+
+If entry fails, release partial state before the exception leaves the method.
+Greenlight closes only the scopes whose entry completed. Exit failures do not
+prevent the remaining scopes from closing.
+
+The [Amp integration](amp.md) uses this capability for native cancellation and
+child lifetimes.
+
 ### RetryDecider
 
 Worker-side.
@@ -879,6 +902,7 @@ Priority applies to these capabilities:
 * `WorkerBootstrapSubscriber`
 * `WorkerRuntimeRunner`
 * `TestAttemptRunner`
+* `TestAttemptLifecycle`
 * `BeforeTestSubscriber`
 * `AfterTestSubscriber`
 * `RetryDecider`

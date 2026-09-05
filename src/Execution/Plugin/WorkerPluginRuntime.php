@@ -17,6 +17,7 @@ use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\RetryDecider;
 use Greenlight\Plugin\TerminalResultTransformer;
+use Greenlight\Plugin\TestAttemptLifecycle;
 use Greenlight\Plugin\TestAttemptRunner;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\WorkerBootstrapContext;
@@ -25,6 +26,7 @@ use Greenlight\Plugin\WorkerRuntimeRunner;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
+use Greenlight\Test\DeadlineExceededError;
 use Greenlight\Test\RetryPolicy;
 use Greenlight\Test\SkipTest;
 use Greenlight\Test\TestDefinition;
@@ -47,6 +49,7 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
         RetryDecider::class,
         ServiceResolver::class,
         TerminalResultTransformer::class,
+        TestAttemptLifecycle::class,
         TestAttemptRunner::class,
         WorkerBootstrapSubscriber::class,
         WorkerRuntimeRunner::class,
@@ -152,6 +155,64 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
         return $attempt();
     }
 
+    /** @return array{list<TestAttemptLifecycle>, ?\Throwable} */
+    public function enterTestAttempt(?float $deadline): array
+    {
+        $entered = [];
+
+        foreach ($this->ordered(TestAttemptLifecycle::class) as $lifecycle) {
+            try {
+                $lifecycle->enterTestAttempt($deadline);
+            } catch (\Throwable $failure) {
+                return [$entered, $failure];
+            }
+
+            $entered[] = $lifecycle;
+        }
+
+        return [$entered, null];
+    }
+
+    /**
+     * @param list<TestAttemptLifecycle> $entered
+     *
+     * @return list<\Throwable>
+     */
+    public function leaveTestBody(array $entered): array
+    {
+        $failures = [];
+
+        foreach (\array_reverse($entered) as $lifecycle) {
+            try {
+                $lifecycle->leaveTestBody();
+            } catch (\Throwable $failure) {
+                $failures[] = $failure;
+            }
+        }
+
+        return $failures;
+    }
+
+    /**
+     * @param list<TestAttemptLifecycle> $entered
+     *
+     * @return list<\Throwable>
+     */
+    public function leaveTestAttempt(array $entered): array
+    {
+        $failures = [];
+
+        foreach (\array_reverse($entered) as $lifecycle) {
+            try {
+                $lifecycle->leaveTestAttempt();
+            } catch (\Throwable $failure) {
+                $failures[] = $failure;
+            }
+        }
+
+        return $failures;
+    }
+
     /**
      * @throws SkipTest
      * @throws PluginRuntimeError
@@ -164,6 +225,10 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
             } catch (SkipTest $skip) {
                 throw $skip;
             } catch (\Throwable $failure) {
+                if (DeadlineExceededError::find($failure) instanceof DeadlineExceededError) {
+                    throw $failure;
+                }
+
                 throw PluginRuntimeError::hookFailed($subscriber::class, 'beforeTest', $failure);
             }
         }

@@ -249,10 +249,14 @@ For both temporal chains, `pollEvery()` accepts a finite duration of at least
 0.001 seconds. `within()` and `for()` accept finite durations greater than zero.
 
 Each temporal matcher counts as one expectation. Temporal matchers check the
-test-attempt deadline between probe calls. These checks cannot interrupt a
-blocked probe. With process-pool execution, the orchestrator can stop the
-worker after the timeout grace period. In-process execution has no such
-protection. See [timeouts](attributes.md#timeout).
+test-attempt deadline between probe calls. The optional [Amp integration](amp.md)
+also cancels supported asynchronous waits inside probes. It lets other Amp
+tasks progress between polls.
+
+Deadline checks cannot interrupt blocking I/O or uninterrupted computation.
+With process-pool execution, the orchestrator can stop the worker after the
+timeout grace period. In-process execution has no such protection.
+See [timeouts](attributes.md#timeout).
 
 ## Explicit failures
 

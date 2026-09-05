@@ -9,6 +9,7 @@ use Greenlight\Harness\HarnessScopes;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
+use Greenlight\Test\DeadlineExceededError;
 
 /**
  * Applies harness service disposal failures to their test or worker boundary.
@@ -40,6 +41,15 @@ final readonly class HarnessServiceDisposal
 
         if (!$primary instanceof \Throwable) {
             throw new \LogicException('Harness service disposal failure list contains an invalid value.');
+        }
+
+        $deadline = DeadlineExceededError::find($primary);
+
+        if ($deadline instanceof DeadlineExceededError) {
+            return $result->failedByTeardown([
+                new FailureDetail($deadline->getMessage()),
+                ...self::secondaryDetails($failures),
+            ]);
         }
 
         if ($primary instanceof ExpectationFailed) {
@@ -99,6 +109,14 @@ final readonly class HarnessServiceDisposal
         $details = [];
 
         foreach ($failures as $failure) {
+            $deadline = DeadlineExceededError::find($failure);
+
+            if ($deadline instanceof DeadlineExceededError) {
+                $details[] = new FailureDetail($deadline->getMessage());
+
+                continue;
+            }
+
             if ($failure instanceof ExpectationFailed) {
                 $details = [...$details, ...$failure->details];
 

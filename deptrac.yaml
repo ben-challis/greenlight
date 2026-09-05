@@ -233,6 +233,20 @@ deptrac:
       collectors:
         - type: directory
           value: src/Documentation/.*
+    - name: Amp
+      collectors:
+        - type: directory
+          value: src/Amp/.*
+    - name: AmpFramework
+      collectors:
+        - type: classNameRegex
+          value: /^Amp\\/
+        - type: functionName
+          value: ^Amp\\
+    - name: RevoltFramework
+      collectors:
+        - type: classNameRegex
+          value: /^Revolt\\/
     - name: Symfony
       collectors:
         - type: directory
@@ -364,6 +378,9 @@ deptrac:
     PhpStan: [Attribute, Condition, Config, Doubles, Expect, InternalPhp, Test, PhpStanFramework, PhpParserFramework]
     Rector: [Attribute, Condition, Expect, Test, PhpParserFramework, RectorFramework]
     Documentation: []
+    Amp: [Expect, Plugin, Test, AmpFramework, RevoltFramework]
+    AmpFramework: []
+    RevoltFramework: []
     Symfony: [Harness, Plugin, Result, SymfonyFramework]
     Laravel: [Harness, InternalPhp, InternalProcess, Plugin, Result, LaravelFramework]
     Hyperf: [Harness, InternalPhp, Plugin, HyperfFramework, PsrContainerFramework, SwooleFramework, ComposerRuntime]

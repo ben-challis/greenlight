@@ -101,8 +101,9 @@ const sections = [
   {
     id: 'api-integrations',
     title: 'Integration API',
-    description: 'This reference lists public integration types for Hyperf, Laravel, PSR standards, Rector, Symfony, and Tempest.',
+    description: 'This reference lists public integration types for Amp, Hyperf, Laravel, PSR standards, Rector, Symfony, and Tempest.',
     prefixes: [
+      'Greenlight\\Amp\\',
       'Greenlight\\Hyperf\\',
       'Greenlight\\Laravel\\',
       'Greenlight\\PhpStan\\',

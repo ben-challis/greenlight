@@ -2,9 +2,128 @@
 
 # Integration API
 
-This reference lists public integration types for Hyperf, Laravel, PSR standards, Rector, Symfony, and Tempest.
+This reference lists public integration types for Amp, Hyperf, Laravel, PSR standards, Rector, Symfony, and Tempest.
 
 These signatures are the public API.
+
+## `AmpContext`
+
+Namespace: `Greenlight\Amp`
+
+Supplies deadline cancellation and child work for an AmpPlugin test attempt.
+Native Amp operations must receive cancellation explicitly.
+
+```php
+final class AmpContext
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Amp/AmpContext.php#L15)
+
+### `cancellation()`
+
+Returns a native token for the current absolute deadline.
+A child also receives cancellation when the test body ends.
+
+```php
+public static function cancellation(): Cancellation
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Amp/AmpContext.php#L29)
+
+### `delay()`
+
+Yields to Revolt until the delay completes or the current deadline expires.
+
+```php
+public static function delay(float $seconds): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Amp/AmpContext.php#L37)
+
+### `await()`
+
+Waits for a future within the current deadline.
+Cancellation stops this wait. It does not stop the future's producer.
+
+```php
+public static function await(Future $future): mixed
+```
+
+PHPDoc:
+
+- `@template T`
+- `@param Future<T> $future`
+- `@return T`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Amp/AmpContext.php#L55)
+
+### `async()`
+
+Starts registered child work with the current temporal deadline.
+Greenlight cancels and joins the child before test cleanup.
+
+```php
+public static function async(\Closure $operation): Future
+```
+
+PHPDoc:
+
+- `@template T`
+- `@param \Closure(): T $operation`
+- `@return Future<T>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Amp/AmpContext.php#L85)
+
+## `AmpPlugin`
+
+Namespace: `Greenlight\Amp`
+
+Connects test deadlines and temporal polling to the application's Revolt scheduler.
+Requires the optional amphp/amp 3.1 and revolt/event-loop 1.x packages.
+
+```php
+final class AmpPlugin implements TestAttemptLifecycle, TestAttemptRunner
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Amp/AmpPlugin.php#L17)
+
+### `runTestAttempt()`
+
+```php
+public function runTestAttempt(\Closure $attempt): mixed
+```
+
+PHPDoc:
+
+- `@template T`
+- `@param \Closure(): T $attempt`
+- `@return T`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Amp/AmpPlugin.php#L29)
+
+### `enterTestAttempt()`
+
+```php
+public function enterTestAttempt(?float $deadline): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Amp/AmpPlugin.php#L56)
+
+### `leaveTestBody()`
+
+```php
+public function leaveTestBody(): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Amp/AmpPlugin.php#L62)
+
+### `leaveTestAttempt()`
+
+```php
+public function leaveTestAttempt(): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Amp/AmpPlugin.php#L68)
 
 ## `ContainerLifetime`
 

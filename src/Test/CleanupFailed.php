@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Test;
 
 /**
- * One or more cleanup callbacks failed.
+ * One or more cleanup operations failed.
  *
  * @internal
  */

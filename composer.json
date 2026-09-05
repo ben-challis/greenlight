@@ -16,6 +16,7 @@
         "php": ">=8.4"
     },
     "require-dev": {
+        "amphp/amp": "^3.1",
         "deptrac/deptrac": "^4.0",
         "ergebnis/composer-normalize": "^2.47",
         "fidry/cpu-core-counter": "^1.3",
@@ -33,6 +34,7 @@
         "psr/http-message": "^2.0",
         "psr/http-server-handler": "^1.0",
         "rector/rector": "^2.5",
+        "revolt/event-loop": "^1.0",
         "symfony/config": "^6.4 || ^7.0 || ^8.0",
         "symfony/dependency-injection": "^6.4 || ^7.0 || ^8.0",
         "symfony/framework-bundle": "^6.4 || ^7.0 || ^8.0",
@@ -42,6 +44,7 @@
         "ext-pcntl": "Scans Hyperf classes before 'HyperfPlugin' starts a worker",
         "ext-pcov": "Collects line coverage quickly",
         "ext-swoole": "Runs 'HyperfPlugin' workers and test attempts in Hyperf coroutines",
+        "amphp/amp": "Enables deadline cancellation through 'AmpPlugin' with Amp 3",
         "fidry/cpu-core-counter": "Improves the 'auto' worker count across platforms and on systems with cgroup limits",
         "hyperf/di": "Scans Hyperf classes and generates AOP proxies for the 'HyperfPlugin' bridge",
         "hyperf/framework": "Provides the Hyperf 3.2 application runtime that 'HyperfPlugin' requires",
@@ -52,6 +55,7 @@
         "psr/http-message": "Provides the PSR-7 request and response interfaces that HttpHarness requires",
         "psr/http-server-handler": "Provides the PSR-15 request handler interface that Psr15Plugin requires",
         "rector/rector": "Converts PHPUnit test classes to Greenlight with the bundled 'PhpUnitToGreenlightRector' rule",
+        "revolt/event-loop": "Shares the application scheduler with 'AmpPlugin'",
         "symfony/framework-bundle": "Enables container service injection into kernel-aware Symfony tests through the 'SymfonyPlugin' bridge",
         "tempest/framework": "Enables discovery, configuration, container injection, and reset-safe tests through the 'TempestPlugin' bridge"
     },

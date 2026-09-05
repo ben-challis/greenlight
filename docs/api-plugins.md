@@ -536,6 +536,48 @@ public function transformTerminalResult(TestDefinition $definition, TestResult $
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TerminalResultTransformer.php#L25)
 
+## `TestAttemptLifecycle`
+
+Namespace: `Greenlight\Plugin`
+
+Controls asynchronous work across the test body and its cleanup stages.
+Entry uses the monotonic test deadline, before constructor injection.
+If entry fails, the plugin releases all state that entry created.
+
+```php
+interface TestAttemptLifecycle extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestAttemptLifecycle.php#L12)
+
+### `enterTestAttempt()`
+
+```php
+public function enterTestAttempt(?float $deadline): void;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestAttemptLifecycle.php#L14)
+
+### `leaveTestBody()`
+
+Stops and joins test-body work before After hooks and deferred cleanup.
+
+```php
+public function leaveTestBody(): void;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestAttemptLifecycle.php#L17)
+
+### `leaveTestAttempt()`
+
+Releases attempt state after deferred cleanup and test-scope disposal.
+
+```php
+public function leaveTestAttempt(): void;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestAttemptLifecycle.php#L20)
+
 ## `TestAttemptRunner`
 
 Namespace: `Greenlight\Plugin`
