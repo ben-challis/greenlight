@@ -34,12 +34,12 @@ final class PlainReporter implements Reporter
     private array $problems = [];
 
     /**
-     * @var list<TestResult>
+     * @var list<TestSummary>
      */
     private array $skipped = [];
 
     /**
-     * @var list<TestResult>
+     * @var list<TestSummary>
      */
     private array $retriedPasses = [];
 
@@ -115,11 +115,11 @@ final class PlainReporter implements Reporter
             }
 
             if ($result->outcome === Outcome::Skipped) {
-                $this->skipped[] = $result;
+                $this->skipped[] = new TestSummary($result);
             }
 
             if ($result->outcome === Outcome::Passed && $result->attempts > 1) {
-                $this->retriedPasses[] = $result;
+                $this->retriedPasses[] = new TestSummary($result);
             }
 
             if ($result->risky && $result->outcome->isSuccessful() && ($id = (string) $result->id) !== '') {
