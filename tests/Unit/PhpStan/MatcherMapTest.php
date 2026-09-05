@@ -113,6 +113,6 @@ final class MatcherMapTest
     {
         yield 'untyped' => ['untyped', 'mixed'];
         yield 'union' => ['union', 'string|int'];
-        yield 'intersection' => ['intersection', 'Countable&Iterator'];
+        yield 'intersection' => ['intersection', '\\Countable&\\Iterator'];
     }
 }

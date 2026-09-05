@@ -131,6 +131,29 @@ final readonly class RuntimeMessageTest
     }
 
     #[Test]
+    public function memoryGateRejectsAFailedRunThatWritesCompleteSamples(): void
+    {
+        [$root, $script] = $this->toolSandbox('memory-run-failure', 'memory-gate.php');
+        $bin = $this->tempDirectory->subdirectory('memory-run-failure/bin');
+        \file_put_contents($bin . '/greenlight', <<<'PHP'
+        <?php
+
+        file_put_contents(getcwd() . '/samples.json', json_encode(['2000' => 1_048_576, '10000' => 1_048_576]));
+        file_put_contents(__DIR__ . '/run-directory', getcwd());
+        fwrite(STDERR, "Synthetic test run failed.\n");
+        exit(17);
+        PHP);
+
+        $result = PhpSubprocess::run($root, [$script]);
+
+        Expect::that($result->exitCode)->toBe(1);
+        Expect::that($result->stdout)->toContain('Synthetic test run failed.');
+        Expect::that($result->stdout)->not()->toContain('Flat-memory gate passed.');
+        Expect::that($result->stderr)->toContain('The generated test run failed with exit code 17.');
+        Expect::that(\is_dir((string) \file_get_contents($bin . '/run-directory')))->toBeFalse();
+    }
+
+    #[Test]
     public function memoryGateReportsDirectoryCreationFailureExactly(): void
     {
         [$root, $script] = $this->toolSandbox('memory-directory', 'memory-gate.php');

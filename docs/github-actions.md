@@ -330,12 +330,17 @@ jobs:
             --maximum-uncovered-lines=100
 
       - name: Upload whole-suite coverage
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
           name: whole-suite-coverage
           path: build/coverage
           if-no-files-found: error
 ```
+
+The final upload runs after a passed or failed merge command. Greenlight writes
+coverage exports before it checks the gates, so a failed gate keeps its
+coverage evidence. The upload does not run after job cancellation.
 
 GitHub-hosted matrix jobs use the same workspace path for one repository. Thus,
 their absolute paths match.

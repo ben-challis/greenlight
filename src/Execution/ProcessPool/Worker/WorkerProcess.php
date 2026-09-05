@@ -32,6 +32,7 @@ use Greenlight\Execution\Worker\WorkerError;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Result\ResultPolicy;
 use Greenlight\Result\ThrowableDetail;
@@ -58,7 +59,7 @@ final readonly class WorkerProcess
      * @param non-empty-string $token
      * @throws ProtocolError
      */
-    public function run(string $address, string $workerId, string $token): int
+    public function run(string $address, string $workerId, string $token): CommandResult
     {
         // Keep the worker and its subprocesses outside the terminal process group.
         // Thus, terminal SIGINT reaches only the orchestrator.
@@ -92,7 +93,7 @@ final readonly class WorkerProcess
      * @param non-empty-string $token
      * @throws ProtocolError
      */
-    private function runWhileIgnoringInterrupt(string $address, string $workerId, string $token): int
+    private function runWhileIgnoringInterrupt(string $address, string $workerId, string $token): CommandResult
     {
         $stream = ErrorTrap::run(static function () use ($address, &$errorCode, &$errorMessage) {
             return \stream_socket_client($address, $errorCode, $errorMessage, 10.0);
@@ -101,7 +102,7 @@ final readonly class WorkerProcess
         if ($stream === false) {
             \fwrite(\STDERR, \sprintf("The worker did not connect to %s: %s\n", $address, $errorMessage));
 
-            return 1;
+            return CommandResult::failure();
         }
 
         $channel = new SocketChannel($stream);
@@ -123,11 +124,11 @@ final readonly class WorkerProcess
                         continue;
                     }
 
-                    return 0;
+                    return CommandResult::success();
                 }
 
                 if ($message instanceof Drain) {
-                    return 0;
+                    return CommandResult::success();
                 }
 
                 if (!$message instanceof Bootstrap) {
@@ -175,7 +176,7 @@ final readonly class WorkerProcess
                     $channel->send($finalMessage);
                 }
 
-                return 0;
+                return CommandResult::success();
             }
         } catch (\Throwable $threw) {
             try {
@@ -185,7 +186,7 @@ final readonly class WorkerProcess
                 // the channel is gone.
             }
 
-            return 1;
+            return CommandResult::failure();
         } finally {
             $scopes?->closeWorker();
             $channel->close();

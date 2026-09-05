@@ -55,7 +55,7 @@ final class SummaryFormat
     }
 
     /**
-     * @param list<TestResult> $skipped
+     * @param list<TestResult|TestSummary> $skipped
      */
     public static function skipped(array $skipped, Style $style): string
     {
@@ -98,7 +98,7 @@ final class SummaryFormat
     }
 
     /**
-     * @param list<TestResult> $retriedPasses
+     * @param list<TestResult|TestSummary> $retriedPasses
      */
     public static function retriedPasses(array $retriedPasses, Style $style): string
     {

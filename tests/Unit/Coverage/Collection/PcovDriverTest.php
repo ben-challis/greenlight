@@ -13,12 +13,12 @@ use Greenlight\Tests\Fixture\Coverage\FakePcovDriverRuntime;
 final class PcovDriverTest
 {
     #[Test]
-    public function availabilityMatchesTheExtensionAndMissingDriverIsActionable(): void
+    public function availabilityRequiresAnEnabledExtensionAndMissingDriverIsActionable(): void
     {
-        $available = \extension_loaded('pcov');
+        $available = \extension_loaded('pcov') && \filter_var(\ini_get('pcov.enabled'), \FILTER_VALIDATE_BOOL);
 
         Expect::that(PcovDriver::isAvailable())
-            ->because('PCOV availability matches the loaded extension')
+            ->because('PCOV availability requires its execution hooks to be enabled')
             ->toBe($available);
 
         if ($available) {

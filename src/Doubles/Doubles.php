@@ -11,23 +11,29 @@ use Greenlight\Result\FailureDetail;
 use Greenlight\Test\ExpectationCounter;
 
 /**
- * Mocks are strict. A call without a planned expectation fails the test
- * immediately. Each return value needs a configured result. Stubs cause an
- * error for all interactions. Spies record calls to methods without a return
- * value.
+ * Creates mocks, stubs, and spies. For intercepted methods, mocks fail on
+ * calls without a planned expectation. Each return value needs a configured
+ * result. Stubs cause an error for intercepted calls. Spies record intercepted
+ * calls to methods without a return value.
  *
  * A verification failure throws one `ExpectationFailed`. It contains one
  * `FailureDetail` for each unmet expectation. Thus, the reporter shows it in
  * the same format as an `Expect` failure.
  *
- * `Doubles` supports interfaces and non-final classes. Class constructors do
- * not run. `Doubles` does not support partial mocks or static interception.
+ * `Doubles` supports interfaces and classes that are neither final nor
+ * readonly. Class constructors do not run. Final methods keep their original
+ * implementation. `Doubles` does not support partial mocks or static interception.
+ *
+ * Greenlight disposes injected factories after each test attempt. If you
+ * construct a factory directly, call `dispose()` to verify its mocks.
  */
 final class Doubles implements Disposable
 {
     private readonly ProxyGenerator $generator;
 
     private readonly ValueRenderer $renderer;
+
+    private readonly MethodCallContracts $contracts;
 
     /**
      * The factory stores states for verification. The states do not refer to
@@ -73,12 +79,13 @@ final class Doubles implements Disposable
 
         $this->generator = new ProxyGenerator($proxyDirectory);
         $this->renderer = new ValueRenderer();
+        $this->contracts = new MethodCallContracts();
         $this->doubles = new \WeakMap();
     }
 
     /**
-     * Creates a strict double. Verification checks each planned expectation
-     * at test end. A call without an expectation fails the test immediately.
+     * Creates a strict double. Disposal checks each planned expectation.
+     * An intercepted call without an expectation fails the test immediately.
      *
      * @template T of object
      *
@@ -94,9 +101,9 @@ final class Doubles implements Disposable
     }
 
     /**
-     * Creates an inert double that satisfies the specified type. All
-     * interactions cause a test error. Use a mock with explicit expectations
-     * when a collaborator must supply results.
+     * Creates a double that satisfies the specified type. Intercepted calls
+     * cause a test error. Use a mock with explicit expectations when a
+     * collaborator must supply results.
      *
      * @template T of object
      *
@@ -111,9 +118,9 @@ final class Doubles implements Disposable
     }
 
     /**
-     * Creates a spy that records each call and its arguments. A call to a
-     * method that returns a value causes a test error. Use `callsTo()` to get the
-     * calls. Use `Expect` to check them.
+     * Creates a spy that records intercepted calls and their arguments.
+     * An intercepted method that returns a value causes a test error.
+     * Use `callsTo()` to get the calls. Use `Expect` to check them.
      *
      * @template T of object
      *
@@ -183,6 +190,7 @@ final class Doubles implements Disposable
         }
 
         $this->states = [];
+        $this->contracts->clear();
         $this->doubles = new \WeakMap();
 
         if ($details !== []) {
@@ -211,7 +219,7 @@ final class Doubles implements Disposable
         $double = new \ReflectionClass($proxyClass)->newInstanceWithoutConstructor();
 
         \assert($double instanceof GeneratedProxy);
-        $double->__greenlightAttachHandler(new CallHandler($state, $this->renderer, $this->doubles));
+        $double->__greenlightAttachHandler(new CallHandler($state, $this->renderer, $this->doubles, $this->contracts));
 
         \assert($double instanceof $type);
 

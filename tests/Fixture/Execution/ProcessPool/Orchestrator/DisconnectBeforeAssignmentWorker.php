@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Execution\ProcessPool\Orchestrator;
 
+use Greenlight\Cli\ExitCode;
 use Greenlight\Doubles\Fake;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
@@ -19,7 +20,7 @@ final readonly class DisconnectBeforeAssignmentWorker implements Fake
     public static function run(string $address, string $workerId, string $token): int
     {
         if ($workerId !== 'w-1') {
-            return new WorkerProcess()->run($address, $workerId, $token);
+            return ExitCode::fromCommandResult(new WorkerProcess()->run($address, $workerId, $token))->value();
         }
 
         $stream = \stream_socket_client($address);

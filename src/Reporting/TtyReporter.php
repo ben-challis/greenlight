@@ -47,12 +47,12 @@ final class TtyReporter implements Reporter, Ticking
     private array $problems = [];
 
     /**
-     * @var list<TestResult>
+     * @var list<TestSummary>
      */
     private array $skipped = [];
 
     /**
-     * @var list<TestResult>
+     * @var list<TestSummary>
      */
     private array $retriedPasses = [];
 
@@ -186,11 +186,11 @@ final class TtyReporter implements Reporter, Ticking
             }
 
             if ($result->outcome === Outcome::Skipped) {
-                $this->skipped[] = $result;
+                $this->skipped[] = new TestSummary($result);
             }
 
             if ($result->outcome === Outcome::Passed && $result->attempts > 1) {
-                $this->retriedPasses[] = $result;
+                $this->retriedPasses[] = new TestSummary($result);
 
                 if (isset($this->live[$class])) {
                     ++$this->live[$class]['retried'];

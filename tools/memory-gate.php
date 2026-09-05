@@ -157,18 +157,39 @@ $config = \str_replace(['{WARMUP}', '{TOTAL}'], [(string) WARMUP_TESTS, (string)
 
 echo \sprintf("Greenlight runs %d generated tests in one worker...\n", $totalTests);
 
-$command = \sprintf(
-    'cd %s && %s %s run --reporter=plain 2>&1 | tail -4',
-    \escapeshellarg($workDir),
-    \escapeshellarg(\PHP_BINARY),
-    \escapeshellarg($root . '/bin/greenlight'),
-);
-\exec($command, $output, $exitCode);
-echo \implode("\n", $output) . "\n";
-
 $cleanup = static function () use ($workDir): void {
     \exec('rm -rf ' . \escapeshellarg($workDir));
 };
+
+$process = \proc_open(
+    \sprintf(
+        '%s %s run --reporter=plain 2>&1',
+        \escapeshellarg(\PHP_BINARY),
+        \escapeshellarg($root . '/bin/greenlight'),
+    ),
+    [0 => \STDIN, 1 => ['pipe', 'w'], 2 => \STDERR],
+    $pipes,
+    $workDir,
+);
+
+if (!\is_resource($process)) {
+    $cleanup();
+    throw new RuntimeException('Greenlight could not start the generated test run.');
+}
+
+$output = [];
+
+while (($line = \fgets($pipes[1])) !== false) {
+    $output[] = \rtrim($line, "\r\n");
+
+    if (\count($output) > 4) {
+        \array_shift($output);
+    }
+}
+
+\fclose($pipes[1]);
+$exitCode = \proc_close($process);
+echo \implode("\n", $output) . "\n";
 
 $samplesJson = \is_file($samplesFile) ? \file_get_contents($samplesFile) : false;
 
@@ -191,6 +212,12 @@ if (\is_array($samples)) {
 
 if ($baseline === null || $final === null) {
     \fwrite(\STDERR, "The probe output does not contain all sample points.\n");
+    $cleanup();
+    exit(1);
+}
+
+if ($exitCode !== 0) {
+    \fwrite(\STDERR, \sprintf("The generated test run failed with exit code %d.\n", $exitCode));
     $cleanup();
     exit(1);
 }

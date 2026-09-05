@@ -1906,8 +1906,8 @@ PHPDoc:
 
 ### `detail()`
 
-Returns the first failure. In the default mode, this is the only
-failure.
+Returns the first failure. Use `$details` to read all failures, including
+multiple unmet mock expectations.
 
 ```php
 public function detail(): FailureDetail

@@ -29,11 +29,13 @@ final readonly class ExpectationCall
      */
     public static function forTemporal(string $name, array $arguments): self
     {
-        if ($name === 'toBeIn') {
+        $nativeName = \strtolower($name);
+
+        if ($nativeName === 'tobein') {
             self::makeIterableReusable($arguments, 'haystack', 0);
         }
 
-        if ($name === 'toThrow') {
+        if ($nativeName === 'tothrow') {
             $throwable = self::argument($arguments, 'throwable', 0);
             $matching = self::argument($arguments, 'matching', 1);
             $message = self::argument($arguments, 'message', 2);
