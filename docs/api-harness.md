@@ -71,15 +71,16 @@ case PerWorker = 'per-worker';
 
 Namespace: `Greenlight\Harness`
 
-Selects a container service ID that differs from the parameter type. The
-resolved service must have the declared type.
+Selects a service within its source by ID. Each bridge translates the ID
+into its container lookup. The resolved service must have the declared
+parameter type.
 
 ```php
 #[\Attribute(\Attribute::TARGET_PARAMETER)]
 final readonly class Service
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L13)
 
 ### `$id`
 
@@ -91,7 +92,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L16)
 
 ### `__construct()`
 
@@ -103,7 +104,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L19)
 
 ## `ServiceDefinition`
 

@@ -745,6 +745,12 @@ Registered harness services always take precedence. If no service matches,
 Greenlight calls resolvers in registration order. Each call receives the
 declared parameter type and the attribute instances.
 
+The `#[Service]` ID selects a service within its source. Each bridge translates
+this selection into its container lookup. Tempest uses the ID as a tag with
+the declared type. The PSR-11, Symfony, Laravel, and Hyperf bridges use the ID
+as a container key. Each bridge checks the returned service against the
+declared parameter type.
+
 Return `null` when the resolver does not support the type. Greenlight then
 calls the next resolver.
 

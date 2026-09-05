@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * Selects a container service ID that differs from the parameter type. The
- * resolved service must have the declared type.
+ * Selects a service within its source by ID. Each bridge translates the ID
+ * into its container lookup. The resolved service must have the declared
+ * parameter type.
  */
 #[\Attribute(\Attribute::TARGET_PARAMETER)]
 final readonly class Service

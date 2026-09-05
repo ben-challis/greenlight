@@ -90,6 +90,27 @@ final readonly class TempestRunTest
             }
             PHP);
 
+        $project->writeFile('app/ArchiveGreetingInitializer.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace TempestProbe;
+
+            use Tempest\Container\Container;
+            use Tempest\Container\Initializer;
+            use Tempest\Container\Singleton;
+
+            final readonly class ArchiveGreetingInitializer implements Initializer
+            {
+                #[Singleton(tag: 'archive')]
+                public function initialize(Container $container): GreetingConfig
+                {
+                    return new GreetingConfig('Hello from archive');
+                }
+            }
+            PHP);
+
         $project->writeFile('app/VisitCounter.php', <<<'PHP'
             <?php
 
@@ -162,6 +183,7 @@ final readonly class TempestRunTest
 
             use Greenlight\Attribute\Test;
             use Greenlight\Expect\Expect;
+            use Greenlight\Harness\Service;
             use Tempest\Container\Container;
             use Tempest\Core\Environment;
             use Tempest\Core\Kernel;
@@ -177,6 +199,8 @@ final readonly class TempestRunTest
                     private readonly Kernel $kernel,
                     private readonly Container $container,
                     private readonly Request $request,
+                    private readonly GreetingConfig $defaultGreeting,
+                    #[Service('archive')] private readonly GreetingConfig $serviceGreeting,
                 ) {}
 
                 #[Test]
@@ -191,6 +215,8 @@ final readonly class TempestRunTest
                     Expect::that($this->request->method)->toBe(Method::GET);
                     Expect::that($this->request->uri)->toBe('/');
                     Expect::that($this->counter->count())->toBe(1);
+                    Expect::that($this->defaultGreeting->prefix)->toBe('Hello from testing');
+                    Expect::that($this->serviceGreeting->prefix)->toBe('Hello from archive');
                 }
 
                 #[Test]
@@ -213,6 +239,7 @@ final readonly class TempestRunTest
 
             require_once __DIR__ . '/app/GreetingConfig.php';
             require_once __DIR__ . '/app/Greeter.php';
+            require_once __DIR__ . '/app/ArchiveGreetingInitializer.php';
             require_once __DIR__ . '/app/VisitCounter.php';
             require_once __DIR__ . '/app/LifecycleObserver.php';
             require_once __DIR__ . '/tests/TempestApplicationTest.php';
