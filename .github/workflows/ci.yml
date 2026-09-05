@@ -67,7 +67,7 @@ jobs:
           node-version: "24"
 
       - name: "Validate Renovate configuration"
-        run: "npx --yes --package renovate@44.64.3 -- renovate-config-validator --strict"
+        run: "npx --yes --package renovate@44.65.5 -- renovate-config-validator --strict"
 
   zizmor:
     name: "GitHub Actions security"
