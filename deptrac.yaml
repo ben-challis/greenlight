@@ -168,7 +168,11 @@ deptrac:
     - name: Cli
       collectors:
         - type: directory
-          value: src/Cli/[^/]+\.php
+          value: src/Cli/(?!ExitCode\.php$)[^/]+\.php
+    - name: CliExitCode
+      collectors:
+        - type: directory
+          value: src/Cli/ExitCode\.php$
     - name: CliInput
       collectors:
         - type: directory
@@ -345,9 +349,10 @@ deptrac:
     ExecutionPlugin: [Artifact, DiscoveryPlan, Event, Expect, Harness, IntegrationFixture, Plugin, Result, Test]
     ExecutionWorker: [Artifact, Attribute, Condition, DiscoveryPlan, Doubles, Event, ExecutionArtifact, ExecutionPlugin, Expect, Harness, IntegrationFixture, InternalPhp, InternalText, Plugin, Result, Sandbox, Test, TestDataSet]
     ExecutionProcessProtocol: [Attribute, Config, Coverage, DiscoveryPlan, Event, ExecutionArtifact, IntegrationFixture, InternalEvent, InternalPhp, InternalWire, Result, Test]
-    ExecutionProcessWorker: [Config, CoverageCollection, Event, ExecutionArtifact, ExecutionPlugin, ExecutionProcessProtocol, ExecutionWorker, Harness, InternalPhp, InternalWire, Plugin, Result, Test]
+    ExecutionProcessWorker: [CliExitCode, Config, CoverageCollection, Event, ExecutionArtifact, ExecutionPlugin, ExecutionProcessProtocol, ExecutionWorker, Harness, InternalPhp, InternalWire, Plugin, Result, Test]
     ExecutionProcessOrchestrator: [Artifact, Config, Coverage, CoverageCollection, DiscoveryPlan, Event, ExecutionArtifact, ExecutionProcessProtocol, ExecutionWorker, IntegrationFixture, InternalPhp, InternalProcess, InternalText, InternalWire, Reporting, Result, Test]
-    Cli: [CliCommand, CliOutput, CliPlugin, Coverage, CoverageRelay, ExecutionProcessProtocol, ExecutionProcessWorker, InternalWire, Plugin, Reporting]
+    Cli: [CliCommand, CliExitCode, CliOutput, CliPlugin, Coverage, CoverageRelay, ExecutionProcessProtocol, ExecutionProcessWorker, InternalWire, Plugin, Reporting]
+    CliExitCode: [Plugin]
     CliInput: []
     CliConfiguration: [CliInput, Config, InternalPhp, InternalText, Result, Test]
     CliDiscovery: [CliConfiguration, CliInput, CliState, Config, Discovery, DiscoveryPlan, Test]
