@@ -25,7 +25,6 @@ final class PendingConsistently
     private function __construct(
         private readonly \Closure $probe,
         private readonly PollingClock $clock,
-        private readonly ?float $attemptDeadline,
         private readonly ValueRenderer $renderer,
         private readonly array $extensions,
     ) {}
@@ -43,11 +42,10 @@ final class PendingConsistently
     public static function create(
         \Closure $probe,
         PollingClock $clock,
-        ?float $attemptDeadline,
         ValueRenderer $renderer,
         array $extensions,
     ): self {
-        return new self($probe, $clock, $attemptDeadline, $renderer, $extensions);
+        return new self($probe, $clock, $renderer, $extensions);
     }
 
     /**
@@ -84,7 +82,6 @@ final class PendingConsistently
         return ConsistentlyExpectation::create(
             $this->probe,
             $this->clock,
-            $this->attemptDeadline,
             $this->intervalSeconds,
             $seconds,
             $this->renderer,
