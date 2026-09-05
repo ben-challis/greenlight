@@ -37,7 +37,7 @@ final class PcovDriver implements CoverageDriver
     #[\Override]
     public static function isAvailable(): bool
     {
-        return \extension_loaded('pcov');
+        return \extension_loaded('pcov') && \filter_var(\ini_get('pcov.enabled'), \FILTER_VALIDATE_BOOL);
     }
 
     #[\Override]
