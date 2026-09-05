@@ -20,6 +20,9 @@ abstract readonly class PluginRuntime
      */
     private array $plugins;
 
+    /** @var list<Plugin> */
+    private array $orderedPlugins;
+
     /**
      * @param list<Plugin> $plugins
      */
@@ -36,6 +39,13 @@ abstract readonly class PluginRuntime
         }
 
         $this->plugins = $indexed;
+
+        \usort(
+            $indexed,
+            static fn(array $a, array $b): int => [$a['priority'], $a['registration']]
+                <=> [$b['priority'], $b['registration']],
+        );
+        $this->orderedPlugins = \array_column($indexed, 'plugin');
     }
 
     /**
@@ -90,17 +100,9 @@ abstract readonly class PluginRuntime
      */
     final protected function ordered(string $capability): array
     {
-        $matching = \array_values(\array_filter(
-            $this->plugins,
-            static fn(array $entry): bool => $entry['plugin'] instanceof $capability,
+        return \array_values(\array_filter(
+            $this->orderedPlugins,
+            static fn(Plugin $plugin): bool => $plugin instanceof $capability,
         ));
-
-        \usort(
-            $matching,
-            static fn(array $a, array $b): int => [$a['priority'], $a['registration']]
-                <=> [$b['priority'], $b['registration']],
-        );
-
-        return \array_column($matching, 'plugin');
     }
 }
