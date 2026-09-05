@@ -261,6 +261,10 @@ final class ArtifactStore
                             continue;
                         }
 
+                        if (\strlen($chunk) > $size - $copied) {
+                            throw AttachmentError::source($sourcePath, 'changed while it was being copied');
+                        }
+
                         $copied += \strlen($chunk);
                         \hash_update($hash, $chunk);
                         StreamWriter::writeFully($destination, $chunk);
