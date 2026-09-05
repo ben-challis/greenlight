@@ -111,7 +111,9 @@ mechanism Symfony uses between requests. The resetter resets services with the
 each stateful service that must keep tests isolated.
 
 The bridge captures and checks the resetter when the kernel boots. If service
-resets are active without a container resetter, every test fails.
+resets are active without a container resetter, each test that requests the
+kernel or a container service has an error. Tests that use only other harness
+services do not boot the kernel.
 
 For a container that has no stateful services, pass `resetBetweenTests: false`
 to the plugin. This value disables the resetter requirement. Do not use this

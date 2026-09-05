@@ -124,7 +124,8 @@ new Psr11Plugin(
 );
 ```
 
-Tests on the same worker receive the same service instances.
+Tests on the same worker share the container. The container controls whether
+each service request returns an existing instance or a new instance.
 
 When the shared container is active, the callback runs after each test attempt.
 This includes an attempt that does not request the container.
