@@ -17,14 +17,15 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
  *
  * The applicable flag changes a passed test with a captured deprecation,
  * notice, or warning to a failed test. The diagnostic becomes the failure
- * detail. The transformation log records the change.
+ * detail. Configured ignore patterns exempt matching deprecations.
+ * The transformation log records the change.
  *
  * A pattern without "*" or "?" matches part of a deprecation message without
  * case sensitivity. A pattern with either character matches the complete
  * message.
  *
- * A passed test with no verified expectations becomes risky. failOnRisky
- * changes this result to failed.
+ * A passed test with no verified expectations becomes risky unless it has
+ * #[NoExpectations]. failOnRisky changes a risky result to failed.
  *
  * @internal
  */
