@@ -69,7 +69,9 @@ final readonly class Application
                 return ExitCode::fromCommandResult(CommandResult::usage())->value();
             }
 
-            return new WorkerProcess(isolateProcessGroup: true)->run($argv[1], $argv[2], $argv[3]);
+            $result = new WorkerProcess(isolateProcessGroup: true)->run($argv[1], $argv[2], $argv[3]);
+
+            return ExitCode::fromCommandResult($result)->value();
         }
 
         // A run with coverage exports the relay variables to each child

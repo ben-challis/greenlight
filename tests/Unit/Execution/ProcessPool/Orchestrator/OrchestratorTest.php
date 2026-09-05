@@ -85,6 +85,9 @@ final class OrchestratorTest
         $root = \dirname(__DIR__, 5);
         $script = \sprintf(
             <<<'PHP'
+                use Greenlight\Cli\ExitCode;
+                use Greenlight\Execution\ProcessPool\Worker\WorkerProcess;
+
                 [, , $address, $workerId, $token] = $argv;
                 $socket = stream_socket_client($address);
                 $json = json_encode([
@@ -102,7 +105,7 @@ final class OrchestratorTest
 
                 require %s;
 
-                exit(new \Greenlight\Execution\ProcessPool\Worker\WorkerProcess()->run($address, $workerId, $token));
+                exit(ExitCode::fromCommandResult(new WorkerProcess()->run($address, $workerId, $token))->value());
                 PHP,
             \var_export($root . '/vendor/autoload.php', true),
         );
