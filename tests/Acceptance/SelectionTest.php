@@ -183,6 +183,35 @@ final readonly class SelectionTest
         $result = $this->run($project, '--failed');
         Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(0);
         Expect::that($result->output())->because('failed reruns exactly the previous failures')->toContain('No tests failed');
+        Expect::that($result->stdout)->toBe('');
+        Expect::that($result->stderr)->toContain('No tests failed');
+    }
+
+    #[Test]
+    public function failedKeepsTheEmptySelectionNoticeOnStandardOutputForPlainReports(): void
+    {
+        $project = $this->writeProject();
+        $this->run($project, '--filter=alwaysPasses');
+
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--failed']);
+
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->stdout)->toContain('No tests failed');
+        Expect::that($result->stderr)->toBe('');
+    }
+
+    #[Test]
+    public function failedKeepsTheEmptySelectionNoticeOnStandardOutputWhenJsonlUsesAFile(): void
+    {
+        $project = $this->writeProject();
+        $this->run($project, '--filter=alwaysPasses');
+
+        $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl=events.jsonl', '--failed']);
+
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->stdout)->toContain('No tests failed');
+        Expect::that($result->stderr)->toBe('');
+        Expect::that(\file_get_contents($project->directory . '/events.jsonl'))->toBe('');
     }
 
     #[Test]
