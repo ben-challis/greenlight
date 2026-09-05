@@ -253,7 +253,13 @@ final readonly class TestExecutor
                 } catch (\Throwable $threw) {
                     if (!$cause instanceof \Throwable) {
                         $cause = $threw;
-                        $error = ThrowableDetail::fromThrowable($threw);
+                        $skipReason = null;
+
+                        if ($threw instanceof ExpectationFailed) {
+                            $failures = $threw->details;
+                        } else {
+                            $error = ThrowableDetail::fromThrowable($threw);
+                        }
                     }
                 }
             }
