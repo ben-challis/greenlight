@@ -12,9 +12,11 @@ use Greenlight\Condition\FunctionAvailable;
 use Greenlight\Execution\ProcessPool\Worker\WorkerProcess;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
+use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\PhpSubprocess;
 
 final readonly class WorkerProcessTest
@@ -31,20 +33,7 @@ final readonly class WorkerProcessTest
         $root = \dirname(__DIR__, 5);
         $address = 'unix://' . $this->tempDirectory->path() . '/missing-worker.sock';
 
-        $result = PhpSubprocess::run($root, [
-            '-r',
-            <<<'PHP'
-            require $argv[1];
-
-            exit(new Greenlight\Execution\ProcessPool\Worker\WorkerProcess()->run(
-                $argv[2],
-                'worker-under-test',
-                'token',
-            ));
-            PHP,
-            $root . '/vendor/autoload.php',
-            $address,
-        ]);
+        $result = GreenlightCli::run($root, ['__worker', $address, 'worker-under-test', 'token']);
 
         Expect::that($result->exitCode)
             ->because('a worker connection failure MUST fail startup')
@@ -67,7 +56,7 @@ final readonly class WorkerProcessTest
 
             Expect::that(new WorkerProcess()->run($address, 'worker-under-test', 'token'))
                 ->because('a connection failure MUST return control to the calling process')
-                ->toBe(1);
+                ->toEqual(CommandResult::failure());
             Expect::that(\pcntl_signal_get_handler(\SIGINT))
                 ->because('an in-process worker run MUST restore the caller SIGINT handler')
                 ->toBe($callerHandler);
@@ -136,12 +125,12 @@ final readonly class WorkerProcessTest
         }
 
         $this->environment->set('GREENLIGHT_CHANNEL', '1');
-        $workerExit = new WorkerProcess()->run($address, 'worker-under-test', 'token');
+        $workerResult = new WorkerProcess()->run($address, 'worker-under-test', 'token');
         $serverResult = $server->wait(2.0);
 
-        Expect::that($workerExit)
+        Expect::that($workerResult)
             ->because('an assignment setup failure MUST stop the worker abnormally')
-            ->toBe(1);
+            ->toEqual(CommandResult::failure());
         Expect::that($serverResult->exitCode)
             ->because('the orchestrator fixture MUST receive the worker fatal message')
             ->toBe(0);
@@ -154,11 +143,11 @@ final readonly class WorkerProcessTest
     #[Timeout(5.0)]
     public function bootstrapRejectsATruncatedChannelEnvironmentValue(): void
     {
-        [$workerExit, $serverExit] = $this->runScenario('bootstrap-channel-mismatch', '1worker');
+        [$workerResult, $serverExit] = $this->runScenario('bootstrap-channel-mismatch', '1worker');
 
-        Expect::that($workerExit)
+        Expect::that($workerResult)
             ->because('a malformed channel environment value MUST fail worker bootstrap')
-            ->toBe(1);
+            ->toEqual(CommandResult::failure());
         Expect::that($serverExit)
             ->because('the protocol fixture MUST receive the channel mismatch diagnostic')
             ->toBe(0);
@@ -168,9 +157,9 @@ final readonly class WorkerProcessTest
     #[Timeout(5.0)]
     public function itKeepsPollingAfterAnIdleReceiveTimesOut(): void
     {
-        [$workerExit, $serverExit] = $this->runScenario('idle-then-drain');
+        [$workerResult, $serverExit] = $this->runScenario('idle-then-drain');
 
-        Expect::that($workerExit)->toBe(0);
+        Expect::that($workerResult)->toEqual(CommandResult::success());
         Expect::that($serverExit)->toBe(0);
     }
 
@@ -178,11 +167,11 @@ final readonly class WorkerProcessTest
     #[Timeout(5.0)]
     public function emptyAssignmentsCompleteBeforeTheWorkerDrains(): void
     {
-        [$workerExit, $serverExit] = $this->runScenario('empty-assignment');
+        [$workerResult, $serverExit] = $this->runScenario('empty-assignment');
 
-        Expect::that($workerExit)
+        Expect::that($workerResult)
             ->because('an empty assignment MUST complete and leave the worker available to drain')
-            ->toBe(0);
+            ->toEqual(CommandResult::success());
         Expect::that($serverExit)
             ->because('the protocol fixture MUST receive the empty completion before it drains the worker')
             ->toBe(0);
@@ -193,11 +182,11 @@ final readonly class WorkerProcessTest
     #[DataSet('cleanControlChannelEndings')]
     public function controlChannelEndingsStopTheWorkerCleanly(string $scenario): void
     {
-        [$workerExit, $serverExit] = $this->runScenario($scenario);
+        [$workerResult, $serverExit] = $this->runScenario($scenario);
 
-        Expect::that($workerExit)
+        Expect::that($workerResult)
             ->because('a control-channel ending MUST stop the worker cleanly')
-            ->toBe(0);
+            ->toEqual(CommandResult::success());
         Expect::that($serverExit)
             ->toBe(0);
     }
@@ -219,11 +208,11 @@ final readonly class WorkerProcessTest
     #[DataSet('workerProtocolViolations')]
     public function protocolViolationsStopTheWorkerAbnormally(string $scenario): void
     {
-        [$workerExit, $serverExit] = $this->runScenario($scenario);
+        [$workerResult, $serverExit] = $this->runScenario($scenario);
 
-        Expect::that($workerExit)
+        Expect::that($workerResult)
             ->because('a worker protocol violation MUST stop the worker abnormally')
-            ->toBe(1);
+            ->toEqual(CommandResult::failure());
         Expect::that($serverExit)
             ->because('the protocol fixture MUST receive the worker fatal message')
             ->toBe(0);
@@ -239,7 +228,7 @@ final readonly class WorkerProcessTest
     }
 
     /**
-     * @return array{int, int}
+     * @return array{CommandResult, int}
      */
     private function runScenario(string $scenario, string $environmentChannel = '1'): array
     {
@@ -380,9 +369,9 @@ final readonly class WorkerProcessTest
         }
 
         $this->environment->set('GREENLIGHT_CHANNEL', $environmentChannel);
-        $workerExit = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
+        $workerResult = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
         $serverResult = $server->wait(2.0);
 
-        return [$workerExit, $serverResult->exitCode];
+        return [$workerResult, $serverResult->exitCode];
     }
 }

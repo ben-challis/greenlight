@@ -9,6 +9,7 @@ use Greenlight\Attribute\Timeout;
 use Greenlight\Execution\ProcessPool\Worker\WorkerProcess;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
@@ -133,12 +134,12 @@ final readonly class WorkerArtifactSessionTest
         }
 
         $this->environment->set('GREENLIGHT_CHANNEL', '1');
-        $workerExit = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
+        $workerResult = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
         $serverExit = $server->wait(2.0)->exitCode;
 
-        Expect::that($workerExit)
+        Expect::that($workerResult)
             ->because('a worker with artifact settings MUST complete its assignment')
-            ->toBe(0);
+            ->toEqual(CommandResult::success());
         Expect::that($serverExit)
             ->because('the worker MUST stage evidence in the assigned artifact session')
             ->toBe(0);

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution\ProcessPool\Worker;
 
-use Greenlight\Cli\ExitCode;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Coverage\Collection\CoverageCollector;
@@ -60,7 +59,7 @@ final readonly class WorkerProcess
      * @param non-empty-string $token
      * @throws ProtocolError
      */
-    public function run(string $address, string $workerId, string $token): int
+    public function run(string $address, string $workerId, string $token): CommandResult
     {
         // Keep the worker and its subprocesses outside the terminal process group.
         // Thus, terminal SIGINT reaches only the orchestrator.
@@ -80,7 +79,7 @@ final readonly class WorkerProcess
         }
 
         try {
-            return ExitCode::fromCommandResult($this->runWhileIgnoringInterrupt($address, $workerId, $token))->value();
+            return $this->runWhileIgnoringInterrupt($address, $workerId, $token);
         } finally {
             if ($interruptHandler !== null && \function_exists('pcntl_signal')) {
                 \pcntl_signal(\SIGINT, $interruptHandler);

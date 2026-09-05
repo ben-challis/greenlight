@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Execution\ProcessPool\Orchestrator;
 
+use Greenlight\Cli\ExitCode;
 use Greenlight\Doubles\Fake;
 use Greenlight\Execution\ProcessPool\Worker\WorkerProcess;
 
@@ -29,7 +30,7 @@ final readonly class LoggedWorkerProcess implements Fake
             self::record('exit-end', $workerId);
         });
 
-        return new WorkerProcess()->run($address, $workerId, $token);
+        return ExitCode::fromCommandResult(new WorkerProcess()->run($address, $workerId, $token))->value();
     }
 
     private static function record(string $phase, string $workerId): void
