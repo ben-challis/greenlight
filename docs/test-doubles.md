@@ -270,3 +270,22 @@ an interface at the application boundary.
 
 Greenlight suppresses a non-final destructor. It cannot suppress a final
 destructor, which can run application code.
+
+### Object parameter defaults
+
+Methods can declare object defaults and objects inside nested arrays.
+Greenlight copies each `new` expression from the method's source file into the
+proxy. It preserves constructor arguments, imported names, and literal values.
+It does not construct these default objects when it creates the double.
+PHP constructs them when a call omits the applicable argument.
+
+The method must have a readable PHP source file. Methods declared through
+`eval()` cannot supply object default expressions. Declare methods on separate
+lines so Greenlight can identify the original declaration. A default cannot depend on
+a private constructor that the proxy cannot access. Dynamic constant access
+also requires a class without private constants. These cases produce
+`InvalidDoubleUsage`.
+
+Define unqualified constants before you create the double. Greenlight resolves
+these constants in the original namespace, with PHP's global fallback, when it
+generates the proxy. Private scalar and enum constants retain their values.

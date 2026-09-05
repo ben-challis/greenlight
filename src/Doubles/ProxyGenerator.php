@@ -403,7 +403,13 @@ final readonly class ProxyGenerator
 
                     if ($member instanceof \ReflectionClassConstant && $member->isPrivate()) {
                         // A child proxy cannot access the parent's private constant.
-                        return \var_export($parameter->getDefaultValue(), true);
+                        $value = $parameter->getDefaultValue();
+
+                        if (ParameterDefaultExpression::containsObject($value)) {
+                            throw InvalidDoubleUsage::objectDefaultScopeUnavailable($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
+                        }
+
+                        return \var_export($value, true);
                     }
                 }
             }
@@ -411,10 +417,17 @@ final readonly class ProxyGenerator
             return '\\' . $constant;
         }
 
+        $expression = ParameterDefaultExpression::render($parameter, $context);
+
+        if ($expression !== null) {
+            return $expression;
+        }
+
         $value = $parameter->getDefaultValue();
 
-        if (\is_object($value) && !$value instanceof \UnitEnum) {
-            throw InvalidDoubleUsage::objectDefaultNotReproducible($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
+        if (ParameterDefaultExpression::containsObject($value)) {
+            return ParameterDefaultExpression::render($parameter, $context, requireSource: true)
+                ?? throw InvalidDoubleUsage::objectDefaultNotReproducible($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
         }
 
         return \var_export($value, true);
