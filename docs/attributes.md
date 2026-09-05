@@ -394,6 +394,10 @@ An `eventually()` or `consistently()` matcher checks the current attempt
 deadline between probe calls. A blocked probe cannot check this deadline.
 Only process-pool execution provides the outer timeout for a blocked probe.
 
+The optional [Amp integration](amp.md) cancels supported asynchronous waits
+during construction, hooks, the body, and cleanup. It uses the existing attempt
+deadline. It joins registered child work before cleanup and retries.
+
 <!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
 #[Test]

@@ -76,4 +76,121 @@ final class ExpectationCounterTest
             ->because('expectation counting MUST resume after an operation error')
             ->toBe(2);
     }
+
+    #[Test]
+    public function suspendedSuppressionDoesNotHideAssertionsInOtherContexts(): void
+    {
+        ExpectationCounter::reset();
+        $fiber = new \Fiber(static function (): void {
+            ExpectationCounter::withoutCounting(static function (): void {
+                Expect::that(true)->toBeTrue();
+                \Fiber::suspend();
+                Expect::that(true)->toBeTrue();
+            });
+            Expect::that(true)->toBeTrue();
+        });
+
+        $fiber->start();
+        $afterSuspension = ExpectationCounter::count();
+        Expect::that(true)->toBeTrue();
+        $sibling = new \Fiber(static function (): void {
+            Expect::that(true)->toBeTrue();
+        });
+        $sibling->start();
+        $afterOtherContexts = ExpectationCounter::count();
+        $fiber->resume();
+        $afterResume = ExpectationCounter::count();
+
+        Expect::that($afterSuspension)->toBe(0);
+        Expect::that($afterOtherContexts)->toBe(2);
+        Expect::that($afterResume)->toBe(3);
+    }
+
+    #[Test]
+    public function mainSuppressionDoesNotApplyToChildFibers(): void
+    {
+        ExpectationCounter::reset();
+
+        ExpectationCounter::withoutCounting(static function (): void {
+            $fiber = new \Fiber(static function (): void {
+                Expect::that(true)->toBeTrue();
+            });
+            $fiber->start();
+            Expect::that(true)->toBeTrue();
+        });
+        $afterSuppression = ExpectationCounter::count();
+        Expect::that(true)->toBeTrue();
+        $afterResume = ExpectationCounter::count();
+
+        Expect::that($afterSuppression)->toBe(1);
+        Expect::that($afterResume)->toBe(2);
+    }
+
+    #[Test]
+    public function nestedFiberSuppressionRestoresCountingAfterAnError(): void
+    {
+        ExpectationCounter::reset();
+        $message = null;
+        $fiber = new \Fiber(static function () use (&$message): void {
+            try {
+                ExpectationCounter::withoutCounting(static function (): void {
+                    Expect::that(true)->toBeTrue();
+                    ExpectationCounter::withoutCounting(static function (): never {
+                        Expect::that(true)->toBeTrue();
+
+                        throw new \RuntimeException('Operation failed.');
+                    });
+                });
+            } catch (\RuntimeException $error) {
+                $message = $error->getMessage();
+            }
+
+            Expect::that(true)->toBeTrue();
+        });
+        $fiber->start();
+        $afterError = ExpectationCounter::count();
+
+        Expect::that($message)->toBe('Operation failed.');
+        Expect::that($afterError)->toBe(1);
+    }
+
+    #[Test]
+    public function resetPreventsOldMainScopesFromRestoringSuppression(): void
+    {
+        ExpectationCounter::reset();
+
+        ExpectationCounter::withoutCounting(static function (): void {
+            ExpectationCounter::withoutCounting(static function (): void {
+                ExpectationCounter::reset();
+                ExpectationCounter::increment();
+            });
+            ExpectationCounter::increment();
+        });
+        ExpectationCounter::increment();
+        $afterReset = ExpectationCounter::count();
+
+        Expect::that($afterReset)->toBe(3);
+    }
+
+    #[Test]
+    public function resetClearsSuppressionInSuspendedFibers(): void
+    {
+        ExpectationCounter::reset();
+        $fiber = new \Fiber(static function (): void {
+            ExpectationCounter::withoutCounting(static function (): void {
+                ExpectationCounter::withoutCounting(static function (): void {
+                    \Fiber::suspend();
+                    ExpectationCounter::increment();
+                });
+                ExpectationCounter::increment();
+            });
+            ExpectationCounter::increment();
+        });
+        $fiber->start();
+        ExpectationCounter::reset();
+        $fiber->resume();
+        $afterReset = ExpectationCounter::count();
+
+        Expect::that($afterReset)->toBe(3);
+    }
 }

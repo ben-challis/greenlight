@@ -7,6 +7,7 @@ namespace Greenlight\Expect;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\SourceLocation;
 use Greenlight\Test\ExpectationCounter;
+use Greenlight\Test\OperationCancelledError;
 
 /**
  * Contains the matcher dispatch and probe operations for eventual and
@@ -139,6 +140,12 @@ abstract class TemporalExpectation
         try {
             $subject = ($this->probe)();
         } catch (\Exception $exception) {
+            $cancellation = OperationCancelledError::find($exception);
+
+            if ($cancellation instanceof OperationCancelledError) {
+                throw $exception;
+            }
+
             if (!\array_any(
                 $retryOnExceptions,
                 static fn(string $type): bool => $exception instanceof $type,

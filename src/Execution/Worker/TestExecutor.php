@@ -12,7 +12,6 @@ use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\StagedAttachments;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Execution\Plugin\PluginRuntimeError;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ExpectationRuntime;
@@ -26,6 +25,7 @@ use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\CleanupFailed;
+use Greenlight\Test\DeadlineExceededError;
 use Greenlight\Test\ExpectationCounter;
 use Greenlight\Test\SkipTest;
 use Greenlight\Test\TestId;
@@ -37,6 +37,7 @@ use Greenlight\Test\TestId;
  * - `beforeTest()` subscribers
  * - `Before` hooks
  * - The test method
+ * - Asynchronous work cleanup
  * - `After` hooks
  * - Deferred cleanup callbacks
  * - Test-scope teardown
@@ -120,13 +121,15 @@ final readonly class TestExecutor
             } catch (\Throwable $threw) {
                 $cause = $threw;
                 $attachments = null;
+                $deadline = DeadlineExceededError::find($threw);
                 $result = new TestResult(
                     $entry->id,
-                    Outcome::Errored,
+                    $deadline instanceof DeadlineExceededError ? Outcome::Failed : Outcome::Errored,
                     0.0,
                     0,
                     $attempt,
-                    error: ThrowableDetail::fromThrowable($threw),
+                    failures: $deadline instanceof DeadlineExceededError ? [new FailureDetail($deadline->getMessage())] : [],
+                    error: $deadline instanceof DeadlineExceededError ? null : ThrowableDetail::fromThrowable($threw),
                 );
             }
 
@@ -195,77 +198,90 @@ final readonly class TestExecutor
         $attachments = $stagedAttachments ?? new UnavailableAttachments();
         $cleanup = new Cleanup();
         $disposalFailures = [];
+        $lifecycles = [];
+        $recordFailure = static function (\Throwable $failure, string $secondaryMessage, bool $classifyExpectation = true) use (&$failures, &$cause, &$error, &$skipReason): void {
+            $primary = !$cause instanceof \Throwable;
+            $deadline = DeadlineExceededError::find($failure);
+
+            if ($primary) {
+                $cause = $failure;
+                $skipReason = null;
+            }
+
+            if ($deadline instanceof DeadlineExceededError) {
+                $failures[] = new FailureDetail($deadline->getMessage());
+            } elseif ($classifyExpectation && $failure instanceof ExpectationFailed) {
+                $failures = [...$failures, ...$failure->details];
+            } elseif ($primary) {
+                $error = ThrowableDetail::fromThrowable($failure);
+            } else {
+                $failures[] = new FailureDetail(\sprintf($secondaryMessage, $failure->getMessage()));
+            }
+        };
         $memoryBefore = \memory_get_usage(true);
         $startedAt = \hrtime(true);
         $capture?->start();
-        ExpectationRuntime::enterAttempt(
-            $execution->timeoutSeconds === null
-                ? null
-                : $startedAt / 1_000_000_000 + $execution->timeoutSeconds,
-        );
+        $deadline = $execution->timeoutSeconds === null
+            ? null
+            : $startedAt / 1_000_000_000 + $execution->timeoutSeconds;
+        ExpectationRuntime::enterAttempt($deadline);
 
         try {
-            $instance = $this->instantiate($definition->class, $attachments, $cleanup);
-            $context = new TestContext($instance, $entry->id, $definition, $this->scopes, $attachments);
-            $instance = null;
-
             try {
+                [$lifecycles, $entryFailure] = $this->plugins->enterTestAttempt($deadline);
+
+                if ($entryFailure instanceof \Throwable) {
+                    throw $entryFailure;
+                }
+
+                $instance = $this->instantiate($definition->class, $attachments, $cleanup);
+                $context = new TestContext($instance, $entry->id, $definition, $this->scopes, $attachments);
+                $instance = null;
                 $this->plugins->beforeTest($context);
+
+                foreach ($this->context->beforeHooks as $hook) {
+                    $hook->invoke($context->instance);
+                }
+
+                $arguments = [];
+
+                if ($entry->id->dataSetKey !== null) {
+                    $arguments = $this->context->argumentsFor(
+                        $definition->dataProvider->method,
+                        $definition->dataProvider->class,
+                        $definition->method,
+                        $entry->id->dataSetKey,
+                    );
+                }
+
+                $this->context->reflection->getMethod($definition->method)->invokeArgs($context->instance, $arguments);
             } catch (SkipTest $skip) {
-                $skipReason = $skip->reason;
-            } catch (PluginRuntimeError $failure) {
-                $cause = $failure;
-                $error = ThrowableDetail::fromThrowable($failure);
-            }
-
-            if ($skipReason === null && !$cause instanceof PluginRuntimeError) {
-                try {
-                    foreach ($this->context->beforeHooks as $hook) {
-                        $hook->invoke($context->instance);
-                    }
-
-                    $arguments = [];
-
-                    if ($entry->id->dataSetKey !== null) {
-                        $arguments = $this->context->argumentsFor(
-                            $definition->dataProvider->method,
-                            $definition->dataProvider->class,
-                            $definition->method,
-                            $entry->id->dataSetKey,
-                        );
-                    }
-
-                    $this->context->reflection->getMethod($definition->method)->invokeArgs($context->instance, $arguments);
-                } catch (SkipTest $skip) {
+                if ($context instanceof TestContext) {
                     $skipReason = $skip->reason;
-                } catch (ExpectationFailed $failed) {
-                    $failures = $failed->details;
-                    $cause = $failed;
-                } catch (\Throwable $threw) {
-                    $cause = $threw;
-                    $error = ThrowableDetail::fromThrowable($threw);
+                } else {
+                    $recordFailure($skip, 'Constructor caused an error: %s');
+                }
+            } catch (\Throwable $threw) {
+                $recordFailure($threw, 'Test body caused an error: %s', $context instanceof TestContext);
+            } finally {
+                foreach ($this->plugins->leaveTestBody($lifecycles) as $failure) {
+                    foreach ($failure instanceof CleanupFailed ? $failure->failures : [$failure] as $childFailure) {
+                        $recordFailure($childFailure, 'Test body cleanup caused an error: %s');
+                    }
                 }
             }
 
-            foreach ($this->context->afterHooks as $hook) {
-                try {
-                    $hook->invoke($context->instance);
-                } catch (\Throwable $threw) {
-                    if (!$cause instanceof \Throwable) {
-                        $cause = $threw;
-                        $skipReason = null;
-
-                        if ($threw instanceof ExpectationFailed) {
-                            $failures = $threw->details;
-                        } else {
-                            $error = ThrowableDetail::fromThrowable($threw);
+            if ($context instanceof TestContext) {
+                foreach ($this->context->afterHooks as $hook) {
+                    try {
+                        $hook->invoke($context->instance);
+                    } catch (\Throwable $threw) {
+                        if ($lifecycles !== [] || !$cause instanceof \Throwable) {
+                            $recordFailure($threw, 'After hook caused an error: %s');
                         }
                     }
                 }
             }
-        } catch (\Throwable $threw) {
-            $cause = $threw;
-            $error = ThrowableDetail::fromThrowable($threw);
         } finally {
             try {
                 $captured = $capture?->stop();
@@ -275,36 +291,18 @@ final readonly class TestExecutor
                         $cleanup->close();
                     } catch (CleanupFailed $cleanupFailed) {
                         foreach ($cleanupFailed->failures as $cleanupFailure) {
-                            if (!$cause instanceof \Throwable) {
-                                $cause = $cleanupFailure;
-                                $skipReason = null;
-
-                                if ($cleanupFailure instanceof ExpectationFailed) {
-                                    $failures = $cleanupFailure->details;
-                                } else {
-                                    $error = ThrowableDetail::fromThrowable($cleanupFailure);
-                                }
-
-                                continue;
-                            }
-
-                            if ($cleanupFailure instanceof ExpectationFailed) {
-                                $failures = [...$failures, ...$cleanupFailure->details];
-
-                                continue;
-                            }
-
-                            $failures[] = new FailureDetail(\sprintf(
-                                'Cleanup callback caused an error: %s',
-                                $cleanupFailure->getMessage(),
-                            ));
+                            $recordFailure($cleanupFailure, 'Cleanup callback caused an error: %s');
                         }
                     }
                 } finally {
                     try {
                         $disposalFailures = $this->scopes->closeTest();
                     } finally {
-                        ExpectationRuntime::leaveAttempt();
+                        try {
+                            $disposalFailures = [...$disposalFailures, ...$this->plugins->leaveTestAttempt($lifecycles)];
+                        } finally {
+                            ExpectationRuntime::leaveAttempt();
+                        }
                     }
                 }
             }

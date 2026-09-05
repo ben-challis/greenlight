@@ -7,6 +7,7 @@ namespace Greenlight\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Test\ExpectationCounter;
+use Greenlight\Test\OperationCancelledError;
 
 /**
  * A fluent matcher chain for one subject value.
@@ -828,6 +829,12 @@ final class Expectation
         try {
             ($this->subject)();
         } catch (\Throwable $caught) {
+            $cancellation = OperationCancelledError::find($caught);
+
+            if ($cancellation instanceof OperationCancelledError) {
+                throw $caught;
+            }
+
             $thrown = $caught;
         }
 

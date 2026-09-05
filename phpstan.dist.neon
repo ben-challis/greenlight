@@ -47,6 +47,8 @@ parameters:
         - greenlight.tempest-coverage.php
         - rector.php
         - rector.docs.php
+    stubFiles:
+        - tools/phpstan-stubs/amp.stub
     scanFiles:
         - stubs/tempest.stub.php
         - tools/phpstan-stubs/hyperf.php

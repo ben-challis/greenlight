@@ -62,6 +62,11 @@ export const docSections = [
     title: 'Extend',
     items: [
       {
+        id: 'amp',
+        title: 'Amp',
+        description: 'This guide explains asynchronous deadlines, child work, and cleanup with Amp and Revolt.',
+      },
+      {
         id: 'symfony',
         title: 'Symfony',
         description: 'This guide explains how tests use a kernel and receive container services.',
