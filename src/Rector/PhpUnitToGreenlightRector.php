@@ -19,6 +19,7 @@ use Greenlight\Test\SkipTest;
 use PhpParser\Modifiers;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
+use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Attribute;
 use PhpParser\Node\AttributeGroup;
 use PhpParser\Node\Expr;
@@ -881,16 +882,10 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             return false;
         }
 
-        foreach ($expression->items as $item) {
-            if ($item === null || $item->byRef || $item->unpack
-                || ($item->key !== null && !$this->isLiteralValue($item->key))
-                || !$this->isLiteralValue($item->value)
-            ) {
-                return false;
-            }
-        }
-
-        return true;
+        return \array_all($expression->items, fn(?ArrayItem $item): bool => $item instanceof ArrayItem
+            && !$item->byRef && !$item->unpack
+            && (!$item->key instanceof Expr || $this->isLiteralValue($item->key))
+            && $this->isLiteralValue($item->value));
     }
 
     private function isSelfReceiver(MethodCall|StaticCall $call): bool

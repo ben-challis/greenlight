@@ -27,7 +27,7 @@ final readonly class RectorArgumentOrderTest
             'two property reads' => 'self::assertSame($state->first, $state->second);',
             'delta mutation' => 'self::assertEqualsWithDelta($value, 1, $value = 2);',
         ];
-        $cases = \array_map(self::source(...), $assertions);
+        $cases = \array_map($this->source(...), $assertions);
         $probes = RectorProbe::convertBatch($this->workspace, $cases, name: 'assertion-order');
 
         foreach ($probes as $name => $probe) {
@@ -38,7 +38,7 @@ final readonly class RectorArgumentOrderTest
     #[Test]
     public function convertsIndependentArgumentsAndKeepsTheirResults(): void
     {
-        $probe = RectorProbe::convert($this->workspace, self::source(<<<'PHP'
+        $probe = RectorProbe::convert($this->workspace, $this->source(<<<'PHP'
             self::assertSame(1, $value++);
             self::assertSame($value, $value);
             self::assertSame([1, 2], $values);
@@ -50,7 +50,7 @@ final readonly class RectorArgumentOrderTest
         Expect::that($probe->runConvertedTests()->exitCode)->toBe(0);
     }
 
-    private static function source(string $assertion): string
+    private function source(string $assertion): string
     {
         return <<<PHP
             <?php
