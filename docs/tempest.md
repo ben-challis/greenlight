@@ -93,19 +93,27 @@ The exception contains the Tempest container exception as its cause.
 
 ### Tagged services
 
-Use the Tempest `#[Tag]` attribute to select a tagged service:
+Replace Tempest `#[Tag]` with `#[Service]` on test constructor parameters.
+
+Use `#[Service]` to select a tagged service:
 
 <!-- php-example {"example":"tempest-example-04","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
-use Tempest\Container\Tag;
+use Greenlight\Harness\Service;
 
 public function __construct(
-    #[Tag('archive')] private readonly Storage $storage,
+    #[Service('archive')] private readonly Storage $storage,
 ) {}
 ```
 
-The bridge passes the tag to the Tempest container. The resolved service has
-the declared parameter type.
+The bridge calls `$container->get(Storage::class, tag: 'archive')`. The ID
+selects a tag, and the declared parameter type stays `Storage`. Greenlight
+checks that the returned service has this type.
+
+`Service` accepts only string IDs. For an enum tag, change the Tempest binding
+and parameter attribute to use the same string.
+
+Without `#[Service]`, the bridge calls `$container->get(Storage::class)`.
 
 ### Kernel and container services
 

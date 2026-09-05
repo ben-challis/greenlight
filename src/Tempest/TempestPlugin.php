@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Tempest;
 
 use Greenlight\Harness\Scope;
+use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\TerminalServiceResolver;
@@ -17,7 +18,6 @@ use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Result\TestResult;
 use Tempest\Container\Container;
 use Tempest\Container\GenericContainer;
-use Tempest\Container\Tag;
 use Tempest\Core\FrameworkKernel;
 use Tempest\Core\Kernel;
 use Tempest\Discovery\DiscoveryLocation;
@@ -30,9 +30,9 @@ use Tempest\Http\Request;
  * configuration, container reset, deferred tasks, and shutdown events stay
  * under kernel control.
  *
- * The bridge uses the `testing` environment by default. Native `#[Tag]`
- * attributes select tagged Tempest bindings. Isolate external test resources
- * by `GREENLIGHT_CHANNEL`.
+ * The bridge uses the `testing` environment by default. `#[Service]` selects
+ * a tagged Tempest binding.
+ * Isolate external test resources by `GREENLIGHT_CHANNEL`.
  */
 final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, TerminalServiceResolver, WorkerBootstrapSubscriber
 {
@@ -90,13 +90,13 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
         $tag = null;
 
         foreach ($attributes as $attribute) {
-            if ($attribute instanceof Tag) {
-                $tag = $attribute->name;
+            if ($attribute instanceof Service) {
+                $tag = $attribute->id;
             }
         }
 
         try {
-            $service = $this->container()->get($type, $tag);
+            $service = $this->container()->get($type, tag: $tag);
         } catch (ServiceResolutionFailed $error) {
             throw $error;
         } catch (\Throwable $cause) {

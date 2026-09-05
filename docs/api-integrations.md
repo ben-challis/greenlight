@@ -591,9 +591,9 @@ Boots one Tempest long-running kernel for each worker. Tempest discovery,
 configuration, container reset, deferred tasks, and shutdown events stay
 under kernel control.
 
-The bridge uses the `testing` environment by default. Native `#[Tag]`
-attributes select tagged Tempest bindings. Isolate external test resources
-by `GREENLIGHT_CHANNEL`.
+The bridge uses the `testing` environment by default. `#[Service]` selects
+a tagged Tempest binding.
+Isolate external test resources by `GREENLIGHT_CHANNEL`.
 
 ```php
 final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, TerminalServiceResolver, WorkerBootstrapSubscriber

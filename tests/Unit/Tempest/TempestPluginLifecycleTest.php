@@ -11,6 +11,8 @@ use Greenlight\Condition\ClassAvailable;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Harness\Service;
+use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\WorkerBootstrapContext;
@@ -23,7 +25,6 @@ use Greenlight\Test\TestChannel;
 use Greenlight\Tests\Support\PluginLifecycle;
 use Greenlight\Tests\Support\ServiceResolverProbe;
 use Tempest\Container\GenericContainer;
-use Tempest\Container\Tag;
 use Tempest\Core\FrameworkKernel;
 use Tempest\Http\GenericRequest;
 use Tempest\Http\Request;
@@ -53,16 +54,45 @@ final class TempestPluginLifecycleTest
     }
 
     #[Test]
-    public function resolvesATaggedContainerService(): void
+    public function theServiceIdSelectsATagForTheDeclaredType(): void
     {
         $plugin = $this->plugin();
         $kernel = $this->kernel($plugin);
         $expected = new TaggedProbeImplementation();
-        $kernel->container->singleton(TaggedProbe::class, $expected, 'preferred');
+        $kernel->container->singleton(TaggedProbe::class, new TaggedProbeImplementation());
+        $kernel->container->singleton(TaggedProbe::class, $expected, 'archive');
+        $kernel->container->singleton('archive', new TaggedProbeImplementation());
 
-        Expect::that($plugin->resolve(TaggedProbe::class, [new Tag('preferred')]))
-            ->because('the Tempest Tag attribute MUST select the tagged container binding')
-            ->toBe($expected);
+        Expect::that($plugin->resolve(TaggedProbe::class, [new Service('archive')]))->toBe($expected);
+    }
+
+    #[Test]
+    public function aParameterWithoutASelectorUsesTheDefaultBinding(): void
+    {
+        $plugin = $this->plugin();
+        $kernel = $this->kernel($plugin);
+        $expected = new TaggedProbeImplementation();
+        $kernel->container->singleton(TaggedProbe::class, $expected);
+        $kernel->container->singleton(TaggedProbe::class, new TaggedProbeImplementation(), 'archive');
+
+        Expect::that($plugin->resolve(TaggedProbe::class, []))->toBe($expected);
+    }
+
+    #[Test]
+    public function rejectsAServiceTagBindingOfTheWrongType(): void
+    {
+        $plugin = $this->plugin();
+        $kernel = $this->kernel($plugin);
+        $kernel->container->singleton(TaggedProbe::class, new TaggedProbeImplementation());
+        $kernel->container->singleton(TaggedProbe::class, new \stdClass(), 'archive');
+
+        Expect::that(static fn(): object => $plugin->resolve(TaggedProbe::class, [new Service('archive')]))
+            ->toThrow(
+                ServiceResolutionFailed::class,
+                message: 'The Tempest container returned "stdClass" for the parameter type "'
+                    . TaggedProbe::class
+                    . '".',
+            );
     }
 
     #[Test]
