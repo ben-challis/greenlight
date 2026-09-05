@@ -272,6 +272,31 @@ final readonly class ProxyGenerator
 
     private function renderInvocationArguments(\ReflectionMethod $method): string
     {
+        $arguments = $this->renderPositionalArguments($method);
+
+        if (!$method->isVariadic()) {
+            return $arguments === '\\func_get_args()'
+                ? $arguments
+                : \sprintf(
+                    '\\array_merge(%s, \\array_slice(\\func_get_args(), %d))',
+                    $arguments,
+                    $method->getNumberOfParameters(),
+                );
+        }
+
+        $parameters = $method->getParameters();
+        $last = $parameters[\count($parameters) - 1];
+
+        return \sprintf(
+            '\\array_merge(\\array_slice(%s, 0, %d), $%s)',
+            $arguments,
+            \count($parameters) - 1,
+            $last->name,
+        );
+    }
+
+    private function renderPositionalArguments(\ReflectionMethod $method): string
+    {
         $parameters = $method->getParameters();
 
         if (!\array_any($parameters, static fn(\ReflectionParameter $parameter): bool => $parameter->isPassedByReference())) {
