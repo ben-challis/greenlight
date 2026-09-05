@@ -10,6 +10,9 @@ use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\ParameterDefaultSource\Ambiguous;
 use Greenlight\Tests\Fixture\ParameterDefaultSource\First;
 use Greenlight\Tests\Fixture\ParameterDefaultSource\Second;
+use Greenlight\Tests\Fixture\ParameterDefaultSource\Values\Other;
+use Greenlight\Tests\Fixture\ParameterDefaultSource\Values\Payload;
+use Greenlight\Tests\Fixture\ParameterDefaultSource\Values\ProbeAttribute;
 
 final class ParameterDefaultSourceTest
 {
@@ -25,9 +28,9 @@ final class ParameterDefaultSourceTest
             ->toBe("new Value(items: ['brace' => '}', 'nested' => [new Other()]])");
         Expect::that($source['namespace'])->toBe('Greenlight\\Tests\\Fixture\\ParameterDefaultSource\\First');
         Expect::that($source['imports'])->toBe([
-            'value' => \Greenlight\Tests\Fixture\ParameterDefaultSource\Values\Payload::class,
-            'other' => \Greenlight\Tests\Fixture\ParameterDefaultSource\Values\Other::class,
-            'probeattribute' => \Greenlight\Tests\Fixture\ParameterDefaultSource\Values\ProbeAttribute::class,
+            'value' => Payload::class,
+            'other' => Other::class,
+            'probeattribute' => ProbeAttribute::class,
             'clock' => 'DateTimeImmutable',
         ]);
         Expect::that($source['constants'])->toBe([
