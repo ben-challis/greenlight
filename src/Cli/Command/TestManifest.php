@@ -52,7 +52,7 @@ final class TestManifest
     }
 
     /**
-     * @param array<non-empty-string, list<string>> $suitePaths
+     * @param array<int|non-empty-string, list<string>> $suitePaths
      * @return array<string, mixed>
      */
     private static function test(PlanEntry $entry, array $suitePaths): array
@@ -108,7 +108,7 @@ final class TestManifest
 
     /**
      * @param list<SuiteConfiguration> $suites
-     * @return array<non-empty-string, list<string>>
+     * @return array<int|non-empty-string, list<string>>
      */
     private static function suitePaths(array $suites, string $workingDirectory): array
     {
@@ -126,7 +126,7 @@ final class TestManifest
     }
 
     /**
-     * @param array<non-empty-string, list<string>> $suitePaths
+     * @param array<int|non-empty-string, list<string>> $suitePaths
      * @return list<non-empty-string>
      */
     private static function memberships(string $file, array $suitePaths): array
@@ -136,7 +136,7 @@ final class TestManifest
         foreach ($suitePaths as $suite => $directories) {
             foreach ($directories as $directory) {
                 if (self::isBelow($file, $directory)) {
-                    $memberships[] = $suite;
+                    $memberships[] = (string) $suite;
                     break;
                 }
             }
