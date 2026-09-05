@@ -71,9 +71,9 @@ case PerWorker = 'per-worker';
 
 Namespace: `Greenlight\Harness`
 
-Selects a service within its source by ID. Each bridge translates the ID
-into its container lookup. The resolved service must have the declared
-parameter type.
+Selects a service ID or a named source for a constructor parameter. Each
+bridge translates the ID into its container lookup, or uses the default
+lookup if the ID is absent. The service must have the declared type.
 
 ```php
 #[\Attribute(\Attribute::TARGET_PARAMETER)]
@@ -85,33 +85,45 @@ final readonly class Service
 ### `$id`
 
 ```php
-public string $id;
+public ?string $id;
 ```
 
 PHPDoc:
 
-- `@var non-empty-string`
+- `@var non-empty-string|null`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L16)
+
+### `$source`
+
+```php
+public ?string $source;
+```
+
+PHPDoc:
+
+- `@var non-empty-string|null`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L19)
 
 ### `__construct()`
 
 ```php
-public function __construct(string $id)
+public function __construct(?string $id = null, ?string $source = null)
 ```
 
 PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L22)
 
 ## `ServiceDefinition`
 
 Namespace: `Greenlight\Harness`
 
 Defines one harness service. It contains the exact injected type, service
-scope, and factory.
+scope, factory, and optional source name.
 
 ```php
 final readonly class ServiceDefinition
@@ -131,13 +143,25 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L16)
 
+### `$source`
+
+```php
+public ?string $source;
+```
+
+PHPDoc:
+
+- `@var non-empty-string|null`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L19)
+
 ### `$scope`
 
 ```php
 public Scope $scope
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L31)
 
 ### `$factory`
 
@@ -145,7 +169,7 @@ public Scope $scope
 public \Closure $factory
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L32)
 
 ### `__construct()`
 
@@ -154,6 +178,7 @@ public function __construct(
     string $type,
     public Scope $scope,
     public \Closure $factory,
+    ?string $source = null,
 )
 ```
 
@@ -164,7 +189,7 @@ PHPDoc:
 - `@param \Closure(): T $factory`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L29)
 
 ## `ServiceResolutionFailed`
 
@@ -211,6 +236,31 @@ PHPDoc:
 - `@throws ServiceResolutionFailed when the resolver handles the request but cannot supply a valid service`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L23)
+
+## `ServiceSource`
+
+Namespace: `Greenlight\Harness`
+
+Names one source of harness definitions or resolved services. Source names
+are case-sensitive. A null name keeps the source unnamed.
+
+```php
+interface ServiceSource
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceSource.php#L11)
+
+### `source()`
+
+```php
+public function source(): ?string;
+```
+
+PHPDoc:
+
+- `@return non-empty-string|null`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceSource.php#L14)
 
 ## `TerminalServiceResolver`
 

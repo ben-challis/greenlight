@@ -19,6 +19,34 @@ final class UnresolvableService extends ServiceResolutionFailed
         parent::__construct($message);
     }
 
+    public static function unknownSource(string $source, string $consumer): self
+    {
+        return new self(\sprintf(
+            'Service source "%s", required by "%s", is not registered. Register the source or change #[Service(source: ...)].',
+            $source,
+            $consumer,
+        ));
+    }
+
+    public static function ambiguousSource(string $type, string $consumer): self
+    {
+        return new self(\sprintf(
+            'Multiple service sources define type "%s", required by "%s". Select a source with #[Service(source: ...)].',
+            $type,
+            $consumer,
+        ));
+    }
+
+    public static function missingSourceService(string $source, string $id, string $consumer): self
+    {
+        return new self(\sprintf(
+            'Service source "%s" cannot supply service "%s", required by "%s". Check the service ID and source name.',
+            $source,
+            $id,
+            $consumer,
+        ));
+    }
+
     public static function unknownType(string $type, string $consumer, int $resolversConsulted = 0): self
     {
         $suffix = $resolversConsulted === 0

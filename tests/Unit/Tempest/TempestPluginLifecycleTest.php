@@ -96,6 +96,44 @@ final class TempestPluginLifecycleTest
     }
 
     #[Test]
+    public function aSourceOnlyServiceAttributeUsesTheDefaultBinding(): void
+    {
+        $plugin = $this->plugin(source: 'application');
+        $kernel = $this->kernel($plugin);
+        $expected = new TaggedProbeImplementation();
+        $kernel->container->singleton(TaggedProbe::class, $expected);
+        $kernel->container->singleton(TaggedProbe::class, new TaggedProbeImplementation(), 'archive');
+        $earlier = new ServiceResolverProbe(new TaggedProbeImplementation());
+        $scopes = WorkerPluginRuntime::fromPlugins([$earlier, $plugin])->prepareWorker(
+            new WorkerBootstrapContext('test-worker', new TestChannel(1), new IntegrationResources()),
+            [],
+        );
+
+        Expect::that($scopes->resolve(TaggedProbe::class, 'test', [new Service(source: 'application')]))
+            ->toBe($expected);
+        Expect::that($earlier->calls)->toBe(0);
+    }
+
+    #[Test]
+    public function aServiceIdSelectsATagWithinTheNamedSource(): void
+    {
+        $plugin = $this->plugin(source: 'application');
+        $kernel = $this->kernel($plugin);
+        $expected = new TaggedProbeImplementation();
+        $kernel->container->singleton(TaggedProbe::class, new TaggedProbeImplementation());
+        $kernel->container->singleton(TaggedProbe::class, $expected, 'archive');
+        $earlier = new ServiceResolverProbe(new TaggedProbeImplementation());
+        $scopes = WorkerPluginRuntime::fromPlugins([$earlier, $plugin])->prepareWorker(
+            new WorkerBootstrapContext('test-worker', new TestChannel(1), new IntegrationResources()),
+            [],
+        );
+
+        Expect::that($scopes->resolve(TaggedProbe::class, 'test', [new Service('archive', source: 'application')]))
+            ->toBe($expected);
+        Expect::that($earlier->calls)->toBe(0);
+    }
+
+    #[Test]
     public function fallbackResolverRunsBeforeTerminalTempestResolver(): void
     {
         $answer = new TaggedProbeImplementation();
@@ -211,7 +249,7 @@ final class TempestPluginLifecycleTest
         Expect::that(GenericContainer::instance())->not()->toBe($kernel->container);
     }
 
-    private function plugin(): TempestPlugin
+    private function plugin(?string $source = null): TempestPlugin
     {
         $root = $this->tempDirectory->subdirectory('tempest-plugin-' . ++$this->projectNumber);
         $repository = \dirname(__DIR__, 3);
@@ -232,7 +270,7 @@ final class TempestPluginLifecycleTest
             Fail::because('Expected to link the Tempest test project vendor directory.');
         }
 
-        $plugin = new TempestPlugin($root);
+        $plugin = new TempestPlugin($root, source: $source);
         $this->plugins[] = $plugin;
 
         return $plugin;

@@ -200,6 +200,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | service provider | Technical noun | A Laravel class that registers services in the Laravel container |
 | service resolver | Technical noun | A fallback component that supplies constructor arguments by type |
 | service scope | Technical noun | The lifetime and ownership boundary of a harness service |
+| service source | Technical noun | A named provider or resolver that supplies a requested harness or container service |
 | scheduling unit | Technical noun | One test class or isolated test that the orchestrator can assign to a worker |
 | seed | Technical noun | An integer that reproduces randomized test-class order |
 | shard | Technical noun | One disjoint class-based part of an execution plan |

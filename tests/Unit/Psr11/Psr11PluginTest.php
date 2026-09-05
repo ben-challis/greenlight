@@ -23,6 +23,51 @@ use Psr\Container\ContainerInterface;
 final readonly class Psr11PluginTest
 {
     #[Test]
+    public function exposesTheConfiguredSource(): void
+    {
+        $factory = static fn(): ContainerInterface => new ArrayContainer([]);
+
+        Expect::that(new Psr11Plugin($factory)->source())->toBeNull();
+        Expect::that(new Psr11Plugin($factory, source: 'application')->source())->toBe('application');
+    }
+
+    #[Test]
+    public function rejectsAnEmptySource(): void
+    {
+        Expect::that(static fn(): Psr11Plugin => new Psr11Plugin(
+            static fn(): ContainerInterface => new ArrayContainer([]),
+            source: '',
+        ))->toThrow(\InvalidArgumentException::class, message: 'Service source must not be empty.');
+    }
+
+    #[Test]
+    public function aServiceWithoutAnIdUsesTheParameterType(): void
+    {
+        $greeter = new Greeter();
+        $plugin = $this->plugin([Greeter::class => $greeter]);
+
+        Expect::that($plugin->resolve(Greeter::class, [new Service()]))->toBe($greeter);
+    }
+
+    #[Test]
+    public function anExplicitIdEqualToTheMissingTypeFails(): void
+    {
+        $plugin = $this->plugin([]);
+
+        Expect::that(static fn(): ?object => $plugin->resolve(\ArrayObject::class, [new Service(\ArrayObject::class)]))
+            ->toThrow(Psr11BridgeError::class, matching: '/no service "ArrayObject"/');
+    }
+
+    #[Test]
+    public function aServiceWithoutAnIdFailsWhenTheTypeIsMissing(): void
+    {
+        $plugin = $this->plugin([]);
+
+        Expect::that(static fn(): ?object => $plugin->resolve(\ArrayObject::class, [new Service()]))
+            ->toThrow(Psr11BridgeError::class, matching: '/no service "ArrayObject"/');
+    }
+
+    #[Test]
     public function resolvesContainerServicesByType(): void
     {
         $greeter = new Greeter();

@@ -50,9 +50,9 @@ final class RegistrationTest
 }
 ```
 
-Greenlight first resolves constructor parameters from its harness. It then
-uses the PSR-11 container. Harness services have precedence over container
-services.
+Without an explicit service source, Greenlight first resolves constructor
+parameters from its harness. It then uses the PSR-11 container. Harness
+services have precedence over container services.
 
 Container creation, reset, and service-resolution failures throw
 `ServiceResolutionFailed`. Concrete PSR-11 bridge exceptions are internal.
@@ -75,8 +75,9 @@ public function __construct(
 ) {}
 ```
 
-Greenlight reports an error if an explicit ID does not exist. A missing
-type-based ID lets the next service resolver try to supply the parameter.
+Greenlight reports an error if an explicit ID does not exist. Without an
+explicit source or ID, a missing type-based ID lets the next resolver try to
+supply the parameter.
 
 ### The container
 
@@ -89,6 +90,67 @@ public function __construct(private readonly ContainerInterface $container) {}
 
 Use typed constructor dependencies for application services. Use direct
 container access only to verify container configuration.
+
+### Multiple containers
+
+Give each plugin instance a unique `source:` name:
+
+<!-- php-example {"example":"psr-example-07","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Config\GreenlightConfig;
+use Greenlight\Psr11\Psr11Plugin;
+use Psr\Container\ContainerInterface;
+
+return GreenlightConfig::create()
+    ->paths(['tests'])
+    ->plugins(
+        static fn(): Psr11Plugin => new Psr11Plugin(
+            static fn(): ContainerInterface => require __DIR__ . '/billing/container.php',
+            source: 'billing',
+        ),
+        static fn(): Psr11Plugin => new Psr11Plugin(
+            static fn(): ContainerInterface => require __DIR__ . '/legacy/container.php',
+            source: 'legacy',
+        ),
+    );
+```
+
+Select a source on each parameter that needs a specific container:
+
+<!-- php-example {"example":"psr-example-08","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
+```php
+use Greenlight\Harness\Service;
+use Psr\Container\ContainerInterface;
+
+public function __construct(
+    #[Service(source: 'billing')]
+    private readonly UserRepository $billingUsers,
+    #[Service('users.repository', source: 'legacy')]
+    private readonly UserRepository $legacyUsers,
+    #[Service(source: 'legacy')]
+    private readonly ContainerInterface $legacyContainer,
+) {}
+```
+
+Without `id:`, the attribute requests the declared parameter type. An explicit
+ID requests that ID from the selected container. Both forms check the returned
+service type.
+
+A source request uses only the selected plugin instance. An unknown source or
+absent service causes an error without a request to another container. Source
+selection also takes precedence over global harness services.
+
+Each named plugin supplies its own `ContainerInterface` harness definition. If
+multiple named definitions match, an unqualified container parameter causes an
+ambiguity error. Use `source:` to select the required container.
+
+Parameters without `source:` retain normal harness and resolver order. Named
+container resolvers still participate in that order. An unqualified explicit
+ID does not select a container.
+
+Source names are case sensitive, nonempty, and unique among plugin instances.
+See [service sources](plugins.md#servicesource) for custom providers and
+resolvers.
 
 ## State between tests
 

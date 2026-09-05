@@ -8,6 +8,7 @@ use Greenlight\Harness\Scope;
 use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
+use Greenlight\Harness\ServiceSource;
 use Greenlight\Harness\TerminalServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\BeforeTestSubscriber;
@@ -34,8 +35,11 @@ use Tempest\Http\Request;
  * a tagged Tempest binding.
  * Isolate external test resources by `GREENLIGHT_CHANNEL`.
  */
-final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, TerminalServiceResolver, WorkerBootstrapSubscriber
+final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, ServiceSource, TerminalServiceResolver, WorkerBootstrapSubscriber
 {
+    /** @var non-empty-string|null */
+    private readonly ?string $source;
+
     private ?FrameworkKernel $kernel = null;
 
     private ?TempestProcessState $processState = null;
@@ -51,6 +55,7 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
         private readonly string $root,
         private readonly string $environment = 'testing',
         private readonly array $discoveryLocations = [],
+        ?string $source = null,
     ) {
         if ($root === '') {
             throw new \InvalidArgumentException('Tempest application root cannot be empty.');
@@ -59,6 +64,18 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
         if ($environment === '') {
             throw new \InvalidArgumentException('Tempest environment cannot be empty.');
         }
+
+        if ($source === '') {
+            throw new \InvalidArgumentException('Service source must not be empty.');
+        }
+
+        $this->source = $source;
+    }
+
+    #[\Override]
+    public function source(): ?string
+    {
+        return $this->source;
     }
 
     #[\Override]

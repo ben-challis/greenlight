@@ -26,6 +26,44 @@ use Symfony\Component\HttpKernel\KernelInterface;
 final class SymfonyPluginTest
 {
     #[Test]
+    public function exposesTheConfiguredSource(): void
+    {
+        Expect::that(new SymfonyPlugin(FixtureKernel::class)->source())->toBeNull();
+        Expect::that(new SymfonyPlugin(FixtureKernel::class, source: 'application')->source())->toBe('application');
+    }
+
+    #[Test]
+    public function rejectsAnEmptySource(): void
+    {
+        Expect::that(static fn(): SymfonyPlugin => new SymfonyPlugin(FixtureKernel::class, source: ''))
+            ->toThrow(\InvalidArgumentException::class, message: 'Service source must not be empty.');
+    }
+
+    #[Test]
+    public function aServiceWithoutAnIdUsesTheParameterType(): void
+    {
+        Expect::that($this->plugin()->resolve(Greeter::class, [new Service()]))->toBeInstanceOf(Greeter::class);
+    }
+
+    #[Test]
+    public function anExplicitIdEqualToTheMissingTypeFails(): void
+    {
+        $plugin = $this->plugin();
+
+        Expect::that(static fn(): ?object => $plugin->resolve(\ArrayObject::class, [new Service(\ArrayObject::class)]))
+            ->toThrow(SymfonyBridgeError::class, matching: '/no service "ArrayObject"/');
+    }
+
+    #[Test]
+    public function aServiceWithoutAnIdFailsWhenTheTypeIsMissing(): void
+    {
+        $plugin = $this->plugin();
+
+        Expect::that(static fn(): ?object => $plugin->resolve(\ArrayObject::class, [new Service()]))
+            ->toThrow(SymfonyBridgeError::class, matching: '/no service "ArrayObject"/');
+    }
+
+    #[Test]
     public function resolvesContainerServicesByType(): void
     {
         $greeter = $this->plugin()->resolve(Greeter::class, []);

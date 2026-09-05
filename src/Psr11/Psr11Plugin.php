@@ -9,6 +9,7 @@ use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
+use Greenlight\Harness\ServiceSource;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\TestContext;
@@ -19,11 +20,14 @@ use Psr\Container\ContainerInterface;
  * Creates a PSR-11 container lazily and resolves its services. By default, the
  * plugin discards the container after each test that uses it.
  *
- * `#[Service]` selects an explicit ID. Isolate external test resources by
+ * `#[Service]` selects a service ID or a named source. Isolate external test resources by
  * `GREENLIGHT_CHANNEL`.
  */
-final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
+final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver, ServiceSource
 {
+    /** @var non-empty-string|null */
+    private readonly ?string $source;
+
     private ?ContainerInterface $activeContainer = null;
 
     /**
@@ -34,12 +38,26 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
      *   or when services do not keep state.
      * @param (\Closure(ContainerInterface): void)|null $reset
      *   An optional callback that resets the active container after each test.
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         private readonly \Closure $factory,
         private readonly bool $refreshBetweenTests = true,
         private readonly ?\Closure $reset = null,
-    ) {}
+        ?string $source = null,
+    ) {
+        if ($source === '') {
+            throw new \InvalidArgumentException('Service source must not be empty.');
+        }
+
+        $this->source = $source;
+    }
+
+    #[\Override]
+    public function source(): ?string
+    {
+        return $this->source;
+    }
 
     /**
      * @return list<ServiceDefinition>
@@ -98,7 +116,7 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
 
         foreach ($attributes as $attribute) {
             if ($attribute instanceof Service) {
-                $id = $attribute->id;
+                $id = $attribute->id ?? $type;
                 $explicit = true;
             }
         }

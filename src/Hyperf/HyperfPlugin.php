@@ -9,6 +9,7 @@ use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
+use Greenlight\Harness\ServiceSource;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Plugin\HarnessProvider;
 use Greenlight\Plugin\TestAttemptRunner;
@@ -34,14 +35,17 @@ use function Hyperf\Coroutine\run;
  * coroutine context for each test attempt.
  *
  * The default worker container lifetime matches a long-running Hyperf worker.
- * `#[Service]` selects an explicit container ID. Isolate external test
+ * `#[Service]` selects a container ID or a named source. Isolate external test
  * resources by `GREENLIGHT_CHANNEL`.
  *
  * Requires `hyperf/framework` and `hyperf/di` 3.2. It also requires Swoole 5
  * or later and the pcntl extension. It does not support Swow.
  */
-final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemptRunner, WorkerBootstrapSubscriber, WorkerRuntimeRunner
+final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSource, TestAttemptRunner, WorkerBootstrapSubscriber, WorkerRuntimeRunner
 {
+    /** @var non-empty-string|null */
+    private readonly ?string $source;
+
     private readonly string $basePath;
 
     private readonly string $containerFile;
@@ -62,6 +66,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
      * @param null|\Closure(ContainerInterface): void $dispose
      *   Releases project-owned resources when the selected container lifetime
      *   ends. The callback runs inside a coroutine.
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         string $basePath,
@@ -69,9 +74,21 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
         private readonly ?\Closure $reset = null,
         private readonly ?\Closure $dispose = null,
         private readonly ?int $hookFlags = null,
+        ?string $source = null,
     ) {
+        if ($source === '') {
+            throw new \InvalidArgumentException('Service source must not be empty.');
+        }
+
+        $this->source = $source;
         $this->basePath = \rtrim($basePath, '/');
         $this->containerFile = $this->basePath . '/config/container.php';
+    }
+
+    #[\Override]
+    public function source(): ?string
+    {
+        return $this->source;
     }
 
     /** @return list<ServiceDefinition> */
@@ -92,10 +109,12 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
     public function resolve(string $type, array $attributes): ?object
     {
         $id = $type;
+        $explicit = false;
 
         foreach ($attributes as $attribute) {
             if ($attribute instanceof Service) {
-                $id = $attribute->id;
+                $id = $attribute->id ?? $type;
+                $explicit = true;
             }
         }
 
@@ -103,7 +122,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemp
             $container = $this->container();
 
             if (!$container->has($id)) {
-                if ($id !== $type) {
+                if ($explicit) {
                     throw HyperfBridgeError::unknownServiceId($id, $type);
                 }
 

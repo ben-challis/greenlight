@@ -140,8 +140,8 @@ final readonly class RegistrationTest
 }
 ```
 
-Greenlight first checks its harness services. It then asks the active Hyperf
-container.
+Without an explicit service source, Greenlight first checks its harness
+services. It then asks the active Hyperf container.
 
 Use `#[Service]` when the parameter type does not select the necessary ID:
 
@@ -162,6 +162,18 @@ Concrete Hyperf bridge exceptions are internal.
 
 A test can also receive `Psr\Container\ContainerInterface`. This service is
 available only during the current test attempt.
+
+### Select a service source
+
+Pass `source: 'app'` to `HyperfPlugin` to name this plugin instance. Use
+`#[Service(source: 'app')]` to request a service by type from this source.
+Use `#[Service('payments.client', source: 'app')]` to select an explicit ID in
+its container.
+
+An explicit source takes precedence over global harness services. A missing
+service fails without a request to another source. Use the same source
+attribute to select this plugin's `ContainerInterface` harness service. See
+[service sources](plugins.md#servicesource) for naming and resolution rules.
 
 ## Reset and disposal
 

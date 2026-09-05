@@ -57,9 +57,10 @@ final class RegistrationTest
 }
 ```
 
-Greenlight first resolves constructor parameters from its harness. It then uses
-the Symfony container. Thus, `Doubles`, `TestChannel`, and provider services
-take precedence over container services.
+Without an explicit service source, Greenlight first resolves constructor
+parameters from its harness. It then uses the Symfony container. Thus,
+`Doubles`, `TestChannel`, and provider services take precedence over container
+services.
 
 When neither side can resolve a type, the test fails and reports both misses.
 
@@ -88,6 +89,18 @@ public function __construct(
 
 Greenlight still checks the parameter type. If the named service is not an
 instance of the declared type, the test fails and does not receive the object.
+
+### Select a service source
+
+Pass `source: 'app'` to `SymfonyPlugin` to name this plugin instance. Use
+`#[Service(source: 'app')]` to request a service by type from this source.
+Use `#[Service('mailer.transports.async', source: 'app')]` to select an explicit
+ID in its container.
+
+An explicit source takes precedence over global harness services. A missing
+service fails without a request to another source. Use the same source
+attribute to select this plugin's `KernelInterface` harness service. See
+[service sources](plugins.md#servicesource) for naming and resolution rules.
 
 ### The kernel itself
 

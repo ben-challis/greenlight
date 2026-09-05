@@ -741,9 +741,13 @@ public function resolve(string $type, array $attributes): ?object;
 
 A service resolver is a fallback source for a constructor parameter type.
 
-Registered harness services always take precedence. If no service matches,
-Greenlight calls resolvers in registration order. Each call receives the
-declared parameter type and the attribute instances.
+Without an explicit service source, global harness services take precedence.
+Greenlight then checks named harness services. One matching definition supplies
+the parameter. Multiple matching definitions cause an ambiguity error.
+
+If no harness service matches, Greenlight calls resolvers in registration
+order. This includes named resolvers. Each call receives the declared parameter
+type and the attribute instances.
 
 The `#[Service]` ID selects a service within its source. Each bridge translates
 this selection into its container lookup. Tempest uses the ID as a tag with
@@ -776,6 +780,54 @@ call disposal methods on these objects.
 The framework bridges use these interfaces to inject container services. See
 [Symfony applications](symfony.md), [Laravel applications](laravel.md), and
 [Tempest applications](tempest.md).
+
+### ServiceSource
+
+In `Greenlight\Harness`. Worker-side.
+
+Implement `ServiceSource` with `HarnessProvider`, `ServiceResolver`, or both to
+name a plugin instance:
+
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
+```php
+public function source(): ?string;
+```
+
+Return `null` for an unnamed instance. Otherwise, return a nonempty name that
+is unique among plugin instances. Names are case sensitive. The name `"0"` is
+valid.
+
+Greenlight assigns the plugin source to its harness service definitions. A
+direct `ServiceDefinition` can also declare `source:`:
+
+<!-- php-example {"example":"plugins-example-15","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
+new ServiceDefinition(
+    TestDatabase::class,
+    Scope::PerWorker,
+    static fn() => TestDatabase::migrate(),
+    source: 'billing',
+);
+```
+
+Use `#[Service(source: 'billing')]` to request the declared parameter type from
+that source. Greenlight checks only its harness definitions and resolver. The
+source takes precedence over a global harness definition for the same type.
+
+Use `#[Service('users.repository', source: 'billing')]` to request an explicit
+ID from that source's resolver. An explicit ID does not select a harness
+definition.
+
+An unknown source, absent service, or incorrect service type causes
+`ServiceResolutionFailed`. Greenlight does not try another source after an
+explicit source request.
+
+Without `source:`, `#[Service('id')]` retains the normal harness and resolver
+order. An explicit ID does not select a plugin instance. The first applicable
+resolver can supply the service or fail the request.
+
+The Symfony, Laravel, Hyperf, PSR-11, and Tempest plugins accept `source:` in
+their constructors. See the [multiple PSR-11 containers example](psr11.md#multiple-containers).
 
 ### ExpectationExtension
 
