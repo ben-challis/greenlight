@@ -45,10 +45,13 @@ Greenlight copies the content before the method returns. You can remove a
 temporary source file after `file()` returns. Later changes to a value or file
 do not change the attachment.
 
-Greenlight retains attachments when the attempt fails or has an error. This
-rule includes a successful attempt that a result policy changes to another
-outcome. To retain an attachment from a successful attempt, set its retention to
-`AttachmentRetention::Always`:
+By default, Greenlight retains attachments when the final result fails or has
+an error. It also retains them when the transformation log contains an earlier
+failed or errored outcome. Thus, a plugin cannot discard failure evidence only
+by changing the outcome to passed or skipped.
+
+To retain an attachment from a result without failure evidence, set its
+retention to `AttachmentRetention::Always`:
 
 <!-- php-example {"example":"attachments-example-02","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
@@ -61,8 +64,8 @@ $attachments->text(
 
 Each retry has separate attachments. Attachments from failed attempts stay on
 the final result even if a later attempt passes. The `attempt` field identifies
-the source attempt for each attachment. Greenlight discards attachments from
-the successful attempt unless their retention is `always`.
+the source attempt for each attachment. For the final attempt, the retention
+rules above apply to the final result and its transformation log.
 
 ## Output directory
 

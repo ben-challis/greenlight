@@ -289,8 +289,10 @@ public function retainAttachment(TestResult $result, Attachment $attachment, boo
 
 An `AttachmentRetentionDecider` changes whether Greenlight publishes one
 completed test attachment. Greenlight first applies the retention selected by
-the test. `Always` retains the attachment. `OnFailure` retains it for an
-unsuccessful result, a transformed failure, or an earlier failed attempt.
+the test. `Always` retains the attachment. `OnFailure` retains it for a failed
+or errored result, an earlier attempt, or a transformation from failed or
+errored. A final passed or skipped outcome does not erase failure evidence
+from the transformation log.
 
 Each configured decider receives that current decision and returns the next
 decision. Thus, a decider can retain evidence that the built-in rule would
