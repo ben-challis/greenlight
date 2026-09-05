@@ -42,6 +42,8 @@ final class WorkerState
 
     public float $inFlightSince = 0.0;
 
+    public float $inFlightAttemptSince = 0.0;
+
     /** @var non-negative-int */
     public int $inFlightAttempt = 0;
 

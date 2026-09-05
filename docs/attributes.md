@@ -394,6 +394,8 @@ period.
 public function convergesQuickly(): void { ... }
 ```
 
+Each retry starts a new timeout budget and a new hard-kill grace period.
+
 ## AllowParallel
 
 Target: class.

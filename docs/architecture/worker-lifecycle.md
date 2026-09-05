@@ -330,6 +330,8 @@ The worker also gives `eventually()` and `consistently()` the current attempt's
 monotonic deadline. Their polling stops at that deadline, but a probe can still
 block. The orchestrator's grace window remains the hard limit.
 
+Each valid attempt-start message resets the orchestrator's grace window.
+
 ### Fatal errors
 
 A worker sends `fatal` with the throwable's details when it catches an error it
