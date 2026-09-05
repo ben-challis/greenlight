@@ -211,6 +211,12 @@ final class ArtifactStore
                 return null;
             }
 
+            $stat = \stat($sourcePath);
+
+            if (\is_array($stat) && ($stat['mode'] & 0170000) !== 0100000) {
+                throw AttachmentError::source($sourcePath, 'is not a regular file');
+            }
+
             return \fopen($sourcePath, 'rb');
         });
 
