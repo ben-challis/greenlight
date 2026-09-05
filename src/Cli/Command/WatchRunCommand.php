@@ -15,6 +15,7 @@ use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\StorageLayout;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Process\GracefulShutdown;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\JsonLinesReporter;
 use Greenlight\Reporting\StreamOutput;
 
@@ -29,7 +30,7 @@ final readonly class WatchRunCommand
     public function __construct(private Console $console) {}
 
     /** @param list<string> $argv */
-    public function run(array $argv, string $workingDirectory, ?string $binPath): int
+    public function run(array $argv, string $workingDirectory, ?string $binPath): CommandResult
     {
         if (\function_exists('posix_setpgid')) {
             ErrorTrap::run(static fn() => \posix_setpgid(0, 0));
@@ -40,7 +41,7 @@ final readonly class WatchRunCommand
         if ($events === false) {
             $this->console->err("Could not open the watch event stream.\n");
 
-            return 1;
+            return CommandResult::failure();
         }
 
         try {
@@ -77,15 +78,15 @@ final readonly class WatchRunCommand
                 RunState::forFile($storage->runStateFile),
             )->watchAttempt(new JsonLinesReporter(new StreamOutput($events)), $classes);
 
-            return 0;
+            return CommandResult::success();
         } catch (ConfigFileError $failure) {
             $this->console->error($failure->getMessage(), true);
 
-            return 0;
+            return CommandResult::success();
         } catch (\Throwable $failure) {
             $this->console->error($failure->getMessage(), true);
 
-            return 1;
+            return CommandResult::failure();
         } finally {
             \fclose($events);
         }

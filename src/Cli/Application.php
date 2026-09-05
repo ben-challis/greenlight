@@ -61,7 +61,9 @@ final readonly class Application
     public function run(array $argv, string $workingDirectory, ?string $binPath = null): int
     {
         if (($argv[0] ?? null) === '__watch-run') {
-            return new WatchRunCommand($this->console)->run(\array_slice($argv, 1), $workingDirectory, $binPath);
+            $result = new WatchRunCommand($this->console)->run(\array_slice($argv, 1), $workingDirectory, $binPath);
+
+            return ExitCode::fromCommandResult($result)->value();
         }
 
         // The orchestrator starts this internal worker entry. It does not use

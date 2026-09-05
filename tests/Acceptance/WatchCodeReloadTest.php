@@ -19,6 +19,15 @@ final readonly class WatchCodeReloadTest
     public function __construct(private TemporaryDirectory $directory, private Cleanup $cleanup) {}
 
     #[Test]
+    public function returnsFailureForAnInvalidInternalWatchInvocation(): void
+    {
+        $project = AcceptanceProject::create($this->directory, 'watch-invalid-invocation');
+        $result = GreenlightCli::run($project->directory, ['__watch-run', 'invalid-json']);
+
+        Expect::that($result->exitCode)->toBe(1);
+    }
+
+    #[Test]
     #[DataSet('workerCounts')]
     public function reloadsChangedBodiesAndDiscoversAddedMethods(int $workers): void
     {
