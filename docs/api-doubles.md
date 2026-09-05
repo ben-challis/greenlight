@@ -284,7 +284,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException if the proxy directory is empty`
 - `@throws InvalidDoubleUsage if PHP cannot resolve the default working directory`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L58)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L60)
 
 ### `mock()`
 
@@ -303,7 +303,7 @@ PHPDoc:
 - `@return T`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L95)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L98)
 
 ### `stub()`
 
@@ -322,7 +322,7 @@ PHPDoc:
 - `@return T`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L112)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L115)
 
 ### `spy()`
 
@@ -341,7 +341,7 @@ PHPDoc:
 - `@return T`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L129)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L132)
 
 ### `callsTo()`
 
@@ -358,7 +358,7 @@ PHPDoc:
 - `@return list<list<mixed>>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L142)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L145)
 
 ### `dispose()`
 
@@ -373,7 +373,7 @@ PHPDoc:
 
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L167)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Doubles.php#L170)
 
 ## `Fake`
 

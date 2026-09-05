@@ -28,6 +28,7 @@ final readonly class CallHandler
         private DoubleState $state,
         private ValueRenderer $renderer,
         private \WeakMap $doubles,
+        private MethodCallContracts $contracts,
     ) {}
 
     /**
@@ -41,7 +42,7 @@ final readonly class CallHandler
     {
         $this->doubles[$double] = $this->state;
 
-        MethodCallContract::from($this->state->type, $method)
+        $this->contracts->get($this->state->type, $method)
             ->assertCallArgumentCount(\count($arguments));
 
         $this->state->recordedCalls[$method][] = $arguments;
