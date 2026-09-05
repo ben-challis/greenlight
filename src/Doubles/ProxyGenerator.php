@@ -398,11 +398,20 @@ final readonly class ProxyGenerator
 
         $value = $parameter->getDefaultValue();
 
-        if (\is_object($value) && !$value instanceof \UnitEnum) {
+        if ($this->containsObjectDefault($value)) {
             throw InvalidDoubleUsage::objectDefaultNotReproducible($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
         }
 
         return \var_export($value, true);
+    }
+
+    private function containsObjectDefault(mixed $value): bool
+    {
+        if (\is_array($value)) {
+            return \array_any($value, $this->containsObjectDefault(...));
+        }
+
+        return \is_object($value) && !$value instanceof \UnitEnum;
     }
 
     /**
