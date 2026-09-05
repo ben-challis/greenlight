@@ -3,7 +3,7 @@
     "description": "A test framework for PHP 8.4+ with typed attributes, parallel execution, flat memory use, and lifecycle-safe test doubles.",
     "license": "MIT",
     "type": "library",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "keywords": [
         "testing",
         "test-framework",

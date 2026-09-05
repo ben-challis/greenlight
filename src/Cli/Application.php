@@ -24,7 +24,7 @@ use Greenlight\Reporting\StreamOutput;
  */
 final readonly class Application
 {
-    public const string VERSION = '0.0.1'; // x-release-please-version
+    public const string VERSION = '0.1.0'; // x-release-please-version
 
     private function __construct(private Console $console) {}
 
