@@ -26,7 +26,6 @@ final class ConsistentlyExpectation extends TemporalExpectation
     private function __construct(
         \Closure $probe,
         PollingClock $clock,
-        ?float $attemptDeadline,
         float $intervalSeconds,
         private readonly float $forSeconds,
         ValueRenderer $renderer,
@@ -35,7 +34,6 @@ final class ConsistentlyExpectation extends TemporalExpectation
         parent::__construct(
             $probe,
             $clock,
-            $attemptDeadline,
             $intervalSeconds,
             $renderer,
             $extensions,
@@ -55,7 +53,6 @@ final class ConsistentlyExpectation extends TemporalExpectation
     public static function create(
         \Closure $probe,
         PollingClock $clock,
-        ?float $attemptDeadline,
         float $intervalSeconds,
         float $forSeconds,
         ValueRenderer $renderer,
@@ -64,7 +61,6 @@ final class ConsistentlyExpectation extends TemporalExpectation
         return new self(
             $probe,
             $clock,
-            $attemptDeadline,
             $intervalSeconds,
             $forSeconds,
             $renderer,
@@ -105,16 +101,14 @@ final class ConsistentlyExpectation extends TemporalExpectation
         }
 
         $stableStartedAt = $observedAt;
-        $requestedDeadline = $stableStartedAt + $this->forSeconds;
-        $deadline = $this->attemptDeadline === null
-            ? $requestedDeadline
-            : \min($requestedDeadline, $this->attemptDeadline);
-        $truncatedByTest = $deadline < $requestedDeadline;
+        $deadline = TemporalDeadline::forWait($stableStartedAt + $this->forSeconds);
 
-        if ($deadline <= $observedAt) {
+        if ($deadline->time <= $observedAt) {
             $this->failure(
                 \sprintf(
-                    'No time remains for the requested %.3f-second consistently() observation period.',
+                    $deadline->source === TemporalDeadlineSource::Enclosing
+                        ? 'The enclosing expectation time limit left no time for the requested %.3f-second consistently() observation period.'
+                        : 'No time remains for the requested %.3f-second consistently() observation period.',
                     $this->forSeconds,
                 ),
                 $observations,
@@ -125,8 +119,11 @@ final class ConsistentlyExpectation extends TemporalExpectation
         }
 
         while (true) {
-            $this->sleepUntil(\min($this->clock->now() + $this->intervalSeconds, $deadline));
-            $last = $this->observe($matcher, $negated, $reason);
+            $this->sleepUntil(\min($this->clock->now() + $this->intervalSeconds, $deadline->time));
+            $last = ExpectationRuntime::withDeadline(
+                $deadline->time,
+                fn(): TemporalObservation => $this->observe($matcher, $negated, $reason),
+            );
             $observedAt = $this->clock->now();
             $observations->record($observedAt, $last->rendered);
 
@@ -144,11 +141,13 @@ final class ConsistentlyExpectation extends TemporalExpectation
                 );
             }
 
-            if ($observedAt >= $deadline) {
-                if ($truncatedByTest) {
+            if ($observedAt >= $deadline->time) {
+                if ($deadline->source !== TemporalDeadlineSource::Local) {
                     $this->failure(
                         \sprintf(
-                            'The test time limit ended the consistently() expectation early. The requested observation period was %.3f seconds.',
+                            $deadline->source === TemporalDeadlineSource::Test
+                                ? 'The test time limit ended the consistently() expectation early. The requested observation period was %.3f seconds.'
+                                : 'The enclosing expectation time limit ended the consistently() expectation early. The requested observation period was %.3f seconds.',
                             $this->forSeconds,
                         ),
                         $observations,

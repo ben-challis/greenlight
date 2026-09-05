@@ -46,7 +46,6 @@ final class Expect
         return PendingEventually::create(
             \Closure::fromCallable($probe),
             ExpectationRuntime::clock(),
-            ExpectationRuntime::deadline(),
             new ValueRenderer(),
             self::$extensions,
         );
@@ -66,7 +65,6 @@ final class Expect
         return PendingConsistently::create(
             \Closure::fromCallable($probe),
             ExpectationRuntime::clock(),
-            ExpectationRuntime::deadline(),
             new ValueRenderer(),
             self::$extensions,
         );
