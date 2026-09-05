@@ -374,8 +374,8 @@ Typical messages:
 ```text
 Data provider sums() for adds() does not exist on PriceTest.
 Data provider PriceTest::sums() must be public and static.
-Data provider PriceTest::sums() must return an iterable of argument arrays, returns string.
-Data provider sums() row argument #3 of adds() expects int, string given.
+Data provider PriceTest::sums() must return an iterable of argument arrays. It returns string.
+Data provider sums() row argument #3 for adds() has type string, but the parameter requires int.
 #[DataRow] supplies 2 arguments, but adds() expects exactly 3.
 ```
 
