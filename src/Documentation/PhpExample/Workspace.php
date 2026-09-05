@@ -244,7 +244,7 @@ final readonly class Workspace
 
     private function removeDirectory(string $directory, string $allowedParent): void
     {
-        if (!\file_exists($directory)) {
+        if (!\file_exists($directory) && !\is_link($directory)) {
             return;
         }
 
@@ -253,6 +253,14 @@ final readonly class Workspace
 
         if (!\str_starts_with($normalizedDirectory, $normalizedParent . '/docs-php')) {
             throw DocumentationExampleError::unexpectedRemovalDirectory($directory);
+        }
+
+        if (\is_link($directory)) {
+            if (!\unlink($directory)) {
+                throw DocumentationExampleError::generatedFileRemovalFailed($directory);
+            }
+
+            return;
         }
 
         $iterator = new \RecursiveIteratorIterator(
@@ -265,7 +273,7 @@ final readonly class Workspace
                 throw DocumentationExampleError::unknownGeneratedEntry();
             }
 
-            if ($item->isDir()) {
+            if ($item->isDir() && !$item->isLink()) {
                 if (!\rmdir($item->getPathname())) {
                     throw DocumentationExampleError::generatedDirectoryRemovalFailed($item->getPathname());
                 }
