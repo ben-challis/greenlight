@@ -33,6 +33,8 @@ final class Doubles implements Disposable
 
     private readonly ValueRenderer $renderer;
 
+    private readonly MethodCallContracts $contracts;
+
     /**
      * The factory stores states for verification. The states do not refer to
      * the proxy objects. Thus, PHP can collect a double after the test releases it.
@@ -77,6 +79,7 @@ final class Doubles implements Disposable
 
         $this->generator = new ProxyGenerator($proxyDirectory);
         $this->renderer = new ValueRenderer();
+        $this->contracts = new MethodCallContracts();
         $this->doubles = new \WeakMap();
     }
 
@@ -187,6 +190,7 @@ final class Doubles implements Disposable
         }
 
         $this->states = [];
+        $this->contracts->clear();
         $this->doubles = new \WeakMap();
 
         if ($details !== []) {
@@ -215,7 +219,7 @@ final class Doubles implements Disposable
         $double = new \ReflectionClass($proxyClass)->newInstanceWithoutConstructor();
 
         \assert($double instanceof GeneratedProxy);
-        $double->__greenlightAttachHandler(new CallHandler($state, $this->renderer, $this->doubles));
+        $double->__greenlightAttachHandler(new CallHandler($state, $this->renderer, $this->doubles, $this->contracts));
 
         \assert($double instanceof $type);
 
