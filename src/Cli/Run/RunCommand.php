@@ -166,7 +166,10 @@ final readonly class RunCommand
                 }
 
                 if ($previousFailures === []) {
-                    ($this->out)("No tests failed in the previous run. There are no tests to run again.\n");
+                    $noticeOutput = $reporterOutputs->writesReporterToStandardOutput('jsonl')
+                        ? $this->err
+                        : $this->out;
+                    $noticeOutput("No tests failed in the previous run. There are no tests to run again.\n");
 
                     return CommandResult::success();
                 }

@@ -20,6 +20,25 @@ use Greenlight\Test\TestDefinition;
 final class TestManifestTest
 {
     #[Test]
+    public function numericSuiteNamesRemainStringsInTheManifest(): void
+    {
+        $document = TestManifest::document(
+            new ExecutionPlan([new PlanEntry(new TestDefinition(self::class, __FUNCTION__))]),
+            [
+                new SuiteConfiguration('123', ['tests/Unit'], []),
+                new SuiteConfiguration('0', ['tests/Unit'], []),
+                new SuiteConfiguration('01', ['tests/Unit'], []),
+                new SuiteConfiguration('-1', ['tests/Unit'], []),
+            ],
+            null,
+            \dirname(__DIR__, 4),
+        );
+
+        Expect::that(\json_encode($document, \JSON_THROW_ON_ERROR))
+            ->toContain('"suites":["-1","0","01","123"]');
+    }
+
+    #[Test]
     public function documentKeepsThePublicContractSmallAndDeterministic(): void
     {
         $root = \dirname(__DIR__, 4);

@@ -139,6 +139,25 @@ final readonly class ReporterOutputPlan
         );
     }
 
+    public function writesOnlyReportersToStandardOutput(string ...$names): bool
+    {
+        $selected = false;
+
+        foreach ($this->selections as $selection) {
+            if ($selection['output'] !== $this->standardOutput) {
+                continue;
+            }
+
+            if (!\in_array($selection['name'], $names, true)) {
+                return false;
+            }
+
+            $selected = true;
+        }
+
+        return $selected;
+    }
+
     /**
      * @return array{non-empty-string, ?non-empty-string}
      *

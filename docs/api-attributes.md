@@ -469,15 +469,17 @@ public function __construct(public bool $capture = true)
 
 Namespace: `Greenlight\Attribute`
 
-Fails the test if its run time exceeds the specified number of seconds. A
-class attribute applies the limit to each test in the class.
+Fails an otherwise passed attempt if its run time exceeds the specified
+number of seconds. Greenlight checks elapsed time after per-test service
+disposal. This check does not interrupt PHP code that is still running.
+A class attribute applies the limit to each test in the class.
 
 ```php
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class Timeout
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L14)
 
 ### `$seconds`
 
@@ -485,7 +487,7 @@ final readonly class Timeout
 public float $seconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L20)
 
 ### `__construct()`
 
@@ -499,7 +501,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L19)
 
 ## `ClassAvailable`
 

@@ -85,6 +85,8 @@ final readonly class IdeHelper
                 namespace %s;
 
                 /**
+                 * @template T
+                 *
                 %s
                  */
                 final class %s {}

@@ -222,7 +222,11 @@ Expect::eventually(fn() => $repository->find($id))
 ```
 
 Use `consistently()->for()` when a value must not change. A probe exception
-stops the poll unless `retryOnException()` lists its type.
+always stops this consistency check.
+
+With `eventually()`, a probe exception stops the poll unless
+`retryOnException()` lists its type. Consistency checks do not support
+`retryOnException()`.
 
 ## Convert test doubles
 

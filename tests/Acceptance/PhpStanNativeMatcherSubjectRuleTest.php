@@ -18,6 +18,9 @@ final readonly class PhpStanNativeMatcherSubjectRuleTest
     #[Test]
     public function nativeMatcherSubjectTypesFollowExpectationChains(): void
     {
+        Expect::that('greenlight')->toContain(...['light']);
+        Expect::that('greenlight')->toContain(...['needle' => 'light']);
+
         $probe = PhpStanProbe::analyze(
             $this->tempDirectory,
             <<<'PHP'
@@ -30,6 +33,8 @@ final readonly class PhpStanNativeMatcherSubjectRuleTest
             function greenlightGoodNativeMatcherSubjectProbe(mixed $subject): void
             {
                 Expect::that('greenlight')->toContain('light');
+                Expect::that('greenlight')->toContain(...['light']);
+                Expect::that('greenlight')->toContain(...['needle' => 'light']);
                 Expect::that([1, 2])->toHaveCount(2);
                 Expect::that(new ArrayIterator())->toBeEmpty();
                 Expect::that('greenlight')->toHaveLength(10);
@@ -57,6 +62,8 @@ final readonly class PhpStanNativeMatcherSubjectRuleTest
             {
                 Expect::that(1)->toContain('1');
                 Expect::that('greenlight')->toContain(1);
+                Expect::that('greenlight')->toContain(...[1]);
+                Expect::that('greenlight')->toContain(...['needle' => []]);
                 Expect::that('greenlight')->toHaveCount(10);
                 Expect::that(1)->toBeEmpty();
                 Expect::that(1)->toHaveLength(1);
@@ -82,7 +89,7 @@ final readonly class PhpStanNativeMatcherSubjectRuleTest
 
         Expect::that($probe->exitCode)->because('native matchers require compatible subject types')->toBe(1);
         Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(17);
+        Expect::that(\count($probe->errors))->toBe(19);
         Expect::that($probe->messages())->toContain('toContain() requires a string or iterable subject');
         Expect::that($probe->messages())->toContain('toContain() requires a string needle for a string subject');
         Expect::that($probe->messages())->toContain('toMatchJson() requires a string subject');

@@ -277,8 +277,9 @@ Greenlight verifies it. Stubs do not count.
 An `eventually()` or `consistently()` matcher counts once. Calls to its probe do
 not count separately.
 
-Failed, errored, and skipped tests contain the partial count from before the
-test stopped.
+Greenlight takes this count after the final attempt's cleanup and per-test
+service disposal. Cleanup can therefore add expectations after the test body
+fails, errors, or skips. Earlier retry attempts do not contribute to this count.
 
 ### attachments
 
@@ -304,9 +305,13 @@ content or its base64 form in JSONL.
 `path` is a published path, not the caller source path. Internal storage keys
 never appear in reporter output.
 
-Attachments from failed retry attempts remain on the final result. They keep
-their original `attempt` number. A successful test can have attachments with
-the `always` retention value.
+By default, attachments from earlier retry attempts remain on the final result.
+They keep their original `attempt` number. Greenlight also retains attachments
+when a plugin changes a failed or errored outcome to passed or skipped.
+Thus, a passed result can contain `on-failure` attachments.
+
+An `AttachmentRetentionDecider` plugin can change retention. The list contains
+only the attachments that remain after that decision.
 
 Source locations and published artifact paths are absolute. They can disclose
 the layout of the workspace that produced them. They are not portable

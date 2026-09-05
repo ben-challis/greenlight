@@ -14,8 +14,9 @@ use Random\Engine\Mt19937;
 use Random\Randomizer;
 
 /**
- * Discovery does not invoke test methods. It invokes only user callables that
- * are data providers.
+ * Builds an execution plan from test metadata and data providers.
+ * Discovery loads test classes through registered autoloaders. It does not
+ * invoke test methods or lifecycle hooks.
  *
  * @internal
  */
@@ -96,8 +97,8 @@ final readonly class TestDiscoverer
     }
 
     /**
-     * Uses Fisher-Yates with a seeded engine. Thus, the same seed always
-     * produces the same class order without dependence on global random state.
+     * Uses Fisher-Yates with a seeded engine. The same input order and seed
+     * produce the same class order without dependence on global random state.
      *
      * @param list<non-empty-string> $classes
      *

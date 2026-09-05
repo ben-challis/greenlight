@@ -211,6 +211,12 @@ final class ArtifactStore
                 return null;
             }
 
+            $stat = \stat($sourcePath);
+
+            if (\is_array($stat) && ($stat['mode'] & 0170000) !== 0100000) {
+                throw AttachmentError::source($sourcePath, 'is not a regular file');
+            }
+
             return \fopen($sourcePath, 'rb');
         });
 
@@ -259,6 +265,10 @@ final class ArtifactStore
 
                         if ($chunk === '') {
                             continue;
+                        }
+
+                        if (\strlen($chunk) > $size - $copied) {
+                            throw AttachmentError::source($sourcePath, 'changed while it was being copied');
                         }
 
                         $copied += \strlen($chunk);
@@ -498,6 +508,12 @@ final class ArtifactStore
         $this->cleaned = true;
         $this->runHandle?->close();
         $directory = $this->session->stagingDirectory;
+
+        if (\is_link($directory)) {
+            ErrorTrap::run(static fn() => \unlink($directory));
+
+            return;
+        }
 
         if (!\is_dir($directory)) {
             return;
