@@ -47,6 +47,7 @@ A class does not convert when it uses:
   [strict doubles](test-doubles.md)
 * `#[Depends]`, `setUpBeforeClass()`, `tearDownAfterClass()`, or traits
 * assertions without a Greenlight matcher, for example file or XML assertions
+* assertion arguments whose changed evaluation order can change their values
 * `assertEmpty()` or `assertNotEmpty()`, because Greenlight uses different
   empty-value rules
 * multiple data providers or multiple requirements on one declaration
