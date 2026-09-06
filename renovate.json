@@ -11,6 +11,7 @@
         ":semanticCommitScope(deps)"
     ],
     "timezone": "Europe/London",
+    "automerge": true,
     "prConcurrentLimit": 5,
     "customManagers": [
         {
