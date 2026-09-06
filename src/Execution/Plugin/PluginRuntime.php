@@ -16,7 +16,7 @@ use Greenlight\Plugin\Prioritized;
 abstract readonly class PluginRuntime
 {
     /**
-     * @var list<array{plugin: Plugin, priority: int, registration: int}>
+     * @var list<Plugin>
      */
     private array $plugins;
 
@@ -38,7 +38,7 @@ abstract readonly class PluginRuntime
             ];
         }
 
-        $this->plugins = $indexed;
+        $this->plugins = $plugins;
 
         \usort(
             $indexed,
@@ -82,9 +82,9 @@ abstract readonly class PluginRuntime
     {
         $matching = [];
 
-        foreach ($this->plugins as $entry) {
-            if ($entry['plugin'] instanceof $capability) {
-                $matching[] = $entry['plugin'];
+        foreach ($this->plugins as $plugin) {
+            if ($plugin instanceof $capability) {
+                $matching[] = $plugin;
             }
         }
 
