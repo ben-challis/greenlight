@@ -29,6 +29,18 @@
     ],
     "packageRules": [
         {
+            "description": "Separate npm and Composer lock file maintenance",
+            "matchManagers": [
+                "npm",
+                "composer"
+            ],
+            "matchUpdateTypes": [
+                "lockFileMaintenance"
+            ],
+            "additionalBranchPrefix": "{{manager}}-",
+            "commitMessageSuffix": "({{manager}})"
+        },
+        {
             "description": "Keep TypeScript at version 6 until Astro Check supports the native compiler API",
             "matchManagers": [
                 "npm"
