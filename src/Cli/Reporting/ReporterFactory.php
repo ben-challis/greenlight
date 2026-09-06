@@ -39,17 +39,14 @@ final readonly class ReporterFactory
         $prefix = \rtrim($workingDirectory, '/') . '/';
         $displayedConfig = \str_starts_with($configFile, $prefix) ? \substr($configFile, \strlen($prefix)) : $configFile;
         $header = new RunHeader($version, $displayedConfig, $seed, workerFallback: $workerFallback);
-        $definitions = [];
-        $bundled = PluginDefinition::fromFactory(
-            fn(): BundledReporters => new BundledReporters(
-                $capabilities,
-                $header,
-                $arguments,
-                TerminalRowsResolver::resolve(),
-            ),
-        );
+        $definitions = new BundledReporters(
+            $capabilities,
+            $header,
+            $arguments,
+            TerminalRowsResolver::resolve(),
+        )->reporters();
 
-        foreach ([$bundled, ...$plugins] as $pluginDefinition) {
+        foreach ($plugins as $pluginDefinition) {
             if (!$pluginDefinition->supports(ReporterProvider::class)) {
                 continue;
             }

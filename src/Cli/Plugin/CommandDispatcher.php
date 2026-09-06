@@ -44,15 +44,12 @@ final readonly class CommandDispatcher
     {
         [$command, $commandIndex] = $this->selectedCommand($argv);
         $command ??= 'run';
-        $bundled = PluginDefinition::fromFactory(
-            fn(): BundledCommands => new BundledCommands($this->console, $this->version, $this->definition),
-        );
 
         try {
-            $catalog = $this->catalog([$bundled]);
+            $catalog = $this->catalog([]);
 
             if (!$catalog->has($command)) {
-                $catalog = $this->catalog([$bundled, ...$this->configuredPlugins($argv, $workingDirectory)]);
+                $catalog = $this->catalog($this->configuredPlugins($argv, $workingDirectory));
             }
         } catch (ConfigFileError|InvalidConfiguration|CommandSetupFailed $error) {
             $this->console->error($error->getMessage(), \in_array('--no-ansi', $argv, true));
@@ -108,7 +105,7 @@ final readonly class CommandDispatcher
      */
     private function catalog(array $plugins): CommandCatalog
     {
-        $definitions = [];
+        $definitions = new BundledCommands($this->console, $this->version, $this->definition)->commands();
 
         foreach ($plugins as $pluginDefinition) {
             if (!$pluginDefinition->supports(CommandProvider::class)) {
