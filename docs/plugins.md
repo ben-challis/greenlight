@@ -31,8 +31,8 @@ creates one worker instance for each factory that has a worker capability and
 for each physical worker.
 
 A plugin that has capabilities on both sides gets one instance on each side.
-The instances are separate with one in-process worker and with parallel
-workers. Capabilities with the same owner and lifetime use the same instance.
+The instances are separate with one worker and with multiple workers.
+Capabilities with the same owner and lifetime use the same instance.
 A plugin that has `ReporterProvider` and a run capability gets separate command
 and run instances. Priority applies independently to each capability.
 

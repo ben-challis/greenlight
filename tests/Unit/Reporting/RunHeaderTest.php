@@ -60,17 +60,6 @@ final class RunHeaderTest
     }
 
     #[Test]
-    public function flagsTheWorkerFallback(): void
-    {
-        $header = new RunHeader('dev-main', 'greenlight.php', null, phpVersion: '8.4.0', workerFallback: true);
-
-        Expect::that($header->render(1, new Style(ansi: true)))->because('flags the worker fallback')
-            ->toContain("\x1b[33mworkers: 1\x1b[0m");
-        Expect::that($header->render(1, new Style(ansi: false)))
-            ->toContain('workers: 1');
-    }
-
-    #[Test]
     public function phpVersionDefaultsToCurrentPhpVersion(): void
     {
         $header = new RunHeader('dev-main');

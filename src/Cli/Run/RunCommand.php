@@ -18,7 +18,6 @@ use Greenlight\Cli\Reporting\ReporterOutputPlan;
 use Greenlight\Cli\Reporting\ReporterSetupFailed;
 use Greenlight\Cli\Signal\SignalHandlers;
 use Greenlight\Cli\State\RunState;
-use Greenlight\Cli\WorkerCapacity\CpuCores;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\InvalidConfiguration;
@@ -102,8 +101,17 @@ final readonly class RunCommand
 
         $this->warnWhenExcludePathsMatchNothing(new SelectionDiscovery($configuration, $workingDirectory), $arguments->has('no-ansi'));
 
-        $workers = $resolved->workers->count->fixed ?? CpuCores::count();
         $workerBin = $this->workerBinPath($binPath);
+
+        if ($workerBin === false) {
+            $this->printError(
+                'Greenlight cannot start worker processes. Use the Greenlight executable and enable the required process and stream functions.',
+                $arguments->has('no-ansi'),
+            );
+
+            return CommandResult::failure();
+        }
+
         $reporterFactory = new ReporterFactory($this->console);
 
         try {
@@ -113,7 +121,6 @@ final readonly class RunCommand
                 $resolved->order->seed,
                 $configFile,
                 $workingDirectory,
-                workerFallback: $workers > 1 && $workerBin === false,
                 version: $this->version,
             );
             $this->assertRepeatOutputsAreCompatible($arguments, $overrides->repeat, $resolved->coverage);

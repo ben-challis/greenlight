@@ -9,13 +9,9 @@ This guide starts with an empty project and creates a successful test run.
 
 Greenlight requires PHP 8.4 or later. It does not require a PHP extension.
 
-The parallel runner uses core stream sockets and `proc_open`. Coverage requires
-`ext-pcov` or Xdebug in coverage mode.
-
-If PHP disables a process or stream function that the parallel runner requires,
-Greenlight uses an in-process sequential run.
-
-An in-process run cannot give `#[Isolated]` tests a dedicated process.
+The runner uses core stream sockets and `proc_open`. PHP **MUST** enable the
+required process and stream functions. Coverage requires `ext-pcov` or Xdebug
+in coverage mode.
 
 Install Greenlight as a development dependency:
 
@@ -188,7 +184,7 @@ Use these commands for common tasks:
 
 * `vendor/bin/greenlight list-tests` prints each discovered test ID.
 * `vendor/bin/greenlight run --dry-run` prints the resolved run-settings summary.
-* `vendor/bin/greenlight run --workers=1` uses one in-process worker.
+* `vendor/bin/greenlight run --workers=1` uses one worker process.
 * `vendor/bin/greenlight run --group=slow` selects tests with `#[Group('slow')]`.
 * `vendor/bin/greenlight run --exclude-group=slow` excludes that group.
 * `vendor/bin/greenlight run --list-tests` prints the selected tests.
@@ -303,11 +299,8 @@ Tests run in parallel worker processes by default.
 
 `--workers=auto` uses one worker for each CPU core. This value is the default.
 
-`--workers=4` specifies four workers. `--workers=1` uses one in-process runner.
-The last mode is usually the simplest choice for debug work.
-
-Do not use `--workers=1` when a test depends on `#[Isolated]` for process-global
-state cleanup.
+`--workers=4` specifies four workers. `--workers=1` uses one worker process and
+is usually the simplest choice for debug work.
 
 A worker remains active until it has no more tests or the worker fails.
 This behavior makes memory growth and state leaks visible in the suite.

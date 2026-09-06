@@ -8,12 +8,12 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Configuration\CliOverrides;
 use Greenlight\Cli\Configuration\ConfigurationResolver;
 use Greenlight\Config\GreenlightConfig;
+use Greenlight\Config\WorkerConfiguration;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Doubles\Fake;
 use Greenlight\Event\EventSink;
 use Greenlight\Event\RunFinished;
 use Greenlight\Event\RunStarted;
-use Greenlight\Execution\Adapter\InProcessExecution;
 use Greenlight\Execution\Adapter\ProcessPoolExecution;
 use Greenlight\Execution\ExecutionAdapter;
 use Greenlight\Execution\ExecutionContext;
@@ -23,11 +23,8 @@ use Greenlight\Execution\ExecutionTopology;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\RunCoordinator;
 use Greenlight\Expect\Expect;
-use Greenlight\Plugin\WorkerBootstrapContext;
-use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
-use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\TestSelection;
 use Greenlight\Tests\Fixture\Plugins\RecordingRunSubscriber;
@@ -40,39 +37,7 @@ final readonly class RunCoordinatorTest
 {
     public function __construct(
         private TemporaryDirectory $tempDirectory,
-        private EnvironmentVariables $environment,
     ) {}
-
-    #[Test]
-    public function runSubscribersObserveTheCompleteInProcessEventStream(): void
-    {
-        $subscriber = null;
-        $configuration = GreenlightConfig::create()->plugins(
-            static function () use (&$subscriber): RecordingRunSubscriber {
-                return $subscriber = new RecordingRunSubscriber();
-            },
-        )->build();
-        $sink = new CollectingEventSink();
-        $fixtureDirectory = FixturePath::get('DiscoveryBasic');
-
-        $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
-        $result = $this->coordinator()->run(
-            $resolved,
-            $resolved->selection,
-            [$fixtureDirectory],
-            $sink,
-            new InProcessExecution(),
-        );
-
-        Expect::that($subscriber?->events)
-            ->because('run subscribers observe the same event stream as the configured sink')
-            ->toBe($sink->events);
-        Expect::that($subscriber?->sequence())
-            ->because('the subscriber observes both run boundaries')
-            ->toContain('RunStarted')
-            ->toContain('RunFinished');
-        Expect::that($result->summary->passed)->toBe(7);
-    }
 
     #[Test]
     public function runSubscribersObserveTheCompleteProcessPoolEventStream(): void
@@ -199,8 +164,8 @@ final readonly class RunCoordinatorTest
         $secondSink = new CollectingEventSink();
 
         $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
-        $first = $coordinator->run($resolved, $resolved->selection, [$fixtureDirectory], $firstSink, new InProcessExecution());
-        $second = $coordinator->run($resolved, $resolved->selection, [$fixtureDirectory], $secondSink, new InProcessExecution());
+        $first = $coordinator->run($resolved, $resolved->selection, [$fixtureDirectory], $firstSink, $this->execution($resolved->workers));
+        $second = $coordinator->run($resolved, $resolved->selection, [$fixtureDirectory], $secondSink, $this->execution($resolved->workers));
 
         Expect::that($first->seed)
             ->because('the run result MUST report its explicit random seed')
@@ -212,7 +177,7 @@ final readonly class RunCoordinatorTest
     }
 
     #[Test]
-    public function shardsPartitionAnInProcessRunWithoutLossOrDuplication(): void
+    public function shardsPartitionARunWithoutLossOrDuplication(): void
     {
         $coordinator = $this->coordinator();
         $base = GreenlightConfig::create()->build();
@@ -220,7 +185,7 @@ final readonly class RunCoordinatorTest
         $completeSink = new CollectingEventSink();
 
         $complete = ConfigurationResolver::resolve($base, new CliOverrides());
-        $coordinator->run($complete, $complete->selection, [$fixtureDirectory], $completeSink, new InProcessExecution());
+        $coordinator->run($complete, $complete->selection, [$fixtureDirectory], $completeSink, $this->execution($complete->workers));
         $completeIds = $this->resultIds($completeSink);
         $shardedIds = [];
 
@@ -230,7 +195,7 @@ final readonly class RunCoordinatorTest
                 $base,
                 new CliOverrides(selection: new TestSelection(shard: [$index, 3])),
             );
-            $result = $coordinator->run($configuration, $configuration->selection, [$fixtureDirectory], $sink, new InProcessExecution());
+            $result = $coordinator->run($configuration, $configuration->selection, [$fixtureDirectory], $sink, $this->execution($configuration->workers));
             $ids = $this->resultIds($sink);
 
             Expect::that($result->plannedTests)
@@ -249,69 +214,19 @@ final readonly class RunCoordinatorTest
             ->toBe($completeIds);
     }
 
-    #[Test]
-    public function inProcessExecutionRestoresTheCallerChannelEnvironment(): void
-    {
-        $this->environment->set('GREENLIGHT_CHANNEL', 'caller-channel');
-        $configuration = GreenlightConfig::create()->build();
-        $fixtureDirectory = FixturePath::get('DiscoveryBasic');
-
-        $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
-        $this->coordinator()->run(
-            $resolved,
-            $resolved->selection,
-            [$fixtureDirectory],
-            new CollectingEventSink(),
-            new InProcessExecution(),
-        );
-
-        Expect::that(\getenv('GREENLIGHT_CHANNEL'))
-            ->because('in-process execution MUST restore the caller process environment')
-            ->toBe('caller-channel');
-        Expect::that($_ENV['GREENLIGHT_CHANNEL'] ?? null)->toBe('caller-channel');
-        Expect::that($_SERVER['GREENLIGHT_CHANNEL'] ?? null)->toBe('caller-channel');
-    }
-
-    #[Test]
-    public function workerBootstrapFailuresUseTheExecutionFailureSeam(): void
-    {
-        $this->environment->unset('GREENLIGHT_CHANNEL');
-        $failure = new \RuntimeException('worker bootstrap exploded');
-        $configuration = GreenlightConfig::create()->plugins(
-            static fn(): FailingWorkerBootstrapPlugin => new FailingWorkerBootstrapPlugin($failure),
-        )->build();
-        $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
-        $fixtureDirectory = FixturePath::get('DiscoveryBasic');
-
-        Expect::that(fn() => $this->coordinator()->run(
-            $resolved,
-            $resolved->selection,
-            [$fixtureDirectory],
-            new CollectingEventSink(),
-            new InProcessExecution(),
-        ))
-            ->because('in-process bootstrap failures MUST use the execution failure contract')
-            ->toThrow(
-                static function (ExecutionFailed $error) use ($failure): void {
-                    Expect::that($error->getMessage())->toBe(\sprintf(
-                        'Worker "in-process" reported a fatal Greenlight error: worker bootstrap exploded (%s:%d).',
-                        $failure->getFile(),
-                        $failure->getLine(),
-                    ));
-                    Expect::that($error->getPrevious())->toBe($failure);
-                },
-            );
-
-        Expect::that(\getenv('GREENLIGHT_CHANNEL'))
-            ->because('failed in-process execution MUST restore an absent caller environment value')
-            ->toBeFalse();
-        Expect::that(\array_key_exists('GREENLIGHT_CHANNEL', $_ENV))->toBeFalse();
-        Expect::that(\array_key_exists('GREENLIGHT_CHANNEL', $_SERVER))->toBeFalse();
-    }
-
     private function coordinator(): RunCoordinator
     {
         return new RunCoordinator($this->tempDirectory->path());
+    }
+
+    private function execution(WorkerConfiguration $configuration): ProcessPoolExecution
+    {
+        return new ProcessPoolExecution(
+            PhpSubprocess::command([\dirname(__DIR__, 3) . '/bin/greenlight']),
+            $this->tempDirectory->path(),
+            1,
+            $configuration,
+        );
     }
 
     /**
@@ -323,16 +238,5 @@ final readonly class RunCoordinatorTest
             static fn(TestResult $result): string => (string) $result->id,
             $sink->results(),
         );
-    }
-}
-
-final readonly class FailingWorkerBootstrapPlugin implements WorkerBootstrapSubscriber, Fake
-{
-    public function __construct(private \RuntimeException $failure) {}
-
-    #[\Override]
-    public function onWorkerBootstrap(WorkerBootstrapContext $context): void
-    {
-        throw $this->failure;
     }
 }

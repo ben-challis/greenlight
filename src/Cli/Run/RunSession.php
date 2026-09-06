@@ -26,9 +26,7 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Relay\SubprocessCoverage;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Event\EventSink;
-use Greenlight\Execution\Adapter\InProcessExecution;
 use Greenlight\Execution\Adapter\ProcessPoolExecution;
-use Greenlight\Execution\ExecutionAdapter;
 use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\RunAcceptance;
 use Greenlight\Execution\RunCoordinator;
@@ -50,13 +48,13 @@ use Greenlight\Test\TestSelection;
  */
 final readonly class RunSession
 {
-    /** @param non-empty-string|false $workerBin */
+    /** @param non-empty-string $workerBin */
     public function __construct(
         private Console $console,
         private ParsedArguments $arguments,
         private LoadedConfiguration $configuration,
         private string $workingDirectory,
-        private string|false $workerBin,
+        private string $workerBin,
         private GracefulShutdown $shutdown,
         private TestSelection $selection,
         private RunState $state,
@@ -129,7 +127,7 @@ final readonly class RunSession
         $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $this->workingDirectory);
         $coverageSession = CoverageSession::open(
             $coverageSettings,
-            $workers !== 1 && $this->workerBin !== false && !SubprocessCoverage::requested(),
+            !SubprocessCoverage::requested(),
             StorageLayout::resolve($resolved->storage, $this->workingDirectory)->temporaryDirectory,
         );
 
@@ -251,12 +249,8 @@ final readonly class RunSession
     }
 
     /** @param positive-int $workers */
-    private function adapter(WorkerConfiguration $workerConfiguration, int $workers, ?CoverageSettings $coverageSettings, Reporter $reporter): ExecutionAdapter
+    private function adapter(WorkerConfiguration $workerConfiguration, int $workers, ?CoverageSettings $coverageSettings, Reporter $reporter): ProcessPoolExecution
     {
-        if ($workers === 1 || $this->workerBin === false) {
-            return new InProcessExecution($coverageSettings, $this->arguments->has('detect-leaks'), $this->shutdown);
-        }
-
         return new ProcessPoolExecution(
             [\PHP_BINARY, $this->workerBin],
             $this->workingDirectory,

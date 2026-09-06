@@ -171,10 +171,10 @@ lifetime. Workers rebuild per-class reflection, hooks, and data sets for each
 class.
 
 The orchestrator constructs one instance of each configured orchestrator-side
-plugin for each selected run. The in-process runner also constructs separate
-worker-side instances. Thus, plugin properties cannot transfer data between
-the two sides in any worker mode. A repeat iteration and a watch rerun are new
-selected runs and construct new instances.
+plugin for each selected run. Worker processes construct separate worker-side
+instances. Thus, plugin properties cannot transfer data between the two sides.
+A repeat iteration and a watch rerun are new selected runs and construct new
+instances.
 
 Configured suites add named and tagged path groups to discovery. CLI selectors
 can choose a union of these groups. Suites do not add boundaries to the

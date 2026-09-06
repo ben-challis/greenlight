@@ -17,33 +17,27 @@ flowchart LR
     coordinator --> discovery
     discovery --> coordinator
     coordinator --> fixtures["Integration fixture graph"]
-    coordinator --> inprocess["In-process adapter"]
-    coordinator --> orchestrator["Process-pool adapter"]
+    coordinator --> orchestrator["Process-pool execution"]
     orchestrator --> workers["Worker processes"]
     fixtures -. "shared and per-channel resources" .-> workers
-    fixtures -. "shared and channel 1 resources" .-> inprocess
     workers --> events["Typed events and results"]
-    inprocess --> events
     events --> reporters["TTY, plain, JSONL, JUnit,<br/>GitHub and TeamCity reporters"]
     workers --> staging["Private artifact staging"]
     staging --> orchestrator
     orchestrator --> adaptercoverage["Adapter coverage map"]
-    inprocess --> adaptercoverage
     cli --> coverage["CLI coverage session<br/>final merge, transforms, gates, and exports"]
     adaptercoverage --> coverage
 ```
 
-The CLI resolves the configuration once and selects one execution adapter.
+The CLI resolves the configuration once and creates the process-pool adapter.
 The run coordinator uses discovery to produce an immutable execution plan.
-It controls plan order, run resources, and run lifecycle events. The selected
-adapter executes the plan and returns one outcome. Reporters consume the events
-and do not access coordinator state.
+It controls plan order, run resources, and run lifecycle events. The adapter
+executes the plan and returns one outcome. Reporters consume the events and do
+not access coordinator state.
 
 For a nonempty plan, the coordinator provisions integration fixtures before
-`RunStarted`. The fixture graph supplies resources to both adapters.
-`InProcessExecution` uses channel `1`. It receives shared fixture resources plus
-the overlay for that channel. The coordinator closes the graph after
-`RunFinished` or after a run failure.
+`RunStarted`. The fixture graph supplies resources to worker processes. The
+coordinator closes the graph after `RunFinished` or after a run failure.
 
 The orchestrator makes decisions that apply to more than one worker. It
 controls assignments, resource capacity, bail, hard timeouts, crash
@@ -51,7 +45,7 @@ containment, summary totals, artifact publication, and worker coverage
 aggregation. Workers execute their plan sections in sequence and send each
 result immediately.
 
-Each adapter returns a coverage map in its execution outcome. The CLI coverage
+The adapter returns a coverage map in its execution outcome. The CLI coverage
 session can merge this map with command-process and relayed subprocess
 coverage. Command-side coverage plugins transform the merged map. The CLI
 writes exports and evaluates coverage gates.
@@ -92,11 +86,11 @@ public.
 | `Reporting/Profile` | Profile event aggregation and profile output | `Event` and `Reporting` |
 | `Execution/Artifact` | Private attachment staging, publication, recovery, quotas, and cleanup | Artifact, configuration, event, result, test, wire, and internal utilities |
 | `Execution/Plugin` | Run-owned orchestrator, worker-owned, and command-side run-policy plugin runtimes | Artifacts, plans, events, expectations, harnesses, fixtures, plugin contracts, results, and tests |
-| `Execution/Worker` | In-process test execution, bounded output capture, and worker-owned lifecycle | Test execution modules and execution artifacts |
+| `Execution/Worker` | Test execution, bounded output capture, and worker-owned lifecycle | Test execution modules and execution artifacts |
 | `Execution/ProcessPool/Protocol` | Internal worker messages, frames, and socket channels | Wire values and message payload modules |
 | `Execution/ProcessPool/Worker` | Hidden worker command and protocol event delivery | Worker, protocol, plugin, and coverage modules |
 | `Execution/ProcessPool/Orchestrator` | Process scheduling, resource capacity, containment, and transport | Protocol, worker, artifact, event, result, and coverage modules |
-| `Execution` and `Execution/Adapter` | Run coordination and the in-process and process-pool adapters | Execution implementation modules and engine modules through one execution-failure seam |
+| `Execution` and `Execution/Adapter` | Run coordination and process-pool execution | Execution implementation modules and engine modules through one execution-failure seam |
 | `Cli` | Public command entry point and hidden worker routing | `Cli/Command`, `Cli/Output`, coverage relay, and worker execution |
 | `Cli/Input`, `Cli/Configuration` | Argument definition and configuration loading | Configuration values and focused internal utilities |
 | `Cli/Discovery` | Selection-plan discovery, sharding, and unmatched exclude-path diagnostics | `Cli/Configuration`, configuration values, and `Discovery` |
@@ -146,10 +140,9 @@ These interfaces define PHP signatures, lifecycle rules, and error behavior.
 plugins, integration fixtures, and run lifecycle events. Its interface accepts
 one execution adapter.
 
-`InProcessExecution` and `ProcessPoolExecution` are the two adapters at the
-execution seam. Each adapter reports its worker topology and executes a plan.
-Workers receive plan values and emit typed events. They do not discover tests
-again.
+`ProcessPoolExecution` is the adapter at the execution seam. It reports its
+worker topology and executes a plan. Workers receive plan values and emit typed
+events. They do not discover tests again.
 
 ### Extensions
 
