@@ -774,29 +774,21 @@ function benchmarkWriteClasses(
 
                 PHP, \strtolower($prefix), $i, $m);
             $sleepWork = $sleepMicros > 0 ? \sprintf("\\usleep(%d);\n        ", $sleepMicros) : '';
-            $glWork = $proofWork . $sleepWork;
-            $puWork = $glWork;
-            $pestWork = $glWork;
+            $work = $proofWork . $sleepWork;
 
             if ($diagnostics > 0) {
                 $diagnosticWork = \sprintf(
                     "for (\$diagnostic = 0; \$diagnostic < %d; ++\$diagnostic) {\n            \\trigger_error('Benchmark diagnostic.', \\E_USER_NOTICE);\n        }\n        ",
                     $diagnostics,
                 );
-                $glWork .= $diagnosticWork;
-                $puWork .= $diagnosticWork;
-                $pestWork .= $diagnosticWork;
+                $work .= $diagnosticWork;
             }
 
             if ($statements > 0) {
-                $glWork .= \sprintf("\$value = %d;\n        ", $m);
-                $puWork .= \sprintf("\$value = %d;\n        ", $m);
-                $pestWork .= \sprintf("\$value = %d;\n        ", $m);
+                $work .= \sprintf("\$value = %d;\n        ", $m);
 
                 for ($statement = 0; $statement < $statements; ++$statement) {
-                    $glWork .= "\$value += 1;\n        ";
-                    $puWork .= "\$value += 1;\n        ";
-                    $pestWork .= "\$value += 1;\n        ";
+                    $work .= "\$value += 1;\n        ";
                 }
 
                 $glExpectation = \sprintf('Expect::that($value)->toBe(%d);', $m + $statements);
@@ -816,7 +808,7 @@ function benchmarkWriteClasses(
                         %s%s
                     }
 
-                PHP, $m, $glWork, $glExpectation);
+                PHP, $m, $work, $glExpectation);
             $puBody .= \sprintf(<<<'PHP'
 
                     public function testCase%d(): void
@@ -824,14 +816,14 @@ function benchmarkWriteClasses(
                         %s%s
                     }
 
-                PHP, $m, $puWork, $puExpectation);
+                PHP, $m, $work, $puExpectation);
             $pestBody .= \sprintf(<<<'PHP'
 
                 test('case %d', function (): void {
                     %s%s
                 })%s
 
-                PHP, $m, $pestWork, $pestExpectation, ';');
+                PHP, $m, $work, $pestExpectation, ';');
         }
 
         \file_put_contents($project . '/tests/gl/' . $name . '.php', \sprintf(<<<'PHP'
