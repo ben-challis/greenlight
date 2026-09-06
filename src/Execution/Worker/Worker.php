@@ -69,13 +69,12 @@ final readonly class Worker
         $scopes ??= new HarnessScopes($this->definitions);
         $summary = new ResultSummary();
         $drained = false;
-        $stopped = false;
         $remaining = [];
         $leaks = [];
 
         try {
             foreach ($plan->entriesByClass() as $class => $entries) {
-                if ($stopped) {
+                if ($drained) {
                     $remaining = [...$remaining, ...\array_map(static fn(PlanEntry $entry): TestId => $entry->id, $entries)];
 
                     continue;
@@ -138,7 +137,6 @@ final readonly class Worker
                     };
 
                     if ($stopReached !== null) {
-                        $stopped = true;
                         $drained = true;
 
                         if ($index !== $lastIndex) {
