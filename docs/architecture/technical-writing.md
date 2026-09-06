@@ -24,7 +24,7 @@ The checker also examines structured text fields, script strings and comments,
 and PHP strings that resemble messages. It examines extensionless PHP command
 entry points. It checks multiline PHPDoc tag descriptions, visible Markdown
 link labels, and website accessibility attributes. It applies only mandatory
-rules to PHPDoc tag descriptions and human-readable strings. Review all strings
+rules to PHPDoc tag descriptions and PHP message strings. Review all strings
 manually because code literals can resemble prose.
 
 ## Writing rules
