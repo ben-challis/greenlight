@@ -179,6 +179,19 @@ final class GreenlightConfigTest
     }
 
     #[Test]
+    public function anEmptyCoverageConfiguratorEnablesDefaultCoverage(): void
+    {
+        $configuration = GreenlightConfig::create()
+            ->coverage(static function (CoverageBuilder $coverage): void {})
+            ->build();
+
+        Expect::that($configuration->coverage)->toBeInstanceOf(CoverageConfiguration::class);
+        Expect::that($configuration->coverage->includePaths)->toBe([]);
+        Expect::that($configuration->coverage->driver)->toBe(null);
+        Expect::that($configuration->coverage->exports)->toBe([]);
+    }
+
+    #[Test]
     public function rejectedCoverageConfigurationDoesNotEnableCoverage(): void
     {
         $builder = GreenlightConfig::create();

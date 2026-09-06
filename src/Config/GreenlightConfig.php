@@ -25,9 +25,7 @@ final class GreenlightConfig
 
     private WorkerCount $workers;
 
-    private CoverageBuilder $coverage;
-
-    private bool $coverageEnabled = false;
+    private ?CoverageBuilder $coverage = null;
 
     private WatchBuilder $watch;
 
@@ -72,7 +70,6 @@ final class GreenlightConfig
     private function __construct()
     {
         $this->workers = WorkerCount::auto();
-        $this->coverage = new CoverageBuilder();
         $this->watch = new WatchBuilder();
         $this->artifacts = new ArtifactBuilder();
         $this->storage = new StorageBuilder();
@@ -217,10 +214,9 @@ final class GreenlightConfig
      */
     public function coverage(callable $configurator): self
     {
-        $builder = clone $this->coverage;
+        $builder = $this->coverage === null ? new CoverageBuilder() : clone $this->coverage;
         $configurator($builder);
         $this->coverage = clone $builder;
-        $this->coverageEnabled = true;
 
         return $this;
     }
@@ -453,7 +449,7 @@ final class GreenlightConfig
                 artifacts: $this->artifacts->toConfiguration(),
             ),
             order: new OrderConfiguration($this->randomizeOrder, $this->randomSeed),
-            coverage: $this->coverageEnabled ? $this->coverage->toConfiguration() : null,
+            coverage: $this->coverage?->toConfiguration(),
             watch: $this->watch->toConfiguration(),
             storage: $this->storage->toConfiguration(),
         );

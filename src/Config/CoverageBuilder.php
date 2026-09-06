@@ -126,14 +126,6 @@ final class CoverageBuilder
      */
     public function export(string $format, string $target): self
     {
-        if ($format === '') {
-            throw InvalidConfiguration::emptyCoverageExport();
-        }
-
-        if ($target === '') {
-            throw InvalidConfiguration::emptyCoverageExport();
-        }
-
         $this->exports[] = new CoverageExport($format, $target);
 
         return $this;
