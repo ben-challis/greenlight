@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
-use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
@@ -17,13 +16,21 @@ final readonly class RectorArgumentOrderTest
     public function __construct(private TemporaryDirectory $workspace) {}
 
     #[Test]
-    #[DataSet('assertionsWhoseArgumentsCanAffectEachOther')]
-    public function keepsClassesWhoseAssertionArgumentsCanAffectEachOther(string $assertion): void
+    public function keepsClassesWhoseAssertionArgumentsCanAffectEachOther(): void
     {
-        $source = $this->source($assertion);
-        $probe = RectorProbe::convert($this->workspace, $source, name: 'assertion-order');
+        $cases = [];
 
-        Expect::that($probe->code)->toBe($source);
+        foreach (self::assertionsWhoseArgumentsCanAffectEachOther() as $caseName => [$assertion]) {
+            $cases[$caseName] = $this->source($assertion);
+        }
+
+        $probes = RectorProbe::convertBatch($this->workspace, $cases, name: 'assertion-order');
+
+        foreach ($probes as $caseName => $probe) {
+            Expect::that($probe->code)
+                ->because('Assertion argument order case: ' . $caseName . '.')
+                ->toBe($cases[$caseName]);
+        }
     }
 
     #[Test]
