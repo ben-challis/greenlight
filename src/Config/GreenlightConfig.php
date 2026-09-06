@@ -214,7 +214,7 @@ final class GreenlightConfig
      */
     public function coverage(callable $configurator): self
     {
-        $builder = $this->coverage === null ? new CoverageBuilder() : clone $this->coverage;
+        $builder = $this->coverage instanceof CoverageBuilder ? clone $this->coverage : new CoverageBuilder();
         $configurator($builder);
         $this->coverage = clone $builder;
 
