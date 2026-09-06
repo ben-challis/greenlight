@@ -8,7 +8,6 @@ use Greenlight\Doubles\ArgumentCaptor;
 use Greenlight\Doubles\MethodExpectation;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\MethodCall;
-use PhpParser\Node\Identifier;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\MethodReflection;
 use PHPStan\Reflection\ReflectionProvider;
@@ -96,7 +95,7 @@ final readonly class CaptureArgumentReturnTypeExtension implements DynamicMethod
             }
         }
 
-        $argument = $this->argument($call, 'position', 0);
+        $argument = MethodCallArguments::find($call, 'position', 0);
 
         if (!$argument instanceof Arg) {
             return 0;
@@ -108,32 +107,5 @@ final readonly class CaptureArgumentReturnTypeExtension implements DynamicMethod
         ));
 
         return \count($values) === 1 ? $values[0] : null;
-    }
-
-    private function argument(MethodCall $call, string $name, int $position): ?Arg
-    {
-        $nextPosition = 0;
-
-        foreach ($call->getArgs() as $argument) {
-            if ($argument->unpack) {
-                continue;
-            }
-
-            if ($argument->name instanceof Identifier) {
-                if ($argument->name->toString() === $name) {
-                    return $argument;
-                }
-
-                continue;
-            }
-
-            if ($nextPosition === $position) {
-                return $argument;
-            }
-
-            ++$nextPosition;
-        }
-
-        return null;
     }
 }
