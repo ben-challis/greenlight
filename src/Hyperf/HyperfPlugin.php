@@ -215,14 +215,12 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
         /** @var array{value: T}|array{} $result */
         $result = [];
         $failure = null;
-        $completed = false;
         $flags = $this->hookFlags ?? SWOOLE_HOOK_ALL;
 
         try {
-            $started = run(function () use ($worker, &$result, &$failure, &$completed): void {
+            $started = run(function () use ($worker, &$result, &$failure): void {
                 try {
                     $result = ['value' => $worker()];
-                    $completed = true;
                 } catch (\Throwable $threw) {
                     $failure = $threw;
                 } finally {
@@ -234,7 +232,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
             Runtime::enableCoroutine(0);
         }
 
-        return $this->coroutineResult($started, $completed, $result, $failure);
+        return $this->coroutineResult($started, $result, $failure);
     }
 
     /**
@@ -310,7 +308,6 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
         /** @var array{value: T}|array{} $result */
         $result = [];
         $failure = null;
-        $completed = false;
         $finished = new Channel(1);
         $coroutineId = SwooleCoroutine::create(function () use (
             $attempt,
@@ -318,12 +315,10 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
             $finished,
             &$result,
             &$failure,
-            &$completed,
         ): void {
             try {
                 $this->activeContainer = $container;
                 $result = ['value' => $attempt()];
-                $completed = true;
             } catch (\Throwable $threw) {
                 $failure = $threw;
             } finally {
@@ -344,7 +339,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
         $didFinish = $finished->pop();
         $finished->close();
 
-        return $this->coroutineResult($didFinish === true, $completed, $result, $failure);
+        return $this->coroutineResult($didFinish === true, $result, $failure);
     }
 
     /**
@@ -360,11 +355,10 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
         /** @var array{value: T}|array{} $result */
         $result = [];
         $failure = null;
-        $completed = false;
         $flags = $this->hookFlags ?? SWOOLE_HOOK_ALL;
 
         try {
-            $started = run(function () use ($attempt, &$result, &$failure, &$completed): void {
+            $started = run(function () use ($attempt, &$result, &$failure): void {
                 try {
                     $container = $this->createContainer();
                     $this->rejectReusedContainer($container);
@@ -372,7 +366,6 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
                     ApplicationContext::setContainer($container);
                     $this->bootApplication($container);
                     $result = ['value' => $attempt()];
-                    $completed = true;
                 } catch (\Throwable $threw) {
                     $failure = $threw;
                 } finally {
@@ -384,7 +377,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
             Runtime::enableCoroutine(0);
         }
 
-        return $this->coroutineResult($started, $completed, $result, $failure);
+        return $this->coroutineResult($started, $result, $failure);
     }
 
     /** @throws ServiceResolutionFailed */
@@ -496,7 +489,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
      * @return T
      * @throws ServiceResolutionFailed
      */
-    private function coroutineResult(bool $started, bool $completed, array $result, ?\Throwable $failure): mixed
+    private function coroutineResult(bool $started, array $result, ?\Throwable $failure): mixed
     {
         if (!$started) {
             throw HyperfBridgeError::coroutineDidNotStart();
@@ -506,7 +499,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
             throw $failure;
         }
 
-        if (!$completed || !\array_key_exists('value', $result)) {
+        if (!\array_key_exists('value', $result)) {
             throw HyperfBridgeError::coroutineDidNotStart();
         }
 

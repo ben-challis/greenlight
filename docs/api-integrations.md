@@ -153,7 +153,7 @@ PHPDoc:
 - `@return T`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L249)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L247)
 
 ## `LaravelPlugin`
 
