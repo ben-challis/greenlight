@@ -10,13 +10,20 @@ Greenlight requires PHP 8.4 or later. The documentation checks require Node.js
 Run `make docs-install` to install the documentation dependencies and Chromium
 for the browser tests.
 
+## Code and architecture
+
+Use the [code conventions](docs/architecture/conventions.md).
+Read the [architecture overview](docs/architecture/README.md) for module
+responsibilities and dependency direction.
+Keep dependencies within the boundaries in [deptrac.yaml](deptrac.yaml).
+
 ## Documentation sources
 
 Edit guides in `docs/`. The website uses these Markdown files directly.
 Architecture pages in `docs/architecture/` remain repository documentation.
 
-The API reference is generated from public PHP declarations and PHPDoc in
-`src/`. Edit those sources, then run:
+The API generator reads public PHP declarations and PHPDoc in `src/`.
+To change the API reference, edit those sources. Then run:
 
 ```sh
 npm --prefix website run api:generate
@@ -52,6 +59,21 @@ Before you push prose changes, review the prose:
 - Review each `-ing` form. Correct each verbal use.
 - Put only one instruction in each sentence.
 
+## Tests
+
+Add focused unit or acceptance tests for behavior changes.
+Use `Greenlight\Expect` for assertions.
+Use the [test conventions](docs/architecture/conventions.md#tests) for test
+names, assertion exceptions, and shared fixture changes.
+
+Run focused tests with:
+
+```sh
+php bin/greenlight run --filter='<test-id>'
+```
+
+Replace `<test-id>` with the test ID to run.
+
 ## Before you push
 
 Run:
@@ -76,7 +98,7 @@ Submit changes in pull requests to `main`.
 Greenlight uses squash merges. The pull request title becomes the commit
 message. Use the
 [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
-format:
+format for commit messages and pull request titles:
 
 ```text
 type(scope): short description
