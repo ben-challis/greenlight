@@ -62,7 +62,7 @@ final class ExpectationArgumentRule implements Rule
      */
     private function reasonErrors(MethodCall $call, Scope $scope): array
     {
-        $argument = $this->argument($call, 'reason', 0);
+        $argument = MethodCallArguments::find($call, 'reason', 0);
 
         if (!$argument instanceof Arg) {
             return [];
@@ -94,7 +94,7 @@ final class ExpectationArgumentRule implements Rule
         string $name,
         int $position,
     ): array {
-        $argument = $this->argument($call, $name, $position);
+        $argument = MethodCallArguments::find($call, $name, $position);
 
         if (!$argument instanceof Arg) {
             return [];
@@ -125,7 +125,7 @@ final class ExpectationArgumentRule implements Rule
      */
     private function jsonErrors(MethodCall $call, Scope $scope): array
     {
-        $argument = $this->argument($call, 'expected', 0);
+        $argument = MethodCallArguments::find($call, 'expected', 0);
 
         if (!$argument instanceof Arg) {
             return [];
@@ -145,33 +145,6 @@ final class ExpectationArgumentRule implements Rule
         return [];
     }
 
-    private function argument(MethodCall $call, string $name, int $position): ?Arg
-    {
-        $nextPosition = 0;
-
-        foreach ($call->getArgs() as $argument) {
-            if ($argument->unpack) {
-                continue;
-            }
-
-            if ($argument->name instanceof Identifier) {
-                if ($argument->name->toString() === $name) {
-                    return $argument;
-                }
-
-                continue;
-            }
-
-            if ($nextPosition === $position) {
-                return $argument;
-            }
-
-            ++$nextPosition;
-        }
-
-        return null;
-    }
-
     private function isExpectation(Type $receiver): bool
     {
         return \array_any(
@@ -179,5 +152,4 @@ final class ExpectationArgumentRule implements Rule
             static fn(string $class): bool => new ObjectType($class)->isSuperTypeOf($receiver)->yes(),
         );
     }
-
 }

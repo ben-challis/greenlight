@@ -44,8 +44,8 @@ final readonly class DoublesCallRule implements Rule
             return [];
         }
 
-        $double = $this->argument($node, 'double', 0);
-        $method = $this->argument($node, 'method', 1);
+        $double = MethodCallArguments::find($node, 'double', 0);
+        $method = MethodCallArguments::find($node, 'method', 1);
 
         if (!$double instanceof Arg || !$method instanceof Arg) {
             return [];
@@ -80,33 +80,6 @@ final readonly class DoublesCallRule implements Rule
         }
 
         return $errors;
-    }
-
-    private function argument(MethodCall $call, string $name, int $position): ?Arg
-    {
-        $nextPosition = 0;
-
-        foreach ($call->getArgs() as $argument) {
-            if ($argument->unpack) {
-                continue;
-            }
-
-            if ($argument->name instanceof Identifier) {
-                if ($argument->name->toString() === $name) {
-                    return $argument;
-                }
-
-                continue;
-            }
-
-            if ($nextPosition === $position) {
-                return $argument;
-            }
-
-            ++$nextPosition;
-        }
-
-        return null;
     }
 
     private function error(string $method, string $type, int $line): IdentifierRuleError

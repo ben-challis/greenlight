@@ -152,7 +152,7 @@ final class FloatArgumentRule implements Rule
                 continue;
             }
 
-            $argument = $this->argument($node, $constraint['argument'], $constraint['position']);
+            $argument = MethodCallArguments::find($node, $constraint['argument'], $constraint['position']);
 
             if (!$argument instanceof Arg) {
                 return [];
@@ -226,33 +226,6 @@ final class FloatArgumentRule implements Rule
     private function belowMaximum(float $value, ?float $maximum, bool $inclusive): bool
     {
         return $maximum === null || ($inclusive ? $value <= $maximum : $value < $maximum);
-    }
-
-    private function argument(MethodCall $call, string $name, int $position): ?Arg
-    {
-        $nextPosition = 0;
-
-        foreach ($call->getArgs() as $argument) {
-            if ($argument->unpack) {
-                continue;
-            }
-
-            if ($argument->name instanceof Identifier) {
-                if ($argument->name->toString() === $name) {
-                    return $argument;
-                }
-
-                continue;
-            }
-
-            if ($nextPosition === $position) {
-                return $argument;
-            }
-
-            ++$nextPosition;
-        }
-
-        return null;
     }
 
     private function error(string $message, string $identifier, int $line): IdentifierRuleError
