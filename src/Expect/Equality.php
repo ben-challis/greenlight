@@ -194,18 +194,11 @@ final class Equality
                 return true;
             }
 
-            $aProperties = \get_mangled_object_vars($a);
-            $bProperties = \get_mangled_object_vars($b);
-
-            if (\count($aProperties) !== \count($bProperties)) {
-                return false;
-            }
-            return \array_all(
-                $aProperties,
-                static function ($value, $name) use ($bProperties, &$leftObjects, &$rightObjects): bool {
-                    return \array_key_exists($name, $bProperties)
-                        && self::compare($value, $bProperties[$name], $leftObjects, $rightObjects);
-                },
+            return self::compare(
+                \get_mangled_object_vars($a),
+                \get_mangled_object_vars($b),
+                $leftObjects,
+                $rightObjects,
             );
         }
 

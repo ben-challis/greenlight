@@ -118,6 +118,15 @@ final class ToBeAndToEqualTest
     }
 
     #[Test]
+    public function toEqualPreservesPropertyNamesWithNullValues(): void
+    {
+        $subject = (object) ['first' => null, 'second' => 2];
+
+        Expect::that($subject)->toEqual((object) ['second' => 2.0, 'first' => null]);
+        Expect::that($subject)->not()->toEqual((object) ['other' => null, 'second' => 2]);
+    }
+
+    #[Test]
     public function toEqualComparesEnumsByIdentity(): void
     {
         Expect::that(Suit::Hearts)->because('toEqual() compares enums by identity')->toEqual(Suit::Hearts);
