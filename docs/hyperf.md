@@ -112,7 +112,7 @@ container.
 
 ## Test-attempt container lifecycle
 
-The isolated mode uses this lifecycle for each attempt:
+`ContainerLifetime::TestAttempt` uses this lifecycle for each attempt:
 
 1. Start one root Swoole coroutine.
 2. Load `config/container.php` and activate its new container.
@@ -203,13 +203,17 @@ new HyperfPlugin(
 The reset callback runs after Greenlight closes its per-test service scope. It
 runs inside the test coroutine in both modes.
 
-The disposal callback runs before Greenlight discards its container. In worker
-mode, it runs once when the worker exits. In test-attempt mode, the reset
-callback runs first. Greenlight calls disposal even if reset throws. If either
-callback throws, the attempt has an error.
+The disposal callback runs before Greenlight discards its container.
+In worker mode, it runs once after the worker finishes its assignments.
+A disposal failure stops the worker runtime and fails the run.
 
-The first throwable remains the cause. Greenlight still removes access to the container, clears the coroutine
-runtime, and ends the coroutine.
+In test-attempt mode, the reset callback runs first. Greenlight calls disposal
+even if reset throws. A failure from either callback gives the attempt an error.
+A reset failure in worker mode also gives the attempt an error.
+
+The first throwable remains the cause. At the end of the container lifetime,
+Greenlight still removes container access, clears the coroutine runtime, and
+ends the root coroutine.
 
 The bridge does not reset application static properties or global variables.
 Reset these values in an `#[After]` hook or the `reset:` callback.

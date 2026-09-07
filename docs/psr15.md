@@ -78,7 +78,9 @@ This bootstrap file returns the handler that the plugin factory expects.
 `Psr15Plugin` does not supply container services to test constructors.
 
 If tests need application services, also register the
-[PSR-11 bridge](psr11.md).
+[PSR-11 bridge](psr11.md). The two plugins call separate factories. Registration
+alone does not make them share a container. A service from the PSR-11 factory
+can therefore be a different instance from the service that handles a request.
 
 ## Send requests
 
