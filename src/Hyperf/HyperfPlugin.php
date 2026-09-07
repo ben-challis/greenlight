@@ -212,27 +212,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
             throw HyperfBridgeError::workerContainerUnavailable();
         }
 
-        /** @var array{value: T}|array{} $result */
-        $result = [];
-        $failure = null;
-        $flags = $this->hookFlags ?? SWOOLE_HOOK_ALL;
-
-        try {
-            $started = run(function () use ($worker, &$result, &$failure): void {
-                try {
-                    $result = ['value' => $worker()];
-                } catch (\Throwable $threw) {
-                    $failure = $threw;
-                } finally {
-                    $this->captureCleanup($failure, $this->disposeWorkerContainer(...));
-                    $this->captureRuntimeCleanup($failure);
-                }
-            }, $flags);
-        } finally {
-            Runtime::enableCoroutine(0);
-        }
-
-        return $this->coroutineResult($started, $result, $failure);
+        return $this->runRuntime($worker, $this->disposeWorkerContainer(...));
     }
 
     /**
@@ -254,7 +234,15 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
             return $this->runWorkerAttempt($attempt);
         }
 
-        return $this->runIsolatedAttempt($attempt);
+        return $this->runRuntime(function () use ($attempt): mixed {
+            $container = $this->createContainer();
+            $this->rejectReusedContainer($container);
+            $this->activeContainer = $container;
+            ApplicationContext::setContainer($container);
+            $this->bootApplication($container);
+
+            return $attempt();
+        }, $this->disposeAttemptContainer(...));
     }
 
     /** @throws ServiceResolutionFailed */
@@ -346,12 +334,13 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
     /**
      * @template T
      *
-     * @param \Closure(): T $attempt
+     * @param \Closure(): T $callback
+     * @param \Closure(): void $dispose
      *
      * @return T
      * @throws ServiceResolutionFailed
      */
-    private function runIsolatedAttempt(\Closure $attempt): mixed
+    private function runRuntime(\Closure $callback, \Closure $dispose): mixed
     {
         /** @var array{value: T}|array{} $result */
         $result = [];
@@ -359,18 +348,13 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
         $flags = $this->hookFlags ?? SWOOLE_HOOK_ALL;
 
         try {
-            $started = run(function () use ($attempt, &$result, &$failure): void {
+            $started = run(function () use ($callback, $dispose, &$result, &$failure): void {
                 try {
-                    $container = $this->createContainer();
-                    $this->rejectReusedContainer($container);
-                    $this->activeContainer = $container;
-                    ApplicationContext::setContainer($container);
-                    $this->bootApplication($container);
-                    $result = ['value' => $attempt()];
+                    $result = ['value' => $callback()];
                 } catch (\Throwable $threw) {
                     $failure = $threw;
                 } finally {
-                    $this->captureCleanup($failure, $this->disposeAttemptContainer(...));
+                    $this->captureCleanup($failure, $dispose);
                     $this->captureRuntimeCleanup($failure);
                 }
             }, $flags);

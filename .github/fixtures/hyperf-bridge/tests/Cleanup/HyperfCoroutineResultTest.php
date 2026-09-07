@@ -12,6 +12,7 @@ use Greenlight\Hyperf\HyperfPlugin;
 use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Test\TestChannel;
+use Hyperf\Coroutine\Coroutine;
 
 final readonly class HyperfCoroutineResultTest
 {
@@ -51,6 +52,34 @@ final readonly class HyperfCoroutineResultTest
             $caught = $threw;
         }
 
+        Expect::that($caught)->toBe($failure);
+    }
+
+    #[Test]
+    #[DataSet('lifetimes')]
+    public function aCoroutineFailureStillDisposesInsideTheRuntime(ContainerLifetime $lifetime): void
+    {
+        $failure = new \RuntimeException('The coroutine failed.');
+        $disposedInCoroutine = false;
+        $plugin = new HyperfPlugin(
+            \dirname(__DIR__, 2),
+            containerLifetime: $lifetime,
+            dispose: static function () use (&$disposedInCoroutine): never {
+                $disposedInCoroutine = Coroutine::inCoroutine();
+
+                throw new \RuntimeException('The disposal failed.');
+            },
+        );
+        $plugin->onWorkerBootstrap(new WorkerBootstrapContext('cleanup-result-probe', new TestChannel(1), IntegrationResources::empty()));
+        $caught = null;
+
+        try {
+            $plugin->runWorker(static fn(): mixed => $plugin->runTestAttempt(static fn(): never => throw $failure));
+        } catch (\Throwable $threw) {
+            $caught = $threw;
+        }
+
+        Expect::that($disposedInCoroutine)->toBeTrue();
         Expect::that($caught)->toBe($failure);
     }
 
