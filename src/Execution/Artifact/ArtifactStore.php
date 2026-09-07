@@ -492,8 +492,11 @@ final class ArtifactStore
 
         \usort(
             $attachments,
-            static fn(StagedAttachment $a, StagedAttachment $b): int =>
-                [$a->attempt, $a->storageKey] <=> [$b->attempt, $b->storageKey],
+            static function (StagedAttachment $a, StagedAttachment $b): int {
+                $attemptOrder = $a->attempt <=> $b->attempt;
+
+                return $attemptOrder !== 0 ? $attemptOrder : \strnatcmp($a->storageKey, $b->storageKey);
+            },
         );
 
         return $attachments === [] ? $result : $this->publish($result->withAttachments($attachments));
