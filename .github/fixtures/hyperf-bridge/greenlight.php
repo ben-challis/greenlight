@@ -21,7 +21,7 @@ $probe = static function (ContainerInterface $container): DisposalProbe {
     $service = $container->get(DisposalProbe::class);
 
     if (!$service instanceof DisposalProbe) {
-        throw new \RuntimeException('The Hyperf container MUST return DisposalProbe.');
+        throw new \RuntimeException('The Hyperf container must return a DisposalProbe instance.');
     }
 
     return $service;

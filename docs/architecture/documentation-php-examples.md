@@ -13,8 +13,8 @@ The generated workspace is in `build/docs-php`. Do not commit its contents.
 
 ## Select an example
 
-Put one metadata comment immediately before a PHP fence. The comment is JSON so
-that invalid and unknown fields cause an error.
+Put one metadata comment immediately before a PHP fence. The comment contains
+JSON metadata. The extractor rejects invalid JSON and unknown fields.
 
 ```html
 <!-- php-example {"example":"getting-started","file":"src/Greeter.php","mode":"file","tools":["phpstan","rector"]} -->
@@ -30,8 +30,9 @@ Do not use an absolute path or a parent path. Do not derive this value from
 the position of the fence. Stable names keep diagnostics and tool caches
 useful when prose moves.
 
-`tools` can contain `phpstan`, `rector`, both tools, or no tools. Every selected
-example is checked for PHP syntax before these tools run.
+Set `tools` to a list with `phpstan`, `rector`, or both. Use `"tools":[]` to
+check PHP syntax only. Every selected example passes through the PHP syntax
+check before the selected tools run.
 
 ## Choose a mode
 
