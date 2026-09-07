@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Attribute;
 
 /**
- * References a pure public static data provider. The provider runs during
- * discovery.
+ * References a pure public static data provider. Greenlight evaluates the
+ * provider during discovery and again in the worker for each class assignment.
+ * Return the same data for the same inputs. Do not change external state.
  */
 #[\Attribute(\Attribute::TARGET_METHOD)]
 final readonly class DataSet

@@ -61,10 +61,14 @@ final readonly class Definition
 
         Options:
           --config=<path>    Use this configuration file instead of ./greenlight.php
-          --workers=<n|auto> Set the worker process count
+          --workers=<n|auto> Set the worker count. The built-in default is auto.
+                             auto uses the detected CPU count. A count of 1 runs
+                             tests in the command process without process isolation.
           --resource-limit=<name>=<n>
                              Set a named resource limit. You can repeat this option.
-          --bail[=<n>]       Stop after <n> failed or errored tests (default 1)
+          --bail[=<n>]       Stop new work after <n> failed or errored tests.
+                             Without <n>, this option uses a limit of 1.
+                             Active assignments can finish after the limit.
           --suite=<name>     Select a named suite. You can repeat this option.
           --suite-tag=<tag>  Select suites with this tag. You can repeat this option.
           --group=<name>     Run only this group. You can repeat this option.
@@ -94,7 +98,8 @@ final readonly class Definition
                              A failed iteration fails the command.
           --repeat-until-failure  Repeat until an iteration fails, up to
                              --repeat times (default at most 100)
-                             Do not use repeat modes with JUnit output or coverage.
+                             Do not use repeat modes with JUnit output, coverage,
+                             or --watch.
           --shard=<n>/<m>    Run shard n of m. Shards are disjoint and contain
                              whole classes. They are stable across machines and
                              need no coordination.
