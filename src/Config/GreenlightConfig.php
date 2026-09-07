@@ -81,8 +81,9 @@ final class GreenlightConfig
     }
 
     /**
-     * Sets the base test-discovery directories. Greenlight combines these
-     * paths with all suite paths when the command has no suite selector.
+     * Replaces the base test-discovery directories. The default is `['tests']`.
+     * Greenlight combines these paths with all suite paths when the command
+     * has no suite selector. Relative paths use the command working directory.
      *
      * @param non-empty-list<non-empty-string> $tests
      *
@@ -164,7 +165,9 @@ final class GreenlightConfig
     }
 
     /**
-     * Sets the number of worker processes.
+     * Sets the maximum worker count. The default, `auto`, uses the detected CPU count.
+     * A count of one runs tests in the command process without process isolation.
+     * Process-pool execution can use fewer workers when the selected work or resource limits restrict concurrency.
      *
      * @param positive-int|'auto' $count
      *
@@ -210,6 +213,9 @@ final class GreenlightConfig
     }
 
     /**
+     * Enables coverage collection and changes its settings.
+     * Each call starts with the current configuration. Greenlight ignores the configurator return value.
+     *
      * @param callable(CoverageBuilder): mixed $configurator
      */
     public function coverage(callable $configurator): self
@@ -222,6 +228,9 @@ final class GreenlightConfig
     }
 
     /**
+     * Changes watch inputs and polling limits. Use `--watch` to start watch mode.
+     * Each call starts with the current configuration. Greenlight ignores the configurator return value.
+     *
      * @param callable(WatchBuilder): mixed $configurator
      */
     public function watch(callable $configurator): self
@@ -234,6 +243,9 @@ final class GreenlightConfig
     }
 
     /**
+     * Changes attachment output, safety limits, and retention settings.
+     * Each call starts with the current configuration. Greenlight ignores the configurator return value.
+     *
      * @param callable(ArtifactBuilder): mixed $configurator
      */
     public function artifacts(callable $configurator): self
@@ -371,6 +383,10 @@ final class GreenlightConfig
         return $this;
     }
 
+    /**
+     * Stops new work after the first failed or errored test.
+     * Active assignments can finish after the limit. This option is disabled by default.
+     */
     public function failFast(bool $enabled = true): self
     {
         $this->failFast = $enabled;

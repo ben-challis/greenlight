@@ -11,14 +11,18 @@ These signatures are the public API.
 Namespace: `Greenlight\Config`
 
 Collects the configuration for attachment output and safety limits.
+Size values use bytes or binary `K`, `M`, and `G` suffixes, with an optional final `B`.
 
 ```php
 final class ArtifactBuilder
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L11)
 
 ### `directory()`
+
+Sets the parent directory for retained attachments.
+The default is `build/greenlight-artifacts`, relative to the command working directory.
 
 ```php
 public function directory(string $directory): self
@@ -29,9 +33,11 @@ PHPDoc:
 - `@param non-empty-string $directory`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L48)
 
 ### `maxAttachmentsPerTest()`
+
+Limits attachment count for one test across all attempts. The default is 32.
 
 ```php
 public function maxAttachmentsPerTest(int $count): self
@@ -42,9 +48,11 @@ PHPDoc:
 - `@param positive-int $count`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L70)
 
 ### `maxAttachmentSize()`
+
+Limits the size of one attachment. The default is `25M`.
 
 ```php
 public function maxAttachmentSize(string $size): self
@@ -55,9 +63,11 @@ PHPDoc:
 - `@param non-empty-string $size`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L80)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L88)
 
 ### `maxTestSize()`
+
+Limits attachment bytes for one test across all attempts. The default is `100M`.
 
 ```php
 public function maxTestSize(string $size): self
@@ -68,9 +78,11 @@ PHPDoc:
 - `@param non-empty-string $size`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L92)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L102)
 
 ### `maxRunAttachments()`
+
+Limits retained attachment count for one run. The default is 10,000.
 
 ```php
 public function maxRunAttachments(int $count): self
@@ -81,9 +93,11 @@ PHPDoc:
 - `@param positive-int $count`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L104)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L116)
 
 ### `maxRunSize()`
+
+Limits retained attachment bytes for one run. The default is `1G`.
 
 ```php
 public function maxRunSize(string $size): self
@@ -94,9 +108,12 @@ PHPDoc:
 - `@param non-empty-string $size`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L120)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L134)
 
 ### `maxCompletedRuns()`
+
+Selects older completed runs for deletion when the retained run count exceeds this limit.
+No count-based retention limit applies by default.
 
 ```php
 public function maxCompletedRuns(int $count): self
@@ -107,9 +124,12 @@ PHPDoc:
 - `@param positive-int $count`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L132)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L149)
 
 ### `maxCompletedRunAge()`
+
+Selects completed runs for deletion after this many seconds from completion.
+No age-based retention limit applies by default.
 
 ```php
 public function maxCompletedRunAge(int $seconds): self
@@ -120,9 +140,12 @@ PHPDoc:
 - `@param positive-int $seconds`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L148)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L168)
 
 ### `maxRetainedSize()`
+
+Selects older completed runs for deletion when retained content exceeds this size.
+No size-based retention limit applies by default.
 
 ```php
 public function maxRetainedSize(string $size): self
@@ -133,7 +156,7 @@ PHPDoc:
 - `@param non-empty-string $size`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L164)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/ArtifactBuilder.php#L187)
 
 ## `CoverageBuilder`
 
@@ -149,6 +172,9 @@ final class CoverageBuilder
 
 ### `include()`
 
+Adds source paths to the coverage filter. Multiple calls add paths.
+Relative paths use the command working directory. An empty filter accepts all files that the driver reports.
+
 ```php
 public function include(string ...$paths): self
 ```
@@ -158,9 +184,12 @@ PHPDoc:
 - `@param non-empty-string ...$paths`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L40)
 
 ### `driver()`
+
+Selects `pcov` or `xdebug` without fallback to the other driver.
+Omit this call for automatic selection, which tries pcov before Xdebug.
 
 ```php
 public function driver(string $driver): self
@@ -171,7 +200,7 @@ PHPDoc:
 - `@param non-empty-string $driver`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L63)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L69)
 
 ### `minimumPercentage()`
 
@@ -186,7 +215,7 @@ PHPDoc:
 - `@param float $percentage A value from 0 through 100 with at most two decimal places.`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L81)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L87)
 
 ### `maximumUncoveredLines()`
 
@@ -201,7 +230,7 @@ PHPDoc:
 - `@param int<0, max> $lines`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L102)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L108)
 
 ### `requireDriver()`
 
@@ -211,9 +240,13 @@ Fails the run when the selected coverage driver is not available.
 public function requireDriver(bool $required = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L114)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L120)
 
 ### `export()`
+
+Adds a coverage export. Multiple calls add exports.
+The target is a directory for `html` and a file for other formats.
+Relative targets use the command working directory.
 
 ```php
 public function export(string $format, string $target): self
@@ -225,7 +258,7 @@ PHPDoc:
 - `@param non-empty-string $target`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L127)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L137)
 
 ## `GreenlightConfig`
 
@@ -249,8 +282,9 @@ public static function create(): self
 
 ### `paths()`
 
-Sets the base test-discovery directories. Greenlight combines these
-paths with all suite paths when the command has no suite selector.
+Replaces the base test-discovery directories. The default is `['tests']`.
+Greenlight combines these paths with all suite paths when the command
+has no suite selector. Relative paths use the command working directory.
 
 ```php
 public function paths(array $tests): self
@@ -261,7 +295,7 @@ PHPDoc:
 - `@param non-empty-list<non-empty-string> $tests`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L91)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L92)
 
 ### `suite()`
 
@@ -282,11 +316,13 @@ PHPDoc:
 - `@param callable(SuiteBuilder): mixed $configurator`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L149)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L150)
 
 ### `workers()`
 
-Sets the number of worker processes.
+Sets the maximum worker count. The default, `auto`, uses the detected CPU count.
+A count of one runs tests in the command process without process isolation.
+Process-pool execution can use fewer workers when the selected work or resource limits restrict concurrency.
 
 ```php
 public function workers(int|string $count = 'auto'): self
@@ -297,7 +333,7 @@ PHPDoc:
 - `@param positive-int|'auto' $count`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L173)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L176)
 
 ### `resourceLimit()`
 
@@ -316,9 +352,12 @@ PHPDoc:
 - `@param positive-int $limit`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L191)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L194)
 
 ### `coverage()`
+
+Enables coverage collection and changes its settings.
+Each call starts with the current configuration. Greenlight ignores the configurator return value.
 
 ```php
 public function coverage(callable $configurator): self
@@ -328,9 +367,12 @@ PHPDoc:
 
 - `@param callable(CoverageBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L215)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L221)
 
 ### `watch()`
+
+Changes watch inputs and polling limits. Use `--watch` to start watch mode.
+Each call starts with the current configuration. Greenlight ignores the configurator return value.
 
 ```php
 public function watch(callable $configurator): self
@@ -340,9 +382,12 @@ PHPDoc:
 
 - `@param callable(WatchBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L227)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L236)
 
 ### `artifacts()`
+
+Changes attachment output, safety limits, and retention settings.
+Each call starts with the current configuration. Greenlight ignores the configurator return value.
 
 ```php
 public function artifacts(callable $configurator): self
@@ -352,7 +397,7 @@ PHPDoc:
 
 - `@param callable(ArtifactBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L239)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L251)
 
 ### `storage()`
 
@@ -367,7 +412,7 @@ PHPDoc:
 
 - `@param callable(StorageBuilder): mixed $configurator`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L254)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L266)
 
 ### `failOnDeprecation()`
 
@@ -383,7 +428,7 @@ PHPDoc:
 
 - `@see self::ignoreDeprecationsMatching()`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L270)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L282)
 
 ### `failOnNotice()`
 
@@ -393,7 +438,7 @@ Fails an otherwise passed test if captured output contains a notice.
 public function failOnNotice(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L278)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L290)
 
 ### `failOnWarning()`
 
@@ -403,7 +448,7 @@ Fails an otherwise passed test if captured output contains a warning.
 public function failOnWarning(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L286)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L298)
 
 ### `failOnRisky()`
 
@@ -415,7 +460,7 @@ expectations.
 public function failOnRisky(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L298)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L310)
 
 ### `failOnSkipped()`
 
@@ -426,7 +471,7 @@ keeps its skipped outcome and reason.
 public function failOnSkipped(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L309)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L321)
 
 ### `failOnRetriedPass()`
 
@@ -437,7 +482,7 @@ outcome and attempt count.
 public function failOnRetriedPass(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L320)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L332)
 
 ### `ignoreDeprecationsMatching()`
 
@@ -454,7 +499,7 @@ PHPDoc:
 - `@param non-empty-string ...$patterns`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L336)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L348)
 
 ### `plugins()`
 
@@ -467,15 +512,18 @@ PHPDoc:
 - `@param \Closure(): Plugin ...$plugins`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L357)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L369)
 
 ### `failFast()`
+
+Stops new work after the first failed or errored test.
+Active assignments can finish after the limit. This option is disabled by default.
 
 ```php
 public function failFast(bool $enabled = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L374)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L390)
 
 ### `randomizeOrder()`
 
@@ -490,7 +538,7 @@ PHPDoc:
 - `@param int<0, max>|null $seed`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L387)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/GreenlightConfig.php#L403)
 
 ## `InvalidConfiguration`
 
@@ -903,14 +951,19 @@ public static function nonPositiveWorkerCount(int $count): self
 Namespace: `Greenlight\Config`
 
 Collects directory configuration for Greenlight-owned storage.
+Relative paths use the command working directory, including explicit area directories.
+Without a root or an area override, Greenlight uses the system temporary directory.
 
 ```php
 final class StorageBuilder
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L8)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L12)
 
 ### `rootDirectory()`
+
+Sets the parent for the `state`, `cache`, `generated-code`, and `temporary` directories.
+An explicit area directory overrides its default below this root.
 
 ```php
 public function rootDirectory(string $directory): self
@@ -921,9 +974,11 @@ PHPDoc:
 - `@param non-empty-string $directory`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L36)
 
 ### `stateDirectory()`
+
+Sets the directory for saved failures and test-class durations.
 
 ```php
 public function stateDirectory(string $directory): self
@@ -934,9 +989,11 @@ PHPDoc:
 - `@param non-empty-string $directory`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L40)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L49)
 
 ### `cacheDirectory()`
+
+Sets the directory for the discovery cache.
 
 ```php
 public function cacheDirectory(string $directory): self
@@ -947,9 +1004,11 @@ PHPDoc:
 - `@param non-empty-string $directory`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L51)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L62)
 
 ### `generatedCodeDirectory()`
+
+Sets the directory for generated double proxy classes.
 
 ```php
 public function generatedCodeDirectory(string $directory): self
@@ -960,9 +1019,11 @@ PHPDoc:
 - `@param non-empty-string $directory`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L75)
 
 ### `temporaryDirectory()`
+
+Sets the directory for temporary run data, sockets, and attachment staging.
 
 ```php
 public function temporaryDirectory(string $directory): self
@@ -973,7 +1034,7 @@ PHPDoc:
 - `@param non-empty-string $directory`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L73)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/StorageBuilder.php#L88)
 
 ## `SuiteBuilder`
 
