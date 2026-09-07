@@ -52,8 +52,8 @@ When the matcher fails, the failure message puts the reason after the word
 Expected false to be true because a refund requires an open order.
 ```
 
-The reason must not be empty. Temporal expectation chains also accept
-`because()`.
+Greenlight applies PHP's `trim()` to the reason. The result must not be empty.
+Temporal expectation chains also accept `because()`.
 
 ## Matcher reference
 

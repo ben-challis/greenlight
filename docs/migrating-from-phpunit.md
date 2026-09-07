@@ -92,6 +92,18 @@ The rule removes coverage metadata attributes, for example `#[CoversClass]`,
 because coverage configuration belongs in `greenlight.php`. It also removes
 use metadata, `#[TestDox]`, and `#[DisableReturnValueGenerationForTestDoubles]`.
 
+Preview the proposed changes:
+
+```sh
+vendor/bin/rector process --dry-run
+```
+
+Apply the changes after you review the preview:
+
+```sh
+vendor/bin/rector process
+```
+
 Rector's printer also reflows each converted class. Run your code-style fixer
 after the conversion. If no test depends on `#[Isolated]`, run the suite one
 time with `--workers=1` before you enable parallel workers. Otherwise, start
@@ -275,8 +287,9 @@ Expect::that($captor->value())->toBeInstanceOf(Order::class);
 If the collaborator must return a value, use a mock with explicit
 expectations.
 
-`spy(Type::class)` records calls only for methods that return nothing. A spy
-does not create a return value.
+`spy(Type::class)` records calls to methods declared `void` or without a native
+return type. These calls return `null`. A call with another native return type
+fails the test.
 
 Read records with `$this->doubles->callsTo($spy, 'method')`. Check the records
 with `Expect`.

@@ -8,31 +8,42 @@ text, bytes, or files that already exist.
 
 Ask for `Greenlight\Artifact\Attachments` through constructor injection:
 
-<!-- php-example {"example":"attachments-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
+<!-- php-example {"example":"attachments-example-01","file":"snippet.php","mode":"file","tools":["phpstan","rector"]} -->
 ```php
+use Greenlight\Attribute\NoExpectations;
 use Greenlight\Attribute\Test;
-use Greenlight\Artifact\AttachmentRetention;
 use Greenlight\Artifact\Attachments;
+use Greenlight\Sandbox\TemporaryDirectory;
 
-final readonly class CheckoutTest
+final readonly class DiagnosticAttachmentsTest
 {
-    public function __construct(private Attachments $attachments) {}
+    public function __construct(
+        private Attachments $attachments,
+        private TemporaryDirectory $temporary,
+    ) {}
 
     #[Test]
-    public function submitsAnOrder(): void
+    #[NoExpectations]
+    public function recordsDiagnosticData(): void
     {
-        $response = $this->client->post('/orders');
-
         $this->attachments->value('response.json', [
-            'status' => $response->status(),
-            'headers' => $response->headers(),
+            'status' => 202,
+            'requestId' => 'request-123',
         ]);
-        $this->attachments->text('subprocess.log', $this->process->output());
-        $this->attachments->bytes('trace.bin', $this->trace);
-        $this->attachments->file('screenshot.png', $this->screenshotPath);
+        $this->attachments->text('application.log', 'Order accepted.');
+        $this->attachments->bytes('trace.bin', "\x00\x01");
+
+        $source = $this->temporary->path() . '/export.csv';
+        \file_put_contents($source, "id,status\n123,accepted\n");
+        $this->attachments->file('export.csv', $source);
     }
 }
 ```
+
+This example uses fixed diagnostic values. Replace them with values from the
+system under test. The test has no expectations because it only demonstrates
+attachment creation. The default retention policy discards these attachments
+when the test passes.
 
 `value()` encodes its value as JSON. `text()` and `bytes()` accept an optional
 media type. `file()` copies a regular file and detects its media type when
@@ -47,14 +58,16 @@ do not change the attachment.
 
 By default, Greenlight retains attachments when the final result fails or has
 an error. It also retains them when the transformation log contains an earlier
-failed or errored outcome. Thus, a plugin cannot discard failure evidence only
-by changing the outcome to passed or skipped.
+failed or errored outcome. A change to passed or skipped therefore preserves
+failure evidence.
 
 To retain an attachment from a result without failure evidence, set its
 retention to `AttachmentRetention::Always`:
 
-<!-- php-example {"example":"attachments-example-02","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+<!-- php-example {"example":"attachments-example-02","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
+use Greenlight\Artifact\AttachmentRetention;
+
 $attachments->text(
     'timing.txt',
     $timing,
@@ -76,6 +89,7 @@ create an empty directory. Change the parent directory in `greenlight.php`:
 <!-- php-example {"example":"attachments-example-03","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\ArtifactBuilder;
+use Greenlight\Config\GreenlightConfig;
 
 return GreenlightConfig::create()
     ->artifacts(fn (ArtifactBuilder $artifacts) => $artifacts
@@ -88,12 +102,13 @@ Use `--artifacts-dir` to override it for one run:
 vendor/bin/greenlight run --artifacts-dir=build/ci-evidence
 ```
 
-Completed run retention is disabled by default. Configure one or more limits
-to remove old Greenlight run directories after a run completes:
+By default, Greenlight does not remove completed run directories. Configure
+one or more limits to remove old directories after a run completes:
 
 <!-- php-example {"example":"attachments-example-04","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\ArtifactBuilder;
+use Greenlight\Config\GreenlightConfig;
 
 return GreenlightConfig::create()
     ->artifacts(fn (ArtifactBuilder $artifacts) => $artifacts
