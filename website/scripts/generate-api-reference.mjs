@@ -1035,7 +1035,7 @@ function renderIndex() {
   ];
 
   for (const section of sections) {
-    lines.push(`- [${section.title}](${section.id}.md) — ${section.description}`);
+    lines.push(`- [${section.title}](${section.id}.md). ${section.description}`);
   }
 
   lines.push('');
