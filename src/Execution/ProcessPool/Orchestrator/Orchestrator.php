@@ -587,8 +587,8 @@ final class Orchestrator
 
         foreach ($this->handles as $handle) {
             if ($handle->isActive() && $handle->ready && $handle->assigned === null) {
-                // Every initial worker is fresh, so once pooled work is gone
-                // it may take an isolated unit.
+                // Each initial worker is fresh. It can take an isolated unit
+                // after the pooled queue is empty.
                 $this->assignNext($handle, $sink);
             }
         }

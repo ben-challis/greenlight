@@ -297,7 +297,7 @@ final class JUnitReporter implements Reporter
                 $file = $reflected;
             }
         } catch (\Throwable) {
-            // An autoloader error MUST NOT stop report generation.
+            // Continue report generation if an autoloader fails.
         }
 
         return $this->sourceFilesByClassAndMethod[$class][$method] = $file;

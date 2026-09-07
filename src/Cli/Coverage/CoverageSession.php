@@ -91,7 +91,7 @@ final class CoverageSession
             try {
                 $this->collector?->stop();
             } catch (\Throwable) {
-                // A cleanup failure MUST not replace the run failure.
+                // Preserve the run failure if cleanup also fails.
             }
         }
 
@@ -102,7 +102,7 @@ final class CoverageSession
             try {
                 $shared->drain();
             } catch (\Throwable) {
-                // A cleanup failure MUST not replace the run failure.
+                // Preserve the run failure if cleanup also fails.
             }
         }
     }

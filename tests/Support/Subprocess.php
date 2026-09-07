@@ -7,9 +7,9 @@ namespace Greenlight\Tests\Support;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
- * The caller of start() owns the active process handle. After start() returns,
- * the caller MUST immediately guarantee that terminate() will run. After
- * wait() collects the result, terminate() has no effect.
+ * The caller of start() owns the active process handle. Immediately after
+ * start() returns, use a finally block to call terminate(). After wait()
+ * collects the result, terminate() has no effect.
  */
 final class Subprocess
 {

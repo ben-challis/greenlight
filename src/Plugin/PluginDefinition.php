@@ -13,7 +13,7 @@ final readonly class PluginDefinition
 {
     /**
      * @param class-string<Plugin> $pluginClass
-     * @param \Closure(): Plugin $factory The factory MUST return a new plugin
+     * @param \Closure(): Plugin $factory Return a new plugin
      *   instance on each call.
      */
     private function __construct(
