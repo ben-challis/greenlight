@@ -128,15 +128,16 @@ PHPDoc:
 
 Namespace: `Greenlight\Attribute`
 
-References a pure public static data provider. The provider runs during
-discovery.
+References a pure public static data provider. Greenlight evaluates the
+provider during discovery and again in the worker for each class assignment.
+Return the same data for the same inputs. Do not change external state.
 
 ```php
 #[\Attribute(\Attribute::TARGET_METHOD)]
 final readonly class DataSet
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataSet.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataSet.php#L13)
 
 ### `$provider`
 
@@ -148,7 +149,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataSet.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataSet.php#L18)
 
 ### `$providerClass`
 
@@ -160,7 +161,7 @@ PHPDoc:
 
 - `@var class-string|null`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataSet.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataSet.php#L23)
 
 ### `__construct()`
 
@@ -178,7 +179,7 @@ PHPDoc:
 - `@param non-empty-string|null $method`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataSet.php#L34)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/DataSet.php#L35)
 
 ## `Group`
 
@@ -223,14 +224,15 @@ PHPDoc:
 
 Namespace: `Greenlight\Attribute`
 
-Greenlight assigns a new worker to each selected test.
+Assigns a fresh worker process to each selected test during process-pool
+execution. In-process execution does not provide process isolation.
 
 ```php
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class Isolated
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Isolated.php#L11)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Isolated.php#L12)
 
 This type does not declare public members.
 
@@ -474,12 +476,15 @@ number of seconds. Greenlight checks elapsed time after per-test service
 disposal. This check does not interrupt PHP code that is still running.
 A class attribute applies the limit to each test in the class.
 
+During process-pool execution, the orchestrator also stops a blocked worker
+after the timeout grace period. In-process execution has no such interrupt.
+
 ```php
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
 final readonly class Timeout
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L17)
 
 ### `$seconds`
 
@@ -487,7 +492,7 @@ final readonly class Timeout
 public float $seconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L23)
 
 ### `__construct()`
 
@@ -501,7 +506,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L19)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Attribute/Timeout.php#L22)
 
 ## `ClassAvailable`
 
