@@ -30,16 +30,29 @@ final class CyclicArrayEqualityTest
             use Greenlight\Expect\Expect;
 
             $method = $argv[2];
+            $compare = static function ($left, $right, bool $equal = true) use ($method): void {
+                if ($method === 'toEqualCanonicalizing') {
+                    Expect::that(static fn() => Expect::that($left)->toEqualCanonicalizing($right))
+                        ->toThrow(InvalidArgumentException::class, message:
+                            'toEqualCanonicalizing() cannot order cyclic arrays. Use toEqual() to compare them without reordering.');
+                    return;
+                }
+                $expectation = Expect::that($left);
+                if (!$equal) {
+                    $expectation->not();
+                }
+                $expectation->toEqual($right);
+            };
             $left = [];
             $left['self'] = &$left;
             $left['value'] = 1;
             $right = ['value' => 1.0];
             $right['self'] = &$right;
-            Expect::that($left)->{$method}($right);
+            $compare($left, $right);
 
             $right['value'] = 2;
-            Expect::that($left)->not()->{$method}($right);
-            Expect::that($right)->not()->{$method}($left);
+            $compare($left, $right, false);
+            $compare($right, $left, false);
             $right['value'] = 1;
             Expect::that((object) ['items' => $left])->{$method}((object) ['items' => $right]);
 
@@ -51,7 +64,23 @@ final class CyclicArrayEqualityTest
             $otherSecond = ['value' => 2.0];
             $otherFirst['next'] = &$otherSecond;
             $otherSecond['next'] = &$otherFirst;
-            Expect::that($first)->{$method}($otherFirst);
+            $compare($first, $otherFirst);
+
+            $shiftedLeft = [];
+            $shiftedLeft['next'] = ['next' => &$shiftedLeft];
+            $shiftedRight = [];
+            $shiftedRight['next'] = &$target;
+            $target = ['next' => $shiftedRight];
+            $compare($shiftedLeft, $shiftedRight);
+            $compare($shiftedRight, $shiftedLeft);
+
+            $shiftedLeft['value'] = 1;
+            $shiftedLeft['next']['value'] = 2;
+            $shiftedRight['value'] = 1;
+            $target['value'] = 3;
+            $target['next'] = $shiftedRight;
+            $compare($shiftedLeft, $shiftedRight, false);
+            $compare($shiftedRight, $shiftedLeft, false);
 
             $shared = ['value' => 1];
             $aliases = [&$shared, &$shared];
@@ -64,8 +93,9 @@ final class CyclicArrayEqualityTest
                 $right[] = &$right;
                 $right[] = 1;
                 $right[] = 2;
-                Expect::that($left)->toEqualCanonicalizing($right);
-                Expect::that([$first, $second])->toEqualCanonicalizing([$otherSecond, $otherFirst]);
+                $compare($left, $right);
+                $compare([$first, $second], [$otherSecond, $otherFirst]);
+                $compare([(object) ['items' => $first]], [(object) ['items' => $otherFirst]]);
                 Expect::that(array_slice($left, 0, 2))->toBe([2, 1]);
                 Expect::that(array_slice($right, 1))->toBe([1, 2]);
             }

@@ -170,9 +170,13 @@ final class Expectation
      * Thus, lists in object properties keep their order. Associative arrays
      * keep their keys.
      *
+     * Cyclic arrays cannot be normalized or used to order list elements.
+     * Use `toEqual()` to compare these arrays without reordering.
+     *
      * @return self<T>
      *
      * @throws ExpectationFailed
+     * @throws \InvalidArgumentException when canonicalization encounters a cyclic array
      */
     public function toEqualCanonicalizing(mixed $expected): self
     {

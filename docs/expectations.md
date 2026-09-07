@@ -71,11 +71,17 @@ The reason must not be empty. Temporal expectation chains also accept
 
 `toEqual()` compares integers and floats by numeric value. It compares other
 scalars strictly. It compares arrays by key and recursively equal values.
+Array comparisons can follow cyclic references without exhausting the worker.
 Objects must have the same class and recursively equal properties. This rule
 includes private properties.
 
 Object comparisons distinguish shared objects from equal copies. They also
 require equal cycle shapes.
+
+Canonicalizing equality throws `InvalidArgumentException` when it encounters a
+cyclic array while normalizing array values or ordering list elements. Use
+`toEqual()` to compare these arrays without reordering. Shared references to
+acyclic arrays remain supported.
 
 Enum cases compare by identity.
 `DateTimeInterface` values compare by instant at microsecond precision.
