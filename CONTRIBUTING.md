@@ -7,6 +7,9 @@ Thank you for your interest in Greenlight. These rules apply to every change.
 Greenlight requires PHP 8.4 or later. The documentation checks require Node.js
 24 or later and npm.
 
+From the repository root, run `composer install` to install the PHP development
+dependencies.
+
 Run `make docs-install` to install the documentation dependencies and Chromium
 for the browser tests.
 
@@ -62,7 +65,7 @@ Before you push prose changes, review the prose:
 ## Tests
 
 Add focused unit or acceptance tests for behavior changes.
-Use `Greenlight\Expect` for assertions.
+Use `Greenlight\Expect\Expect` for assertions.
 Use the [test conventions](docs/architecture/conventions.md#tests) for test
 names, assertion exceptions, and shared fixture changes.
 

@@ -10,5 +10,6 @@
 
 - [ ] `composer static-analysis` is green
 - [ ] `composer tests` is green
-- [ ] Pull request title follows the [release classification rules](../CONTRIBUTING.md#release-classification)
+- [ ] `make docs-check` is green
+- [ ] Pull request title follows the [release classification rules](https://github.com/ben-challis/greenlight/blob/main/CONTRIBUTING.md#release-classification)
 - [ ] Each breaking change uses `!` and gives replacement instructions in **Why**
