@@ -117,6 +117,20 @@ final class SummaryFormat
         return \implode("\n", $lines) . "\n";
     }
 
+    /**
+     * @param non-empty-list<non-empty-string> $risky
+     */
+    public static function risky(array $risky): string
+    {
+        return \sprintf(
+            "\nRisky tests: %d\n"
+            . "These tests passed without a verified expectation.\n"
+            . "Add #[NoExpectations] to accept this result. Use --fail-on-risky to fail the run.\n%s\n",
+            \count($risky),
+            \implode("\n", \array_map(static fn(string $id): string => '  ' . $id, $risky)),
+        );
+    }
+
     public static function coverage(float $percentage, int $coveredLines, int $executableLines, Style $style): string
     {
         return \sprintf(
