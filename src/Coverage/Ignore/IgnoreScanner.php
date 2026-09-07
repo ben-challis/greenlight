@@ -198,8 +198,8 @@ final readonly class IgnoreScanner
      * Finds the line range from a declaration keyword to its final character.
      *
      * The final character is the related final brace. For a signature
-     * without a body, it is the final semicolon. Strings and comments are
-     * single tokens. Thus, braces in them do not affect the count.
+     * without a body, it is the final semicolon. Only PHP brace tokens and
+     * interpolation boundaries affect the brace count.
      *
      * @param list<\PhpToken> $tokens
      *
@@ -218,9 +218,9 @@ final readonly class IgnoreScanner
                 return [$first, $token->line];
             }
 
-            if ($token->text === '{' || $token->is([\T_CURLY_OPEN, \T_DOLLAR_OPEN_CURLY_BRACES])) {
+            if ($token->is([\ord('{'), \T_CURLY_OPEN, \T_DOLLAR_OPEN_CURLY_BRACES])) {
                 $depth++;
-            } elseif ($token->text === '}' && --$depth === 0) {
+            } elseif ($token->is(\ord('}')) && --$depth === 0) {
                 return [$first, $token->line];
             }
         }
