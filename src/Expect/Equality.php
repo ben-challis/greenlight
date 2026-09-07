@@ -109,7 +109,7 @@ final class Equality
             \ksort($properties, \SORT_STRING);
 
             foreach ($properties as $name => $item) {
-                $parts[] = $name . '=>' . self::sortKey($item, $seen);
+                $parts[] = \var_export($name, true) . '=>' . self::sortKey($item, $seen);
             }
 
             return $value::class . '{' . \implode(',', $parts) . '}';
