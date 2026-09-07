@@ -113,23 +113,36 @@ final class OutputCapture
 
         $level = $this->bufferLevel;
         $this->bufferLevel = null;
+        $failure = null;
 
-        while (\ob_get_level() > $level) {
-            $previousLevel = \ob_get_level();
-            $removed = ErrorTrap::run(static fn() => \ob_end_flush());
+        try {
+            while (\ob_get_level() > $level) {
+                $previousLevel = \ob_get_level();
 
-            if (!$removed || \ob_get_level() >= $previousLevel) {
+                try {
+                    $removed = ErrorTrap::run(static fn() => \ob_end_flush());
+                } catch (\Throwable $error) {
+                    $failure ??= $error;
+                    $removed = \ob_get_level() < $previousLevel;
+                }
+
+                if (!$removed || \ob_get_level() >= $previousLevel) {
+                    throw $failure ?? CaptureError::nestedBufferCannotBeRemoved();
+                }
+            }
+
+            if ($failure instanceof \Throwable) {
+                throw $failure;
+            }
+        } finally {
+            try {
+                if (!$this->bufferClosed && \ob_get_level() === $level) {
+                    \ob_end_clean();
+                }
+            } finally {
                 $this->restoreErrorHandler();
-
-                throw CaptureError::nestedBufferCannotBeRemoved();
             }
         }
-
-        if (!$this->bufferClosed && \ob_get_level() === $level) {
-            \ob_end_clean();
-        }
-
-        $this->restoreErrorHandler();
 
         $scrubbedStdout = Utf8::scrub($this->stdout);
         $boundedStdout = Utf8::headBytes($scrubbedStdout, $this->maxStdoutBytes);
@@ -151,8 +164,8 @@ final class OutputCapture
 
     /**
      * Keeps the first part within the size limit. It returns an empty string to
-     * stop propagation. This callback MUST NOT throw because an output-handler
-     * exception is fatal.
+     * stop propagation. Do not throw from this callback.
+     * An output-handler exception is fatal.
      */
     private function appendChunk(string $chunk): string
     {
