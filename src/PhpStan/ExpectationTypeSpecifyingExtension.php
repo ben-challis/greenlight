@@ -111,7 +111,7 @@ final class ExpectationTypeSpecifyingExtension implements MethodTypeSpecifyingEx
             || !$receiver->class instanceof Name
             || !$receiver->name instanceof Identifier
             || $scope->resolveName($receiver->class) !== Expect::class
-            || $receiver->name->toString() !== 'that'
+            || $receiver->name->toLowerString() !== 'that'
         ) {
             return null;
         }
@@ -152,7 +152,7 @@ final class ExpectationTypeSpecifyingExtension implements MethodTypeSpecifyingEx
                 return null;
             }
 
-            $method = $receiver->name->toString();
+            $method = $receiver->name->toLowerString();
 
             if ($method === 'not') {
                 return true;
