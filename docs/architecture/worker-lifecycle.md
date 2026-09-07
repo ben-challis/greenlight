@@ -5,7 +5,8 @@ local socket. The protocol is internal and can change between releases. Use
 these details to diagnose parallel runs.
 
 This page describes the process pool. With one configured or detected worker,
-the CLI uses an in-process adapter. That adapter has no worker sockets,
+the CLI uses an in-process adapter. It also selects that adapter when the
+worker entry point is unavailable. That adapter has no worker sockets,
 worker-process isolation, or separate process to enforce hard timeouts.
 
 ## Transport ownership
@@ -167,7 +168,8 @@ workers when the queued scheduling units and their resource limits prove that
 more workers cannot run concurrently. This bound does not remove achievable
 concurrency.
 
-Workers build their plugin instances and harness registries during `bootstrap`.
+Workers reload plugin definitions from the configuration file during `bootstrap`.
+They then build their plugin instances and harness registries.
 They reuse them for later assignments. One physical worker constructs each
 configured worker-side plugin one time. A replacement worker constructs new
 instances. Per-worker harness services therefore live for the physical worker's
@@ -405,9 +407,10 @@ variable. The channel pool runs from `1` through the initial worker target.
 Queue size and resource capacity can reduce this target below the configured
 worker count.
 
-`IntegrationFixtureContext::configuredWorkers()` returns the configured worker
-ceiling. `IntegrationFixtureContext::channels()` returns the consecutive channel
-numbers that this selected plan can use.
+`IntegrationFixtureContext::configuredWorkers()` returns the worker limit for
+the selected execution adapter. It returns `1` for in-process execution.
+`IntegrationFixtureContext::channels()` returns the consecutive channel numbers
+that this selected plan can use.
 
 The allocator gives out the lowest free number and returns it when a worker
 retires. A replacement can use a released channel.
