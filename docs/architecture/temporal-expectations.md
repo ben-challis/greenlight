@@ -45,7 +45,8 @@ This also handles native calls that return early. The caller does not need
 to repeat `sleep()`.
 
 The default poll interval is 25ms. `pollEvery()` accepts finite intervals of at
-least 1ms. For `within()` or `for()`, use a finite duration greater than zero.
+least 1ms. A duration for `within()` or `for()` **MUST** be finite and greater
+than zero.
 
 Both methods start with an immediate probe call. If the test deadline has
 already expired, `eventually()` fails before that call. Between calls, the
