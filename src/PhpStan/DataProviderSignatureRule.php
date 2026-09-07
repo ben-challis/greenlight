@@ -94,12 +94,11 @@ final readonly class DataProviderSignatureRule implements Rule
                 }
 
                 $label = $this->attributeArgument($attribute, 1, 'label');
-                $labels = $label instanceof Node\Expr
-                    ? $scope->getType($label)->getConstantStrings()
-                    : [];
+                $labelType = $label instanceof Node\Expr ? $scope->getType($label) : null;
+                $labels = $labelType?->getConstantStrings() ?? [];
                 $key = \count($labels) === 1
                     ? $labels[0]->getValue()
-                    : ($label instanceof Node\Expr ? null : \sprintf('#%d', $position));
+                    : ($labelType === null || $labelType->isNull()->yes() ? \sprintf('#%d', $position) : null);
 
                 if ($key !== null && isset($keys[$key])) {
                     $errors[] = $this->error(
@@ -171,7 +170,7 @@ final readonly class DataProviderSignatureRule implements Rule
 
         $providerClass = $class;
 
-        if ($methodExpression instanceof Node\Expr) {
+        if ($methodExpression instanceof Node\Expr && !$scope->getType($methodExpression)->isNull()->yes()) {
             $providerClasses = $scope->getType($providerExpression)->getConstantStrings();
 
             if (\count($providerClasses) !== 1) {
