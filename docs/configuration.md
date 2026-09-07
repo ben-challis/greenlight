@@ -104,8 +104,9 @@ Greenlight keeps this class-level schedule by default. Add `#[AllowParallel]`
 to an independent large class to make each test or data set a separate
 assignment.
 
-The orchestrator gives first priority to classes that failed in the previous
-run. It orders the other classes by previous duration, longest first.
+Without randomization, the run gives first priority to classes that failed in
+the previous run. It orders classes with saved durations next, longest first.
+Classes without saved durations follow in discovery order.
 
 Worker placement is load-dependent. The stable parts are:
 
@@ -521,7 +522,8 @@ directories that it creates and owns.
 
 Default: off.
 
-Stops the run after the first failed or errored test.
+Stops new work after the first failed or errored test. Active assignments can
+finish after this limit. Thus, the final failure count can exceed one.
 
 ### `randomizeOrder(?int $seed = null): self`
 
@@ -701,8 +703,12 @@ The command also accepts `--minimum-coverage` and
 `--maximum-uncovered-lines`. These gates apply to the current export. A failed
 gate fails the command when the baseline has no regression.
 
-Exits with code 1 if total coverage decreases or the current export has a new
-uncovered line. A total coverage gain does not hide a new uncovered line.
+Exits with code 1 if coverage across files present in both exports decreases.
+It also fails if the current export has a newly uncovered line, including a
+line in an added file. A coverage gain elsewhere does not hide that line.
+
+Removed files do not cause a regression. The displayed total percentages
+include all files, so their difference alone does not determine the exit code.
 
 See the [coverage JSON schema](architecture/coverage-json.md) for the required
 format and path rules.
@@ -753,17 +759,29 @@ change.
 
 ### completion
 
-Prints a shell completion script to stdout.
+Prints a shell completion script to standard output. Use the command for your
+shell from the project root.
 
-Example setup:
+For Bash:
 
-```sh
-source <(greenlight completion bash)
-source <(greenlight completion zsh)
-greenlight completion fish > ~/.config/fish/completions/greenlight.fish
+```bash
+source <(vendor/bin/greenlight completion bash)
 ```
 
-For zsh, run `compinit` before you source the completion script.
+For Zsh, initialize completion before you load the script:
+
+```zsh
+autoload -Uz compinit
+compinit
+source <(vendor/bin/greenlight completion zsh)
+```
+
+For Fish, create the completion directory before you save the script:
+
+```fish
+mkdir -p ~/.config/fish/completions
+vendor/bin/greenlight completion fish > ~/.config/fish/completions/greenlight.fish
+```
 
 ## Options
 
@@ -790,7 +808,8 @@ time.
 
 ### `--bail[=<n>]`
 
-Stops after `<n>` failed or errored tests.
+Stops new work after `<n>` failed or errored tests. Active assignments can
+finish after this limit. Thus, the final failure count can exceed `<n>`.
 
 Bare `--bail` means `--bail=1`.
 
