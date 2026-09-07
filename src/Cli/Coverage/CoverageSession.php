@@ -19,8 +19,6 @@ final class CoverageSession
 {
     private ?CoverageCollector $collector = null;
 
-    private bool $collecting = false;
-
     private ?SharedCoverageDirectory $shared = null;
 
     private function __construct() {}
@@ -41,11 +39,11 @@ final class CoverageSession
 
         try {
             if ($collectProcess) {
-                $session->collector = CoverageCollector::create($settings);
+                $collector = CoverageCollector::create($settings);
 
-                if ($session->collector instanceof CoverageCollector) {
-                    $session->collector->start();
-                    $session->collecting = true;
+                if ($collector instanceof CoverageCollector) {
+                    $collector->start();
+                    $session->collector = $collector;
                 }
             }
 
@@ -61,11 +59,12 @@ final class CoverageSession
 
     public function finish(?CoverageMap $coverage): ?CoverageMap
     {
-        if ($this->collecting) {
-            $this->collecting = false;
-            $collected = $this->collector?->stop();
+        if ($this->collector instanceof CoverageCollector) {
+            $collector = $this->collector;
+            $this->collector = null;
+            $collected = $collector->stop();
 
-            if ($collected instanceof CoverageMap && !$collected->isEmpty()) {
+            if (!$collected->isEmpty()) {
                 $coverage = $coverage instanceof CoverageMap ? $coverage->merge($collected) : $collected;
             }
         }
@@ -85,11 +84,12 @@ final class CoverageSession
 
     public function close(): void
     {
-        if ($this->collecting) {
-            $this->collecting = false;
+        if ($this->collector instanceof CoverageCollector) {
+            $collector = $this->collector;
+            $this->collector = null;
 
             try {
-                $this->collector?->stop();
+                $collector->stop();
             } catch (\Throwable) {
                 // Preserve the run failure if cleanup also fails.
             }
