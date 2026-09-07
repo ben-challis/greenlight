@@ -13,12 +13,17 @@ use Greenlight\Internal\Text\Wildcard;
  */
 final readonly class TestSelection
 {
+    /** @var array<array-key, true> */
+    private array $exactIds;
+
     /** @param array{int, int}|null $shard A 1-based shard index and total shard count. */
     public function __construct(
         public TestInclusions $include = new TestInclusions(),
         public TestExclusions $exclude = new TestExclusions(),
         public ?array $shard = null,
-    ) {}
+    ) {
+        $this->exactIds = \array_fill_keys($include->exactIds, true);
+    }
 
     /** @param list<non-empty-string> $ids */
     public function withExactIds(array $ids): self
@@ -72,7 +77,7 @@ final readonly class TestSelection
             return true;
         }
 
-        if (\in_array($renderedId, $this->include->exactIds, true)) {
+        if (isset($this->exactIds[$renderedId])) {
             return true;
         }
 
