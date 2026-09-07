@@ -37,10 +37,29 @@ For a custom factory, return an application that binds
 `Illuminate\Contracts\Console\Kernel` to an implementation of that interface.
 `Application::configure(...)->create()` registers this binding.
 
+### Test environment
+
 The plugin sets `APP_ENV` while the application is active. The default value is
-`testing`. Pass `env:` to select another environment. Laravel loads `.env`
-without a change to variables that already exist, so the plugin value wins.
-When a `.env.testing` file exists, Laravel prefers it over `.env`.
+`testing`. Pass `env:` to select another environment.
+
+Without cached configuration, Laravel prefers `.env.testing` over `.env` for
+the default environment. Existing process variables take precedence over file
+values, including the `APP_ENV` value that the plugin sets.
+
+Greenlight does not read `phpunit.xml`. Put test database, cache, and session
+settings in `.env.testing` or the process environment.
+
+Before the test run, clear Laravel's cached configuration from the application
+root:
+
+```sh
+php artisan config:clear
+```
+
+Cached configuration bypasses environment file loading. It can retain an old
+application environment and database settings, including a channel-specific
+database name. The plugin does not clear this cache. See Laravel's
+[test environment guidance](https://laravel.com/docs/13.x/testing#environment).
 
 The plugin restores the previous `APP_ENV` value after it discards the
 application. If you disable refreshes, the selected value stays active for the
