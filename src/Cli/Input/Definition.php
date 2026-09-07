@@ -115,7 +115,7 @@ final readonly class Definition
           --detect-leaks     Verify collection of each test instance. Leaks fail the run.
           --verbose          Print a permanent line per completed class in
                              interactive output
-          --ansi             Enable colors in append-only reporter output.
+          --ansi             Enable colors in help and append-only reporter output.
           --no-ansi          Disable colors and the live progress window.
                              Use plain append-only output.
           --fail-on-deprecation  Fail passed tests that captured a deprecation.

@@ -13,6 +13,7 @@ use Greenlight\Cli\Command\ProfileReportCommand;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Cli\Output\HelpFormatter;
 use Greenlight\Cli\Run\ArtifactsPruneCommand;
 use Greenlight\Cli\Run\RunCommand;
 use Greenlight\Coverage\CoverageError;
@@ -75,7 +76,8 @@ final readonly class BundledCommands implements CommandProvider
         }
 
         if ($arguments->has('help')) {
-            $this->console->out(Definition::HELP . "\n");
+            $style = $this->console->stdoutStyle($arguments->has('no-ansi'), $arguments->has('ansi'));
+            $this->console->out(new HelpFormatter($style)->format(Definition::HELP) . "\n");
 
             return CommandResult::success();
         }
