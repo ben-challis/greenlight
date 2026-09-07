@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
+use Greenlight\Internal\Php\ErrorTrap;
+
 /** @internal */
 final class Equality
 {
+    private const int ARRAY_CYCLE_CHECK_DEPTH = 64;
+
     /** @codeCoverageIgnore */
     private function __construct() {}
 
@@ -14,9 +18,8 @@ final class Equality
     {
         $leftObjects = [];
         $rightObjects = [];
-        $arrayPairs = [];
 
-        return self::compare($a, $b, $leftObjects, $rightObjects, $arrayPairs);
+        return self::compare($a, $b, $leftObjects, $rightObjects);
     }
 
     /**
@@ -27,36 +30,26 @@ final class Equality
      */
     public static function equalsCanonicalizing(mixed $a, mixed $b): bool
     {
+        self::requireAcyclicArrays($a);
+        self::requireAcyclicArrays($b);
         $leftObjects = [];
         $rightObjects = [];
-        $arrayPairs = [];
 
-        return self::compare(
-            self::canonicalize($a, []),
-            self::canonicalize($b, []),
-            $leftObjects,
-            $rightObjects,
-            $arrayPairs,
-        );
+        return self::compare(self::canonicalize($a), self::canonicalize($b), $leftObjects, $rightObjects);
     }
 
-    /** @param array<string, true> $seenArrays Array references in the current path */
-    private static function canonicalize(mixed $value, array $seenArrays): mixed
+    private static function canonicalize(mixed $value): mixed
     {
         if (!\is_array($value)) {
             return $value;
         }
 
-        $canonical = [];
-
-        foreach ($value as $key => $item) {
-            $canonical[$key] = self::canonicalize($item, self::canonicalArrayStack($value, $key, $seenArrays));
-        }
+        $canonical = \array_map(self::canonicalize(...), $value);
 
         if (\array_is_list($canonical)) {
             // Compute each key one time for each element. A comparator
             // serializes both operands again for each comparison.
-            $keys = \array_map(static fn(mixed $item): string => self::sortKey($item, [], []), $canonical);
+            $keys = \array_map(static fn(mixed $item): string => self::sortKey($item, []), $canonical);
             \asort($keys, \SORT_STRING);
             $canonical = \array_map(static fn(int $index): mixed => $canonical[$index], \array_keys($keys));
         }
@@ -71,20 +64,15 @@ final class Equality
      *
      * @param list<int> $seen Object IDs already in the conversion stack. This
      *   list stops cycles.
-     * @param array<string, true> $seenArrays Array reference IDs in the conversion stack
      */
-    private static function sortKey(mixed $value, array $seen, array $seenArrays): string
+    private static function sortKey(mixed $value, array $seen): string
     {
         if (\is_array($value)) {
             $parts = [];
             \ksort($value, \SORT_STRING);
 
             foreach ($value as $key => $item) {
-                $parts[] = \var_export($key, true) . '=>' . self::sortKey(
-                    $item,
-                    $seen,
-                    self::canonicalArrayStack($value, $key, $seenArrays),
-                );
+                $parts[] = \var_export($key, true) . '=>' . self::sortKey($item, $seen);
             }
 
             return '[' . \implode(',', $parts) . ']';
@@ -124,10 +112,11 @@ final class Equality
             $seen[] = $id;
             $parts = [];
             $properties = \get_mangled_object_vars($value);
+            self::requireAcyclicArrays($properties);
             \ksort($properties, \SORT_STRING);
 
             foreach ($properties as $name => $item) {
-                $parts[] = \var_export($name, true) . '=>' . self::sortKey($item, $seen, $seenArrays);
+                $parts[] = \var_export($name, true) . '=>' . self::sortKey($item, $seen);
             }
 
             return $value::class . '{' . \implode(',', $parts) . '}';
@@ -145,16 +134,13 @@ final class Equality
      *   to the right value
      * @param array<int, int> $rightObjects Object mappings from the right value
      *   to the left value
-     * @param array<string, true> $arrayPairs Array position pairs already compared
      */
     private static function compare(
         mixed $a,
         mixed $b,
         array &$leftObjects,
         array &$rightObjects,
-        array &$arrayPairs,
-        string $leftArrayPath = '',
-        string $rightArrayPath = '',
+        int $arrayDepth = 0,
     ): bool {
         if ((\is_int($a) || \is_float($a)) && (\is_int($b) || \is_float($b))) {
             if (\is_int($a) && \is_int($b)) {
@@ -176,35 +162,27 @@ final class Equality
                 return false;
             }
 
-            if ($leftArrayPath !== '' && $rightArrayPath !== '') {
-                $pair = \strlen($leftArrayPath) . ':' . $leftArrayPath . $rightArrayPath;
-
-                if (isset($arrayPairs[$pair])) {
-                    return true;
-                }
-
-                $arrayPairs[$pair] = true;
+            if ($arrayDepth === self::ARRAY_CYCLE_CHECK_DEPTH) {
+                self::requireAcyclicArrays($a);
+                self::requireAcyclicArrays($b);
+                $arrayDepth = -1;
             }
 
-            foreach ($a as $key => $value) {
-                if (!\array_key_exists($key, $b)) {
-                    return false;
-                }
+            $nextArrayDepth = $arrayDepth < 0 ? -1 : $arrayDepth + 1;
 
-                if (!self::compare(
-                    $value,
-                    $b[$key],
-                    $leftObjects,
-                    $rightObjects,
-                    $arrayPairs,
-                    self::arrayPath($a, $key, $leftArrayPath),
-                    self::arrayPath($b, $key, $rightArrayPath),
-                )) {
-                    return false;
-                }
-            }
-
-            return true;
+            return \array_all(
+                $a,
+                static function ($value, $key) use ($b, &$leftObjects, &$rightObjects, $nextArrayDepth): bool {
+                    return \array_key_exists($key, $b)
+                        && self::compare(
+                            $value,
+                            $b[$key],
+                            $leftObjects,
+                            $rightObjects,
+                            $nextArrayDepth,
+                        );
+                },
+            );
         }
 
         if ($a instanceof \UnitEnum || $b instanceof \UnitEnum) {
@@ -244,55 +222,27 @@ final class Equality
                 \get_mangled_object_vars($b),
                 $leftObjects,
                 $rightObjects,
-                $arrayPairs,
             );
         }
 
         return $a === $b;
     }
 
-    /** @param array<mixed> $array */
-    private static function arrayPath(array $array, int|string $key, string $parent): string
+    private static function requireAcyclicArrays(mixed $value): void
     {
-        if (!\is_array($array[$key])) {
-            return $parent;
+        if (!\is_array($value)) {
+            return;
         }
 
-        $reference = \ReflectionReference::fromArrayElement($array, $key);
+        // Native traversal sees cycles even after PHP unwraps their reference
+        // containers. Delay ordinary comparisons so early mismatches do not
+        // scan an otherwise unused array graph. A checked subtree stays checked.
+        ErrorTrap::run(static fn(): int => \count($value, \COUNT_RECURSIVE), $warning);
 
-        // Value edges between reference edges need a stable position too.
-        // The two graphs can reach their back edges at different depths.
-        if ($reference instanceof \ReflectionReference) {
-            return 'reference:' . $reference->getId();
-        }
-
-        return $parent === '' ? '' : $parent . \serialize($key);
-    }
-
-    /**
-     * @param array<mixed> $array
-     * @param array<string, true> $seen
-     *
-     * @return array<string, true>
-     */
-    private static function canonicalArrayStack(array $array, int|string $key, array $seen): array
-    {
-        $reference = \is_array($array[$key]) ? \ReflectionReference::fromArrayElement($array, $key) : null;
-
-        if (!$reference instanceof \ReflectionReference) {
-            return $seen;
-        }
-
-        $id = $reference->getId();
-
-        if (isset($seen[$id])) {
+        if ($warning !== null) {
             throw new \InvalidArgumentException(
-                'toEqualCanonicalizing() cannot order cyclic arrays. Use toEqual() to compare them without reordering.',
+                'Equality matchers do not support cyclic arrays. Compare selected acyclic values instead.',
             );
         }
-
-        $seen[$id] = true;
-
-        return $seen;
     }
 }

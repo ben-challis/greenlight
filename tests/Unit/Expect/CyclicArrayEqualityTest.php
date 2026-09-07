@@ -14,7 +14,7 @@ final class CyclicArrayEqualityTest
     #[Test]
     #[DataRow(['toEqual'], label: 'deep equality')]
     #[DataRow(['toEqualCanonicalizing'], label: 'canonical equality')]
-    public function cyclicArraysCompareWithoutExhaustingTheProcess(string $method): void
+    public function cyclicArraysFailExplicitlyWithoutExhaustingTheProcess(string $method): void
     {
         $root = \dirname(__DIR__, 3);
         $result = PhpSubprocess::run($root, [
@@ -30,75 +30,81 @@ final class CyclicArrayEqualityTest
             use Greenlight\Expect\Expect;
 
             $method = $argv[2];
-            $compare = static function ($left, $right, bool $equal = true) use ($method): void {
-                if ($method === 'toEqualCanonicalizing') {
-                    Expect::that(static fn() => Expect::that($left)->toEqualCanonicalizing($right))
-                        ->toThrow(InvalidArgumentException::class, message:
-                            'toEqualCanonicalizing() cannot order cyclic arrays. Use toEqual() to compare them without reordering.');
-                    return;
-                }
-                $expectation = Expect::that($left);
-                if (!$equal) {
-                    $expectation->not();
-                }
-                $expectation->toEqual($right);
+            $reject = static function ($left, $right) use ($method): void {
+                Expect::that(static fn() => Expect::that($left)->{$method}($right))
+                    ->toThrow(InvalidArgumentException::class, message:
+                        'Equality matchers do not support cyclic arrays. Compare selected acyclic values instead.');
             };
-            $left = [];
-            $left['self'] = &$left;
-            $left['value'] = 1;
-            $right = ['value' => 1.0];
-            $right['self'] = &$right;
-            $compare($left, $right);
+            $factories = [
+                static function (): array {
+                    $left = [];
+                    $left['self'] = &$left;
+                    $left['value'] = 1;
+                    $right = ['value' => 1];
+                    $right['self'] = &$right;
+                    return [$left, $right];
+                },
+                static function (): array {
+                    $left = [];
+                    $left['next'] = ['next' => &$left];
+                    $right = [];
+                    $right['next'] = &$target;
+                    $target = ['next' => $right];
+                    return [$left, $right];
+                },
+                static function (): array {
+                    $first = [];
+                    $second = [];
+                    $first[] = &$second;
+                    $first[] = [1];
+                    $second[] = &$first;
+                    $second[] = [2];
+                    return [[$first, $second], [$second, $first]];
+                },
+            ];
 
-            $right['value'] = 2;
-            $compare($left, $right, false);
-            $compare($right, $left, false);
-            $right['value'] = 1;
-            Expect::that((object) ['items' => $left])->{$method}((object) ['items' => $right]);
-
-            $first = ['value' => 1];
-            $second = ['value' => 2];
-            $first['next'] = &$second;
-            $second['next'] = &$first;
-            $otherFirst = ['value' => 1.0];
-            $otherSecond = ['value' => 2.0];
-            $otherFirst['next'] = &$otherSecond;
-            $otherSecond['next'] = &$otherFirst;
-            $compare($first, $otherFirst);
-
-            $shiftedLeft = [];
-            $shiftedLeft['next'] = ['next' => &$shiftedLeft];
-            $shiftedRight = [];
-            $shiftedRight['next'] = &$target;
-            $target = ['next' => $shiftedRight];
-            $compare($shiftedLeft, $shiftedRight);
-            $compare($shiftedRight, $shiftedLeft);
-
-            $shiftedLeft['value'] = 1;
-            $shiftedLeft['next']['value'] = 2;
-            $shiftedRight['value'] = 1;
-            $target['value'] = 3;
-            $target['next'] = $shiftedRight;
-            $compare($shiftedLeft, $shiftedRight, false);
-            $compare($shiftedRight, $shiftedLeft, false);
-
-            $shared = ['value' => 1];
-            $aliases = [&$shared, &$shared];
-            Expect::that($aliases)->{$method}([['value' => 1], ['value' => 1]]);
-
-            if ($method === 'toEqualCanonicalizing') {
-                $left = [2, 1];
-                $left[] = &$left;
-                $right = [];
-                $right[] = &$right;
-                $right[] = 1;
-                $right[] = 2;
-                $compare($left, $right);
-                $compare([$first, $second], [$otherSecond, $otherFirst]);
-                $compare([(object) ['items' => $first]], [(object) ['items' => $otherFirst]]);
-                Expect::that(array_slice($left, 0, 2))->toBe([2, 1]);
-                Expect::that(array_slice($right, 1))->toBe([1, 2]);
+            foreach ($factories as $make) {
+                [$left, $right] = $make();
+                $reject($left, $right);
+                $reject($right, $left);
+                $reject((object) ['items' => $left], (object) ['items' => $right]);
+                if ($method === 'toEqualCanonicalizing') {
+                    $object = (object) ['items' => $left];
+                    $reject([$object], [$object]);
+                }
             }
+
+            $shared = [2, 1];
+            $aliases = [&$shared, &$shared];
+            Expect::that($aliases)->{$method}([[2, 1], [2, 1]]);
+            Expect::that($shared)->toBe([2, 1]);
+
+            $deep = ['leaf'];
+            for ($depth = 0; $depth < 100; ++$depth) {
+                $deep = [$deep];
+            }
+            Expect::that($deep)->{$method}($deep);
+
+            $leftObject = new stdClass();
+            $leftObject->self = $leftObject;
+            $rightObject = new stdClass();
+            $rightObject->self = $rightObject;
+            Expect::that([$leftObject])->{$method}([$rightObject]);
+
+            $mixedGraph = static function (): object {
+                $array = [];
+                $node = new stdClass();
+                $array[] = $node;
+                $node->items = [&$array];
+                return (object) ['items' => [&$array]];
+            };
+            Expect::that([$mixedGraph()])->{$method}([$mixedGraph()]);
+
+            $object = new class implements Countable {
+                public function count(): int { throw new LogicException('Do not invoke user code.'); }
+                public function __serialize(): array { throw new LogicException('Do not invoke user code.'); }
+            };
+            Expect::that([$object])->{$method}([$object]);
 
             fwrite(STDOUT, 'matched');
             PHP,
@@ -107,7 +113,7 @@ final class CyclicArrayEqualityTest
         ]);
 
         Expect::that($result->exitCode)
-            ->because('cyclic array equality MUST terminate within the bounded child process')
+            ->because('cyclic array diagnostics MUST terminate within the bounded child process')
             ->toBe(0);
         Expect::that($result->stdout)->toBe('matched');
         Expect::that($result->stderr)->toBe('');
