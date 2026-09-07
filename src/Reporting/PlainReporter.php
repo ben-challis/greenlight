@@ -173,13 +173,7 @@ final class PlainReporter implements Reporter
         $this->output->write($this->slowTests->render($this->style));
 
         if ($this->risky !== []) {
-            $this->output->write(\sprintf(
-                "\nRisky tests: %d\n"
-                . "These tests passed without a verified expectation.\n"
-                . "Add #[NoExpectations] to accept this result. Use --fail-on-risky to fail the run.\n%s\n",
-                \count($this->risky),
-                \implode("\n", \array_map(static fn(string $id): string => '  ' . $id, $this->risky)),
-            ));
+            $this->output->write(SummaryFormat::risky($this->risky));
         }
     }
 
