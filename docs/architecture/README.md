@@ -54,10 +54,10 @@ containment, summary totals, artifact publication, and worker coverage
 aggregation. Workers execute their plan sections in sequence and send each
 result immediately.
 
-Each adapter returns a coverage map in its execution outcome. The CLI coverage
-session can merge this map with command-process and relayed subprocess
-coverage. Command-side coverage plugins transform the merged map. The CLI
-writes exports and evaluates coverage gates.
+The execution outcome contains a coverage map when the adapter collects
+coverage. The CLI coverage session can merge this map with command-process and
+relayed subprocess coverage. Command-side coverage plugins transform the merged
+map. The CLI writes exports and evaluates coverage gates.
 
 ## Module map
 
