@@ -28,10 +28,14 @@ Each test entry has these identity and source fields:
 - `class`: The test class.
 - `method`: The test method.
 - `dataSetKey`: The normalized data-set key, or `null`.
-- `source.file`: The absolute declaring file.
+- `source.file`: The absolute path of the file that declares the test method.
 - `source.line`: The test method declaration line.
 - `groups`: All groups declared for the test, sorted by name.
-- `suites`: Each configured suite whose path contains the test class file.
+- `suites`: Each configured suite whose path contains the test class file,
+  sorted by name.
+
+For an inherited method, `source` identifies the parent method's declaration.
+Suite membership uses the test class file, which can be different.
 
 A labeled data row or provider key keeps its printable label in `dataSetKey`.
 An integer key uses `#<value>`. Greenlight hashes an empty or nonprintable key.
@@ -41,12 +45,18 @@ test entry.
 
 Each entry also contains this execution metadata:
 
-- `skip.present` and `skip.condition`
-- `retry.additionalAttempts` and `retry.onlyOn`
-- `timeoutSeconds`
-- `captureOutput` and `noExpectations`
-- `resources`
-- `isolated` and `allowParallel`
+| Field | Meaning |
+| --- | --- |
+| `skip.present` | Whether the test has a skip reason or condition. Discovery does not evaluate the condition. |
+| `skip.condition` | The skip condition class, or `null`. |
+| `retry.additionalAttempts` | The configured number of retries, or `0` when none is configured. |
+| `retry.onlyOn` | The exception class that restricts retries, or `null`. |
+| `timeoutSeconds` | The test time budget in seconds, or `null` when no budget is configured. |
+| `captureOutput` | Whether output capture is enabled for the test. |
+| `noExpectations` | Whether the test permits zero expectations. |
+| `resources` | The required resource names, sorted by name. |
+| `isolated` | Whether the test requires a fresh worker process in a process-pool run. |
+| `allowParallel` | Whether each selected test or data set forms a separate pooled scheduling unit. |
 
 The manifest does not contain skip reasons or condition arguments. It also
 does not contain closures, plugin instances, or internal wire payloads.

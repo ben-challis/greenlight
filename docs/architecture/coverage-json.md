@@ -70,10 +70,19 @@ comparison.
 Supply both root options. Each file key **MUST** be below the selected root.
 Normalization does not change the documents.
 
-`files` is always an object. This rule also applies to an empty report:
+`files` is always an object. An empty report has an empty `files` object:
 
 ```json id="g6nqcx"
-{}
+{
+    "v": 1,
+    "files": {},
+    "totals": {
+        "files": 0,
+        "coveredLines": 0,
+        "executableLines": 0,
+        "percentage": 100
+    }
+}
 ```
 
 ### files.*.covered
@@ -183,7 +192,8 @@ The file uses UTF-8 JSON, unescaped slashes, and a newline at its end.
 
 ## Versions
 
-Version `1` **MAY** receive additive fields.
+Version `1` **MAY** receive optional fields at the top level, in `totals`, or
+in each file entry. New required fields need a new version.
 
 Readers **MUST** ignore unknown keys.
 
