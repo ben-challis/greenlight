@@ -34,7 +34,7 @@ final class DataSetErrorTest
             'Test method App\ExampleTest::checksValue() references data-set provider App\Rows::values(). Declare the provider as public and static.',
             'Data-set provider App\Rows::values() returned string. Return an iterable from the provider.',
             'Data-set provider App\ExampleTest::rows() threw RuntimeException: provider failed',
-            'Data-set provider App\Rows::values() exceeded the 0.125-second discovery time budget. Providers run during plan creation. Keep them pure and fast.',
+            'Data-set provider App\Rows::values() exceeded the 0.125-second provider time budget. Providers run during discovery and execution. Keep them pure and fast.',
             'Data-set provider App\Rows::values() produced no data sets. Produce at least one data set.',
             'Data-set provider App\Rows::values() produced a key of type float. Use string or integer keys.',
             'Data sets for App\ExampleTest::checksValue() contain key "same" more than once. Use each key only once for the test method.',

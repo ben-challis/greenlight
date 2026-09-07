@@ -265,7 +265,7 @@ final class DataSetExpansionTest
             ->toThrow(
                 DataSetError::class,
                 message: 'Data-set provider ' . ProviderKeysTest::class . '::stringKeys() '
-                    . 'exceeded the 5.000-second discovery time budget. Providers run during plan creation. '
+                    . 'exceeded the 5.000-second provider time budget. Providers run during discovery and execution. '
                     . 'Keep them pure and fast.',
             );
     }

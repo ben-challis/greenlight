@@ -87,7 +87,7 @@ final class DataSetError extends \RuntimeException
     public static function providerTooSlow(string $class, string $provider, float $budgetSeconds): self
     {
         return new self(\sprintf(
-            'Data-set provider %s::%s() exceeded the %.3f-second discovery time budget. Providers run during plan creation. Keep them pure and fast.',
+            'Data-set provider %s::%s() exceeded the %.3f-second provider time budget. Providers run during discovery and execution. Keep them pure and fast.',
             $class,
             $provider,
             $budgetSeconds,
