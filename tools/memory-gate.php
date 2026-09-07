@@ -28,6 +28,7 @@ if (!\mkdir($suiteDir, 0o777, true) && !\is_dir($suiteDir)) {
 }
 
 $totalTests = CLASS_COUNT * METHODS_PER_CLASS * ROWS_PER_METHOD;
+$warmupTests = WARMUP_TESTS;
 
 for ($classIndex = 0; $classIndex < CLASS_COUNT; ++$classIndex) {
     $methods = '';
@@ -146,14 +147,10 @@ return GreenlightConfig::create()
     ->paths([__DIR__ . '/suite'])
     ->workers(count: 1)
     ->plugins(
-        static fn(): MemGate\MemoryProbe => new MemGate\MemoryProbe('{$samplesFile}', {WARMUP}, {TOTAL}),
+        static fn(): MemGate\MemoryProbe => new MemGate\MemoryProbe('{$samplesFile}', {$warmupTests}, {$totalTests}),
     );
 
 PHP);
-
-$config = \file_get_contents($workDir . '/greenlight.php');
-$config = \str_replace(['{WARMUP}', '{TOTAL}'], [(string) WARMUP_TESTS, (string) $totalTests], (string) $config);
-\file_put_contents($workDir . '/greenlight.php', $config);
 
 echo \sprintf("Greenlight runs %d generated tests in one worker...\n", $totalTests);
 
