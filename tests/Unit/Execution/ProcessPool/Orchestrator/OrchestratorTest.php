@@ -164,10 +164,10 @@ final class OrchestratorTest
     #[Timeout(30.0)]
     public function aConnectedWorkerThatGoesSilentBeforeStartingItsAssignmentFailsTheRun(): void
     {
-        // A worker that completes the hello handshake, receives bootstrap,
-        // then goes silent without ever reporting Ready.
-        // No test is in flight, so per-test timeouts never fire, and the channel
-        // stays open, so crash detection never fires either.
+        // The script sends hello and keeps its socket open.
+        // It never reads bootstrap or sends Ready.
+        // No test has started, so test timeouts do not apply.
+        // The open socket prevents disconnect detection.
         $script = <<<'PHP'
             [, , $address, $workerId, $token] = $argv;
             $socket = stream_socket_client($address);
