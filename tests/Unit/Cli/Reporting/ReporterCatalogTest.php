@@ -47,14 +47,16 @@ final class ReporterCatalogTest
     public function duplicateNamesFailBeforeAFactoryRuns(): void
     {
         $calls = 0;
-        $definition = static fn(): ReporterDefinition => new ReporterDefinition(
-            'plain',
-            static function (Output $output) use (&$calls): Reporter {
-                $calls++;
+        $definition = static function () use (&$calls): ReporterDefinition {
+            return new ReporterDefinition(
+                'plain',
+                static function (Output $output) use (&$calls): Reporter {
+                    $calls++;
 
-                return new RecordingReporter();
-            },
-        );
+                    return new RecordingReporter();
+                },
+            );
+        };
 
         Expect::that(static fn() => new ReporterCatalog([$definition(), $definition()]))
             ->toThrow(ReporterSetupFailed::class, '/Reporter name "plain" is registered more than one time\./');
