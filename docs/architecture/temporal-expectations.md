@@ -18,8 +18,8 @@ The `@mixin Expectation<T>` declaration supplies the native matcher methods to
 the API-reference generator.
 
 Native matcher methods are not visible through reflection on
-`TemporalExpectation`. To inspect native matcher methods, use `Expectation`
-as the reflection source.
+`TemporalExpectation`. Code that reflects native matcher methods MUST use
+`Expectation` as its source.
 
 The PHPStan extension supplies the native methods on temporal chains. The IDE
 helper supplies the same methods as annotations. Thus, normal temporal matcher
@@ -39,7 +39,8 @@ The poll operation uses a monotonic clock. `SystemPollingClock` reads
 `hrtime(true)` and waits with `usleep()`. Unit tests use `FakePollingClock`.
 
 The default poll interval is 25ms. `pollEvery()` accepts finite intervals of at
-least 1ms. For `within()` or `for()`, use a finite duration greater than zero.
+least 1ms. A duration for `within()` or `for()` **MUST** be finite and greater
+than zero.
 
 Both methods start with an immediate probe call. If the test deadline has
 already expired, `eventually()` fails before that call. Between calls, the
