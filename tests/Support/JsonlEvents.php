@@ -10,8 +10,8 @@ use Greenlight\Event\WorkerSpawned;
 use Greenlight\Internal\Event\EventCodec;
 
 /**
- * Reads JSONL only from standard output. Each nonempty line MUST contain a
- * supported envelope. It MUST also contain a known event tag and payload.
+ * Reads JSONL only from standard output. Each nonempty line requires a
+ * supported envelope with a known event tag and a valid payload.
  */
 final class JsonlEvents
 {
