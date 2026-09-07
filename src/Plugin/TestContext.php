@@ -8,7 +8,6 @@ use Greenlight\Artifact\Attachments;
 use Greenlight\Artifact\UnavailableAttachments;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceResolutionFailed;
-use Greenlight\Harness\UnresolvableService;
 use Greenlight\Test\SkipTest;
 use Greenlight\Test\TestDefinition;
 use Greenlight\Test\TestId;
@@ -45,13 +44,7 @@ final readonly class TestContext
      */
     public function service(string $type): object
     {
-        $service = $this->scopes->resolve($type, 'plugin context for ' . $this->definition->class);
-
-        if (!$service instanceof $type) {
-            throw UnresolvableService::unknownType($type, 'plugin context for ' . $this->definition->class);
-        }
-
-        return $service;
+        return $this->scopes->resolve($type, 'plugin context for ' . $this->definition->class);
     }
 
     /**
