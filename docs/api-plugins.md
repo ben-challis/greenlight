@@ -575,7 +575,7 @@ for a per-test service then throws. Other service scopes remain available.
 final readonly class TestContext
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L21)
 
 ### `$attachments`
 
@@ -583,7 +583,7 @@ final readonly class TestContext
 public Attachments $attachments;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L23)
 
 ### `$instance`
 
@@ -591,7 +591,7 @@ public Attachments $attachments;
 public object $instance
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L27)
 
 ### `$id`
 
@@ -599,7 +599,7 @@ public object $instance
 public TestId $id
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L28)
 
 ### `$definition`
 
@@ -607,7 +607,7 @@ public TestId $id
 public TestDefinition $definition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L29)
 
 ### `service()`
 
@@ -622,7 +622,7 @@ PHPDoc:
 - `@return T`
 - `@throws ServiceResolutionFailed when a service resolver cannot supply a valid service`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L46)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L45)
 
 ### `skip()`
 
@@ -638,7 +638,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws SkipTest`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L65)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L58)
 
 ## `TestPlan`
 

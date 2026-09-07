@@ -10,6 +10,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\UnresolvableService;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Test\SkipTest;
@@ -49,6 +50,30 @@ final class TestContextTest
                 UnresolvableService::class,
                 message: 'No harness service is registered for type "ArrayObject", required by "plugin context for Fixture\\PluginTest". '
                 . 'Constructor injection resolves exact types only.',
+            );
+    }
+
+    #[Test]
+    public function servicePreservesTheHarnessTypeMismatch(): void
+    {
+        $resolver = new class implements ServiceResolver {
+            #[\Override]
+            public function resolve(string $type, array $attributes): object
+            {
+                return new \stdClass();
+            }
+        };
+        $context = $this->context(new HarnessScopes(resolvers: [$resolver]));
+
+        Expect::that(static fn(): object => $context->service(\ArrayObject::class))
+            ->toThrow(
+                UnresolvableService::class,
+                message: UnresolvableService::resolverTypeMismatch(
+                    \ArrayObject::class,
+                    'plugin context for Fixture\\PluginTest',
+                    $resolver::class,
+                    new \stdClass(),
+                )->getMessage(),
             );
     }
 
