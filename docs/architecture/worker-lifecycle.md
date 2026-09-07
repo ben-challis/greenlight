@@ -170,6 +170,7 @@ concurrency.
 
 Workers reload plugin definitions from the configuration file during `bootstrap`.
 They then build their plugin instances and harness registries.
+
 They reuse them for later assignments. One physical worker constructs each
 configured worker-side plugin one time. A replacement worker constructs new
 instances. Per-worker harness services therefore live for the physical worker's
