@@ -2022,7 +2022,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws \InvalidArgumentException if a type does not extend Exception`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L78)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L84)
 
 ### `within()`
 
@@ -2035,7 +2035,7 @@ PHPDoc:
 - `@return EventuallyExpectation<T>`
 - `@throws \InvalidArgumentException if the duration is not finite or is not positive`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L95)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L101)
 
 ## `TemporalExpectation`
 
