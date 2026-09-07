@@ -3,8 +3,8 @@
 These conventions apply to new and materially changed Greenlight modules. Some
 code predates a rule. Do not change unrelated code only to make it conform.
 
-In this document, uppercase **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**,
-and **MAY** specify normative requirements.
+Direct instructions define requirements. Recommendations identify preferred
+approaches. Statements with `can` describe options.
 
 ## Technical prose
 
@@ -13,126 +13,123 @@ technical prose. It applies to documentation, PHPDoc, comments, contributor
 material, accessibility text, diagnostics, CLI help, and human-readable output.
 Do not claim formal ASD-STE100 compliance without a complete review.
 
-Authors **MUST** manually review the meaning and the controlled vocabulary.
-They **MUST** also review active voice, verbal `-ing` forms, and instruction
-structure. Automated checks cannot certify these requirements.
+Review the meaning and the controlled vocabulary manually.
+Also review active voice, verbal `-ing` forms, and instruction structure.
+Automated checks cannot certify these requirements.
 
-Marketing copy **MUST** use STE clarity principles. It **MAY** use words that
-are not in the controlled vocabulary.
+Use STE clarity principles for marketing copy. This copy can use words outside
+the controlled vocabulary.
 
-Uppercase normative tokens are an approved exception to the controlled
-vocabulary.
+Preserve normative terms in formal specifications and protocol requirements.
 
-Code identifiers **MUST** use American English spelling.
+Use American English spelling in code identifiers.
 
 ## Exceptions
 
-Modules **SHOULD** expose one exception class at each caller seam.
+We recommend one exception class at each caller seam.
 
-Each exception class **MUST** use one of these name forms:
+Use one of these name forms for each exception class:
 
 * `<Component>Error`
 * A domain-specific name that ends in `Error` or `Failed`
 
-Named constructors **SHOULD** represent repeated failure modes.
+We recommend named constructors for repeated failure modes.
 `DiscoveryError` and `ConfigFileError` are the reference examples.
 
-Small validation guards inside value objects **MAY** throw inline. This option
+Small validation guards inside value objects can throw inline. This option
 avoids a named constructor.
 
-Exception base classes **MUST** match their meaning:
+Select the exception base class that matches its meaning:
 
-* Code **MUST** use `\InvalidArgumentException` for malformed input found during
+* Use `\InvalidArgumentException` for malformed input found during
   construction or configuration.
-* Code **MUST** use `\RuntimeException` for failures that depend on runtime
+* Use `\RuntimeException` for failures that depend on runtime
   state. Examples include files, processes, and wire payloads.
-* Code **MUST** use `\LogicException` for internal framework misuse that
+* Use `\LogicException` for internal framework misuse that
   indicates a Greenlight defect.
 
 `ExpectationFailed` and `SkipTest` are deliberate control-signal exceptions.
 They are public interfaces and extend `\Exception`. The runner interprets them.
-Internal exception types **MUST NOT** use them as templates.
+Do not use them as templates for internal exception types.
 
-Every exception class docblock **MUST** contain at least one prose sentence.
-This sentence **MUST** identify the condition that causes the exception.
+Write at least one prose sentence in every exception class docblock.
+Identify the condition that causes the exception.
 
-Exception class docblocks **MUST** include `@internal` unless the exception is
-public API.
+Unless the exception is public API, include `@internal` in its class docblock.
 
 ## Error messages
 
-Error messages **MUST** use sentence case.
+Use sentence case in error messages.
 
-Greenlight error messages **MUST** end with a period. If a message contains text
+End Greenlight error messages with a period. If a message contains text
 from another throwable, preserve that text and its punctuation.
 
-An error message **MUST** enclose an interpolated identifier in double quotes:
+In an error message, enclose an interpolated identifier in double quotes:
 
 <!-- php-example {"mode":"display","reason":"Shows an error-message template rather than an executable statement."} -->
 ```php
 'Configuration file "%s" does not exist.'
 ```
 
-The PHP string literal itself **SHOULD** stay single-quoted.
+We recommend single quotes around the PHP string literal itself.
 
-If a short corrective action exists, the message **SHOULD** include it. Name the
-applicable fix, flag, or method.
+If a short corrective action exists, we recommend that the message include it.
+Name the applicable fix, flag, or method.
 
 ## Value objects
 
-Value objects **SHOULD** use `final readonly` classes and promoted constructor
-properties.
+We recommend `final readonly` classes and promoted constructor properties for
+value objects.
 
-Code **SHOULD NOT** demote a property unless it needs runtime validation to
+We recommend that properties stay promoted unless runtime validation must
 protect a narrow PHPDoc type.
 
-Constructor validation **MUST** throw `\InvalidArgumentException`.
+Throw `\InvalidArgumentException` for constructor validation failures.
 
-Wire deserialization **MUST** throw `WireCommunicationFailed` through the
-internal wire readers.
+Use the internal wire readers to throw `WireCommunicationFailed` for wire
+deserialization failures.
 
-Types that cross the wire **MUST** define `toWire()` and `fromWire()` methods.
-Public types **MUST** mark these methods `@internal`.
+Define `toWire()` and `fromWire()` methods on types that cross the wire.
+On public types, mark these methods `@internal`.
 
-Wire payloads **MUST** use explicit key names.
+Use explicit key names in wire payloads.
 
-Wire payloads **MUST** survive a JSON round trip.
+Keep wire payloads valid through a JSON round trip.
 
 ## Docblocks
 
-Class docblocks **SHOULD** be one to three prose sentences.
+We recommend one to three prose sentences in class docblocks.
 
-Class docblocks **MUST** state the class purpose. They **MUST** also state each
-constraint that types cannot express.
+State the class purpose in its docblock. Also state each constraint that types
+cannot express.
 
-Unless a class is public, its docblock **MUST** contain `@internal` after a
-blank line.
+Unless a class is public, include `@internal` after a blank line in its docblock.
 
-Code comments and docblocks **MUST NOT** refer to design documents, plan files,
-or phase numbers. They **MUST** state the applicable constraint directly.
+Do not refer to design documents, plan files, or phase numbers in code comments
+and docblocks. State the applicable constraint directly.
 
 ## Tests
 
-Test method names **MUST** use sentence-style camelCase. Each name **MUST**
-describe the behavior:
+Use sentence-style camelCase for test method names. Describe the behavior in
+each name:
 
 <!-- php-example {"mode":"display","reason":"Shows a test ID rather than an executable statement."} -->
 ```php
 bailStopsTheRunAfterTheThreshold
 ```
 
-Assertions **SHOULD** use `Greenlight\Expect`.
+We recommend `Greenlight\Expect\Expect` for assertions.
 
-Tests **MUST NOT** create an array only to group independent expectation
-subjects. Tests **MUST** give each subject to `Expect::that()` directly.
+Do not create an array only to group independent expectation subjects.
+Give each subject to `Expect::that()` directly.
 
-Tests **MAY** compare an array when the behavior produces the array. Examples
+Tests can compare an array when the behavior produces the array. Examples
 include wire payloads and ordered sequences.
 
-Tests **MUST** use `Greenlight\Tests\Support\Check` only when `Expect` cannot
-test itself.
+For expectation failure details, use `FailureProbe` in `tests/Unit/Expect/`.
+This helper captures `ExpectationFailed::detail()` so assertions can inspect it.
 
-Fixture directories under `tests/Fixture/` **SHOULD** cover one behavior each.
+We recommend one behavior for each fixture directory under `tests/Fixture/`.
 
-When another suite depends on a fixture directory, contributors **MUST** treat
-that directory as append-only.
+When another suite depends on a fixture directory, treat that directory as
+append-only.

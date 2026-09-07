@@ -18,7 +18,7 @@ body:
         ```php
         // test class and configuration here
         ```
-        Command: bin/greenlight ...
+        Command: vendor/bin/greenlight ...
     validations:
       required: true
   - type: textarea
