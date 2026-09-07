@@ -287,6 +287,29 @@ final readonly class DocsPhpCheckTest
         );
     }
 
+    #[Test]
+    public function rejectsATrailingNewlineInAnExampleNameBeforeWritingFiles(): void
+    {
+        $project = $this->project('example-name-newline');
+        $project->write('docs/example.md', <<<'MARKDOWN'
+            <!-- php-example {"example":"example\n","file":"example.php","mode":"file","tools":[]} -->
+            ```php
+            return true;
+            ```
+            MARKDOWN);
+
+        $result = $this->run($project, 'extract');
+
+        Expect::that($result->exitCode)
+            ->because('example names must reject characters outside the documented slug alphabet')
+            ->toBe(1);
+        Expect::that($result->stderr)
+            ->toContain('must contain lowercase letters, digits, dots, underscores, or hyphens.');
+        Expect::that(\file_exists($project->path("build/docs-php/example\n/example.php")))
+            ->because('invalid metadata must not create a generated example file')
+            ->toBeFalse();
+    }
+
     private function project(string $name): ProjectFiles
     {
         return ProjectFiles::create($this->tempDirectory, $name . '/project');
