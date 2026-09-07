@@ -179,7 +179,10 @@ final class OutputCapture
             return '';
         }
 
-        $this->stdout = Utf8::headBytes($this->stdout . $chunk, $this->maxStdoutBytes);
+        // Four invalid bytes can become one three-byte replacement character.
+        // Retain enough raw bytes to fill the limit and complete a cut character.
+        $prefix = \substr($chunk, 0, 2 * $this->maxStdoutBytes + 3);
+        $this->stdout = Utf8::headBytes($this->stdout . $prefix, $this->maxStdoutBytes);
         $this->stdoutTruncated = true;
 
         return '';
