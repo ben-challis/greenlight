@@ -26,7 +26,8 @@ final readonly class PluginDefinition
      */
     public static function fromFactory(\Closure $factory): self
     {
-        $returnType = new \ReflectionFunction($factory)->getReturnType();
+        $reflection = new \ReflectionFunction($factory);
+        $returnType = $reflection->getReturnType();
 
         if (!$returnType instanceof \ReflectionNamedType
             || $returnType->isBuiltin()
@@ -39,12 +40,23 @@ final readonly class PluginDefinition
 
         $pluginClass = $returnType->getName();
 
-        if (!\class_exists($pluginClass) || new \ReflectionClass($pluginClass)->isAbstract()) {
+        if ($pluginClass === 'self') {
+            $pluginClass = $reflection->getClosureScopeClass()->name ?? $pluginClass;
+        } elseif ($pluginClass === 'parent') {
+            $parent = $reflection->getClosureScopeClass()?->getParentClass();
+            $pluginClass = $parent instanceof \ReflectionClass ? $parent->name : $pluginClass;
+        }
+
+        $pluginType = \class_exists($pluginClass) ? new \ReflectionClass($pluginClass) : null;
+
+        if (!$pluginType instanceof \ReflectionClass || $pluginType->isAbstract()) {
             throw new \InvalidArgumentException(\sprintf(
                 'Plugin factory return type "%s" must be a concrete class.',
                 $pluginClass,
             ));
         }
+
+        $pluginClass = $pluginType->name;
 
         if (!\is_a($pluginClass, Plugin::class, true)) {
             throw new \InvalidArgumentException(\sprintf(
