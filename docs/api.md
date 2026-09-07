@@ -8,18 +8,18 @@ Use the task guides for workflows and examples. Use these pages for exact signat
 
 ## API sections
 
-- [Attributes and conditions API](api-attributes.md) — This reference lists the attributes and conditions that control test discovery and execution.
-- [Configuration API](api-configuration.md) — This reference lists the builders that configure Greenlight runs.
-- [Artifact API](api-artifacts.md) — This reference lists attachment values, retention rules, and attachment operations.
-- [Coverage API](api-coverage.md) — This reference lists coverage maps and per-file line coverage values.
-- [Event API](api-events.md) — This reference lists the events that plugins and reporters receive during a run.
-- [Result API](api-results.md) — This reference lists test outcomes, diagnostics, failure details, and result values.
-- [Test contracts API](api-test-contracts.md) — This reference lists test definitions, policies, and skip signals.
-- [Expectations API](api-expectations.md) — This reference lists immediate and temporal expectation types.
-- [Doubles API](api-doubles.md) — This reference lists double factories, argument matchers, captors, and mock plans.
-- [Sandbox API](api-sandboxes.md) — This reference lists the sandboxes that isolate temporary test state.
-- [Harness API](api-harness.md) — This reference lists harness service and lifecycle contracts.
-- [Integration fixture API](api-integration-fixtures.md) — This reference lists integration fixture definitions, contexts, resources, and sensitive values.
-- [Plugin API](api-plugins.md) — This reference lists plugin capabilities and lifecycle callback contracts.
-- [Reporter API](api-reporting.md) — This reference lists reporter and output contracts.
-- [Integration API](api-integrations.md) — This reference lists public integration types for Hyperf, Laravel, PSR standards, Rector, Symfony, and Tempest.
+- [Attributes and conditions API](api-attributes.md). This reference lists the attributes and conditions that control test discovery and execution.
+- [Configuration API](api-configuration.md). This reference lists the builders that configure Greenlight runs.
+- [Artifact API](api-artifacts.md). This reference lists attachment values, retention rules, and attachment operations.
+- [Coverage API](api-coverage.md). This reference lists coverage maps and per-file line coverage values.
+- [Event API](api-events.md). This reference lists the events that plugins and reporters receive during a run.
+- [Result API](api-results.md). This reference lists test outcomes, diagnostics, failure details, and result values.
+- [Test contracts API](api-test-contracts.md). This reference lists test definitions, policies, and skip signals.
+- [Expectations API](api-expectations.md). This reference lists immediate and temporal expectation types.
+- [Doubles API](api-doubles.md). This reference lists double factories, argument matchers, captors, and mock plans.
+- [Sandbox API](api-sandboxes.md). This reference lists the sandboxes that isolate temporary test state.
+- [Harness API](api-harness.md). This reference lists harness service and lifecycle contracts.
+- [Integration fixture API](api-integration-fixtures.md). This reference lists integration fixture definitions, contexts, resources, and sensitive values.
+- [Plugin API](api-plugins.md). This reference lists plugin capabilities and lifecycle callback contracts.
+- [Reporter API](api-reporting.md). This reference lists reporter and output contracts.
+- [Integration API](api-integrations.md). This reference lists public integration types for Hyperf, Laravel, PSR standards, Rector, Symfony, and Tempest.
