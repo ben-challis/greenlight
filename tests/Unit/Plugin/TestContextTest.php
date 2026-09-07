@@ -58,7 +58,7 @@ final class TestContextTest
     {
         $resolver = new class implements ServiceResolver {
             #[\Override]
-            public function resolve(string $type, array $attributes): ?object
+            public function resolve(string $type, array $attributes): object
             {
                 return new \stdClass();
             }
