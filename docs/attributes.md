@@ -464,8 +464,8 @@ string $name
 ```
 
 Marks a test that requires one slot of a named resource. A name must start with
-a lowercase letter or digit. After the first character, the name accepts dots,
-underscores, and hyphens.
+a lowercase ASCII letter or digit. Remaining characters can be lowercase ASCII
+letters, digits, dots, underscores, or hyphens.
 
 <!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
@@ -491,7 +491,7 @@ isolated or `#[AllowParallel]` test.
 Resources default to a limit of one. Use `resourceLimit()` in `greenlight.php`
 or `--resource-limit` to set a larger limit.
 
-The requirement controls the class start time. It does not select a concrete
+The requirement controls the assignment start time. It does not select a concrete
 resource instance or provide a lease identifier. Use `TestChannel` when every
 worker can have its own instance. A smaller set of distinct instances still
 needs an application-owned allocator.

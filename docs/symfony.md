@@ -140,9 +140,9 @@ The bridge does not isolate databases or other external services.
 Workers run tests at the same time. Split shared external resources for each
 worker. Alternatively, protect them with a concurrency limit.
 
-Greenlight sets `GREENLIGHT_CHANNEL` in every worker process. It is a stable
-number from 1 through the worker count, and no two concurrent tests use the same
-channel. Use it in normal Symfony configuration to key shared resources:
+Greenlight sets `GREENLIGHT_CHANNEL` in every worker process. Its value is a
+stable number from 1 through the worker count. Within one run, concurrent tests
+use different channels. Use it in Symfony configuration to name resources:
 
 ```yaml
 # config/packages/test/doctrine.yaml
@@ -160,6 +160,9 @@ The `default:` processor reads the `fallback_channel` container parameter when
 
 The same pattern works for cache directories, upload paths, message transport
 names, and similar resources.
+
+Separate runs and CI shards reuse channel numbers. Add a resource prefix for
+each concurrent run that uses the same external service.
 
 The application must create and migrate databases for each channel. Use a loop
 in the test bootstrap, a Makefile target, or another project-level setup step.
