@@ -7,11 +7,11 @@ namespace Greenlight\Coverage\Collection\Driver;
 use Greenlight\Coverage\Collection\RawCoverage;
 
 /**
- * Collects raw coverage through one installed extension.
+ * Collects raw line coverage.
  *
- * Call isAvailable() before construction. Construct the driver only if it
- * returns true. Give each implementation a constructor with no required
- * arguments so that a selector can create it from its class name.
+ * A selector calls isAvailable() before construction. It constructs a driver
+ * only when this method returns true. Give each implementation a constructor
+ * with no required arguments so a selector can create it from its class name.
  *
  * @internal
  */
