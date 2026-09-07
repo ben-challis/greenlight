@@ -98,7 +98,7 @@ final readonly class DataProviderSignatureRule implements Rule
                 $labels = $labelType?->getConstantStrings() ?? [];
                 $key = \count($labels) === 1
                     ? $labels[0]->getValue()
-                    : ($labelType === null || $labelType->isNull()->yes() ? \sprintf('#%d', $position) : null);
+                    : (!$labelType instanceof Type || $labelType->isNull()->yes() ? \sprintf('#%d', $position) : null);
 
                 if ($key !== null && isset($keys[$key])) {
                     $errors[] = $this->error(
