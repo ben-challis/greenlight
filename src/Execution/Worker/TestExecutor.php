@@ -115,7 +115,7 @@ final readonly class TestExecutor
             }
 
             try {
-                [$result, $cause, $attachments] = $this->runTestAttempt(
+                [$result, $cause, $attachments] = $this->plugins->runTestAttempt(
                     fn(): array => $this->attempt($entry, $attempt, $artifactBudget),
                 );
             } catch (\Throwable $threw) {
@@ -135,41 +135,23 @@ final readonly class TestExecutor
                 $result = $result->withAttachments($attachments->collected());
             }
 
-            if ($result->outcome->isSuccessful()) {
-                $sealed = $attachments?->seal() ?? [];
+            $retry = false;
 
-                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
-            }
-
-            try {
-                $retry = $this->plugins->shouldRetry($definition->retry, $result, $attempt, $cause);
-            } catch (\Throwable $threw) {
-                $result = $result->erroredBy(ThrowableDetail::fromThrowable($threw));
-                $sealed = $attachments?->seal() ?? [];
-
-                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
+            if (!$result->outcome->isSuccessful()) {
+                try {
+                    $retry = $this->plugins->shouldRetry($definition->retry, $result, $attempt, $cause);
+                } catch (\Throwable $threw) {
+                    $result = $result->erroredBy(ThrowableDetail::fromThrowable($threw));
+                }
             }
 
             $sealed = $attachments?->seal() ?? [];
+            $retainedAttachments = [...$retainedAttachments, ...$sealed];
 
             if (!$retry) {
-                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
+                return $result->withAttachments($retainedAttachments);
             }
-
-            $retainedAttachments = [...$retainedAttachments, ...$sealed];
         } while (true);
-    }
-
-    /**
-     * @template T
-     *
-     * @param \Closure(): T $attempt
-     *
-     * @return T
-     */
-    private function runTestAttempt(\Closure $attempt): mixed
-    {
-        return $this->plugins->runTestAttempt($attempt);
     }
 
     /**

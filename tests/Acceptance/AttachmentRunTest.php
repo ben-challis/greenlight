@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestFinished;
 use Greenlight\Expect\Expect;
+use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
@@ -79,7 +80,9 @@ final readonly class AttachmentRunTest
         Expect::that($results['retainsTheFailedRetryAttempt']->attachments[0]->attempt)->toBe(1);
         Expect::that($results['becomesErroredDuringClassTeardown']->outcome->isSuccessful())->toBeFalse();
         Expect::that($results['becomesErroredDuringClassTeardown']->attachments)->toHaveCount(1);
-        Expect::that($results['retryDeciderThrows']->outcome->isSuccessful())->toBeFalse();
+        Expect::that($results['retryDeciderThrows']->outcome)->toBe(Outcome::Errored);
+        Expect::that($results['retryDeciderThrows']->error?->message)->toBe('retry decider failed');
+        Expect::that($results['retryDeciderThrows']->attempts)->toBe(1);
         Expect::that($results['retryDeciderThrows']->attachments)->toHaveCount(2);
 
         foreach ($results as $testResult) {
