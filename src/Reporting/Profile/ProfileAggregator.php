@@ -12,6 +12,7 @@ use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\WorkerSpawned;
 use Greenlight\Event\WorkerTiming;
 use Greenlight\Reporting\Plural;
+use Greenlight\Reporting\SaturatingCount;
 use Greenlight\Reporting\Style;
 
 /**
@@ -34,7 +35,7 @@ final class ProfileAggregator
     private const int SLOWEST_LIMIT = 10;
 
     /**
-     * @var array<string, WorkerProfile>
+     * @var array<array-key, WorkerProfile>
      */
     private array $workers = [];
 
@@ -146,7 +147,7 @@ final class ProfileAggregator
             }
 
             $rows[] = [
-                $id,
+                (string) $id,
                 (string) $worker->classes,
                 \sprintf('%.3fs', $worker->busy),
                 $worker->isolated ? null : $worker->utilizationPercent(),
@@ -224,7 +225,7 @@ final class ProfileAggregator
                 $retirementToExit[] = $timing->retirementToExitSeconds;
             }
 
-            $assignmentGaps += $timing->assignmentGaps;
+            $assignmentGaps = SaturatingCount::add($assignmentGaps, $timing->assignmentGaps);
             $assignmentGapSeconds = ProfileDuration::add($assignmentGapSeconds, $timing->assignmentGapSeconds);
             $bootstrapBarrierSeconds = ProfileDuration::add($bootstrapBarrierSeconds, $timing->bootstrapBarrierSeconds);
             $resourceCapacitySeconds = ProfileDuration::add($resourceCapacitySeconds, $timing->resourceCapacitySeconds);
