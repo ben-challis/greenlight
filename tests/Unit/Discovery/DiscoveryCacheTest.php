@@ -11,7 +11,6 @@ use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\Autoloaders;
-use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Filesystem\StatableFileStream;
 use Greenlight\Tests\Support\DiscoveryCachePath;
@@ -22,7 +21,6 @@ final readonly class DiscoveryCacheTest
 
     public function __construct(
         private Autoloaders $autoloaders,
-        private EnvironmentVariables $environment,
         private StreamWrappers $streamWrappers,
     ) {}
 
@@ -325,11 +323,12 @@ final readonly class DiscoveryCacheTest
     }
 
     #[Test]
-    public function persistToAMissingDirectoryIsASilentNoOp(): void
+    public function persistCreatesAMissingCacheDirectory(): void
     {
         $className = 'MissingDirProbeTest';
         $directory = $this->writeFixture($className);
         $missingDirectory = \sys_get_temp_dir() . '/greenlight-missing-' . \bin2hex(\random_bytes(6));
+        $cacheFile = $missingDirectory . '/' . \basename(DiscoveryCachePath::forDirectories([$directory]));
 
         $this->autoloaders->register(static function (string $class) use ($directory, $className): void {
             if ($class === 'GreenlightDiscoCache\\' . $className) {
@@ -337,13 +336,25 @@ final readonly class DiscoveryCacheTest
             }
         });
 
-        $this->environment->set('TMPDIR', $missingDirectory);
-
         try {
-            new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
+            new TestDiscoverer()->discover(
+                [$directory],
+                cache: DiscoveryCache::forDirectories([$directory], $missingDirectory),
+            );
 
-            Expect::that(\is_dir($missingDirectory))->toBeFalse();
+            Expect::that(\is_file($cacheFile))->toBeTrue();
+            $source = \realpath($directory . '/' . $className . '.php');
+
+            if ($source === false) {
+                Fail::because('The discovery source fixture is unavailable.');
+            }
+
+            Expect::that(DiscoveryCache::forDirectories([$directory], $missingDirectory)
+                ->lookup($source))
+                ->toHaveCount(2);
         } finally {
+            @\unlink($cacheFile);
+            @\rmdir($missingDirectory);
             @\unlink($directory . '/' . $className . '.php');
             @\rmdir($directory);
         }
