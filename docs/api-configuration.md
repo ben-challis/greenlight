@@ -82,7 +82,7 @@ PHPDoc:
 
 ### `maxRunAttachments()`
 
-Limits retained attachment count for one run. The default is 10,000.
+Limits staged and retained attachment count for one run. The default is 10,000.
 
 ```php
 public function maxRunAttachments(int $count): self
@@ -97,7 +97,7 @@ PHPDoc:
 
 ### `maxRunSize()`
 
-Limits retained attachment bytes for one run. The default is `1G`.
+Limits staged and retained attachment bytes for one run. The default is `1G`.
 
 ```php
 public function maxRunSize(string $size): self

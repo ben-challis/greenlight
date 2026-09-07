@@ -107,7 +107,7 @@ final class ArtifactBuilder
     }
 
     /**
-     * Limits retained attachment count for one run. The default is 10,000.
+     * Limits staged and retained attachment count for one run. The default is 10,000.
      *
      * @param positive-int $count
      *
@@ -125,7 +125,7 @@ final class ArtifactBuilder
     }
 
     /**
-     * Limits retained attachment bytes for one run. The default is `1G`.
+     * Limits staged and retained attachment bytes for one run. The default is `1G`.
      *
      * @param non-empty-string $size
      *
