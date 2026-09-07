@@ -258,9 +258,18 @@ final readonly class ProxyGenerator
                     $method->getDeclaringClass()->name,
                     $method->name,
                 );
+        } elseif (!$method->returnsReference()) {
+            $body = '        return ' . $invoke . "\n";
         } else {
-            $body = '        $__greenlightResult = ' . $invoke . "\n"
-                . "        return \$__greenlightResult;\n";
+            $resultName = '__greenlightResult';
+            $parameters = $method->getParameters();
+
+            while (\array_any($parameters, static fn(\ReflectionParameter $parameter): bool => $parameter->name === $resultName)) {
+                $resultName .= '_';
+            }
+
+            $body = '        $' . $resultName . ' = ' . $invoke . "\n"
+                . '        return $' . $resultName . ";\n";
         }
 
         return \sprintf(
