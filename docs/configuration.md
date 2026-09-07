@@ -1196,7 +1196,7 @@ In interactive output, prints a permanent line for every completed class.
 
 ### `--ansi`
 
-Enables colors in append-only reporter output. It does not enable the live
+Enables colors in help and append-only reporter output. It does not enable the live
 progress window.
 
 ### `--no-ansi`
@@ -1211,7 +1211,10 @@ A truthy `CI` environment variable has the same effect.
 
 ### -h, --help
 
-Shows help.
+Shows help. Terminal output uses colors for the title, section headings,
+commands, and option labels. Piped output uses plain text by default.
+Use `--ansi` to enable colors.
+`NO_COLOR` and `--no-ansi` disable help colors.
 
 ### -V, --version
 

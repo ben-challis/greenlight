@@ -40,6 +40,16 @@ final readonly class Style
         return $this->paint($text, '2');
     }
 
+    public function heading(string $text): string
+    {
+        return $this->paint($text, '1;33');
+    }
+
+    public function label(string $text): string
+    {
+        return $this->paint($text, '36');
+    }
+
     public function duration(float $seconds): string
     {
         $text = \sprintf('%.3fs', $seconds);
