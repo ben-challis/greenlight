@@ -67,8 +67,8 @@ Without a suite selector, each run includes every named suite. This behavior is
 compatible with configurations that use suites only to add paths.
 
 Use `--suite=<name>` or `--suite-tag=<tag>` to select suites. Repeat either
-option to select a union. A suite is selected if its name or one of its tags
-matches a selector.
+option to select a union. Greenlight selects a suite if its name or one of its
+tags matches a selector.
 
 An explicit selection scans only paths from selected suites. It does not scan
 base `paths()`. Test filters and sharding apply after this path selection.
@@ -96,8 +96,9 @@ Suite names and tags use case-sensitive exact matching.
 
 Default: `'auto'` workers.
 
-A worker requests one class at a time. When the worker finishes that class, it
-requests the next class.
+A worker executes one assignment at a time. By default, an assignment contains
+one complete class. Greenlight can batch small classes with the same resource
+requirements when previous durations are available.
 
 Greenlight keeps this class-level schedule by default. Add `#[AllowParallel]`
 to an independent large class to make each test or data set a separate
@@ -116,8 +117,9 @@ The seed reproduces failures related to order. It does not reproduce exact
 worker placement or completion-event order.
 
 `$count` accepts a positive integer or `'auto'`. With `'auto'`, Greenlight uses
-one worker per CPU core. Install the suggested `fidry/cpu-core-counter` package
-for CPU detection that respects cgroup limits in containers.
+one worker per detected CPU core. If CPU detection fails, it uses four workers.
+Install the suggested `fidry/cpu-core-counter` package for CPU detection that
+respects cgroup limits in containers.
 
 A worker remains active until the queue is empty or the worker fails.
 Greenlight does not hide memory growth or state leaks by replacing a healthy
@@ -201,14 +203,14 @@ is available, Greenlight warns on stderr. That warning does not fail the run by
 itself. `requireDriver()` changes the warning to a run failure.
 
 A configured coverage gate also requires coverage. Thus, an unavailable
-coverage driver fails the run when a gate is configured.
+coverage driver fails the run when you configure a gate.
 
 The minimum percentage gate uses the total line coverage. Greenlight rounds
 the calculated percentage to two decimal places before the comparison. It uses
 half-up rounding. A result that is equal to the minimum passes.
 
 The uncovered-line gate counts executable lines that did not execute. A count
-that is equal to the maximum passes. When both gates are configured, both gates
+that is equal to the maximum passes. If you configure both gates, both gates
 must pass.
 
 Greenlight writes all configured coverage exports before it evaluates the
@@ -465,13 +467,15 @@ See [test attachments](attachments.md) for the runtime API and security model.
 
 ### `storage(callable $configurator): self`
 
-Default: all storage uses the system temporary directory.
+Default: state, caches, generated code, and temporary data use the system
+temporary directory. Published attachments use the separate `artifacts()`
+configuration.
 
 The configurator receives a `StorageBuilder`. Repeated calls preserve earlier
 settings.
 
-Use `rootDirectory()` to put all Greenlight storage below one directory. An
-area-specific directory replaces its directory below the root.
+Use `rootDirectory()` to put these four storage areas below one directory.
+An area-specific directory replaces its directory below the root.
 
 `StorageBuilder` has these methods:
 
@@ -521,7 +525,8 @@ Stops the run after the first failed or errored test.
 
 ### `randomizeOrder(?int $seed = null): self`
 
-Default: declared order, no seed.
+Default: no randomization or seed. Previous failures and durations can change
+class order.
 
 Randomizes class order.
 
@@ -558,9 +563,12 @@ Use a channel when each worker can have a separate resource. Use
 concurrency. A resource limit controls the number of assignments that can run.
 It does not assign a resource instance to an assignment.
 
-Two concurrent tests do not share a channel. Channel numbers are from 1 through
-the worker count. The number of worker processes during the run does not change
-this range. After a worker crash, its replacement reuses the freed slot.
+Within one run, two concurrent tests do not share a channel. Channel numbers
+are from 1 through the worker count. Worker replacement does not change this
+range. After a worker crash, its replacement reuses the freed slot.
+
+Separate runs and CI shards reuse the same channel numbers. Give concurrent
+runs separate resource prefixes when they use the same external service.
 
 A `--workers=1` run executes in-process on channel 1.
 
@@ -590,7 +598,7 @@ For infrastructure that must be created and destroyed with the run, a plugin
 can implement `IntegrationFixtureProvider`. The provider runs in the
 orchestrator after discovery and sharding, creates shared or per-channel
 resources, and registers teardown. Workers receive an injectable
-`IntegrationResources` catalog containing shared values plus only their own
+`IntegrationResources` catalog with shared values plus only their own
 channel overlay. See [Writing plugins](plugins.md#integrationfixtureprovider).
 
 ## CLI reference
@@ -718,7 +726,7 @@ Applies the configured retention policy to completed artifact run directories.
 Use `--dry-run` to list the directories that the command would remove. The
 command reports each directory, its size, and the applicable limit.
 
-If no retention policy is configured, the command exits successfully and does
+If you configure no retention policy, the command exits successfully and does
 not remove a directory.
 
 See [`artifacts()`](#artifactscallable-configurator-self) for the retention

@@ -301,7 +301,8 @@ precedence and can prevent runs that generated artifacts would cause.
 
 Tests run in parallel worker processes by default.
 
-`--workers=auto` uses one worker for each CPU core. This value is the default.
+`--workers=auto` uses one worker for each detected CPU core. This value is the
+default. If CPU detection fails, Greenlight uses four workers.
 
 `--workers=4` specifies four workers. `--workers=1` uses one in-process runner.
 The last mode is usually the simplest choice for debug work.
@@ -343,8 +344,11 @@ final class OrderRepositoryTest
 }
 ```
 
-Concurrent tests never share a channel. Thus, databases such as `app_test_1`
-and `app_test_2` do not conflict.
+Concurrent tests within one run never share a channel. Thus, databases such as
+`app_test_1` and `app_test_2` do not conflict within that run.
+
+Separate runs and CI shards reuse channel numbers. Add a separate resource
+prefix for each concurrent run that uses the same database server.
 
 Use `#[RequiresResource]` when several workers use one dependency with limited
 capacity:
@@ -363,7 +367,7 @@ return GreenlightConfig::create()
 ```
 
 Other workers can run tests that do not require `payments-sandbox`. Without a
-configured limit, only one class can use the resource.
+configured limit, only one assignment can use the resource at a time.
 
 A resource limit controls capacity. It does not select a sandbox, database, or
 account for a test.
