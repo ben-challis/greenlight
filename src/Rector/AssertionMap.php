@@ -18,6 +18,7 @@ final class AssertionMap
 
     public static function lookup(string $method): ?AssertionConversion
     {
+        /** @var array<string, AssertionConversion> $entries */
         static $entries = [
             'assertsame' => new AssertionConversion('toBe', 1, [0], 2, false),
             'assertnotsame' => new AssertionConversion('toBe', 1, [0], 2, true),
