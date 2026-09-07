@@ -264,6 +264,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
 
         if (!\is_dir($runtimeDirectory)
             && !ErrorTrap::run(static fn() => \mkdir($runtimeDirectory, 0o755, true), $warning)
+            && !\is_dir($runtimeDirectory)
         ) {
             throw HyperfBridgeError::scanLockUnavailable($runtimeDirectory . '/greenlight.scan.lock');
         }
