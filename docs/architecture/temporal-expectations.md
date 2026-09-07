@@ -45,14 +45,15 @@ This also handles native calls that return early. The caller does not need
 to repeat `sleep()`.
 
 The default poll interval is 25ms. `pollEvery()` accepts finite intervals of at
-least 1ms. A duration for `within()` or `for()` **MUST** be finite and more
-than zero.
+least 1ms. For `within()` or `for()`, use a finite duration greater than zero.
 
-Both methods call the probe immediately. They then wait for the configured fixed
-interval and call the probe again. Probe calls never overlap.
+Both methods start with an immediate probe call. If the test deadline has
+already expired, `eventually()` fails before that call. Between calls, the
+methods wait for the configured fixed interval. Probe calls never overlap.
 
-`eventually()` sets its deadline before the first call and returns after the
-first match. `consistently()` requires its first call to match, starts its
+`eventually()` sets its deadline before the first call. It accepts a match only
+when the observation finishes at or before that deadline.
+`consistently()` requires its first call to match, starts its
 stability period after that call, and fails on the first mismatch.
 The next wait ends at the applicable deadline if a full interval would exceed
 it. Greenlight then calls the probe again. An earlier probe call that reaches
@@ -80,8 +81,8 @@ finish. This rule includes tests that use a temporal expectation. Without
 PCNTL, the operating system's default immediate termination behavior can stop
 the active test.
 
-`retryOnException()` accepts only `Exception` subclasses, which excludes
-`Error`, `Throwable`, and other broader types.
+`retryOnException()` accepts `Exception::class` and its subclasses. It rejects
+`Error`, `Throwable`, and unrelated types.
 
 ## Failures
 
