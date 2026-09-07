@@ -6,7 +6,7 @@ export. `JsonExporter::import()` imports it.
 The coverage difference command also uses this format:
 
 ```sh id="x3l9w8"
-greenlight coverage:diff --baseline=baseline.json --current=current.json
+vendor/bin/greenlight coverage:diff --baseline=baseline.json --current=current.json
 ```
 
 Without root options, both input documents **MUST** use absolute file-path keys.
@@ -132,7 +132,7 @@ miss.
 The coverage merge command reads two or more coverage documents:
 
 ```sh id="merge-coverage-json"
-greenlight coverage:merge \
+vendor/bin/greenlight coverage:merge \
     --input=shard-1.json \
     --input=shard-2.json \
     --export=json=coverage.json
