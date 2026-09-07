@@ -220,7 +220,10 @@ If a plan must capture more than one argument, put an explicit
 
 ## Spy calls
 
-`callsTo()` returns argument lists in call order:
+`callsTo()` returns argument lists in call order. It copies each top-level
+argument value at the start of the call. Later assignments to a reference
+parameter do not change earlier recordings. Objects keep their identity.
+Greenlight does not clone them.
 
 <!-- php-example {"example":"test-doubles-example-09","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php

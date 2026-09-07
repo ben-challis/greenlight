@@ -45,7 +45,11 @@ final readonly class CallHandler
         $this->contracts->get($this->state->type, $method)
             ->assertCallArgumentCount(\count($arguments));
 
-        $positionalArguments = \array_values($arguments);
+        $positionalArguments = \array_map(
+            static fn(mixed $argument): mixed => $argument,
+            \array_values($arguments),
+        );
+
         $this->state->recordedCalls[$method][] = $positionalArguments;
 
         return match ($this->state->kind) {
