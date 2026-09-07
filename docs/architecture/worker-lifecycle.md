@@ -1,8 +1,12 @@
 # Worker lifecycle and wire protocol
 
 Greenlight's orchestrator and workers exchange framed JSON messages over a
-local socket. The protocol is internal and may change between releases. Its
-details are useful when debugging parallel runs.
+local socket. The protocol is internal and can change between releases. Use
+these details to diagnose parallel runs.
+
+This page describes the process pool. With one configured or detected worker,
+the CLI uses an in-process adapter. That adapter has no worker sockets,
+worker-process isolation, or separate process to enforce hard timeouts.
 
 ## Transport ownership
 
@@ -374,7 +378,7 @@ and teardown callbacks.
 ## Isolated tests
 
 The orchestrator queues `#[Isolated]` entries separately. Only a fresh worker
-may take an isolated entry, and only after the pooled queue is empty. After
+can take an isolated entry, and only after the pooled queue is empty. After
 `done`, the orchestrator sends `drain` and lets the process exit instead of
 returning it to the pool. Any global state changed by the test dies with the
 worker. An isolated entry still waits for its required resources.
@@ -409,8 +413,10 @@ The allocator gives out the lowest free number and returns it when a worker
 retires. A replacement can use a released channel.
 
 At most the initial worker target channels are live at once. Concurrent tests
-never share a channel. Per-channel databases, port ranges, and temporary
-directories can therefore use the number safely. The
+in one run never share a channel. Different runs can use the same channel
+numbers. If runs can overlap, give each run separate resources.
+Per-channel databases, port ranges, and temporary directories can then use
+the number safely. The
 [README](../../README.md) describes the user-facing contract.
 
 Integration fixtures use the same channel pool. Greenlight merges shared values
