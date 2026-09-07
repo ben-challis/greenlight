@@ -159,27 +159,29 @@ final class WorkerHandle
                 }
 
                 \stream_set_blocking($pipe, false);
-                $bytes = \stream_get_contents($pipe);
+                do {
+                    $bytes = \stream_get_contents($pipe, self::MAX_DIAGNOSTIC_BYTES);
 
-                if (!\is_string($bytes)) {
-                    continue;
-                }
+                    if (!\is_string($bytes)) {
+                        break;
+                    }
 
-                [$complete, $this->diagnosticCarry[$index]] = $this->completeUtf8Prefix(
-                    $this->diagnosticCarry[$index] . $bytes,
-                );
-
-                if (\feof($pipe) && $this->diagnosticCarry[$index] !== '') {
-                    $complete .= $this->diagnosticCarry[$index];
-                    $this->diagnosticCarry[$index] = '';
-                }
-
-                if ($complete !== '') {
-                    $this->diagnostics = Utf8::tailBytes(
-                        $this->diagnostics . $complete,
-                        self::MAX_DIAGNOSTIC_BYTES,
+                    [$complete, $this->diagnosticCarry[$index]] = $this->completeUtf8Prefix(
+                        $this->diagnosticCarry[$index] . $bytes,
                     );
-                }
+
+                    if (\feof($pipe) && $this->diagnosticCarry[$index] !== '') {
+                        $complete .= $this->diagnosticCarry[$index];
+                        $this->diagnosticCarry[$index] = '';
+                    }
+
+                    if ($complete !== '') {
+                        $this->diagnostics = Utf8::tailBytes(
+                            $this->diagnostics . $complete,
+                            self::MAX_DIAGNOSTIC_BYTES,
+                        );
+                    }
+                } while ($bytes !== '' && !\feof($pipe));
             }
         });
     }
@@ -199,8 +201,8 @@ final class WorkerHandle
             $prefix = \substr($value, 0, -$carryBytes);
             $carry = \substr($value, -$carryBytes);
 
-            if (\preg_match('//u', $prefix) === 1 && $this->isIncompleteUtf8Suffix($carry)) {
-                return [$prefix, $carry];
+            if ($this->isIncompleteUtf8Suffix($carry)) {
+                return [Utf8::scrub($prefix), $carry];
             }
         }
 
