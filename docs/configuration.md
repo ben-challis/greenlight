@@ -704,8 +704,8 @@ The command also accepts `--minimum-coverage` and
 gate fails the command when the baseline has no regression.
 
 Exits with code 1 if coverage across files present in both exports decreases.
-It also fails if the current export has a newly uncovered line, including a
-line in an added file. A coverage gain elsewhere does not hide that line.
+It also fails if the current export has a newly uncovered line. This rule also
+applies to added files. A coverage gain elsewhere does not hide that line.
 
 Removed files do not cause a regression. The displayed total percentages
 include all files, so their difference alone does not determine the exit code.
