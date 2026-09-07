@@ -40,6 +40,8 @@ final readonly class Definition
 
         Usage:
           greenlight [command] [options]
+          Supply option values with =, for example --workers=4.
+          Quote values that contain * or ? to prevent shell expansion.
 
         Commands:
           run            Find and run tests (default)
@@ -61,7 +63,7 @@ final readonly class Definition
 
         Options:
           --config=<path>    Use this configuration file instead of ./greenlight.php
-          --workers=<n|auto> Set the worker count. The built-in default is auto.
+          --workers=<n|auto> Set the maximum worker count. The built-in default is auto.
                              auto uses the detected CPU count. A count of 1 runs
                              tests in the command process without process isolation.
           --resource-limit=<name>=<n>
@@ -71,12 +73,15 @@ final readonly class Definition
                              Active assignments can finish after the limit.
           --suite=<name>     Select a named suite. You can repeat this option.
           --suite-tag=<tag>  Select suites with this tag. You can repeat this option.
-          --group=<name>     Run only this group. You can repeat this option.
+          --group=<name>     Run tests in any selected group. Names are case-sensitive.
+                             You can repeat this option.
           --filter=<pattern> Run only tests with a matching test ID. Use a
                              substring or a full match with * and ? wildcards.
                              Matching is case-insensitive.
                              You can repeat this option.
-          --test-id=<id>     Run only this exact test ID. You can repeat this option.
+          --test-id=<id>     Select this exact, case-sensitive test ID.
+                             You can repeat this option. Test IDs can match any
+                             --filter or --test-id value.
           --exclude-group=<name>     Skip tests in this group. You can repeat this option.
           --exclude-class=<pattern>  Skip classes that match this pattern.
                              Matching is case-sensitive. Use a substring or
@@ -86,7 +91,8 @@ final readonly class Definition
                              Matching is case-sensitive. Use a substring or
                              a full match with * and ? wildcards.
                              You can repeat this option.
-          --exclude-path=<prefix>    Skip test files under this path prefix.
+          --exclude-path=<prefix>    Skip test files whose paths start with this prefix.
+                             A prefix can match similarly named files or directories.
                              Greenlight resolves relative prefixes against the
                              working directory. You can repeat this option.
           --failed           Run only tests that failed or had an error in the previous run
@@ -116,6 +122,7 @@ final readonly class Definition
           --verbose          Print a permanent line per completed class in
                              interactive output
           --ansi             Enable colors in help and append-only reporter output.
+                             A nonempty NO_COLOR value and --no-ansi take priority.
           --no-ansi          Disable colors and the live progress window.
                              Use plain append-only output.
           --fail-on-deprecation  Fail passed tests that captured a deprecation.
