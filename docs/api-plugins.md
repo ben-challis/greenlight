@@ -307,13 +307,14 @@ Namespace: `Greenlight\Plugin`
 Adds harness services to the worker registry.
 
 Greenlight adds built-in services before `services()` results. A duplicate
-type causes a configuration error.
+type in the same source causes a configuration error. Unnamed definitions
+share one source. Different named sources can define the same type.
 
 ```php
 interface HarnessProvider extends Plugin
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/HarnessProvider.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/HarnessProvider.php#L16)
 
 ### `services()`
 
@@ -325,7 +326,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/HarnessProvider.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/HarnessProvider.php#L21)
 
 ## `IntegrationFixtureProvider`
 

@@ -209,6 +209,9 @@ PHPDoc:
 
 ### `configuredWorkers()`
 
+Returns the worker limit for the selected execution adapter.
+In-process execution returns one, including a fallback from process-pool execution.
+
 ```php
 public function configuredWorkers(): int;
 ```
@@ -217,7 +220,7 @@ PHPDoc:
 
 - `@return positive-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L24)
 
 ### `channels()`
 
@@ -231,7 +234,7 @@ PHPDoc:
 
 - `@return non-empty-list<positive-int>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L31)
 
 ### `shard()`
 
@@ -243,7 +246,7 @@ PHPDoc:
 
 - `@return array{int, int}|null one-based shard index and shard count`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L36)
 
 ### `dependency()`
 
@@ -258,7 +261,7 @@ PHPDoc:
 - `@throws \LogicException when the fixture does not declare the dependency`
 - `@throws \OutOfBoundsException when the channel is not part of this run`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L44)
 
 ### `defer()`
 
@@ -273,7 +276,7 @@ PHPDoc:
 
 - `@param \Closure(): void $cleanup`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L49)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L52)
 
 ### `expose()`
 
@@ -289,7 +292,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException when a channel is not part of this run`
 - `@throws \LogicException when the provisioner publishes resources more than once`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L58)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureContext.php#L61)
 
 ## `IntegrationFixtureDefinition`
 
