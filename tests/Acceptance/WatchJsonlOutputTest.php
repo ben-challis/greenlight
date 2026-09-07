@@ -20,21 +20,7 @@ final readonly class WatchJsonlOutputTest
     #[DataSet('outputTargets')]
     public function watchKeepsStatusOutsideTheJsonlEventStream(bool $fileOutput): void
     {
-        $project = AcceptanceProject::create($this->directory, 'watch-jsonl');
-        $project->writeFile('tests/ProbeTest.php', <<<'PHP'
-            <?php
-
-            namespace WatchJsonlProbe;
-
-            use Greenlight\Attribute\Test;
-
-            final class ProbeTest
-            {
-                #[Test]
-                public function passes(): void {}
-            }
-            PHP);
-        $project->configureWithTestFiles(['tests/ProbeTest.php']);
+        $project = AcceptanceProject::createWithOnePassingTest($this->directory, 'watch-jsonl');
         $reporter = $fileOutput ? '--reporter=jsonl=events.jsonl' : '--reporter=jsonl';
         $ready = $fileOutput ? 'Waiting for changes' : 'run-finished';
         $process = GreenlightCli::start($project->directory, ['run', '--watch', $reporter, '--workers=1']);
