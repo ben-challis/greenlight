@@ -34,6 +34,9 @@ flowchart LR
 ```
 
 The CLI resolves the configuration once and selects one execution adapter.
+It selects `InProcessExecution` when the worker count is one or the worker
+entry point is unavailable. Otherwise, it selects `ProcessPoolExecution`.
+
 The run coordinator uses discovery to produce an immutable execution plan.
 It controls plan order, run resources, and run lifecycle events. The selected
 adapter executes the plan and returns one outcome. Reporters consume the events
@@ -117,8 +120,8 @@ Public contract modules do not depend on discovery or integration implementation
 `Plugin` depends on public reporting contracts. `Internal/Event` depends on
 `Event` to encode and decode events. Other internal utility modules do not
 depend on public contract modules.
-Reporters **MUST NOT** control execution. Optional integrations **MUST NOT**
-become runtime package dependencies.
+Keep execution control out of reporters. Do not add optional integrations as
+runtime package dependencies.
 
 ## Module interfaces
 
@@ -162,8 +165,8 @@ one run-owned orchestrator instance for each applicable factory. It creates one
 worker-owned instance for each applicable factory and physical worker.
 
 Immutable plugin definitions cross process seams. Plugin instances do not.
-Plugins **SHOULD NOT** depend on orchestrator classes or protocol implementation
-classes.
+We recommend that plugins avoid dependencies on orchestrator classes and
+protocol implementation classes.
 
 ### Output
 
@@ -174,6 +177,10 @@ output shape, read [compatibility](compatibility.md).
 The internal event codec owns event tags, tagged payload validation, and event
 construction. It also owns JSONL encoding and decoding. The worker protocol,
 JSONL reporter, and `profile:report` use this codec through their own seams.
+
+The CLI collects failed test IDs and class durations through `FailedTestsTap`.
+`RunSession` saves these values through `RunState` for later selection and
+class order. The orchestrator receives duration data but does not save it.
 
 ## Architectural invariants
 

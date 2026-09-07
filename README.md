@@ -115,7 +115,11 @@ Greenlight discovers each test class once and creates an execution plan.
 Workers request assignments when they have capacity.
 
 The orchestrator controls resource limits, worker replacement, event checks,
-and reports. It also stores test durations to improve the order of later runs.
+and result delivery to reporters. The CLI stores test durations to improve the
+order of later runs.
+
+With one configured or detected worker, the CLI runs tests in its own process.
+This mode has no worker-process isolation or hard timeout enforcement.
 
 Greenlight normally schedules complete test classes. It schedules each
 `#[Isolated]` test separately. Add `#[AllowParallel]` to split an independent

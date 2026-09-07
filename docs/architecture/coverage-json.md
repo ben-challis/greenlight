@@ -171,7 +171,9 @@ The format stores covered and uncovered line sets, not hit counts.
 The format excludes lines that the coverage driver identifies as dead or
 unreachable code. These lines do not appear in `covered` or `uncovered`.
 
-A line has coverage if one or more tests in the run executed it.
+A line has coverage if the driver recorded its execution during collection.
+The CLI can merge worker coverage with command-process and relayed subprocess
+coverage. Thus, covered lines can include code outside test bodies.
 
 The line lists supply the `percentage` values and the `totals` object.
 `import()` calculates these values again and ignores the stored values.
