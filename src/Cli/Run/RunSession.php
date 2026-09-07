@@ -141,7 +141,9 @@ final readonly class RunSession
                 $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
                 $interruptSignal = $this->shutdown->signal();
                 if ($interruptSignal !== null) {
-                    $this->console->err("Interrupted. Integration fixture teardown was attempted before exit.\n");
+                    $this->console->err("\n" . $this->console->stderrStyle($this->arguments->has('no-ansi'))->warn(
+                        'Interrupted. Integration fixture teardown was attempted before exit.',
+                    ) . "\n");
                 }
 
                 return $interruptSignal === null
@@ -161,7 +163,9 @@ final readonly class RunSession
         }
         $interruptSignal = $this->shutdown->signal();
         if ($interruptSignal !== null) {
-            $this->console->err("Interrupted. The summary includes only tests that finished before shutdown.\n");
+            $this->console->err("\n" . $this->console->stderrStyle($this->arguments->has('no-ansi'))->warn(
+                'Interrupted. The summary includes only tests that finished before shutdown.',
+            ) . "\n");
 
             return CommandResult::interrupted($interruptSignal);
         }
