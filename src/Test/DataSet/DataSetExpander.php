@@ -8,7 +8,7 @@ use Greenlight\Attribute\DataRow;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
- * Invokes a #[DataSet] provider when Greenlight makes the execution plan.
+ * Expands #[DataSet] providers during discovery and worker execution.
  * It makes one stable string key for each data set.
  *
  * Keep data providers pure. Return the same data for the same inputs.
