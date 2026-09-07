@@ -155,7 +155,8 @@ resolvers.
 ## State between tests
 
 By default, the bridge discards the active container after each test attempt.
-The next test creates a new container from the factory.
+The next service request calls the factory again. Return a new container from
+each factory call to keep container state separate between attempts.
 
 Use `reset:` to reset container state before the bridge discards the container:
 

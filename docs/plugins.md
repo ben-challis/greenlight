@@ -5,8 +5,8 @@ plugin to `GreenlightConfig::plugins()` in `greenlight.php`. Give each factory
 its concrete plugin class as the return type. Return a new instance each time
 Greenlight calls the factory.
 
-Plugin capabilities run either in the orchestrator or in workers. Each
-capability section below names its side.
+Plugin capabilities run in the command process, the orchestrator, or workers.
+Each capability section below names its owner.
 
 <!-- php-example {"example":"plugins-example-01","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
@@ -24,13 +24,13 @@ Greenlight creates plugin instances only for an owner that uses one of their
 capabilities. It creates one command-owned instance for each factory that
 has `CommandProvider`, `ReporterProvider`, `WatchSource`,
 `CoverageMapTransformer`, or `RunAcceptancePolicy`. Command dispatch,
-reporter setup, watch polling, coverage finishing, and run policy evaluation
+reporter setup, watch polling, coverage completion, and run policy evaluation
 own separate instances. It creates one
 run-owned orchestrator instance for each factory that has a run capability. It
 creates one worker instance for each factory that has a worker capability and
 for each physical worker.
 
-A plugin that has capabilities on both sides gets one instance on each side.
+A plugin with several owners gets a separate instance for each owner.
 The instances are separate with one in-process worker and with parallel
 workers. Capabilities with the same owner and lifetime use the same instance.
 A plugin that has `ReporterProvider` and a run capability gets separate command
@@ -275,7 +275,7 @@ return GreenlightConfig::create()
 
 The transformer receives a `CoverageMap` with sorted `FileCoverage` values.
 Return a `CoverageMap`. A transformer or plugin-factory error stops coverage
-finishing and the command fails. Watch reruns do not write coverage and do not
+completion and the command fails. Watch reruns do not write coverage and do not
 apply these transformers.
 
 ### AttachmentRetentionDecider
@@ -659,7 +659,7 @@ public function transformTerminalResult(TestDefinition $definition, TestResult $
 ```
 
 Greenlight calls a terminal-result transformer one time after the last attempt.
-The test scope is closed. The worker has not yet closed the class scope or
+The test scope has closed. The worker has not yet closed the class scope or
 published `TestFinished`.
 
 The transformer receives the test definition and the result that remains after
@@ -686,10 +686,12 @@ stream contains run, worker, class, and test events.
 
 Run subscribers cannot change results across the process boundary. Integration
 fixture provisioning completes before `RunStarted`.
-`RunFinished` is delivered before fixture teardown begins. If a run subscriber
-throws, the run fails and fixtures are still torn down.
+Greenlight sends `RunFinished` before fixture teardown begins. If a run
+subscriber throws, the run fails and Greenlight still runs fixture teardown.
 
 ### HarnessProvider
+
+Worker-side.
 
 <!-- php-example {"example":"plugins-example-11","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
@@ -709,7 +711,7 @@ final class DatabaseProvider implements HarnessProvider
 
 Harness providers supply services to test constructors.
 
-Services can be scoped as `PerTest`, `PerClass`, or `PerWorker`.
+Give each service a `PerTest`, `PerClass`, or `PerWorker` scope.
 `PerWorker` means the physical worker lifetime. It does not mean the
 orchestrator-owned integration fixture lifetime. Services are lazy. Greenlight
 constructs a service only when a test uses it.
@@ -732,7 +734,7 @@ failure and adds each disposal failure to the diagnostic.
 
 ### ServiceResolver
 
-In `Greenlight\Harness`.
+In `Greenlight\Harness`. Worker-side.
 
 <!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
 ```php
@@ -831,7 +833,7 @@ their constructors. See the [multiple PSR-11 containers example](psr11.md#multip
 
 ### ExpectationExtension
 
-In `Greenlight\Expect`.
+In `Greenlight\Expect`. Worker-side during test execution.
 
 <!-- php-example {"example":"plugins-example-13","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
@@ -964,6 +966,9 @@ implement both capabilities run their callbacks in the exact reverse order.
 Greenlight runs all after-test subscribers. It also runs them when a
 before-test subscriber stops the attempt.
 
-Greenlight reports all plugin failures. A command-side failure stops the
-command. A worker-side failure causes an error for the affected test and names
-the plugin. An orchestrator-side failure causes the run to fail.
+Greenlight reports plugin failures at the affected lifecycle boundary.
+A command-side or orchestrator-side failure fails the run or command.
+A test-attempt failure gives the affected test an error and names the plugin.
+Worker bootstrap and runtime failures stop the worker. They do not always
+have an active test to receive an error. Each capability section describes
+its error behavior.
