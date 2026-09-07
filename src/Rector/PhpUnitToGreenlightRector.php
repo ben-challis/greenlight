@@ -811,7 +811,10 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         if ($name === self::MARK_TEST_SKIPPED) {
             $arguments = $this->positionalArgs($call->args);
 
-            return $arguments !== null && \count($arguments) <= 1;
+            return $arguments !== null && \count($arguments) <= 1
+                && ($arguments === []
+                    || $arguments[0]->value instanceof String_
+                    || $this->getType($arguments[0]->value)->isNonEmptyString()->yes());
         }
 
         if (\in_array($name, self::EXPECT_EXCEPTION_METHODS, true) || $name === self::EXPECT_NO_ASSERTIONS) {
@@ -1233,7 +1236,9 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
         if ($allowInstanceApi && $name === self::MARK_TEST_SKIPPED) {
             // SkipTest requires a non-empty reason. The PHPUnit argument is optional.
-            $reason = $arguments === [] ? [new Arg(new String_('Skipped.'))] : $arguments;
+            $emptyReason = $arguments === []
+                || ($arguments[0]->value instanceof String_ && $arguments[0]->value->value === '');
+            $reason = $emptyReason ? [new Arg(new String_('Skipped.'))] : $arguments;
 
             return new Throw_(new New_(new FullyQualified(SkipTest::class), $reason));
         }
