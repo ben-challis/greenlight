@@ -890,9 +890,13 @@ Repeatable.
 
 ### `--exclude-path=<prefix>`
 
-Excludes tests whose source file is below the path prefix.
+Excludes tests whose source path starts with the given prefix.
 
-Greenlight resolves relative prefixes from the current directory. Repeatable.
+Greenlight resolves relative prefixes from the current directory. It compares
+the path text without a directory-boundary check. For example,
+`--exclude-path=tests/Slow` also matches `tests/SlowExtra/ExampleTest.php`.
+
+Repeat the option to add prefixes.
 
 ### `--list-tests`
 
