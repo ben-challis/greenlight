@@ -113,6 +113,11 @@ final readonly class InterruptionTest
                 ->toContain($diagnostic);
         }
 
+        Expect::that($result->stderr)
+            ->because('Interruption diagnostics MUST remain plain when standard error is a pipe.')
+            ->not()
+            ->toContain("\x1b[");
+
         $workerPids = $this->spawnedWorkerPids($events);
         Expect::that($workerPids)
             ->because('The interrupted run MUST start at least one worker.')
@@ -147,14 +152,14 @@ final readonly class InterruptionTest
     {
         yield 'successful cleanup' => [
             false,
-            ['Interrupted'],
+            ["\nInterrupted. The summary includes only tests that finished before shutdown."],
         ];
         yield 'failed cleanup' => [
             true,
             [
                 'Integration fixture teardown failed.',
                 'intentional fixture cleanup failure',
-                'Interrupted. Integration fixture teardown was attempted before exit.',
+                "\n\nInterrupted. Integration fixture teardown was attempted before exit.",
             ],
         ];
     }
