@@ -11,8 +11,6 @@ use Greenlight\Cli\Discovery\SelectionDiscovery;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Cli\Output\Terminal;
-use Greenlight\Cli\Output\TerminalCapabilities;
 use Greenlight\Cli\Reporting\ReporterFactory;
 use Greenlight\Cli\Reporting\ReporterOutputPlan;
 use Greenlight\Cli\Reporting\ReporterSetupFailed;
@@ -29,7 +27,6 @@ use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Plugin\CommandOutcome;
 use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\ReportGenerationFailed;
-use Greenlight\Reporting\Style;
 
 /**
  * Orchestrates one ordinary run command and its repeat policy.
@@ -41,22 +38,8 @@ use Greenlight\Reporting\Style;
  */
 final readonly class RunCommand
 {
-    /** @var resource */
-    private mixed $stderr;
-
-    /** @var \Closure(string): void */
-    private \Closure $out;
-
-    /** @var \Closure(string): void */
-    private \Closure $err;
-
     /** @param non-empty-string $version */
-    public function __construct(private Console $console, private string $version)
-    {
-        $this->stderr = $this->console->stderr();
-        $this->out = $this->console->out(...);
-        $this->err = $this->console->err(...);
-    }
+    public function __construct(private Console $console, private string $version) {}
 
     /**
      * @throws CoverageError
@@ -64,23 +47,14 @@ final readonly class RunCommand
      */
     public function run(ParsedArguments $arguments, string $workingDirectory, ?string $binPath): CommandResult
     {
-        return $this->runCommand($arguments, $workingDirectory, $binPath);
-    }
-
-    /**
-     * @throws CoverageError
-     * @throws ReportGenerationFailed
-     */
-    private function runCommand(ParsedArguments $arguments, string $workingDirectory, ?string $binPath = null): CommandResult
-    {
         try {
             $configuration = new ConfigurationLoader()->load($arguments, $workingDirectory);
         } catch (CliError $error) {
-            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+            $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
             return CommandResult::usage();
         } catch (ConfigFileError|InvalidConfiguration $error) {
-            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+            $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
             return CommandResult::failure();
         }
@@ -89,13 +63,13 @@ final readonly class RunCommand
         $overrides = $configuration->overrides;
 
         if ($arguments->has('watch') && ($overrides->repeat->count !== null || $overrides->repeat->untilFailure)) {
-            $this->printError('Do not use --watch with --repeat or --repeat-until-failure.', $arguments->has('no-ansi'));
+            $this->console->error('Do not use --watch with --repeat or --repeat-until-failure.', $arguments->has('no-ansi'));
 
             return CommandResult::usage();
         }
 
         if ($arguments->has('dry-run')) {
-            ($this->out)(PlanFormatter::format($resolved, $configFile, $workingDirectory));
+            $this->console->out(PlanFormatter::format($resolved, $configFile, $workingDirectory));
 
             return CommandResult::success();
         }
@@ -103,7 +77,7 @@ final readonly class RunCommand
         $this->warnWhenExcludePathsMatchNothing(new SelectionDiscovery($configuration, $workingDirectory), $arguments->has('no-ansi'));
 
         $workers = $resolved->workers->count->fixed ?? CpuCores::count();
-        $workerBin = $this->workerBinPath($binPath);
+        $workerBin = WorkerExecutable::resolve($binPath);
         $reporterFactory = new ReporterFactory($this->console);
 
         try {
@@ -119,11 +93,11 @@ final readonly class RunCommand
             $this->assertRepeatOutputsAreCompatible($arguments, $overrides->repeat, $resolved->coverage);
             $reporterOutputs = $reporterFactory->outputs($arguments, $reporterCatalog, $workingDirectory);
         } catch (CliError $error) {
-            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+            $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
             return CommandResult::usage();
         } catch (ReporterSetupFailed $error) {
-            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+            $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
             return CommandResult::failure();
         }
@@ -132,12 +106,12 @@ final readonly class RunCommand
             $reporter = $reporterFactory->create($arguments, $reporterCatalog, $reporterOutputs);
         } catch (CliError $error) {
             $reporterOutputs->close();
-            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+            $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
             return CommandResult::usage();
         } catch (ReporterSetupFailed $error) {
             $reporterOutputs->close();
-            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+            $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
             return CommandResult::failure();
         }
@@ -160,15 +134,15 @@ final readonly class RunCommand
 
             if ($arguments->has('failed')) {
                 if ($previousFailures === null) {
-                    $this->printError(CliError::failedRequiresState()->getMessage(), $arguments->has('no-ansi'));
+                    $this->console->error(CliError::failedRequiresState()->getMessage(), $arguments->has('no-ansi'));
 
                     return CommandResult::usage();
                 }
 
                 if ($previousFailures === []) {
                     $noticeOutput = $reporterOutputs->writesReporterToStandardOutput('jsonl')
-                        ? $this->err
-                        : $this->out;
+                        ? $this->console->err(...)
+                        : $this->console->out(...);
                     $noticeOutput("No tests failed in the previous run. There are no tests to run again.\n");
 
                     return CommandResult::success();
@@ -222,8 +196,8 @@ final readonly class RunCommand
             $failedTestSet = [];
             $lastClassSeconds = [];
             $repeatOutput = $reporterOutputs->writesReporterToStandardOutput('jsonl')
-                ? $this->err
-                : $this->out;
+                ? $this->console->err(...)
+                : $this->console->out(...);
 
             for ($iteration = 1; $iteration <= $limit; $iteration++) {
                 $repeatOutput($bounded
@@ -234,11 +208,11 @@ final readonly class RunCommand
                     try {
                         $reporter = $reporterFactory->create($arguments, $reporterCatalog, $reporterOutputs);
                     } catch (CliError $error) {
-                        $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+                        $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
                         return CommandResult::usage();
                     } catch (ReporterSetupFailed $error) {
-                        $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+                        $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
                         return CommandResult::failure();
                     }
@@ -297,31 +271,15 @@ final readonly class RunCommand
         $warning = LeakDetector::environmentWarning();
 
         if ($warning !== null) {
-            ($this->err)($this->stderrStyle($noAnsiFlag)->warn($warning) . "\n");
+            $this->console->err($this->console->stderrStyle($noAnsiFlag)->warn($warning) . "\n");
         }
     }
 
     private function warnWhenExcludePathsMatchNothing(SelectionDiscovery $discovery, bool $noAnsiFlag): void
     {
         foreach ($discovery->unmatchedExcludePathWarnings() as $warning) {
-            ($this->err)($this->stderrStyle($noAnsiFlag)->warn($warning) . "\n");
+            $this->console->err($this->console->stderrStyle($noAnsiFlag)->warn($warning) . "\n");
         }
-    }
-
-    private function printError(string $message, bool $noAnsiFlag): void
-    {
-        ($this->err)($this->stderrStyle($noAnsiFlag)->error('greenlight:') . ' ' . $message . "\n");
-    }
-
-    private function stderrStyle(bool $noAnsiFlag): Style
-    {
-        $capabilities = TerminalCapabilities::detect(
-            Terminal::isTty($this->stderr),
-            ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
-            $noAnsiFlag,
-        );
-
-        return new Style($capabilities->color);
     }
 
     /** @throws CliError */
@@ -342,11 +300,4 @@ final readonly class RunCommand
             throw CliError::repeatWithSingleRunOutput($outputs);
         }
     }
-
-    /** @return non-empty-string|false */
-    private function workerBinPath(?string $binPath): string|false
-    {
-        return WorkerExecutable::resolve($binPath);
-    }
-
 }
