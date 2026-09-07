@@ -13,91 +13,63 @@ namespace Greenlight\Rector;
  */
 final class AssertionMap
 {
-    /**
-     * Entries are [matcher, subject index, matcher argument indices, arity, negated].
-     *
-     * @var array<string, array{non-empty-string, int<0, max>, list<int<0, max>>, int<1, max>, bool}>
-     */
-    private const array MAP = [
-        'assertsame' => ['toBe', 1, [0], 2, false],
-        'assertnotsame' => ['toBe', 1, [0], 2, true],
-        'assertequals' => ['toEqual', 1, [0], 2, false],
-        'assertnotequals' => ['toEqual', 1, [0], 2, true],
-        'assertequalscanonicalizing' => ['toEqualCanonicalizing', 1, [0], 2, false],
-        'assertnotequalscanonicalizing' => ['toEqualCanonicalizing', 1, [0], 2, true],
-        'assertequalswithdelta' => ['toBeWithin', 1, [2, 0], 3, false],
-        'asserttrue' => ['toBeTrue', 0, [], 1, false],
-        'assertnottrue' => ['toBeTrue', 0, [], 1, true],
-        'assertfalse' => ['toBeFalse', 0, [], 1, false],
-        'assertnotfalse' => ['toBeFalse', 0, [], 1, true],
-        'assertnull' => ['toBeNull', 0, [], 1, false],
-        'assertnotnull' => ['toBeNull', 0, [], 1, true],
-        'assertinstanceof' => ['toBeInstanceOf', 1, [0], 2, false],
-        'assertnotinstanceof' => ['toBeInstanceOf', 1, [0], 2, true],
-        'assertcount' => ['toHaveCount', 1, [0], 2, false],
-        'assertnotcount' => ['toHaveCount', 1, [0], 2, true],
-        'assertgreaterthan' => ['toBeGreaterThan', 1, [0], 2, false],
-        'assertgreaterthanorequal' => ['toBeGreaterThanOrEqual', 1, [0], 2, false],
-        'assertlessthan' => ['toBeLessThan', 1, [0], 2, false],
-        'assertlessthanorequal' => ['toBeLessThanOrEqual', 1, [0], 2, false],
-        'assertisarray' => ['toBeArray', 0, [], 1, false],
-        'assertisnotarray' => ['toBeArray', 0, [], 1, true],
-        'assertisstring' => ['toBeString', 0, [], 1, false],
-        'assertisnotstring' => ['toBeString', 0, [], 1, true],
-        'assertisint' => ['toBeInt', 0, [], 1, false],
-        'assertisnotint' => ['toBeInt', 0, [], 1, true],
-        'assertisfloat' => ['toBeFloat', 0, [], 1, false],
-        'assertisnotfloat' => ['toBeFloat', 0, [], 1, true],
-        'assertisbool' => ['toBeBool', 0, [], 1, false],
-        'assertisnotbool' => ['toBeBool', 0, [], 1, true],
-        'assertiscallable' => ['toBeCallable', 0, [], 1, false],
-        'assertisnotcallable' => ['toBeCallable', 0, [], 1, true],
-        'assertisiterable' => ['toBeIterable', 0, [], 1, false],
-        'assertisnotiterable' => ['toBeIterable', 0, [], 1, true],
-        'assertcontains' => ['toContain', 1, [0], 2, false],
-        'assertnotcontains' => ['toContain', 1, [0], 2, true],
-        'assertstringcontainsstring' => ['toContain', 1, [0], 2, false],
-        'assertstringnotcontainsstring' => ['toContain', 1, [0], 2, true],
-        'assertarrayhaskey' => ['toHaveKey', 1, [0], 2, false],
-        'assertarraynothaskey' => ['toHaveKey', 1, [0], 2, true],
-        'assertmatchesregularexpression' => ['toMatch', 1, [0], 2, false],
-        'assertdoesnotmatchregularexpression' => ['toMatch', 1, [0], 2, true],
-        'assertstringstartswith' => ['toStartWith', 1, [0], 2, false],
-        'assertstringstartsnotwith' => ['toStartWith', 1, [0], 2, true],
-        'assertstringendswith' => ['toEndWith', 1, [0], 2, false],
-        'assertstringendsnotwith' => ['toEndWith', 1, [0], 2, true],
-        'assertjson' => ['toBeJson', 0, [], 1, false],
-        'assertjsonstringequalsjsonstring' => ['toMatchJson', 1, [0], 2, false],
-    ];
-
-    /**
-     * @var array<string, AssertionConversion>|null
-     */
-    private static ?array $entries = null;
-
     /** @codeCoverageIgnore */
     private function __construct() {}
 
     public static function lookup(string $method): ?AssertionConversion
     {
-        return self::entries()[\strtolower($method)] ?? null;
-    }
+        static $entries = [
+            'assertsame' => new AssertionConversion('toBe', 1, [0], 2, false),
+            'assertnotsame' => new AssertionConversion('toBe', 1, [0], 2, true),
+            'assertequals' => new AssertionConversion('toEqual', 1, [0], 2, false),
+            'assertnotequals' => new AssertionConversion('toEqual', 1, [0], 2, true),
+            'assertequalscanonicalizing' => new AssertionConversion('toEqualCanonicalizing', 1, [0], 2, false),
+            'assertnotequalscanonicalizing' => new AssertionConversion('toEqualCanonicalizing', 1, [0], 2, true),
+            'assertequalswithdelta' => new AssertionConversion('toBeWithin', 1, [2, 0], 3, false),
+            'asserttrue' => new AssertionConversion('toBeTrue', 0, [], 1, false),
+            'assertnottrue' => new AssertionConversion('toBeTrue', 0, [], 1, true),
+            'assertfalse' => new AssertionConversion('toBeFalse', 0, [], 1, false),
+            'assertnotfalse' => new AssertionConversion('toBeFalse', 0, [], 1, true),
+            'assertnull' => new AssertionConversion('toBeNull', 0, [], 1, false),
+            'assertnotnull' => new AssertionConversion('toBeNull', 0, [], 1, true),
+            'assertinstanceof' => new AssertionConversion('toBeInstanceOf', 1, [0], 2, false),
+            'assertnotinstanceof' => new AssertionConversion('toBeInstanceOf', 1, [0], 2, true),
+            'assertcount' => new AssertionConversion('toHaveCount', 1, [0], 2, false),
+            'assertnotcount' => new AssertionConversion('toHaveCount', 1, [0], 2, true),
+            'assertgreaterthan' => new AssertionConversion('toBeGreaterThan', 1, [0], 2, false),
+            'assertgreaterthanorequal' => new AssertionConversion('toBeGreaterThanOrEqual', 1, [0], 2, false),
+            'assertlessthan' => new AssertionConversion('toBeLessThan', 1, [0], 2, false),
+            'assertlessthanorequal' => new AssertionConversion('toBeLessThanOrEqual', 1, [0], 2, false),
+            'assertisarray' => new AssertionConversion('toBeArray', 0, [], 1, false),
+            'assertisnotarray' => new AssertionConversion('toBeArray', 0, [], 1, true),
+            'assertisstring' => new AssertionConversion('toBeString', 0, [], 1, false),
+            'assertisnotstring' => new AssertionConversion('toBeString', 0, [], 1, true),
+            'assertisint' => new AssertionConversion('toBeInt', 0, [], 1, false),
+            'assertisnotint' => new AssertionConversion('toBeInt', 0, [], 1, true),
+            'assertisfloat' => new AssertionConversion('toBeFloat', 0, [], 1, false),
+            'assertisnotfloat' => new AssertionConversion('toBeFloat', 0, [], 1, true),
+            'assertisbool' => new AssertionConversion('toBeBool', 0, [], 1, false),
+            'assertisnotbool' => new AssertionConversion('toBeBool', 0, [], 1, true),
+            'assertiscallable' => new AssertionConversion('toBeCallable', 0, [], 1, false),
+            'assertisnotcallable' => new AssertionConversion('toBeCallable', 0, [], 1, true),
+            'assertisiterable' => new AssertionConversion('toBeIterable', 0, [], 1, false),
+            'assertisnotiterable' => new AssertionConversion('toBeIterable', 0, [], 1, true),
+            'assertcontains' => new AssertionConversion('toContain', 1, [0], 2, false),
+            'assertnotcontains' => new AssertionConversion('toContain', 1, [0], 2, true),
+            'assertstringcontainsstring' => new AssertionConversion('toContain', 1, [0], 2, false),
+            'assertstringnotcontainsstring' => new AssertionConversion('toContain', 1, [0], 2, true),
+            'assertarrayhaskey' => new AssertionConversion('toHaveKey', 1, [0], 2, false),
+            'assertarraynothaskey' => new AssertionConversion('toHaveKey', 1, [0], 2, true),
+            'assertmatchesregularexpression' => new AssertionConversion('toMatch', 1, [0], 2, false),
+            'assertdoesnotmatchregularexpression' => new AssertionConversion('toMatch', 1, [0], 2, true),
+            'assertstringstartswith' => new AssertionConversion('toStartWith', 1, [0], 2, false),
+            'assertstringstartsnotwith' => new AssertionConversion('toStartWith', 1, [0], 2, true),
+            'assertstringendswith' => new AssertionConversion('toEndWith', 1, [0], 2, false),
+            'assertstringendsnotwith' => new AssertionConversion('toEndWith', 1, [0], 2, true),
+            'assertjson' => new AssertionConversion('toBeJson', 0, [], 1, false),
+            'assertjsonstringequalsjsonstring' => new AssertionConversion('toMatchJson', 1, [0], 2, false),
+        ];
 
-    /**
-     * @return array<string, AssertionConversion>
-     */
-    private static function entries(): array
-    {
-        if (self::$entries === null) {
-            $entries = [];
-
-            foreach (self::MAP as $name => $entry) {
-                $entries[$name] = new AssertionConversion($entry[0], $entry[1], $entry[2], $entry[3], $entry[4]);
-            }
-
-            self::$entries = $entries;
-        }
-
-        return self::$entries;
+        return $entries[\strtolower($method)] ?? null;
     }
 }
