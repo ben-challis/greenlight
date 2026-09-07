@@ -183,6 +183,9 @@ recurses through array values. It does not inspect object properties.
 Thus, lists in object properties keep their order. Associative arrays
 keep their keys.
 
+Cyclic arrays cannot be normalized or used to order list elements.
+Use `toEqual()` to compare these arrays without reordering.
+
 ```php
 public function toEqualCanonicalizing(mixed $expected): Expectation
 ```
@@ -191,6 +194,7 @@ PHPDoc:
 
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
+- `@throws \InvalidArgumentException when canonicalization encounters a cyclic array`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L51)
 
@@ -719,6 +723,9 @@ recurses through array values. It does not inspect object properties.
 Thus, lists in object properties keep their order. Associative arrays
 keep their keys.
 
+Cyclic arrays cannot be normalized or used to order list elements.
+Use `toEqual()` to compare these arrays without reordering.
+
 ```php
 public function toEqualCanonicalizing(mixed $expected): Expectation
 ```
@@ -727,6 +734,7 @@ PHPDoc:
 
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
+- `@throws \InvalidArgumentException when canonicalization encounters a cyclic array`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L51)
 
@@ -1322,6 +1330,9 @@ recurses through array values. It does not inspect object properties.
 Thus, lists in object properties keep their order. Associative arrays
 keep their keys.
 
+Cyclic arrays cannot be normalized or used to order list elements.
+Use `toEqual()` to compare these arrays without reordering.
+
 ```php
 public function toEqualCanonicalizing(mixed $expected): Expectation
 ```
@@ -1330,6 +1341,7 @@ PHPDoc:
 
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
+- `@throws \InvalidArgumentException when canonicalization encounters a cyclic array`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L51)
 
@@ -2276,6 +2288,9 @@ recurses through array values. It does not inspect object properties.
 Thus, lists in object properties keep their order. Associative arrays
 keep their keys.
 
+Cyclic arrays cannot be normalized or used to order list elements.
+Use `toEqual()` to compare these arrays without reordering.
+
 ```php
 public function toEqualCanonicalizing(mixed $expected): Expectation
 ```
@@ -2284,6 +2299,7 @@ PHPDoc:
 
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
+- `@throws \InvalidArgumentException when canonicalization encounters a cyclic array`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L51)
 

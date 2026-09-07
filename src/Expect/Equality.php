@@ -30,62 +30,35 @@ final class Equality
         $leftObjects = [];
         $rightObjects = [];
         $arrayPairs = [];
-        $leftArrays = [];
-        $rightArrays = [];
 
         return self::compare(
-            self::canonicalize($a, $leftArrays),
-            self::canonicalize($b, $rightArrays),
+            self::canonicalize($a, []),
+            self::canonicalize($b, []),
             $leftObjects,
             $rightObjects,
             $arrayPairs,
         );
     }
 
-    /** @param array<string, array<mixed>> $arrays Canonical array reference targets */
-    private static function canonicalize(mixed $value, array &$arrays): mixed
+    /** @param array<string, true> $seenArrays Array references in the current path */
+    private static function canonicalize(mixed $value, array $seenArrays): mixed
     {
         if (!\is_array($value)) {
             return $value;
         }
 
-        return self::canonicalizeArray($value, $arrays);
-    }
-
-    /**
-     * @param array<mixed> $value
-     * @param array<string, array<mixed>> $arrays
-     *
-     * @return array<mixed>
-     */
-    private static function canonicalizeArray(array $value, array &$arrays): array
-    {
         $canonical = [];
 
         foreach ($value as $key => $item) {
-            $reference = \is_array($item) ? \ReflectionReference::fromArrayElement($value, $key) : null;
-
-            if (\is_array($item) && $reference !== null) {
-                $id = $reference->getId();
-
-                if (!\array_key_exists($id, $arrays)) {
-                    // Register the target before following a reference back to it.
-                    $arrays[$id] = [];
-                    $arrays[$id] = self::canonicalizeArray($item, $arrays);
-                }
-
-                $canonical[$key] = &$arrays[$id];
-            } else {
-                $canonical[$key] = self::canonicalize($item, $arrays);
-            }
+            $canonical[$key] = self::canonicalize($item, self::canonicalArrayStack($value, $key, $seenArrays));
         }
 
         if (\array_is_list($canonical)) {
             // Compute each key one time for each element. A comparator
             // serializes both operands again for each comparison.
             $keys = \array_map(static fn(mixed $item): string => self::sortKey($item, [], []), $canonical);
-            \uksort($canonical, static fn(int $left, int $right): int => \strcmp($keys[$left], $keys[$right]));
-            $canonical = \array_values($canonical);
+            \asort($keys, \SORT_STRING);
+            $canonical = \array_map(static fn(int $index): mixed => $canonical[$index], \array_keys($keys));
         }
 
         return $canonical;
@@ -98,7 +71,7 @@ final class Equality
      *
      * @param list<int> $seen Object IDs already in the conversion stack. This
      *   list stops cycles.
-     * @param list<string> $seenArrays Array reference IDs in the conversion stack
+     * @param array<string, true> $seenArrays Array reference IDs in the conversion stack
      */
     private static function sortKey(mixed $value, array $seen, array $seenArrays): string
     {
@@ -107,19 +80,10 @@ final class Equality
             \ksort($value, \SORT_STRING);
 
             foreach ($value as $key => $item) {
-                $arrayId = \is_array($item) ? \ReflectionReference::fromArrayElement($value, $key)?->getId() : null;
-                $keyPrefix = \var_export($key, true) . '=>';
-
-                if ($arrayId !== null && \in_array($arrayId, $seenArrays, true)) {
-                    $parts[] = $keyPrefix . '[...]';
-
-                    continue;
-                }
-
-                $parts[] = $keyPrefix . self::sortKey(
+                $parts[] = \var_export($key, true) . '=>' . self::sortKey(
                     $item,
                     $seen,
-                    $arrayId === null ? $seenArrays : [...$seenArrays, $arrayId],
+                    self::canonicalArrayStack($value, $key, $seenArrays),
                 );
             }
 
@@ -181,7 +145,7 @@ final class Equality
      *   to the right value
      * @param array<int, int> $rightObjects Object mappings from the right value
      *   to the left value
-     * @param array<string, true> $arrayPairs Array reference pairs already compared
+     * @param array<string, true> $arrayPairs Array position pairs already compared
      */
     private static function compare(
         mixed $a,
@@ -189,6 +153,8 @@ final class Equality
         array &$leftObjects,
         array &$rightObjects,
         array &$arrayPairs,
+        string $leftArrayPath = '',
+        string $rightArrayPath = '',
     ): bool {
         if ((\is_int($a) || \is_float($a)) && (\is_int($b) || \is_float($b))) {
             if (\is_int($a) && \is_int($b)) {
@@ -210,27 +176,30 @@ final class Equality
                 return false;
             }
 
+            if ($leftArrayPath !== '' && $rightArrayPath !== '') {
+                $pair = \strlen($leftArrayPath) . ':' . $leftArrayPath . $rightArrayPath;
+
+                if (isset($arrayPairs[$pair])) {
+                    return true;
+                }
+
+                $arrayPairs[$pair] = true;
+            }
+
             foreach ($a as $key => $value) {
                 if (!\array_key_exists($key, $b)) {
                     return false;
                 }
 
-                if (\is_array($value) && \is_array($b[$key])) {
-                    $leftReference = \ReflectionReference::fromArrayElement($a, $key);
-                    $rightReference = \ReflectionReference::fromArrayElement($b, $key);
-
-                    if ($leftReference !== null && $rightReference !== null) {
-                        $pair = $leftReference->getId() . $rightReference->getId();
-
-                        if (isset($arrayPairs[$pair])) {
-                            continue;
-                        }
-
-                        $arrayPairs[$pair] = true;
-                    }
-                }
-
-                if (!self::compare($value, $b[$key], $leftObjects, $rightObjects, $arrayPairs)) {
+                if (!self::compare(
+                    $value,
+                    $b[$key],
+                    $leftObjects,
+                    $rightObjects,
+                    $arrayPairs,
+                    self::arrayPath($a, $key, $leftArrayPath),
+                    self::arrayPath($b, $key, $rightArrayPath),
+                )) {
                     return false;
                 }
             }
@@ -280,5 +249,50 @@ final class Equality
         }
 
         return $a === $b;
+    }
+
+    /** @param array<mixed> $array */
+    private static function arrayPath(array $array, int|string $key, string $parent): string
+    {
+        if (!\is_array($array[$key])) {
+            return $parent;
+        }
+
+        $reference = \ReflectionReference::fromArrayElement($array, $key);
+
+        // Value edges between reference edges need a stable position too.
+        // The two graphs can reach their back edges at different depths.
+        if ($reference instanceof \ReflectionReference) {
+            return 'reference:' . $reference->getId();
+        }
+
+        return $parent === '' ? '' : $parent . \serialize($key);
+    }
+
+    /**
+     * @param array<mixed> $array
+     * @param array<string, true> $seen
+     *
+     * @return array<string, true>
+     */
+    private static function canonicalArrayStack(array $array, int|string $key, array $seen): array
+    {
+        $reference = \is_array($array[$key]) ? \ReflectionReference::fromArrayElement($array, $key) : null;
+
+        if (!$reference instanceof \ReflectionReference) {
+            return $seen;
+        }
+
+        $id = $reference->getId();
+
+        if (isset($seen[$id])) {
+            throw new \InvalidArgumentException(
+                'toEqualCanonicalizing() cannot order cyclic arrays. Use toEqual() to compare them without reordering.',
+            );
+        }
+
+        $seen[$id] = true;
+
+        return $seen;
     }
 }
