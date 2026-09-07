@@ -1,17 +1,15 @@
 # Documentation PHP examples
 
 Greenlight checks selected PHP code fences with the PHP parser, PHPStan, and
-Rector. The check uses generated files because both tools operate most reliably
-on PHP files and projects. It does not change the documentation or extend the
-tools.
+Rector. The check writes temporary PHP files for these tools. It does not
+execute the examples or change the documentation.
 
 The extractor reads `README.md` and Markdown files below `docs/`. It does not
 read PHP examples in website components, issue templates, or other root files.
 Review those examples separately.
 
-The generated workspace is disposable. It is in `build/docs-php`. Do not commit
-its contents. `composer docs:php:check` replaces this
-directory on each run.
+The generated workspace is in `build/docs-php`. Do not commit its contents.
+`composer docs:php:check` replaces this directory on each run.
 
 ## Select an example
 
@@ -23,14 +21,14 @@ that invalid and unknown fields cause an error.
 ```
 
 `example` identifies a virtual project. Multiple fences can supply different
-files to the same project. This method lets one example define a class in one
-fence and use it in another fence. Use unique file paths within each project. Select the same tools for all files
-in one project.
+files to the same project. An example can define a class in one fence and use
+it in another fence. Use unique file paths within each project. Select the
+same tools for all files in one project.
 
-`file` is a stable path within the virtual project. Use a `.php` extension. Do not use an
-absolute path or a parent path. Do not derive this value from the
-position of the fence. Stable names keep diagnostics and tool caches useful
-when prose moves.
+`file` is a stable path within the virtual project. Use a `.php` extension.
+Do not use an absolute path or a parent path. Do not derive this value from
+the position of the fence. Stable names keep diagnostics and tool caches
+useful when prose moves.
 
 `tools` can contain `phpstan`, `rector`, both tools, or no tools. Every selected
 example is checked for PHP syntax before these tools run.
@@ -49,11 +47,13 @@ Use `class-members` for properties or methods that need a class body. The
 extractor puts the members in a synthetic final class. Imports can precede the
 members. The extractor keeps the imports outside the class.
 
-Use `display` only when analysis would make the example less useful. Give each display
-example a nonempty `reason`. Do not use the other fields for that example. Add
-metadata to every PHP fence in a manually maintained document within this scope. The command
-fails when metadata is absent. Generated reference documents are excluded from
-the inventory because their source generator owns their PHP examples.
+Use `display` only when analysis would make the example less useful.
+Give each display example a nonempty `reason`. Do not use the other fields
+for that example.
+
+Add metadata to every PHP fence in a manually maintained document within this
+scope. The command fails when metadata is absent. The extractor skips generated
+reference documents because their source generator owns their PHP examples.
 
 We recommend definitions for otherwise undefined names in another file in the
 same virtual project. You can put a short analysis-only support file in a separate
@@ -91,8 +91,8 @@ the repository's current Rector policy. The check does not copy a generated
 edit into Markdown. Wrappers and indentation make automatic reverse patches
 hard to review, and a change can cross more than one virtual file.
 
-To apply a finding, edit the reported documentation fence and run
-`composer docs:php:check` again. You can use the generated diff as a reference.
+To apply a finding, edit the reported documentation fence.
+Run `composer docs:php:check` again. You can use the generated diff as a reference.
 Do not edit `build/docs-php` as a source directory.
 
 ## Configuration and CI
