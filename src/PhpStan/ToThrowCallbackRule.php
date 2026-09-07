@@ -53,7 +53,7 @@ final class ToThrowCallbackRule implements Rule
             return [];
         }
 
-        $argument = $this->throwableArgument($node);
+        $argument = MethodCallArguments::find($node, 'throwable', 0);
 
         if (!$argument instanceof Arg) {
             return [];
@@ -74,27 +74,6 @@ final class ToThrowCallbackRule implements Rule
         }
 
         return [];
-    }
-
-    private function throwableArgument(MethodCall $call): ?Arg
-    {
-        foreach ($call->getArgs() as $argument) {
-            if ($argument->unpack) {
-                continue;
-            }
-
-            if ($argument->name instanceof Identifier) {
-                if ($argument->name->toString() === 'throwable') {
-                    return $argument;
-                }
-
-                continue;
-            }
-
-            return $argument;
-        }
-
-        return null;
     }
 
     private function callbackError(CallableParametersAcceptor $callback, int $line): ?IdentifierRuleError
