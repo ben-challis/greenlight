@@ -1,4 +1,6 @@
 ---
+import { version } from '../../../composer.json';
+
 type Tone = 'command' | 'muted' | 'prompt' | 'success' | 'warning';
 
 interface Part {
@@ -14,7 +16,7 @@ const lines: Part[][] = [
   [],
   [
     { text: 'Greenlight', tone: 'success' },
-    { text: ' 1.0.0' },
+    { text: ` ${version}` },
   ],
   [
     { text: 'PHP 8.4.14 | configuration: greenlight.php | workers: 11 | ' },
