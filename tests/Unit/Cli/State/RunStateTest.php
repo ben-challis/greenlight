@@ -27,9 +27,15 @@ final readonly class RunStateTest
 
         Expect::that($state->record(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']))->toBeTrue();
         Expect::that($state->failedTests())->toBe(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']);
+        Expect::that(RunState::forFile($this->stateFile())->failedTests())
+            ->because('a later command MUST read the recorded failures from disk')
+            ->toBe(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']);
 
-        $state->record([]);
+        Expect::that($state->record([]))->toBeTrue();
         Expect::that($state->failedTests())->toBe([]);
+        Expect::that(RunState::forFile($this->stateFile())->failedTests())
+            ->because('a later successful run MUST clear the persisted failures')
+            ->toBe([]);
     }
 
     #[Test]
@@ -39,8 +45,11 @@ final readonly class RunStateTest
 
         Expect::that($state->classSeconds())->toBe([]);
 
-        $state->record([], ['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
+        Expect::that($state->record([], ['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]))->toBeTrue();
         Expect::that($state->classSeconds())->toBe(['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
+        Expect::that(RunState::forFile($this->stateFile())->classSeconds())
+            ->because('a later command MUST read the recorded durations from disk')
+            ->toBe(['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
     }
 
     #[Test]
@@ -214,6 +223,9 @@ final readonly class RunStateTest
             ->toBeFalse();
         Expect::that($state->failedTests())
             ->because('a failed encode does not replace the previous state')
+            ->toBe(['Acme\AlphaTest::one']);
+        Expect::that(RunState::forFile($this->stateFile())->failedTests())
+            ->because('a failed encode MUST preserve the previous file for later commands')
             ->toBe(['Acme\AlphaTest::one']);
     }
 
