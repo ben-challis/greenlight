@@ -19,7 +19,7 @@ final readonly class RepeatOutputCompatibilityTest
     #[DataSet('repeatOptions')]
     public function repeatRejectsJUnitOutput(string $repeatOption): void
     {
-        $project = $this->writeProject('repeat-junit');
+        $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'repeat-junit');
         $result = GreenlightCli::run($project->directory, [
             'run',
             '--reporter=junit',
@@ -42,7 +42,7 @@ final readonly class RepeatOutputCompatibilityTest
     #[Test]
     public function repeatRejectsAFileJUnitReporterBeforeItCreatesTheFile(): void
     {
-        $project = $this->writeProject('repeat-file-junit');
+        $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'repeat-file-junit');
         $report = $project->path('reports/junit.xml');
         $result = GreenlightCli::run($project->directory, [
             'run',
@@ -64,7 +64,7 @@ final readonly class RepeatOutputCompatibilityTest
     #[Test]
     public function oneRequestedRunKeepsJUnitOutputAvailable(): void
     {
-        $project = $this->writeProject('single-junit');
+        $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'single-junit');
         $result = GreenlightCli::run($project->directory, [
             'run',
             '--reporter=junit',
@@ -86,7 +86,7 @@ final readonly class RepeatOutputCompatibilityTest
     #[DataSet('coverageConfigurations')]
     public function repeatRejectsEnabledCoverage(string $coverageConfiguration, string $repeatOption): void
     {
-        $project = $this->writeProject('repeat-coverage');
+        $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'repeat-coverage');
         $project->writeFile('greenlight.php', \sprintf(
             <<<'PHP'
             <?php
@@ -95,7 +95,7 @@ final readonly class RepeatOutputCompatibilityTest
 
             use Greenlight\Config\GreenlightConfig;
 
-            require_once __DIR__ . '/tests/ProbeTest.php';
+            require_once __DIR__ . '/tests/PassingTest.php';
 
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
@@ -127,7 +127,7 @@ final readonly class RepeatOutputCompatibilityTest
     #[Test]
     public function repeatKeepsAValidJsonlEventStream(): void
     {
-        $project = $this->writeProject('repeat-jsonl');
+        $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'repeat-jsonl');
         $result = GreenlightCli::run($project->directory, [
             'run',
             '--reporter=jsonl',
@@ -160,7 +160,7 @@ final readonly class RepeatOutputCompatibilityTest
     #[Test]
     public function repeatKeepsAValidJsonlFileAndStatusOnStandardOutput(): void
     {
-        $project = $this->writeProject('repeat-file-jsonl');
+        $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'repeat-file-jsonl');
         $report = $project->path('reports/events.jsonl');
         $result = GreenlightCli::run($project->directory, [
             'run',
@@ -205,28 +205,5 @@ final readonly class RepeatOutputCompatibilityTest
         yield 'repeat until failure with collection without exports' => ['', '--repeat-until-failure'];
         yield 'fixed repeat with a coverage export' => ["->export('json', 'coverage.json')", '--repeat=2'];
         yield 'repeat until failure with a coverage export' => ["->export('json', 'coverage.json')", '--repeat-until-failure'];
-    }
-
-    private function writeProject(string $name): AcceptanceProject
-    {
-        $project = AcceptanceProject::create($this->tempDirectory, $name);
-        $project->writeFile('tests/ProbeTest.php', <<<'PHP'
-            <?php
-
-            declare(strict_types=1);
-
-            namespace RepeatOutputCompatibilityProbe;
-
-            use Greenlight\Attribute\Test;
-
-            final class ProbeTest
-            {
-                #[Test]
-                public function passes(): void {}
-            }
-            PHP);
-        $project->configureWithTestFiles(['tests/ProbeTest.php']);
-
-        return $project;
     }
 }

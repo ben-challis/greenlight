@@ -17,23 +17,7 @@ final readonly class RepeatSingleIterationTest
     #[Test]
     public function oneIterationUsesTheStandardRunOutput(): void
     {
-        $project = AcceptanceProject::create($this->tempDirectory, 'repeat-single-iteration');
-        $project->writeFile('tests/ProbeTest.php', <<<'PHP'
-            <?php
-
-            declare(strict_types=1);
-
-            namespace RepeatSingleIterationProbe;
-
-            use Greenlight\Attribute\Test;
-
-            final class ProbeTest
-            {
-                #[Test]
-                public function passes(): void {}
-            }
-            PHP);
-        $project->configureWithTestFiles(['tests/ProbeTest.php']);
+        $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'repeat-single-iteration');
 
         $result = GreenlightCli::run($project->directory, [
             'run',
