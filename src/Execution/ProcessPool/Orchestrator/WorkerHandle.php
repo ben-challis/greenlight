@@ -17,6 +17,10 @@ final class WorkerHandle
 {
     private const int MAX_DIAGNOSTIC_BYTES = 65_536;
 
+    // Four invalid input bytes can become one three-byte replacement character.
+    // Keep enough raw data to place a cut character before the retained tail.
+    private const int MAX_RAW_DIAGNOSTIC_BYTES = 2 * self::MAX_DIAGNOSTIC_BYTES + 3;
+
     public ?SocketChannel $channel = null;
 
     public WorkerLifecycle $lifecycle = WorkerLifecycle::Active;
@@ -159,29 +163,33 @@ final class WorkerHandle
                 }
 
                 \stream_set_blocking($pipe, false);
-                do {
-                    $bytes = \stream_get_contents($pipe, self::MAX_DIAGNOSTIC_BYTES);
+                $bytes = $this->diagnosticCarry[$index];
 
-                    if (!\is_string($bytes)) {
+                do {
+                    $chunk = \stream_get_contents($pipe, self::MAX_DIAGNOSTIC_BYTES);
+
+                    if (!\is_string($chunk)) {
                         break;
                     }
 
-                    [$complete, $this->diagnosticCarry[$index]] = $this->completeUtf8Prefix(
-                        $this->diagnosticCarry[$index] . $bytes,
+                    $bytes = \substr($bytes . $chunk, -self::MAX_RAW_DIAGNOSTIC_BYTES);
+                } while ($chunk !== '' && !\feof($pipe));
+
+                // Convert after collection. Data written during conversion
+                // belongs to the next drain.
+                [$complete, $this->diagnosticCarry[$index]] = $this->completeUtf8Prefix($bytes);
+
+                if (\feof($pipe) && $this->diagnosticCarry[$index] !== '') {
+                    $complete .= $this->diagnosticCarry[$index];
+                    $this->diagnosticCarry[$index] = '';
+                }
+
+                if ($complete !== '') {
+                    $this->diagnostics = Utf8::tailBytes(
+                        $this->diagnostics . $complete,
+                        self::MAX_DIAGNOSTIC_BYTES,
                     );
-
-                    if (\feof($pipe) && $this->diagnosticCarry[$index] !== '') {
-                        $complete .= $this->diagnosticCarry[$index];
-                        $this->diagnosticCarry[$index] = '';
-                    }
-
-                    if ($complete !== '') {
-                        $this->diagnostics = Utf8::tailBytes(
-                            $this->diagnostics . $complete,
-                            self::MAX_DIAGNOSTIC_BYTES,
-                        );
-                    }
-                } while ($bytes !== '' && !\feof($pipe));
+                }
             }
         });
     }
