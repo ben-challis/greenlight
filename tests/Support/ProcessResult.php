@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Support;
 
 /**
  * output() and outputLines() combine standard output and standard error in that
- * order. stdoutLines() excludes extension messages from standard error.
+ * order. stdoutLines() returns lines from standard output only.
  */
 final readonly class ProcessResult
 {
