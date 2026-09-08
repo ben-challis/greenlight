@@ -655,7 +655,7 @@ final class Expectation
         );
 
         return $this->verify(
-            $subject >= $of - $delta && $subject <= $of + $delta,
+            \is_finite($subject) && $subject >= $of - $delta && $subject <= $of + $delta,
             'to be ' . $bounds,
             $bounds,
         );
