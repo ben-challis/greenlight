@@ -24,7 +24,8 @@ use Greenlight\Test\ExpectationCounter;
  *   equal `1`.
  *
  * - Arrays are equal when they contain the same keys and recursively equal
- *   values. Key order has no effect.
+ *   values. Key order has no effect. Cyclic arrays are unsupported. When the
+ *   comparison follows a cycle, it raises `InvalidArgumentException`.
  *
  * - Enum cases, closures, and resources use identity.
  *
@@ -33,7 +34,7 @@ use Greenlight\Test\ExpectationCounter;
  *
  * - Other objects are equal when they have the same class and recursively
  *   equal properties. This rule includes private and inherited properties.
- *   The comparison safely processes cyclic structures.
+ *   The comparison safely processes cyclic object structures.
  *
  * @template T
  */
@@ -154,6 +155,7 @@ final class Expectation
      * @return self<T>
      *
      * @throws ExpectationFailed
+     * @throws \InvalidArgumentException when the comparison follows a cyclic array
      */
     public function toEqual(mixed $expected): self
     {
@@ -173,6 +175,7 @@ final class Expectation
      * @return self<T>
      *
      * @throws ExpectationFailed
+     * @throws \InvalidArgumentException when an array selected for comparison or ordering contains a cycle
      */
     public function toEqualCanonicalizing(mixed $expected): self
     {

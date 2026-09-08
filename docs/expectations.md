@@ -77,6 +77,10 @@ includes private properties.
 Object comparisons distinguish shared objects from equal copies. They also
 require equal cycle shapes.
 
+Both equality matchers report unsupported cyclic array traversal with
+`InvalidArgumentException`. Compare selected acyclic values instead.
+Object cycles and shared references to acyclic arrays remain supported.
+
 Enum cases compare by identity.
 `DateTimeInterface` values compare by instant at microsecond precision.
 
