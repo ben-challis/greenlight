@@ -209,7 +209,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException`
 - `@throws TemporaryDirectoryError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L60)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L70)
 
 ### `dispose()`
 
@@ -221,7 +221,7 @@ PHPDoc:
 
 - `@throws TemporaryDirectoryError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L108)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L118)
 
 ## `TemporaryDirectoryError`
 
