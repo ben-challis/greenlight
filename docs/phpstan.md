@@ -28,6 +28,10 @@ parameters:
 Use `configFiles` only for custom matcher checks. The data-provider and native
 matcher rules work without it.
 
+If you use [phpstan/extension-installer](https://github.com/phpstan/extension-installer),
+it registers the include for you. Set only the `greenlight.configFiles`
+parameter for custom matcher checks.
+
 ## Double checks
 
 The extension checks a constant method name in `Doubles::callsTo()` against the
@@ -91,10 +95,6 @@ Coverage errors use `greenlight.coverageBuilderArgument.*`. Expectation errors
 use `greenlight.expectationArgument.tolerance` and
 `greenlight.expectationArgument.duration`. Greenlight checks unresolved values
 at run time.
-
-If you use [phpstan/extension-installer](https://github.com/phpstan/extension-installer),
-it registers the include for you. Set only the `greenlight.configFiles`
-parameter.
 
 ## Native matcher constraints
 
@@ -279,7 +279,7 @@ use:
 * `toMatch()` and the `matching:` argument of `toThrow()` require a valid
   regular expression.
 * The expected value for `toMatchJson()` must contain valid JSON.
-* A constant `because()` reason must contain a non-whitespace character.
+* A constant `because()` reason must not be empty after PHP's `trim()` operation.
 
 Errors have identifiers under `greenlight.expectationArgument.*` (`pattern`,
 `json`, `reason`). PHPStan checks constant values before run time. Greenlight

@@ -89,17 +89,36 @@ Each mock method with a native non-`void` return type needs an explicit
 response. A method declared `void` or without a native return type needs no
 response and returns `null`. PHPDoc return tags do not change this rule.
 
+The following examples show separate response plans.
+
+Return one value for every matched call:
+
 <!-- php-example {"example":"test-doubles-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $plan->expects('nextId')->andReturns('id-1');
+```
 
+Return successive values for two calls:
+
+<!-- php-example {"example":"test-doubles-response-sequence","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
 $plan->expects('nextId')
     ->times(2)
     ->andReturnsSequence('id-1', 'id-2');
+```
 
+Calculate the response from the call arguments:
+
+<!-- php-example {"example":"test-doubles-response-callback","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
 $plan->expects('convert')
     ->andReturnsUsing(fn (int $value): int => $value * 2);
+```
 
+Throw an exception:
+
+<!-- php-example {"example":"test-doubles-response-throwable","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
 $plan->expects('load')
     ->andThrows(new NotFound('Missing record.'));
 ```
