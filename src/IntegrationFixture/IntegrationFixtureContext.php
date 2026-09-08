@@ -16,6 +16,9 @@ interface IntegrationFixtureContext
     public function runId(): string;
 
     /**
+     * Returns the worker limit for the selected execution adapter.
+     * In-process execution returns one, including a fallback from process-pool execution.
+     *
      * @return positive-int
      */
     public function configuredWorkers(): int;
