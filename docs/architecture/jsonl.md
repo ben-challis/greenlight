@@ -158,11 +158,15 @@ one of these four values.
 
 ### durationSeconds
 
-The test duration in seconds.
+For a result from a test attempt, the final attempt's duration in seconds.
+This value includes test construction, hooks, cleanup, and per-test service
+disposal. It excludes earlier retry attempts and `afterTest()` subscribers.
 
 ### memoryDeltaBytes
 
-The memory delta for the test, in bytes.
+For a result from a test attempt, the change in allocated PHP memory during the
+final attempt, in bytes. Greenlight measures it with `memory_get_usage(true)`.
+The value can be negative. It is not peak memory use.
 
 ### attempts
 
@@ -278,8 +282,9 @@ An `eventually()` or `consistently()` matcher counts once. Calls to its probe do
 not count separately.
 
 Greenlight takes this count after the final attempt's cleanup and per-test
-service disposal. Cleanup can therefore add expectations after the test body
-fails, errors, or skips. Earlier retry attempts do not contribute to this count.
+service disposal, before `afterTest()` subscribers. Cleanup can therefore add
+expectations after the test body fails, errors, or skips. Earlier retry attempts
+do not contribute to this count.
 
 ### attachments
 
