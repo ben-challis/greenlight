@@ -1,7 +1,8 @@
 # Architecture
 
-Discovery, process control, schedules, recovery, and reports are internal. Test
-authors use a small public interface.
+Discovery, process control, scheduling, and recovery are internal. Test authors
+and integrations use the documented public interfaces, including versioned
+reports.
 
 This page gives contributors an architecture summary. The user documentation
 explains user-visible behavior. The pages in this directory describe module
@@ -113,8 +114,8 @@ public.
 | `Documentation` | Build-time validation of documentation examples | Nothing |
 | `PhpStan`, `Rector`, `Symfony`, `Laravel`, `Hyperf`, `Psr11`, `Psr15`, `Tempest` | Optional adapters for external tools and frameworks | Their Greenlight interfaces and development-only frameworks |
 
-Dependencies point from modules near the bottom of the table to modules near
-the top. Modules near the top do not depend on the `Execution` or `Cli` modules.
+The table groups responsibilities. Its row order does not define dependency
+rules. Use `deptrac.yaml` for the complete permitted dependencies.
 
 Public contract modules do not depend on discovery or integration implementations.
 `Plugin` depends on public reporting contracts. `Internal/Event` depends on
@@ -164,7 +165,9 @@ run-policy evaluation own separate command-side instances. Greenlight creates
 one run-owned orchestrator instance for each applicable factory. It creates one
 worker-owned instance for each applicable factory and physical worker.
 
-Immutable plugin definitions cross process seams. Plugin instances do not.
+Process-pool workers reload plugin definitions from the configuration file
+during bootstrap. They create their own plugin instances. Neither factory
+closures nor plugin instances cross the worker protocol.
 We recommend that plugins avoid dependencies on orchestrator classes and
 protocol implementation classes.
 

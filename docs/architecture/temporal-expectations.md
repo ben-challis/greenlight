@@ -17,9 +17,9 @@ The temporal matcher increments the counter one time.
 The `@mixin Expectation<T>` declaration supplies the native matcher methods to
 the API-reference generator.
 
-Native matcher methods are not reflection-visible on `TemporalExpectation`.
-This is an intentional interface change. Code that reflects matcher methods
-MUST use `Expectation` as its source.
+Native matcher methods are not visible through reflection on
+`TemporalExpectation`. Code that reflects native matcher methods MUST use
+`Expectation` as its source.
 
 The PHPStan extension supplies the native methods on temporal chains. The IDE
 helper supplies the same methods as annotations. Thus, normal temporal matcher
@@ -39,14 +39,16 @@ The poll operation uses a monotonic clock. `SystemPollingClock` reads
 `hrtime(true)` and waits with `usleep()`. Unit tests use `FakePollingClock`.
 
 The default poll interval is 25ms. `pollEvery()` accepts finite intervals of at
-least 1ms. A duration for `within()` or `for()` **MUST** be finite and more
+least 1ms. A duration for `within()` or `for()` **MUST** be finite and greater
 than zero.
 
-Both methods call the probe immediately. They then wait for the configured fixed
-interval and call the probe again. Probe calls never overlap.
+Both methods start with an immediate probe call. If the test deadline has
+already expired, `eventually()` fails before that call. Between calls, the
+methods wait for the configured fixed interval. Probe calls never overlap.
 
-`eventually()` sets its deadline before the first call and returns after the
-first match. `consistently()` requires its first call to match, starts its
+`eventually()` sets its deadline before the first call. It accepts a match only
+when the observation finishes at or before that deadline.
+`consistently()` requires its first call to match, starts its
 stability period after that call, and fails on the first mismatch.
 The next wait ends at the applicable deadline if a full interval would exceed
 it. Greenlight then calls the probe again. An earlier probe call that reaches
@@ -74,8 +76,8 @@ finish. This rule includes tests that use a temporal expectation. Without
 PCNTL, the operating system's default immediate termination behavior can stop
 the active test.
 
-`retryOnException()` accepts only `Exception` subclasses, which excludes
-`Error`, `Throwable`, and other broader types.
+`retryOnException()` accepts `Exception::class` and its subclasses. It rejects
+`Error`, `Throwable`, and unrelated types.
 
 ## Failures
 
