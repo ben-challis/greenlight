@@ -62,7 +62,13 @@ final class PendingEventually
      */
     public function pollEvery(float $seconds): self
     {
-        $this->requireDuration($seconds, 'Polling interval', minimum: 0.001, inclusive: true);
+        if (!\is_finite($seconds) || $seconds < 0.001) {
+            throw new \InvalidArgumentException(\sprintf(
+                'Set Polling interval to a finite value of at least %.3f seconds.',
+                0.001,
+            ));
+        }
+
         $this->intervalSeconds = $seconds;
 
         return $this;
@@ -94,7 +100,12 @@ final class PendingEventually
      */
     public function within(float $seconds): EventuallyExpectation
     {
-        $this->requireDuration($seconds, 'Eventually duration');
+        if (!\is_finite($seconds) || $seconds <= 0.0) {
+            throw new \InvalidArgumentException(\sprintf(
+                'Set Eventually duration to a finite value greater than %.3f seconds.',
+                0.0,
+            ));
+        }
 
         return EventuallyExpectation::create(
             $this->probe,
@@ -106,25 +117,6 @@ final class PendingEventually
             $this->renderer,
             $this->extensions,
         );
-    }
-
-    private function requireDuration(
-        float $seconds,
-        string $label,
-        float $minimum = 0.0,
-        bool $inclusive = false,
-    ): void {
-        if (!\is_finite($seconds) || ($inclusive ? $seconds < $minimum : $seconds <= $minimum)) {
-            $constraint = $inclusive
-                ? \sprintf('of at least %.3f seconds', $minimum)
-                : \sprintf('greater than %.3f seconds', $minimum);
-
-            throw new \InvalidArgumentException(\sprintf(
-                'Set %s to a finite value %s.',
-                $label,
-                $constraint,
-            ));
-        }
     }
 
     /**
