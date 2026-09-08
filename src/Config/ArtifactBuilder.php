@@ -6,6 +6,7 @@ namespace Greenlight\Config;
 
 /**
  * Collects the configuration for attachment output and safety limits.
+ * Size values use bytes or binary `K`, `M`, and `G` suffixes, with an optional final `B`.
  */
 final class ArtifactBuilder
 {
@@ -37,6 +38,9 @@ final class ArtifactBuilder
     private ?int $maxRetainedBytes = null;
 
     /**
+     * Sets the parent directory for retained attachments.
+     * The default is `build/greenlight-artifacts`, relative to the command working directory.
+     *
      * @param non-empty-string $directory
      *
      * @throws InvalidConfiguration
@@ -57,6 +61,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * Limits attachment count for one test across all attempts. The default is 32.
+     *
      * @param positive-int $count
      *
      * @throws InvalidConfiguration
@@ -73,6 +79,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * Limits the size of one attachment. The default is `25M`.
+     *
      * @param non-empty-string $size
      *
      * @throws InvalidConfiguration
@@ -85,6 +93,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * Limits attachment bytes for one test across all attempts. The default is `100M`.
+     *
      * @param non-empty-string $size
      *
      * @throws InvalidConfiguration
@@ -97,6 +107,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * Limits staged and retained attachment count for one run. The default is 10,000.
+     *
      * @param positive-int $count
      *
      * @throws InvalidConfiguration
@@ -113,6 +125,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * Limits staged and retained attachment bytes for one run. The default is `1G`.
+     *
      * @param non-empty-string $size
      *
      * @throws InvalidConfiguration
@@ -125,6 +139,9 @@ final class ArtifactBuilder
     }
 
     /**
+     * Selects older completed runs for deletion when the retained run count exceeds this limit.
+     * No count-based retention limit applies by default.
+     *
      * @param positive-int $count
      *
      * @throws InvalidConfiguration
@@ -141,6 +158,9 @@ final class ArtifactBuilder
     }
 
     /**
+     * Selects completed runs for deletion after this many seconds from completion.
+     * No age-based retention limit applies by default.
+     *
      * @param positive-int $seconds
      *
      * @throws InvalidConfiguration
@@ -157,6 +177,9 @@ final class ArtifactBuilder
     }
 
     /**
+     * Selects older completed runs for deletion when retained content exceeds this size.
+     * No size-based retention limit applies by default.
+     *
      * @param non-empty-string $size
      *
      * @throws InvalidConfiguration
