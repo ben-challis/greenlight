@@ -63,8 +63,13 @@ final readonly class SubprocessTest
             ],
         );
 
-        Expect::that($result->stdout)->because('run drains large outputs from both streams')->toHaveLength(131072);
-        Expect::that($result->stderr)->toHaveLength(131072);
+        Expect::that($result->exitCode)->toBe(0);
+        Expect::that($result->stdout)
+            ->because('large stdout MUST preserve every byte in the correct stream')
+            ->toBe(\str_repeat('o', 131072));
+        Expect::that($result->stderr)
+            ->because('large stderr MUST preserve every byte in the correct stream')
+            ->toBe(\str_repeat('e', 131072));
     }
 
     #[Test]
