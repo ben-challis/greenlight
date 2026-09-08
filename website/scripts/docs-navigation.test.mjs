@@ -24,6 +24,115 @@ async function openDocumentation(t) {
   return page;
 }
 
+async function assertCopyLabel(button, label) {
+  await button.page().getByRole('button', { name: label, exact: true }).first().waitFor();
+  assert.equal(await button.getAttribute('aria-label'), label);
+  assert.equal(await button.getAttribute('title'), label);
+}
+
+test('copy controls preserve command text and reset independently after repeated clicks', async (t) => {
+  const page = await openDocumentation(t);
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
+  await page.evaluate(() => {
+    window.copiedCommands = [];
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: async (text) => { window.copiedCommands.push(text); } },
+    });
+    document.execCommand = () => { throw new Error('The modern clipboard must not use the fallback.'); };
+  });
+
+  const buttons = page.locator('.docs-command .command-copy');
+  const install = buttons.nth(0);
+  const directories = buttons.nth(1);
+  const idle = 'Copy command to clipboard';
+  const copied = 'The clipboard contains the command.';
+
+  await install.click();
+  await assertCopyLabel(install, copied);
+  assert.equal(await directories.getAttribute('aria-label'), idle);
+  await page.clock.runFor(1000);
+  await directories.click();
+  await assertCopyLabel(directories, copied);
+  await page.clock.runFor(1000);
+  await install.click();
+  await assertCopyLabel(install, copied);
+
+  assert.deepEqual(await page.evaluate(() => window.copiedCommands), [
+    'composer require --dev greenlight/greenlight',
+    'mkdir -p src tests\ncomposer dump-autoload',
+    'composer require --dev greenlight/greenlight',
+  ]);
+
+  await page.clock.runFor(1000);
+  await assertCopyLabel(install, copied);
+  await page.clock.runFor(1000);
+  await assertCopyLabel(directories, idle);
+  await assertCopyLabel(install, copied);
+  await page.clock.runFor(1000);
+  await assertCopyLabel(install, idle);
+});
+
+for (const clipboard of ['absent', 'denied']) {
+  test(`copy controls use the fallback when clipboard access is ${clipboard}`, async (t) => {
+    const page = await openDocumentation(t);
+    await page.evaluate((mode) => {
+      window.clipboardAttempts = 0;
+      window.fallbackCopies = [];
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: mode === 'absent' ? undefined : {
+          writeText: async () => {
+            window.clipboardAttempts += 1;
+            throw new DOMException('Clipboard access denied.', 'NotAllowedError');
+          },
+        },
+      });
+      document.execCommand = (command) => {
+        const input = document.activeElement;
+        window.fallbackCopies.push({
+          command,
+          text: input.value.slice(input.selectionStart, input.selectionEnd),
+        });
+        return true;
+      };
+    }, clipboard);
+
+    const button = page.locator('.docs-command .command-copy').first();
+    await button.click();
+    await assertCopyLabel(button, 'The clipboard contains the command.');
+
+    assert.deepEqual(await page.evaluate(() => window.fallbackCopies), [{
+      command: 'copy',
+      text: 'composer require --dev greenlight/greenlight',
+    }]);
+    assert.equal(await page.evaluate(() => window.clipboardAttempts), clipboard === 'absent' ? 0 : 1);
+    assert.equal(await page.locator('textarea').count(), 0);
+    assert.equal(await button.evaluate((element) => element === document.activeElement), true);
+  });
+}
+
+test('a failed copy reports the error and permits a successful retry', async (t) => {
+  const page = await openDocumentation(t);
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined });
+    document.execCommand = () => false;
+  });
+  const button = page.locator('.docs-command .command-copy').first();
+  await button.click();
+  await assertCopyLabel(button, 'Copy failed. Try again.');
+  assert.equal(await page.locator('textarea').count(), 0);
+  assert.equal(await button.evaluate((element) => element === document.activeElement), true);
+
+  await page.evaluate(() => {
+    document.execCommand = () => true;
+  });
+  await button.click();
+  await assertCopyLabel(button, 'The clipboard contains the command.');
+  assert.equal(await page.locator('textarea').count(), 0);
+});
+
 test('keyboard focus has sufficient contrast on documentation controls', async (t) => {
   const page = await openDocumentation(t);
   await page.keyboard.press('Tab');
