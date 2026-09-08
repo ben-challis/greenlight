@@ -1,4 +1,3 @@
-const copyResetTimers = new WeakMap<HTMLButtonElement, number>();
 const svgNamespace = 'http://www.w3.org/2000/svg';
 
 type CopyState = 'idle' | 'copied' | 'error';
@@ -111,11 +110,11 @@ function enhanceCopyCommand(container: HTMLElement): void {
   button.setAttribute('aria-live', 'polite');
   setCopyState(button, 'idle');
 
-  button.addEventListener('click', async () => {
-    const existingTimer = copyResetTimers.get(button);
+  let resetTimer: number | undefined;
 
-    if (existingTimer !== undefined) {
-      window.clearTimeout(existingTimer);
+  button.addEventListener('click', async () => {
+    if (resetTimer !== undefined) {
+      window.clearTimeout(resetTimer);
     }
 
     try {
@@ -125,13 +124,10 @@ function enhanceCopyCommand(container: HTMLElement): void {
       setCopyState(button, 'error');
     }
 
-    copyResetTimers.set(
-      button,
-      window.setTimeout(() => {
-        setCopyState(button, 'idle');
-        copyResetTimers.delete(button);
-      }, 3000),
-    );
+    resetTimer = window.setTimeout(() => {
+      setCopyState(button, 'idle');
+      resetTimer = undefined;
+    }, 3000);
   });
 
   container.append(button);
