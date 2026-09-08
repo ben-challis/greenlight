@@ -60,13 +60,31 @@ calls.
 
 `TestExecutor` makes the current attempt's absolute monotonic deadline
 available before it constructs the test. It clears the deadline after per-test
-teardown. A temporal expectation uses the first applicable deadline. This
-deadline is the earlier of its own deadline and the test deadline.
+teardown. Each temporal matcher resolves the active deadlines when it runs.
+This rule also applies to an expectation constructed before the matcher call.
 
-If the test deadline comes first, the failure includes the requested poll
-duration. Greenlight cannot interrupt a blocked probe. Therefore, the
-process-pool orchestrator timeout remains the hard limit. An in-process run
-cannot forcibly stop a blocked probe.
+A temporal expectation uses the earliest applicable deadline from these sources:
+
+* Its own wait or observation period
+* An enclosing temporal expectation
+* The current test attempt
+
+The enclosing deadline applies to nested expectations in probes and matchers.
+For `consistently()`, the first observation uses only the inherited deadlines.
+Its own observation period starts after the first successful observation.
+
+Each Fiber has a separate enclosing deadline scope. Main execution has its own
+scope. A new Fiber does not inherit another Fiber's enclosing deadline.
+The test deadline applies to all Fibers in the attempt. Each observation restores
+its previous scope, including when it throws. Each attempt starts with empty scopes.
+
+If an inherited deadline comes first, the failure identifies the test or
+enclosing expectation and includes the requested duration. A test deadline takes
+precedence when both inherited deadlines are equal.
+
+Deadline scopes do not schedule or interrupt Fibers. Greenlight cannot interrupt
+a blocked probe. For tests with a configured timeout, the process-pool orchestrator
+enforces a separate process limit. An in-process run cannot forcibly stop a blocked probe.
 
 Each test retry has a new instance, scope, deadline, and observation log. With
 `ext-pcntl` available, the first interrupt signal still lets active tests

@@ -28,7 +28,6 @@ final class EventuallyExpectation extends TemporalExpectation
     private function __construct(
         \Closure $probe,
         PollingClock $clock,
-        ?float $attemptDeadline,
         float $intervalSeconds,
         private readonly float $withinSeconds,
         private readonly array $retryOnExceptions,
@@ -38,7 +37,6 @@ final class EventuallyExpectation extends TemporalExpectation
         parent::__construct(
             $probe,
             $clock,
-            $attemptDeadline,
             $intervalSeconds,
             $renderer,
             $extensions,
@@ -59,7 +57,6 @@ final class EventuallyExpectation extends TemporalExpectation
     public static function create(
         \Closure $probe,
         PollingClock $clock,
-        ?float $attemptDeadline,
         float $intervalSeconds,
         float $withinSeconds,
         array $retryOnExceptions,
@@ -69,7 +66,6 @@ final class EventuallyExpectation extends TemporalExpectation
         return new self(
             $probe,
             $clock,
-            $attemptDeadline,
             $intervalSeconds,
             $withinSeconds,
             $retryOnExceptions,
@@ -94,21 +90,19 @@ final class EventuallyExpectation extends TemporalExpectation
         ?SourceLocation $location,
     ): Expectation {
         $startedAt = $this->clock->now();
-        $requestedDeadline = $startedAt + $this->withinSeconds;
-        $deadline = $this->attemptDeadline === null
-            ? $requestedDeadline
-            : \min($requestedDeadline, $this->attemptDeadline);
-        $truncatedByTest = $deadline < $requestedDeadline;
+        $deadline = TemporalDeadline::forWait($startedAt + $this->withinSeconds);
         $observations = new ObservationLog($startedAt);
         $last = null;
         $lastFailure = null;
         $counted = false;
 
-        if ($deadline <= $startedAt) {
+        if ($deadline->time <= $startedAt) {
             ExpectationCounter::increment();
             $this->failure(
                 \sprintf(
-                    'No time remains for the requested %.3f-second eventually() wait.',
+                    $deadline->source === TemporalDeadlineSource::Enclosing
+                        ? 'The enclosing expectation time limit left no time for the requested %.3f-second eventually() wait.'
+                        : 'No time remains for the requested %.3f-second eventually() wait.',
                     $this->withinSeconds,
                 ),
                 $observations,
@@ -119,7 +113,10 @@ final class EventuallyExpectation extends TemporalExpectation
         }
 
         while (true) {
-            $last = $this->observe($matcher, $negated, $reason, $this->retryOnExceptions);
+            $last = ExpectationRuntime::withDeadline(
+                $deadline->time,
+                fn(): TemporalObservation => $this->observe($matcher, $negated, $reason, $this->retryOnExceptions),
+            );
             $observedAt = $this->clock->now();
             $observations->record($observedAt, $last->rendered);
 
@@ -128,7 +125,7 @@ final class EventuallyExpectation extends TemporalExpectation
                 $counted = true;
             }
 
-            if ($last->matched && $observedAt <= $deadline) {
+            if ($last->matched && $observedAt <= $deadline->time) {
                 if (!$last instanceof TemporalValueObservation) {
                     throw new \LogicException('A matched temporal observation must contain a subject.');
                 }
@@ -140,22 +137,28 @@ final class EventuallyExpectation extends TemporalExpectation
                 $lastFailure = $last->failure;
             }
 
-            if ($observedAt >= $deadline) {
-                $summary = $truncatedByTest
-                    ? \sprintf(
+            if ($observedAt >= $deadline->time) {
+                $summary = match ($deadline->source) {
+                    TemporalDeadlineSource::Test => \sprintf(
                         'The test time limit stopped the eventually() expectation after %d observations. The requested wait was %.3f seconds.',
                         $observations->count(),
                         $this->withinSeconds,
-                    )
-                    : \sprintf(
+                    ),
+                    TemporalDeadlineSource::Enclosing => \sprintf(
+                        'The enclosing expectation time limit stopped the eventually() expectation after %d observations. The requested wait was %.3f seconds.',
+                        $observations->count(),
+                        $this->withinSeconds,
+                    ),
+                    TemporalDeadlineSource::Local => \sprintf(
                         'The eventually() expectation did not pass within %.3f seconds after %d observations.',
                         $this->withinSeconds,
                         $observations->count(),
-                    );
+                    ),
+                };
                 $this->failure($summary, $observations, $last, $lastFailure, $location);
             }
 
-            $this->sleepUntil(\min($observedAt + $this->intervalSeconds, $deadline));
+            $this->sleepUntil(\min($observedAt + $this->intervalSeconds, $deadline->time));
         }
     }
 }

@@ -30,7 +30,6 @@ final class PendingEventually
     private function __construct(
         private readonly \Closure $probe,
         private readonly PollingClock $clock,
-        private readonly ?float $attemptDeadline,
         private readonly ValueRenderer $renderer,
         private readonly array $extensions,
     ) {}
@@ -48,11 +47,10 @@ final class PendingEventually
     public static function create(
         \Closure $probe,
         PollingClock $clock,
-        ?float $attemptDeadline,
         ValueRenderer $renderer,
         array $extensions,
     ): self {
-        return new self($probe, $clock, $attemptDeadline, $renderer, $extensions);
+        return new self($probe, $clock, $renderer, $extensions);
     }
 
     /**
@@ -99,7 +97,6 @@ final class PendingEventually
         return EventuallyExpectation::create(
             $this->probe,
             $this->clock,
-            $this->attemptDeadline,
             $this->intervalSeconds,
             $seconds,
             $this->retryOnExceptions,
