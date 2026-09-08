@@ -407,6 +407,15 @@ jobs:
           path: "build/greenlight-state/run-state.json"
           key: "greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-${{ github.run_id }}-${{ github.run_attempt }}"
 
+      - name: "Save test results"
+        if: "${{ !cancelled() && matrix.analytics == true && steps.tests_analytics.outcome != 'skipped' }}"
+        uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # v7.0.1
+        with:
+          name: "test-results-php-${{ matrix.php-version }}-${{ matrix.dependencies }}"
+          path: "build/test-results/greenlight.junit.xml"
+          if-no-files-found: "error"
+          retention-days: 30
+
       - name: "Upload test results to Codecov"
         if: "${{ !cancelled() && matrix.analytics == true }}"
         continue-on-error: true
