@@ -58,7 +58,7 @@ final readonly class ExpectTest
     #[Test]
     public function chainsCreatedBeforeAnInstallKeepTheirExtensions(): void
     {
-        Expect::install([new EvenNumbersExtension()]);
+        $this->cleanup->defer(Expect::install([new EvenNumbersExtension()]));
         $chain = Expect::that(4);
         Expect::install([]);
 
@@ -72,6 +72,7 @@ final readonly class ExpectTest
     public function installReturnsCleanupThatRestoresThePreviousExtensions(): void
     {
         $restoreEmpty = Expect::install([new EvenNumbersExtension()]);
+        $this->cleanup->defer($restoreEmpty);
         $restoreEvenNumbers = Expect::install([]);
 
         $restoreEvenNumbers();
