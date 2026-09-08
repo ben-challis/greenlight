@@ -67,6 +67,7 @@ final class PriceTest
         <h2>Tests stay plain PHP.</h2>
         <p>
           Use ordinary classes, native attributes, and typed expectations.
+          This example uses a <code>Price</code> class from the application under test.
         </p>
         <a class="text-link" href={sitePath('docs/getting-started/')}>Write your first test</a>
       </div>
@@ -99,7 +100,7 @@ final class PriceTest
           <span>02</span>
           <div>
             <h3>Assign work to available workers</h3>
-            <p>The orchestrator assigns one scheduling unit to each available worker. Greenlight starts known slow classes and previously failed classes early.</p>
+            <p>The orchestrator assigns one scheduling unit to each available worker. Without randomized order, saved run state puts previously failed classes first and known slow classes next.</p>
           </div>
         </li>
         <li>
