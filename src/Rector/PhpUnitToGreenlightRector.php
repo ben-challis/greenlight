@@ -960,7 +960,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     }
 
     /**
-     * @param array<Arg|Node\VariadicPlaceholder> $args
+     * @param array<Node> $args
      *
      * @return list<Arg>|null Null if an argument is named, unpacked, or a
      *                        first-class callable placeholder

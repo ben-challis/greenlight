@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Rector\Caching\ValueObject\Storage\FileCacheStorage;
+use Rector\CodeQuality\Rector\Concat\DirnameDirConcatStringToDirectStringPathRector;
 use Rector\Config\RectorConfig;
 use Rector\Configuration\RectorConfigBuilder;
 use Rector\DeadCode\Rector\ClassMethod\RemoveEmptyClassMethodRector;
@@ -26,6 +27,8 @@ function greenlightRectorConfig(
             cacheClass: FileCacheStorage::class,
         )
         ->withSkip([
+            // Preserve paths without parent-directory segments for exact path comparisons.
+            DirnameDirConcatStringToDirectStringPathRector::class,
             // Empty test methods and hooks have a purpose in a test framework.
             RemoveEmptyClassMethodRector::class,
             ...$additionalSkips,
