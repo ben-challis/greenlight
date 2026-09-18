@@ -14,9 +14,10 @@ use Greenlight\Config\CoverageBuilder;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\WorkerCount;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\TestInclusions;
 use Greenlight\Test\TestSelection;
+
+use function Greenlight\expect;
 
 /**
  * Covers each option that a command-line value can replace. It tests default,
@@ -28,12 +29,12 @@ final class PrecedenceMatrixTest
     #[Test]
     public function workersPrecedence(): void
     {
-        Expect::value($this->resolve()->workers->count->isAuto())->because('worker options use the required precedence')->toBeTrue();
-        Expect::value(
+        expect($this->resolve()->workers->count->isAuto())->because('worker options use the required precedence')->toBeTrue();
+        expect(
             $this->resolve(config: static fn(GreenlightConfig $c) => $c->workers(count: 4))->workers->count->fixed,
         )->because('worker options use the required precedence')->toBe(4);
-        Expect::value($this->resolve(cli: new CliOverrides(execution: new ExecutionOverrides(workers: WorkerCount::exactly(2))))->workers->count->fixed)->because('worker options use the required precedence')->toBe(2);
-        Expect::value(
+        expect($this->resolve(cli: new CliOverrides(execution: new ExecutionOverrides(workers: WorkerCount::exactly(2))))->workers->count->fixed)->because('worker options use the required precedence')->toBe(2);
+        expect(
             $this->resolve(config: static fn(GreenlightConfig $c) => $c->workers(count: 4), cli: new CliOverrides(execution: new ExecutionOverrides(workers: WorkerCount::exactly(2))))->workers->count->fixed,
         )->because('worker options use the required precedence')->toBe(2);
     }
@@ -41,12 +42,12 @@ final class PrecedenceMatrixTest
     #[Test]
     public function stopAfterFailuresPrecedence(): void
     {
-        Expect::value($this->resolve()->execution->stopAfterFailures)->because('stop-limit options use the required precedence')->toBe(null);
-        Expect::value(
+        expect($this->resolve()->execution->stopAfterFailures)->because('stop-limit options use the required precedence')->toBe(null);
+        expect(
             $this->resolve(config: static fn(GreenlightConfig $c) => $c->failFast())->execution->stopAfterFailures,
         )->because('stop-limit options use the required precedence')->toBe(1);
-        Expect::value($this->resolve(cli: new CliOverrides(execution: new ExecutionOverrides(stopAfterFailures: 3)))->execution->stopAfterFailures)->because('stop-limit options use the required precedence')->toBe(3);
-        Expect::value(
+        expect($this->resolve(cli: new CliOverrides(execution: new ExecutionOverrides(stopAfterFailures: 3)))->execution->stopAfterFailures)->because('stop-limit options use the required precedence')->toBe(3);
+        expect(
             $this->resolve(config: static fn(GreenlightConfig $c) => $c->failFast(), cli: new CliOverrides(execution: new ExecutionOverrides(stopAfterFailures: 3)))->execution->stopAfterFailures,
         )->because('stop-limit options use the required precedence')->toBe(3);
     }
@@ -55,20 +56,20 @@ final class PrecedenceMatrixTest
     public function randomOrderAndSeedPrecedence(): void
     {
         $default = $this->resolve();
-        Expect::value($default->order->isRandomized())->because('random order and seed options use the required precedence')->toBe(false);
-        Expect::value($default->order->seed)->because('random order and seed options use the required precedence')->toBe(null);
+        expect($default->order->isRandomized())->because('random order and seed options use the required precedence')->toBe(false);
+        expect($default->order->seed)->because('random order and seed options use the required precedence')->toBe(null);
 
         $configOnly = $this->resolve(config: static fn(GreenlightConfig $c) => $c->randomizeOrder(seed: 11));
-        Expect::value($configOnly->order->isRandomized())->because('random order and seed options use the required precedence')->toBe(true);
-        Expect::value($configOnly->order->seed)->because('random order and seed options use the required precedence')->toBe(11);
+        expect($configOnly->order->isRandomized())->because('random order and seed options use the required precedence')->toBe(true);
+        expect($configOnly->order->seed)->because('random order and seed options use the required precedence')->toBe(11);
 
         $cliOnly = $this->resolve(cli: new CliOverrides(seed: 22));
-        Expect::value($cliOnly->order->isRandomized())->because('random order and seed options use the required precedence')->toBe(true);
-        Expect::value($cliOnly->order->seed)->because('random order and seed options use the required precedence')->toBe(22);
+        expect($cliOnly->order->isRandomized())->because('random order and seed options use the required precedence')->toBe(true);
+        expect($cliOnly->order->seed)->because('random order and seed options use the required precedence')->toBe(22);
 
         $both = $this->resolve(config: static fn(GreenlightConfig $c) => $c->randomizeOrder(seed: 11), cli: new CliOverrides(seed: 22));
-        Expect::value($both->order->isRandomized())->because('random order and seed options use the required precedence')->toBe(true);
-        Expect::value($both->order->seed)->because('random order and seed options use the required precedence')->toBe(22);
+        expect($both->order->isRandomized())->because('random order and seed options use the required precedence')->toBe(true);
+        expect($both->order->seed)->because('random order and seed options use the required precedence')->toBe(22);
     }
 
     #[Test]
@@ -76,8 +77,8 @@ final class PrecedenceMatrixTest
     {
         $resolved = $this->resolve(config: static fn(GreenlightConfig $c) => $c->randomizeOrder());
 
-        Expect::value($resolved->order->isRandomized())->because('randomize order without a seed chooses one at resolve time')->toBeTrue();
-        Expect::value($resolved->order->seed)->because('randomize order without a seed chooses one at resolve time')->not()->toBeNull();
+        expect($resolved->order->isRandomized())->because('randomize order without a seed chooses one at resolve time')->toBeTrue();
+        expect($resolved->order->seed)->because('randomize order without a seed chooses one at resolve time')->not()->toBeNull();
     }
 
     #[Test]
@@ -85,29 +86,29 @@ final class PrecedenceMatrixTest
     {
         $resolved = $this->resolve(config: static fn(GreenlightConfig $c) => $c->randomizeOrder(), cli: new CliOverrides(seed: 77));
 
-        Expect::value($resolved->order->seed)->because('an explicit command line seed still overrides an auto chosen one')->toBe(77);
+        expect($resolved->order->seed)->because('an explicit command line seed still overrides an auto chosen one')->toBe(77);
     }
 
     #[Test]
     public function groupsPrecedence(): void
     {
-        Expect::value($this->resolve()->selection->include->groups)->because('group options use the required precedence')->toBe([]);
-        Expect::value($this->resolve(cli: new CliOverrides(selection: new TestSelection(include: new TestInclusions(groups: ['slow']))))->selection->include->groups)->because('group options use the required precedence')->toBe(['slow']);
+        expect($this->resolve()->selection->include->groups)->because('group options use the required precedence')->toBe([]);
+        expect($this->resolve(cli: new CliOverrides(selection: new TestSelection(include: new TestInclusions(groups: ['slow']))))->selection->include->groups)->because('group options use the required precedence')->toBe(['slow']);
     }
 
     #[Test]
     public function artifactDirectoryPrecedence(): void
     {
-        Expect::value($this->resolve()->execution->artifacts->directory)->because('artifact directory options use the required precedence')->toBe('build/greenlight-artifacts');
-        Expect::value(
+        expect($this->resolve()->execution->artifacts->directory)->because('artifact directory options use the required precedence')->toBe('build/greenlight-artifacts');
+        expect(
             $this->resolve(config: static fn(GreenlightConfig $c) => $c
                 ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->directory('build/config-evidence')))
                 ->execution->artifacts->directory,
         )->because('artifact directory options use the required precedence')->toBe('build/config-evidence');
-        Expect::value(
+        expect(
             $this->resolve(cli: new CliOverrides(execution: new ExecutionOverrides(artifactsDirectory: 'build/cli-evidence')))->execution->artifacts->directory,
         )->because('artifact directory options use the required precedence')->toBe('build/cli-evidence');
-        Expect::value(
+        expect(
             $this->resolve(
                 config: static fn(GreenlightConfig $c) => $c
                     ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->directory('build/config-evidence')),
@@ -124,7 +125,7 @@ final class PrecedenceMatrixTest
             cli: new CliOverrides(execution: new ExecutionOverrides(resourceLimits: ['postgres' => 1])),
         );
 
-        Expect::value($resolved->workers->resourceLimits)->because('resource limit precedence merges by name')->toBe(['postgres' => 1, 'redis' => 2]);
+        expect($resolved->workers->resourceLimits)->because('resource limit precedence merges by name')->toBe(['postgres' => 1, 'redis' => 2]);
     }
 
     #[Test]
@@ -137,13 +138,13 @@ final class PrecedenceMatrixTest
             cli: new CliOverrides(coverage: new CoverageOverrides(95.5, 2, true)),
         );
 
-        Expect::value($resolved->coverage?->minimumPercentage)
+        expect($resolved->coverage?->minimumPercentage)
             ->because('the command-line minimum coverage MUST replace the configured value')
             ->toBe(95.5);
-        Expect::value($resolved->coverage?->maximumUncoveredLines)
+        expect($resolved->coverage?->maximumUncoveredLines)
             ->because('the command-line uncovered-line maximum MUST replace the configured value')
             ->toBe(2);
-        Expect::value($resolved->coverage?->requireDriver)
+        expect($resolved->coverage?->requireDriver)
             ->because('the command line can require a coverage driver')
             ->toBeTrue();
     }
@@ -153,7 +154,7 @@ final class PrecedenceMatrixTest
     {
         $resolved = $this->resolve(cli: new CliOverrides(coverage: new CoverageOverrides(minimumPercentage: 80.0)));
 
-        Expect::value($resolved->coverage?->minimumPercentage)
+        expect($resolved->coverage?->minimumPercentage)
             ->because('a command-line coverage gate needs coverage collection')
             ->toBe(80.0);
     }
@@ -168,7 +169,7 @@ final class PrecedenceMatrixTest
                 seed: 1,
             ));
 
-        Expect::value($resolved->discovery->paths)->because('settings without flags use the configuration file')->toBe(['tests/Only']);
+        expect($resolved->discovery->paths)->because('settings without flags use the configuration file')->toBe(['tests/Only']);
     }
 
     /**

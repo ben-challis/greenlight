@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\ProjectFiles;
+
+use function Greenlight\expect;
 
 final readonly class ProseCheckDirectoryExclusionTest
 {
@@ -38,7 +39,7 @@ final readonly class ProseCheckDirectoryExclusionTest
                 '--root=' . $project->directory,
             ]);
 
-            Expect::value($result->exitCode)->because('excluded directories do not need read access')->toBe(0);
+            expect($result->exitCode)->because('excluded directories do not need read access')->toBe(0);
         } finally {
             foreach ($directories as $directory) {
                 \chmod($project->path($directory), 0o755);

@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class Psr15RunTest
 {
@@ -21,10 +22,10 @@ final readonly class Psr15RunTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--workers=1']);
 
         $output = $result->output();
-        Expect::value($result->exitCode)
+        expect($result->exitCode)
             ->because($output === '' ? 'the PSR-15 acceptance run has no output' : $output)
             ->toBe(0);
-        Expect::value($result->output())->toContain('2 tests, 2 passed');
+        expect($result->output())->toContain('2 tests, 2 passed');
     }
 
     private function writeProject(): AcceptanceProject
@@ -124,10 +125,11 @@ final readonly class Psr15RunTest
             namespace Psr15Probe;
 
             use Greenlight\Attribute\Test;
-            use Greenlight\Expect\Expect;
             use Greenlight\Psr15\HttpHarness;
             use Laminas\Diactoros\ServerRequest;
             use Psr\Http\Message\ResponseInterface;
+
+            use function Greenlight\expect;
 
             final readonly class MezzioTest
             {
@@ -155,9 +157,9 @@ final readonly class Psr15RunTest
 
                 private function expectResponse(ResponseInterface $response, string $body): void
                 {
-                    Expect::value($response->getStatusCode())->toBe(200);
-                    Expect::value($response->getHeaderLine('Content-Type'))->toBe('application/json');
-                    Expect::value((string) $response->getBody())->toBe($body);
+                    expect($response->getStatusCode())->toBe(200);
+                    expect($response->getHeaderLine('Content-Type'))->toBe('application/json');
+                    expect((string) $response->getBody())->toBe($body);
                 }
             }
 

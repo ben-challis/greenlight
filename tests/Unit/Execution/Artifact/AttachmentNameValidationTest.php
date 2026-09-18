@@ -11,10 +11,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class AttachmentNameValidationTest
 {
@@ -39,16 +40,16 @@ final readonly class AttachmentNameValidationTest
 
         $attachments->text($name, 'body');
 
-        Expect::value(\array_map(
+        expect(\array_map(
             static fn(StagedAttachment $attachment): string => $attachment->name,
             $attachments->collected(),
         ))
             ->because('an attachment name MAY contain 120 bytes')
             ->toBe([$name]);
-        Expect::value($budget->attachments)
+        expect($budget->attachments)
             ->because('a valid attachment MUST consume one shared attachment slot')
             ->toBe(1);
-        Expect::value($budget->bytes)
+        expect($budget->bytes)
             ->because('a valid attachment MUST consume its bytes from the shared budget')
             ->toBe(4);
     }
@@ -67,7 +68,7 @@ final readonly class AttachmentNameValidationTest
             $budget,
         );
 
-        Expect::calling(static fn() => $attachments->text($name, 'body'))
+        expect()->calling(static fn() => $attachments->text($name, 'body'))
             ->because('an unsafe attachment name MUST fail before staging')
             ->toThrow(
                 AttachmentError::class,
@@ -76,15 +77,15 @@ final readonly class AttachmentNameValidationTest
                     $name,
                 ),
             );
-        Expect::value($attachments->collected())
+        expect($attachments->collected())
             ->toBe([]);
-        Expect::value($budget->attachments)
+        expect($budget->attachments)
             ->because('an unsafe attachment name MUST NOT consume an attachment slot')
             ->toBe(0);
-        Expect::value($budget->bytes)
+        expect($budget->bytes)
             ->because('an unsafe attachment name MUST NOT consume the byte budget')
             ->toBe(0);
-        Expect::value(\file_exists($store->session()->stagingDirectory))
+        expect(\file_exists($store->session()->stagingDirectory))
             ->toBeFalse();
     }
 

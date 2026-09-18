@@ -8,7 +8,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\HtmlExporter;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class HtmlExporterInvalidUtf8PathTest
 {
@@ -24,11 +25,11 @@ final readonly class HtmlExporterInvalidUtf8PathTest
         $file = $pages[HtmlExporter::pageName($path)];
         $scrubbed = "/src/\u{FFFD}.php";
 
-        Expect::value($index)
+        expect($index)
             ->because('the HTML index MUST scrub invalid UTF-8 in file-system paths')
             ->toContain($scrubbed)
             ->toMatch('//u');
-        Expect::value($file)
+        expect($file)
             ->because('the HTML file page MUST scrub invalid UTF-8 in its title')
             ->toContain('<h1>' . $scrubbed . '</h1>')
             ->toMatch('//u');

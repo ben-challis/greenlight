@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Laravel;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\SourceOnlyPhp;
+
+use function Greenlight\expect;
 
 final readonly class LaravelFrameworkUnavailableTest
 {
@@ -34,10 +35,10 @@ final readonly class LaravelFrameworkUnavailableTest
             PHP,
         ));
 
-        Expect::value($result->exitCode)
+        expect($result->exitCode)
             ->because('the public framework probe MUST reject an installation without Laravel')
             ->toBe(0);
-        Expect::value($result->stdout)
+        expect($result->stdout)
             ->because('the error MUST explain how to install the required Laravel framework')
             ->toBe(
                 'The Laravel framework is not available. LaravelPlugin requires the complete '

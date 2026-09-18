@@ -6,17 +6,18 @@ namespace Greenlight\Tests\Unit\IntegrationFixture;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\FixtureResource;
 use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Internal\Wire\InvalidWirePayload;
+
+use function Greenlight\expect;
 
 final readonly class IntegrationResourcesValidationTest
 {
     #[Test]
     public function wireInputRejectsNonUtf8FixtureIdsAtTheWireBoundary(): void
     {
-        Expect::calling(static fn(): IntegrationResources => IntegrationResources::fromWire([
+        expect()->calling(static fn(): IntegrationResources => IntegrationResources::fromWire([
             'fixtures' => [
                 "\xB1\x31" => [
                     'values' => [],
@@ -36,7 +37,7 @@ final readonly class IntegrationResourcesValidationTest
     {
         $resources = IntegrationResources::empty();
 
-        Expect::calling(static fn() => $resources->fixture('database'))
+        expect()->calling(static fn() => $resources->fixture('database'))
             ->because('a worker MUST identify a fixture that is not available to its channel')
             ->toThrow(
                 \OutOfBoundsException::class,
@@ -53,7 +54,7 @@ final readonly class IntegrationResourcesValidationTest
     {
         $resources = new \ReflectionClass(IntegrationResources::class);
 
-        Expect::calling(static fn(): object => $resources->newInstance($fixtures))
+        expect()->calling(static fn(): object => $resources->newInstance($fixtures))
             ->because('integration resources MUST validate runtime fixture maps at their boundary')
             ->toThrow(
                 \InvalidArgumentException::class,

@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Config;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactBuilder;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ArtifactBuilderMinimumCountsTest
 {
@@ -18,10 +19,10 @@ final class ArtifactBuilderMinimumCountsTest
             ->maxRunAttachments(1)
             ->toConfiguration();
 
-        Expect::value($configuration->maxAttachmentsPerTest)
+        expect($configuration->maxAttachmentsPerTest)
             ->because('the per-test artifact limit MUST accept its documented minimum')
             ->toBe(1);
-        Expect::value($configuration->maxRunAttachments)
+        expect($configuration->maxRunAttachments)
             ->because('the per-run artifact limit MUST accept its documented minimum')
             ->toBe(1);
     }

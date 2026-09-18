@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Internal\Php;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
+
+use function Greenlight\expect;
 
 final class ErrorTrapTest
 {
@@ -17,10 +18,10 @@ final class ErrorTrapTest
 
         $value = ErrorTrap::run(static fn() => 'result', $warning);
 
-        Expect::value($value)
+        expect($value)
             ->because('the trapped operation return value MUST be preserved')
             ->toBe('result');
-        Expect::value($warning)
+        expect($warning)
             ->because('a trapped operation without a diagnostic MUST clear an earlier warning')
             ->toBeNull();
     }
@@ -33,7 +34,7 @@ final class ErrorTrapTest
             \trigger_error('last warning', \E_USER_WARNING);
         }, $warning);
 
-        Expect::value($warning)
+        expect($warning)
             ->because('the trap MUST keep the last diagnostic message')
             ->toBe('last warning');
     }
@@ -54,10 +55,10 @@ final class ErrorTrapTest
                 \trigger_error('trapped warning', \E_USER_WARNING);
             }, $warning);
 
-            Expect::value($warning)
+            expect($warning)
                 ->because('the trap MUST retain the diagnostic for its caller')
                 ->toBe('trapped warning');
-            Expect::value($handled)
+            expect($handled)
                 ->because('the trap MUST NOT send the diagnostic to the host error handler')
                 ->toBe([]);
         } finally {
@@ -78,10 +79,10 @@ final class ErrorTrapTest
             \trigger_error('outer after inner', \E_USER_WARNING);
         }, $outerWarning);
 
-        Expect::value($innerWarning)
+        expect($innerWarning)
             ->because('the inner trap MUST capture its own diagnostic')
             ->toBe('inner warning');
-        Expect::value($outerWarning)
+        expect($outerWarning)
             ->because('the outer trap MUST resume after the inner trap')
             ->toBe('outer after inner');
     }
@@ -99,7 +100,7 @@ final class ErrorTrapTest
         });
 
         try {
-            Expect::calling(static fn(): mixed => ErrorTrap::run(
+            expect()->calling(static fn(): mixed => ErrorTrap::run(
                 static fn() => throw $failure,
             ))
                 ->because('the trap MUST propagate an operation error')
@@ -107,7 +108,7 @@ final class ErrorTrapTest
 
             \trigger_error('after trap', \E_USER_WARNING);
 
-            Expect::value($handled)
+            expect($handled)
                 ->because('the trap MUST restore the previous handler after an operation error')
                 ->toBe([\E_USER_WARNING, 'after trap']);
         } finally {
@@ -128,7 +129,7 @@ final class ErrorTrapTest
         });
 
         try {
-            Expect::calling(static fn(): mixed => ErrorTrap::run(
+            expect()->calling(static fn(): mixed => ErrorTrap::run(
                 operation: static fn() => throw $failure,
                 wrap: static function (\Throwable $cause): \Throwable {
                     \trigger_error('wrap warning', \E_USER_WARNING);
@@ -139,14 +140,14 @@ final class ErrorTrapTest
                 ->because('the trap MUST replace an operation error after it restores the previous handler')
                 ->toThrow(
                     static function (\LogicException $error) use ($failure): void {
-                        Expect::value($error->getMessage())->toBe('wrapped operation failure');
-                        Expect::value($error->getPrevious())
+                        expect($error->getMessage())->toBe('wrapped operation failure');
+                        expect($error->getPrevious())
                             ->because('the replacement error MUST preserve the operation error')
                             ->toBe($failure);
                     },
                 );
 
-            Expect::value($handled)
+            expect($handled)
                 ->because('the wrap callback MUST run after the trap restores the previous handler')
                 ->toBe([\E_USER_WARNING, 'wrap warning']);
         } finally {
@@ -169,19 +170,19 @@ final class ErrorTrapTest
                 \set_error_handler($second);
             });
 
-            Expect::value($this->activeErrorHandler())
+            expect($this->activeErrorHandler())
                 ->because('the trap MUST preserve the last handler installed by the operation')
                 ->toBe($second);
 
             \restore_error_handler();
 
-            Expect::value($this->activeErrorHandler())
+            expect($this->activeErrorHandler())
                 ->because('the trap MUST preserve installed handlers in their original order')
                 ->toBe($first);
 
             \restore_error_handler();
 
-            Expect::value($this->activeErrorHandler())
+            expect($this->activeErrorHandler())
                 ->because('restoring the installed handlers MUST reveal the pre-trap handler')
                 ->toBe($baseline);
         } finally {
@@ -201,7 +202,7 @@ final class ErrorTrapTest
                 \restore_error_handler();
             });
 
-            Expect::value($this->activeErrorHandler())
+            expect($this->activeErrorHandler())
                 ->because('trap cleanup MUST preserve the handler stack left by the operation')
                 ->toBe($baseline);
         } finally {

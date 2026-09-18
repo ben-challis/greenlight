@@ -8,10 +8,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Orchestrator\ServerSocket;
 use Greenlight\Execution\ProcessPool\Orchestrator\ServerSocketRuntime;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Execution\ProcessPool\Orchestrator\ControlledServerSocketRuntime;
 use Greenlight\Tests\Fixture\Execution\ProcessPool\Orchestrator\TruncatingServerSocketRuntime;
+
+use function Greenlight\expect;
 
 final readonly class ServerSocketFailureTest
 {
@@ -22,14 +23,14 @@ final readonly class ServerSocketFailureTest
     {
         $runtime = new ControlledServerSocketRuntime(tcpOpens: false);
 
-        Expect::calling(static fn(): ServerSocket => ServerSocket::listen('/tmp', $runtime))
+        expect()->calling(static fn(): ServerSocket => ServerSocket::listen('/tmp', $runtime))
             ->because('failure of both listener transports MUST report the TCP failure')
             ->toThrow(
                 ProtocolError::class,
                 message: 'Malformed frame: Greenlight did not open an orchestrator socket: '
                     . 'the fixture rejected the TCP listener.',
             );
-        Expect::value($runtime->unixDirectoryExists())
+        expect($runtime->unixDirectoryExists())
             ->because('a failed Unix listener MUST remove its generated directory')
             ->toBeFalse();
     }
@@ -54,13 +55,13 @@ final readonly class ServerSocketFailureTest
             }
         };
 
-        Expect::calling(fn(): ServerSocket => ServerSocket::listen($this->tempDirectory->path(), $runtime))
+        expect()->calling(fn(): ServerSocket => ServerSocket::listen($this->tempDirectory->path(), $runtime))
             ->because('a listener throwable MUST not escape the worker protocol seam')
             ->toThrow(
                 static function (ProtocolError $error) use ($cause): void {
-                    Expect::value($error->getMessage())
+                    expect($error->getMessage())
                         ->toBe('Greenlight could not open the orchestrator socket.');
-                    Expect::value($error->getPrevious())
+                    expect($error->getPrevious())
                         ->because('the protocol error MUST preserve the listener error')
                         ->toBe($cause);
                 },
@@ -72,13 +73,13 @@ final readonly class ServerSocketFailureTest
     {
         $runtime = new ControlledServerSocketRuntime(tcpOpens: true);
 
-        Expect::calling(static fn(): ServerSocket => ServerSocket::listen('/tmp', $runtime))
+        expect()->calling(static fn(): ServerSocket => ServerSocket::listen('/tmp', $runtime))
             ->because('an unresolved listener address MUST reject the listener')
             ->toThrow(
                 ProtocolError::class,
                 message: 'Malformed frame: Greenlight did not resolve the orchestrator socket address.',
             );
-        Expect::value($runtime->tcpServerIsOpen())
+        expect($runtime->tcpServerIsOpen())
             ->because('an unresolved listener address MUST close its stream')
             ->toBeFalse();
     }
@@ -90,13 +91,13 @@ final readonly class ServerSocketFailureTest
         $socket = ServerSocket::listen($this->tempDirectory->path(), $runtime);
 
         try {
-            Expect::value($socket->address)
+            expect($socket->address)
                 ->because('a truncated Unix address MUST use the TCP listener')
                 ->toStartWith('tcp://127.0.0.1:');
-            Expect::value($runtime->unixServerIsOpen())
+            expect($runtime->unixServerIsOpen())
                 ->because('Greenlight MUST close a Unix listener that has a truncated address')
                 ->toBeFalse();
-            Expect::value($runtime->unixDirectoryExists())
+            expect($runtime->unixDirectoryExists())
                 ->because('Greenlight MUST remove the rejected Unix listener directory')
                 ->toBeFalse();
         } finally {

@@ -4,6 +4,8 @@ parametersSchema:
     ])
 
 parameters:
+    scanFiles:
+        - src/Expect/functions.php
     greenlight:
         configFiles: []
 
@@ -26,6 +28,10 @@ rules:
     - Greenlight\PhpStan\ToThrowConstraintRule
 
 services:
+    greenlight.expectFunctionReturnTypeExtension:
+        class: Greenlight\PhpStan\ExpectFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
     greenlight.argumentTypeCombinationReturnTypeExtension:
         class: Greenlight\PhpStan\ArgumentTypeCombinationReturnTypeExtension
         tags:

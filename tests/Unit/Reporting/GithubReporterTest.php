@@ -9,7 +9,6 @@ use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\GithubReporter;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
@@ -17,6 +16,8 @@ use Greenlight\Result\SourceLocation;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class GithubReporterTest
 {
@@ -32,7 +33,7 @@ final class GithubReporterTest
             ::warning title=Passed after retry::Acme\NetworkTest::retriesFlakyEndpoint passed after 3 attempts. This result is evidence of instability.
             TXT;
 
-        Expect::value($output->buffer())->because('canned stream renders problems and retried-pass warnings')->toBe($expected . "\n");
+        expect($output->buffer())->because('canned stream renders problems and retried-pass warnings')->toBe($expected . "\n");
     }
 
     #[Test]
@@ -59,7 +60,7 @@ final class GithubReporterTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::value($output->buffer())->because('message and property values are escaped per workflow command rules')->toBe(
+        expect($output->buffer())->because('message and property values are escaped per workflow command rules')->toBe(
             '::error file=/project/tests/a%3Ab%2Cc.php,line=3'
             . '::Acme\EscapeTest::escapes: 50%25 done%0Asecond line'
             . "\n",
@@ -95,7 +96,7 @@ final class GithubReporterTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::value($output->buffer())
+        expect($output->buffer())
             ->because('each failure detail MUST retain its location, diff, and workflow-command escaping')
             ->toBe(
                 '::error file=/project/tests/First%3ACase.php,line=11'
@@ -129,7 +130,7 @@ final class GithubReporterTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::value($output->buffer())
+        expect($output->buffer())
             ->because('a GitHub annotation MUST retain each available diff side independently')
             ->toBe('::error::Acme\PartialDiffTest::reports: Values differ.' . $diff . "\n");
     }
@@ -161,7 +162,7 @@ final class GithubReporterTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::value($output->buffer())
+        expect($output->buffer())
             ->because('an outcome without structured details still produces an annotation')
             ->toBe(
                 '::error::Acme\FallbackTest::reports: ' . $summary
@@ -202,7 +203,7 @@ final class GithubReporterTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::value($output->buffer())
+        expect($output->buffer())
             ->because('structured error annotations retain attachment paths')
             ->toBe(
                 '::error file=/project/tests/NetworkTest.php,line=17'

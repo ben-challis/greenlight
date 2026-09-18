@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\Event;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Event\EventCodec;
 use Greenlight\Internal\Event\EventCodecFailed;
 use Greenlight\Reporting\JsonLinesReporter;
@@ -17,6 +16,8 @@ use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\JsonWire;
+
+use function Greenlight\expect;
 
 final class JsonLinesReporterTest
 {
@@ -29,11 +30,11 @@ final class JsonLinesReporterTest
         $buffer = $output->buffer();
         $events = CannedStream::events();
 
-        Expect::value($buffer)->because('every event becomes one versioned line')->toEndWith("\n");
+        expect($buffer)->because('every event becomes one versioned line')->toEndWith("\n");
 
         $lines = \explode("\n", \rtrim($buffer, "\n"));
 
-        Expect::value($lines)->because('every event becomes one versioned line')->toHaveCount(\count($events));
+        expect($lines)->because('every event becomes one versioned line')->toHaveCount(\count($events));
 
         $tags = EventCodec::tags();
 
@@ -41,7 +42,7 @@ final class JsonLinesReporterTest
             $decoded = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
             $event = $events[$index];
 
-            Expect::value($decoded)->toHaveKey('v')
+            expect($decoded)->toHaveKey('v')
                 ->toHaveKey('event')
                 ->toHaveKey('data');
 
@@ -51,9 +52,9 @@ final class JsonLinesReporterTest
 
             $expectedData = JsonWire::roundTrip($event->toWire());
 
-            Expect::value($decoded['v'])->toBe(1);
-            Expect::value($decoded['event'])->toBe(\array_search($event::class, $tags, true));
-            Expect::value($decoded['data'])->toEqual($expectedData);
+            expect($decoded['v'])->toBe(1);
+            expect($decoded['event'])->toBe(\array_search($event::class, $tags, true));
+            expect($decoded['data'])->toEqual($expectedData);
         }
     }
 
@@ -68,8 +69,8 @@ final class JsonLinesReporterTest
         foreach (\explode("\n", \rtrim($output->buffer(), "\n")) as $index => $line) {
             $restored = EventCodec::decodeJsonLine($line);
 
-            Expect::value($restored::class)->toBe($events[$index]::class);
-            Expect::value($restored->occurredAt)->toBe($events[$index]->occurredAt);
+            expect($restored::class)->toBe($events[$index]::class);
+            expect($restored->occurredAt)->toBe($events[$index]->occurredAt);
         }
     }
 
@@ -81,7 +82,7 @@ final class JsonLinesReporterTest
 
         $lines = \explode("\n", $output->buffer());
 
-        Expect::value($lines[0])->because('first line matches the documented envelope shape')->toBe(
+        expect($lines[0])->because('first line matches the documented envelope shape')->toBe(
             '{"v":1,"event":"run-started","data":{"runId":"run-1","plannedTests":6,"workers":2,"occurredAt":1750000000.5,"artifactsDirectory":null}}',
         );
     }
@@ -97,10 +98,10 @@ final class JsonLinesReporterTest
             static fn(string $line): bool => \str_contains($line, 'retriesFlakyEndpoint'),
         ));
 
-        Expect::value($retried)
+        expect($retried)
             ->because('JSONL MUST retain retry evidence without a schema change')
             ->toHaveCount(2);
-        Expect::value($retried[1])
+        expect($retried[1])
             ->toContain('"outcome":"passed"')
             ->toContain('"attempts":3');
     }
@@ -114,7 +115,7 @@ final class JsonLinesReporterTest
             public float $occurredAt = 1.0;
         };
 
-        Expect::calling(static fn() => $reporter->onEvent($event))
+        expect()->calling(static fn() => $reporter->onEvent($event))
             ->because('a custom event only needs the public event interface and cannot enter JSONL')
             ->toThrow(
                 ReportGenerationFailed::class,
@@ -144,11 +145,11 @@ final class JsonLinesReporterTest
         $reporter = new JsonLinesReporter(new BufferOutput());
 
         try {
-            Expect::calling(static fn() => $reporter->onEvent($event))
+            expect()->calling(static fn() => $reporter->onEvent($event))
                 ->toThrow(static function (ReportGenerationFailed $failure): void {
-                    Expect::value($failure->getMessage())
+                    expect($failure->getMessage())
                         ->toBe('Greenlight could not encode the event as JSON.');
-                    Expect::value($failure->getPrevious())
+                    expect($failure->getPrevious())
                         ->toBeInstanceOf(EventCodecFailed::class);
                 });
         } finally {

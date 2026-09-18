@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Documentation\PhpExample\DocumentationExampleError;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class DocumentationExampleErrorTest
 {
@@ -19,9 +20,9 @@ final class DocumentationExampleErrorTest
     {
         $error = $createError();
 
-        Expect::value($error->getMessage())->toBe($expected);
-        Expect::value($error->getCode())->toBe(0);
-        Expect::value($error->getPrevious())->toBeNull();
+        expect($error->getMessage())->toBe($expected);
+        expect($error->getCode())->toBe(0);
+        expect($error->getPrevious())->toBeNull();
     }
 
     /** @return iterable<string, array{\Closure(): DocumentationExampleError, string}> */
@@ -219,11 +220,11 @@ final class DocumentationExampleErrorTest
         $previous = new \JsonException('Syntax error', \JSON_ERROR_SYNTAX);
         $error = DocumentationExampleError::invalidMetadataJson('docs/example.md', 12, $previous);
 
-        Expect::value($error->getMessage())->toBe(
+        expect($error->getMessage())->toBe(
             'docs/example.md:12: PHP example metadata is not valid JSON: Syntax error.',
         );
-        Expect::value($error->getCode())->toBe(\JSON_ERROR_SYNTAX);
-        Expect::value($error->getPrevious())->toBe($previous);
+        expect($error->getCode())->toBe(\JSON_ERROR_SYNTAX);
+        expect($error->getPrevious())->toBe($previous);
     }
 
     #[Test]
@@ -234,8 +235,8 @@ final class DocumentationExampleErrorTest
         $previous = new \JsonException('Syntax error', \JSON_ERROR_SYNTAX);
         $error = DocumentationExampleError::invalidToolJson('PHPStan', 'configuration', $previous, $stderr);
 
-        Expect::value($error->getMessage())->toBe($expected);
-        Expect::value($error->getCode())->toBe(\JSON_ERROR_SYNTAX);
-        Expect::value($error->getPrevious())->toBe($previous);
+        expect($error->getMessage())->toBe($expected);
+        expect($error->getCode())->toBe(\JSON_ERROR_SYNTAX);
+        expect($error->getPrevious())->toBe($previous);
     }
 }

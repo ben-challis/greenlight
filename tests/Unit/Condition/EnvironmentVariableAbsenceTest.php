@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Condition;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\EnvironmentVariableEquals;
 use Greenlight\Condition\EnvironmentVariableSet;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\EnvironmentVariables;
+
+use function Greenlight\expect;
 
 final readonly class EnvironmentVariableAbsenceTest
 {
@@ -20,10 +21,10 @@ final readonly class EnvironmentVariableAbsenceTest
         $name = 'GREENLIGHT_CONDITION_ABSENT_EMPTY_VALUE';
         $this->environment->unset($name);
 
-        Expect::value(new EnvironmentVariableSet($name)->isSatisfied())
+        expect(new EnvironmentVariableSet($name)->isSatisfied())
             ->because('an absent environment variable MUST remain absent')
             ->toBeFalse();
-        Expect::value(new EnvironmentVariableEquals($name, '')->isSatisfied())
+        expect(new EnvironmentVariableEquals($name, '')->isSatisfied())
             ->because('absence MUST remain distinct from an empty environment variable value')
             ->toBeFalse();
     }

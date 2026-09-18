@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class ResourceSchedulingTest
 {
@@ -27,9 +28,9 @@ final readonly class ResourceSchedulingTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain'], $environment);
         $counters = $this->counters($state);
 
-        Expect::value($result->exitCode)->because('limits a resource without serializing disjoint work')->toBe(0);
-        Expect::value($counters['postgres'])->because('limits a resource without serializing disjoint work')->toBe(2);
-        Expect::value($counters['global'])->because('limits a resource without serializing disjoint work')->toBeGreaterThanOrEqual(3);
+        expect($result->exitCode)->because('limits a resource without serializing disjoint work')->toBe(0);
+        expect($counters['postgres'])->because('limits a resource without serializing disjoint work')->toBe(2);
+        expect($counters['global'])->because('limits a resource without serializing disjoint work')->toBeGreaterThanOrEqual(3);
 
         \file_put_contents($state, '{}');
         $environment['RESOURCE_PROBE_TARGET'] = '2';
@@ -41,9 +42,9 @@ final readonly class ResourceSchedulingTest
         );
         $counters = $this->counters($state);
 
-        Expect::value($overridden->exitCode)->because('limits a resource without serializing disjoint work')->toBe(0);
-        Expect::value($counters['postgres'])->because('limits a resource without serializing disjoint work')->toBe(1);
-        Expect::value($counters['global'])->because('limits a resource without serializing disjoint work')->toBeGreaterThanOrEqual(2);
+        expect($overridden->exitCode)->because('limits a resource without serializing disjoint work')->toBe(0);
+        expect($counters['postgres'])->because('limits a resource without serializing disjoint work')->toBe(1);
+        expect($counters['global'])->because('limits a resource without serializing disjoint work')->toBeGreaterThanOrEqual(2);
     }
 
     #[Test]
@@ -121,9 +122,9 @@ final readonly class ResourceSchedulingTest
             ['RESOURCE_CRASH_MARKER' => $marker],
         );
 
-        Expect::value($result->exitCode)->because('a crashed worker releases its lease for queued work')->toBe(1);
-        Expect::value($result->output())->because('a crashed worker releases its lease for queued work')->toContain('2 tests, 1 passed, 1 errored');
-        Expect::value((string) \file_get_contents($marker))->because('a crashed worker releases its lease for queued work')->toBe('ran');
+        expect($result->exitCode)->because('a crashed worker releases its lease for queued work')->toBe(1);
+        expect($result->output())->because('a crashed worker releases its lease for queued work')->toContain('2 tests, 1 passed, 1 errored');
+        expect((string) \file_get_contents($marker))->because('a crashed worker releases its lease for queued work')->toBe('ran');
     }
 
     private function concurrencyProject(): AcceptanceProject

@@ -9,10 +9,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class InternalWorkerExitCodeTest
 {
@@ -46,7 +47,7 @@ final readonly class InternalWorkerExitCodeTest
             $channel = new SocketChannel($connection);
 
             try {
-                Expect::value($channel->receive(5.0))->toBeInstanceOf(Hello::class);
+                expect($channel->receive(5.0))->toBeInstanceOf(Hello::class);
 
                 if ($drain) {
                     $channel->send(new Drain());
@@ -57,8 +58,8 @@ final readonly class InternalWorkerExitCodeTest
 
             $result = $process->wait(5.0);
 
-            Expect::value($result->exitCode)->toBe(0);
-            Expect::value($result->stderr)->toBe('');
+            expect($result->exitCode)->toBe(0);
+            expect($result->stderr)->toBe('');
         } finally {
             \fclose($server);
         }

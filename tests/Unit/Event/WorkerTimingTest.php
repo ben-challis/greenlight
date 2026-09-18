@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Event;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\WorkerTiming;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\JsonWire;
+
+use function Greenlight\expect;
 
 final readonly class WorkerTimingTest
 {
@@ -16,7 +17,7 @@ final readonly class WorkerTimingTest
     {
         $timing = new WorkerTiming('worker-2', 0.1, 0.2, 0.3, 2, 0.4, 0.5, 0.6, 0.7, 0.8);
 
-        Expect::value(WorkerTiming::fromWire(JsonWire::roundTrip($timing->toWire()))->toWire())
+        expect(WorkerTiming::fromWire(JsonWire::roundTrip($timing->toWire()))->toWire())
             ->because('worker timing MUST preserve each lifecycle and idle duration')
             ->toBe($timing->toWire());
     }
@@ -24,7 +25,7 @@ final readonly class WorkerTimingTest
     #[Test]
     public function workerTimingRejectsNegativeDurations(): void
     {
-        Expect::calling(static fn(): WorkerTiming => new WorkerTiming(
+        expect()->calling(static fn(): WorkerTiming => new WorkerTiming(
             'worker-2',
             -0.1,
             null,

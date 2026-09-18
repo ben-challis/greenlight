@@ -11,7 +11,6 @@ use Greenlight\Doubles\Fake;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Execution\Worker\Worker;
-use Greenlight\Expect\Expect;
 use Greenlight\Plugin\RetryDecider;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
@@ -20,6 +19,8 @@ use Greenlight\Test\RetryPolicy;
 use Greenlight\Tests\Fixture\Execution\Worker\RetryAttachmentTest;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final readonly class RetryDeciderAttachmentTest
 {
@@ -60,15 +61,15 @@ final readonly class RetryDeciderAttachmentTest
             artifactStore: $store,
         )->run($plan, $sink);
 
-        Expect::value($decider->results)
+        expect($decider->results)
             ->because('a retry decider MUST receive the unsuccessful attempt result')
             ->toHaveCount(1);
-        Expect::value($decider->results[0]->attachments)
+        expect($decider->results[0]->attachments)
             ->because('a retry decider MUST receive attachment metadata before it decides')
             ->toHaveCount(1);
-        Expect::value($decider->results[0]->attachments[0]->name)
+        expect($decider->results[0]->attachments[0]->name)
             ->toBe('failure.txt');
-        Expect::value($decider->results[0]->attachments[0]->sizeBytes)
+        expect($decider->results[0]->attachments[0]->sizeBytes)
             ->toBe(14);
     }
 }

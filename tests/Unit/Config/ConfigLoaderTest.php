@@ -9,10 +9,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\GreenlightConfig;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\FixturePath;
+
+use function Greenlight\expect;
 
 final class ConfigLoaderTest
 {
@@ -22,11 +23,11 @@ final class ConfigLoaderTest
         $builder = new ConfigLoader()->loadFromDirectory(self::fixtureDir('Valid'));
         $configuration = $builder->build();
 
-        Expect::value($configuration->discovery->paths)->because('loads a valid configuration file from a directory')->toBe(['tests/Unit', 'tests/Acceptance']);
-        Expect::value($configuration->workers->count->fixed)->because('loads a valid configuration file from a directory')->toBe(4);
-        Expect::value($configuration->execution->stopAfterFailures)->because('loads a valid configuration file from a directory')->toBe(1);
-        Expect::value($configuration->order->seed)->because('loads a valid configuration file from a directory')->toBe(4242);
-        Expect::value($configuration->discovery->suites)->because('loads a valid configuration file from a directory')->toHaveCount(2);
+        expect($configuration->discovery->paths)->because('loads a valid configuration file from a directory')->toBe(['tests/Unit', 'tests/Acceptance']);
+        expect($configuration->workers->count->fixed)->because('loads a valid configuration file from a directory')->toBe(4);
+        expect($configuration->execution->stopAfterFailures)->because('loads a valid configuration file from a directory')->toBe(1);
+        expect($configuration->order->seed)->because('loads a valid configuration file from a directory')->toBe(4242);
+        expect($configuration->discovery->suites)->because('loads a valid configuration file from a directory')->toHaveCount(2);
     }
 
     #[Test]
@@ -34,7 +35,7 @@ final class ConfigLoaderTest
     {
         $directory = self::fixtureDir('Empty');
 
-        Expect::calling(static fn(): GreenlightConfig => new ConfigLoader()->loadFromDirectory($directory))
+        expect()->calling(static fn(): GreenlightConfig => new ConfigLoader()->loadFromDirectory($directory))
             ->because('a missing default configuration MUST give both available fixes')
             ->toThrow(
                 ConfigFileError::class,
@@ -50,7 +51,7 @@ final class ConfigLoaderTest
     #[Test]
     public function missingExplicitFileIsReported(): void
     {
-        Expect::calling(static function (): void {
+        expect()->calling(static function (): void {
             new ConfigLoader()->loadFile(self::fixtureDir('Empty') . '/greenlight.php');
         })->because('missing explicit file is reported')->toThrow(ConfigFileError::class);
     }
@@ -65,7 +66,7 @@ final class ConfigLoaderTest
         FilesystemRestriction::toProject($root);
 
         $loader = new ConfigLoader();
-        Expect::calling(
+        expect()->calling(
             static function () use ($loader, $restrictedDirectory, &$directoryWarning): void {
                 ErrorTrap::run(
                     static fn() => $loader->loadFromDirectory($restrictedDirectory),
@@ -74,7 +75,7 @@ final class ConfigLoaderTest
             },
         )->because('a restricted configuration directory causes a configuration error')
             ->toThrow(ConfigFileError::class);
-        Expect::calling(
+        expect()->calling(
             static function () use ($loader, $restrictedFile, &$fileWarning): void {
                 ErrorTrap::run(
                     static fn() => $loader->loadFile($restrictedFile),
@@ -84,10 +85,10 @@ final class ConfigLoaderTest
         )->because('a restricted configuration file causes a configuration error')
             ->toThrow(ConfigFileError::class);
 
-        Expect::value($directoryWarning)
+        expect($directoryWarning)
             ->because('a restricted configuration directory MUST not leak engine diagnostics')
             ->toBeNull();
-        Expect::value($fileWarning)
+        expect($fileWarning)
             ->because('a restricted configuration file MUST not leak engine diagnostics')
             ->toBeNull();
     }
@@ -95,12 +96,12 @@ final class ConfigLoaderTest
     #[Test]
     public function fileReturningTheWrongTypeIsRejectedWithTheActualType(): void
     {
-        Expect::calling(static fn(): GreenlightConfig => new ConfigLoader()->loadFromDirectory(self::fixtureDir('WrongReturn')))
+        expect()->calling(static fn(): GreenlightConfig => new ConfigLoader()->loadFromDirectory(self::fixtureDir('WrongReturn')))
             ->toThrow(
                 static function (ConfigFileError $error): void {
-                    Expect::value($error->getMessage())
+                    expect($error->getMessage())
                         ->toContain('must return a Greenlight\Config\GreenlightConfig instance');
-                    Expect::value($error->getMessage())->toContain('returned string');
+                    expect($error->getMessage())->toContain('returned string');
                 },
             );
     }
@@ -108,13 +109,13 @@ final class ConfigLoaderTest
     #[Test]
     public function throwingConfigFileIsWrappedWithTheOriginalMessage(): void
     {
-        Expect::calling(static fn(): GreenlightConfig => new ConfigLoader()->loadFromDirectory(self::fixtureDir('Throwing')))
+        expect()->calling(static fn(): GreenlightConfig => new ConfigLoader()->loadFromDirectory(self::fixtureDir('Throwing')))
             ->toThrow(
                 static function (ConfigFileError $error): void {
-                    Expect::value($error->getMessage())->toContain('config exploded');
-                    Expect::value($error->getMessage())->toContain('RuntimeException');
-                    Expect::value($error->getPrevious())->toBeInstanceOf(\RuntimeException::class);
-                    Expect::value($error->getPrevious()->getMessage())->toBe('config exploded');
+                    expect($error->getMessage())->toContain('config exploded');
+                    expect($error->getMessage())->toContain('RuntimeException');
+                    expect($error->getPrevious())->toBeInstanceOf(\RuntimeException::class);
+                    expect($error->getPrevious()->getMessage())->toBe('config exploded');
                 },
             );
     }

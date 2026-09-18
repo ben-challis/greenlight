@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\TestExclusions;
 use Greenlight\Test\TestInclusions;
 use Greenlight\Test\TestSelection;
 use Greenlight\Tests\Support\FixturePath;
+
+use function Greenlight\expect;
 
 final class FilterTest
 {
@@ -32,7 +33,7 @@ final class FilterTest
     #[Test]
     public function emptyFilterAcceptsEverything(): void
     {
-        Expect::value(new TestSelection()->accepts('App\FooTest', 'bar', [], '/src/FooTest.php'))->because('empty filter accepts everything')->toBeTrue();
+        expect(new TestSelection()->accepts('App\FooTest', 'bar', [], '/src/FooTest.php'))->because('empty filter accepts everything')->toBeTrue();
     }
 
     #[Test]
@@ -40,9 +41,9 @@ final class FilterTest
     {
         $filter = $this->selection(includeGroups: ['slow', 'io']);
 
-        Expect::value($filter->accepts('C', 'm', ['io'], '/f'))->because('group include requires a matching group')->toBeTrue();
-        Expect::value($filter->accepts('C', 'm', ['fast'], '/f'))->because('group include requires a matching group')->toBeFalse();
-        Expect::value($filter->accepts('C', 'm', [], '/f'))->because('group include requires a matching group')->toBeFalse();
+        expect($filter->accepts('C', 'm', ['io'], '/f'))->because('group include requires a matching group')->toBeTrue();
+        expect($filter->accepts('C', 'm', ['fast'], '/f'))->because('group include requires a matching group')->toBeFalse();
+        expect($filter->accepts('C', 'm', [], '/f'))->because('group include requires a matching group')->toBeFalse();
     }
 
     #[Test]
@@ -50,8 +51,8 @@ final class FilterTest
     {
         $filter = $this->selection(includeGroups: ['slow'], excludeGroups: ['flaky']);
 
-        Expect::value($filter->accepts('C', 'm', ['slow', 'flaky'], '/f'))->because('group exclude wins over include')->toBeFalse();
-        Expect::value($filter->accepts('C', 'm', ['slow'], '/f'))->because('group exclude wins over include')->toBeTrue();
+        expect($filter->accepts('C', 'm', ['slow', 'flaky'], '/f'))->because('group exclude wins over include')->toBeFalse();
+        expect($filter->accepts('C', 'm', ['slow'], '/f'))->because('group exclude wins over include')->toBeTrue();
     }
 
     #[Test]
@@ -59,21 +60,21 @@ final class FilterTest
     {
         $substring = $this->selection(includeClasses: ['Invoice']);
 
-        Expect::value($substring->accepts('App\InvoiceTotalsTest', 'm', [], '/f'))->because('class filters match by substring or wildcard')->toBeTrue();
-        Expect::value($substring->accepts('App\OrderTest', 'm', [], '/f'))->because('class filters match by substring or wildcard')->toBeFalse();
+        expect($substring->accepts('App\InvoiceTotalsTest', 'm', [], '/f'))->because('class filters match by substring or wildcard')->toBeTrue();
+        expect($substring->accepts('App\OrderTest', 'm', [], '/f'))->because('class filters match by substring or wildcard')->toBeFalse();
 
         $wildcard = $this->selection(includeClasses: ['App\*TotalsTest']);
 
-        Expect::value($wildcard->accepts('App\InvoiceTotalsTest', 'm', [], '/f'))->because('class filters match by substring or wildcard')->toBeTrue();
-        Expect::value($wildcard->accepts('App\InvoiceTotalsTestCase', 'm', [], '/f'))->because('class filters match by substring or wildcard')->toBeFalse();
+        expect($wildcard->accepts('App\InvoiceTotalsTest', 'm', [], '/f'))->because('class filters match by substring or wildcard')->toBeTrue();
+        expect($wildcard->accepts('App\InvoiceTotalsTestCase', 'm', [], '/f'))->because('class filters match by substring or wildcard')->toBeFalse();
 
         $question = $this->selection(includeClasses: ['App\V?Test']);
 
-        Expect::value($question->accepts('App\V1Test', 'm', [], '/f'))->because('class filters match by substring or wildcard')->toBeTrue();
-        Expect::value($question->accepts('App\V12Test', 'm', [], '/f'))->because('class filters match by substring or wildcard')->toBeFalse();
+        expect($question->accepts('App\V1Test', 'm', [], '/f'))->because('class filters match by substring or wildcard')->toBeTrue();
+        expect($question->accepts('App\V12Test', 'm', [], '/f'))->because('class filters match by substring or wildcard')->toBeFalse();
         $excluded = $this->selection(includeClasses: ['App\\'], excludeClasses: ['Legacy']);
 
-        Expect::value($excluded->accepts('App\\LegacyTest', 'm', [], '/f'))
+        expect($excluded->accepts('App\\LegacyTest', 'm', [], '/f'))
             ->because('class exclusion MUST take priority over inclusion')
             ->toBeFalse();
     }
@@ -83,9 +84,9 @@ final class FilterTest
     {
         $filter = $this->selection(includeMethods: ['handles*'], excludeMethods: ['Slowly']);
 
-        Expect::value($filter->accepts('C', 'handlesRefunds', [], '/f'))->because('method filters match by substring or wildcard and exclusion wins')->toBeTrue();
-        Expect::value($filter->accepts('C', 'ignoresRefunds', [], '/f'))->because('method filters match by substring or wildcard and exclusion wins')->toBeFalse();
-        Expect::value($filter->accepts('C', 'handlesRefundsSlowly', [], '/f'))->because('method filters match by substring or wildcard and exclusion wins')->toBeFalse();
+        expect($filter->accepts('C', 'handlesRefunds', [], '/f'))->because('method filters match by substring or wildcard and exclusion wins')->toBeTrue();
+        expect($filter->accepts('C', 'ignoresRefunds', [], '/f'))->because('method filters match by substring or wildcard and exclusion wins')->toBeFalse();
+        expect($filter->accepts('C', 'handlesRefundsSlowly', [], '/f'))->because('method filters match by substring or wildcard and exclusion wins')->toBeFalse();
     }
 
     #[Test]
@@ -93,9 +94,9 @@ final class FilterTest
     {
         $filter = $this->selection(includePaths: ['/repo/tests/Unit'], excludePaths: ['/repo/tests/Unit/Legacy']);
 
-        Expect::value($filter->accepts('C', 'm', [], '/repo/tests/Unit/FooTest.php'))->because('path filters match by prefix')->toBeTrue();
-        Expect::value($filter->accepts('C', 'm', [], '/repo/tests/Acceptance/FooTest.php'))->because('path filters match by prefix')->toBeFalse();
-        Expect::value($filter->accepts('C', 'm', [], '/repo/tests/Unit/Legacy/FooTest.php'))->because('path filters match by prefix')->toBeFalse();
+        expect($filter->accepts('C', 'm', [], '/repo/tests/Unit/FooTest.php'))->because('path filters match by prefix')->toBeTrue();
+        expect($filter->accepts('C', 'm', [], '/repo/tests/Acceptance/FooTest.php'))->because('path filters match by prefix')->toBeFalse();
+        expect($filter->accepts('C', 'm', [], '/repo/tests/Unit/Legacy/FooTest.php'))->because('path filters match by prefix')->toBeFalse();
     }
 
     #[Test]
@@ -103,14 +104,14 @@ final class FilterTest
     {
         $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includeGroups: ['slow']));
 
-        Expect::value($this->ids($plan))->because('discoverer applies group filters')->toBe([
+        expect($this->ids($plan))->because('discoverer applies group filters')->toBe([
             'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two',
             'Greenlight\Tests\Fixture\DiscoveryBasic\CharlieTest::crawls',
         ]);
 
         $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], $this->selection(excludeGroups: ['slow']));
 
-        Expect::value($this->ids($plan))->because('discoverer applies group filters')->toBe([
+        expect($this->ids($plan))->because('discoverer applies group filters')->toBe([
             'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one',
             'Greenlight\Tests\Fixture\DiscoveryBasic\BravoTest::zulu',
             'Greenlight\Tests\Fixture\DiscoveryBasic\BravoTest::alpha',
@@ -124,11 +125,11 @@ final class FilterTest
     {
         $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includeClasses: ['BravoTest']));
 
-        Expect::value($plan->count())->because('discoverer applies class and method filters')->toBe(3);
+        expect($plan->count())->because('discoverer applies class and method filters')->toBe(3);
 
         $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includeMethods: ['alpha']));
 
-        Expect::value($this->ids($plan))->because('discoverer applies class and method filters')->toBe(['Greenlight\Tests\Fixture\DiscoveryBasic\BravoTest::alpha']);
+        expect($this->ids($plan))->because('discoverer applies class and method filters')->toBe(['Greenlight\Tests\Fixture\DiscoveryBasic\BravoTest::alpha']);
     }
 
     #[Test]
@@ -136,8 +137,8 @@ final class FilterTest
     {
         $filter = $this->selection(includeIds: ['bravotest::ALPHA']);
 
-        Expect::value($filter->acceptsId('Greenlight\\Tests\\Fixture\\DiscoveryBasic\\BravoTest::alpha'))->because('ID patterns match by substring case insensitively')->toBeTrue();
-        Expect::value($filter->acceptsId('Greenlight\\Tests\\Fixture\\DiscoveryBasic\\BravoTest::beta'))->because('ID patterns match by substring case insensitively')->toBeFalse();
+        expect($filter->acceptsId('Greenlight\\Tests\\Fixture\\DiscoveryBasic\\BravoTest::alpha'))->because('ID patterns match by substring case insensitively')->toBeTrue();
+        expect($filter->acceptsId('Greenlight\\Tests\\Fixture\\DiscoveryBasic\\BravoTest::beta'))->because('ID patterns match by substring case insensitively')->toBeFalse();
     }
 
     #[Test]
@@ -145,14 +146,14 @@ final class FilterTest
     {
         $filter = $this->selection(includeIds: ['*BravoTest::alpha*']);
 
-        Expect::value($filter->acceptsId('Acme\\BravoTest::alpha'))->because('ID wildcards match the whole ID including data set labels')->toBeTrue();
-        Expect::value($filter->acceptsId('Acme\\BravoTest::alpha[edge case]'))->because('ID wildcards match the whole ID including data set labels')->toBeTrue();
-        Expect::value($filter->acceptsId('Acme\\BravoTest::beta'))->because('ID wildcards match the whole ID including data set labels')->toBeFalse();
+        expect($filter->acceptsId('Acme\\BravoTest::alpha'))->because('ID wildcards match the whole ID including data set labels')->toBeTrue();
+        expect($filter->acceptsId('Acme\\BravoTest::alpha[edge case]'))->because('ID wildcards match the whole ID including data set labels')->toBeTrue();
+        expect($filter->acceptsId('Acme\\BravoTest::beta'))->because('ID wildcards match the whole ID including data set labels')->toBeFalse();
 
         $labeled = $this->selection(includeIds: ['*[edge case]']);
 
-        Expect::value($labeled->acceptsId('Acme\\BravoTest::alpha[edge case]'))->because('ID wildcards match the whole ID including data set labels')->toBeTrue();
-        Expect::value($labeled->acceptsId('Acme\\BravoTest::alpha[other]'))->because('ID wildcards match the whole ID including data set labels')->toBeFalse();
+        expect($labeled->acceptsId('Acme\\BravoTest::alpha[edge case]'))->because('ID wildcards match the whole ID including data set labels')->toBeTrue();
+        expect($labeled->acceptsId('Acme\\BravoTest::alpha[other]'))->because('ID wildcards match the whole ID including data set labels')->toBeFalse();
     }
 
     #[Test]
@@ -160,14 +161,14 @@ final class FilterTest
     {
         $filter = $this->selection(includeExactIds: ['Acme\\AlphaTest::one']);
 
-        Expect::value($filter->acceptsId('Acme\\AlphaTest::one'))->because('exact IDs match verbatim and union with patterns')->toBeTrue();
-        Expect::value($filter->acceptsId('Acme\\AlphaTest::oneMore'))->because('exact IDs match verbatim and union with patterns')->toBeFalse();
+        expect($filter->acceptsId('Acme\\AlphaTest::one'))->because('exact IDs match verbatim and union with patterns')->toBeTrue();
+        expect($filter->acceptsId('Acme\\AlphaTest::oneMore'))->because('exact IDs match verbatim and union with patterns')->toBeFalse();
 
         $union = $this->selection(includeIds: ['::two'], includeExactIds: ['Acme\\AlphaTest::one']);
 
-        Expect::value($union->acceptsId('Acme\\AlphaTest::one'))->because('exact IDs match verbatim and union with patterns')->toBeTrue();
-        Expect::value($union->acceptsId('Acme\\AlphaTest::two'))->because('exact IDs match verbatim and union with patterns')->toBeTrue();
-        Expect::value($union->acceptsId('Acme\\AlphaTest::three'))->because('exact IDs match verbatim and union with patterns')->toBeFalse();
+        expect($union->acceptsId('Acme\\AlphaTest::one'))->because('exact IDs match verbatim and union with patterns')->toBeTrue();
+        expect($union->acceptsId('Acme\\AlphaTest::two'))->because('exact IDs match verbatim and union with patterns')->toBeTrue();
+        expect($union->acceptsId('Acme\\AlphaTest::three'))->because('exact IDs match verbatim and union with patterns')->toBeFalse();
     }
 
     #[Test]
@@ -181,13 +182,13 @@ final class FilterTest
 
         $filter = $this->selection(includeExactIds: $ids);
 
-        Expect::value($filter->acceptsId('Acme\\GeneratedTest0::runs'))
+        expect($filter->acceptsId('Acme\\GeneratedTest0::runs'))
             ->because('a large exact-ID selection MUST retain its first member')
             ->toBeTrue();
-        Expect::value($filter->acceptsId('Acme\\GeneratedTest9999::runs'))
+        expect($filter->acceptsId('Acme\\GeneratedTest9999::runs'))
             ->because('a large exact-ID selection MUST retain its last member')
             ->toBeTrue();
-        Expect::value($filter->acceptsId('Acme\\GeneratedTest10000::runs'))
+        expect($filter->acceptsId('Acme\\GeneratedTest10000::runs'))
             ->because('a large exact-ID selection MUST reject a nonmember')
             ->toBeFalse();
     }
@@ -197,18 +198,18 @@ final class FilterTest
     {
         $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includeIds: ['bravotest::alpha']));
 
-        Expect::value($this->ids($plan))->because('discoverer applies ID filters')->toBe(['Greenlight\Tests\Fixture\DiscoveryBasic\BravoTest::alpha']);
+        expect($this->ids($plan))->because('discoverer applies ID filters')->toBe(['Greenlight\Tests\Fixture\DiscoveryBasic\BravoTest::alpha']);
     }
 
     #[Test]
     public function discovererAppliesPathPrefixFilters(): void
     {
         $real = \realpath(FixturePath::get('DiscoveryBasic'));
-        Expect::value($real)->because('discoverer applies path prefix filters')->toBeString();
+        expect($real)->because('discoverer applies path prefix filters')->toBeString();
 
         $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includePaths: [$real . '/Alpha']));
 
-        Expect::value($this->ids($plan))->because('discoverer applies path prefix filters')->toBe([
+        expect($this->ids($plan))->because('discoverer applies path prefix filters')->toBe([
             'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one',
             'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two',
         ]);

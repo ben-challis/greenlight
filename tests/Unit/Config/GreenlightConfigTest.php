@@ -15,8 +15,9 @@ use Greenlight\Config\StorageBuilder;
 use Greenlight\Config\SuiteBuilder;
 use Greenlight\Config\WatchBuilder;
 use Greenlight\Event\Event;
-use Greenlight\Expect\Expect;
 use Greenlight\Plugin\RunLifecycleSubscriber;
+
+use function Greenlight\expect;
 
 final class GreenlightConfigTest
 {
@@ -25,17 +26,17 @@ final class GreenlightConfigTest
     {
         $configuration = GreenlightConfig::create()->build();
 
-        Expect::value($configuration->discovery->paths)->because('builds documented defaults')->toBe(['tests']);
-        Expect::value($configuration->discovery->suites)->because('builds documented defaults')->toBe([]);
-        Expect::value($configuration->workers->count->isAuto())->because('builds documented defaults')->toBeTrue();
-        Expect::value($configuration->coverage)->because('builds documented defaults')->toBe(null);
-        Expect::value($configuration->execution->plugins)->because('builds documented defaults')->toBe([]);
-        Expect::value($configuration->execution->stopAfterFailures)->because('builds documented defaults')->toBe(null);
-        Expect::value($configuration->order->randomized)->because('builds documented defaults')->toBe(false);
-        Expect::value($configuration->order->seed)->because('builds documented defaults')->toBe(null);
-        Expect::value($configuration->execution->artifacts->directory)->because('builds documented defaults')->toBe('build/greenlight-artifacts');
-        Expect::value($configuration->execution->artifacts->maxAttachmentsPerTest)->because('builds documented defaults')->toBe(32);
-        Expect::value($configuration->workers->resourceLimits)->because('builds documented defaults')->toBe([]);
+        expect($configuration->discovery->paths)->because('builds documented defaults')->toBe(['tests']);
+        expect($configuration->discovery->suites)->because('builds documented defaults')->toBe([]);
+        expect($configuration->workers->count->isAuto())->because('builds documented defaults')->toBeTrue();
+        expect($configuration->coverage)->because('builds documented defaults')->toBe(null);
+        expect($configuration->execution->plugins)->because('builds documented defaults')->toBe([]);
+        expect($configuration->execution->stopAfterFailures)->because('builds documented defaults')->toBe(null);
+        expect($configuration->order->randomized)->because('builds documented defaults')->toBe(false);
+        expect($configuration->order->seed)->because('builds documented defaults')->toBe(null);
+        expect($configuration->execution->artifacts->directory)->because('builds documented defaults')->toBe('build/greenlight-artifacts');
+        expect($configuration->execution->artifacts->maxAttachmentsPerTest)->because('builds documented defaults')->toBe(32);
+        expect($configuration->workers->resourceLimits)->because('builds documented defaults')->toBe([]);
     }
 
     #[Test]
@@ -45,7 +46,7 @@ final class GreenlightConfigTest
             ->paths(['0'])
             ->build();
 
-        Expect::value($configuration->discovery->paths)
+        expect($configuration->discovery->paths)
             ->because('configuration MUST retain each non-empty test path')
             ->toBe(['0']);
     }
@@ -75,31 +76,31 @@ final class GreenlightConfigTest
             ->randomizeOrder(seed: 99)
             ->build();
 
-        Expect::value($configuration->discovery->paths)->because('builds a fully configured run')->toBe(['tests/Unit', 'tests/Integration']);
-        Expect::value($configuration->discovery->suites)->because('builds a fully configured run')->toHaveCount(2);
-        Expect::value($configuration->discovery->suites[0]->name)->because('builds a fully configured run')->toBe('unit');
-        Expect::value($configuration->discovery->suites[1]->paths)->because('builds a fully configured run')->toBe(['tests/Integration']);
-        Expect::value($configuration->discovery->suites[1]->tags)->because('builds a fully configured run')->toBe(['io', 'slow']);
-        Expect::value($configuration->workers->count->fixed)->because('builds a fully configured run')->toBe(8);
+        expect($configuration->discovery->paths)->because('builds a fully configured run')->toBe(['tests/Unit', 'tests/Integration']);
+        expect($configuration->discovery->suites)->because('builds a fully configured run')->toHaveCount(2);
+        expect($configuration->discovery->suites[0]->name)->because('builds a fully configured run')->toBe('unit');
+        expect($configuration->discovery->suites[1]->paths)->because('builds a fully configured run')->toBe(['tests/Integration']);
+        expect($configuration->discovery->suites[1]->tags)->because('builds a fully configured run')->toBe(['io', 'slow']);
+        expect($configuration->workers->count->fixed)->because('builds a fully configured run')->toBe(8);
         $coverage = $configuration->coverage;
 
-        Expect::value($coverage)
+        expect($coverage)
             ->because('GreenlightConfig::build() MUST return a CoverageConfiguration')
             ->toBeInstanceOf(CoverageConfiguration::class);
 
-        Expect::value($coverage->includePaths)->because('builds a fully configured run')->toBe(['src']);
-        Expect::value($coverage->driver)->because('builds a fully configured run')->toBe('pcov');
-        Expect::value($coverage->exports[0]->format)->because('builds a fully configured run')->toBe('lcov');
-        Expect::value($coverage->exports[0]->target)->because('builds a fully configured run')->toBe('coverage/lcov.info');
-        Expect::value($configuration->execution->plugins)->because('builds a fully configured run')->toHaveCount(1);
-        Expect::value($configuration->execution->plugins[0]->pluginClass)->because('builds a fully configured run')->toBe(ConfigRunSubscriber::class);
-        Expect::value($configuration->execution->stopAfterFailures)->because('builds a fully configured run')->toBe(1);
-        Expect::value($configuration->order->randomized)->because('builds a fully configured run')->toBe(true);
-        Expect::value($configuration->order->seed)->because('builds a fully configured run')->toBe(99);
-        Expect::value($configuration->execution->artifacts->directory)->because('builds a fully configured run')->toBe('build/evidence');
-        Expect::value($configuration->execution->artifacts->maxAttachmentBytes)->because('builds a fully configured run')->toBe(5 * 1024 * 1024);
-        Expect::value($configuration->execution->artifacts->maxRunBytes)->because('builds a fully configured run')->toBe(100 * 1024 * 1024);
-        Expect::value($configuration->workers->resourceLimits)->because('builds a fully configured run')->toBe(['postgres' => 3, 'payments-sandbox' => 1]);
+        expect($coverage->includePaths)->because('builds a fully configured run')->toBe(['src']);
+        expect($coverage->driver)->because('builds a fully configured run')->toBe('pcov');
+        expect($coverage->exports[0]->format)->because('builds a fully configured run')->toBe('lcov');
+        expect($coverage->exports[0]->target)->because('builds a fully configured run')->toBe('coverage/lcov.info');
+        expect($configuration->execution->plugins)->because('builds a fully configured run')->toHaveCount(1);
+        expect($configuration->execution->plugins[0]->pluginClass)->because('builds a fully configured run')->toBe(ConfigRunSubscriber::class);
+        expect($configuration->execution->stopAfterFailures)->because('builds a fully configured run')->toBe(1);
+        expect($configuration->order->randomized)->because('builds a fully configured run')->toBe(true);
+        expect($configuration->order->seed)->because('builds a fully configured run')->toBe(99);
+        expect($configuration->execution->artifacts->directory)->because('builds a fully configured run')->toBe('build/evidence');
+        expect($configuration->execution->artifacts->maxAttachmentBytes)->because('builds a fully configured run')->toBe(5 * 1024 * 1024);
+        expect($configuration->execution->artifacts->maxRunBytes)->because('builds a fully configured run')->toBe(100 * 1024 * 1024);
+        expect($configuration->workers->resourceLimits)->because('builds a fully configured run')->toBe(['postgres' => 3, 'payments-sandbox' => 1]);
     }
 
     #[Test]
@@ -109,13 +110,13 @@ final class GreenlightConfigTest
             ->suite('0', static fn(SuiteBuilder $suite) => $suite->in('tests')->tag('fast'))
             ->build();
 
-        Expect::value($configuration->discovery->suites[0]->name)
+        expect($configuration->discovery->suites[0]->name)
             ->because('a zero-string suite name is not empty')
             ->toBe('0');
-        Expect::value($configuration->discovery->suites[0]->paths)
+        expect($configuration->discovery->suites[0]->paths)
             ->because('the suite MUST retain its configured paths')
             ->toBe(['tests']);
-        Expect::value($configuration->discovery->suites[0]->tags)
+        expect($configuration->discovery->suites[0]->tags)
             ->because('the suite MUST retain its configured tags')
             ->toBe(['fast']);
     }
@@ -125,8 +126,8 @@ final class GreenlightConfigTest
     {
         $configuration = GreenlightConfig::create()->randomizeOrder()->build();
 
-        Expect::value($configuration->order->randomized)->because('randomize order without seed still enables randomization')->toBe(true);
-        Expect::value($configuration->order->seed)->because('randomize order without seed still enables randomization')->toBe(null);
+        expect($configuration->order->randomized)->because('randomize order without seed still enables randomization')->toBe(true);
+        expect($configuration->order->seed)->because('randomize order without seed still enables randomization')->toBe(null);
     }
 
     #[Test]
@@ -134,10 +135,10 @@ final class GreenlightConfigTest
     {
         $configuration = GreenlightConfig::create()->randomizeOrder(seed: 0)->build();
 
-        Expect::value($configuration->order->randomized)
+        expect($configuration->order->randomized)
             ->because('zero MUST enable random order')
             ->toBeTrue();
-        Expect::value($configuration->order->seed)
+        expect($configuration->order->seed)
             ->because('zero MUST remain the configured seed')
             ->toBe(0);
     }
@@ -147,14 +148,14 @@ final class GreenlightConfigTest
     {
         $builder = GreenlightConfig::create()->randomizeOrder(seed: 7);
 
-        Expect::calling(static fn(): GreenlightConfig => $builder->randomizeOrder(seed: -1)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        expect()->calling(static fn(): GreenlightConfig => $builder->randomizeOrder(seed: -1)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a negative seed MUST be rejected')
             ->toThrow(
                 InvalidConfiguration::class,
                 message: 'Random order seed must be a nonnegative integer. Actual value: -1.',
             );
 
-        Expect::value($builder->build()->order->seed)
+        expect($builder->build()->order->seed)
             ->because('a rejected seed MUST retain the prior seed')
             ->toBe(7);
     }
@@ -164,7 +165,7 @@ final class GreenlightConfigTest
     {
         $builder = GreenlightConfig::create()->workers(count: 2);
 
-        Expect::calling(static fn(): GreenlightConfig => $builder->workers(count: 0)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        expect()->calling(static fn(): GreenlightConfig => $builder->workers(count: 0)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a rejected worker configuration does not partially change the builder')
             ->toThrow(
                 InvalidConfiguration::class,
@@ -173,7 +174,7 @@ final class GreenlightConfigTest
 
         $configuration = $builder->build();
 
-        Expect::value($configuration->workers->count->fixed)
+        expect($configuration->workers->count->fixed)
             ->because('a rejected worker configuration retains the prior worker count')
             ->toBe(2);
     }
@@ -185,10 +186,10 @@ final class GreenlightConfigTest
             ->coverage(static function (CoverageBuilder $coverage): void {})
             ->build();
 
-        Expect::value($configuration->coverage)->toBeInstanceOf(CoverageConfiguration::class);
-        Expect::value($configuration->coverage->includePaths)->toBe([]);
-        Expect::value($configuration->coverage->driver)->toBe(null);
-        Expect::value($configuration->coverage->exports)->toBe([]);
+        expect($configuration->coverage)->toBeInstanceOf(CoverageConfiguration::class);
+        expect($configuration->coverage->includePaths)->toBe([]);
+        expect($configuration->coverage->driver)->toBe(null);
+        expect($configuration->coverage->exports)->toBe([]);
     }
 
     #[Test]
@@ -196,13 +197,13 @@ final class GreenlightConfigTest
     {
         $builder = GreenlightConfig::create();
 
-        Expect::calling(static fn(): GreenlightConfig => $builder->coverage(
+        expect()->calling(static fn(): GreenlightConfig => $builder->coverage(
             static fn(CoverageBuilder $coverage) => $coverage->include(''), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         ))
             ->because('a rejected coverage configuration does not enable coverage')
             ->toThrow(InvalidConfiguration::class);
 
-        Expect::value($builder->build()->coverage)
+        expect($builder->build()->coverage)
             ->because('coverage stays off when its configurator fails')
             ->toBe(null);
     }
@@ -218,7 +219,7 @@ final class GreenlightConfigTest
             ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts->directory('build/original'))
             ->storage(static fn(StorageBuilder $storage) => $storage->cacheDirectory('build/original-cache'));
 
-        Expect::calling(static fn(): GreenlightConfig => $builder->coverage(
+        expect()->calling(static fn(): GreenlightConfig => $builder->coverage(
             static fn(CoverageBuilder $coverage) => $coverage
                 ->driver('xdebug')
                 ->include(''), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
@@ -226,7 +227,7 @@ final class GreenlightConfigTest
             ->because('a rejected coverage configuration does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
 
-        Expect::calling(static fn(): GreenlightConfig => $builder->watch(
+        expect()->calling(static fn(): GreenlightConfig => $builder->watch(
             static fn(WatchBuilder $watch) => $watch
                 ->debounceMilliseconds(750)
                 ->debounceMilliseconds(0), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
@@ -234,7 +235,7 @@ final class GreenlightConfigTest
             ->because('a rejected watch configuration does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
 
-        Expect::calling(static fn(): GreenlightConfig => $builder->artifacts(
+        expect()->calling(static fn(): GreenlightConfig => $builder->artifacts(
             static fn(ArtifactBuilder $artifacts) => $artifacts
                 ->directory('build/changed')
                 ->maxRunAttachments(0), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
@@ -242,7 +243,7 @@ final class GreenlightConfigTest
             ->because('a rejected artifact configuration does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
 
-        Expect::calling(static fn(): GreenlightConfig => $builder->storage(
+        expect()->calling(static fn(): GreenlightConfig => $builder->storage(
             static fn(StorageBuilder $storage) => $storage
                 ->cacheDirectory('build/changed-cache')
                 ->temporaryDirectory(''), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
@@ -252,19 +253,19 @@ final class GreenlightConfigTest
 
         $configuration = $builder->build();
 
-        Expect::value($configuration->coverage?->includePaths)
+        expect($configuration->coverage?->includePaths)
             ->because('a rejected coverage configuration retains the prior include paths')
             ->toBe(['src']);
-        Expect::value($configuration->coverage?->driver)
+        expect($configuration->coverage?->driver)
             ->because('a rejected coverage configuration retains the prior driver')
             ->toBe('pcov');
-        Expect::value($configuration->watch->debounceMilliseconds)
+        expect($configuration->watch->debounceMilliseconds)
             ->because('a rejected watch configuration retains the prior debounce')
             ->toBe(500);
-        Expect::value($configuration->execution->artifacts->directory)
+        expect($configuration->execution->artifacts->directory)
             ->because('a rejected artifact configuration retains the prior directory')
             ->toBe('build/original');
-        Expect::value($configuration->storage->cacheDirectory)
+        expect($configuration->storage->cacheDirectory)
             ->because('a rejected storage configuration retains the prior cache directory')
             ->toBe('build/original-cache');
     }
@@ -274,11 +275,11 @@ final class GreenlightConfigTest
     {
         $builder = GreenlightConfig::create()->ignoreDeprecationsMatching('existing');
 
-        Expect::calling(static fn(): GreenlightConfig => $builder->ignoreDeprecationsMatching('added', '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        expect()->calling(static fn(): GreenlightConfig => $builder->ignoreDeprecationsMatching('added', '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a rejected deprecation pattern does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
 
-        Expect::value($builder->build()->execution->policy->ignoreDeprecations)
+        expect($builder->build()->execution->policy->ignoreDeprecations)
             ->because('a rejected deprecation pattern retains the prior patterns')
             ->toBe(['existing']);
     }
@@ -290,7 +291,7 @@ final class GreenlightConfigTest
     #[DataSet('invalidInputs')]
     public function rejectsInvalidInput(\Closure $callable): void
     {
-        Expect::calling($callable)->toThrow(InvalidConfiguration::class);
+        expect()->calling($callable)->toThrow(InvalidConfiguration::class);
     }
 
     /** @param array<mixed> $paths */
@@ -298,7 +299,7 @@ final class GreenlightConfigTest
     #[DataSet('invalidPaths')]
     public function invalidPathsGiveExactGuidance(array $paths, string $message): void
     {
-        Expect::calling(static function () use ($paths): void {
+        expect()->calling(static function () use ($paths): void {
             new \ReflectionMethod(GreenlightConfig::class, 'paths')
                 ->invoke(GreenlightConfig::create(), $paths);
         })
@@ -344,7 +345,7 @@ final class GreenlightConfigTest
     #[DataSet('invalidSuites')]
     public function invalidSuitesGiveExactGuidance(\Closure $configure, string $message): void
     {
-        Expect::calling($configure)
+        expect()->calling($configure)
             ->because('each invalid suite definition MUST identify the required fix')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }
@@ -409,7 +410,7 @@ final class GreenlightConfigTest
     #[DataSet('invalidResourceLimits')]
     public function invalidResourceLimitsGiveExactGuidance(\Closure $configure, string $message): void
     {
-        Expect::calling($configure)
+        expect()->calling($configure)
             ->because('each invalid resource limit MUST identify the required fix')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }
@@ -476,7 +477,7 @@ final class GreenlightConfigTest
     #[DataSet('invalidArtifactCounts')]
     public function invalidArtifactCountsGiveExactGuidance(\Closure $configure, string $message): void
     {
-        Expect::calling($configure)
+        expect()->calling($configure)
             ->because('artifact count limits must be positive')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }

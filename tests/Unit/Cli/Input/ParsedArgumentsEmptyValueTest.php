@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Cli\Input;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Input\ParsedArguments;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ParsedArgumentsEmptyValueTest
 {
@@ -17,7 +18,7 @@ final class ParsedArgumentsEmptyValueTest
             'group' => ['first', '', null, 'last'],
         ]);
 
-        Expect::value($arguments->values('group'))
+        expect($arguments->values('group'))
             ->because('empty option values MUST remain available for downstream validation')
             ->toBe(['first', '', 'last']);
     }

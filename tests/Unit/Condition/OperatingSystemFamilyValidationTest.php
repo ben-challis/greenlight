@@ -6,14 +6,15 @@ namespace Greenlight\Tests\Unit\Condition;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\OperatingSystemFamily;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class OperatingSystemFamilyValidationTest
 {
     #[Test]
     public function rejectsAnEmptyFamily(): void
     {
-        Expect::calling(static fn(): OperatingSystemFamily => new OperatingSystemFamily('')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        expect()->calling(static fn(): OperatingSystemFamily => new OperatingSystemFamily('')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('an operating-system condition MUST identify the family')
             ->toThrow(
                 \InvalidArgumentException::class,

@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanAttributeArgumentRuleTest
@@ -127,10 +128,10 @@ final readonly class PhpStanAttributeArgumentRuleTest
             PHP,
         );
 
-        Expect::value($probe->exitCode)->because('attribute arguments must have valid values')->toBe(1);
-        Expect::value($probe->goodPassed)->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(20);
-        Expect::value($probe->messages())->toContain('#[RequiresResource] name "Postgres primary" does not match')
+        expect($probe->exitCode)->because('attribute arguments must have valid values')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(20);
+        expect($probe->messages())->toContain('#[RequiresResource] name "Postgres primary" does not match')
             ->toContain('#[Retry] times must be at least 1')
             ->toContain('#[Retry] onlyOn must name a Throwable type')
             ->toContain('#[SkipUnless] condition must name an instantiable Condition class')

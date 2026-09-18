@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanLifecycleMethodRuleTest
@@ -81,10 +82,10 @@ final readonly class PhpStanLifecycleMethodRuleTest
             PHP,
         );
 
-        Expect::value($probe->exitCode)->because('lifecycle hooks must run without arguments')->toBe(1);
-        Expect::value($probe->goodPassed)->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(4);
-        Expect::value($probe->messages())->toContain('protectedBefore() cannot run because it is not public')
+        expect($probe->exitCode)->because('lifecycle hooks must run without arguments')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(4);
+        expect($probe->messages())->toContain('protectedBefore() cannot run because it is not public')
             ->toContain('staticAfter() cannot run because it is static')
             ->toContain('beforeWithArgument() must not require arguments')
             ->toContain('abstractAfter() cannot run because it is abstract');

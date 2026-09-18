@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\InvalidConfiguration;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class GreenlightConfigWorkerValidationTest
 {
@@ -19,7 +20,7 @@ final class GreenlightConfigWorkerValidationTest
     #[DataSet('invalidWorkerConfigurations')]
     public function invalidWorkerConfigurationsGiveExactGuidance(\Closure $configure, string $message): void
     {
-        Expect::calling($configure)
+        expect()->calling($configure)
             ->because('each invalid worker option MUST identify the required fix')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }

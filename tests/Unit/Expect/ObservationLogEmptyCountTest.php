@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ObservationLog;
+
+use function Greenlight\expect;
 
 final class ObservationLogEmptyCountTest
 {
@@ -15,7 +16,7 @@ final class ObservationLogEmptyCountTest
     {
         $log = new ObservationLog(0.0);
 
-        Expect::value($log->count())
+        expect($log->count())
             ->because('an observation log MUST report at least one observation')
             ->toBe(1);
     }

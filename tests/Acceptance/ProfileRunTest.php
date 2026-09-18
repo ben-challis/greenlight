@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class ProfileRunTest
 {
@@ -28,8 +29,8 @@ final readonly class ProfileRunTest
         $output = $result->stdoutLines();
         $live = $result->stdout;
 
-        Expect::value($result->exitCode)->because('live profile and offline report agree')->toBe(0);
-        Expect::value($live)->toContain('Profile:')
+        expect($result->exitCode)->because('live profile and offline report agree')->toBe(0);
+        expect($live)->toContain('Profile:')
             ->toContain('spawned')
             ->toContain('Startup phases:')
             ->toContain('Spawn to hello:')
@@ -53,7 +54,7 @@ final readonly class ProfileRunTest
         // line.
         $liveBlock = \substr($live, (int) \strpos($live, 'Profile:'));
 
-        Expect::value($report->exitCode)->because('live profile and offline report agree')->toBe(0);
-        Expect::value($offline . "\n")->toBe($liveBlock . "\n");
+        expect($report->exitCode)->because('live profile and offline report agree')->toBe(0);
+        expect($offline . "\n")->toBe($liveBlock . "\n");
     }
 }

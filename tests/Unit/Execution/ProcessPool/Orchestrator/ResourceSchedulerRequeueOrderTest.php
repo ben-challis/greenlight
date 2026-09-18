@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceScheduler;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\SchedulingFixture;
+
+use function Greenlight\expect;
 
 final readonly class ResourceSchedulerRequeueOrderTest
 {
@@ -32,10 +33,10 @@ final readonly class ResourceSchedulerRequeueOrderTest
         $scheduler->release($first);
         $second = SchedulingFixture::assignedLease($scheduler, $freshWorker);
 
-        Expect::value($first->unit->plan->classes())
+        expect($first->unit->plan->classes())
             ->because('pending work MUST remain first in its queue')
             ->toBe(['Acme\\PendingTest']);
-        Expect::value($second->unit->plan->classes())
+        expect($second->unit->plan->classes())
             ->because('requeued work MUST append behind pending work in its queue')
             ->toBe(['Acme\\RetriedTest']);
     }

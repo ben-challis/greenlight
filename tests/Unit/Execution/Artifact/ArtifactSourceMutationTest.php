@@ -9,13 +9,14 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Fixture\Execution\Artifact\ChangingFileStream;
 use Greenlight\Tests\Fixture\Execution\Artifact\FailingFileReadStream;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactSourceMutationTest
 {
@@ -48,7 +49,7 @@ final readonly class ArtifactSourceMutationTest
         );
         $source = self::SCHEME . '://evidence';
 
-        Expect::calling(static fn() => $attachments->file('evidence.txt', $source))
+        expect()->calling(static fn() => $attachments->file('evidence.txt', $source))
             ->because('a file attachment source must stay unchanged while Greenlight copies it')
             ->toThrow(
                 AttachmentError::class,
@@ -60,10 +61,10 @@ final readonly class ArtifactSourceMutationTest
 
         $attachments->text('replacement.txt', 'replacement');
 
-        Expect::value($attachments->collected())
+        expect($attachments->collected())
             ->because('a rejected source releases its run quota')
             ->toHaveCount(1);
-        Expect::value($attachments->collected()[0]->name)
+        expect($attachments->collected()[0]->name)
             ->toBe('replacement.txt');
     }
 
@@ -87,7 +88,7 @@ final readonly class ArtifactSourceMutationTest
         );
         $source = self::FAILING_READ_SCHEME . '://evidence';
 
-        Expect::calling(static fn() => $attachments->file('evidence.txt', $source))
+        expect()->calling(static fn() => $attachments->file('evidence.txt', $source))
             ->because('a file attachment read failure MUST reject the incomplete copy')
             ->toThrow(
                 AttachmentError::class,
@@ -98,22 +99,22 @@ final readonly class ArtifactSourceMutationTest
             . '/' . ArtifactStore::testDirectory($id)
             . '/attempt-1/01-evidence.txt';
 
-        Expect::value(\file_exists($failedPath))
+        expect(\file_exists($failedPath))
             ->because('a failed source read MUST remove the incomplete staging file')
             ->toBeFalse();
-        Expect::value(\file_exists($failedPath . '.part'))
+        expect(\file_exists($failedPath . '.part'))
             ->because('a failed source read MUST remove the partial staging file')
             ->toBeFalse();
-        Expect::value(\file_exists($failedPath . '.meta.json'))
+        expect(\file_exists($failedPath . '.meta.json'))
             ->because('a failed source read MUST not leave recovery metadata')
             ->toBeFalse();
 
         $attachments->text('replacement.txt', 'replacement');
 
-        Expect::value($attachments->collected())
+        expect($attachments->collected())
             ->because('a failed source read MUST release its run quota')
             ->toHaveCount(1);
-        Expect::value($attachments->collected()[0]->name)
+        expect($attachments->collected()[0]->name)
             ->toBe('replacement.txt');
     }
 }

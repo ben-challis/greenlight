@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\IntegrationFixture;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\IntegrationFixtureDefinition;
+
+use function Greenlight\expect;
 
 final readonly class IntegrationFixtureDefinitionTest
 {
@@ -21,7 +22,7 @@ final readonly class IntegrationFixtureDefinitionTest
         array $dependencies,
         string $message,
     ): void {
-        Expect::calling(static fn(): IntegrationFixtureDefinition => new IntegrationFixtureDefinition(
+        expect()->calling(static fn(): IntegrationFixtureDefinition => new IntegrationFixtureDefinition(
             $id,
             static function (): void {},
             $dependencies,
@@ -84,7 +85,7 @@ final readonly class IntegrationFixtureDefinitionTest
     #[DataSet('invalidRuntimeDependencies')]
     public function invalidRuntimeDependencyTypesAreRejected(array $dependencies): void
     {
-        Expect::calling(static fn(): IntegrationFixtureDefinition => new IntegrationFixtureDefinition(
+        expect()->calling(static fn(): IntegrationFixtureDefinition => new IntegrationFixtureDefinition(
             'database',
             static function (): void {},
             $dependencies,
@@ -117,7 +118,7 @@ final readonly class IntegrationFixtureDefinitionTest
             $ids,
         );
 
-        Expect::value(\array_map(
+        expect(\array_map(
             static fn(IntegrationFixtureDefinition $definition): string => $definition->id,
             $definitions,
         ))->toBe($ids);

@@ -10,10 +10,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class StagedAttachmentSanitizedNameCollisionTest
 {
@@ -48,7 +49,7 @@ final readonly class StagedAttachmentSanitizedNameCollisionTest
             $attachments->seal(),
         );
 
-        Expect::value($names)
+        expect($names)
             ->because(
                 'distinct attachment names that sanitize to the same storage name '
                 . 'MUST remain distinct',

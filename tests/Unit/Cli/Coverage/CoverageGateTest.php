@@ -9,7 +9,8 @@ use Greenlight\Cli\Coverage\CoverageGate;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class CoverageGateTest
 {
@@ -19,7 +20,7 @@ final class CoverageGateTest
         $coverage = new CoverageMap([new FileCoverage('/src/A.php', [1, 2], [3])]);
         $configuration = new CoverageConfiguration([], null, [], 66.67, 1);
 
-        Expect::value(CoverageGate::failures($configuration, $coverage))
+        expect(CoverageGate::failures($configuration, $coverage))
             ->because('66.666 percent rounds to the inclusive 66.67-percent boundary')
             ->toBe([]);
     }
@@ -30,7 +31,7 @@ final class CoverageGateTest
         $coverage = new CoverageMap([new FileCoverage('/src/A.php', [1, 2], [3])]);
         $configuration = new CoverageConfiguration([], null, [], 66.68, 0);
 
-        Expect::value(CoverageGate::failures($configuration, $coverage))
+        expect(CoverageGate::failures($configuration, $coverage))
             ->because('all failed gates MUST be visible to the user')
             ->toBe([
                 'Coverage gate failed: 66.67% is less than the minimum 66.68%.',

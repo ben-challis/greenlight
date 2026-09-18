@@ -8,12 +8,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactTransformedOutcomeRetentionTest
 {
@@ -41,12 +42,12 @@ final readonly class ArtifactTransformedOutcomeRetentionTest
 
         $published = $store->publish($result);
 
-        Expect::value($published->attachments)
+        expect($published->attachments)
             ->because('a passing transformation MUST retain evidence from its failed source')
             ->toHaveCount(1);
-        Expect::value($published->attachments[0]->name)
+        expect($published->attachments[0]->name)
             ->toBe('failure.txt');
-        Expect::value((string) \file_get_contents($published->attachments[0]->path))
+        expect((string) \file_get_contents($published->attachments[0]->path))
             ->toBe('original failure evidence');
     }
 
@@ -69,10 +70,10 @@ final readonly class ArtifactTransformedOutcomeRetentionTest
 
         $published = $store->publish($result);
 
-        Expect::value($published->attachments)
+        expect($published->attachments)
             ->because('a transformation between successful outcomes MUST discard on-failure evidence')
             ->toBe([]);
-        Expect::value(\file_exists($store->publicDirectory()))
+        expect(\file_exists($store->publicDirectory()))
             ->toBeFalse();
     }
 }

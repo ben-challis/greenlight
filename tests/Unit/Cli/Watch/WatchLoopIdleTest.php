@@ -10,8 +10,9 @@ use Greenlight\Cli\Watch\Debouncer;
 use Greenlight\Cli\Watch\KeyInput;
 use Greenlight\Cli\Watch\WatchLoop;
 use Greenlight\Doubles\Fake;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Cli\Watch\FakeWatchClock;
+
+use function Greenlight\expect;
 
 final class WatchLoopIdleTest
 {
@@ -49,10 +50,10 @@ final class WatchLoopIdleTest
             return [];
         });
 
-        Expect::value($clock->sleeps)
+        expect($clock->sleeps)
             ->because('an idle watch loop MUST sleep between polls')
             ->toBe([0.1]);
-        Expect::value($runs)
+        expect($runs)
             ->because('idle polling MUST NOT start another test run')
             ->toBe(1);
     }

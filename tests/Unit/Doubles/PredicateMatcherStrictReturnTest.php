@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Argument;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class PredicateMatcherStrictReturnTest
 {
@@ -15,7 +16,7 @@ final class PredicateMatcherStrictReturnTest
     {
         $matcher = Argument::predicate(static fn(): int => 1, 'truthy result');
 
-        Expect::value($matcher->matches('value'))
+        expect($matcher->matches('value'))
             ->because('an argument predicate MUST return the boolean value true to match')
             ->toBeFalse();
     }

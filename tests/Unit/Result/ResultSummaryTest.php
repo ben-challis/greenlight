@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ResultSummary;
+
+use function Greenlight\expect;
 
 final class ResultSummaryTest
 {
@@ -23,7 +24,7 @@ final class ResultSummaryTest
         ];
         $counts[$field] = -1;
 
-        Expect::calling(
+        expect()->calling(
             static fn(): ResultSummary => new ResultSummary(
                 $counts['passed'],
                 $counts['failed'],

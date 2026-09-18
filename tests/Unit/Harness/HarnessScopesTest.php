@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Harness;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\Disposable;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
@@ -16,6 +15,8 @@ use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\TerminalServiceResolver;
 use Greenlight\Harness\UnresolvableService;
+
+use function Greenlight\expect;
 
 final class HarnessScopesTest
 {
@@ -32,7 +33,7 @@ final class HarnessScopesTest
         ];
         $scopes = new HarnessScopes($definitions);
 
-        Expect::calling(static fn(): object => $scopes->resolve(\ArrayObject::class, 'test'))
+        expect()->calling(static fn(): object => $scopes->resolve(\ArrayObject::class, 'test'))
             ->because('a scoped service MUST not escape its configured lifetime')
             ->toThrow(\LogicException::class, message: $message);
     }
@@ -61,10 +62,10 @@ final class HarnessScopesTest
 
         $values = $resolved->getArrayCopy();
 
-        Expect::value($values)
+        expect($values)
             ->because('registered services MUST win over fallback resolvers')
             ->toBe(['registered']);
-        Expect::value($resolver->consulted)
+        expect($resolver->consulted)
             ->because('a registered service MUST NOT consult a fallback resolver')
             ->toBeFalse();
     }
@@ -81,7 +82,7 @@ final class HarnessScopesTest
             ),
         ]);
 
-        Expect::value($scopes->resolve(\ArrayObject::class, self::class))
+        expect($scopes->resolve(\ArrayObject::class, self::class))
             ->because('harness service identity MUST follow PHP type-name identity')
             ->toBe($service);
     }
@@ -102,7 +103,7 @@ final class HarnessScopesTest
             ),
         ];
 
-        Expect::calling(static fn(): HarnessScopes => new HarnessScopes($definitions))
+        expect()->calling(static fn(): HarnessScopes => new HarnessScopes($definitions))
             ->because('one PHP type MUST have only one harness service definition')
             ->toThrow(
                 \LogicException::class,
@@ -133,9 +134,9 @@ final class HarnessScopesTest
         $scopes = new HarnessScopes([], [$resolver]);
         $resolved = $scopes->resolve(\ArrayObject::class, 'test', [$marker]);
 
-        Expect::value($resolved)->because('fallback resolvers receive the type and attributes')->toBeInstanceOf(\ArrayObject::class);
-        Expect::value($resolver->type)->toBe(\ArrayObject::class);
-        Expect::value($resolver->attributes)->toBe([$marker]);
+        expect($resolved)->because('fallback resolvers receive the type and attributes')->toBeInstanceOf(\ArrayObject::class);
+        expect($resolver->type)->toBe(\ArrayObject::class);
+        expect($resolver->attributes)->toBe([$marker]);
     }
 
     #[Test]
@@ -164,7 +165,7 @@ final class HarnessScopesTest
 
         $scopes = new HarnessScopes([], [$passing, $answering]);
 
-        Expect::value($scopes->resolve(\ArrayObject::class, 'test'))->because('resolvers are consulted in order until one answers')->toBe($answer);
+        expect($scopes->resolve(\ArrayObject::class, 'test'))->because('resolvers are consulted in order until one answers')->toBe($answer);
     }
 
     #[Test]
@@ -193,12 +194,12 @@ final class HarnessScopesTest
         $resolved = $scopes->resolve(Disposable::class, 'test');
         $failures = $scopes->closeWorker();
 
-        Expect::value($resolved)
+        expect($resolved)
             ->because('the resolver retains ownership of the service lifecycle')
             ->toBe($service);
-        Expect::value($service->disposeCalls)
+        expect($service->disposeCalls)
             ->toBe(0);
-        Expect::value($failures)
+        expect($failures)
             ->toBe([]);
     }
 
@@ -214,7 +215,7 @@ final class HarnessScopesTest
         };
         $scopes = new HarnessScopes([], [$resolver]);
 
-        Expect::calling(static function () use ($scopes): void {
+        expect()->calling(static function () use ($scopes): void {
             $scopes->resolve(\ArrayObject::class, 'test');
         })->because('a resolver that returns the wrong type causes an error')->toThrow(UnresolvableService::class, matching: '/is not that type/');
     }
@@ -231,7 +232,7 @@ final class HarnessScopesTest
         };
         $scopes = new HarnessScopes([], [$resolver]);
 
-        Expect::calling(static function () use ($scopes): void {
+        expect()->calling(static function () use ($scopes): void {
             $scopes->resolve(\ArrayObject::class, 'test');
         })->because('an unanswered type names the consulted resolvers')->toThrow(UnresolvableService::class, matching: '/none of the 1 fallback resolver/');
     }
@@ -241,7 +242,7 @@ final class HarnessScopesTest
     {
         $scopes = new HarnessScopes();
 
-        Expect::calling(static function () use ($scopes): void {
+        expect()->calling(static function () use ($scopes): void {
             $scopes->resolve(\ArrayObject::class, 'test');
         })->because('without resolvers the original message stands')->toThrow(UnresolvableService::class, matching: '/exact types only\.$/');
     }
@@ -280,11 +281,11 @@ final class HarnessScopesTest
             $error = $caught;
         }
 
-        Expect::value($error)
+        expect($error)
             ->because('a resolver failure MUST expose the public service resolution failure contract')
             ->toBeInstanceOf(ServiceResolutionFailed::class);
-        Expect::value($error)->toBe($failure);
-        Expect::value($later->consulted)
+        expect($error)->toBe($failure);
+        expect($later->consulted)
             ->because('Greenlight MUST NOT call a resolver after a failure')
             ->toBeFalse();
     }
@@ -307,7 +308,7 @@ final class HarnessScopesTest
             }
         };
 
-        Expect::calling(static fn(): HarnessScopes => new HarnessScopes([], [$terminal, $fallback]))
+        expect()->calling(static fn(): HarnessScopes => new HarnessScopes([], [$terminal, $fallback]))
             ->because('a terminal resolver MUST be the final resolver')
             ->toThrow(\InvalidArgumentException::class, message: 'Place a terminal service resolver last.');
     }
@@ -324,7 +325,7 @@ final class HarnessScopesTest
         };
         $scopes = new HarnessScopes([], [$terminal]);
 
-        Expect::calling(static fn(): object => $scopes->resolve(\ArrayObject::class, 'test'))
+        expect()->calling(static fn(): object => $scopes->resolve(\ArrayObject::class, 'test'))
             ->because('a terminal resolver MUST handle every request')
             ->toThrow(\LogicException::class, matching: '/Terminal service resolver .* returned null/');
     }
@@ -334,10 +335,10 @@ final class HarnessScopesTest
     {
         $scopes = new HarnessScopes();
 
-        Expect::value($scopes->closeTest())
+        expect($scopes->closeTest())
             ->because('closing an inactive test scope MUST be a safe no-op')
             ->toBe([]);
-        Expect::value($scopes->closeClass())
+        expect($scopes->closeClass())
             ->because('closing an inactive class scope MUST be a safe no-op')
             ->toBe([]);
     }
@@ -368,11 +369,11 @@ final class HarnessScopesTest
                 ? 'No test scope is open.'
                 : 'No class scope is open.';
 
-            Expect::calling(static fn(): object => $scopes->resolve(\ArrayObject::class, 'test'))
+            expect()->calling(static fn(): object => $scopes->resolve(\ArrayObject::class, 'test'))
                 ->because('closing a scope MUST make its services unavailable')
                 ->toThrow(\LogicException::class, message: $message);
         } else {
-            Expect::value($scopes->resolve(\ArrayObject::class, 'test'))
+            expect($scopes->resolve(\ArrayObject::class, 'test'))
                 ->because('closing narrower scopes MUST preserve broader services')
                 ->toBe($first);
         }
@@ -382,7 +383,7 @@ final class HarnessScopesTest
 
         $second = $scopes->resolve(\ArrayObject::class, 'test');
 
-        Expect::value($second === $first)
+        expect($second === $first)
             ->because('a service instance MUST follow its configured scope lifetime')
             ->toBe($reused);
     }

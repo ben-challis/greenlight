@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\DiscoveryCachePath;
+
+use function Greenlight\expect;
 
 final readonly class DiscoveryCacheCorruptPlanTest
 {
@@ -36,16 +37,16 @@ final readonly class DiscoveryCacheCorruptPlanTest
         $cache = DiscoveryCache::forDirectories([$directory]);
 
         try {
-            Expect::value($cache->lookup($source))
+            expect($cache->lookup($source))
                 ->because('an undecodable plan entry MUST become a cache miss')
                 ->toBeNull();
 
             \unlink($cacheFile);
 
-            Expect::value($cache->persist())
+            expect($cache->persist())
                 ->because('discarding a corrupt plan entry MUST leave no cache data to persist')
                 ->toBeTrue();
-            Expect::value(\is_file($cacheFile))
+            expect(\is_file($cacheFile))
                 ->because('persistence MUST NOT recreate a discarded corrupt plan entry')
                 ->toBeFalse();
         } finally {

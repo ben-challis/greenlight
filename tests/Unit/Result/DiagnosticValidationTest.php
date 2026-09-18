@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Diagnostic;
 use Greenlight\Result\DiagnosticSeverity;
+
+use function Greenlight\expect;
 
 final class DiagnosticValidationTest
 {
@@ -16,7 +17,7 @@ final class DiagnosticValidationTest
     #[DataSet('nonPositiveLines')]
     public function directConstructionRejectsNonPositiveLines(int $line): void
     {
-        Expect::calling(
+        expect()->calling(
             static fn(): Diagnostic => new Diagnostic(DiagnosticSeverity::Warning, 'Warning.', '/tests/ProbeTest.php', $line),
         )
             ->because('a diagnostic MUST identify a positive source line')
@@ -37,7 +38,7 @@ final class DiagnosticValidationTest
             'line' => $line,
         ]);
 
-        Expect::value($restored->line)
+        expect($restored->line)
             ->because('wire diagnostics MUST identify at least the first source line')
             ->toBe(1);
     }

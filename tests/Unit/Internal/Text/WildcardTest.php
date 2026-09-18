@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Internal\Text;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Text\Wildcard;
+
+use function Greenlight\expect;
 
 final class WildcardTest
 {
@@ -19,7 +20,7 @@ final class WildcardTest
         bool $caseInsensitive,
         bool $expected,
     ): void {
-        Expect::value(Wildcard::matches($subject, $pattern, $caseInsensitive))
+        expect(Wildcard::matches($subject, $pattern, $caseInsensitive))
             ->because('wildcard matching MUST follow the documented substring and shell-pattern contract')
             ->toBe($expected);
     }

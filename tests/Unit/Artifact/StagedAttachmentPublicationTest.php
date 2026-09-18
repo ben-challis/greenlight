@@ -9,7 +9,8 @@ use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Artifact\AttachmentRetention;
 use Greenlight\Artifact\StagedAttachment;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class StagedAttachmentPublicationTest
 {
@@ -30,10 +31,10 @@ final class StagedAttachmentPublicationTest
 
         $published = $staged->published();
 
-        Expect::value($published::class)
+        expect($published::class)
             ->because('published metadata MUST remove the private staging coordinate')
             ->toBe(Attachment::class);
-        Expect::value($published)
+        expect($published)
             ->because('published metadata MUST preserve every public attachment field')
             ->toEqual(new Attachment(
                 name: 'response.json',

@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanArgumentMatcherTypeTest
@@ -76,11 +77,11 @@ final readonly class PhpStanArgumentMatcherTypeTest
             PHP,
         );
 
-        Expect::value($probe->exitCode)->because('PHPStan MUST preserve known argument matcher types')->toBe(1);
-        Expect::value($probe->goodPassed)->because('PHPStan messages: ' . $probe->messages())->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(2);
-        Expect::value($probe->messages())->toContain('ArgumentMatcher<int>');
-        Expect::value($probe->messages())->toContain('ArgumentMatcher<mixed>');
+        expect($probe->exitCode)->because('PHPStan MUST preserve known argument matcher types')->toBe(1);
+        expect($probe->goodPassed)->because('PHPStan messages: ' . $probe->messages())->toBeTrue();
+        expect(\count($probe->errors))->toBe(2);
+        expect($probe->messages())->toContain('ArgumentMatcher<int>');
+        expect($probe->messages())->toContain('ArgumentMatcher<mixed>');
     }
 
     #[Test]
@@ -151,10 +152,10 @@ final readonly class PhpStanArgumentMatcherTypeTest
             PHP,
         );
 
-        Expect::value($probe->exitCode)->because('PHPStan MUST preserve combined argument matcher types')->toBe(1);
-        Expect::value($probe->goodPassed)->because('PHPStan messages: ' . $probe->messages())->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(1);
-        Expect::value($probe->messages())
+        expect($probe->exitCode)->because('PHPStan MUST preserve combined argument matcher types')->toBe(1);
+        expect($probe->goodPassed)->because('PHPStan messages: ' . $probe->messages())->toBeTrue();
+        expect(\count($probe->errors))->toBe(1);
+        expect($probe->messages())
             ->toContain('ArgumentMatcher<FirstWrongCombinedArgumentType|SecondWrongCombinedArgumentType>');
     }
 
@@ -213,10 +214,10 @@ final readonly class PhpStanArgumentMatcherTypeTest
             PHP,
         );
 
-        Expect::value($probe->exitCode)->because('PHPStan MUST preserve allOf() matcher types')->toBe(1);
-        Expect::value($probe->goodPassed)->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(1);
-        Expect::value($probe->messages())
+        expect($probe->exitCode)->because('PHPStan MUST preserve allOf() matcher types')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(1);
+        expect($probe->messages())
             ->toContain('ArgumentMatcher<DateTimeInterface|DateTimeZone>');
     }
 }

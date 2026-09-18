@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\CacheAlpha;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\Stubbable;
+
+use function Greenlight\expect;
 
 final class LeakTest
 {
@@ -42,6 +43,6 @@ final class LeakTest
             static fn(\WeakReference $reference): bool => $reference->get() !== null,
         ));
 
-        Expect::value($survivors)->because('every double is collectable after dispose and unset')->toBe([]);
+        expect($survivors)->because('every double is collectable after dispose and unset')->toBe([]);
     }
 }

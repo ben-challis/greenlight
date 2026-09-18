@@ -8,8 +8,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Doubles\ArgumentCaptor;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Wide;
+
+use function Greenlight\expect;
 
 final readonly class ArgumentCaptureTest
 {
@@ -25,19 +26,19 @@ final readonly class ArgumentCaptureTest
             $variadicCaptor = $plan->expects('variadic')->once()->andReturns([])->captureArgument(1);
         });
 
-        Expect::value($wide->withDefaults())
+        expect($wide->withDefaults())
             ->because('capture argument ignores omitted optional and variadic positions')
             ->toBe('defaults');
-        Expect::value($wide->variadic('head'))->toBe([]);
+        expect($wide->variadic('head'))->toBe([]);
 
-        Expect::value($optionalCaptor)
+        expect($optionalCaptor)
             ->because('The optional captureArgument() call MUST return ArgumentCaptor.')
             ->toBeInstanceOf(ArgumentCaptor::class);
-        Expect::value($variadicCaptor)
+        expect($variadicCaptor)
             ->because('The variadic captureArgument() call MUST return ArgumentCaptor.')
             ->toBeInstanceOf(ArgumentCaptor::class);
 
-        Expect::value($optionalCaptor->values())->toBe([]);
-        Expect::value($variadicCaptor->values())->toBe([]);
+        expect($optionalCaptor->values())->toBe([]);
+        expect($variadicCaptor->values())->toBe([]);
     }
 }

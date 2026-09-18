@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\OutcomeTransformation;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class TestResultFailedByEvidenceTest
 {
@@ -30,12 +31,12 @@ final readonly class TestResultFailedByEvidenceTest
 
         $result = $passed->failedBy('result-policy', [$later]);
 
-        Expect::value($result->outcome)
+        expect($result->outcome)
             ->because('a later failure transition MUST retain earlier failure evidence')
             ->toBe(Outcome::Failed);
-        Expect::value($result->failures)
+        expect($result->failures)
             ->toBe([$earlier, $later]);
-        Expect::value(\array_map(
+        expect(\array_map(
             static fn(OutcomeTransformation $transformation): array => [
                 $transformation->transformedBy,
                 $transformation->from,

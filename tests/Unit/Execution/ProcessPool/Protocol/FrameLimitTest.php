@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Protocol\FrameBuffer;
 use Greenlight\Execution\ProcessPool\Protocol\JsonFrameCodec;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class FrameLimitTest
 {
@@ -16,14 +17,14 @@ final readonly class FrameLimitTest
     #[DataSet('invalidLimits')]
     public function frameLimitsMustBePositive(int $limit): void
     {
-        Expect::calling(static fn(): JsonFrameCodec => new JsonFrameCodec($limit))
+        expect()->calling(static fn(): JsonFrameCodec => new JsonFrameCodec($limit))
             ->because('the encoder MUST reject a frame limit that cannot contain a frame')
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Maximum frame size must be greater than zero.',
             );
 
-        Expect::calling(static fn(): FrameBuffer => new FrameBuffer($limit))
+        expect()->calling(static fn(): FrameBuffer => new FrameBuffer($limit))
             ->because('the decoder MUST reject a frame limit that cannot contain a frame')
             ->toThrow(
                 \InvalidArgumentException::class,

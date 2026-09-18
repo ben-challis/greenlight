@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Cli\WorkerCapacity;
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\WorkerCapacity\CpuCores;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Tests\Support\FilesystemRestriction;
+
+use function Greenlight\expect;
 
 final readonly class CpuCoresFallbackTest
 {
@@ -29,11 +30,11 @@ final readonly class CpuCoresFallbackTest
             $warning,
         );
 
-        Expect::value($count)
+        expect($count)
             ->because('an unavailable platform CPU count MUST use the conservative default')
             ->toBe(4);
 
-        Expect::value($warning)
+        expect($warning)
             ->because('unavailable platform CPU probes MUST not leak engine diagnostics')
             ->toBeNull();
     }

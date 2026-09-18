@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanTestMethodRuleTest
@@ -92,10 +93,10 @@ final readonly class PhpStanTestMethodRuleTest
             PHP,
         );
 
-        Expect::value($probe->exitCode)->because('test methods must be public non static and concrete')->toBe(1);
-        Expect::value($probe->goodPassed)->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(4);
-        Expect::value($probe->messages())->toContain('protectedTest() cannot run because it is not public')
+        expect($probe->exitCode)->because('test methods must be public non static and concrete')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(4);
+        expect($probe->messages())->toContain('protectedTest() cannot run because it is not public')
             ->toContain('staticTest() cannot run because it is static')
             ->toContain('abstractTest() cannot run because it is abstract')
             ->toContain('testWithoutDataSet() has required parameters but no #[DataRow] or #[DataSet] attribute');

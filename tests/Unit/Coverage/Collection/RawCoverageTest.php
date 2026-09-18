@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Coverage\Collection;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Collection\RawCoverage;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class RawCoverageTest
 {
@@ -24,7 +25,7 @@ final readonly class RawCoverageTest
             '/invalid.php' => 'not line coverage',
         ]);
 
-        Expect::value($coverage->lines)
+        expect($coverage->lines)
             ->because('raw coverage MUST keep only integer statuses keyed by integer lines')
             ->toBe([
                 '/valid.php' => [

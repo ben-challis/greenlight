@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Cli\WorkerCapacity;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\WorkerCapacity\LinuxCpuInfo;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class LinuxCpuInfoTest
 {
@@ -17,7 +18,7 @@ final class LinuxCpuInfoTest
     {
         $count = LinuxCpuInfo::processorCount($cpuinfo);
 
-        Expect::value($count)
+        expect($count)
             ->because('the Linux probe MUST count only processor records')
             ->toBe($expected);
     }

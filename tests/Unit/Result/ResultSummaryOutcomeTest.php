@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
+
+use function Greenlight\expect;
 
 final class ResultSummaryOutcomeTest
 {
@@ -21,10 +22,10 @@ final class ResultSummaryOutcomeTest
     {
         $original = new ResultSummary(passed: 1, failed: 2, errored: 3, skipped: 4);
 
-        Expect::value($original->add($outcome)->toWire())
+        expect($original->add($outcome)->toWire())
             ->because('adding an outcome MUST increment only its matching summary count')
             ->toBe($expected);
-        Expect::value($original->toWire())
+        expect($original->toWire())
             ->because('adding an outcome MUST leave the original summary unchanged')
             ->toBe([
                 'passed' => 1,
@@ -62,7 +63,7 @@ final class ResultSummaryOutcomeTest
     {
         $summary = new ResultSummary(passed: \PHP_INT_MAX);
 
-        Expect::value($summary->add(Outcome::Passed)->passed)
+        expect($summary->add(Outcome::Passed)->passed)
             ->because('adding an outcome MUST NOT overflow its summary count')
             ->toBe(\PHP_INT_MAX);
     }

@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Tempest;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
-use Greenlight\Expect\Expect;
 use Greenlight\Tempest\TempestFrameworkRequirement;
 use Tempest\Core\FrameworkKernel;
 use Tempest\Core\Kernel;
+
+use function Greenlight\expect;
 
 #[SkipUnless(ClassAvailable::class, FrameworkKernel::class)]
 final readonly class TempestFrameworkRequirementTest
@@ -20,7 +21,7 @@ final readonly class TempestFrameworkRequirementTest
     {
         TempestFrameworkRequirement::check();
 
-        Expect::value(Kernel::VERSION)
+        expect(Kernel::VERSION)
             ->because('the installed Tempest framework MUST satisfy the bridge requirement')
             ->toMatch('/^3\.(?:1[89]|[2-9][0-9]|[1-9][0-9]{2,})(?:\.|$)/D');
     }

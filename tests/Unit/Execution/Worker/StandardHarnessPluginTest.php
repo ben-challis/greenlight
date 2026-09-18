@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Execution\Worker;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Worker\StandardHarnessPlugin;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Test\TestChannel;
+
+use function Greenlight\expect;
 
 final readonly class StandardHarnessPluginTest
 {
@@ -19,7 +20,7 @@ final readonly class StandardHarnessPluginTest
     #[Test]
     public function standardServicesStayBeforeUserPluginServices(): void
     {
-        Expect::value(new StandardHarnessPlugin()->priority())->toBe(\PHP_INT_MIN);
+        expect(new StandardHarnessPlugin()->priority())->toBe(\PHP_INT_MIN);
     }
 
     #[Test]
@@ -37,7 +38,7 @@ final readonly class StandardHarnessPluginTest
         try {
             $channel = $scopes->resolve(TestChannel::class, self::class);
 
-            Expect::value($channel->number)
+            expect($channel->number)
                 ->because('the standard channel service MUST always use a positive number')
                 ->toBe($expected);
         } finally {
@@ -54,7 +55,7 @@ final readonly class StandardHarnessPluginTest
         try {
             $channel = $scopes->resolve(TestChannel::class, self::class);
 
-            Expect::value($channel->number)->toBe(3);
+            expect($channel->number)->toBe(3);
         } finally {
             $scopes->closeWorker();
         }

@@ -8,7 +8,8 @@ use Greenlight\Artifact\Attachment;
 use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class AttachmentMediaTypeContractTest
 {
@@ -16,7 +17,7 @@ final class AttachmentMediaTypeContractTest
     #[DataSet('invalidMediaTypes')]
     public function constructionAndWireDecodingRejectInvalidMediaTypes(string $mediaType): void
     {
-        Expect::calling(static fn(): Attachment => new Attachment(
+        expect()->calling(static fn(): Attachment => new Attachment(
             'attachment',
             AttachmentKind::Text,
             $mediaType,
@@ -31,7 +32,7 @@ final class AttachmentMediaTypeContractTest
                 message: 'Attachment metadata is invalid.',
             );
 
-        Expect::calling(static fn(): Attachment => Attachment::fromWire([
+        expect()->calling(static fn(): Attachment => Attachment::fromWire([
             'name' => 'attachment',
             'kind' => AttachmentKind::Text->value,
             'mediaType' => $mediaType,

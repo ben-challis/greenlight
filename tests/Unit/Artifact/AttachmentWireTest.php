@@ -10,7 +10,8 @@ use Greenlight\Artifact\AttachmentRetention;
 use Greenlight\Artifact\StagedAttachment;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class AttachmentWireTest
 {
@@ -31,10 +32,10 @@ final class AttachmentWireTest
         $payload = $attachment->toWire();
         $decoded = Attachment::fromWire($payload);
 
-        Expect::value($payload['retention'])
+        expect($payload['retention'])
             ->because('explicit attachment retention survives the wire round-trip')
             ->toBe(AttachmentRetention::Always->value);
-        Expect::value($decoded)
+        expect($decoded)
             ->toEqual($attachment);
     }
 
@@ -53,7 +54,7 @@ final class AttachmentWireTest
             'storageKey' => 'attempt/response.json',
         ]);
 
-        Expect::value($staged->retention)
+        expect($staged->retention)
             ->because('explicit staged attachment retention MUST survive wire decoding')
             ->toBe(AttachmentRetention::Always);
     }
@@ -77,10 +78,10 @@ final class AttachmentWireTest
             'storageKey' => 'attempt/response.json',
         ]);
 
-        Expect::value($attachment->retention)
+        expect($attachment->retention)
             ->because('older attachment payloads use on-failure retention')
             ->toBe(AttachmentRetention::OnFailure);
-        Expect::value($staged->retention)
+        expect($staged->retention)
             ->toBe(AttachmentRetention::OnFailure);
     }
 
@@ -99,10 +100,10 @@ final class AttachmentWireTest
             'retention' => AttachmentRetention::Always->value,
         ]);
 
-        Expect::value($attachment->sizeBytes)
+        expect($attachment->sizeBytes)
             ->because('attachment wire decoding MUST normalize a negative size to zero')
             ->toBe(0);
-        Expect::value($attachment->attempt)
+        expect($attachment->attempt)
             ->because('attachment wire decoding MUST normalize a nonpositive attempt to one')
             ->toBe(1);
     }

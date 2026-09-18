@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Laravel;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Laravel\LaravelBridgeError;
 use Greenlight\Laravel\LaravelFrameworkRequirement;
+
+use function Greenlight\expect;
 
 final readonly class LaravelFrameworkVersionBoundaryTest
 {
@@ -18,7 +19,7 @@ final readonly class LaravelFrameworkVersionBoundaryTest
     {
         LaravelFrameworkRequirement::checkVersion($version);
 
-        Expect::value($version)
+        expect($version)
             ->because('the supported Laravel version MUST use major version 13')
             ->toMatch('/^13(?:\\.|$)/D');
     }
@@ -37,7 +38,7 @@ final readonly class LaravelFrameworkVersionBoundaryTest
     #[DataSet('unsupportedVersions')]
     public function rejectsVersionsOutsideMajorVersionThirteen(string $version): void
     {
-        Expect::calling(static function () use ($version): void {
+        expect()->calling(static function () use ($version): void {
             LaravelFrameworkRequirement::checkVersion($version);
         })
             ->because('the Laravel bridge MUST reject versions outside major version 13')

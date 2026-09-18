@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class ReporterSmokeTest
 {
@@ -22,25 +23,25 @@ final readonly class ReporterSmokeTest
         // Use standard output only. Extension messages on standard error
         // corrupt the document that the parser must accept as a complete unit.
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=junit']);
-        Expect::value($result->exitCode)->because('JUnit produces well formed XML with one failure and one pass')->toBe(1);
+        expect($result->exitCode)->because('JUnit produces well formed XML with one failure and one pass')->toBe(1);
 
         if ($result->stdout === '') {
             Fail::because('The JUnit reporter did not write XML to stdout.');
         }
 
         $document = new \DOMDocument();
-        Expect::value($document->loadXML($result->stdout))->because('JUnit produces well formed XML with one failure and one pass')->toBeTrue();
+        expect($document->loadXML($result->stdout))->because('JUnit produces well formed XML with one failure and one pass')->toBeTrue();
         $testcases = $document->getElementsByTagName('testcase');
-        Expect::value($testcases->length)->because('JUnit produces well formed XML with one failure and one pass')->toBe(2);
+        expect($testcases->length)->because('JUnit produces well formed XML with one failure and one pass')->toBe(2);
         $errors = $document->getElementsByTagName('error');
-        Expect::value($errors->length)->because('JUnit produces well formed XML with one failure and one pass')->toBe(1);
+        expect($errors->length)->because('JUnit produces well formed XML with one failure and one pass')->toBe(1);
         $failingClass = null;
         foreach ($testcases as $testcase) {
             if ($testcase->getAttribute('name') === 'fails') {
                 $failingClass = $testcase->getAttribute('classname');
             }
         }
-        Expect::value($failingClass)->because('JUnit produces well formed XML with one failure and one pass')->toBe('ReporterProbe\BadReporterProbeTest');
+        expect($failingClass)->because('JUnit produces well formed XML with one failure and one pass')->toBe('ReporterProbe\BadReporterProbeTest');
     }
 
     #[Test]
@@ -48,12 +49,12 @@ final readonly class ReporterSmokeTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=github']);
-        Expect::value($result->exitCode)->because('GitHub emits a workflow error command for the failing test')->toBe(1);
+        expect($result->exitCode)->because('GitHub emits a workflow error command for the failing test')->toBe(1);
         // Use realpath(), not project->path(). The annotation contains the
         // absolute path that discovery reports after symbolic-link resolution.
         // On macOS, temporary paths can have aliases.
         $failingFile = (string) \realpath($project->path('tests/BadReporterProbeTest.php'));
-        Expect::value($result->output())->because('GitHub emits a workflow error command for the failing test')->toContain('::error file=' . $failingFile)
+        expect($result->output())->because('GitHub emits a workflow error command for the failing test')->toContain('::error file=' . $failingFile)
             ->toContain('ReporterProbe\BadReporterProbeTest::fails')
             ->toContain('intentional reporter probe failure')
         // Passed tests do not add an annotation.
@@ -72,14 +73,15 @@ final readonly class ReporterSmokeTest
             namespace ReporterProbe;
 
             use Greenlight\Attribute\Test;
-            use Greenlight\Expect\Expect;
+
+            use function Greenlight\expect;
 
             final class GoodReporterProbeTest
             {
                 #[Test]
                 public function passes(): void
                 {
-                    Expect::value(true)->toBeTrue();
+                    expect(true)->toBeTrue();
                 }
             }
             PHP);

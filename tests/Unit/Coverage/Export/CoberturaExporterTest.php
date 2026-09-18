@@ -8,8 +8,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\CoberturaExporter;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\SimpleXml;
+
+use function Greenlight\expect;
 
 final class CoberturaExporterTest
 {
@@ -23,7 +24,7 @@ final class CoberturaExporterTest
 
         $xml = new \SimpleXMLElement(new CoberturaExporter(1234)->export($map)[CoberturaExporter::FILE_NAME]);
 
-        Expect::value($this->structure($xml))
+        expect($this->structure($xml))
             ->because('document carries metrics for every file')
             ->toBe([
                 'attributes' => [
@@ -84,7 +85,7 @@ final class CoberturaExporterTest
     {
         $xml = new \SimpleXMLElement(new CoberturaExporter()->export(CoverageMap::empty())[CoberturaExporter::FILE_NAME]);
 
-        Expect::value($this->structure($xml))
+        expect($this->structure($xml))
             ->because('empty map still produces a parsable document')
             ->toBe([
                 'attributes' => [

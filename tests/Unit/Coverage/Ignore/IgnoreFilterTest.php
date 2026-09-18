@@ -8,8 +8,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Coverage\Ignore\IgnoreFilter;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class IgnoreFilterTest
 {
@@ -35,8 +36,8 @@ final readonly class IgnoreFilterTest
         $filtered = new IgnoreFilter()->apply($map);
         $file = $filtered->files()[$path];
 
-        Expect::value($file->coveredLines)->toBe([2]);
-        Expect::value($file->uncoveredLines)->toBe([7]);
+        expect($file->coveredLines)->toBe([2]);
+        expect($file->uncoveredLines)->toBe([7]);
     }
 
     #[Test]
@@ -53,7 +54,7 @@ final readonly class IgnoreFilterTest
 
         $map = new CoverageMap([new FileCoverage($path, [3], [4])]);
 
-        Expect::value(new IgnoreFilter()->apply($map)->isEmpty())->toBeTrue();
+        expect(new IgnoreFilter()->apply($map)->isEmpty())->toBeTrue();
     }
 
     #[Test]
@@ -64,13 +65,13 @@ final readonly class IgnoreFilterTest
         $filtered = new IgnoreFilter()->apply($map);
         $file = $filtered->files()['/nonexistent/plain.php'];
 
-        Expect::value($file->coveredLines)->because('files without markers remain unchanged')->toBe([1, 2]);
-        Expect::value($file->uncoveredLines)->toBe([3]);
+        expect($file->coveredLines)->because('files without markers remain unchanged')->toBe([1, 2]);
+        expect($file->uncoveredLines)->toBe([3]);
     }
 
     #[Test]
     public function emptyMapStaysEmpty(): void
     {
-        Expect::value(new IgnoreFilter()->apply(CoverageMap::empty())->isEmpty())->because('empty map stays empty')->toBeTrue();
+        expect(new IgnoreFilter()->apply(CoverageMap::empty())->isEmpty())->because('empty map stays empty')->toBeTrue();
     }
 }

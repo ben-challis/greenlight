@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use JsonSchema\Validator;
+
+use function Greenlight\expect;
 
 final readonly class JsonlSchemaTest
 {
@@ -30,12 +31,12 @@ final readonly class JsonlSchemaTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
-        Expect::value($result->exitCode)->because('every emitted line validates against the shipped schema')->toBe(1);
+        expect($result->exitCode)->because('every emitted line validates against the shipped schema')->toBe(1);
         $lines = $result->stdoutLines();
         $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/jsonl-v1.schema.json'];
         $seenTags = [];
         $violations = [];
-        Expect::value($lines)->because('every emitted line validates against the shipped schema')->not()->toBeEmpty();
+        expect($lines)->because('every emitted line validates against the shipped schema')->not()->toBeEmpty();
         foreach ($lines as $line) {
             $decoded = \json_decode($line, flags: \JSON_THROW_ON_ERROR);
             $validator = new Validator();
@@ -68,9 +69,9 @@ final readonly class JsonlSchemaTest
                 $seenTags[$assoc['event']] = true;
             }
         }
-        Expect::value($violations)->because('every emitted line validates against the shipped schema')->toBe([]);
+        expect($violations)->because('every emitted line validates against the shipped schema')->toBe([]);
         foreach (self::PRODUCIBLE_TAGS as $tag) {
-            Expect::value($seenTags)->toHaveKey($tag);
+            expect($seenTags)->toHaveKey($tag);
         }
     }
 
@@ -88,20 +89,21 @@ final readonly class JsonlSchemaTest
             use Greenlight\Attribute\DataRow;
             use Greenlight\Attribute\Skip;
             use Greenlight\Attribute\Test;
-            use Greenlight\Expect\Expect;
+
+            use function Greenlight\expect;
 
             final class MixedOutcomesProbeTest
             {
                 #[Test]
                 public function passes(): void
                 {
-                    Expect::value(true)->toBeTrue();
+                    expect(true)->toBeTrue();
                 }
 
                 #[Test]
                 public function failsAnExpectation(): void
                 {
-                    Expect::value(1 + 1)->toBe(3);
+                    expect(1 + 1)->toBe(3);
                 }
 
                 #[Test]
@@ -121,7 +123,7 @@ final readonly class JsonlSchemaTest
                 #[DataRow(['two'])]
                 public function acceptsRows(string $row): void
                 {
-                    Expect::value($row)->toBeString();
+                    expect($row)->toBeString();
                 }
             }
             PHP);

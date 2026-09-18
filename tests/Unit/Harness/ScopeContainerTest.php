@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
@@ -14,6 +13,8 @@ use Greenlight\Tests\Fixture\Lifecycle\DisposeFails\FailingDisposalProbe;
 use Greenlight\Tests\Fixture\Lifecycle\Services\SecondaryServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
+
+use function Greenlight\expect;
 
 final class ScopeContainerTest
 {
@@ -26,7 +27,7 @@ final class ScopeContainerTest
         $first = $container->get($definition);
         $second = $container->get($definition);
 
-        Expect::value($second)->because('reuses the service within the scope')->toBe($first);
+        expect($second)->because('reuses the service within the scope')->toBe($first);
     }
 
     #[Test]
@@ -41,8 +42,8 @@ final class ScopeContainerTest
         $container->get($definition);
         $failures = $container->dispose();
 
-        Expect::value($failures)->because('an untouched lazy service is never constructed nor disposed')->toBe([]);
-        Expect::value(TraceLog::drain())->toBe([]);
+        expect($failures)->because('an untouched lazy service is never constructed nor disposed')->toBe([]);
+        expect(TraceLog::drain())->toBe([]);
     }
 
     #[Test]
@@ -66,10 +67,10 @@ final class ScopeContainerTest
         $probe = $container->get($probeDefinition);
         $secondary = $container->get($secondaryDefinition);
 
-        Expect::value($probe)
+        expect($probe)
             ->because('ScopeContainer::get() MUST return ServiceProbe.')
             ->toBeInstanceOf(ServiceProbe::class);
-        Expect::value($secondary)
+        expect($secondary)
             ->because('ScopeContainer::get() MUST return SecondaryServiceProbe.')
             ->toBeInstanceOf(SecondaryServiceProbe::class);
 
@@ -78,13 +79,13 @@ final class ScopeContainerTest
         $firstFailures = $container->dispose();
         $secondFailures = $container->dispose();
 
-        Expect::value($firstFailures)
+        expect($firstFailures)
             ->because('disposing touched services succeeds')
             ->toBe([]);
-        Expect::value($secondFailures)
+        expect($secondFailures)
             ->because('a disposed scope does not dispose its services twice')
             ->toBe([]);
-        Expect::value(TraceLog::drain())
+        expect(TraceLog::drain())
             ->because('touched services dispose in reverse creation order')
             ->toBe([
                 'probe1:created',
@@ -108,15 +109,15 @@ final class ScopeContainerTest
 
         $probe = $container->get($definition);
 
-        Expect::value($probe)
+        expect($probe)
             ->because('ScopeContainer::get() MUST return FailingDisposalProbe.')
             ->toBeInstanceOf(FailingDisposalProbe::class);
 
         $probe->touch();
         $failures = $container->dispose();
 
-        Expect::value($failures)->because('disposal failures are collected not thrown')->toHaveCount(1);
-        Expect::value($failures[0]->getMessage())->toBe('disposal broke');
+        expect($failures)->because('disposal failures are collected not thrown')->toHaveCount(1);
+        expect($failures[0]->getMessage())->toBe('disposal broke');
     }
 
     #[Test]
@@ -132,7 +133,7 @@ final class ScopeContainerTest
         );
         $service = $container->get($definition);
 
-        Expect::value($service)
+        expect($service)
             ->because('ScopeContainer::get() MUST return FailingDisposable.')
             ->toBeInstanceOf(FailingDisposable::class);
 
@@ -140,15 +141,15 @@ final class ScopeContainerTest
         $first = $container->dispose();
         $second = $container->dispose();
 
-        Expect::value($first)
+        expect($first)
             ->because('the first disposal reports the service failure')
             ->toHaveCount(1);
-        Expect::value($first[0]->getMessage())
+        expect($first[0]->getMessage())
             ->toBe('disposal broke');
-        Expect::value($second)
+        expect($second)
             ->because('a failed disposal MUST still leave the scope empty')
             ->toBe([]);
-        Expect::value(FailingDisposable::disposals())
+        expect(FailingDisposable::disposals())
             ->toBe(1);
     }
 }

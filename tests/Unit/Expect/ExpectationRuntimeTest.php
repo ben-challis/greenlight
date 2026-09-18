@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+
+use function Greenlight\expect;
 
 final class ExpectationRuntimeTest
 {
@@ -22,19 +23,19 @@ final class ExpectationRuntimeTest
         ExpectationRuntime::withClock(
             $outer,
             static function () use ($inner, $outer, $expected): void {
-                Expect::calling(static fn(): mixed => ExpectationRuntime::withClock(
+                expect()->calling(static fn(): mixed => ExpectationRuntime::withClock(
                     $inner,
                     static fn(): never => throw $expected,
                 ))
                     ->because('withClock propagates the operation exception')
                     ->toThrow($expected);
 
-                Expect::value(ExpectationRuntime::clock())
+                expect(ExpectationRuntime::clock())
                     ->toBe($outer);
             },
         );
 
-        Expect::value(ExpectationRuntime::clock())
+        expect(ExpectationRuntime::clock())
             ->toBe($baseline);
     }
 }

@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Laravel;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
-use Greenlight\Expect\Expect;
 use Greenlight\Laravel\LaravelFrameworkRequirement;
 use Illuminate\Foundation\Application;
+
+use function Greenlight\expect;
 
 #[SkipUnless(ClassAvailable::class, Application::class)]
 final readonly class LaravelFrameworkRequirementTest
@@ -19,7 +20,7 @@ final readonly class LaravelFrameworkRequirementTest
     {
         LaravelFrameworkRequirement::check();
 
-        Expect::value(Application::VERSION)
+        expect(Application::VERSION)
             ->because('the installed Laravel framework MUST satisfy the bridge requirement')
             ->toMatch('/^13(?:\\.|$)/D');
     }

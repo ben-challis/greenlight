@@ -9,11 +9,12 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Collection\Driver\XdebugDriver;
 use Greenlight\Coverage\Collection\PathFilter;
 use Greenlight\Coverage\CoverageError;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Fixture\Coverage\Adder;
 use Greenlight\Tests\Fixture\Coverage\FakeXdebugRuntime;
 use Greenlight\Tests\Support\ClassFile;
+
+use function Greenlight\expect;
 
 final class XdebugDriverTest
 {
@@ -23,19 +24,19 @@ final class XdebugDriverTest
         $available = \extension_loaded('xdebug')
             && \in_array('coverage', $this->activeXdebugModes(), true);
 
-        Expect::value(XdebugDriver::isAvailable())
+        expect(XdebugDriver::isAvailable())
             ->because('Xdebug availability matches the active extension modes')
             ->toBe($available);
 
         if ($available) {
-            Expect::value(new XdebugDriver())
+            expect(new XdebugDriver())
                 ->because('an active Xdebug coverage mode permits driver construction')
                 ->toBeInstanceOf(XdebugDriver::class);
 
             return;
         }
 
-        Expect::calling(static fn(): XdebugDriver => new XdebugDriver())
+        expect()->calling(static fn(): XdebugDriver => new XdebugDriver())
             ->because('an inactive Xdebug coverage mode gives exact configuration guidance')
             ->toThrow(
                 CoverageError::class,
@@ -59,19 +60,19 @@ final class XdebugDriverTest
         $runtime = new FakeXdebugRuntime();
         $driver = new XdebugDriver($runtime);
 
-        Expect::calling(static fn(): mixed => $driver->stop())
+        expect()->calling(static fn(): mixed => $driver->stop())
             ->toThrow(
                 \LogicException::class,
                 message: 'The Xdebug collection window is not open. Call start() before stop().',
             );
 
-        Expect::value($runtime->calls)
+        expect($runtime->calls)
             ->because('an invalid stop MUST NOT use the Xdebug runtime')
             ->toBe([]);
 
         $driver->start();
 
-        Expect::calling(static fn() => $driver->start())
+        expect()->calling(static fn() => $driver->start())
             ->toThrow(
                 \LogicException::class,
                 message: 'The Xdebug collection window is already open. Call stop() before start().',
@@ -79,7 +80,7 @@ final class XdebugDriverTest
 
         $driver->stop();
 
-        Expect::value($runtime->calls)
+        expect($runtime->calls)
             ->because('an invalid start MUST NOT open a second collection window')
             ->toBe(['start', 'collect', 'stop']);
     }
@@ -101,7 +102,7 @@ final class XdebugDriverTest
         $driver->start();
         $coverage = $driver->stop();
 
-        Expect::value($coverage->lines)
+        expect($coverage->lines)
             ->because('Xdebug collection MUST return the extension line data')
             ->toBe([
                 '/src/Example.php' => [
@@ -110,15 +111,15 @@ final class XdebugDriverTest
                 ],
             ]);
 
-        Expect::value($runtime->flags)
+        expect($runtime->flags)
             ->because('Xdebug collection MUST request unused and dead code analysis')
             ->toBe(\XDEBUG_CC_UNUSED | \XDEBUG_CC_DEAD_CODE);
 
-        Expect::value($runtime->calls)
+        expect($runtime->calls)
             ->because('Xdebug collection MUST read and stop the extension before closing its window')
             ->toBe(['start', 'collect', 'stop']);
 
-        Expect::calling(static fn(): mixed => $driver->stop())
+        expect()->calling(static fn(): mixed => $driver->stop())
             ->because('a completed Xdebug collection MUST close its window')
             ->toThrow(
                 \LogicException::class,
@@ -146,20 +147,20 @@ final class XdebugDriverTest
         $map = $raw->toMap(new PathFilter([$fixtureDir]));
         $file = $map->files()[$fixtureFile] ?? null;
 
-        Expect::value($sum)
+        expect($sum)
             ->because('collects real line coverage over the fixture')
             ->toBe(42);
 
-        Expect::value($file)
+        expect($file)
             ->because('collects real line coverage over the fixture')
             ->not()
             ->toBeNull();
 
-        Expect::value($file->coveredLines)
+        expect($file->coveredLines)
             ->because('collects real line coverage over the fixture')
             ->toContain(Adder::ADD_RETURN_LINE);
 
-        Expect::value($file->uncoveredLines)
+        expect($file->uncoveredLines)
             ->because('collects real line coverage over the fixture')
             ->not()
             ->toContain(Adder::ADD_RETURN_LINE);

@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Unit\PhpStan;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\PhpStan\NativeType;
 use Greenlight\Tests\Fixture\PhpStanScopedMatcher\MatcherSubject;
 use PHPStan\Type\Constant\ConstantBooleanType;
 use PHPStan\Type\VerbosityLevel;
+
+use function Greenlight\expect;
 
 final class NativeTypeTest extends MatcherSubject
 {
@@ -20,7 +21,7 @@ final class NativeTypeTest extends MatcherSubject
     {
         $type = new \ReflectionMethod(self::class, $method)->getParameters()[0]->getType();
 
-        Expect::value(NativeType::fromReflection($type)->describe(VerbosityLevel::typeOnly()))
+        expect(NativeType::fromReflection($type)->describe(VerbosityLevel::typeOnly()))
             ->because('reflected native types map to their PHPStan equivalents')
             ->toBe($expected);
     }
@@ -33,10 +34,10 @@ final class NativeTypeTest extends MatcherSubject
         $type = new \ReflectionMethod(self::class, $method)->getParameters()[0]->getType();
         $mapped = NativeType::fromReflection($type);
 
-        Expect::value($mapped->isObject()->yes())
+        expect($mapped->isObject()->yes())
             ->because('reflected object types stay object types')
             ->toBeTrue();
-        Expect::value($mapped->getObjectClassNames())
+        expect($mapped->getObjectClassNames())
             ->because('reflected object types keep every required class')
             ->toBe($expected);
     }
@@ -48,10 +49,10 @@ final class NativeTypeTest extends MatcherSubject
         $type = new \ReflectionMethod(self::class, $method)->getParameters()[0]->getType();
         $mapped = NativeType::fromReflection($type);
 
-        Expect::value($mapped::class)
+        expect($mapped::class)
             ->because('literal native booleans map to PHPStan boolean constants')
             ->toBe(ConstantBooleanType::class);
-        Expect::value($mapped->describe(VerbosityLevel::typeOnly()))
+        expect($mapped->describe(VerbosityLevel::typeOnly()))
             ->toBe($expected ? 'true' : 'false');
     }
 
@@ -66,13 +67,13 @@ final class NativeTypeTest extends MatcherSubject
         $parentParameter = new \ReflectionFunction($parentClosure)->getParameters()[0];
         $staticReflection = new \ReflectionFunction($staticClosure);
 
-        Expect::value(NativeType::fromParameter($selfParameter)->getObjectClassNames())
+        expect(NativeType::fromParameter($selfParameter)->getObjectClassNames())
             ->because('self uses the closure scope class')
             ->toBe([self::class]);
-        Expect::value(NativeType::fromParameter($parentParameter)->getObjectClassNames())
+        expect(NativeType::fromParameter($parentParameter)->getObjectClassNames())
             ->because('parent uses the closure scope parent class')
             ->toBe([MatcherSubject::class]);
-        Expect::value(NativeType::fromReflection(
+        expect(NativeType::fromReflection(
             $staticReflection->getReturnType(),
             $staticReflection->getClosureScopeClass(),
         )->getObjectClassNames())

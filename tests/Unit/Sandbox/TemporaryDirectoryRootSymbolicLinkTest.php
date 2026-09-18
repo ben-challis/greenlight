@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Sandbox\TemporaryDirectoryError;
 use Greenlight\Test\SkipTest;
+
+use function Greenlight\expect;
 
 final class TemporaryDirectoryRootSymbolicLinkTest
 {
@@ -30,15 +31,15 @@ final class TemporaryDirectoryRootSymbolicLinkTest
         }
 
         try {
-            Expect::calling(static fn() => $directory->dispose())
+            expect()->calling(static fn() => $directory->dispose())
                 ->because('disposal MUST remove the root symbolic link without entry traversal')
                 ->not()
                 ->toThrow(\Throwable::class);
 
-            Expect::value(\is_link($root))
+            expect(\is_link($root))
                 ->because('disposal MUST remove the root symbolic link')
                 ->toBeFalse();
-            Expect::value(\file_get_contents($sentinel))
+            expect(\file_get_contents($sentinel))
                 ->because('disposal MUST leave the root symbolic link target unchanged')
                 ->toBe('keep');
         } finally {
@@ -72,7 +73,7 @@ final class TemporaryDirectoryRootSymbolicLinkTest
                 throw new SkipTest('The filesystem does not enforce directory write permissions.');
             }
 
-            Expect::calling(static fn() => $directory->dispose())
+            expect()->calling(static fn() => $directory->dispose())
                 ->because('fixture cleanup MUST report a root symbolic link that it cannot remove')
                 ->toThrow(
                     TemporaryDirectoryError::class,

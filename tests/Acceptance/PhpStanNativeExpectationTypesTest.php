@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\AllowParallel;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[AllowParallel]
 #[RequiresResource('analysis-process')]
@@ -56,10 +57,10 @@ final readonly class PhpStanNativeExpectationTypesTest
             FixturePath::get('PhpStanNativeExpectations/probe.neon'),
         );
 
-        Expect::value($probe->goodErrors)->toBe([]);
-        Expect::value($probe->exitCode)->toBe(1);
-        Expect::value($probe->errors)->toHaveCount(7);
-        Expect::value($probe->messages())->toContain('undefined method');
-        Expect::value($probe->messages())->toContain('expects callable():');
+        expect($probe->goodErrors)->toBe([]);
+        expect($probe->exitCode)->toBe(1);
+        expect($probe->errors)->toHaveCount(7);
+        expect($probe->messages())->toContain('undefined method');
+        expect($probe->messages())->toContain('expects callable():');
     }
 }

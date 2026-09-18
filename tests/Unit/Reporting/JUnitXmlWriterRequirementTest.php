@@ -6,13 +6,14 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Fixture\Reporting\UnavailableXmlWriterRuntime;
+
+use function Greenlight\expect;
 
 final readonly class JUnitXmlWriterRequirementTest
 {
@@ -21,7 +22,7 @@ final readonly class JUnitXmlWriterRequirementTest
     {
         $reporter = new JUnitReporter(new BufferOutput(), new UnavailableXmlWriterRuntime());
 
-        Expect::calling(static fn() => $reporter->finish())
+        expect()->calling(static fn() => $reporter->finish())
             ->because('finishing JUnit output MUST require XMLWriter')
             ->toThrow(
                 ReportGenerationFailed::class,
@@ -40,7 +41,7 @@ final readonly class JUnitXmlWriterRequirementTest
             0,
         );
 
-        Expect::calling(static fn() => $reporter->onEvent(new TestFinished($result, 1.0)))
+        expect()->calling(static fn() => $reporter->onEvent(new TestFinished($result, 1.0)))
             ->because('rendering a JUnit test case MUST require XMLWriter')
             ->toThrow(
                 ReportGenerationFailed::class,

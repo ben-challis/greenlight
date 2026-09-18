@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\TestInclusions;
 use Greenlight\Test\TestSelection;
+
+use function Greenlight\expect;
 
 final readonly class NameFilterCaseTest
 {
@@ -21,10 +22,10 @@ final readonly class NameFilterCaseTest
         $class = 'Acme\\InvoiceTest';
         $method = 'calculatesTotal';
 
-        Expect::value($canonical->accepts($class, $method, [], '/tests/InvoiceTest.php'))
+        expect($canonical->accepts($class, $method, [], '/tests/InvoiceTest.php'))
             ->because('a class or method filter MUST accept the canonical letter case')
             ->toBeTrue();
-        Expect::value($caseOnlyDifference->accepts($class, $method, [], '/tests/InvoiceTest.php'))
+        expect($caseOnlyDifference->accepts($class, $method, [], '/tests/InvoiceTest.php'))
             ->because('class and method filters MUST use the same letter case')
             ->toBeFalse();
     }

@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanDoubleableTypeRuleTest
@@ -67,16 +68,16 @@ final readonly class PhpStanDoubleableTypeRuleTest
             PHP,
         );
 
-        Expect::value($probe->exitCode)
+        expect($probe->exitCode)
             ->because('PHPStan rejects types that cannot have a proxy')
             ->toBe(1);
-        Expect::value($probe->goodPassed)
+        expect($probe->goodPassed)
             ->because('PHPStan messages: ' . $probe->messages())
             ->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(4);
-        Expect::value($probe->messages())->toContain('Doubles::mock() cannot double FinalService because it is final');
-        Expect::value($probe->messages())->toContain('Doubles::stub() cannot double ReadonlyService because it is a readonly class');
-        Expect::value($probe->messages())->toContain('Doubles::spy() cannot double ServiceState because it is an enum');
-        Expect::value($probe->messages())->toContain('Doubles::mock() cannot double ServiceBehavior because it is a trait');
+        expect(\count($probe->errors))->toBe(4);
+        expect($probe->messages())->toContain('Doubles::mock() cannot double FinalService because it is final');
+        expect($probe->messages())->toContain('Doubles::stub() cannot double ReadonlyService because it is a readonly class');
+        expect($probe->messages())->toContain('Doubles::spy() cannot double ServiceState because it is an enum');
+        expect($probe->messages())->toContain('Doubles::mock() cannot double ServiceBehavior because it is a trait');
     }
 }

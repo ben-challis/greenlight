@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+
+use function Greenlight\expect;
 
 final class TemporalMatcherCaseTest
 {
@@ -22,26 +23,26 @@ final class TemporalMatcherCaseTest
         })();
 
         ExpectationRuntime::withClock($clock, static function () use (&$calls, $haystack): void {
-            Expect::calling(static function () use (&$calls): string {
+            expect()->calling(static function () use (&$calls): string {
                 return ++$calls === 1 ? 'pending' : 'ready';
             })->returnValue()->eventually()->pollEvery(0.010)->within(0.100)->TOBEIN($haystack); // @phpstan-ignore method.nameCase (Checks PHP method case behavior.)
         });
 
-        Expect::value($calls)->toBe(2);
-        Expect::value($clock->sleeps)->toEqual([0.010]);
+        expect($calls)->toBe(2);
+        expect($clock->sleeps)->toEqual([0.010]);
     }
 
     #[Test]
     public function uppercaseThrowableConstraintsFailBeforeTheProbeRuns(): void
     {
         $probed = false;
-        Expect::calling(static function () use (&$probed): void {
-            Expect::calling(static function () use (&$probed) { // @phpstan-ignore greenlight.toThrow.messageConstraint (Checks runtime validation.)
+        expect()->calling(static function () use (&$probed): void {
+            expect()->calling(static function () use (&$probed) { // @phpstan-ignore greenlight.toThrow.messageConstraint (Checks runtime validation.)
                 $probed = true;
 
             })->eventually()->within(0.100)->TOTHROW(\RuntimeException::class, matching: '/x/', message: 'x'); // @phpstan-ignore method.nameCase (Checks PHP method case behavior.)
         })->toThrow(ExpectationFailed::class, matching: '/^Specify matching: or message:/');
 
-        Expect::value($probed)->toBeFalse();
+        expect($probed)->toBeFalse();
     }
 }

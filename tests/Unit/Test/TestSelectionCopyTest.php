@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Test;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\TestExclusions;
 use Greenlight\Test\TestInclusions;
 use Greenlight\Test\TestSelection;
+
+use function Greenlight\expect;
 
 final class TestSelectionCopyTest
 {
@@ -24,18 +25,18 @@ final class TestSelectionCopyTest
         $selectedIds = $selection->withExactIds(['App\ExampleTest::runs']);
         $excludedPaths = $selectedIds->withExcludedPaths(['/project/generated']);
 
-        Expect::value($excludedPaths->include->exactIds)
+        expect($excludedPaths->include->exactIds)
             ->because('an exact-ID copy MUST remain after a path copy')
             ->toBe(['App\ExampleTest::runs']);
-        Expect::value($excludedPaths->exclude->paths)
+        expect($excludedPaths->exclude->paths)
             ->because('a path copy MUST replace only excluded paths')
             ->toBe(['/project/generated']);
-        Expect::value($excludedPaths->include->groups)->toBe(['fast']);
-        Expect::value($excludedPaths->include->idPatterns)->toBe(['*Invoice*']);
-        Expect::value($excludedPaths->exclude->groups)->toBe(['slow']);
-        Expect::value($excludedPaths->exclude->classes)->toBe(['Legacy*']);
-        Expect::value($excludedPaths->shard)->toBe([2, 3]);
-        Expect::value($selection->include->exactIds)
+        expect($excludedPaths->include->groups)->toBe(['fast']);
+        expect($excludedPaths->include->idPatterns)->toBe(['*Invoice*']);
+        expect($excludedPaths->exclude->groups)->toBe(['slow']);
+        expect($excludedPaths->exclude->classes)->toBe(['Legacy*']);
+        expect($excludedPaths->shard)->toBe([2, 3]);
+        expect($selection->include->exactIds)
             ->because('a focused copy MUST leave its source unchanged')
             ->toBe([]);
     }

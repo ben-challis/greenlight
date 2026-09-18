@@ -11,12 +11,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactStoreIntegrityTest
 {
@@ -38,7 +39,7 @@ final readonly class ArtifactStoreIntegrityTest
         $attachments->text('evidence.txt', 'body');
         $worker = ArtifactStore::fromSession($owner->session(), $configuration);
 
-        Expect::calling(static fn(): TestResult => $worker->publish(new TestResult(
+        expect()->calling(static fn(): TestResult => $worker->publish(new TestResult(
             $id,
             Outcome::Failed,
             0.1,
@@ -67,7 +68,7 @@ final readonly class ArtifactStoreIntegrityTest
 
         $worker->cleanup();
 
-        Expect::value(\is_dir($stagingDirectory))
+        expect(\is_dir($stagingDirectory))
             ->because('only the orchestrator-owned store MAY remove shared staging')
             ->toBeTrue();
     }
@@ -83,8 +84,8 @@ final readonly class ArtifactStoreIntegrityTest
 
         $report = $worker->complete();
 
-        Expect::value($report->items)->toBe([]);
-        Expect::value($report->warnings)->toBe([]);
+        expect($report->items)->toBe([]);
+        expect($report->warnings)->toBe([]);
     }
 
     #[Test]
@@ -108,10 +109,10 @@ final readonly class ArtifactStoreIntegrityTest
 
         $report = $store->complete();
 
-        Expect::value($report->warnings)->toBe([
+        expect($report->warnings)->toBe([
             'Greenlight did not complete artifact run metadata. This run is not eligible for pruning.',
         ]);
-        Expect::value(\is_dir($store->publicDirectory()))
+        expect(\is_dir($store->publicDirectory()))
             ->because('an incomplete ownership record MUST keep the current run directory')
             ->toBeTrue();
     }
@@ -134,7 +135,7 @@ final readonly class ArtifactStoreIntegrityTest
             storageKey: '../escaped.txt',
         );
 
-        Expect::calling(static fn(): TestResult => $store->publish(new TestResult(
+        expect()->calling(static fn(): TestResult => $store->publish(new TestResult(
             $id,
             Outcome::Failed,
             0.1,
@@ -146,7 +147,7 @@ final readonly class ArtifactStoreIntegrityTest
                 AttachmentError::class,
                 message: 'Attachment metadata contains an unsafe storage key.',
             );
-        Expect::value(\file_exists($root . '/escaped.txt'))
+        expect(\file_exists($root . '/escaped.txt'))
             ->toBeFalse();
     }
 }

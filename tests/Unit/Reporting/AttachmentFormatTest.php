@@ -7,18 +7,19 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Artifact\Attachment;
 use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\AttachmentFormat;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class AttachmentFormatTest
 {
     #[Test]
     public function aResultWithoutAttachmentsRendersNothing(): void
     {
-        Expect::value(AttachmentFormat::render($this->result([])))
+        expect(AttachmentFormat::render($this->result([])))
             ->because('a result without attachments renders nothing')
             ->toBe('');
     }
@@ -28,7 +29,7 @@ final class AttachmentFormatTest
     {
         $attachments = $this->attachments(1);
 
-        Expect::value(AttachmentFormat::render($this->result($attachments), '    '))
+        expect(AttachmentFormat::render($this->result($attachments), '    '))
             ->because(
                 'human-readable attachment metadata includes its type, size, and path',
             )
@@ -38,7 +39,7 @@ final class AttachmentFormatTest
                 . "build/attachments/attachment-1.txt\n",
             );
 
-        Expect::value(AttachmentFormat::paths($attachments))
+        expect(AttachmentFormat::paths($attachments))
             ->because(
                 'machine-readable attachment metadata includes its name and path',
             )
@@ -52,7 +53,7 @@ final class AttachmentFormatTest
         $rendered = AttachmentFormat::render($this->result($attachments));
         $paths = AttachmentFormat::paths($attachments);
 
-        Expect::value($rendered)
+        expect($rendered)
             ->because(
                 'the human-readable attachment list is bounded and reports the remainder',
             )
@@ -61,7 +62,7 @@ final class AttachmentFormatTest
             ->toContain('and 2 more')
             ->not()->toContain('attachment-11.txt');
 
-        Expect::value($paths)
+        expect($paths)
             ->because(
                 'the machine-readable attachment path list is bounded and reports the remainder',
             )

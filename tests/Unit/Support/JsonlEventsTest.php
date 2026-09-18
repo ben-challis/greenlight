@@ -8,12 +8,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\WorkerSpawned;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\JsonlEvents;
 use Greenlight\Tests\Support\ProcessResult;
+
+use function Greenlight\expect;
 
 final class JsonlEventsTest
 {
@@ -33,23 +34,23 @@ final class JsonlEventsTest
 
         $events = JsonlEvents::from($result);
 
-        Expect::value($events)->because('restores typed events in order from stdout only')->toHaveCount(2);
-        Expect::value($events[0])->toBeInstanceOf(WorkerSpawned::class);
-        Expect::value($events[1])->toBeInstanceOf(TestClassStarted::class);
+        expect($events)->because('restores typed events in order from stdout only')->toHaveCount(2);
+        expect($events[0])->toBeInstanceOf(WorkerSpawned::class);
+        expect($events[1])->toBeInstanceOf(TestClassStarted::class);
 
         $restoredSpawned = $events[0];
         $restoredStarted = $events[1];
 
-        Expect::value($restoredSpawned->workerId)->because('restores typed events in order from stdout only')->toBe('worker-2');
-        Expect::value($restoredSpawned->pid)->toBe(42);
-        Expect::value($restoredStarted->class)->toBe('ExampleTest');
-        Expect::value($restoredStarted->workerId)->toBe('worker-2');
+        expect($restoredSpawned->workerId)->because('restores typed events in order from stdout only')->toBe('worker-2');
+        expect($restoredSpawned->pid)->toBe(42);
+        expect($restoredStarted->class)->toBe('ExampleTest');
+        expect($restoredStarted->workerId)->toBe('worker-2');
     }
 
     #[Test]
     public function emptyStdoutProducesNoEvents(): void
     {
-        Expect::value(JsonlEvents::from(new ProcessResult(0, '', 'diagnostic')))->because('empty stdout produces no events')->toBe([]);
+        expect(JsonlEvents::from(new ProcessResult(0, '', 'diagnostic')))->because('empty stdout produces no events')->toBe([]);
     }
 
     #[Test]
@@ -68,7 +69,7 @@ final class JsonlEventsTest
             '',
         );
 
-        Expect::value(JsonlEvents::finishedTestIds($result))
+        expect(JsonlEvents::finishedTestIds($result))
             ->because('finished test extraction MUST preserve JSONL event order')
             ->toBe(['AlphaTest::one', 'BetaTest::two[row]']);
     }
@@ -82,7 +83,7 @@ final class JsonlEventsTest
             new WorkerSpawned('worker-1', 43, 1.2),
         ];
 
-        Expect::value(JsonlEvents::spawnedWorkerIds($events))
+        expect(JsonlEvents::spawnedWorkerIds($events))
             ->because('spawned worker extraction MUST preserve event order')
             ->toBe(['worker-2', 'worker-1']);
     }
@@ -93,7 +94,7 @@ final class JsonlEventsTest
         $valid = $this->line('worker-spawned', new WorkerSpawned('worker-1', 1, 1.0)->toWire());
         $result = new ProcessResult(0, $valid . "\nnot-json", '');
 
-        Expect::calling(static fn(): array => JsonlEvents::from($result))->because('malformed JSON names its stdout line')
+        expect()->calling(static fn(): array => JsonlEvents::from($result))->because('malformed JSON names its stdout line')
             ->toThrow(\RuntimeException::class, '/stdout line 2/');
     }
 
@@ -109,7 +110,7 @@ final class JsonlEventsTest
         foreach ($invalid as $line) {
             $result = new ProcessResult(0, $line, '');
 
-            Expect::calling(static fn(): array => JsonlEvents::from($result))
+            expect()->calling(static fn(): array => JsonlEvents::from($result))
                 ->toThrow(\RuntimeException::class, '/Invalid Greenlight JSONL/');
         }
     }

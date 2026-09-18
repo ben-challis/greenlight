@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class SuiteSelectionTest
 {
@@ -20,10 +21,10 @@ final readonly class SuiteSelectionTest
         $project = $this->writeProject('suite-name-run');
         $result = GreenlightCli::run($project->directory, ['run', '--suite=unit', '--reporter=plain']);
 
-        Expect::value($result->exitCode)
+        expect($result->exitCode)
             ->because('a suite name MUST exclude failing base paths and other suites from a run')
             ->toBe(0);
-        Expect::value($result->output())
+        expect($result->output())
             ->toContain('1 test, 1 passed');
     }
 
@@ -36,7 +37,7 @@ final readonly class SuiteSelectionTest
         $first = GreenlightCli::run($project->directory, ['list-tests', ...$flags, '--shard=1/2'])->stdoutLines();
         $second = GreenlightCli::run($project->directory, ['list-tests', ...$flags, '--shard=2/2'])->stdoutLines();
 
-        Expect::value($full)
+        expect($full)
             ->because('suite names and tags MUST select one union before sharding')
             ->toContain('SelectableSuites\\UnitTest::passes')
             ->toContain('SelectableSuites\\IntegrationTest::fails')
@@ -48,7 +49,7 @@ final readonly class SuiteSelectionTest
         $expected = $this->testIds($full);
         \sort($expected);
 
-        Expect::value($union)
+        expect($union)
             ->because('selected suites MUST divide into disjoint shards after suite selection')
             ->toBe($expected);
     }
@@ -60,14 +61,14 @@ final readonly class SuiteSelectionTest
         $groups = GreenlightCli::run($project->directory, ['run', '--list-groups', '--suite=unit']);
         $plan = GreenlightCli::run($project->directory, ['run', '--dry-run', '--suite-tag=io']);
 
-        Expect::value($groups->output())
+        expect($groups->output())
             ->because('group listing MUST discover only the selected suites')
             ->toContain('unit (1 tests)')
             ->not()
             ->toContain('base')
             ->not()
             ->toContain('integration');
-        Expect::value($plan->output())
+        expect($plan->output())
             ->because('dry-run output MUST show the effective suite selection')
             ->toContain('test paths: (excluded by suite selection)')
             ->toContain('suite names: (none)')
@@ -85,15 +86,15 @@ final readonly class SuiteSelectionTest
         $name = GreenlightCli::run($project->directory, ['run', '--suite=missing', '--no-ansi']);
         $tag = GreenlightCli::run($project->directory, ['list-tests', '--suite-tag=missing', '--no-ansi']);
 
-        Expect::value($name->exitCode)
+        expect($name->exitCode)
             ->because('an unknown suite name MUST be a usage error')
             ->toBe(64);
-        Expect::value($name->output())
+        expect($name->output())
             ->toContain('Unknown suite "missing". Use --list-suites to list configured suites.');
-        Expect::value($tag->exitCode)
+        expect($tag->exitCode)
             ->because('an unknown suite tag MUST be a usage error')
             ->toBe(64);
-        Expect::value($tag->output())
+        expect($tag->output())
             ->toContain('Unknown suite tag "missing". Use --list-suites to list configured suite tags.');
     }
 
@@ -103,10 +104,10 @@ final readonly class SuiteSelectionTest
         $project = $this->writeProject('suite-list-suites');
         $result = GreenlightCli::run($project->directory, ['run', '--list-suites', '--suite=unit']);
 
-        Expect::value($result->exitCode)
+        expect($result->exitCode)
             ->because('--list-suites MUST validate selectors and list the complete configured catalog')
             ->toBe(0);
-        Expect::value($result->output())
+        expect($result->output())
             ->toContain('unit: tests/Unit [tags: fast]')
             ->toContain('integration: tests/Integration [tags: io]')
             ->toContain('2 suites');
@@ -144,7 +145,7 @@ final readonly class SuiteSelectionTest
 
     private function testSource(string $class, string $group, bool $fails = false): string
     {
-        $assertion = $fails ? 'Expect::value(false)->toBeTrue();' : 'Expect::value(true)->toBeTrue();';
+        $assertion = $fails ? 'expect(false)->toBeTrue();' : 'expect(true)->toBeTrue();';
 
         return \sprintf(
             <<<'PHP'
@@ -156,7 +157,8 @@ final readonly class SuiteSelectionTest
 
                 use Greenlight\Attribute\Group;
                 use Greenlight\Attribute\Test;
-                use Greenlight\Expect\Expect;
+
+                use function Greenlight\expect;
 
                 final class %s
                 {

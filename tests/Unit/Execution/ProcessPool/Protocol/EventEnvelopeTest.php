@@ -9,14 +9,15 @@ use Greenlight\Doubles\Fake;
 use Greenlight\Event\Event;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class EventEnvelopeTest
 {
     #[Test]
     public function anUnknownEventTagIsAProtocolError(): void
     {
-        Expect::calling(static fn(): EventEnvelope => EventEnvelope::fromWire([
+        expect()->calling(static fn(): EventEnvelope => EventEnvelope::fromWire([
             'event' => 'future-event',
             'data' => [],
         ]))->toThrow(
@@ -32,7 +33,7 @@ final class EventEnvelopeTest
             public float $occurredAt = 1.0;
         };
 
-        Expect::calling(static fn(): array => new EventEnvelope($event)->toWire())
+        expect()->calling(static fn(): array => new EventEnvelope($event)->toWire())
             ->toThrow(
                 ProtocolError::class,
                 message: \sprintf('Unknown event type "%s".', $event::class),
@@ -42,7 +43,7 @@ final class EventEnvelopeTest
     #[Test]
     public function aMalformedEventPayloadIsAProtocolError(): void
     {
-        Expect::calling(static fn(): EventEnvelope => EventEnvelope::fromWire([
+        expect()->calling(static fn(): EventEnvelope => EventEnvelope::fromWire([
             'event' => 'run-started',
             'data' => [],
         ]))->toThrow(

@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\Disposable;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
@@ -15,6 +14,8 @@ use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\ServiceSource;
 use Greenlight\Harness\UnresolvableService;
+
+use function Greenlight\expect;
 
 final readonly class HarnessSourcesTest
 {
@@ -26,7 +27,7 @@ final readonly class HarnessSourcesTest
             new ServiceDefinition(\stdClass::class, Scope::PerWorker, static fn(): \stdClass => $service, 'billing'),
         ]);
 
-        Expect::value($scopes->resolve(\stdClass::class, 'test'))->toBe($service);
+        expect($scopes->resolve(\stdClass::class, 'test'))->toBe($service);
     }
 
     #[Test]
@@ -34,7 +35,7 @@ final readonly class HarnessSourcesTest
     {
         $definition = new ServiceDefinition(\stdClass::class, Scope::PerWorker, static fn(): \stdClass => new \stdClass(), 'billing');
 
-        Expect::calling(static fn(): HarnessScopes => new HarnessScopes([$definition, $definition]))
+        expect()->calling(static fn(): HarnessScopes => new HarnessScopes([$definition, $definition]))
             ->toThrow(\InvalidArgumentException::class, matching: '/source "billing" already defines type/');
     }
 
@@ -46,7 +47,7 @@ final readonly class HarnessSourcesTest
             new ServiceDefinition(\ArrayObject::class, Scope::PerWorker, static fn(): \ArrayObject => new \ArrayObject(), 'billing'),
         ]);
 
-        Expect::calling(static fn(): object => $scopes->resolve(\stdClass::class, 'test', [new Service(source: 'billing')]))
+        expect()->calling(static fn(): object => $scopes->resolve(\stdClass::class, 'test', [new Service(source: 'billing')]))
             ->toThrow(UnresolvableService::class, matching: '/source "billing" cannot supply service "stdClass"/');
     }
 
@@ -55,7 +56,7 @@ final readonly class HarnessSourcesTest
     {
         $scopes = new HarnessScopes([], [$this->resolver(null)]);
 
-        Expect::calling(static fn(): object => $scopes->resolve(\stdClass::class, 'test', [new Service(source: 'billing')]))
+        expect()->calling(static fn(): object => $scopes->resolve(\stdClass::class, 'test', [new Service(source: 'billing')]))
             ->toThrow(UnresolvableService::class, matching: '/source "billing" cannot supply/');
     }
 
@@ -67,7 +68,7 @@ final readonly class HarnessSourcesTest
             new ServiceDefinition(\stdClass::class, Scope::PerWorker, static fn(): \stdClass => new \stdClass(), 'billing'),
         ], [$this->resolver($resolved)]);
 
-        Expect::value($scopes->resolve(\stdClass::class, 'test', [new Service('custom', 'billing')]))->toBe($resolved);
+        expect($scopes->resolve(\stdClass::class, 'test', [new Service('custom', 'billing')]))->toBe($resolved);
     }
 
     #[Test]
@@ -75,14 +76,14 @@ final readonly class HarnessSourcesTest
     {
         $scopes = new HarnessScopes([], [$this->resolver(new \ArrayObject())]);
 
-        Expect::calling(static fn(): object => $scopes->resolve(\stdClass::class, 'test', [new Service(source: 'billing')]))
+        expect()->calling(static fn(): object => $scopes->resolve(\stdClass::class, 'test', [new Service(source: 'billing')]))
             ->toThrow(UnresolvableService::class, matching: '/which is not that type/');
     }
 
     #[Test]
     public function duplicateResolverSourceNamesFailRegistration(): void
     {
-        Expect::calling(fn(): HarnessScopes => new HarnessScopes([], [$this->resolver(null), $this->resolver(null)]))
+        expect()->calling(fn(): HarnessScopes => new HarnessScopes([], [$this->resolver(null), $this->resolver(null)]))
             ->toThrow(\InvalidArgumentException::class, message: 'Service source "billing" is already registered.');
     }
 
@@ -94,7 +95,7 @@ final readonly class HarnessSourcesTest
         ]);
         $scopes->openClass(allowPerClassServices: false);
 
-        Expect::calling(static fn(): object => $scopes->resolve(\stdClass::class, 'test', [new Service(source: 'billing')]))
+        expect()->calling(static fn(): object => $scopes->resolve(\stdClass::class, 'test', [new Service(source: 'billing')]))
             ->toThrow(UnresolvableService::class, matching: '/AllowParallel/');
     }
 
@@ -113,15 +114,15 @@ final readonly class HarnessSourcesTest
         $scopes->resolve(Disposable::class, 'test');
         $scopes->resolve(Disposable::class, 'test', [new Service(source: 'legacy')]);
 
-        Expect::value($scopes->closeTest())->toBe([]);
-        Expect::value($calls->getArrayCopy())->toBe(['legacy', 'global', 'billing']);
+        expect($scopes->closeTest())->toBe([]);
+        expect($calls->getArrayCopy())->toBe(['legacy', 'global', 'billing']);
 
         $scopes->openTest();
         $second = $scopes->resolve(Disposable::class, 'test', [new Service(source: 'billing')]);
 
-        Expect::value($second)->not()->toBe($first);
-        Expect::value($scopes->closeTest())->toBe([]);
-        Expect::value($calls->getArrayCopy())->toBe(['legacy', 'global', 'billing', 'billing']);
+        expect($second)->not()->toBe($first);
+        expect($scopes->closeTest())->toBe([]);
+        expect($calls->getArrayCopy())->toBe(['legacy', 'global', 'billing', 'billing']);
     }
 
     private function resolver(?object $service): ServiceResolver

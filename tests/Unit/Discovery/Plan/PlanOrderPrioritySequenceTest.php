@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Discovery\Plan;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanOrder;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final class PlanOrderPrioritySequenceTest
 {
@@ -31,7 +32,7 @@ final class PlanOrderPrioritySequenceTest
             ],
         );
 
-        Expect::value($ordered->classes())
+        expect($ordered->classes())
             ->because('priority classes MUST retain the caller sequence before duration ordering')
             ->toBe([
                 'Acme\\GammaTest',
@@ -39,7 +40,7 @@ final class PlanOrderPrioritySequenceTest
                 'Acme\\DeltaTest',
                 'Acme\\BetaTest',
             ]);
-        Expect::value($ordered->seed)
+        expect($ordered->seed)
             ->because('priority ordering MUST preserve the plan seed')
             ->toBe(4242);
     }

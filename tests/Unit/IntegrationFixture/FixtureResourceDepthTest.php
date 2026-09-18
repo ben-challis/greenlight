@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\IntegrationFixture;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\FixtureResource;
+
+use function Greenlight\expect;
 
 final readonly class FixtureResourceDepthTest
 {
@@ -17,7 +18,7 @@ final readonly class FixtureResourceDepthTest
     {
         $resource = FixtureResource::from(self::nestedValues($shape, 16));
 
-        Expect::value($resource)
+        expect($resource)
             ->because('fixture resources MUST accept the maximum JSON container depth')
             ->toBeInstanceOf(FixtureResource::class);
     }
@@ -29,7 +30,7 @@ final readonly class FixtureResourceDepthTest
         $pathSegment = $shape === 'map' ? 'nested' : '0';
         $path = 'values.root.' . \implode('.', \array_fill(0, 16, $pathSegment));
 
-        Expect::calling(static fn(): FixtureResource => FixtureResource::from(
+        expect()->calling(static fn(): FixtureResource => FixtureResource::from(
             self::nestedValues($shape, 17),
         ))
             ->because('fixture resources MUST reject JSON containers beyond the maximum depth')

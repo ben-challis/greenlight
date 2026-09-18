@@ -6,15 +6,16 @@ namespace Greenlight\Tests\Unit\Support;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\FixturePath;
+
+use function Greenlight\expect;
 
 final readonly class FixturePathTest
 {
     #[Test]
     public function resolvesAFileInsideTheSharedFixtureDirectory(): void
     {
-        Expect::value(FixturePath::get('DiscoveryBasic/AlphaTest.php'))
+        expect(FixturePath::get('DiscoveryBasic/AlphaTest.php'))
             ->because('fixture paths MUST use the shared fixture directory')
             ->toBe(\dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic/AlphaTest.php');
     }
@@ -23,7 +24,7 @@ final readonly class FixturePathTest
     #[DataSet('unsafePaths')]
     public function rejectsPathsThatCanEscapeOrVaryByPlatform(string $relative): void
     {
-        Expect::calling(static fn(): string => FixturePath::get($relative))
+        expect()->calling(static fn(): string => FixturePath::get($relative))
             ->because('fixture paths MUST stay inside the shared fixture directory')
             ->toThrow(
                 \InvalidArgumentException::class,

@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanDataProviderKeyRuleTest
@@ -114,10 +115,10 @@ final readonly class PhpStanDataProviderKeyRuleTest
             PHP,
         );
 
-        Expect::value($probe->exitCode)->because('PHPStan checks provider keys, empty providers, and duplicate row keys')->toBe(1);
-        Expect::value($probe->goodPassed)->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(4);
-        Expect::value($probe->messages())->toContain('#[DataRow] key "same" occurs more than once on duplicateLabels()')
+        expect($probe->exitCode)->because('PHPStan checks provider keys, empty providers, and duplicate row keys')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(4);
+        expect($probe->messages())->toContain('#[DataRow] key "same" occurs more than once on duplicateLabels()')
             ->toContain('#[DataRow] key "#0" occurs more than once on duplicateGeneratedLabel()')
             ->toContain('invalidKeys() keys must be int or string. The provider returns keys of type bool')
             ->toContain('empty() must provide at least one argument array');

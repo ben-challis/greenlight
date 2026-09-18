@@ -9,7 +9,6 @@ use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
 use Greenlight\Doubles\Fake;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\AlwaysFalse;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\AlwaysTrue;
 use Greenlight\Tests\Fixture\Expect\EvenNumbersExtension as ExpectEvenNumbersExtension;
@@ -31,6 +30,8 @@ use Greenlight\Tests\Unit\Reporting\RecordingReporter;
 use Greenlight\Tests\Unit\Reporting\RecordingTickingReporter;
 use Illuminate\Foundation\Application as LaravelApplication;
 
+use function Greenlight\expect;
+
 final class FakeFixtureTest
 {
     /**
@@ -40,7 +41,7 @@ final class FakeFixtureTest
     #[DataSet('manualInMemoryFixtures')]
     public function manualInMemoryFixturesIdentifyThemselvesAsFakes(string $fixture): void
     {
-        Expect::value(\is_subclass_of($fixture, Fake::class))
+        expect(\is_subclass_of($fixture, Fake::class))
             ->because('a manual in-memory fixture MUST identify itself as a fake')
             ->toBeTrue();
     }
@@ -50,7 +51,7 @@ final class FakeFixtureTest
     #[DataSet('optionalLaravelFixtures')]
     public function optionalLaravelFixturesIdentifyThemselvesAsFakes(string $fixture): void
     {
-        Expect::value(\is_subclass_of($fixture, Fake::class))
+        expect(\is_subclass_of($fixture, Fake::class))
             ->because('the optional Laravel fixture MUST identify itself as a fake')
             ->toBeTrue();
     }

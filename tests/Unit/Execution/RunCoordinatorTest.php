@@ -22,7 +22,6 @@ use Greenlight\Execution\ExecutionOutcome;
 use Greenlight\Execution\ExecutionTopology;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\RunCoordinator;
-use Greenlight\Expect\Expect;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Result\ResultSummary;
@@ -35,6 +34,8 @@ use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\ScriptedWorkerTransport;
+
+use function Greenlight\expect;
 
 final readonly class RunCoordinatorTest
 {
@@ -64,14 +65,14 @@ final readonly class RunCoordinatorTest
             new InProcessExecution(),
         );
 
-        Expect::value($subscriber?->events)
+        expect($subscriber?->events)
             ->because('run subscribers observe the same event stream as the configured sink')
             ->toBe($sink->events);
-        Expect::value($subscriber?->sequence())
+        expect($subscriber?->sequence())
             ->because('the subscriber observes both run boundaries')
             ->toContain('RunStarted')
             ->toContain('RunFinished');
-        Expect::value($result->summary->passed)->toBe(7);
+        expect($result->summary->passed)->toBe(7);
     }
 
     #[Test]
@@ -101,14 +102,14 @@ final readonly class RunCoordinatorTest
             ),
         );
 
-        Expect::value($subscriber?->events)
+        expect($subscriber?->events)
             ->because('process-pool run subscribers observe the configured sink event stream')
             ->toBe($sink->events);
-        Expect::value($subscriber?->sequence())
+        expect($subscriber?->sequence())
             ->because('the process-pool subscriber observes both run boundaries')
             ->toContain('RunStarted')
             ->toContain('RunFinished');
-        Expect::value($result->summary->passed)->toBe(7);
+        expect($result->summary->passed)->toBe(7);
     }
 
     #[Test]
@@ -118,7 +119,7 @@ final readonly class RunCoordinatorTest
         $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
         $protocolFailure = ProtocolError::malformedFrame('scripted process-pool failure');
 
-        Expect::calling(fn() => $this->coordinator()->run(
+        expect()->calling(fn() => $this->coordinator()->run(
             $resolved,
             $resolved->selection,
             [FixturePath::get('DiscoveryBasic')],
@@ -131,7 +132,7 @@ final readonly class RunCoordinatorTest
                 transport: new ScriptedWorkerTransport([], startFailure: $protocolFailure),
             ),
         ))->toThrow(static function (ExecutionFailed $error) use ($protocolFailure): void {
-            Expect::value($error->getPrevious())
+            expect($error->getPrevious())
                 ->because('the execution failure MUST preserve the process protocol failure')
                 ->toBe($protocolFailure);
         });
@@ -173,20 +174,20 @@ final readonly class RunCoordinatorTest
             $execution,
         );
 
-        Expect::value($execution->executeCalls)
+        expect($execution->executeCalls)
             ->because('an empty plan MUST NOT start its execution adapter')
             ->toBe(0);
-        Expect::value($sink->sequence())->toBe(['RunStarted', 'RunFinished']);
-        Expect::value($sink->events[0])->toBeInstanceOf(RunStarted::class);
-        Expect::value($sink->events[1])->toBeInstanceOf(RunFinished::class);
+        expect($sink->sequence())->toBe(['RunStarted', 'RunFinished']);
+        expect($sink->events[0])->toBeInstanceOf(RunStarted::class);
+        expect($sink->events[1])->toBeInstanceOf(RunFinished::class);
 
         $started = $sink->events[0];
         $finished = $sink->events[1];
 
-        Expect::value($started->workers)->toBe(3);
-        Expect::value($started->plannedTests)->toBe(0);
-        Expect::value($finished->runId)->toBe($started->runId);
-        Expect::value($result->plannedTests)->toBe(0);
+        expect($started->workers)->toBe(3);
+        expect($started->plannedTests)->toBe(0);
+        expect($finished->runId)->toBe($started->runId);
+        expect($result->plannedTests)->toBe(0);
     }
 
     #[Test]
@@ -202,11 +203,11 @@ final readonly class RunCoordinatorTest
         $first = $coordinator->run($resolved, $resolved->selection, [$fixtureDirectory], $firstSink, new InProcessExecution());
         $second = $coordinator->run($resolved, $resolved->selection, [$fixtureDirectory], $secondSink, new InProcessExecution());
 
-        Expect::value($first->seed)
+        expect($first->seed)
             ->because('the run result MUST report its explicit random seed')
             ->toBe(4242);
-        Expect::value($second->seed)->toBe(4242);
-        Expect::value($this->resultIds($firstSink))
+        expect($second->seed)->toBe(4242);
+        expect($this->resultIds($firstSink))
             ->because('the same explicit seed MUST reproduce the coordinated run order')
             ->toBe($this->resultIds($secondSink));
     }
@@ -233,10 +234,10 @@ final readonly class RunCoordinatorTest
             $result = $coordinator->run($configuration, $configuration->selection, [$fixtureDirectory], $sink, new InProcessExecution());
             $ids = $this->resultIds($sink);
 
-            Expect::value($result->plannedTests)
+            expect($result->plannedTests)
                 ->because('each coordinated shard reports the number of tests it executes')
                 ->toBe(\count($ids));
-            Expect::value($result->summary->total())->toBe(\count($ids));
+            expect($result->summary->total())->toBe(\count($ids));
 
             $shardedIds = [...$shardedIds, ...$ids];
         }
@@ -244,7 +245,7 @@ final readonly class RunCoordinatorTest
         \sort($completeIds);
         \sort($shardedIds);
 
-        Expect::value($shardedIds)
+        expect($shardedIds)
             ->because('all coordinated shards reconstitute the complete run exactly once')
             ->toBe($completeIds);
     }
@@ -265,11 +266,11 @@ final readonly class RunCoordinatorTest
             new InProcessExecution(),
         );
 
-        Expect::value(\getenv('GREENLIGHT_CHANNEL'))
+        expect(\getenv('GREENLIGHT_CHANNEL'))
             ->because('in-process execution MUST restore the caller process environment')
             ->toBe('caller-channel');
-        Expect::value($_ENV['GREENLIGHT_CHANNEL'] ?? null)->toBe('caller-channel');
-        Expect::value($_SERVER['GREENLIGHT_CHANNEL'] ?? null)->toBe('caller-channel');
+        expect($_ENV['GREENLIGHT_CHANNEL'] ?? null)->toBe('caller-channel');
+        expect($_SERVER['GREENLIGHT_CHANNEL'] ?? null)->toBe('caller-channel');
     }
 
     #[Test]
@@ -283,7 +284,7 @@ final readonly class RunCoordinatorTest
         $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
         $fixtureDirectory = FixturePath::get('DiscoveryBasic');
 
-        Expect::calling(fn() => $this->coordinator()->run(
+        expect()->calling(fn() => $this->coordinator()->run(
             $resolved,
             $resolved->selection,
             [$fixtureDirectory],
@@ -293,20 +294,20 @@ final readonly class RunCoordinatorTest
             ->because('in-process bootstrap failures MUST use the execution failure contract')
             ->toThrow(
                 static function (ExecutionFailed $error) use ($failure): void {
-                    Expect::value($error->getMessage())->toBe(\sprintf(
+                    expect($error->getMessage())->toBe(\sprintf(
                         'Worker "in-process" reported a fatal Greenlight error: worker bootstrap exploded (%s:%d).',
                         $failure->getFile(),
                         $failure->getLine(),
                     ));
-                    Expect::value($error->getPrevious())->toBe($failure);
+                    expect($error->getPrevious())->toBe($failure);
                 },
             );
 
-        Expect::value(\getenv('GREENLIGHT_CHANNEL'))
+        expect(\getenv('GREENLIGHT_CHANNEL'))
             ->because('failed in-process execution MUST restore an absent caller environment value')
             ->toBeFalse();
-        Expect::value(\array_key_exists('GREENLIGHT_CHANNEL', $_ENV))->toBeFalse();
-        Expect::value(\array_key_exists('GREENLIGHT_CHANNEL', $_SERVER))->toBeFalse();
+        expect(\array_key_exists('GREENLIGHT_CHANNEL', $_ENV))->toBeFalse();
+        expect(\array_key_exists('GREENLIGHT_CHANNEL', $_SERVER))->toBeFalse();
     }
 
     private function coordinator(): RunCoordinator

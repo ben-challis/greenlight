@@ -10,13 +10,14 @@ use Greenlight\Doubles\Fake;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Execution\Worker\StandardHarnessPlugin;
 use Greenlight\Execution\Worker\Worker;
-use Greenlight\Expect\Expect;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\FixturePath;
+
+use function Greenlight\expect;
 
 final readonly class AfterTestSubscriberIsolationTest
 {
@@ -60,13 +61,13 @@ final readonly class AfterTestSubscriberIsolationTest
 
         new Worker(new StandardHarnessPlugin()->services(), $plugins)->run($plan, $sink);
 
-        Expect::value($calls->getArrayCopy())
+        expect($calls->getArrayCopy())
             ->because('an afterTest() failure MUST NOT stop later subscribers')
             ->toBe([
                 'broken:after',
                 'observer:after:errored',
             ]);
-        Expect::value($sink->results()[0]->outcome)
+        expect($sink->results()[0]->outcome)
             ->because('the later subscriber MUST receive the errored result')
             ->toBe(Outcome::Errored);
     }

@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Tests\Fixture\Doubles\Wide;
+
+use function Greenlight\expect;
 
 final readonly class EmptyArgumentConstraintTest
 {
@@ -26,11 +27,11 @@ final readonly class EmptyArgumentConstraintTest
                 ->andReturns('default');
         });
 
-        Expect::calling(static fn(): string => $wide->withDefaults(11))
+        expect()->calling(static fn(): string => $wide->withDefaults(11))
             ->because('an explicit empty argument constraint MUST reject supplied optional arguments')
             ->toThrow(ExpectationFailed::class, '/unexpected call/');
 
-        Expect::calling(static fn() => $doubles->dispose())
+        expect()->calling(static fn() => $doubles->dispose())
             ->because('verification MUST report the unexpected call')
             ->toThrow(ExpectationFailed::class, '/unexpected call/');
     }
@@ -45,6 +46,6 @@ final readonly class EmptyArgumentConstraintTest
                 ->andReturns('default');
         });
 
-        Expect::value($wide->withDefaults())->toBe('default');
+        expect($wide->withDefaults())->toBe('default');
     }
 }

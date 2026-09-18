@@ -8,8 +8,9 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\EnvironmentVariableEquals;
 use Greenlight\Condition\EnvironmentVariableSet;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\EnvironmentVariables;
+
+use function Greenlight\expect;
 
 final readonly class EnvironmentVariableConditionTest
 {
@@ -22,13 +23,13 @@ final readonly class EnvironmentVariableConditionTest
         $name = 'GREENLIGHT_CONDITION_FALSEY_VALUE';
         $this->environment->set($name, $value);
 
-        Expect::value(new EnvironmentVariableSet($name)->isSatisfied())
+        expect(new EnvironmentVariableSet($name)->isSatisfied())
             ->because('falsey values MUST remain distinct from missing environment variables')
             ->toBeTrue();
-        Expect::value(new EnvironmentVariableEquals($name, $value)->isSatisfied())
+        expect(new EnvironmentVariableEquals($name, $value)->isSatisfied())
             ->because('environment variable comparisons MUST preserve the exact falsey value')
             ->toBeTrue();
-        Expect::value(new EnvironmentVariableEquals($name, 'different')->isSatisfied())
+        expect(new EnvironmentVariableEquals($name, 'different')->isSatisfied())
             ->toBeFalse();
     }
 

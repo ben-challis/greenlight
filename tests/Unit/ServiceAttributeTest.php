@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\Service;
+
+use function Greenlight\expect;
 
 final readonly class ServiceAttributeTest
 {
     #[Test]
     public function rejectsAnEmptyServiceIdentifier(): void
     {
-        Expect::calling(static fn(): Service => new Service(''))
+        expect()->calling(static fn(): Service => new Service(''))
             ->because('a service attribute MUST identify a container service')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -24,7 +25,7 @@ final readonly class ServiceAttributeTest
     #[Test]
     public function preservesAZeroStringServiceIdentifier(): void
     {
-        Expect::value((new Service('0'))->id)
+        expect((new Service('0'))->id)
             ->because('a zero-string service identifier is not empty')
             ->toBe('0');
     }
@@ -34,20 +35,20 @@ final readonly class ServiceAttributeTest
     {
         $service = new Service(source: 'billing');
 
-        Expect::value($service->id)->toBeNull();
-        Expect::value($service->source)->toBe('billing');
+        expect($service->id)->toBeNull();
+        expect($service->source)->toBe('billing');
     }
 
     #[Test]
     public function rejectsAnEmptySourceName(): void
     {
-        Expect::calling(static fn(): Service => new Service(source: ''))
+        expect()->calling(static fn(): Service => new Service(source: ''))
             ->toThrow(\InvalidArgumentException::class, message: 'Service source must not be empty.');
     }
 
     #[Test]
     public function preservesAZeroStringSourceName(): void
     {
-        Expect::value((new Service(source: '0'))->source)->toBe('0');
+        expect((new Service(source: '0'))->source)->toBe('0');
     }
 }

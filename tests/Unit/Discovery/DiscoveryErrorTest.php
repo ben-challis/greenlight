@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryError;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class DiscoveryErrorTest
 {
@@ -32,7 +33,7 @@ final class DiscoveryErrorTest
             $attributeError->getMessage(),
         ];
 
-        Expect::value($actual)->toBe([
+        expect($actual)->toBe([
             'Discovery directory "/project/tests" is missing or is not a directory.',
             'Greenlight cannot read test file "/project/tests/ExampleTest.php".',
             'Greenlight cannot read test file "/project/tests/ExampleTest.php": permission denied.',
@@ -43,13 +44,13 @@ final class DiscoveryErrorTest
             'Greenlight cannot run test method App\ExampleTest::checksValue() because it is static.',
             'Attribute on App\ExampleTest::checksValue() is invalid: bad value',
         ]);
-        Expect::value($attributeError->getPrevious())->toBe($cause);
+        expect($attributeError->getPrevious())->toBe($cause);
     }
 
     #[Test]
     public function unreadableFilesPreserveAZeroStringReason(): void
     {
-        Expect::value(DiscoveryError::unreadableFile('/project/tests/ExampleTest.php', '0')->getMessage())
+        expect(DiscoveryError::unreadableFile('/project/tests/ExampleTest.php', '0')->getMessage())
             ->because('an unreadable-file diagnostic MUST preserve a zero-string reason')
             ->toBe('Greenlight cannot read test file "/project/tests/ExampleTest.php": 0.');
     }

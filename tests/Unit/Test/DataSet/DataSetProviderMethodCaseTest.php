@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Test\DataSet;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\DataSet\DataSetExpander;
 use Greenlight\Tests\Fixture\DataRows\InlineRowsTest;
+
+use function Greenlight\expect;
 
 final class DataSetProviderMethodCaseTest
 {
@@ -24,7 +25,7 @@ final class DataSetProviderMethodCaseTest
             5.0,
         );
 
-        Expect::value($rows)
+        expect($rows)
             ->because('data-set provider names MUST follow PHP case-insensitive method lookup')
             ->toBe([
                 'from attribute' => ['inline'],

@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\MemorySize;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class MemorySizeTest
 {
@@ -27,7 +28,7 @@ final class MemorySizeTest
         ];
 
         foreach ($cases as $input => $expectedBytes) {
-            Expect::value(MemorySize::parseToBytes((string) $input))->toBe($expectedBytes);
+            expect(MemorySize::parseToBytes((string) $input))->toBe($expectedBytes);
         }
     }
 
@@ -35,7 +36,7 @@ final class MemorySizeTest
     #[DataSet('invalidSizes')]
     public function invalidSizesGiveReasonSpecificGuidance(string $input, string $message): void
     {
-        Expect::calling(static fn(): int => MemorySize::parseToBytes($input))
+        expect()->calling(static fn(): int => MemorySize::parseToBytes($input))
             ->because('an invalid memory size MUST explain its specific input error')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }
@@ -61,7 +62,7 @@ final class MemorySizeTest
     #[DataSet('overflowingSizes')]
     public function rejectsSizesThatOverflowTheIntegerByteCount(string $input): void
     {
-        Expect::calling(static function () use ($input): void {
+        expect()->calling(static function () use ($input): void {
             MemorySize::parseToBytes($input);
         })
             ->because('the parsed byte count MUST fit in a platform integer')
@@ -92,7 +93,7 @@ final class MemorySizeTest
     #[DataSet('largestSafeSuffixedSizes')]
     public function parsesTheLargestSafeSuffixedByteCount(string $input, int $expectedBytes): void
     {
-        Expect::value(MemorySize::parseToBytes($input))
+        expect(MemorySize::parseToBytes($input))
             ->because('the largest byte count that fits in a platform integer MUST be accepted')
             ->toBe($expectedBytes);
     }
@@ -112,9 +113,9 @@ final class MemorySizeTest
     #[Test]
     public function formatsBytesBackToShortestExactForm(): void
     {
-        Expect::value(MemorySize::format(268435456))->because('formats bytes back to shortest exact form')->toBe('256M');
-        Expect::value(MemorySize::format(1073741824))->because('formats bytes back to shortest exact form')->toBe('1G');
-        Expect::value(MemorySize::format(524288))->because('formats bytes back to shortest exact form')->toBe('512K');
-        Expect::value(MemorySize::format(1000))->because('formats bytes back to shortest exact form')->toBe('1000B');
+        expect(MemorySize::format(268435456))->because('formats bytes back to shortest exact form')->toBe('256M');
+        expect(MemorySize::format(1073741824))->because('formats bytes back to shortest exact form')->toBe('1G');
+        expect(MemorySize::format(524288))->because('formats bytes back to shortest exact form')->toBe('512K');
+        expect(MemorySize::format(1000))->because('formats bytes back to shortest exact form')->toBe('1000B');
     }
 }

@@ -12,12 +12,13 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactStorageKeyTest
 {
@@ -52,13 +53,13 @@ final readonly class ArtifactStorageKeyTest
             attachments: [$attachment],
         );
 
-        Expect::calling(static fn(): TestResult => $store->publish($result))
+        expect()->calling(static fn(): TestResult => $store->publish($result))
             ->because('publication rejects an unsafe storage key')
             ->toThrow(
                 AttachmentError::class,
                 message: 'Attachment metadata contains an unsafe storage key.',
             );
-        Expect::value(\file_exists($store->publicDirectory()))
+        expect(\file_exists($store->publicDirectory()))
             ->because('an unsafe storage key cannot create an output path')
             ->toBeFalse();
     }
@@ -97,16 +98,16 @@ final readonly class ArtifactStorageKeyTest
             attachments: [$attachment],
         );
 
-        Expect::value(\file_put_contents($sentinel, 'preserve'))
+        expect(\file_put_contents($sentinel, 'preserve'))
             ->because('the sentinel file MUST exist before publication')
             ->toBe(8);
-        Expect::calling(static fn(): TestResult => $store->publish($result))
+        expect()->calling(static fn(): TestResult => $store->publish($result))
             ->because('discard MUST validate a staging coordinate before removing files')
             ->toThrow(
                 AttachmentError::class,
                 message: 'Attachment metadata contains an unsafe storage key.',
             );
-        Expect::value(\file_get_contents($sentinel))
+        expect(\file_get_contents($sentinel))
             ->because('unsafe metadata MUST NOT remove files outside staging')
             ->toBe('preserve');
     }

@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerHandle;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\ConnectedStreamPair;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final readonly class WorkerHandleLargeDiagnosticsTest
 {
@@ -26,7 +27,7 @@ final readonly class WorkerHandleLargeDiagnosticsTest
             \fwrite($writer, "\x82\xAC");
             $handle->drainPipes();
 
-            Expect::value($handle->diagnostics)
+            expect($handle->diagnostics)
                 ->because('malformed bytes MUST NOT replace a later complete Unicode character')
                 ->toBe("\u{FFFD}\u{20AC}");
         } finally {
@@ -46,13 +47,13 @@ final readonly class WorkerHandleLargeDiagnosticsTest
             $handle = new WorkerHandle('worker-1', 1, $process, $stdout, $stderr);
             $handle->drainPipes();
 
-            Expect::value($handle->diagnostics)
+            expect($handle->diagnostics)
                 ->because('a large pipe read MUST preserve the complete final Unicode tail')
                 ->toBe($tail);
 
             $handle->drainPipes();
 
-            Expect::value($handle->diagnostics)
+            expect($handle->diagnostics)
                 ->because('another drain at EOF MUST NOT duplicate diagnostic bytes')
                 ->toBe($tail);
         } finally {

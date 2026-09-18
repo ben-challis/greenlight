@@ -14,6 +14,60 @@ A matcher throws immediately if it does not pass. Greenlight reports the source
 location. It also reports expected and actual values when the matcher supplies
 them.
 
+## Function syntax
+
+You can use `Greenlight\expect()` instead of `Expect::value()`:
+
+<!-- php-example {"example":"expectations-function","file":"snippet.php","mode":"file","tools":["phpstan","rector"]} -->
+```php
+use function Greenlight\expect;
+
+expect('paid')->toBe('paid');
+expect()->calling(static fn(): int => 2 + 2)->toReturn(4);
+```
+
+The runner loads the function before configuration and test discovery. It is
+available in test-file declarations, data providers, test methods, worker
+processes, and watch runs. Composer autoload alone does not load it.
+
+Outside the runner, load the helper explicitly after the Composer autoloader:
+
+<!-- php-example {"mode":"display","reason":"The installed package path depends on the consuming project."} -->
+```php
+require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/vendor/greenlight/greenlight/src/Expect/functions.php';
+```
+
+The function belongs to the `Greenlight` namespace. It does not define a global
+`expect()` function, so other libraries can keep their own function. Import it
+with an alias if the file already imports another `expect()` function.
+
+`expect($value)` has the same generic return type and matchers as
+`Expect::value($value)`. It never executes a callable subject. This rule also
+applies to callable strings, arrays, and objects. `expect(null)` checks a null
+value.
+
+With no argument, `expect()` returns an `ExpectationBuilder`. Use its
+`calling($callback)` method for call assertions and temporal probes. This
+method has the same behavior as `Expect::calling($callback)`. It does not
+execute the call.
+
+Editors can index the helper source and its generic PHPDoc. The
+[PHPStan extension](phpstan.md#setup) registers that source for static analysis.
+Without the extension, add the file to PHPStan's `scanFiles`:
+
+```neon
+parameters:
+    scanFiles:
+        - vendor/greenlight/greenlight/src/Expect/functions.php
+```
+
+The generic conditional return type distinguishes no argument from explicit
+null and other known value types. For broad subject types such as `mixed` or
+`object`, PHPStan needs the extension to distinguish a value from the internal
+default-argument marker. Without the extension, use `Expect::value()` for
+those subjects.
+
 ## Calls and return values
 
 `calling()` accepts a callable with no required arguments. It does not execute

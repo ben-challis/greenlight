@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Coverage\Ignore;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Ignore\IgnoreScanner;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class IgnoreScannerMultilineEndTest
 {
@@ -27,7 +28,7 @@ final readonly class IgnoreScannerMultilineEndTest
             $kept = 2;
             PHP);
 
-        Expect::value(\array_keys(new IgnoreScanner()->ignoredLines($path)))
+        expect(\array_keys(new IgnoreScanner()->ignoredLines($path)))
             ->because('a multiline end marker MUST include its complete comment')
             ->toBe([2, 3, 4, 5, 6]);
     }

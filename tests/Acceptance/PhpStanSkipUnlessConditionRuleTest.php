@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanSkipUnlessConditionRuleTest
@@ -84,10 +85,10 @@ final readonly class PhpStanSkipUnlessConditionRuleTest
             PHP,
         );
 
-        Expect::value($probe->exitCode)->because('skip-unless arguments must match the condition constructor')->toBe(1);
-        Expect::value($probe->goodPassed)->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(3);
-        Expect::value($probe->messages())->toContain('#[SkipUnless] supplies 1 argument to the GreenlightSkipUnlessConditionProbe\TwoArgumentsCondition constructor, but the constructor requires 2 arguments')
+        expect($probe->exitCode)->because('skip-unless arguments must match the condition constructor')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(3);
+        expect($probe->messages())->toContain('#[SkipUnless] supplies 1 argument to the GreenlightSkipUnlessConditionProbe\TwoArgumentsCondition constructor, but the constructor requires 2 arguments')
             ->toContain('#[SkipUnless] supplies 3 arguments to the GreenlightSkipUnlessConditionProbe\TwoArgumentsCondition constructor, but the constructor accepts 2 arguments')
             ->toContain('#[SkipUnless] argument #1 for GreenlightSkipUnlessConditionProbe\IntegerCondition constructor parameter $value has type string, but the parameter requires int');
     }

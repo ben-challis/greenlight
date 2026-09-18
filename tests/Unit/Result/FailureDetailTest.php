@@ -5,16 +5,17 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Tests\Support\JsonWire;
+
+use function Greenlight\expect;
 
 final readonly class FailureDetailTest
 {
     #[Test]
     public function rejectsAnEmptyMessage(): void
     {
-        Expect::calling(static fn(): FailureDetail => new FailureDetail(''))
+        expect()->calling(static fn(): FailureDetail => new FailureDetail(''))
             ->because('a failure detail MUST explain the failure')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -28,7 +29,7 @@ final readonly class FailureDetailTest
         $detail = new FailureDetail('0');
         $restored = FailureDetail::fromWire(JsonWire::roundTrip($detail->toWire()));
 
-        Expect::value($restored->message)
+        expect($restored->message)
             ->because('a zero-string failure message is not empty')
             ->toBe('0');
     }

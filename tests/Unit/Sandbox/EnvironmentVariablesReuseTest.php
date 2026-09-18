@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\EnvironmentVariables;
+
+use function Greenlight\expect;
 
 final readonly class EnvironmentVariablesReuseTest
 {
@@ -27,12 +28,12 @@ final readonly class EnvironmentVariablesReuseTest
             $sandbox->set($name, 'second session');
             $sandbox->dispose();
 
-            Expect::value(\getenv($name))
+            expect(\getenv($name))
                 ->because('use after disposal MUST capture the new environment baseline')
                 ->toBe('new baseline');
-            Expect::value($_ENV[$name] ?? null)
+            expect($_ENV[$name] ?? null)
                 ->toBe('new baseline');
-            Expect::value($_SERVER[$name] ?? null)
+            expect($_SERVER[$name] ?? null)
                 ->toBe('new baseline');
         } finally {
             $sandbox->dispose();

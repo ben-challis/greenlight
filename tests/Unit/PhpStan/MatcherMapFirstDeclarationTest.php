@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\PhpStan;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\PhpStan\MatcherMap;
 use Greenlight\PhpStan\MatcherMapError;
+
+use function Greenlight\expect;
 
 final class MatcherMapFirstDeclarationTest
 {
@@ -18,7 +19,7 @@ final class MatcherMapFirstDeclarationTest
     #[Test]
     public function anIdenticalRedeclarationDoesNotReplaceTheFirstDeclarationPath(): void
     {
-        Expect::calling(
+        expect()->calling(
             static fn(): MatcherMap => MatcherMap::fromConfigFiles([
                 self::CONFIG,
                 self::CONFIG_ALIAS,

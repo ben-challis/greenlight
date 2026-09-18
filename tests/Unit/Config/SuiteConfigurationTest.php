@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\SuiteConfiguration;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class SuiteConfigurationTest
 {
@@ -24,7 +25,7 @@ final class SuiteConfigurationTest
         array $tags,
         string $message,
     ): void {
-        Expect::calling(static fn(): SuiteConfiguration => new SuiteConfiguration($name, $paths, $tags))
+        expect()->calling(static fn(): SuiteConfiguration => new SuiteConfiguration($name, $paths, $tags))
             ->because('a suite configuration MUST satisfy its documented value domains')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }
@@ -34,13 +35,13 @@ final class SuiteConfigurationTest
     {
         $suite = new SuiteConfiguration('0', ['0'], ['0']);
 
-        Expect::value($suite->name)
+        expect($suite->name)
             ->because('a zero-string suite name is not empty')
             ->toBe('0');
-        Expect::value($suite->paths)
+        expect($suite->paths)
             ->because('a zero-string suite path is not empty')
             ->toBe(['0']);
-        Expect::value($suite->tags)
+        expect($suite->tags)
             ->because('a zero-string suite tag is not empty')
             ->toBe(['0']);
     }

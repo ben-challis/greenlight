@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\SourceLocation;
 use Greenlight\Tests\Support\JsonWire;
+
+use function Greenlight\expect;
 
 final class SourceLocationTest
 {
@@ -18,13 +19,13 @@ final class SourceLocationTest
         $location = new SourceLocation('/project/tests/PaymentTest.php', 42);
         $restored = SourceLocation::fromWire(JsonWire::roundTrip($location->toWire()));
 
-        Expect::value((string) $location)
+        expect((string) $location)
             ->because('diagnostics MUST render a conventional file and line location')
             ->toBe('/project/tests/PaymentTest.php:42');
-        Expect::value($restored->file)
+        expect($restored->file)
             ->because('the file MUST survive the wire')
             ->toBe('/project/tests/PaymentTest.php');
-        Expect::value($restored->line)
+        expect($restored->line)
             ->because('the line MUST survive the wire')
             ->toBe(42);
     }
@@ -35,10 +36,10 @@ final class SourceLocationTest
         $location = new SourceLocation('0', 1);
         $restored = SourceLocation::fromWire(JsonWire::roundTrip($location->toWire()));
 
-        Expect::value((string) $location)
+        expect((string) $location)
             ->because('a zero-string source file is not empty')
             ->toBe('0:1');
-        Expect::value($restored->file)
+        expect($restored->file)
             ->because('the zero-string source file MUST survive the wire')
             ->toBe('0');
     }
@@ -52,7 +53,7 @@ final class SourceLocationTest
             'line' => $line,
         ]);
 
-        Expect::value($restored->line)
+        expect($restored->line)
             ->because('wire locations MUST identify at least the first source line')
             ->toBe(1);
     }
@@ -70,7 +71,7 @@ final class SourceLocationTest
     #[DataSet('invalidLocations')]
     public function rejectsInvalidConstruction(string $file, int $line, string $message): void
     {
-        Expect::calling(static fn(): SourceLocation => new SourceLocation($file, $line))
+        expect()->calling(static fn(): SourceLocation => new SourceLocation($file, $line))
             ->because('source locations MUST identify a file and a positive line')
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }

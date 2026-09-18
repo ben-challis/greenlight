@@ -6,12 +6,13 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\PlainReporter;
 use Greenlight\Reporting\RunHeader;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class PlainReporterTest
 {
@@ -54,7 +55,7 @@ final class PlainReporterTest
             These results are evidence of instability.
             TXT;
 
-        Expect::value($output->buffer())->because('canned stream renders the golden output')->toBe($expected . "\n");
+        expect($output->buffer())->because('canned stream renders the golden output')->toBe($expected . "\n");
     }
 
     #[Test]
@@ -63,7 +64,7 @@ final class PlainReporterTest
         $output = new BufferOutput();
         CannedStream::feed(new PlainReporter($output, new RunHeader('0.4.0', 'greenlight.php', 7, phpVersion: '8.3.1')));
 
-        Expect::value($output->buffer())->because('header line precedes the run line when provided')
+        expect($output->buffer())->because('header line precedes the run line when provided')
             ->toStartWith("Greenlight 0.4.0\nPHP 8.3.1 | configuration: greenlight.php | workers: 2 | seed: 7\nRun run-1: 6 tests, 2 workers\n");
     }
 
@@ -76,7 +77,7 @@ final class PlainReporterTest
         $second = new BufferOutput();
         CannedStream::feed(new PlainReporter($second));
 
-        Expect::value($first->buffer())->because('identical streams produce byte identical output')->toBe($second->buffer());
+        expect($first->buffer())->because('identical streams produce byte identical output')->toBe($second->buffer());
     }
 
     #[Test]
@@ -85,7 +86,7 @@ final class PlainReporterTest
         $output = new BufferOutput();
         CannedStream::feed(new PlainReporter($output));
 
-        Expect::value($output->buffer())->because('output contains no ANSI escapes')->not()->toContain("\e");
+        expect($output->buffer())->because('output contains no ANSI escapes')->not()->toContain("\e");
     }
 
     #[Test]
@@ -114,7 +115,7 @@ final class PlainReporterTest
               Acme\RiskyTest::passesWithoutExpectations
             TXT;
 
-        Expect::value($output->buffer())
+        expect($output->buffer())
             ->because('successful risky tests MUST render exact actionable guidance')
             ->toBe($expected . "\n");
     }
@@ -136,7 +137,7 @@ final class PlainReporterTest
         ));
         $reporter->finish();
 
-        Expect::value($output->buffer())
+        expect($output->buffer())
             ->because('a failed test MUST NOT also appear in successful risky-test guidance')
             ->toContain('FAIL Acme\\RiskyTest::failsWithoutExpectations')
             ->not()

@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Support;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Tests\Support\PluginLifecycle;
+
+use function Greenlight\expect;
 
 final readonly class PluginLifecycleTest
 {
@@ -17,15 +18,15 @@ final readonly class PluginLifecycleTest
         $context = PluginLifecycle::context();
         $result = PluginLifecycle::passedResult();
 
-        Expect::value(PluginLifecycle::context())
+        expect(PluginLifecycle::context())
             ->because('each plugin test MUST receive independent lifecycle state')
             ->not()
             ->toBe($context);
-        Expect::value($context->id->equals($result->id))
+        expect($context->id->equals($result->id))
             ->because('the shared context and result MUST identify the same test')
             ->toBeTrue();
-        Expect::value($context->definition->class)->toBe($context->id->class);
-        Expect::value($context->definition->method)->toBe($context->id->method);
-        Expect::value($result->outcome)->toBe(Outcome::Passed);
+        expect($context->definition->class)->toBe($context->id->class);
+        expect($context->definition->method)->toBe($context->id->method);
+        expect($result->outcome)->toBe(Outcome::Passed);
     }
 }

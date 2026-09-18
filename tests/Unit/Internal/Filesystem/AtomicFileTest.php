@@ -6,13 +6,14 @@ namespace Greenlight\Tests\Unit\Internal\Filesystem;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Filesystem\AtomicFile;
 use Greenlight\Internal\Filesystem\AtomicFileError;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Random\Engine;
 use Random\RandomException;
 use Random\Randomizer;
+
+use function Greenlight\expect;
 
 final readonly class AtomicFileTest
 {
@@ -27,10 +28,10 @@ final readonly class AtomicFileTest
 
         AtomicFile::write($path, "\x00new\n");
 
-        Expect::value(\file_get_contents($path))
+        expect(\file_get_contents($path))
             ->because('an atomic write replaces the target with the exact bytes')
             ->toBe("\x00new\n");
-        Expect::value(\glob($path . '.tmp-*'))
+        expect(\glob($path . '.tmp-*'))
             ->because('a successful atomic write leaves no temporary file')
             ->toBe([]);
     }
@@ -40,14 +41,14 @@ final readonly class AtomicFileTest
     {
         $path = $this->tempDirectory->path() . '/missing/state.json';
 
-        Expect::calling(static fn() => AtomicFile::write($path, '{}'))
+        expect()->calling(static fn() => AtomicFile::write($path, '{}'))
             ->because('a failed temporary write identifies its generated path')
             ->toThrow(
                 AtomicFileError::class,
                 matching: '/^Cannot write temporary file ".*\/state\.json\.tmp-\d+-[0-9a-f]{16}": .+\.$/',
             );
 
-        Expect::value(\glob($path . '.tmp-*'))
+        expect(\glob($path . '.tmp-*'))
             ->because('a failed temporary write leaves no temporary file')
             ->toBe([]);
     }
@@ -57,11 +58,11 @@ final readonly class AtomicFileTest
     {
         $path = $this->tempDirectory->path() . "/invalid\0/state.json";
 
-        Expect::calling(static fn() => AtomicFile::write($path, '{}'))
+        expect()->calling(static fn() => AtomicFile::write($path, '{}'))
             ->because('a native write throwable MUST not escape the atomic-file seam')
             ->toThrow(
                 static function (AtomicFileError $error): void {
-                    Expect::value($error->getPrevious())
+                    expect($error->getPrevious())
                         ->because('the atomic-file error MUST preserve the native write error')
                         ->toBeInstanceOf(\ValueError::class);
                 },
@@ -82,21 +83,21 @@ final readonly class AtomicFileTest
                 throw $this->cause;
             }
         });
-        Expect::calling(static fn() => AtomicFile::write($path, 'content', $randomizer))
+        expect()->calling(static fn() => AtomicFile::write($path, 'content', $randomizer))
             ->because('the temporary-name failure MUST identify its target and cause')
             ->toThrow(
                 static function (AtomicFileError $error) use ($cause, $path): void {
-                    Expect::value($error->getMessage())->toBe(\sprintf(
+                    expect($error->getMessage())->toBe(\sprintf(
                         'Cannot generate a temporary name for "%s": entropy unavailable',
                         $path,
                     ));
-                    Expect::value($error->getPrevious())
+                    expect($error->getPrevious())
                         ->because('the temporary-name failure MUST preserve its original cause')
                         ->toBe($cause);
                 },
             );
 
-        Expect::value(\file_exists($path))
+        expect(\file_exists($path))
             ->because('an entropy failure MUST NOT create the target file')
             ->toBeFalse();
     }
@@ -106,14 +107,14 @@ final readonly class AtomicFileTest
     {
         $path = $this->tempDirectory->subdirectory('rename-target');
 
-        Expect::calling(static fn() => AtomicFile::write($path, 'content'))
+        expect()->calling(static fn() => AtomicFile::write($path, 'content'))
             ->because('a failed rename identifies the temporary and target paths')
             ->toThrow(
                 AtomicFileError::class,
                 matching: '/^Cannot rename ".*\/rename-target\.tmp-\d+-[0-9a-f]{16}" to ".*\/rename-target": .+\.$/',
             );
 
-        Expect::value(\glob($path . '.tmp-*'))
+        expect(\glob($path . '.tmp-*'))
             ->because('a failed rename removes the temporary file')
             ->toBe([]);
     }
@@ -128,22 +129,22 @@ final readonly class AtomicFileTest
         $rename = AtomicFileError::cannotRename('/state.json.tmp-1-abcd', '/state.json', 'permission denied');
         $renameWithoutReason = AtomicFileError::cannotRename('/state.json.tmp-1-abcd', '/state.json', null);
 
-        Expect::value($name->getMessage())
+        expect($name->getMessage())
             ->because('the random-name diagnostic includes the target and original message')
             ->toBe('Cannot generate a temporary name for "/state.json": entropy unavailable');
-        Expect::value($name->getPrevious())
+        expect($name->getPrevious())
             ->because('the random-name diagnostic preserves the original error')
             ->toBe($previous);
-        Expect::value($write->getMessage())
+        expect($write->getMessage())
             ->because('the temporary-write diagnostic includes its warning')
             ->toBe('Cannot write temporary file "/state.json.tmp-1-abcd": disk full.');
-        Expect::value($writeWithoutReason->getMessage())
+        expect($writeWithoutReason->getMessage())
             ->because('the temporary-write diagnostic omits punctuation for a missing warning')
             ->toBe('Cannot write temporary file "/state.json.tmp-1-abcd".');
-        Expect::value($rename->getMessage())
+        expect($rename->getMessage())
             ->because('the rename diagnostic includes both paths and its warning')
             ->toBe('Cannot rename "/state.json.tmp-1-abcd" to "/state.json": permission denied.');
-        Expect::value($renameWithoutReason->getMessage())
+        expect($renameWithoutReason->getMessage())
             ->because('the rename diagnostic omits punctuation for a missing warning')
             ->toBe('Cannot rename "/state.json.tmp-1-abcd" to "/state.json".');
     }
@@ -153,7 +154,7 @@ final readonly class AtomicFileTest
     {
         $write = AtomicFileError::cannotWriteTemporary('/state.json.tmp-1-abcd', '0');
 
-        Expect::value($write->getMessage())
+        expect($write->getMessage())
             ->because('the temporary-write diagnostic MUST preserve a zero-string warning')
             ->toBe('Cannot write temporary file "/state.json.tmp-1-abcd": 0.');
     }
@@ -163,7 +164,7 @@ final readonly class AtomicFileTest
     {
         $rename = AtomicFileError::cannotRename('/state.json.tmp-1-abcd', '/state.json', '0');
 
-        Expect::value($rename->getMessage())
+        expect($rename->getMessage())
             ->because('the rename diagnostic MUST preserve a zero-string warning')
             ->toBe('Cannot rename "/state.json.tmp-1-abcd" to "/state.json": 0.');
     }

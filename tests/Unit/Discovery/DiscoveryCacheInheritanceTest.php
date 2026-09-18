@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class DiscoveryCacheInheritanceTest
 {
@@ -47,17 +48,17 @@ final readonly class DiscoveryCacheInheritanceTest
             PHP);
         $arguments = [$script, \dirname(__DIR__, 3) . "/vendor/autoload.php"];
         $cold = PhpSubprocess::run($directory, $arguments);
-        Expect::value($cold->exitCode)->toBe(0);
-        Expect::value($cold->stdout)->toBe($before);
+        expect($cold->exitCode)->toBe(0);
+        expect($cold->stdout)->toBe($before);
 
         $warm = PhpSubprocess::run($directory, $arguments);
-        Expect::value($warm->exitCode)->toBe(0);
-        Expect::value($warm->stdout)->toBe($before);
+        expect($warm->exitCode)->toBe(0);
+        expect($warm->stdout)->toBe($before);
 
         \file_put_contents($directory . "/" . $dependencyName . ".php", "<?php namespace CacheInheritance; " . $replacementSource);
         $changed = PhpSubprocess::run($directory, $arguments);
-        Expect::value($changed->exitCode)->toBe(0);
-        Expect::value($changed->stdout)->toBe($after);
+        expect($changed->exitCode)->toBe(0);
+        expect($changed->stdout)->toBe($after);
     }
 
     /** @return iterable<string, array{string, string, string, string, string, string}> */

@@ -9,7 +9,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
@@ -17,6 +16,8 @@ use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Fixture\Execution\Artifact\DirectoryCreatingFileCopier;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactBestEffortCleanupDiagnosticTest
 {
@@ -47,7 +48,7 @@ final readonly class ArtifactBestEffortCleanupDiagnosticTest
         $attachments->text('evidence.txt', 'evidence');
         $staged = $attachments->seal()[0];
 
-        Expect::calling(static function () use ($store, $id, $staged, &$warning): TestResult {
+        expect()->calling(static function () use ($store, $id, $staged, &$warning): TestResult {
             return ErrorTrap::run(
                 static fn() => $store->publish(new TestResult(
                     $id,
@@ -65,7 +66,7 @@ final readonly class ArtifactBestEffortCleanupDiagnosticTest
                 message: 'The fake copier stopped after it created a directory.',
             );
 
-        Expect::value($warning)
+        expect($warning)
             ->because('best-effort publication cleanup MUST not leak an engine diagnostic')
             ->toBeNull();
     }

@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\DiscoveryCachePath;
+
+use function Greenlight\expect;
 
 final readonly class DiscoveryCacheEmptyPlanTest
 {
@@ -26,10 +27,10 @@ final readonly class DiscoveryCacheEmptyPlanTest
             $cache = DiscoveryCache::forDirectories([$directory]);
             $cache->store($source, []);
 
-            Expect::value($cache->persist())
+            expect($cache->persist())
                 ->because('an empty execution plan MUST be persisted')
                 ->toBeTrue();
-            Expect::value(DiscoveryCache::forDirectories([$directory])->lookup($source))
+            expect(DiscoveryCache::forDirectories([$directory])->lookup($source))
                 ->because('an empty execution plan is a valid cache hit, not corrupt data')
                 ->toBe([]);
         } finally {

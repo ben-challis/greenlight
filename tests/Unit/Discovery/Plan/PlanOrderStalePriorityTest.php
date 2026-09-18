@@ -8,9 +8,10 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Discovery\Plan\PlanOrder;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final class PlanOrderStalePriorityTest
 {
@@ -31,13 +32,13 @@ final class PlanOrderStalePriorityTest
             $ordered->entries,
         );
 
-        Expect::value($ids)
+        expect($ids)
             ->because('stale priority data MUST NOT change the current plan entries')
             ->toBe(['Acme\\AlphaTest::probe', 'Acme\\BetaTest::probe']);
-        Expect::value($ordered->seed)
+        expect($ordered->seed)
             ->because('stale priority data MUST NOT change the plan seed')
             ->toBe(4242);
-        Expect::value($warning)
+        expect($warning)
             ->because('stale priority data MUST NOT cause a warning')
             ->toBeNull();
     }

@@ -7,12 +7,13 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class TeamCityZeroComparisonTest
 {
@@ -35,7 +36,7 @@ final class TeamCityZeroComparisonTest
 
         $reporter->onEvent(new TestFinished($result, 1.0));
 
-        Expect::value($output->buffer())
+        expect($output->buffer())
             ->because('TeamCity comparison metadata MUST preserve the string "0"')
             ->toContain($attributes);
     }

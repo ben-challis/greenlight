@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
@@ -13,6 +12,8 @@ use Greenlight\Tests\Fixture\Harness\FailingDisposable;
 use Greenlight\Tests\Fixture\Lifecycle\Services\SecondaryServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
+
+use function Greenlight\expect;
 
 final class ScopeContainerLazyDisposalOrderTest
 {
@@ -31,9 +32,9 @@ final class ScopeContainerLazyDisposalOrderTest
             },
         ));
 
-        Expect::value($calls)->toBe(1);
-        Expect::value($container->dispose())->toHaveCount(1);
-        Expect::value($container->dispose())->toBe([]);
+        expect($calls)->toBe(1);
+        expect($container->dispose())->toHaveCount(1);
+        expect($container->dispose())->toBe([]);
     }
 
     #[Test]
@@ -53,13 +54,13 @@ final class ScopeContainerLazyDisposalOrderTest
             static fn(): SecondaryServiceProbe => new SecondaryServiceProbe(),
         ));
 
-        Expect::value($first)->toBeInstanceOf(ServiceProbe::class);
-        Expect::value($second)->toBeInstanceOf(SecondaryServiceProbe::class);
+        expect($first)->toBeInstanceOf(ServiceProbe::class);
+        expect($second)->toBeInstanceOf(SecondaryServiceProbe::class);
         $second->touch();
         $first->touch();
 
-        Expect::value($container->dispose())->toBe([]);
-        Expect::value(TraceLog::drain())->toBe([
+        expect($container->dispose())->toBe([]);
+        expect(TraceLog::drain())->toBe([
             'secondary:created',
             'secondary:touched',
             'probe1:created',
@@ -67,7 +68,7 @@ final class ScopeContainerLazyDisposalOrderTest
             'probe1:disposed',
             'secondary:disposed',
         ]);
-        Expect::value($container->dispose())->toBe([]);
-        Expect::value(TraceLog::drain())->toBe([]);
+        expect($container->dispose())->toBe([]);
+        expect(TraceLog::drain())->toBe([]);
     }
 }

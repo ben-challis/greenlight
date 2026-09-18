@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Discovery\Plan;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanOrder;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final readonly class PlanOrderZeroDurationTest
 {
@@ -24,7 +25,7 @@ final readonly class PlanOrderZeroDurationTest
             'Acme\\InstantTest' => 0.0,
         ]);
 
-        Expect::value($ordered->classes())
+        expect($ordered->classes())
             ->because('a zero duration MUST remain known and precede classes without timing data')
             ->toBe([
                 'Acme\\InstantTest',

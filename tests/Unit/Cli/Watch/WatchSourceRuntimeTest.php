@@ -8,9 +8,10 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\WatchSourceFailed;
 use Greenlight\Cli\Watch\WatchSourceRuntime;
 use Greenlight\Doubles\Fake;
-use Greenlight\Expect\Expect;
 use Greenlight\Plugin\Prioritized;
 use Greenlight\Plugin\WatchSource;
+
+use function Greenlight\expect;
 
 final readonly class WatchSourceRuntimeTest
 {
@@ -28,13 +29,13 @@ final readonly class WatchSourceRuntimeTest
 
         $changes = $runtime->poll();
 
-        Expect::value($events->getArrayCopy())->toBe([
+        expect($events->getArrayCopy())->toBe([
             'early',
             'default',
             'same-priority',
             'late',
         ]);
-        Expect::value($changes)->toBe(['early', 'default', 'shared', 'late']);
+        expect($changes)->toBe(['early', 'default', 'shared', 'late']);
     }
 
     #[Test]
@@ -45,12 +46,12 @@ final readonly class WatchSourceRuntimeTest
             new FailingWatchSource($failure),
         ]);
 
-        Expect::calling($runtime->poll(...))
+        expect()->calling($runtime->poll(...))
             ->toThrow(static function (WatchSourceFailed $error) use ($failure): void {
-                Expect::value($error->getMessage())->toBe(
+                expect($error->getMessage())->toBe(
                     'Watch source plugin "Greenlight\\Tests\\Unit\\Cli\\Watch\\FailingWatchSource" caused an error during poll(): Watch poll exploded',
                 );
-                Expect::value($error->getPrevious())->toBe($failure);
+                expect($error->getPrevious())->toBe($failure);
             });
     }
 }

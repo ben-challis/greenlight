@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\IntegrationFixture;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Internal\Wire\InvalidWirePayload;
+
+use function Greenlight\expect;
 
 final readonly class IntegrationResourcesWireShapeTest
 {
@@ -19,7 +20,7 @@ final readonly class IntegrationResourcesWireShapeTest
     #[DataSet('invalidFixtureEntries')]
     public function invalidFixtureEntriesRemainWireCommunicationFaileds(array $fixtures, string $message): void
     {
-        Expect::calling(static fn(): IntegrationResources => IntegrationResources::fromWire([
+        expect()->calling(static fn(): IntegrationResources => IntegrationResources::fromWire([
             'fixtures' => $fixtures,
         ]))
             ->because('invalid integration resource entries MUST remain protocol errors')

@@ -10,9 +10,10 @@ use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Doubles\Fake;
-use Greenlight\Expect\Expect;
 use Greenlight\Plugin\CoverageMapTransformer;
 use Greenlight\Plugin\Prioritized;
+
+use function Greenlight\expect;
 
 final readonly class CoveragePluginRuntimeTest
 {
@@ -32,13 +33,13 @@ final readonly class CoveragePluginRuntimeTest
             new FileCoverage('/missing/Probe.php', [1], []),
         ]));
 
-        Expect::value($events->getArrayCopy())->toBe([
+        expect($events->getArrayCopy())->toBe([
             'early',
             'default',
             'same-priority',
             'late',
         ]);
-        Expect::value($coverage->files())->toHaveCount(1);
+        expect($coverage->files())->toHaveCount(1);
     }
 
     #[Test]
@@ -49,12 +50,12 @@ final readonly class CoveragePluginRuntimeTest
             new FailingCoverageTransformer($failure),
         ]);
 
-        Expect::calling(static fn(): CoverageMap => $runtime->transform(CoverageMap::empty()))
+        expect()->calling(static fn(): CoverageMap => $runtime->transform(CoverageMap::empty()))
             ->toThrow(static function (CoverageError $error) use ($failure): void {
-                Expect::value($error->getMessage())->toBe(
+                expect($error->getMessage())->toBe(
                     'Coverage plugin "Greenlight\\Tests\\Unit\\Cli\\Coverage\\FailingCoverageTransformer" caused an error during transformCoverageMap: Coverage transform exploded',
                 );
-                Expect::value($error->getPrevious())->toBe($failure);
+                expect($error->getPrevious())->toBe($failure);
             });
     }
 }

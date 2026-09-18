@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Execution\Worker;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class LeakDetectorWhitespaceIniModeTest
 {
@@ -36,12 +37,12 @@ final readonly class LeakDetectorWhitespaceIniModeTest
             ],
         );
 
-        Expect::value($result->exitCode)
+        expect($result->exitCode)
             ->because('the fallback process MUST accept comma-separated Xdebug modes')
             ->toBe(0);
-        Expect::value($result->stderr)
+        expect($result->stderr)
             ->toBe('');
-        Expect::value($result->stdout)
+        expect($result->stdout)
             ->because('the fallback MUST detect develop mode after separator whitespace')
             ->toBe(
                 'Warning: Xdebug develop mode keeps caught exceptions in memory. Thus, leak detection reports '

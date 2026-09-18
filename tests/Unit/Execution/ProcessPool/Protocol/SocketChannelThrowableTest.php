@@ -9,11 +9,12 @@ use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Execution\ProcessPool\Protocol\ThrowingStream;
+
+use function Greenlight\expect;
 
 final readonly class SocketChannelThrowableTest
 {
@@ -42,13 +43,13 @@ final readonly class SocketChannelThrowableTest
             ? $channel->poll(...)
             : static fn() => $channel->send(new Drain());
 
-        Expect::calling($invoke)
+        expect()->calling($invoke)
             ->because('a stream throwable MUST not escape the worker protocol seam')
             ->toThrow(
                 static function (ProtocolError $error) use ($operation): void {
-                    Expect::value($error->getMessage())
+                    expect($error->getMessage())
                         ->toBe(\sprintf('Worker protocol stream %s failed.', $operation));
-                    Expect::value($error->getPrevious())
+                    expect($error->getPrevious())
                         ->because('the protocol error MUST preserve the stream error')
                         ->toBeInstanceOf(\RuntimeException::class);
                 },

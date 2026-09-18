@@ -9,11 +9,12 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Execution\Worker\StandardHarnessPlugin;
 use Greenlight\Execution\Worker\Worker;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\FixturePath;
+
+use function Greenlight\expect;
 
 final readonly class SandboxLifecycleTest
 {
@@ -46,12 +47,12 @@ final readonly class SandboxLifecycleTest
             }
         }
 
-        Expect::value($outcome->summary->passed)->toBe(1);
-        Expect::value($tempPath)->not()->toBeNull();
-        Expect::value(\file_exists($tempPath))->toBeFalse();
-        Expect::value(\getenv('GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue ?? false);
-        Expect::value($this->superglobalValue($_ENV, 'GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue);
-        Expect::value($this->superglobalValue($_SERVER, 'GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue);
+        expect($outcome->summary->passed)->toBe(1);
+        expect($tempPath)->not()->toBeNull();
+        expect(\file_exists($tempPath))->toBeFalse();
+        expect(\getenv('GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue ?? false);
+        expect($this->superglobalValue($_ENV, 'GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue);
+        expect($this->superglobalValue($_SERVER, 'GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue);
     }
 
     /**

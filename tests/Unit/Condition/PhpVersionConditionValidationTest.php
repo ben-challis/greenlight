@@ -9,7 +9,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Condition\Condition;
 use Greenlight\Condition\PhpVersionAtLeast;
 use Greenlight\Condition\PhpVersionLessThan;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class PhpVersionConditionValidationTest
 {
@@ -20,7 +21,7 @@ final readonly class PhpVersionConditionValidationTest
     #[DataSet('emptyVersionConditions')]
     public function rejectsAnEmptyPhpVersion(\Closure $create): void
     {
-        Expect::calling($create)
+        expect()->calling($create)
             ->because('a PHP version condition MUST identify its comparison version')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -44,7 +45,7 @@ final readonly class PhpVersionConditionValidationTest
     #[DataSet('zeroVersionConditions')]
     public function acceptsZeroAsAPhpVersion(\Closure $create, bool $expected): void
     {
-        Expect::value($create()->isSatisfied())
+        expect($create()->isSatisfied())
             ->because('the non-empty version "0" MUST retain PHP version comparison semantics')
             ->toBe($expected);
     }

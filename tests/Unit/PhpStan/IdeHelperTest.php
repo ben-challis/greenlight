@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\PhpStan;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\PhpStan\IdeHelper;
 use Greenlight\PhpStan\MatcherMap;
 use Greenlight\Tests\Support\FixturePath;
+
+use function Greenlight\expect;
 
 final class IdeHelperTest
 {
@@ -19,7 +20,7 @@ final class IdeHelperTest
 
         $rendered = IdeHelper::render($map);
 
-        Expect::value($rendered)->because('renders one method annotation per matcher with reflected signatures')->toContain('namespace Greenlight\Expect;')
+        expect($rendered)->because('renders one method annotation per matcher with reflected signatures')->toContain('namespace Greenlight\Expect;')
             ->toContain(' * @method self toBeHexadecimal()')
             ->toContain(' * @method self toHaveDigestLength(int $length)')
             ->toContain(' * @method self toBePositive()')
@@ -34,7 +35,7 @@ final class IdeHelperTest
     {
         $map = MatcherMap::fromConfigFiles([FixturePath::get('PhpStanIdeHelperDnf/greenlight.php')]);
 
-        Expect::value(IdeHelper::render($map))
+        expect(IdeHelper::render($map))
             ->because('generated matcher annotations preserve disjunctive normal form types')
             ->toContain(' * @method self toCompareWith((\\Countable&\\Iterator)|string $comparison)');
     }

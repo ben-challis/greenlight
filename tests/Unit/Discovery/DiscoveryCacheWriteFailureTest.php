@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\DiscoveryCachePath;
+
+use function Greenlight\expect;
 
 final readonly class DiscoveryCacheWriteFailureTest
 {
@@ -28,15 +29,15 @@ final readonly class DiscoveryCacheWriteFailureTest
         $cache->store($source, []);
 
         try {
-            Expect::value($cache->persist())
+            expect($cache->persist())
                 ->because('an advisory cache write failure MUST be reported to its caller')
                 ->toBeFalse();
-            Expect::value(\is_dir($cacheFile))
+            expect(\is_dir($cacheFile))
                 ->because('the failed write MUST leave the target unchanged')
                 ->toBeTrue();
-            Expect::value((string) \file_get_contents($cacheFile . '/occupant.txt'))
+            expect((string) \file_get_contents($cacheFile . '/occupant.txt'))
                 ->toBe('keep');
-            Expect::value(\glob($cacheFile . '.tmp-*'))
+            expect(\glob($cacheFile . '.tmp-*'))
                 ->because('the failed write MUST remove its temporary file')
                 ->toBe([]);
         } finally {

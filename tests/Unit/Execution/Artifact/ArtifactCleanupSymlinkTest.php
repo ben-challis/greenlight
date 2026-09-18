@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Execution\Artifact;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactCleanupSymlinkTest
 {
@@ -49,13 +50,13 @@ final readonly class ArtifactCleanupSymlinkTest
         try {
             $store->cleanup();
 
-            Expect::value(\is_dir($staging))
+            expect(\is_dir($staging))
                 ->because('cleanup MUST remove the artifact staging directory')
                 ->toBeFalse();
-            Expect::value(\is_link($link))
+            expect(\is_link($link))
                 ->because('cleanup MUST remove symbolic links inside artifact staging')
                 ->toBeFalse();
-            Expect::value(\file_get_contents($sentinel))
+            expect(\file_get_contents($sentinel))
                 ->because('cleanup MUST leave symbolic link targets unchanged')
                 ->toBe('keep');
         } finally {

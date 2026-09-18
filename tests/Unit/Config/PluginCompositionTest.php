@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Config;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\InvalidConfiguration;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Plugins\NamedFakePlugin;
+
+use function Greenlight\expect;
 
 final readonly class PluginCompositionTest
 {
@@ -25,11 +26,11 @@ final readonly class PluginCompositionTest
             ->execution
             ->plugins;
 
-        Expect::value($plugins)
+        expect($plugins)
             ->because('repeated plugin calls MUST retain every configured plugin in order')
             ->toHaveCount(2);
-        Expect::value($plugins[0]->pluginClass)->toBe(NamedFakePlugin::class);
-        Expect::value($plugins[1]->pluginClass)->toBe(NamedFakePlugin::class);
+        expect($plugins[0]->pluginClass)->toBe(NamedFakePlugin::class);
+        expect($plugins[1]->pluginClass)->toBe(NamedFakePlugin::class);
     }
 
     #[Test]
@@ -47,10 +48,10 @@ final readonly class PluginCompositionTest
             ->execution
             ->plugins;
 
-        Expect::value($plugins[0]->pluginClass)
+        expect($plugins[0]->pluginClass)
             ->because('Greenlight MUST get the plugin class without calling its factory')
             ->toBe(NamedFakePlugin::class);
-        Expect::value($constructions)->toBe(0);
+        expect($constructions)->toBe(0);
     }
 
     #[Test]
@@ -59,7 +60,7 @@ final readonly class PluginCompositionTest
         $builder = GreenlightConfig::create()
             ->plugins(static fn(): NamedFakePlugin => new NamedFakePlugin());
 
-        Expect::calling(static fn(): GreenlightConfig => $builder->plugins(
+        expect()->calling(static fn(): GreenlightConfig => $builder->plugins(
             static fn(): NamedFakePlugin => new NamedFakePlugin(),
             static fn() => new NamedFakePlugin(),
         ))
@@ -69,7 +70,7 @@ final readonly class PluginCompositionTest
                 message: 'A plugin factory must declare one non-null concrete plugin class return type.',
             );
 
-        Expect::value($builder->build()->execution->plugins)
+        expect($builder->build()->execution->plugins)
             ->because('a rejected plugin call MUST not append its earlier valid factories')
             ->toHaveCount(1);
     }

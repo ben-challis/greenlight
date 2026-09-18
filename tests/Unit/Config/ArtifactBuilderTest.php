@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactBuilder;
 use Greenlight\Config\InvalidConfiguration;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ArtifactBuilderTest
 {
@@ -19,7 +20,7 @@ final class ArtifactBuilderTest
             ->directory('0')
             ->toConfiguration();
 
-        Expect::value($configuration->directory)
+        expect($configuration->directory)
             ->because('the artifact builder MUST retain each non-empty directory')
             ->toBe('0');
     }
@@ -29,10 +30,10 @@ final class ArtifactBuilderTest
     {
         $configuration = new ArtifactBuilder()->toConfiguration();
 
-        Expect::value($configuration->maxCompletedRuns)->toBe(null);
-        Expect::value($configuration->maxCompletedRunAgeSeconds)->toBe(null);
-        Expect::value($configuration->maxRetainedBytes)->toBe(null);
-        Expect::value($configuration->hasRetentionPolicy())->toBeFalse();
+        expect($configuration->maxCompletedRuns)->toBe(null);
+        expect($configuration->maxCompletedRunAgeSeconds)->toBe(null);
+        expect($configuration->maxRetainedBytes)->toBe(null);
+        expect($configuration->hasRetentionPolicy())->toBeFalse();
     }
 
     #[Test]
@@ -44,10 +45,10 @@ final class ArtifactBuilderTest
             ->maxRetainedSize('2M')
             ->toConfiguration();
 
-        Expect::value($configuration->maxCompletedRuns)->toBe(4);
-        Expect::value($configuration->maxCompletedRunAgeSeconds)->toBe(3_600);
-        Expect::value($configuration->maxRetainedBytes)->toBe(2 * 1024 * 1024);
-        Expect::value($configuration->hasRetentionPolicy())->toBeTrue();
+        expect($configuration->maxCompletedRuns)->toBe(4);
+        expect($configuration->maxCompletedRunAgeSeconds)->toBe(3_600);
+        expect($configuration->maxRetainedBytes)->toBe(2 * 1024 * 1024);
+        expect($configuration->hasRetentionPolicy())->toBeTrue();
     }
 
     /**
@@ -59,7 +60,7 @@ final class ArtifactBuilderTest
         \Closure $configure,
         string $message,
     ): void {
-        Expect::calling(static fn() => $configure(new ArtifactBuilder()))
+        expect()->calling(static fn() => $configure(new ArtifactBuilder()))
             ->because('attachment count safety limits MUST be positive')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }

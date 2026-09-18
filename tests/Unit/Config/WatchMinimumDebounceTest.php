@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Config;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Config\WatchBuilder;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class WatchMinimumDebounceTest
 {
@@ -17,7 +18,7 @@ final class WatchMinimumDebounceTest
             ->debounceMilliseconds(1)
             ->toConfiguration();
 
-        Expect::value($configuration->debounceMilliseconds)
+        expect($configuration->debounceMilliseconds)
             ->because('watch mode MUST accept its documented minimum debounce')
             ->toBe(1);
     }

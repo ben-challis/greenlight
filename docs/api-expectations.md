@@ -1207,12 +1207,15 @@ Creates immediate and temporal expectations.
 
 The worker loads the configured expectation extensions before test execution.
 Each expectation chain uses a snapshot of those extensions.
+The runner also loads `Greenlight\expect($value)` for value expectations.
+Use `Greenlight\expect()->calling($call)` to select a call explicitly.
+Import the function for short expectation calls.
 
 ```php
 final class Expect
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L16)
 
 ### `value()`
 
@@ -1226,7 +1229,7 @@ PHPDoc:
 - `@param T $value`
 - `@return Expectation<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L33)
 
 ### `calling()`
 
@@ -1242,7 +1245,7 @@ PHPDoc:
 - `@param callable(): T $call`
 - `@return CallExpectation<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L47)
 
 ## `Expectation`
 
@@ -1788,6 +1791,34 @@ PHPDoc:
 - `@throws ExpectationFailed`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L87)
+
+## `ExpectationBuilder`
+
+Namespace: `Greenlight\Expect`
+
+Selects an explicit call subject after `Greenlight\expect()` with no argument.
+
+```php
+final readonly class ExpectationBuilder
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ExpectationBuilder.php#L10)
+
+### `calling()`
+
+Selects a call for later execution.
+
+```php
+public function calling(callable $call): CallExpectation
+```
+
+PHPDoc:
+
+- `@template T`
+- `@param callable(): T $call`
+- `@return CallExpectation<T>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ExpectationBuilder.php#L21)
 
 ## `ExpectationExtension`
 

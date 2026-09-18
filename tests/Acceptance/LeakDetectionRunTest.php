@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
+
+use function Greenlight\expect;
 
 final readonly class LeakDetectionRunTest
 {
@@ -18,13 +19,13 @@ final readonly class LeakDetectionRunTest
     {
         $withFlag = $this->run(['run', '--detect-leaks', '--workers=2']);
 
-        Expect::value($withFlag->exitCode)->because('leak detection names the leak and fails the run')->toBe(1);
-        Expect::value($withFlag->output())->toContain('Test instance leaks:')
+        expect($withFlag->exitCode)->because('leak detection names the leak and fails the run')->toBe(1);
+        expect($withFlag->output())->toContain('Test instance leaks:')
             ->toContain('  Greenlight\Tests\Fixture\LeakSuite\LeakyTest::passesButLeaksItself');
 
         $withoutFlag = $this->run(['run', '--workers=2']);
 
-        Expect::value($withoutFlag->exitCode)->because('leak detection names the leak and fails the run')->toBe(0);
+        expect($withoutFlag->exitCode)->because('leak detection names the leak and fails the run')->toBe(0);
     }
 
     #[Test]
@@ -38,11 +39,11 @@ final readonly class LeakDetectionRunTest
 
         $develop = $this->run(['run', '--detect-leaks', '--workers=2'], ['XDEBUG_MODE' => 'develop']);
 
-        Expect::value($develop->output())->because('leak detection warns when Xdebug develop mode is active')->toContain('Xdebug develop mode');
+        expect($develop->output())->because('leak detection warns when Xdebug develop mode is active')->toContain('Xdebug develop mode');
 
         $off = $this->run(['run', '--detect-leaks', '--workers=2'], ['XDEBUG_MODE' => 'off']);
 
-        Expect::value($off->output())->because('leak detection warns when Xdebug develop mode is active')->not()->toContain('Xdebug develop mode');
+        expect($off->output())->because('leak detection warns when Xdebug develop mode is active')->not()->toContain('Xdebug develop mode');
     }
 
     /**

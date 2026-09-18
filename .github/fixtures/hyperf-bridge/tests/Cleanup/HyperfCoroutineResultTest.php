@@ -6,13 +6,14 @@ namespace HyperfBridgeAcceptance\Cleanup;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Hyperf\ContainerLifetime;
 use Greenlight\Hyperf\HyperfPlugin;
 use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Test\TestChannel;
 use Hyperf\Coroutine\Coroutine;
+
+use function Greenlight\expect;
 
 final readonly class HyperfCoroutineResultTest
 {
@@ -24,7 +25,7 @@ final readonly class HyperfCoroutineResultTest
 
         $result = $plugin->runWorker(static fn(): mixed => $plugin->runTestAttempt(static fn(): null => null));
 
-        Expect::value($result)->toBeNull();
+        expect($result)->toBeNull();
     }
 
     #[Test]
@@ -35,7 +36,7 @@ final readonly class HyperfCoroutineResultTest
 
         $result = $plugin->runWorker(static fn(): mixed => $plugin->runTestAttempt(static fn(): false => false));
 
-        Expect::value($result)->toBeFalse();
+        expect($result)->toBeFalse();
     }
 
     #[Test]
@@ -52,7 +53,7 @@ final readonly class HyperfCoroutineResultTest
             $caught = $threw;
         }
 
-        Expect::value($caught)->toBe($failure);
+        expect($caught)->toBe($failure);
     }
 
     #[Test]
@@ -79,8 +80,8 @@ final readonly class HyperfCoroutineResultTest
             $caught = $threw;
         }
 
-        Expect::value($disposedInCoroutine)->toBeTrue();
-        Expect::value($caught)->toBe($failure);
+        expect($disposedInCoroutine)->toBeTrue();
+        expect($caught)->toBe($failure);
     }
 
     /** @return iterable<string, array{ContainerLifetime}> */

@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\ExitCode;
-use Greenlight\Expect\Expect;
 use Greenlight\Plugin\CommandResult;
+
+use function Greenlight\expect;
 
 final readonly class ExitCodeTest
 {
@@ -16,7 +17,7 @@ final readonly class ExitCodeTest
     #[DataSet('results')]
     public function convertsACommandResult(CommandResult $result, int $value): void
     {
-        Expect::value(ExitCode::fromCommandResult($result)->value())->toBe($value);
+        expect(ExitCode::fromCommandResult($result)->value())->toBe($value);
     }
 
     /** @return iterable<string, array{CommandResult, int}> */

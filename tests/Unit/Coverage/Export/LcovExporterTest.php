@@ -9,7 +9,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\LcovExporter;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class LcovExporterTest
 {
@@ -37,14 +38,14 @@ final class LcovExporterTest
 
             LCOV;
 
-        Expect::value(new LcovExporter()->export($map))->because('produces the exact LCOV tracefile')
+        expect(new LcovExporter()->export($map))->because('produces the exact LCOV tracefile')
             ->toBe([LcovExporter::FILE_NAME => $expected]);
     }
 
     #[Test]
     public function emptyMapProducesAnEmptyTracefile(): void
     {
-        Expect::value(new LcovExporter()->export(CoverageMap::empty()))->because('empty map produces an empty tracefile')
+        expect(new LcovExporter()->export(CoverageMap::empty()))->because('empty map produces an empty tracefile')
             ->toBe([LcovExporter::FILE_NAME => '']);
     }
 
@@ -57,7 +58,7 @@ final class LcovExporterTest
     {
         $map = new CoverageMap([new FileCoverage($path, [1], [])]);
 
-        Expect::calling(static fn(): array => new LcovExporter()->export($map))
+        expect()->calling(static fn(): array => new LcovExporter()->export($map))
             ->because('LCOV SF records MUST stay on one line')
             ->toThrow(
                 \InvalidArgumentException::class,

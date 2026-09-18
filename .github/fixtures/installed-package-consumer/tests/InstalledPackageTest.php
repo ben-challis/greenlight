@@ -6,13 +6,14 @@ namespace Greenlight\ConsumerSmoke;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Config\GreenlightConfig;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class InstalledPackageTest
 {
     #[Test]
     public function installedPackageAutoloadsPublicClasses(): void
     {
-        Expect::value(class_exists(GreenlightConfig::class))->toBeTrue();
+        expect(\class_exists(GreenlightConfig::class))->toBeTrue();
     }
 }

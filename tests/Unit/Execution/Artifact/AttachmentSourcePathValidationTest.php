@@ -9,10 +9,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class AttachmentSourcePathValidationTest
 {
@@ -34,7 +35,7 @@ final readonly class AttachmentSourcePathValidationTest
             new TestArtifactBudget(),
         );
 
-        Expect::calling(static fn() => $attachments->file('copy.bin', "source\0hidden.txt"))
+        expect()->calling(static fn() => $attachments->file('copy.bin', "source\0hidden.txt"))
             ->because('attachment source paths MUST be valid file-system paths')
             ->toThrow(
                 AttachmentError::class,

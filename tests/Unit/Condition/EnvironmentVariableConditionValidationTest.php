@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\EnvironmentVariableEquals;
 use Greenlight\Condition\EnvironmentVariableSet;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class EnvironmentVariableConditionValidationTest
 {
@@ -16,13 +17,13 @@ final readonly class EnvironmentVariableConditionValidationTest
     #[DataSet('invalidNames')]
     public function rejectsAnInvalidEnvironmentVariableName(string $name): void
     {
-        Expect::calling(static fn(): EnvironmentVariableSet => new EnvironmentVariableSet($name)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        expect()->calling(static fn(): EnvironmentVariableSet => new EnvironmentVariableSet($name)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a presence condition MUST reject a name that getenv() cannot safely read')
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Environment variable names cannot be empty or contain "=" or a null byte.',
             );
-        Expect::calling(static fn(): EnvironmentVariableEquals => new EnvironmentVariableEquals($name, 'value')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        expect()->calling(static fn(): EnvironmentVariableEquals => new EnvironmentVariableEquals($name, 'value')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('an equality condition MUST reject a name that getenv() cannot safely read')
             ->toThrow(
                 \InvalidArgumentException::class,

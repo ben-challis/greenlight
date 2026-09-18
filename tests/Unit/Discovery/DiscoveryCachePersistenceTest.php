@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\Plan\PlanEntry;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\TestDefinition;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\DiscoveryCachePath;
+
+use function Greenlight\expect;
 
 final readonly class DiscoveryCachePersistenceTest
 {
@@ -33,10 +34,10 @@ final readonly class DiscoveryCachePersistenceTest
         $cache->store($source, [$entry]);
 
         try {
-            Expect::value($cache->persist())
+            expect($cache->persist())
                 ->because('unencodable metadata MUST make cache persistence fail safely')
                 ->toBeFalse();
-            Expect::value(\is_file($cacheFile))
+            expect(\is_file($cacheFile))
                 ->because('a failed cache encoding MUST not write a cache file')
                 ->toBeFalse();
         } finally {

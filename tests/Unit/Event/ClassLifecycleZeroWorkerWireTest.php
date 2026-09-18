@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class ClassLifecycleZeroWorkerWireTest
 {
@@ -25,10 +26,10 @@ final readonly class ClassLifecycleZeroWorkerWireTest
             'workerId' => '0',
         ]);
 
-        Expect::value($event->workerId)
+        expect($event->workerId)
             ->because('class lifecycle events MUST retain non-empty zero-string worker IDs')
             ->toBe('0');
-        Expect::value($event->toWire()['workerId'])
+        expect($event->toWire()['workerId'])
             ->toBe('0');
     }
 

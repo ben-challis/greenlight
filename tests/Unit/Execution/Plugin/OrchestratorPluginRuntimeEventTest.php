@@ -10,9 +10,10 @@ use Greenlight\Event\Event;
 use Greenlight\Event\EventSink;
 use Greenlight\Event\RunStarted;
 use Greenlight\Execution\Plugin\OrchestratorPluginRuntime;
-use Greenlight\Expect\Expect;
 use Greenlight\Plugin\RunLifecycleSubscriber;
 use Greenlight\Tests\Support\CollectingEventSink;
+
+use function Greenlight\expect;
 
 final class OrchestratorPluginRuntimeEventTest
 {
@@ -60,7 +61,7 @@ final class OrchestratorPluginRuntimeEventTest
 
         $sink->emit($event);
 
-        Expect::value($calls->getArrayCopy())
+        expect($calls->getArrayCopy())
             ->because('run subscribers MUST receive the exact event in order before the inner sink')
             ->toBe([
                 ['first', $event],
@@ -89,13 +90,13 @@ final class OrchestratorPluginRuntimeEventTest
         );
         $event = new RunStarted('run-1', 1, 1, 1.0);
 
-        Expect::calling(static function () use ($sink, $event): void {
+        expect()->calling(static function () use ($sink, $event): void {
             $sink->emit($event);
         })
             ->because('an orchestrator subscriber failure MUST fail event delivery')
             ->toThrow($failure);
 
-        Expect::value($inner->events)
+        expect($inner->events)
             ->because('the inner sink MUST not observe an event rejected by a subscriber')
             ->toBe([]);
     }

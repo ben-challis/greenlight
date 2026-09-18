@@ -11,7 +11,6 @@ use Greenlight\Execution\Plugin\PluginRuntimeError;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Execution\Worker\StandardHarnessPlugin;
 use Greenlight\Execution\Worker\Worker;
-use Greenlight\Expect\Expect;
 use Greenlight\Plugin\RetryDecider;
 use Greenlight\Plugin\TerminalResultTransformer;
 use Greenlight\Result\Outcome;
@@ -21,6 +20,8 @@ use Greenlight\Test\TestDefinition;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\FixturePath;
+
+use function Greenlight\expect;
 
 final readonly class TerminalResultTransformerTest
 {
@@ -64,14 +65,14 @@ final readonly class TerminalResultTransformerTest
 
         new Worker(new StandardHarnessPlugin()->services(), $runtime)->run($plan, $sink);
 
-        Expect::value($calls->getArrayCopy())
+        expect($calls->getArrayCopy())
             ->because('a terminal transformer MUST receive only the result that remains after retries')
             ->toBe([
                 'passes:1:passed',
                 'explodes:2:errored',
             ]);
-        Expect::value($sink->results()[1]->outcome)->toBe(Outcome::Skipped);
-        Expect::value($sink->results()[1]->transformations)->toHaveCount(1);
+        expect($sink->results()[1]->outcome)->toBe(Outcome::Skipped);
+        expect($sink->results()[1]->transformations)->toHaveCount(1);
     }
 
     #[Test]
@@ -109,10 +110,10 @@ final readonly class TerminalResultTransformerTest
         $transformed = WorkerPluginRuntime::fromPlugins([$broken, $observer])
             ->terminalResult($definition, $result);
 
-        Expect::value($calls->getArrayCopy())->toBe(['broken', 'observer:errored']);
-        Expect::value($transformed->outcome)->toBe(Outcome::Errored);
-        Expect::value($transformed->error?->class)->toBe(PluginRuntimeError::class);
-        Expect::value($transformed->error?->message)
+        expect($calls->getArrayCopy())->toBe(['broken', 'observer:errored']);
+        expect($transformed->outcome)->toBe(Outcome::Errored);
+        expect($transformed->error?->class)->toBe(PluginRuntimeError::class);
+        expect($transformed->error?->message)
             ->toContain('caused an error during transformTerminalResult(): terminal policy failed');
     }
 
@@ -131,9 +132,9 @@ final readonly class TerminalResultTransformerTest
 
         $transformed = WorkerPluginRuntime::fromPlugins([$rogue])->terminalResult($definition, $result);
 
-        Expect::value($transformed->id)->toEqual($result->id);
-        Expect::value($transformed->outcome)->toBe(Outcome::Errored);
-        Expect::value($transformed->error?->message)
+        expect($transformed->id)->toEqual($result->id);
+        expect($transformed->outcome)->toBe(Outcome::Errored);
+        expect($transformed->error?->message)
             ->toContain('changed the test identity during transformTerminalResult()');
     }
 }

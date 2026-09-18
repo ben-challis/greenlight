@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Unit\Cli\Watch;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\StatChangeDetector;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Filesystem\VanishingDirectoryStream;
+
+use function Greenlight\expect;
 
 final readonly class StatChangeDetectorDirectoryRaceTest
 {
@@ -25,10 +26,10 @@ final readonly class StatChangeDetectorDirectoryRaceTest
 
         $changed = ErrorTrap::run(static fn() => $detector->poll(), $warning);
 
-        Expect::value($changed)
+        expect($changed)
             ->because('a directory that vanishes during a scan MUST behave as a missing directory')
             ->toBe([]);
-        Expect::value($warning)
+        expect($warning)
             ->because('a directory race MUST NOT leak an engine diagnostic')
             ->toBeNull();
     }

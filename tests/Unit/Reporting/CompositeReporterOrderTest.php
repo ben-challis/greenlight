@@ -8,10 +8,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
 use Greenlight\Event\Event;
 use Greenlight\Event\RunStarted;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\CompositeReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\Ticking;
+
+use function Greenlight\expect;
 
 final class CompositeReporterOrderTest
 {
@@ -56,7 +57,7 @@ final class CompositeReporterOrderTest
         $composite->tick(1.5);
         $composite->finish();
 
-        Expect::value($calls->getArrayCopy())
+        expect($calls->getArrayCopy())
             ->because('composite operations MUST use reporter construction order')
             ->toBe([
                 'first:event:' . RunStarted::class,

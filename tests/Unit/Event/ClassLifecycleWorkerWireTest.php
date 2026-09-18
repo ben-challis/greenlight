@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class ClassLifecycleWorkerWireTest
 {
@@ -27,10 +28,10 @@ final readonly class ClassLifecycleWorkerWireTest
 
         $event = $eventClass::fromWire($payload);
 
-        Expect::value($event->workerId)
+        expect($event->workerId)
             ->because('class lifecycle events MUST preserve their worker attribution')
             ->toBe('worker-2');
-        Expect::value($event->toWire())
+        expect($event->toWire())
             ->toBe($payload);
     }
 

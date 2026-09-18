@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\ResultParameterCollision;
 use Greenlight\Tests\Fixture\Doubles\VariadicReference;
 use Greenlight\Tests\Fixture\Doubles\Wide;
+
+use function Greenlight\expect;
 
 final readonly class ReferenceValueIsolationTest
 {
@@ -26,8 +27,8 @@ final readonly class ReferenceValueIsolationTest
         $spy->byReference($items);
         $items = ['later'];
 
-        Expect::value($this->doubles->callsTo($spy, 'byReference'))->toBe([[['first']], [['second']]]);
-        Expect::value($items)->toBe(['later']);
+        expect($this->doubles->callsTo($spy, 'byReference'))->toBe([[['first']], [['second']]]);
+        expect($items)->toBe(['later']);
     }
 
     #[Test]
@@ -45,9 +46,9 @@ final readonly class ReferenceValueIsolationTest
 
         $mock->mutate($first, second: $second);
 
-        Expect::value($this->doubles->callsTo($mock, 'mutate'))->toBe([['first', 'second']]);
-        Expect::value($first)->toBe('first changed');
-        Expect::value($second)->toBe('second changed');
+        expect($this->doubles->callsTo($mock, 'mutate'))->toBe([['first', 'second']]);
+        expect($first)->toBe('first changed');
+        expect($second)->toBe('second changed');
     }
 
     #[Test]
@@ -59,8 +60,8 @@ final readonly class ReferenceValueIsolationTest
         $spy->byReference($items);
         $items = [];
 
-        Expect::value($this->doubles->callsTo($spy, 'byReference'))->toBe([[[$object]]]);
-        Expect::value($items)->toBe([]);
+        expect($this->doubles->callsTo($spy, 'byReference'))->toBe([[[$object]]]);
+        expect($items)->toBe([]);
     }
 
     #[Test]
@@ -72,9 +73,9 @@ final readonly class ReferenceValueIsolationTest
         $first = 'first';
         $second = 'second';
 
-        Expect::value($mock->result($first, $second))->toBe(42);
-        Expect::value($first)->toBe('first');
-        Expect::value($second)->toBe('second');
+        expect($mock->result($first, $second))->toBe(42);
+        expect($first)->toBe('first');
+        expect($second)->toBe('second');
     }
 
     #[Test]
@@ -87,7 +88,7 @@ final readonly class ReferenceValueIsolationTest
         $result = &$mock->reference($input);
         $result = 'changed result';
 
-        Expect::value($input)->toBe('input');
-        Expect::value($result)->toBe('changed result');
+        expect($input)->toBe('input');
+        expect($result)->toBe('changed result');
     }
 }

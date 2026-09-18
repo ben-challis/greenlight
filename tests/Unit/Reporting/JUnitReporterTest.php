@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\RunFinished;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
@@ -16,6 +15,8 @@ use Greenlight\Result\SourceLocation;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\SimpleXml;
+
+use function Greenlight\expect;
 
 final class JUnitReporterTest
 {
@@ -54,7 +55,7 @@ final class JUnitReporterTest
             </testsuites>
             TXT;
 
-        Expect::value($output->buffer())->because('canned stream renders the golden XML')->toBe($expected . "\n");
+        expect($output->buffer())->because('canned stream renders the golden XML')->toBe($expected . "\n");
     }
 
     #[Test]
@@ -65,18 +66,18 @@ final class JUnitReporterTest
 
         $document = \simplexml_load_string($output->buffer());
 
-        Expect::value($document)->because('XML parses and counts match the stream')->toBeInstanceOf(\SimpleXMLElement::class);
+        expect($document)->because('XML parses and counts match the stream')->toBeInstanceOf(\SimpleXMLElement::class);
 
-        Expect::value((string) $document['tests'])->because('XML parses and counts match the stream')->toBe('6');
-        Expect::value((string) $document['failures'])->toBe('1');
-        Expect::value((string) $document['errors'])->toBe('1');
-        Expect::value((string) $document['skipped'])->toBe('1');
-        Expect::value(SimpleXml::xpath($document, '//testcase'))->toHaveCount(6);
-        Expect::value(SimpleXml::xpath($document, '//testsuite'))->toHaveCount(2);
-        Expect::value(SimpleXml::xpath($document, '//failure'))->toHaveCount(1);
-        Expect::value(SimpleXml::xpath($document, '//error'))->toHaveCount(1);
-        Expect::value(SimpleXml::xpath($document, '//skipped'))->toHaveCount(1);
-        Expect::value(SimpleXml::xpath($document, '//flakyFailure'))->toHaveCount(1);
+        expect((string) $document['tests'])->because('XML parses and counts match the stream')->toBe('6');
+        expect((string) $document['failures'])->toBe('1');
+        expect((string) $document['errors'])->toBe('1');
+        expect((string) $document['skipped'])->toBe('1');
+        expect(SimpleXml::xpath($document, '//testcase'))->toHaveCount(6);
+        expect(SimpleXml::xpath($document, '//testsuite'))->toHaveCount(2);
+        expect(SimpleXml::xpath($document, '//failure'))->toHaveCount(1);
+        expect(SimpleXml::xpath($document, '//error'))->toHaveCount(1);
+        expect(SimpleXml::xpath($document, '//skipped'))->toHaveCount(1);
+        expect(SimpleXml::xpath($document, '//flakyFailure'))->toHaveCount(1);
     }
 
     #[Test]
@@ -99,28 +100,28 @@ final class JUnitReporterTest
         $reporter->finish();
         $document = \simplexml_load_string($output->buffer());
 
-        Expect::value($document)
+        expect($document)
             ->because('multiple failure details produce valid JUnit XML')
             ->toBeInstanceOf(\SimpleXMLElement::class);
 
         $failures = SimpleXml::xpath($document, '//failure');
 
-        Expect::value((string) $document['failures'])
+        expect((string) $document['failures'])
             ->because('one failed test contributes one suite failure')
             ->toBe('1');
-        Expect::value($failures)
+        expect($failures)
             ->because('each failure detail remains visible to JUnit consumers')
             ->toHaveCount(2);
 
-        Expect::value((string) $failures[0]['message'])
+        expect((string) $failures[0]['message'])
             ->because('failure details retain their encounter order')
             ->toBe('first failure');
-        Expect::value((string) $failures[1]['message'])
+        expect((string) $failures[1]['message'])
             ->toBe('second failure');
-        Expect::value((string) $failures[0])
+        expect((string) $failures[0])
             ->because('each failure element contains its primary diagnostic')
             ->toBe('first failure');
-        Expect::value((string) $failures[1])
+        expect((string) $failures[1])
             ->toBe('second failure');
     }
 
@@ -139,13 +140,13 @@ final class JUnitReporterTest
         $reporter->finish();
         $document = \simplexml_load_string($output->buffer());
 
-        Expect::value($document)
+        expect($document)
             ->because('the source-file attribute MUST preserve valid JUnit XML')
             ->toBeInstanceOf(\SimpleXMLElement::class);
 
         $case = SimpleXml::xpath($document, '/testsuites/testsuite/testcase')[0];
 
-        Expect::value((string) $case['file'])
+        expect((string) $case['file'])
             ->because('a loadable test method MUST identify its source file')
             ->toBe(__FILE__);
     }
@@ -171,17 +172,17 @@ final class JUnitReporterTest
         $reporter->finish();
         $document = \simplexml_load_string($output->buffer());
 
-        Expect::value($document)
+        expect($document)
             ->because('unavailable source metadata MUST preserve valid JUnit XML')
             ->toBeInstanceOf(\SimpleXMLElement::class);
 
         $cases = SimpleXml::xpath($document, '/testsuites/testsuite/testcase');
 
-        Expect::value(SimpleXml::attributes($cases[0]))
+        expect(SimpleXml::attributes($cases[0]))
             ->because('an unavailable test class MUST omit the optional source file')
             ->not()
             ->toHaveKey('file');
-        Expect::value(SimpleXml::attributes($cases[1]))
+        expect(SimpleXml::attributes($cases[1]))
             ->because('an unavailable test method MUST omit the optional source file')
             ->not()
             ->toHaveKey('file');
@@ -202,11 +203,11 @@ final class JUnitReporterTest
         $reporter->finish();
         $document = \simplexml_load_string($output->buffer());
 
-        Expect::value($document)
+        expect($document)
             ->because('JUnit output without RunFinished MUST remain valid')
             ->toBeInstanceOf(\SimpleXMLElement::class);
 
-        Expect::value((string) $document['time'])
+        expect((string) $document['time'])
             ->because('test durations provide the total when RunFinished is absent')
             ->toBe('0.527000');
     }
@@ -232,11 +233,11 @@ final class JUnitReporterTest
         $reporter->finish();
         $document = \simplexml_load_string($output->buffer());
 
-        Expect::value($document)
+        expect($document)
             ->because('JUnit output with an explicit zero run duration MUST remain valid')
             ->toBeInstanceOf(\SimpleXMLElement::class);
 
-        Expect::value((string) $document['time'])
+        expect((string) $document['time'])
             ->because('an explicit zero run duration MUST override the test duration total')
             ->toBe('0.000000');
     }
@@ -265,20 +266,20 @@ final class JUnitReporterTest
         $reporter->finish();
         $document = \simplexml_load_string($output->buffer());
 
-        Expect::value($document)
+        expect($document)
             ->because('JUnit output MUST remain valid XML when diagnostics contain forbidden characters')
             ->toBeInstanceOf(\SimpleXMLElement::class);
 
         $case = SimpleXml::xpath($document, '/testsuites/testsuite/testcase')[0];
         $failure = SimpleXml::xpath($case, 'failure')[0];
 
-        Expect::value((string) $case['name'])
+        expect((string) $case['name'])
             ->because('invalid text in test names is replaced')
             ->toBe("fails[case\u{FFFD}\u{FFFD}]");
-        Expect::value((string) $failure['message'])
+        expect((string) $failure['message'])
             ->because('invalid text in diagnostic attributes is replaced')
             ->toBe("message\u{FFFD}\u{FFFD}");
-        Expect::value((string) $failure)
+        expect((string) $failure)
             ->because('invalid text in diagnostic content is replaced')
             ->toBe(
                 "message\u{FFFD}\u{FFFD}\n"

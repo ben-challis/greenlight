@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\PlanningBoundaries;
+
+use function Greenlight\expect;
 
 final readonly class FinalMethodDoubleTest
 {
@@ -18,7 +19,7 @@ final readonly class FinalMethodDoubleTest
     {
         $double = $this->doubles->stub(PlanningBoundaries::class);
 
-        Expect::calling(static function () use ($double): void {
+        expect()->calling(static function () use ($double): void {
             $double->finalMethod();
         })
             ->because('a class double MUST keep its original final methods')

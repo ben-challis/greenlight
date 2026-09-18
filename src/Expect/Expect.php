@@ -9,6 +9,9 @@ namespace Greenlight\Expect;
  *
  * The worker loads the configured expectation extensions before test execution.
  * Each expectation chain uses a snapshot of those extensions.
+ * The runner also loads `Greenlight\expect($value)` for value expectations.
+ * Use `Greenlight\expect()->calling($call)` to select a call explicitly.
+ * Import the function for short expectation calls.
  */
 final class Expect
 {

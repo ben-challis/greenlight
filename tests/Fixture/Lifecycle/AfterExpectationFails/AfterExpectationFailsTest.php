@@ -6,8 +6,10 @@ namespace Greenlight\Tests\Fixture\Lifecycle\AfterExpectationFails;
 
 use Greenlight\Attribute\After;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
 use Greenlight\Test\SkipTest;
+
+use function Greenlight\expect;
 
 final class AfterExpectationFailsTest
 {
@@ -23,12 +25,12 @@ final class AfterExpectationFailsTest
     #[Test]
     public function failsBeforeTeardown(): void
     {
-        Expect::value('body actual')->toBe('body expected');
+        expect('body actual')->toBe('body expected');
     }
 
     #[After]
     public function verifies(): void
     {
-        Expect::value('actual')->toBe('expected');
+        expect('actual')->toBe('expected');
     }
 }

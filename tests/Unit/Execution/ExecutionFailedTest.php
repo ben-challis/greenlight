@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Execution;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ExecutionFailed;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class ExecutionFailedTest
 {
@@ -17,7 +18,7 @@ final readonly class ExecutionFailedTest
         $protocol = ProtocolError::malformedFrame('probe');
         $execution = ExecutionFailed::processPool($protocol);
 
-        Expect::value($execution->getMessage())->toBe($protocol->getMessage());
-        Expect::value($execution->getPrevious())->toBe($protocol);
+        expect($execution->getMessage())->toBe($protocol->getMessage());
+        expect($execution->getPrevious())->toBe($protocol);
     }
 }

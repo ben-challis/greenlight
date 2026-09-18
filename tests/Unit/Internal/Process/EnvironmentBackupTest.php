@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Internal\Process;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Process\EnvironmentBackup;
+
+use function Greenlight\expect;
 
 final readonly class EnvironmentBackupTest
 {
@@ -23,18 +24,18 @@ final readonly class EnvironmentBackupTest
         try {
             $backup->set('changed');
 
-            Expect::value(\getenv($name))->toBe('changed');
-            Expect::value($_ENV[$name])->toBe('changed');
-            Expect::value($_SERVER[$name])->toBe('changed');
+            expect(\getenv($name))->toBe('changed');
+            expect($_ENV[$name])->toBe('changed');
+            expect($_SERVER[$name])->toBe('changed');
 
             $backup->restore();
 
-            Expect::value(\getenv($name))->toBe('process-original');
-            Expect::value(\array_key_exists($name, $_ENV))->toBeFalse();
-            Expect::value(\array_key_exists($name, $_SERVER))
+            expect(\getenv($name))->toBe('process-original');
+            expect(\array_key_exists($name, $_ENV))->toBeFalse();
+            expect(\array_key_exists($name, $_SERVER))
                 ->because('restore MUST preserve an explicit null server value')
                 ->toBeTrue();
-            Expect::value($_SERVER[$name])->toBeNull();
+            expect($_SERVER[$name])->toBeNull();
         } finally {
             \putenv($name);
             unset($_ENV[$name], $_SERVER[$name]);
@@ -53,17 +54,17 @@ final readonly class EnvironmentBackupTest
         try {
             $backup->unset();
 
-            Expect::value(\getenv($name))->toBeFalse();
-            Expect::value(\array_key_exists($name, $_ENV))->toBeFalse();
-            Expect::value(\array_key_exists($name, $_SERVER))->toBeFalse();
+            expect(\getenv($name))->toBeFalse();
+            expect(\array_key_exists($name, $_ENV))->toBeFalse();
+            expect(\array_key_exists($name, $_SERVER))->toBeFalse();
 
             $backup->restore();
 
-            Expect::value(\getenv($name))->toBeFalse();
-            Expect::value(\array_key_exists($name, $_ENV))->toBeTrue();
-            Expect::value($_ENV[$name])->toBeNull();
-            Expect::value(\array_key_exists($name, $_SERVER))->toBeTrue();
-            Expect::value($_SERVER[$name])->toBeFalse();
+            expect(\getenv($name))->toBeFalse();
+            expect(\array_key_exists($name, $_ENV))->toBeTrue();
+            expect($_ENV[$name])->toBeNull();
+            expect(\array_key_exists($name, $_SERVER))->toBeTrue();
+            expect($_SERVER[$name])->toBeFalse();
         } finally {
             \putenv($name);
             unset($_ENV[$name], $_SERVER[$name]);
@@ -74,7 +75,7 @@ final readonly class EnvironmentBackupTest
     #[DataSet('invalidNames')]
     public function captureRejectsAnInvalidNameBeforeEnvironmentAccess(string $name): void
     {
-        Expect::calling(static fn() => EnvironmentBackup::capture($name))
+        expect()->calling(static fn() => EnvironmentBackup::capture($name))
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Environment variable names cannot be empty or contain "=" or a null byte.',
@@ -88,15 +89,15 @@ final readonly class EnvironmentBackupTest
         $backup = EnvironmentBackup::capture($name);
 
         try {
-            Expect::calling(static fn() => $backup->set("before\0after"))
+            expect()->calling(static fn() => $backup->set("before\0after"))
                 ->toThrow(
                     \InvalidArgumentException::class,
                     message: 'Environment variable values cannot contain a null byte.',
                 );
 
-            Expect::value(\getenv($name))->toBeFalse();
-            Expect::value(\array_key_exists($name, $_ENV))->toBeFalse();
-            Expect::value(\array_key_exists($name, $_SERVER))->toBeFalse();
+            expect(\getenv($name))->toBeFalse();
+            expect(\array_key_exists($name, $_ENV))->toBeFalse();
+            expect(\array_key_exists($name, $_SERVER))->toBeFalse();
         } finally {
             $backup->restore();
         }

@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Plugin;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Plugin\AttributeRetryDecider;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\RetryPolicy;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class AttributeRetryDeciderTest
 {
@@ -38,7 +39,7 @@ final class AttributeRetryDeciderTest
         );
         $policy = new RetryPolicy($times, $onlyOn);
 
-        Expect::value($plugin->shouldRetry(
+        expect($plugin->shouldRetry(
             $policy,
             $result,
             $attempt,

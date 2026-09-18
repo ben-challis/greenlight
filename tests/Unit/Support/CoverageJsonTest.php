@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Support;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\CoverageJson;
+
+use function Greenlight\expect;
 
 final readonly class CoverageJsonTest
 {
@@ -26,7 +27,7 @@ final readonly class CoverageJsonTest
 
         CoverageJson::write($path, $map);
 
-        Expect::value(CoverageJson::read($path)->toWire())
+        expect(CoverageJson::read($path)->toWire())
             ->because('the shared coverage JSON fixture MUST preserve the coverage map')
             ->toBe($map->toWire());
     }
@@ -36,7 +37,7 @@ final readonly class CoverageJsonTest
     {
         $path = $this->workspace->path() . '/missing/coverage.json';
 
-        Expect::calling(static fn(): CoverageMap => CoverageJson::read($path))
+        expect()->calling(static fn(): CoverageMap => CoverageJson::read($path))
             ->because('a coverage JSON read failure MUST identify its source')
             ->toThrow(
                 ExpectationFailed::class,
@@ -51,7 +52,7 @@ final readonly class CoverageJsonTest
     {
         $path = $this->workspace->path() . '/missing/coverage.json';
 
-        Expect::calling(static function () use ($path): void {
+        expect()->calling(static function () use ($path): void {
             CoverageJson::write($path, CoverageMap::empty());
         })
             ->because('a coverage fixture write failure MUST identify its target')

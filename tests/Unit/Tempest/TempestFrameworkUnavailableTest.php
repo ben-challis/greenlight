@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Tempest;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\SourceOnlyPhp;
+
+use function Greenlight\expect;
 
 final readonly class TempestFrameworkUnavailableTest
 {
@@ -34,10 +35,10 @@ final readonly class TempestFrameworkUnavailableTest
             PHP,
         ));
 
-        Expect::value($result->exitCode)
+        expect($result->exitCode)
             ->because('the public framework probe MUST reject an installation without Tempest')
             ->toBe(0);
-        Expect::value($result->stdout)
+        expect($result->stdout)
             ->because('the error MUST explain how to install the required Tempest framework')
             ->toBe(
                 'The Tempest framework is not available. TempestPlugin requires '

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
 use Greenlight\Tests\Support\ProcessResult;
+
+use function Greenlight\expect;
 
 final class DataRowRunTest
 {
@@ -17,8 +18,8 @@ final class DataRowRunTest
     public function inlineRowsRunAndFilterByLabel(): void
     {
         $result = $this->run('--workers=2');
-        Expect::value($result->exitCode)->because('all inline data rows MUST run')->toBe(0);
-        Expect::value($this->sortedFinishedTestIds($result))->because('all inline data rows MUST run')->toBe([
+        expect($result->exitCode)->because('all inline data rows MUST run')->toBe(0);
+        expect($this->sortedFinishedTestIds($result))->because('all inline data rows MUST run')->toBe([
             'Greenlight\Tests\Fixture\DataRows\InlineRowsTest::acceptsWord[from attribute]',
             'Greenlight\Tests\Fixture\DataRows\InlineRowsTest::acceptsWord[from provider]',
             'Greenlight\Tests\Fixture\DataRows\InlineRowsTest::addsUp[#1]',
@@ -26,8 +27,8 @@ final class DataRowRunTest
         ]);
 
         $result = $this->run('--filter=*[from attribute]');
-        Expect::value($result->exitCode)->because('the label filter MUST select only its row')->toBe(0);
-        Expect::value($this->sortedFinishedTestIds($result))->because('the label filter MUST select only its row')->toBe([
+        expect($result->exitCode)->because('the label filter MUST select only its row')->toBe(0);
+        expect($this->sortedFinishedTestIds($result))->because('the label filter MUST select only its row')->toBe([
             'Greenlight\Tests\Fixture\DataRows\InlineRowsTest::acceptsWord[from attribute]',
         ]);
     }

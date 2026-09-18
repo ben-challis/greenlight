@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerHandle;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final readonly class WorkerHandlePipeLifecycleTest
 {
@@ -28,14 +29,14 @@ final readonly class WorkerHandlePipeLifecycleTest
         $handle->drainPipes();
         $handle->drainPipes();
 
-        Expect::value($handle->diagnostics)
+        expect($handle->diagnostics)
             ->because('repeated pipe draining MUST retain each diagnostic byte once')
             ->toBe("standard error\n");
 
         \fclose($stderr);
         $handle->drainPipes();
 
-        Expect::value($handle->diagnostics)
+        expect($handle->diagnostics)
             ->because('pipe draining MUST skip closed output pipes')
             ->toBe("standard error\n");
     }

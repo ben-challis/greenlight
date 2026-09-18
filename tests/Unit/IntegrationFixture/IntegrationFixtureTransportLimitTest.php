@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\IntegrationFixture;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\FixtureResource;
 use Greenlight\IntegrationFixture\IntegrationFixtureContext;
 use Greenlight\IntegrationFixture\IntegrationFixtureDefinition;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\IntegrationFixture\IntegrationFixtureManager;
+
+use function Greenlight\expect;
 
 final readonly class IntegrationFixtureTransportLimitTest
 {
@@ -35,7 +36,7 @@ final readonly class IntegrationFixtureTransportLimitTest
             );
         }
 
-        Expect::calling(static fn() => IntegrationFixtureManager::provision(
+        expect()->calling(static fn() => IntegrationFixtureManager::provision(
             $definitions,
             'aggregate-limit',
             1,
@@ -49,7 +50,7 @@ final readonly class IntegrationFixtureTransportLimitTest
                     . 'Integration resources for channel 1 exceed the 1 MiB transport limit.',
             );
 
-        Expect::value($trace)
+        expect($trace)
             ->because('catalog rejection must release every acquired fixture in reverse order')
             ->toBe(['database:start', 'cache:start', 'cache:stop', 'database:stop']);
     }
@@ -72,7 +73,7 @@ final readonly class IntegrationFixtureTransportLimitTest
             },
         );
 
-        Expect::calling(static fn() => IntegrationFixtureManager::provision(
+        expect()->calling(static fn() => IntegrationFixtureManager::provision(
             [$definition],
             'later-channel-limit',
             2,
@@ -86,7 +87,7 @@ final readonly class IntegrationFixtureTransportLimitTest
                     . 'Integration resources for channel 2 exceed the 1 MiB transport limit.',
             );
 
-        Expect::value($trace)
+        expect($trace)
             ->because('a later channel failure must still release the acquired fixture')
             ->toBe(['start', 'stop']);
     }

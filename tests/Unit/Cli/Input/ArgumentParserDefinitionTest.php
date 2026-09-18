@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Input\ArgumentParser;
 use Greenlight\Cli\Input\OptionSpec;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class ArgumentParserDefinitionTest
 {
@@ -19,7 +20,7 @@ final readonly class ArgumentParserDefinitionTest
     #[DataSet('conflictingDefinitions')]
     public function conflictingOptionDefinitionsAreRejected(array $specs, string $message): void
     {
-        Expect::calling(static fn(): ArgumentParser => new ArgumentParser($specs))
+        expect()->calling(static fn(): ArgumentParser => new ArgumentParser($specs))
             ->because('option maps MUST NOT silently replace conflicting definitions')
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }

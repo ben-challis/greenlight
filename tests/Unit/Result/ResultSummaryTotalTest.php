@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ResultSummary;
+
+use function Greenlight\expect;
 
 final readonly class ResultSummaryTotalTest
 {
@@ -15,7 +16,7 @@ final readonly class ResultSummaryTotalTest
     #[DataSet('outcomeCounts')]
     public function totalIncludesEveryOutcomeCount(ResultSummary $summary, int $expected): void
     {
-        Expect::value($summary->total())
+        expect($summary->total())
             ->because('the run total MUST include every outcome count')
             ->toBe($expected);
     }

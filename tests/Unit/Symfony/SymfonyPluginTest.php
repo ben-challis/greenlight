@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Symfony;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\Service;
@@ -23,26 +22,28 @@ use Greenlight\Tests\Support\PluginLifecycle;
 use Greenlight\Tests\Support\ServiceResolverProbe;
 use Symfony\Component\HttpKernel\KernelInterface;
 
+use function Greenlight\expect;
+
 final class SymfonyPluginTest
 {
     #[Test]
     public function exposesTheConfiguredSource(): void
     {
-        Expect::value(new SymfonyPlugin(FixtureKernel::class)->source())->toBeNull();
-        Expect::value(new SymfonyPlugin(FixtureKernel::class, source: 'application')->source())->toBe('application');
+        expect(new SymfonyPlugin(FixtureKernel::class)->source())->toBeNull();
+        expect(new SymfonyPlugin(FixtureKernel::class, source: 'application')->source())->toBe('application');
     }
 
     #[Test]
     public function rejectsAnEmptySource(): void
     {
-        Expect::calling(static fn(): SymfonyPlugin => new SymfonyPlugin(FixtureKernel::class, source: ''))
+        expect()->calling(static fn(): SymfonyPlugin => new SymfonyPlugin(FixtureKernel::class, source: ''))
             ->toThrow(\InvalidArgumentException::class, message: 'Service source must not be empty.');
     }
 
     #[Test]
     public function aServiceWithoutAnIdUsesTheParameterType(): void
     {
-        Expect::value($this->plugin()->resolve(Greeter::class, [new Service()]))->toBeInstanceOf(Greeter::class);
+        expect($this->plugin()->resolve(Greeter::class, [new Service()]))->toBeInstanceOf(Greeter::class);
     }
 
     #[Test]
@@ -50,7 +51,7 @@ final class SymfonyPluginTest
     {
         $plugin = $this->plugin();
 
-        Expect::calling(static fn(): ?object => $plugin->resolve(\ArrayObject::class, [new Service(\ArrayObject::class)]))
+        expect()->calling(static fn(): ?object => $plugin->resolve(\ArrayObject::class, [new Service(\ArrayObject::class)]))
             ->toThrow(SymfonyBridgeError::class, matching: '/no service "ArrayObject"/');
     }
 
@@ -59,7 +60,7 @@ final class SymfonyPluginTest
     {
         $plugin = $this->plugin();
 
-        Expect::calling(static fn(): ?object => $plugin->resolve(\ArrayObject::class, [new Service()]))
+        expect()->calling(static fn(): ?object => $plugin->resolve(\ArrayObject::class, [new Service()]))
             ->toThrow(SymfonyBridgeError::class, matching: '/no service "ArrayObject"/');
     }
 
@@ -68,11 +69,11 @@ final class SymfonyPluginTest
     {
         $greeter = $this->plugin()->resolve(Greeter::class, []);
 
-        Expect::value($greeter)
+        expect($greeter)
             ->because('SymfonyPlugin::resolve() MUST return Greeter.')
             ->toBeInstanceOf(Greeter::class);
 
-        Expect::value($greeter->greet('Ada'))->because('resolves container services by type')->toBe('Hello, Ada!');
+        expect($greeter->greet('Ada'))->because('resolves container services by type')->toBe('Hello, Ada!');
     }
 
     #[Test]
@@ -80,7 +81,7 @@ final class SymfonyPluginTest
     {
         // VisitCounter is private and has no reference. Only the test container
         // keeps it available.
-        Expect::value($this->plugin()->resolve(VisitCounter::class, []))->because('resolves private services through the test container')
+        expect($this->plugin()->resolve(VisitCounter::class, []))->because('resolves private services through the test container')
             ->toBeInstanceOf(VisitCounter::class);
     }
 
@@ -89,19 +90,19 @@ final class SymfonyPluginTest
     {
         $named = $this->plugin()->resolve(NamedGreeter::class, [new Service('fixture.named_greeter')]);
 
-        Expect::value($named)->because('the service attribute resolves by explicit ID')->toBeInstanceOf(NamedGreeter::class);
+        expect($named)->because('the service attribute resolves by explicit ID')->toBeInstanceOf(NamedGreeter::class);
     }
 
     #[Test]
     public function aTypeWithoutTheAttributeMissesIdOnlyServices(): void
     {
-        Expect::value($this->plugin()->resolve(NamedGreeter::class, []))->because('a type without the attribute misses ID only services')->toBeNull();
+        expect($this->plugin()->resolve(NamedGreeter::class, []))->because('a type without the attribute misses ID only services')->toBeNull();
     }
 
     #[Test]
     public function aTypeTheContainerDoesNotKnowReturnsNull(): void
     {
-        Expect::value($this->plugin()->resolve(\ArrayObject::class, []))->because('a type the container does not know returns null')->toBeNull();
+        expect($this->plugin()->resolve(\ArrayObject::class, []))->because('a type the container does not know returns null')->toBeNull();
     }
 
     #[Test]
@@ -111,10 +112,10 @@ final class SymfonyPluginTest
         $later = new ServiceResolverProbe($answer);
         $scopes = new HarnessScopes([], [$this->plugin(), $later]);
 
-        Expect::value($scopes->resolve(\ArrayObject::class, 'test'))
+        expect($scopes->resolve(\ArrayObject::class, 'test'))
             ->because('an unknown Symfony type MUST fall through to the next resolver')
             ->toBe($answer);
-        Expect::value($later->calls)->toBe(1);
+        expect($later->calls)->toBe(1);
     }
 
     #[Test]
@@ -123,14 +124,14 @@ final class SymfonyPluginTest
         $later = new ServiceResolverProbe(new Greeter());
         $scopes = new HarnessScopes([], [$this->plugin(), $later]);
 
-        Expect::calling(static fn(): object => $scopes->resolve(
+        expect()->calling(static fn(): object => $scopes->resolve(
             Greeter::class,
             'test',
             [new Service('fixture.missing')],
         ))
             ->because('an explicit Symfony service failure MUST stop the resolver chain')
             ->toThrow(ServiceResolutionFailed::class, matching: '/no service "fixture\.missing"/');
-        Expect::value($later->calls)->toBe(0);
+        expect($later->calls)->toBe(0);
     }
 
     #[Test]
@@ -138,7 +139,7 @@ final class SymfonyPluginTest
     {
         $plugin = $this->plugin();
 
-        Expect::calling(static function () use ($plugin): void {
+        expect()->calling(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, [new Service('fixture.missing')]);
         })->because('an unknown explicit ID causes an error')->toThrow(SymfonyBridgeError::class, matching: '/no service "fixture\.missing".*Check the service ID/s');
     }
@@ -148,7 +149,7 @@ final class SymfonyPluginTest
     {
         $plugin = $this->plugin();
 
-        Expect::calling(static function () use ($plugin): void {
+        expect()->calling(static function () use ($plugin): void {
             $plugin->resolve(VisitCounter::class, [new Service('fixture.named_greeter')]);
         })->because('an explicit ID of the wrong type causes an error')->toThrow(SymfonyBridgeError::class, matching: '/has type .* The parameter requires type/');
     }
@@ -161,7 +162,7 @@ final class SymfonyPluginTest
         // an error.
         $plugin = new SymfonyPlugin(FixtureKernel::class, env: 'prod', debug: true);
 
-        Expect::calling(static function () use ($plugin): void {
+        expect()->calling(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, []);
         })->because('a kernel without the test container fails at boot')->toThrow(SymfonyBridgeError::class, matching: '/framework\.test/');
     }
@@ -171,7 +172,7 @@ final class SymfonyPluginTest
     {
         $plugin = new SymfonyPlugin(static fn(): KernelInterface => BareKernel::withTestContainer());
 
-        Expect::calling(static function () use ($plugin): void {
+        expect()->calling(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, []);
         })->because('a kernel without services resetter fails at boot')->toThrow(SymfonyBridgeError::class, matching: '/services_resetter.*resetBetweenTests: false/s');
     }
@@ -184,7 +185,7 @@ final class SymfonyPluginTest
             resetBetweenTests: false,
         );
 
-        Expect::value($plugin->resolve(Greeter::class, []))->because('waiving resets accepts a kernel without the resetter')->toBeNull();
+        expect($plugin->resolve(Greeter::class, []))->because('waiving resets accepts a kernel without the resetter')->toBeNull();
     }
 
     #[Test]
@@ -193,14 +194,14 @@ final class SymfonyPluginTest
         $plugin = new SymfonyPlugin(FixtureKernel::class, env: 'test', debug: true, resetBetweenTests: false);
         $counter = $plugin->resolve(VisitCounter::class, []);
 
-        Expect::value($counter)
+        expect($counter)
             ->because('SymfonyPlugin::resolve() MUST return VisitCounter.')
             ->toBeInstanceOf(VisitCounter::class);
 
         $counter->record();
         $plugin->afterTest($this->context(), $this->result());
 
-        Expect::value($counter->count())->because('waived resets leave state in place')->toBe(1);
+        expect($counter->count())->because('waived resets leave state in place')->toBe(1);
     }
 
     #[Test]
@@ -212,15 +213,15 @@ final class SymfonyPluginTest
 
         $first = ($definition->factory)();
 
-        Expect::value($first)
+        expect($first)
             ->because('The Symfony harness factory MUST return KernelInterface.')
             ->toBeInstanceOf(KernelInterface::class);
 
-        Expect::value($definitions)->because('the kernel is a per run harness service and boots once')->toHaveCount(1);
-        Expect::value($definition->type)->toBe(KernelInterface::class);
-        Expect::value($definition->scope)->toBe(Scope::PerWorker);
-        Expect::value($first->getEnvironment())->toBe('test');
-        Expect::value(($definition->factory)())->toBe($first);
+        expect($definitions)->because('the kernel is a per run harness service and boots once')->toHaveCount(1);
+        expect($definition->type)->toBe(KernelInterface::class);
+        expect($definition->scope)->toBe(Scope::PerWorker);
+        expect($first->getEnvironment())->toBe('test');
+        expect(($definition->factory)())->toBe($first);
     }
 
     #[Test]
@@ -228,11 +229,11 @@ final class SymfonyPluginTest
     {
         $plugin = new SymfonyPlugin(static fn(): KernelInterface => new FixtureKernel('test', true));
 
-        Expect::value($plugin->resolve(Greeter::class, []))->because('a closure factory boots the kernel it produces')->toBeInstanceOf(Greeter::class);
+        expect($plugin->resolve(Greeter::class, []))->because('a closure factory boots the kernel it produces')->toBeInstanceOf(Greeter::class);
 
         $invalid = new SymfonyPlugin(static fn(): object => new \stdClass()); // @phpstan-ignore argument.type (This test deliberately supplies an invalid factory result.)
 
-        Expect::calling(static fn(): object => ($invalid->services()[0]->factory)())->toThrow(
+        expect()->calling(static fn(): object => ($invalid->services()[0]->factory)())->toThrow(
             SymfonyBridgeError::class,
             matching: '/returned "stdClass".*KernelInterface/',
         );
@@ -243,7 +244,7 @@ final class SymfonyPluginTest
     {
         $plugin = new SymfonyPlugin(\ArrayObject::class); // @phpstan-ignore argument.type (This test deliberately supplies an invalid kernel class.)
 
-        Expect::calling(static function () use ($plugin): void {
+        expect()->calling(static function () use ($plugin): void {
             $plugin->resolve(Greeter::class, []);
         })->because('a class that is not a kernel causes an error')->toThrow(SymfonyBridgeError::class, matching: '/does not implement/');
     }
@@ -254,7 +255,7 @@ final class SymfonyPluginTest
         $plugin = $this->plugin();
         $counter = $plugin->resolve(VisitCounter::class, []);
 
-        Expect::value($counter)
+        expect($counter)
             ->because('SymfonyPlugin::resolve() MUST return VisitCounter.')
             ->toBeInstanceOf(VisitCounter::class);
 
@@ -263,8 +264,8 @@ final class SymfonyPluginTest
         $result = $this->result();
         $returned = $plugin->afterTest($this->context(), $result);
 
-        Expect::value($counter->count())->because('after test resets stateful container services')->toBe(0);
-        Expect::value($returned)->toBe($result);
+        expect($counter->count())->because('after test resets stateful container services')->toBe(0);
+        expect($returned)->toBe($result);
     }
 
     #[Test]
@@ -280,8 +281,8 @@ final class SymfonyPluginTest
         $result = $this->result();
         $returned = $plugin->afterTest($this->context(), $result);
 
-        Expect::value($booted)->because('after test without a booted kernel is a no-op')->toBe(false);
-        Expect::value($returned)->toBe($result);
+        expect($booted)->because('after test without a booted kernel is a no-op')->toBe(false);
+        expect($returned)->toBe($result);
     }
 
     private function plugin(): SymfonyPlugin

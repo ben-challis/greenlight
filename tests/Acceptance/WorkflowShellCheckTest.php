@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\ProcessResult;
+
+use function Greenlight\expect;
 
 final readonly class WorkflowShellCheckTest
 {
@@ -36,8 +37,8 @@ final readonly class WorkflowShellCheckTest
 
         $result = $this->run($root);
 
-        Expect::value($result->exitCode)->because('accepts an explicit Bash shell')->toBe(0);
-        Expect::value($result->stdout)->toBe('Workflow shell contracts passed.');
+        expect($result->exitCode)->because('accepts an explicit Bash shell')->toBe(0);
+        expect($result->stdout)->toBe('Workflow shell contracts passed.');
     }
 
     #[Test]
@@ -61,8 +62,8 @@ final readonly class WorkflowShellCheckTest
 
         $result = $this->run($root);
 
-        Expect::value($result->exitCode)->because('rejects an implicit shell')->toBe(1);
-        Expect::value($result->stderr)->toContain('workflow.yml:8: Multiline run step "Run checks" does not set `shell: bash`.')
+        expect($result->exitCode)->because('rejects an implicit shell')->toBe(1);
+        expect($result->stderr)->toContain('workflow.yml:8: Multiline run step "Run checks" does not set `shell: bash`.')
             ->toContain('Set `shell: bash` on each multiline `run` step.');
     }
 
@@ -88,8 +89,8 @@ final readonly class WorkflowShellCheckTest
 
         $result = $this->run($root);
 
-        Expect::value($result->exitCode)->because('rejects a folded block with an implicit shell')->toBe(1);
-        Expect::value($result->stderr)->toContain('Multiline run step "Run folded checks" does not set `shell: bash`.');
+        expect($result->exitCode)->because('rejects a folded block with an implicit shell')->toBe(1);
+        expect($result->stderr)->toContain('Multiline run step "Run folded checks" does not set `shell: bash`.');
     }
 
     private function workspace(string $name): string
