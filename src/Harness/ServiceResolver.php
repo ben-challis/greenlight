@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Harness;
 
 /**
- * Greenlight calls service resolvers in registration order. A null result asks
- * Greenlight to call the next resolver. An object must have the requested
- * type. A `ServiceResolutionFailed` exception stops resolution.
+ * Greenlight calls service resolvers with lower priorities first. Equal
+ * priorities use registration order. A terminal resolver runs after all other
+ * resolvers, regardless of priority.
+ *
+ * A null result asks Greenlight to call the next resolver. An object must have
+ * the requested type. A `ServiceResolutionFailed` exception stops resolution.
  *
  * Objects from a service resolver do not belong to a harness service scope.
  * Greenlight does not dispose them. The source of an object controls its
