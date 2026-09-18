@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Unit\IntegrationFixture;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\IntegrationFixtureContext;
 use Greenlight\IntegrationFixture\IntegrationFixtureDefinition;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\IntegrationFixture\IntegrationFixtureManager;
+
+use function Greenlight\expect;
 
 final readonly class IntegrationFixtureGraphValidationTest
 {
@@ -32,7 +33,7 @@ final readonly class IntegrationFixtureGraphValidationTest
             $definitions[] = new IntegrationFixtureDefinition($id, $provision, $dependencies);
         }
 
-        Expect::that(static fn() => IntegrationFixtureManager::provision(
+        expect()->calling(static fn() => IntegrationFixtureManager::provision(
             $definitions,
             'invalid-graph',
             1,
@@ -40,7 +41,7 @@ final readonly class IntegrationFixtureGraphValidationTest
             null,
         ))->toThrow(IntegrationFixtureError::class, message: $message);
 
-        Expect::that($trace)
+        expect($trace)
             ->because('the complete graph must be valid before any fixture acquires resources')
             ->toBe([]);
     }
