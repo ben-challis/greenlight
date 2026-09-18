@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class CustomRunPolicyTest
 {
@@ -68,10 +69,10 @@ final readonly class CustomRunPolicyTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('the configured run policy MUST reject an otherwise successful run')
             ->toBe(1);
-        Expect::that($result->output())
+        expect($result->output())
             ->toContain('1 test, 1 passed')
             ->toContain('Project policy rejected 1 passed test and 0 retried passes.');
     }

@@ -6,12 +6,13 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\Autoloaders;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class JUnitReporterAutoloadTest
 {
@@ -44,13 +45,13 @@ final readonly class JUnitReporterAutoloadTest
 
         $reporter->finish();
 
-        Expect::that($autoloadCalls)
+        expect($autoloadCalls)
             ->because('a failed source lookup MUST not rerun the autoloader for the same method')
             ->toBe(1);
-        Expect::that(\simplexml_load_string($output->buffer()))
+        expect(\simplexml_load_string($output->buffer()))
             ->because('an autoloader failure MUST preserve valid JUnit XML')
             ->toBeInstanceOf(\SimpleXMLElement::class);
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('an autoloader failure MUST omit the optional source file')
             ->not()
             ->toContain(' file=');

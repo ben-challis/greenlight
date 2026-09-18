@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class SeedOrderTest
 {
@@ -22,7 +23,7 @@ final readonly class SeedOrderTest
         $project = $this->writeProject();
         $first = $this->order($project, '--seed=3');
         $second = $this->order($project, '--seed=3');
-        Expect::that($first)->because('the same seed produces the same order across runs')->toBe($second);
+        expect($first)->because('the same seed produces the same order across runs')->toBe($second);
     }
 
     #[Test]
@@ -31,19 +32,19 @@ final readonly class SeedOrderTest
         $project = $this->writeProject();
         $plan = GreenlightCli::run($project->directory, ['run', '--dry-run', '--seed=0']);
 
-        Expect::that($plan->exitCode)
+        expect($plan->exitCode)
             ->because('the dry-run command MUST accept zero as an active seed')
             ->toBe(0);
-        Expect::that($plan->stdoutLines())
+        expect($plan->stdoutLines())
             ->because('the dry-run plan MUST identify zero as the active random-order seed')
             ->toContain('  order: random (seed 0)');
 
         $run = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--seed=0']);
 
-        Expect::that($run->exitCode)
+        expect($run->exitCode)
             ->because('the run with seed zero MUST complete')
             ->toBe(0);
-        Expect::that($run->stdout)
+        expect($run->stdout)
             ->because('the run header MUST announce seed zero')
             ->toContain('seed: 0');
     }
@@ -61,7 +62,7 @@ final readonly class SeedOrderTest
                 break;
             }
         }
-        Expect::that($reordered)->because('some seed reorders the classes away from declaration order')->toBeTrue();
+        expect($reordered)->because('some seed reorders the classes away from declaration order')->toBeTrue();
     }
 
     #[Test]
@@ -69,7 +70,7 @@ final readonly class SeedOrderTest
     {
         $project = $this->writeProject();
 
-        Expect::that($this->order($project))->because('without a seed the order matches declaration order')->toBe($this->declaredOrder());
+        expect($this->order($project))->because('without a seed the order matches declaration order')->toBe($this->declaredOrder());
     }
 
     #[Test]
@@ -79,17 +80,17 @@ final readonly class SeedOrderTest
         // Use standard output only. Extension messages on standard error can
         // contain "seed:" and invalidate the negative assertion.
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--seed=7']);
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('the run with seed 7 MUST complete')
             ->toBe(0);
-        Expect::that($result->stdout)
+        expect($result->stdout)
             ->because('the seeded run header MUST announce seed 7')
             ->toContain('seed: 7');
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('the run without a seed MUST complete')
             ->toBe(0);
-        Expect::that($result->stdout)
+        expect($result->stdout)
             ->because('the unseeded run header MUST omit the seed')
             ->not()
             ->toContain('seed:');

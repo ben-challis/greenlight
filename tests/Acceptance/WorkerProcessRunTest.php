@@ -6,13 +6,14 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
+
+use function Greenlight\expect;
 
 final readonly class WorkerProcessRunTest
 {
@@ -24,10 +25,10 @@ final readonly class WorkerProcessRunTest
         $project = AcceptanceProject::createWithTwoPassingTests($this->tempDirectory, 'parallel');
         $sequential = GreenlightCli::run($project->directory, ['run', '--workers=1']);
         $parallel = GreenlightCli::run($project->directory, ['run', '--workers=3']);
-        Expect::that($sequential->exitCode)->because('parallel results match sequential results')->toBe(0);
-        Expect::that($parallel->exitCode)->toBe(0);
-        Expect::that($this->summaryLine($sequential->output()))->toBe('2 tests, 2 passed, 0 expectations');
-        Expect::that($this->summaryLine($parallel->output()))->toBe('2 tests, 2 passed, 0 expectations');
+        expect($sequential->exitCode)->because('parallel results match sequential results')->toBe(0);
+        expect($parallel->exitCode)->toBe(0);
+        expect($this->summaryLine($sequential->output()))->toBe('2 tests, 2 passed, 0 expectations');
+        expect($this->summaryLine($parallel->output()))->toBe('2 tests, 2 passed, 0 expectations');
     }
 
     #[Test]
@@ -35,8 +36,8 @@ final readonly class WorkerProcessRunTest
     {
         $result = $this->runIn('PluginRunConfig', ['run', '--workers=2']);
 
-        Expect::that($result->exitCode)->because('configured plugins reach workers across the process boundary')->toBe(0);
-        Expect::that($this->summaryLine($result->output()))->toBe('2 tests, 1 passed, 1 skipped, 0 expectations');
+        expect($result->exitCode)->because('configured plugins reach workers across the process boundary')->toBe(0);
+        expect($this->summaryLine($result->output()))->toBe('2 tests, 1 passed, 1 skipped, 0 expectations');
     }
 
     /** @param list<string> $arguments */
@@ -46,10 +47,10 @@ final readonly class WorkerProcessRunTest
     {
         $result = $this->runIn('HarnessDisposalRun', $arguments);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('worker disposal MUST make each execution mode unsuccessful')
             ->toBe(1);
-        Expect::that($result->output())
+        expect($result->output())
             ->because('each execution mode MUST report the worker disposal failure')
             ->toContain('test broke first')
             ->toContain('Worker harness service disposal failed.')

@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerSpawnBudget;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class WorkerSpawnBudgetTest
 {
@@ -16,7 +17,7 @@ final readonly class WorkerSpawnBudgetTest
     {
         $budget = new WorkerSpawnBudget(plannedTests: 1, workerCount: 1);
 
-        Expect::that($budget->nextWorkerId())
+        expect($budget->nextWorkerId())
             ->because('worker IDs start at one')
             ->toBe('w-1');
 
@@ -26,10 +27,10 @@ final readonly class WorkerSpawnBudgetTest
             $last = $budget->nextWorkerId();
         }
 
-        Expect::that($last)
+        expect($last)
             ->because('the replacement budget permits the final bounded worker')
             ->toBe('w-25');
-        Expect::that($budget->nextWorkerId(...))
+        expect()->calling($budget->nextWorkerId(...))
             ->because('the replacement budget MUST stop a worker loop')
             ->toThrow(
                 ProtocolError::class,
@@ -43,7 +44,7 @@ final readonly class WorkerSpawnBudgetTest
     {
         $budget = new WorkerSpawnBudget(plannedTests: 1, workerCount: \PHP_INT_MAX);
 
-        Expect::that($budget->nextWorkerId())
+        expect($budget->nextWorkerId())
             ->because('the replacement budget MUST remain usable for every accepted worker count')
             ->toBe('w-1');
     }

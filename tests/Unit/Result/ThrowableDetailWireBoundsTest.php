@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ThrowableDetail;
+
+use function Greenlight\expect;
 
 final class ThrowableDetailWireBoundsTest
 {
@@ -23,7 +24,7 @@ final class ThrowableDetailWireBoundsTest
             'stackFrames' => [],
         ]);
 
-        Expect::that($restored->line)
+        expect($restored->line)
             ->because('wire throwable details MUST identify at least the first source line')
             ->toBe(1);
     }

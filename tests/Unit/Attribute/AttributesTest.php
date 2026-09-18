@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Attribute;
 
 use Greenlight\Attribute\Before;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class AttributesTest
 {
@@ -21,6 +22,6 @@ final class AttributesTest
     #[Test]
     public function beforeHookRunsBeforeTests(): void
     {
-        Expect::that($this->beforeRan)->because('before hook runs before tests')->toBeTrue();
+        expect($this->beforeRan)->because('before hook runs before tests')->toBeTrue();
     }
 }

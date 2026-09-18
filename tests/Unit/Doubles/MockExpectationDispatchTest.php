@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
+
+use function Greenlight\expect;
 
 final readonly class MockExpectationDispatchTest
 {
@@ -25,10 +26,10 @@ final readonly class MockExpectationDispatchTest
         $firstAnswer = $calculator->add(1, 2);
         $secondAnswer = $calculator->add(1, 2);
 
-        Expect::that($firstAnswer)
+        expect($firstAnswer)
             ->because('the first expectation answers the first matching call')
             ->toBe(3);
-        Expect::that($secondAnswer)
+        expect($secondAnswer)
             ->because('a saturated expectation MUST yield to the next matching plan')
             ->toBe(4);
     }

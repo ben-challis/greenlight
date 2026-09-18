@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanDataProviderShapeRuleTest
@@ -237,10 +238,10 @@ final readonly class PhpStanDataProviderShapeRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('provider and row shapes are checked against the signature')->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(11);
-        Expect::that($probe->messages())->toContain('Data provider doesNotExist() for missingProvider() does not exist')
+        expect($probe->exitCode)->because('provider and row shapes are checked against the signature')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(11);
+        expect($probe->messages())->toContain('Data provider doesNotExist() for missingProvider() does not exist')
             ->toContain('notStatic() must be public and static')
             ->toContain('notIterable() must return an iterable of argument arrays. It returns string')
             ->toContain('scalarRows() must provide argument arrays. The iterable has value type int')

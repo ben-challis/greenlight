@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\InvalidDoubleUsage;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Tests\Fixture\Doubles\ProxyCacheContract;
+
+use function Greenlight\expect;
 
 final class ProxyClassCacheTest
 {
@@ -30,8 +31,8 @@ final class ProxyClassCacheTest
             $factory = new Doubles();
             $double = $factory->stub($type);
 
-            Expect::that($double)->toBeInstanceOf(ProxyCacheContract::class);
-            Expect::that($double::class)->toBe($first::class);
+            expect($double)->toBeInstanceOf(ProxyCacheContract::class);
+            expect($double::class)->toBe($first::class);
             $factory->dispose();
         }
     }
@@ -43,7 +44,7 @@ final class ProxyClassCacheTest
         $doubles->stub(ProxyCacheContract::class);
         $stub = new \ReflectionMethod(Doubles::class, 'stub');
 
-        Expect::that(static fn(): mixed => $stub->invoke($doubles, '\\\\' . ProxyCacheContract::class))
+        expect()->calling(static fn(): mixed => $stub->invoke($doubles, '\\\\' . ProxyCacheContract::class))
             ->because('extra namespace separators must remain invalid after the valid type is cached')
             ->toThrow(InvalidDoubleUsage::class);
         $doubles->dispose();
@@ -56,11 +57,11 @@ final class ProxyClassCacheTest
         $doubles = new Doubles();
         $stub = new \ReflectionMethod(Doubles::class, 'stub');
 
-        Expect::that(static fn(): mixed => $stub->invoke($doubles, $type))
+        expect()->calling(static fn(): mixed => $stub->invoke($doubles, $type))
             ->toThrow(InvalidDoubleUsage::class);
         \class_alias(ProxyCacheContract::class, $type);
 
-        Expect::that($stub->invoke($doubles, $type))->toBeInstanceOf(ProxyCacheContract::class);
+        expect($stub->invoke($doubles, $type))->toBeInstanceOf(ProxyCacheContract::class);
         $doubles->dispose();
     }
 }

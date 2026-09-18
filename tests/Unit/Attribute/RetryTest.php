@@ -7,17 +7,18 @@ namespace Greenlight\Tests\Unit\Attribute;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Retry;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class RetryTest
 {
     #[Test]
     public function throwableFiltersDoNotNeedToBeInstantiable(): void
     {
-        Expect::that(new Retry(1, \Throwable::class)->onlyOn)
+        expect(new Retry(1, \Throwable::class)->onlyOn)
             ->because('the Throwable interface is a valid retry type filter')
             ->toBe(\Throwable::class);
-        Expect::that(new Retry(1, AbstractRetryFailure::class)->onlyOn)
+        expect(new Retry(1, AbstractRetryFailure::class)->onlyOn)
             ->because('an abstract throwable is a valid retry type filter')
             ->toBe(AbstractRetryFailure::class);
     }
@@ -26,7 +27,7 @@ final class RetryTest
     #[DataSet('invalidThrowableTypes')]
     public function invalidThrowableTypesAreRejected(string $onlyOn): void
     {
-        Expect::that(
+        expect()->calling(
             static fn(): object => new \ReflectionClass(Retry::class)->newInstance(1, $onlyOn),
         )
             ->because('a retry filter MUST name a Throwable type')

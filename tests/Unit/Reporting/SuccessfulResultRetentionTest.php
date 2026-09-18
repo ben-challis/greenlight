@@ -9,13 +9,14 @@ use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\PlainReporter;
 use Greenlight\Reporting\TtyReporter;
 use Greenlight\Result\CapturedOutput;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class SuccessfulResultRetentionTest
 {
@@ -59,14 +60,14 @@ final readonly class SuccessfulResultRetentionTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         unset($result, $captured);
 
-        Expect::that($reference->get())
+        expect($reference->get())
             ->because('successful footers do not need captured output')
             ->toBeNull();
 
         $reporter->finish();
 
-        Expect::that($output->buffer())->toContain('artifacts/response.json');
-        Expect::that($output->buffer())->toContain($outcome === Outcome::Skipped
+        expect($output->buffer())->toContain('artifacts/response.json');
+        expect($output->buffer())->toContain($outcome === Outcome::Skipped
             ? 'ExampleTest::example (Example skip reason.)'
             : 'ExampleTest::example (2 attempts)');
     }

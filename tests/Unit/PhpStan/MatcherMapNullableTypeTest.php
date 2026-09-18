@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\PhpStan;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\PhpStan\MatcherMap;
+
+use function Greenlight\expect;
 
 final class MatcherMapNullableTypeTest
 {
@@ -17,7 +18,7 @@ final class MatcherMapNullableTypeTest
     {
         $parameter = new \ReflectionMethod(self::class, $method)->getParameters()[0];
 
-        Expect::that(MatcherMap::typeName($parameter->getType()))
+        expect(MatcherMap::typeName($parameter->getType()))
             ->because('nullable named types MUST render valid generated signatures')
             ->toBe($expected);
     }

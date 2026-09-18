@@ -6,12 +6,13 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class JUnitPartialDiffTest
 {
@@ -48,7 +49,7 @@ final class JUnitPartialDiffTest
             </testsuites>
             XML;
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('JUnit failure elements MUST retain each available partial diff side')
             ->toBe($expected . "\n");
     }

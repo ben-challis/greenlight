@@ -10,10 +10,11 @@ use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\WorkerSpawned;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Profile\ProfileAggregator;
 use Greenlight\Reporting\Style;
 use Greenlight\Result\ResultSummary;
+
+use function Greenlight\expect;
 
 final class ProfileSlowestClassesLimitTest
 {
@@ -43,7 +44,7 @@ final class ProfileSlowestClassesLimitTest
             "\n  Slowest classes:",
         );
 
-        Expect::that($slowest)
+        expect($slowest)
             ->because('the profile MUST list exactly the ten slowest classes in descending order')
             ->toBe(
                 "\n  Slowest classes:\n"

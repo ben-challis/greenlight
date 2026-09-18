@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\UnresolvableService;
+
+use function Greenlight\expect;
 
 final class FallbackResolverCountTest
 {
@@ -40,7 +41,7 @@ final class FallbackResolverCountTest
         };
         $scopes = new HarnessScopes([], [$first, $second]);
 
-        Expect::that(static fn(): object => $scopes->resolve(
+        expect()->calling(static fn(): object => $scopes->resolve(
             \ArrayObject::class,
             'constructor for InvoiceTest',
         ))
@@ -51,10 +52,10 @@ final class FallbackResolverCountTest
                     . 'Constructor injection resolves exact types only, and none of the 2 fallback resolver(s) supplied it.',
             );
 
-        Expect::that($first->calls)
+        expect($first->calls)
             ->because('the first reported fallback resolver MUST receive the request')
             ->toBe(1);
-        Expect::that($second->calls)
+        expect($second->calls)
             ->because('the second reported fallback resolver MUST receive the request')
             ->toBe(1);
     }

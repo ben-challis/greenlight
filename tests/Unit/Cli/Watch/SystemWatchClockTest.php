@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Cli\Watch;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\SystemWatchClock;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class SystemWatchClockTest
 {
@@ -18,7 +19,7 @@ final class SystemWatchClockTest
         $now = new SystemWatchClock()->now();
         $after = \hrtime(true) / 1_000_000_000;
 
-        Expect::that($now)
+        expect($now)
             ->because('watch debounce timing MUST use the monotonic system clock')
             ->toBeGreaterThanOrEqual($before)
             ->toBeLessThanOrEqual($after);
@@ -35,7 +36,7 @@ final class SystemWatchClockTest
 
         $clock->sleep($seconds);
 
-        Expect::that($microseconds)
+        expect($microseconds)
             ->because('a nonpositive delay MUST return before calling the native sleeper')
             ->toBe([]);
     }
@@ -59,7 +60,7 @@ final class SystemWatchClockTest
 
         $clock->sleep($seconds);
 
-        Expect::that($microseconds)
+        expect($microseconds)
             ->because('each native sleep call MUST be between one microsecond and one second')
             ->toBe($expectedMicroseconds);
     }
@@ -80,7 +81,7 @@ final class SystemWatchClockTest
     {
         $clock = new SystemWatchClock(static function (int $microseconds): void {});
 
-        Expect::that(static fn() => $clock->sleep($seconds))
+        expect()->calling(static fn() => $clock->sleep($seconds))
             ->toThrow(\InvalidArgumentException::class, '/^The sleep duration must be finite\.$/D');
     }
 

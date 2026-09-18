@@ -65,7 +65,9 @@ Before you push prose changes, review the prose:
 ## Tests
 
 Add focused unit or acceptance tests for behavior changes.
-Use `Greenlight\Expect\Expect` for assertions.
+Use `Greenlight\expect()` for assertions. Import it with a `use function`
+declaration. Use `expect($value)` for values and `expect()->calling($callback)`
+for calls. Keep direct class calls when a test verifies the class API itself.
 Use the [test conventions](docs/architecture/conventions.md#tests) for test
 names, assertion exceptions, and shared fixture changes.
 

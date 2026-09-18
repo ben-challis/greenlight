@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\RectorProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class RectorUnsupportedArgumentShapeTest
@@ -195,8 +196,8 @@ final readonly class RectorUnsupportedArgumentShapeTest
         $probes = RectorProbe::convertBatch($this->tempDirectory, $cases, name: 'unsupported-argument-shapes');
 
         foreach ($probes as $caseName => $probe) {
-            Expect::that($probe->changed)->because('unsupported argument shape: ' . $caseName)->toBeFalse();
-            Expect::that($probe->code)->because('unsupported argument shape: ' . $caseName)->toBe($cases[$caseName]);
+            expect($probe->changed)->because('unsupported argument shape: ' . $caseName)->toBeFalse();
+            expect($probe->code)->because('unsupported argument shape: ' . $caseName)->toBe($cases[$caseName]);
         }
     }
 }

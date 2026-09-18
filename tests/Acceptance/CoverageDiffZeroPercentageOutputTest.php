@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\CoverageJson;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class CoverageDiffZeroPercentageOutputTest
 {
@@ -38,10 +39,10 @@ final readonly class CoverageDiffZeroPercentageOutputTest
             ],
         );
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('a zero-percent current file MUST report a coverage regression')
             ->toBe(1);
-        Expect::that($result->stdoutLines())
+        expect($result->stdoutLines())
             ->because('a present zero-percent file MUST NOT render as absent')
             ->toBe([
                 'Coverage: baseline 100.00%, current 0.00% (-100.00)',

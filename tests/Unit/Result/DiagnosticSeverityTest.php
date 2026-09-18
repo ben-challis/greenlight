@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\DiagnosticSeverity;
+
+use function Greenlight\expect;
 
 final class DiagnosticSeverityTest
 {
@@ -15,7 +16,7 @@ final class DiagnosticSeverityTest
     #[DataSet('errorLevels')]
     public function mapsPhpErrorLevelsExactly(int $level, ?DiagnosticSeverity $expected): void
     {
-        Expect::that(DiagnosticSeverity::fromErrorLevel($level))
+        expect(DiagnosticSeverity::fromErrorLevel($level))
             ->because('the PHP error level has an explicit capture severity')
             ->toBe($expected);
     }

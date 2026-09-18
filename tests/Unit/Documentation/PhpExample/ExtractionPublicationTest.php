@@ -8,8 +8,9 @@ use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\Test;
 use Greenlight\Documentation\PhpExample\Checker;
 use Greenlight\Documentation\PhpExample\DocumentationExampleError;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class ExtractionPublicationTest
 {
@@ -34,7 +35,7 @@ final readonly class ExtractionPublicationTest
         $checker = new Checker();
         $checker->extract($root);
         $manifest = \file_get_contents($root . '/build/docs-php/manifest.json');
-        Expect::that($manifest)->toBeString();
+        expect($manifest)->toBeString();
 
         $metadata = \json_encode([
             'example' => 'invalid',
@@ -47,13 +48,13 @@ final readonly class ExtractionPublicationTest
             '<!-- php-example ' . $metadata . " -->\n```php\nreturn false;\n```\n",
         );
 
-        Expect::that(static fn() => $checker->extract($root))
+        expect()->calling(static fn() => $checker->extract($root))
             ->toThrow(DocumentationExampleError::class, matching: '~^docs/invalid\.md:1: PHP example file ~');
 
-        Expect::that(\file_get_contents($root . '/build/docs-php/manifest.json'))->toBe($manifest);
-        Expect::that(\file_get_contents($root . '/build/docs-php/valid/src/Example.php'))
+        expect(\file_get_contents($root . '/build/docs-php/manifest.json'))->toBe($manifest);
+        expect(\file_get_contents($root . '/build/docs-php/valid/src/Example.php'))
             ->toBe("<?php\nreturn true;\n");
-        Expect::that(\is_dir($root . '/build/docs-php/invalid'))->toBeFalse();
-        Expect::that(\glob($root . '/build/docs-php.next-*'))->toBe([]);
+        expect(\is_dir($root . '/build/docs-php/invalid'))->toBeFalse();
+        expect(\glob($root . '/build/docs-php.next-*'))->toBe([]);
     }
 }

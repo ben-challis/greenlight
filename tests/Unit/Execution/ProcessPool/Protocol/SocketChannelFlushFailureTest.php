@@ -8,11 +8,12 @@ use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Execution\ProcessPool\Protocol\FlushFailureStream;
+
+use function Greenlight\expect;
 
 final readonly class SocketChannelFlushFailureTest
 {
@@ -37,7 +38,7 @@ final readonly class SocketChannelFlushFailureTest
         $channel = new SocketChannel($stream);
         $this->cleanup->defer($channel->close(...));
 
-        Expect::that(static function () use ($channel): void {
+        expect()->calling(static function () use ($channel): void {
             $channel->send(new Drain());
         })
             ->because('a failed flush MUST reject an incomplete send')

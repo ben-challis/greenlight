@@ -7,14 +7,15 @@ namespace Greenlight\Tests\Unit\Artifact;
 use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Artifact\AttachmentRetention;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class AttachmentWireEnumContractTest
 {
     #[Test]
     public function attachmentEnumsKeepTheirPublishedWireValues(): void
     {
-        Expect::that(\array_column(AttachmentKind::cases(), 'value', 'name'))
+        expect(\array_column(AttachmentKind::cases(), 'value', 'name'))
             ->because('attachment kinds MUST keep their published wire values')
             ->toBe([
                 'Value' => 'value',
@@ -22,7 +23,7 @@ final class AttachmentWireEnumContractTest
                 'Binary' => 'binary',
                 'File' => 'file',
             ]);
-        Expect::that(\array_column(AttachmentRetention::cases(), 'value', 'name'))
+        expect(\array_column(AttachmentRetention::cases(), 'value', 'name'))
             ->because('attachment retention MUST keep its published wire values')
             ->toBe([
                 'OnFailure' => 'on-failure',

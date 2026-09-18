@@ -8,11 +8,12 @@ use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\NativeOrchestrator;
 use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final readonly class WorkerShutdownDeadlineTest
 {
@@ -57,8 +58,8 @@ final readonly class WorkerShutdownDeadlineTest
         $sink = new CollectingEventSink();
         $plan = new ExecutionPlan([PlanEntryFixture::create('Example\\ShutdownTest', 'passes')]);
 
-        Expect::that(static fn() => $orchestrator->run($plan, $sink, 1))
+        expect()->calling(static fn() => $orchestrator->run($plan, $sink, 1))
             ->toThrow(ProtocolError::class, '/sent no message for 0\.5 seconds/');
-        Expect::that($sink->results())->toHaveCount(1);
+        expect($sink->results())->toHaveCount(1);
     }
 }

@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\PhpStan;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\PhpStan\MatcherMap;
+
+use function Greenlight\expect;
 
 final class MatcherMapPluginFilteringTest
 {
@@ -17,14 +18,14 @@ final class MatcherMapPluginFilteringTest
     {
         $map = MatcherMap::fromConfigFiles([self::CONFIG]);
 
-        Expect::that($map->names())
+        expect($map->names())
             ->because('matcher discovery MUST ignore plugins that do not provide expectation matchers')
             ->toBe([
                 'toBeHexadecimal',
                 'toHaveDigestLength',
                 'toBePositive',
             ]);
-        Expect::that($map->has('toHaveDigestLength'))
+        expect($map->has('toHaveDigestLength'))
             ->because('matcher discovery MUST retain expectation extensions from a mixed plugin configuration')
             ->toBeTrue();
     }

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class SuitePathDiscoveryTest
 {
@@ -42,10 +43,10 @@ final readonly class SuitePathDiscoveryTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--list-tests']);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('test discovery MUST include top-level and named-suite paths')
             ->toBe(0);
-        Expect::that($result->output())
+        expect($result->output())
             ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one')
             ->toContain('Greenlight\Tests\Fixture\Lifecycle\Bail\AaTest::fails')
             ->toContain('Greenlight\Tests\Fixture\Lifecycle\Bail\BbTest::wouldAlsoPass');

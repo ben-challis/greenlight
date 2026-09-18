@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class WatchJsonlOutputTest
 {
@@ -41,10 +42,10 @@ final readonly class WatchJsonlOutputTest
             $events[] = $envelope['event'];
         }
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that(\array_count_values($events)['run-started'] ?? 0)->toBe(2);
-        Expect::that(\array_count_values($events)['run-finished'] ?? 0)->toBe(2);
-        Expect::that($fileOutput ? $result->stdout : $result->stderr)->toContain('Waiting for changes');
+        expect($result->exitCode)->toBe(0);
+        expect(\array_count_values($events)['run-started'] ?? 0)->toBe(2);
+        expect(\array_count_values($events)['run-finished'] ?? 0)->toBe(2);
+        expect($fileOutput ? $result->stdout : $result->stderr)->toContain('Waiting for changes');
     }
 
     /** @return iterable<string, array{bool}> */

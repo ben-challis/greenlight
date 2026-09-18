@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Internal\Text;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Text\DecimalInteger;
+
+use function Greenlight\expect;
 
 final class DecimalIntegerTest
 {
@@ -15,7 +16,7 @@ final class DecimalIntegerTest
     #[DataSet('decimalText')]
     public function parsesOnlyRepresentableNonnegativeDecimalText(string $raw, ?int $expected): void
     {
-        Expect::that(DecimalInteger::parse($raw))
+        expect(DecimalInteger::parse($raw))
             ->because('decimal integer parsing MUST accept every representable value without overflow')
             ->toBe($expected);
     }

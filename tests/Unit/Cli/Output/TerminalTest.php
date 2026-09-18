@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Cli\Output;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Output\Terminal;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final readonly class TerminalTest
 {
@@ -20,13 +21,13 @@ final readonly class TerminalTest
         $stream = MemoryStream::open('sentinel');
         $this->cleanup->defer(static fn() => MemoryStream::close($stream));
 
-        Expect::that(Terminal::isTty($stream))
+        expect(Terminal::isTty($stream))
             ->because('an in-memory stream is not a TTY')
             ->toBeFalse();
-        Expect::that(\stream_get_contents($stream))
+        expect(\stream_get_contents($stream))
             ->because('the terminal probe MUST leave stream content unchanged')
             ->toBe('sentinel');
-        Expect::that(\is_resource($stream))
+        expect(\is_resource($stream))
             ->because('the terminal probe MUST leave the stream open')
             ->toBeTrue();
     }

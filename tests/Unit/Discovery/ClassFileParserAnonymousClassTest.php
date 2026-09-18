@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\ClassDeclaration;
 use Greenlight\Discovery\ClassFileParser;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class ClassFileParserAnonymousClassTest
 {
@@ -36,7 +37,7 @@ final readonly class ClassFileParserAnonymousClassTest
             ClassFileParser::declarationsIn($file),
         );
 
-        Expect::that($declarations)
+        expect($declarations)
             ->because('anonymous classes MUST NOT become named discovery declarations')
             ->toBe([
                 ['Example\Tests\NamedTest', 'class'],

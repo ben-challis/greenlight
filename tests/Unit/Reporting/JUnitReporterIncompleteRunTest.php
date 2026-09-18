@@ -6,12 +6,13 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\SimpleXml;
+
+use function Greenlight\expect;
 
 final class JUnitReporterIncompleteRunTest
 {
@@ -41,7 +42,7 @@ final class JUnitReporterIncompleteRunTest
 
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('incomplete JUnit streams MUST report the summed test duration')
             ->toContain(
                 '<testsuites name="greenlight" tests="2" failures="0" errors="0" '
@@ -70,17 +71,17 @@ final class JUnitReporterIncompleteRunTest
         $reporter->finish();
         $document = \simplexml_load_string($output->buffer());
 
-        Expect::that($document)
+        expect($document)
             ->because('overflow protection MUST preserve a valid JUnit document')
             ->toBeInstanceOf(\SimpleXMLElement::class);
 
         $suites = SimpleXml::xpath($document, '//testsuite');
         $maximum = \sprintf('%.6f', \PHP_FLOAT_MAX);
 
-        Expect::that((string) $document['time'])
+        expect((string) $document['time'])
             ->because('the fallback run duration MUST remain a finite decimal')
             ->toBe($maximum);
-        Expect::that($suites)
+        expect($suites)
             ->because('the report contains the overflowing class suite')
             ->toHaveCount(1);
 
@@ -88,7 +89,7 @@ final class JUnitReporterIncompleteRunTest
             return;
         }
 
-        Expect::that((string) $suites[0]['time'])
+        expect((string) $suites[0]['time'])
             ->because('the class duration MUST remain a finite decimal')
             ->toBe($maximum);
     }

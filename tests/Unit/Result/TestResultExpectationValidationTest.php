@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class TestResultExpectationValidationTest
 {
@@ -17,10 +18,10 @@ final class TestResultExpectationValidationTest
     {
         $id = new TestId('Example\\ExpectationTest', 'counts');
 
-        Expect::that(new TestResult($id, Outcome::Passed, 0.1, 0, expectations: 0)->expectations)
+        expect(new TestResult($id, Outcome::Passed, 0.1, 0, expectations: 0)->expectations)
             ->because('a result MAY contain no verified expectations')
             ->toBe(0);
-        Expect::that(static fn(): TestResult => new TestResult(
+        expect()->calling(static fn(): TestResult => new TestResult(
             $id,
             Outcome::Passed,
             0.1,

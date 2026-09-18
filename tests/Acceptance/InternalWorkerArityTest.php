@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final class InternalWorkerArityTest
 {
@@ -18,12 +19,12 @@ final class InternalWorkerArityTest
             ['__worker', 'tcp://127.0.0.1:1', 'worker-1', 'secret-token', 'surplus'],
         );
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('the internal worker entry MUST accept exactly three operands')
             ->toBe(64);
-        Expect::that($result->stderr)
+        expect($result->stderr)
             ->toBe('__worker requires <address> <workerId> <token>.');
-        Expect::that($result->stdout)
+        expect($result->stdout)
             ->toBe('');
     }
 }

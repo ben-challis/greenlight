@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\TestInclusions;
 use Greenlight\Test\TestSelection;
+
+use function Greenlight\expect;
 
 final class FilterIncludeCompositionTest
 {
@@ -31,7 +32,7 @@ final class FilterIncludeCompositionTest
             paths: ['/repo/tests/Unit/'],
         ));
 
-        Expect::that($filter->accepts($class, $method, $groups, $path))
+        expect($filter->accepts($class, $method, $groups, $path))
             ->because('a candidate MUST satisfy every configured include dimension')
             ->toBe($accepted);
     }

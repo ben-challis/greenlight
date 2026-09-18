@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\EnvironmentVariables;
+
+use function Greenlight\expect;
 
 final class EnvironmentVariablesTest
 {
@@ -19,15 +20,15 @@ final class EnvironmentVariablesTest
 
         $sandbox->set($name, 'value');
 
-        Expect::that(\getenv($name))->because('set makes the variable visible everywhere')->toBe('value');
-        Expect::that($this->envValue($name))->toBe('value');
-        Expect::that($this->serverValue($name))->toBe('value');
+        expect(\getenv($name))->because('set makes the variable visible everywhere')->toBe('value');
+        expect($this->envValue($name))->toBe('value');
+        expect($this->serverValue($name))->toBe('value');
 
         $sandbox->dispose();
 
-        Expect::that(\getenv($name))->because('set makes the variable visible everywhere')->toBeFalse();
-        Expect::that($this->envHas($name))->toBeFalse();
-        Expect::that($this->serverHas($name))->toBeFalse();
+        expect(\getenv($name))->because('set makes the variable visible everywhere')->toBeFalse();
+        expect($this->envHas($name))->toBeFalse();
+        expect($this->serverHas($name))->toBeFalse();
     }
 
     #[Test]
@@ -43,9 +44,9 @@ final class EnvironmentVariablesTest
             $sandbox->set($name, 'changed');
             $sandbox->dispose();
 
-            Expect::that(\getenv($name))->toBe('original');
-            Expect::that($this->envValue($name))->toBe('original');
-            Expect::that($this->serverValue($name))->toBe('original');
+            expect(\getenv($name))->toBe('original');
+            expect($this->envValue($name))->toBe('original');
+            expect($this->serverValue($name))->toBe('original');
         } finally {
             \putenv($name);
             unset($_ENV[$name], $_SERVER[$name]);
@@ -65,16 +66,16 @@ final class EnvironmentVariablesTest
             $sandbox->set($name, 'changed');
             $sandbox->dispose();
 
-            Expect::that(\getenv($name))
+            expect(\getenv($name))
                 ->because('dispose MUST distinguish present falsey values from absent values')
                 ->toBe('');
-            Expect::that($this->envHas($name))
+            expect($this->envHas($name))
                 ->toBeTrue();
-            Expect::that($this->envValue($name))
+            expect($this->envValue($name))
                 ->toBeNull();
-            Expect::that($this->serverHas($name))
+            expect($this->serverHas($name))
                 ->toBeTrue();
-            Expect::that($this->serverValue($name))
+            expect($this->serverValue($name))
                 ->toBeFalse();
         } finally {
             \putenv($name);
@@ -103,18 +104,18 @@ final class EnvironmentVariablesTest
             $sandbox->unset($envOnly);
             $sandbox->dispose();
 
-            Expect::that(\getenv($processAndServer))
+            expect(\getenv($processAndServer))
                 ->because('dispose restores each environment channel independently')
                 ->toBe('process-original');
-            Expect::that($this->envHas($processAndServer))
+            expect($this->envHas($processAndServer))
                 ->toBeFalse();
-            Expect::that($this->serverValue($processAndServer))
+            expect($this->serverValue($processAndServer))
                 ->toBe('server-original');
-            Expect::that(\getenv($envOnly))
+            expect(\getenv($envOnly))
                 ->toBeFalse();
-            Expect::that($this->envValue($envOnly))
+            expect($this->envValue($envOnly))
                 ->toBe('env-original');
-            Expect::that($this->serverHas($envOnly))
+            expect($this->serverHas($envOnly))
                 ->toBeFalse();
         } finally {
             $sandbox->dispose();
@@ -141,15 +142,15 @@ final class EnvironmentVariablesTest
             $sandbox = new EnvironmentVariables();
             $sandbox->unset($name);
 
-            Expect::that(\getenv($name))->toBeFalse();
-            Expect::that($this->envHas($name))->toBeFalse();
-            Expect::that($this->serverHas($name))->toBeFalse();
+            expect(\getenv($name))->toBeFalse();
+            expect($this->envHas($name))->toBeFalse();
+            expect($this->serverHas($name))->toBeFalse();
 
             $sandbox->dispose();
 
-            Expect::that(\getenv($name))->toBe('present');
-            Expect::that($this->envValue($name))->toBe('present');
-            Expect::that($this->serverValue($name))->toBe('present');
+            expect(\getenv($name))->toBe('present');
+            expect($this->envValue($name))->toBe('present');
+            expect($this->serverValue($name))->toBe('present');
         } finally {
             \putenv($name);
             unset($_ENV[$name], $_SERVER[$name]);
@@ -171,9 +172,9 @@ final class EnvironmentVariablesTest
             $sandbox->unset($name);
             $sandbox->dispose();
 
-            Expect::that(\getenv($name))->toBe('first');
-            Expect::that($this->envValue($name))->toBe('first');
-            Expect::that($this->serverValue($name))->toBe('first');
+            expect(\getenv($name))->toBe('first');
+            expect($this->envValue($name))->toBe('first');
+            expect($this->serverValue($name))->toBe('first');
         } finally {
             \putenv($name);
             unset($_ENV[$name], $_SERVER[$name]);
@@ -189,19 +190,19 @@ final class EnvironmentVariablesTest
         $serverBefore = $_SERVER;
         $sandbox = new EnvironmentVariables();
 
-        Expect::that(static fn() => $sandbox->set($name, 'value'))
+        expect()->calling(static fn() => $sandbox->set($name, 'value'))
             ->because('set rejects invalid names before it changes the environment')
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Environment variable names cannot be empty or contain "=" or a null byte.',
             );
 
-        Expect::that(\getenv())
+        expect(\getenv())
             ->because('set rejects invalid names before it changes the environment')
             ->toBe($processBefore);
-        Expect::that($_ENV)
+        expect($_ENV)
             ->toBe($envBefore);
-        Expect::that($_SERVER)
+        expect($_SERVER)
             ->toBe($serverBefore);
     }
 
@@ -214,19 +215,19 @@ final class EnvironmentVariablesTest
         $serverBefore = $_SERVER;
         $sandbox = new EnvironmentVariables();
 
-        Expect::that(static fn() => $sandbox->unset($name))
+        expect()->calling(static fn() => $sandbox->unset($name))
             ->because('unset rejects invalid names before it changes the environment')
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Environment variable names cannot be empty or contain "=" or a null byte.',
             );
 
-        Expect::that(\getenv())
+        expect(\getenv())
             ->because('unset rejects invalid names before it changes the environment')
             ->toBe($processBefore);
-        Expect::that($_ENV)
+        expect($_ENV)
             ->toBe($envBefore);
-        Expect::that($_SERVER)
+        expect($_SERVER)
             ->toBe($serverBefore);
     }
 

@@ -12,7 +12,6 @@ use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Execution\Worker\WorkerError;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
@@ -24,6 +23,8 @@ use Greenlight\Tests\Fixture\Condition\ThrowingCondition;
 use Greenlight\Tests\Fixture\Lifecycle\ConditionArguments\ConditionArgumentsTest;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\FixturePath;
+
+use function Greenlight\expect;
 
 final readonly class ConditionEvaluationTest
 {
@@ -41,14 +42,14 @@ final readonly class ConditionEvaluationTest
             $byMethod[$result->id->method] = $result;
         }
 
-        Expect::that($summary->skipped)
+        expect($summary->skipped)
             ->because('parameterized conditions skip with rendered arguments and run when satisfied')
             ->toBe(1);
-        Expect::that($summary->passed)->toBe(1);
-        Expect::that($byMethod['skipsWhenTheVariableDiffers']->outcome)->toBe(Outcome::Skipped);
-        Expect::that($byMethod['skipsWhenTheVariableDiffers']->skipReason)
+        expect($summary->passed)->toBe(1);
+        expect($byMethod['skipsWhenTheVariableDiffers']->outcome)->toBe(Outcome::Skipped);
+        expect($byMethod['skipsWhenTheVariableDiffers']->skipReason)
             ->toBe('Condition EnvironmentVariableEquals("GREENLIGHT_STDLIB_NOPE", "yes") is not satisfied');
-        Expect::that($byMethod['runsWhenTheVersionIsSatisfied']->outcome)->toBe(Outcome::Passed);
+        expect($byMethod['runsWhenTheVersionIsSatisfied']->outcome)->toBe(Outcome::Passed);
     }
 
     /**
@@ -80,11 +81,11 @@ final readonly class ConditionEvaluationTest
 
         $result = $sink->results()[0];
 
-        Expect::that($result->outcome)
+        expect($result->outcome)
             ->because('invalid runtime condition metadata errors the test')
             ->toBe(Outcome::Errored);
-        Expect::that($result->error?->message)->toBe($message);
-        Expect::that($result->error?->class)->toBe($errorClass);
+        expect($result->error?->message)->toBe($message);
+        expect($result->error?->class)->toBe($errorClass);
     }
 
     /**

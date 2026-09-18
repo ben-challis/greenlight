@@ -6,12 +6,13 @@ namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Cli\Profile\EofReadFailureStream;
 use Greenlight\Tests\Fixture\Cli\Profile\FailedReadStream;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final readonly class ProfileReportReadFailureTest
 {
@@ -31,10 +32,10 @@ final readonly class ProfileReportReadFailureTest
         \rewind($stdout);
         \rewind($stderr);
 
-        Expect::that($exit)->toBe(1);
-        Expect::that(\stream_get_contents($stdout))->toBe('');
-        Expect::that((string) \stream_get_contents($stderr))->toContain('Greenlight could not read');
-        Expect::that(FailedReadStream::$closed)->toBeTrue();
+        expect($exit)->toBe(1);
+        expect(\stream_get_contents($stdout))->toBe('');
+        expect((string) \stream_get_contents($stderr))->toContain('Greenlight could not read');
+        expect(FailedReadStream::$closed)->toBeTrue();
     }
 
     #[Test]
@@ -51,9 +52,9 @@ final readonly class ProfileReportReadFailureTest
         \rewind($stdout);
         \rewind($stderr);
 
-        Expect::that($exit)->toBe(1);
-        Expect::that(\stream_get_contents($stdout))->toBe('');
-        Expect::that((string) \stream_get_contents($stderr))->toContain('The profile input read failed.');
-        Expect::that(EofReadFailureStream::$closed)->toBeTrue();
+        expect($exit)->toBe(1);
+        expect(\stream_get_contents($stdout))->toBe('');
+        expect((string) \stream_get_contents($stderr))->toContain('The profile input read failed.');
+        expect(EofReadFailureStream::$closed)->toBeTrue();
     }
 }

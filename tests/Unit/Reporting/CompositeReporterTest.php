@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\CompositeReporter;
 use Greenlight\Reporting\GithubReporter;
 use Greenlight\Reporting\PlainReporter;
+
+use function Greenlight\expect;
 
 final class CompositeReporterTest
 {
@@ -22,10 +23,10 @@ final class CompositeReporterTest
 
         $expected = \count(CannedStream::events());
 
-        Expect::that($first->eventCount)->because('every reporter sees every event and finish')->toBe($expected);
-        Expect::that($second->eventCount)->toBe($expected);
-        Expect::that($first->finished)->toBeTrue();
-        Expect::that($second->finished)->toBeTrue();
+        expect($first->eventCount)->because('every reporter sees every event and finish')->toBe($expected);
+        expect($second->eventCount)->toBe($expected);
+        expect($first->finished)->toBeTrue();
+        expect($second->finished)->toBeTrue();
     }
 
     #[Test]
@@ -44,8 +45,8 @@ final class CompositeReporterTest
             new GithubReporter($compositeGithub),
         ]));
 
-        Expect::that($compositePlain->buffer())->because('fan out matches running each reporter alone')->toBe($alonePlain->buffer());
-        Expect::that($compositeGithub->buffer())->toBe($aloneGithub->buffer());
+        expect($compositePlain->buffer())->because('fan out matches running each reporter alone')->toBe($alonePlain->buffer());
+        expect($compositeGithub->buffer())->toBe($aloneGithub->buffer());
     }
 
     #[Test]
@@ -56,7 +57,7 @@ final class CompositeReporterTest
 
         new CompositeReporter([$plain, $live])->tick(1.5);
 
-        Expect::that($live->ticks)->because('ticks reach only ticking reporters')->toBe([1.5]);
-        Expect::that($plain->eventCount)->toBe(0);
+        expect($live->ticks)->because('ticks reach only ticking reporters')->toBe([1.5]);
+        expect($plain->eventCount)->toBe(0);
     }
 }

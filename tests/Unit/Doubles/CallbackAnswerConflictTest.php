@@ -8,8 +8,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
+
+use function Greenlight\expect;
 
 final readonly class CallbackAnswerConflictTest
 {
@@ -18,7 +19,7 @@ final readonly class CallbackAnswerConflictTest
     #[Test]
     public function aReturnValueAfterACallbackIsRejected(): void
     {
-        Expect::that(
+        expect()->calling(
             fn(): mixed => $this->doubles->mock(
                 Calculator::class,
                 static function (MockPlan $plan): void {

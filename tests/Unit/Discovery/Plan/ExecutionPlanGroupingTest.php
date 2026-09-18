@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Discovery\Plan;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final readonly class ExecutionPlanGroupingTest
 {
@@ -29,7 +30,7 @@ final readonly class ExecutionPlanGroupingTest
             $plan->entriesByClass(),
         );
 
-        Expect::that($idsByClass)
+        expect($idsByClass)
             ->because('grouping MUST preserve class, method, and data-set order')
             ->toBe([
                 'Acme\\AlphaTest' => [

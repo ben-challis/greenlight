@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\DiscoveryCachePath;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final readonly class DiscoveryCacheDirectoryOrderTest
 {
@@ -31,10 +32,10 @@ final readonly class DiscoveryCacheDirectoryOrderTest
             $cache = DiscoveryCache::forDirectories($directories);
             $cache->store($source, [$entry]);
 
-            Expect::that($cache->persist())
+            expect($cache->persist())
                 ->because('the initial directory order MUST write the discovery cache')
                 ->toBeTrue();
-            Expect::that(DiscoveryCache::forDirectories(\array_reverse($directories))->lookup($source))
+            expect(DiscoveryCache::forDirectories(\array_reverse($directories))->lookup($source))
                 ->because('directory order MUST NOT change the discovery-cache identity')
                 ->toEqual([$entry]);
         } finally {

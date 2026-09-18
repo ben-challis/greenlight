@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Artifact;
 use Greenlight\Artifact\Attachment;
 use Greenlight\Artifact\StagedAttachment;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Wire\InvalidWirePayload;
+
+use function Greenlight\expect;
 
 final readonly class AttachmentNullRetentionWireTest
 {
@@ -27,11 +28,11 @@ final readonly class AttachmentNullRetentionWireTest
         ];
         $message = 'Wire payload key "retention" must be a string, got null.';
 
-        Expect::that(static fn(): Attachment => Attachment::fromWire($payload))
+        expect()->calling(static fn(): Attachment => Attachment::fromWire($payload))
             ->because('an explicit null retention MUST NOT use the missing-field default')
             ->toThrow(InvalidWirePayload::class, message: $message);
 
-        Expect::that(static fn(): StagedAttachment => StagedAttachment::fromWire([
+        expect()->calling(static fn(): StagedAttachment => StagedAttachment::fromWire([
             ...$payload,
             'storageKey' => 'attempt/response.json',
         ]))

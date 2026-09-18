@@ -118,10 +118,12 @@ each name:
 bailStopsTheRunAfterTheThreshold
 ```
 
-We recommend `Greenlight\Expect\Expect` for assertions.
+Use `Greenlight\expect()` for assertions. Import it with a `use function`
+declaration. Use `expect($value)` for values and `expect()->calling($callback)`
+for calls. Keep direct class calls when a test verifies the class API itself.
 
 Do not create an array only to group independent expectation subjects.
-Give each subject to `Expect::that()` directly.
+Give each subject to `expect()` directly.
 
 Tests can compare an array when the behavior produces the array. Examples
 include wire payloads and ordered sequences.

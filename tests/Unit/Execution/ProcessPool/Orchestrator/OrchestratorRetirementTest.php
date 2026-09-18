@@ -8,7 +8,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Doubles\Fake;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Reporting\Ticking;
 use Greenlight\Sandbox\EnvironmentVariables;
@@ -21,6 +20,8 @@ use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\NativeOrchestrator;
 use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final readonly class OrchestratorRetirementTest
 {
@@ -71,13 +72,13 @@ final readonly class OrchestratorRetirementTest
             static fn(float $tick): bool => $tick > \max($starts) && $tick < \min($ends),
         );
 
-        Expect::that($summary->passed)
+        expect($summary->passed)
             ->because('both workers MUST complete their assignments before simultaneous retirement')
             ->toBe(2);
-        Expect::that(\max($starts))
+        expect(\max($starts))
             ->because('both workers MUST be in retirement at the same time')
             ->toBeLessThan(\min($ends));
-        Expect::that($ticksDuringExit)
+        expect($ticksDuringExit)
             ->because('reporter ticks MUST continue while workers exit')
             ->not()->toBe([]);
     }
@@ -106,24 +107,24 @@ final readonly class OrchestratorRetirementTest
         $starts = \array_values(\array_filter($records, static fn(array $record): bool => $record['phase'] === 'start'));
         $ends = \array_values(\array_filter($records, static fn(array $record): bool => $record['phase'] === 'exit-end'));
 
-        Expect::that($summary->errored)
+        expect($summary->errored)
             ->because('each isolated fixture MUST complete through a fresh worker')
             ->toBe(12);
-        Expect::that($starts)
+        expect($starts)
             ->because('isolated churn MUST start one worker for each scheduling unit')
             ->toHaveCount(12);
-        Expect::that(\array_column($starts, 'channel'))
+        expect(\array_column($starts, 'channel'))
             ->because('a single-worker run MUST reuse its only channel')
             ->toBe(\array_fill(0, 12, '1'));
         $startCount = \count($starts);
 
         for ($index = 1; $index < $startCount; ++$index) {
-            Expect::that($starts[$index]['at'])
+            expect($starts[$index]['at'])
                 ->because('a channel MUST stay unavailable until its old process exits')
                 ->toBeGreaterThanOrEqual($ends[$index - 1]['at']);
         }
 
-        Expect::that($orchestrator->workerTimings())
+        expect($orchestrator->workerTimings())
             ->because('the orchestrator MUST retain one timing record for each reaped worker')
             ->toHaveCount(12);
     }
@@ -135,8 +136,9 @@ final readonly class OrchestratorRetirementTest
     private function workerCommand(string $worker): array
     {
         $bootstrap = \sprintf(
-            'require %s; exit(%s::run($argv[2], $argv[3], $argv[4]));',
+            'require %s; require_once %s; exit(%s::run($argv[2], $argv[3], $argv[4]));',
             \var_export($this->repositoryRoot() . '/vendor/autoload.php', true),
+            \var_export($this->repositoryRoot() . '/src/Expect/functions.php', true),
             $worker,
         );
 

@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ResultPolicy;
+
+use function Greenlight\expect;
 
 final class ResultPolicyValidationTest
 {
@@ -18,7 +19,7 @@ final class ResultPolicyValidationTest
     #[DataSet('invalidPatterns')]
     public function invalidIgnorePatternsAreRejected(array $ignoreDeprecations): void
     {
-        Expect::that(static fn(): ResultPolicy => new ResultPolicy(
+        expect()->calling(static fn(): ResultPolicy => new ResultPolicy(
             ignoreDeprecations: $ignoreDeprecations,
         ))
             ->because('deprecation ignore patterns MUST be a list of non-empty strings')

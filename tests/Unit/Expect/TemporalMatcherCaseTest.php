@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+
+use function Greenlight\expect;
 
 final class TemporalMatcherCaseTest
 {
@@ -22,27 +23,26 @@ final class TemporalMatcherCaseTest
         })();
 
         ExpectationRuntime::withClock($clock, static function () use (&$calls, $haystack): void {
-            Expect::eventually(static function () use (&$calls): string {
+            expect()->calling(static function () use (&$calls): string {
                 return ++$calls === 1 ? 'pending' : 'ready';
-            })->pollEvery(0.010)->within(0.100)->__call('TOBEIN', [$haystack]);
+            })->returnValue()->eventually()->pollEvery(0.010)->within(0.100)->TOBEIN($haystack); // @phpstan-ignore method.nameCase (Checks PHP method case behavior.)
         });
 
-        Expect::that($calls)->toBe(2);
-        Expect::that($clock->sleeps)->toEqual([0.010]);
+        expect($calls)->toBe(2);
+        expect($clock->sleeps)->toEqual([0.010]);
     }
 
     #[Test]
     public function uppercaseThrowableConstraintsFailBeforeTheProbeRuns(): void
     {
         $probed = false;
-        Expect::that(static function () use (&$probed): void {
-            Expect::eventually(static function () use (&$probed): \Closure {
+        expect()->calling(static function () use (&$probed): void {
+            expect()->calling(static function () use (&$probed) { // @phpstan-ignore greenlight.toThrow.messageConstraint (Checks runtime validation.)
                 $probed = true;
 
-                return static function (): void {};
-            })->within(0.100)->__call('TOTHROW', [\RuntimeException::class, 'matching' => '/x/', 'message' => 'x']);
+            })->eventually()->within(0.100)->TOTHROW(\RuntimeException::class, matching: '/x/', message: 'x'); // @phpstan-ignore method.nameCase (Checks PHP method case behavior.)
         })->toThrow(ExpectationFailed::class, matching: '/^Specify matching: or message:/');
 
-        Expect::that($probed)->toBeFalse();
+        expect($probed)->toBeFalse();
     }
 }

@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\Event;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
+
+use function Greenlight\expect;
 
 final readonly class ChannelTest
 {
@@ -24,9 +25,9 @@ final readonly class ChannelTest
         $result = GreenlightCli::run($project->directory, ['run', '--workers=2', '--reporter=jsonl']);
         $events = JsonlEvents::from($result);
         $channels = $this->reportedChannels($events);
-        Expect::that($result->exitCode)->because('two workers occupy channels one and two')->toBe(0);
-        Expect::that(\count($channels))->toBe(4);
-        Expect::that(\array_values(\array_unique($channels)))->toBe([1, 2]);
+        expect($result->exitCode)->because('two workers occupy channels one and two')->toBe(0);
+        expect(\count($channels))->toBe(4);
+        expect(\array_values(\array_unique($channels)))->toBe([1, 2]);
     }
 
     #[Test]
@@ -36,9 +37,9 @@ final readonly class ChannelTest
         $result = GreenlightCli::run($project->directory, ['run', '--workers=1', '--reporter=jsonl']);
         $events = JsonlEvents::from($result);
         $channels = $this->reportedChannels($events);
-        Expect::that($result->exitCode)->because('the in process runner is channel one')->toBe(0);
-        Expect::that(\count($channels))->toBe(4);
-        Expect::that(\array_values(\array_unique($channels)))->toBe([1]);
+        expect($result->exitCode)->because('the in process runner is channel one')->toBe(0);
+        expect(\count($channels))->toBe(4);
+        expect(\array_values(\array_unique($channels)))->toBe([1]);
     }
 
     /**
@@ -85,8 +86,9 @@ final readonly class ChannelTest
 
             use Greenlight\Attribute\Test;
             use Greenlight\Test\TestChannel;
-            use Greenlight\Expect\Expect;
             use Greenlight\Expect\Fail;
+
+            use function Greenlight\expect;
 
             final class %sTest
             {
@@ -120,8 +122,8 @@ final readonly class ChannelTest
 
                     echo 'channel=' . $this->channel->number;
 
-                    Expect::that((string) $this->channel->number)->toBe(\getenv('GREENLIGHT_CHANNEL'));
-                    Expect::that($this->channel->label())->toBe('gl-' . $this->channel->number);
+                    expect((string) $this->channel->number)->toBe(\getenv('GREENLIGHT_CHANNEL'));
+                    expect($this->channel->label())->toBe('gl-' . $this->channel->number);
                 }
             }
             PHP;

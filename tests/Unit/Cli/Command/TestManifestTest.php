@@ -10,12 +10,13 @@ use Greenlight\Condition\EnvironmentVariableEquals;
 use Greenlight\Config\SuiteConfiguration;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\ExecutionPolicy;
 use Greenlight\Test\RetryPolicy;
 use Greenlight\Test\SchedulingPolicy;
 use Greenlight\Test\SkipPolicy;
 use Greenlight\Test\TestDefinition;
+
+use function Greenlight\expect;
 
 final class TestManifestTest
 {
@@ -34,7 +35,7 @@ final class TestManifestTest
             \dirname(__DIR__, 4),
         );
 
-        Expect::that(\json_encode($document, \JSON_THROW_ON_ERROR))
+        expect(\json_encode($document, \JSON_THROW_ON_ERROR))
             ->toContain('"suites":["-1","0","01","123"]');
     }
 
@@ -62,7 +63,7 @@ final class TestManifestTest
         );
         $method = new \ReflectionMethod(self::class, __FUNCTION__);
 
-        Expect::that($document)->toBe([
+        expect($document)->toBe([
             'version' => 1,
             'order' => [
                 'tests' => 'plan',
@@ -102,7 +103,7 @@ final class TestManifestTest
         ]);
 
         $json = \json_encode($document, \JSON_THROW_ON_ERROR);
-        Expect::that($json)
+        expect($json)
             ->because('the public manifest MUST omit skip reasons and condition arguments')
             ->not()
             ->toContain('private skip reason')

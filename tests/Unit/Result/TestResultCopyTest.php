@@ -8,7 +8,6 @@ use Greenlight\Artifact\Attachment;
 use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\CapturedOutput;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
@@ -16,6 +15,8 @@ use Greenlight\Result\OutcomeTransformation;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class TestResultCopyTest
 {
@@ -33,14 +34,14 @@ final class TestResultCopyTest
 
         $replacement = $mutate($original);
 
-        Expect::that($replacement)
+        expect($replacement)
             ->because('a result mutation MUST produce a replacement result')
             ->not()
             ->toBe($original);
-        Expect::that($original->toWire())
+        expect($original->toWire())
             ->because('a result mutation MUST NOT change the original result')
             ->toBe($originalWire);
-        Expect::that($replacement->toWire())
+        expect($replacement->toWire())
             ->because('a result mutation MUST preserve all state that it does not replace')
             ->toBe($expected);
     }
@@ -80,14 +81,14 @@ final class TestResultCopyTest
 
         $recovered = $original->withAttempts(4);
 
-        Expect::that($recovered)
+        expect($recovered)
             ->because('recovering an attempt count MUST produce a replacement result')
             ->not()
             ->toBe($original);
-        Expect::that($original->attempts)
+        expect($original->attempts)
             ->because('recovering an attempt count MUST NOT change the original result')
             ->toBe(2);
-        Expect::that($recovered->toWire())
+        expect($recovered->toWire())
             ->because('the replacement MUST preserve all result state except the recovered attempt count')
             ->toBe($expected);
     }

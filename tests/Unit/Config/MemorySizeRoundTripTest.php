@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Config;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Config\MemorySize;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class MemorySizeRoundTripTest
 {
@@ -15,7 +16,7 @@ final readonly class MemorySizeRoundTripTest
     {
         $bytes = 1000;
 
-        Expect::that(MemorySize::parseToBytes(MemorySize::format($bytes)))
+        expect(MemorySize::parseToBytes(MemorySize::format($bytes)))
             ->because('a formatted plain-byte size MUST parse to its original value')
             ->toBe($bytes);
     }

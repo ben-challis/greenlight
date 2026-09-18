@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Unit\Discovery\Plan;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Wire\InvalidWirePayload;
 use Greenlight\Tests\Support\JsonWire;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final class ExecutionPlanTest
 {
@@ -22,20 +23,20 @@ final class ExecutionPlanTest
             PlanEntryFixture::create('App\BarTest', 'c'),
         ], 7);
 
-        Expect::that($plan)->because('exposes entries classes and counts')->toHaveCount(3);
-        Expect::that($plan->classes())->because('exposes entries classes and counts')->toBe(['App\FooTest', 'App\BarTest']);
-        Expect::that($plan->seed)->because('exposes entries classes and counts')->toBe(7);
+        expect($plan)->because('exposes entries classes and counts')->toHaveCount(3);
+        expect($plan->classes())->because('exposes entries classes and counts')->toBe(['App\FooTest', 'App\BarTest']);
+        expect($plan->seed)->because('exposes entries classes and counts')->toBe(7);
 
         $byClass = $plan->entriesByClass();
 
-        Expect::that($byClass['App\FooTest'])->because('exposes entries classes and counts')->toHaveCount(2);
-        Expect::that($byClass['App\BarTest'])->because('exposes entries classes and counts')->toHaveCount(1);
+        expect($byClass['App\FooTest'])->because('exposes entries classes and counts')->toHaveCount(2);
+        expect($byClass['App\BarTest'])->because('exposes entries classes and counts')->toHaveCount(1);
     }
 
     #[Test]
     public function rejectsEntriesNotGroupedByClass(): void
     {
-        Expect::that(
+        expect()->calling(
             static fn(): ExecutionPlan => new ExecutionPlan([
                 PlanEntryFixture::create('App\FooTest', 'a'),
                 PlanEntryFixture::create('App\BarTest', 'c'),
@@ -53,7 +54,7 @@ final class ExecutionPlanTest
         $entry = PlanEntryFixture::create('App\FooTest', 'a', 'first');
         $message = 'Execution plan test ID "App\FooTest::a[first]" occurs more than once.';
 
-        Expect::that(static fn(): ExecutionPlan => new ExecutionPlan([$entry, $entry]))
+        expect()->calling(static fn(): ExecutionPlan => new ExecutionPlan([$entry, $entry]))
             ->because('an execution plan MUST contain each test ID exactly once')
             ->toThrow(\InvalidArgumentException::class, message: $message);
 
@@ -62,7 +63,7 @@ final class ExecutionPlanTest
             'entries' => [$entry->toWire(), $entry->toWire()],
         ];
 
-        Expect::that(static fn(): ExecutionPlan => ExecutionPlan::fromWire($payload))
+        expect()->calling(static fn(): ExecutionPlan => ExecutionPlan::fromWire($payload))
             ->because('wire decoding MUST reject duplicate test IDs')
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }
@@ -77,10 +78,10 @@ final class ExecutionPlanTest
 
         $restored = ExecutionPlan::fromWire(JsonWire::roundTrip($plan->toWire()));
 
-        Expect::that(\json_encode($restored->toWire(), \JSON_THROW_ON_ERROR))->because('survives the wire')
+        expect(\json_encode($restored->toWire(), \JSON_THROW_ON_ERROR))->because('survives the wire')
             ->toBe(\json_encode($plan->toWire(), \JSON_THROW_ON_ERROR));
-        Expect::that($restored->seed)->because('survives the wire')->toBe(42);
-        Expect::that($restored->entries[1]->id->dataSetKey)->because('survives the wire')->toBe('first case');
+        expect($restored->seed)->because('survives the wire')->toBe(42);
+        expect($restored->entries[1]->id->dataSetKey)->because('survives the wire')->toBe('first case');
     }
 
     #[Test]
@@ -89,14 +90,14 @@ final class ExecutionPlanTest
         $payload = new ExecutionPlan([PlanEntryFixture::create('App\FooTest', 'a')])->toWire();
         unset($payload['seed']);
 
-        Expect::that(
+        expect()->calling(
             static fn(): ExecutionPlan => ExecutionPlan::fromWire($payload),
         )->because('missing wire keys cause an error')->toThrow(InvalidWirePayload::class);
 
         $payload = new ExecutionPlan([PlanEntryFixture::create('App\FooTest', 'a')])->toWire();
         unset($payload['entries']);
 
-        Expect::that(
+        expect()->calling(
             static fn(): ExecutionPlan => ExecutionPlan::fromWire($payload),
         )->because('missing wire keys cause an error')->toThrow(InvalidWirePayload::class);
     }

@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Hyperf;
 
 use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class HyperfScanDirectoryRaceTest
 {
@@ -70,8 +71,8 @@ final readonly class HyperfScanDirectoryRaceTest
         }
         PHP, $created ? 'created' : 'missing']);
 
-        Expect::that($result->exitCode)->toBe($exitCode);
-        Expect::that($result->stdout)->toContain($output);
-        Expect::that($result->stderr)->toBe('');
+        expect($result->exitCode)->toBe($exitCode);
+        expect($result->stdout)->toContain($output);
+        expect($result->stderr)->toBe('');
     }
 }

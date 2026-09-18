@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\UntypedAction;
+
+use function Greenlight\expect;
 
 final readonly class UntypedReturnTest
 {
@@ -29,7 +30,7 @@ final readonly class UntypedReturnTest
 
         $result = $action->perform('value');
 
-        Expect::that($result)
+        expect($result)
             ->because('an untyped collaborator method can complete without a configured value')
             ->toBeNull();
     }

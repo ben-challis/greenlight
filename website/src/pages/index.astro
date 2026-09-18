@@ -24,7 +24,7 @@ final class PriceTest
     ): void {
         $total = Price::fromString($unit)->times($quantity);
 
-        Expect::that($total->format())->toBe($expected);
+        Expect::value($total->format())->toBe($expected);
     }
 }`;
 
@@ -160,7 +160,7 @@ final class PriceTest
         <div>
           <dt><code>$this-&gt;assertSame()</code></dt>
           <span aria-hidden="true">→</span>
-          <dd><code>Expect::that()-&gt;toBe()</code></dd>
+          <dd><code>Expect::value()-&gt;toBe()</code></dd>
         </div>
         <div>
           <dt><code>createMock()</code></dt>

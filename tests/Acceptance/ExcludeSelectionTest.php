@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class ExcludeSelectionTest
 {
@@ -20,8 +21,8 @@ final readonly class ExcludeSelectionTest
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-class=BExcludeProbeTest']);
 
-        Expect::that($result->exitCode)->because('exclude class removes only the matching class')->toBe(0);
-        Expect::that($this->selectedTestIds($result->stdoutLines()))
+        expect($result->exitCode)->because('exclude class removes only the matching class')->toBe(0);
+        expect($this->selectedTestIds($result->stdoutLines()))
             ->because('exclude class removes only the matching class')
             ->toBe([
                 'ExcludeProbe\AExcludeProbeTest::one',
@@ -35,8 +36,8 @@ final readonly class ExcludeSelectionTest
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-class=*BExcludeProbeTest']);
 
-        Expect::that($result->exitCode)->because('exclude class accepts a wildcard')->toBe(0);
-        Expect::that($this->selectedTestIds($result->stdoutLines()))
+        expect($result->exitCode)->because('exclude class accepts a wildcard')->toBe(0);
+        expect($this->selectedTestIds($result->stdoutLines()))
             ->because('exclude class accepts a wildcard')
             ->toBe([
                 'ExcludeProbe\AExcludeProbeTest::one',
@@ -54,8 +55,8 @@ final readonly class ExcludeSelectionTest
         $excludedFile = (string) \realpath($project->path('tests/CExcludeProbeTest.php'));
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=' . $excludedFile]);
 
-        Expect::that($result->exitCode)->because('exclude path removes tests under that prefix')->toBe(0);
-        Expect::that($this->selectedTestIds($result->stdoutLines()))
+        expect($result->exitCode)->because('exclude path removes tests under that prefix')->toBe(0);
+        expect($this->selectedTestIds($result->stdoutLines()))
             ->because('exclude path removes tests under that prefix')
             ->toBe([
                 'ExcludeProbe\AExcludeProbeTest::one',
@@ -69,8 +70,8 @@ final readonly class ExcludeSelectionTest
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/CExcludeProbeTest.php']);
 
-        Expect::that($result->exitCode)->because('exclude path resolves a relative prefix against the working directory')->toBe(0);
-        Expect::that($this->selectedTestIds($result->stdoutLines()))
+        expect($result->exitCode)->because('exclude path resolves a relative prefix against the working directory')->toBe(0);
+        expect($this->selectedTestIds($result->stdoutLines()))
             ->because('exclude path resolves a relative prefix against the working directory')
             ->toBe([
                 'ExcludeProbe\AExcludeProbeTest::one',
@@ -105,8 +106,8 @@ final readonly class ExcludeSelectionTest
         ]);
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/nested']);
 
-        Expect::that($result->exitCode)->because('exclude path resolves a relative directory prefix')->toBe(0);
-        Expect::that($this->selectedTestIds($result->stdoutLines()))
+        expect($result->exitCode)->because('exclude path resolves a relative directory prefix')->toBe(0);
+        expect($this->selectedTestIds($result->stdoutLines()))
             ->because('exclude path resolves a relative directory prefix')
             ->toBe([
                 'ExcludeProbe\AExcludeProbeTest::one',
@@ -130,10 +131,10 @@ final readonly class ExcludeSelectionTest
             ],
         );
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('a restricted exclusion prefix MUST not prevent test selection')
             ->toBe(0);
-        Expect::that($result->output())
+        expect($result->output())
             ->because('a restricted exclusion prefix MUST not leak engine diagnostics')
             ->not()
             ->toContain('open_basedir restriction in effect');
@@ -145,8 +146,8 @@ final readonly class ExcludeSelectionTest
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/MissingProbeTest.php']);
 
-        Expect::that($result->exitCode)->because('exclude path warns when the prefix matches no test file')->toBe(0);
-        Expect::that($result->output())
+        expect($result->exitCode)->because('exclude path warns when the prefix matches no test file')->toBe(0);
+        expect($result->output())
             ->because('exclude path warns when the prefix matches no test file')
             ->toContain('did not match a discovered test file')
             ->toContain('MissingProbeTest.php')
@@ -154,8 +155,8 @@ final readonly class ExcludeSelectionTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--exclude-path=tests/MissingProbeTest.php']);
 
-        Expect::that($result->exitCode)->because('exclude path warns when the prefix matches no test file')->toBe(0);
-        Expect::that($result->output())
+        expect($result->exitCode)->because('exclude path warns when the prefix matches no test file')->toBe(0);
+        expect($result->output())
             ->because('exclude path warns when the prefix matches no test file')
             ->toContain('did not match a discovered test file')
             ->toContain('3 tests, 3 passed');
@@ -182,10 +183,10 @@ final readonly class ExcludeSelectionTest
             ['list-tests', '--exclude-path=tests/MissingProbeTest.php'],
         );
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('the discovery failure remains the command error')
             ->toBe(1);
-        Expect::that($result->output())
+        expect($result->output())
             ->because('the discovery failure remains the command error')
             ->toContain('Discovery directory')
             ->toContain('missing-tests')
@@ -199,8 +200,8 @@ final readonly class ExcludeSelectionTest
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['list-tests', '--exclude-path=tests/CExcludeProbeTest.php']);
 
-        Expect::that($result->exitCode)->because('exclude path does not warn when the prefix matches a test file')->toBe(0);
-        Expect::that($result->output())
+        expect($result->exitCode)->because('exclude path does not warn when the prefix matches a test file')->toBe(0);
+        expect($result->output())
             ->because('exclude path does not warn when the prefix matches a test file')
             ->not()
             ->toContain('did not match a discovered test file');

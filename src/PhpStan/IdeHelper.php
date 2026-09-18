@@ -11,7 +11,7 @@ use Greenlight\Expect\TemporalExpectation;
 /**
  * IDE indexers do not run PHPStan plugins. Thus, the helper copies the
  * expectation declarations. It adds configured matchers as @method annotations.
- * It also adds native matcher annotations to the temporal declaration.
+ * Native matchers use their PHP declarations.
  *
  * An IDE indexes the generated file but does not execute or load it. When
  * matchers change, generate the file again. The PHPStan extension and this
@@ -40,23 +40,6 @@ final readonly class IdeHelper
         $expectation = new \ReflectionClass(Expectation::class);
         $temporal = new \ReflectionClass(TemporalExpectation::class);
         $temporalAnnotations = [];
-
-        foreach ($expectation->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if (!\str_starts_with($method->getName(), 'to')) {
-                continue;
-            }
-
-            $parameters = \array_map(
-                static fn(\ReflectionParameter $parameter): string => MatcherMap::parameterSignature($parameter, 'null'),
-                $method->getParameters(),
-            );
-
-            $temporalAnnotations[] = \sprintf(
-                ' * @method Expectation<T> %s(%s)',
-                $method->getName(),
-                \implode(', ', $parameters),
-            );
-        }
 
         foreach ($map->names() as $index => $name) {
             if ($expectation->hasMethod($name)) {
@@ -89,7 +72,7 @@ final readonly class IdeHelper
                  *
                 %s
                  */
-                final class %s {}
+                class %s {}
 
                 /**
                  * @template T

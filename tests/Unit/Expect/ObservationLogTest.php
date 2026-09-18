@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ObservationLog;
+
+use function Greenlight\expect;
 
 final class ObservationLogTest
 {
@@ -21,10 +22,10 @@ final class ObservationLogTest
         $log->record(1.4, 'third change');
         $log->record(1.5, 'fourth change');
 
-        Expect::that($log->count())
+        expect($log->count())
             ->because('the observation count includes compressed and omitted values')
             ->toBe(6);
-        Expect::that($log->render())
+        expect($log->render())
             ->because('the history keeps the first observation and the latest three value groups')
             ->toBe(
                 "+0.0ms same (×2)\n"
@@ -43,10 +44,10 @@ final class ObservationLogTest
         $log->record(0.001, 'changed');
         $log->record(0.002, 'changed');
 
-        Expect::that($log->count())
+        expect($log->count())
             ->because('the observation count includes repeated tail values')
             ->toBe(3);
-        Expect::that($log->render())
+        expect($log->render())
             ->because('consecutive tail values are one group with a repeat count')
             ->toBe("+0.0ms first\n+1.0ms changed (×2)");
     }
@@ -57,7 +58,7 @@ final class ObservationLogTest
         $log = new ObservationLog(0.0);
         $log->record(0.0, \str_repeat('x', 3_000));
 
-        Expect::that($log->render())
+        expect($log->render())
             ->because('rendered observation history stays within its byte bound')
             ->toHaveLength(2_048)
             ->toEndWith('...');
@@ -70,7 +71,7 @@ final class ObservationLogTest
         $log = new ObservationLog(0.0);
         $log->record(0.0, $value);
 
-        Expect::that($log->render())
+        expect($log->render())
             ->because('history at the byte limit MUST remain unchanged')
             ->toBe('+0.0ms ' . $value);
     }
@@ -81,7 +82,7 @@ final class ObservationLogTest
         $log = new ObservationLog(0.0);
         $log->record(0.0, \str_repeat('€', 1_000));
 
-        Expect::that($log->render())
+        expect($log->render())
             ->because('bounded observation history MUST remain valid UTF-8')
             ->toBe('+0.0ms ' . \str_repeat('€', 679) . '...');
     }
@@ -94,7 +95,7 @@ final class ObservationLogTest
         $log->record(0.0, 'second');
         $log->record(0.0, 'first');
 
-        Expect::that($log->render())
+        expect($log->render())
             ->because('an identical tail group does not repeat the first observation')
             ->toBe("+0.0ms first\n+0.0ms second");
     }

@@ -6,12 +6,13 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\SlowTests;
 use Greenlight\Reporting\Style;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class SlowTestsThresholdTest
 {
@@ -22,7 +23,7 @@ final class SlowTestsThresholdTest
         $slow->record($this->finished('exactlyAtThreshold', 0.500));
         $slow->record($this->finished('aboveThreshold', 0.501));
 
-        Expect::that($slow->render(new Style(ansi: false)))
+        expect($slow->render(new Style(ansi: false)))
             ->because('the slow-test block MUST contain only tests above the half-second threshold')
             ->toBe("\nSlowest tests:\n  0.501s Acme\\SlowTest::aboveThreshold\n");
     }

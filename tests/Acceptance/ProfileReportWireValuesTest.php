@@ -13,13 +13,14 @@ use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\WireEvent;
 use Greenlight\Event\WorkerSpawned;
 use Greenlight\Event\WorkerTiming;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Event\EventCodec;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
+
+use function Greenlight\expect;
 
 final readonly class ProfileReportWireValuesTest
 {
@@ -38,8 +39,8 @@ final readonly class ProfileReportWireValuesTest
             new RunFinished('run-1', new ResultSummary(passed: 1), 1.0, 2.0),
         ]);
 
-        Expect::that($report->exitCode)->because('Profile command output: ' . $report->output())->toBe(0);
-        Expect::that($report->stdout)
+        expect($report->exitCode)->because('Profile command output: ' . $report->output())->toBe(0);
+        expect($report->stdout)
             ->toContain('Workers: 1 requested, 1 spawned')
             ->toContain("\n  " . $workerId . ' ')
             ->toContain('1.000s  100%');
@@ -65,8 +66,8 @@ final readonly class ProfileReportWireValuesTest
             ]),
         ]);
 
-        Expect::that($report->exitCode)->because('Profile command output: ' . $report->output())->toBe(0);
-        Expect::that($report->stdout)->toContain(\sprintf(
+        expect($report->exitCode)->because('Profile command output: ' . $report->output())->toBe(0);
+        expect($report->stdout)->toContain(\sprintf(
             'Assignment gaps: 0.000s total (%d gaps)',
             \PHP_INT_MAX,
         ));

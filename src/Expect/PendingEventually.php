@@ -6,12 +6,40 @@ namespace Greenlight\Expect;
 
 /**
  * Collects poll options until `within()` sets the deadline.
- * Use `Expect::eventually()` to create this object.
+ * Use `Expect::calling(...)->returnValue()->eventually()` to create this object.
  *
  * @template T
  */
 final class PendingEventually
 {
+    private bool $negated = false;
+
+    /** @var non-empty-string|null */
+    private ?string $reason = null;
+
+    /** @return self<T> */
+    public function not(): self
+    {
+        $this->negated = true;
+
+        return $this;
+    }
+
+    /**
+     * @param non-empty-string $reason
+     *
+     * @return self<T>
+     *
+     * @throws ExpectationFailed
+     */
+    public function because(string $reason): self
+    {
+        new MatcherEvaluation(null, $this->renderer)->because($reason);
+        $this->reason = $reason;
+
+        return $this;
+    }
+
     private const float DEFAULT_INTERVAL_SECONDS = 0.025;
 
     private float $intervalSeconds = self::DEFAULT_INTERVAL_SECONDS;
@@ -36,7 +64,7 @@ final class PendingEventually
     ) {}
 
     /**
-     * @internal Use Expect::eventually() instead.
+     * @internal Use Expect::calling(...)->returnValue()->eventually() instead.
      *
      * @template TProbe
      *
@@ -94,6 +122,8 @@ final class PendingEventually
     }
 
     /**
+     * @throws ExpectationFailed
+     *
      * @return EventuallyExpectation<T>
      *
      * @throws \InvalidArgumentException if the duration is not finite or is not positive
@@ -107,7 +137,7 @@ final class PendingEventually
             ));
         }
 
-        return EventuallyExpectation::create(
+        $expectation = EventuallyExpectation::create(
             $this->probe,
             $this->clock,
             $this->attemptDeadline,
@@ -117,6 +147,19 @@ final class PendingEventually
             $this->renderer,
             $this->extensions,
         );
+
+        if ($this->negated) {
+            $expectation->not();
+        }
+
+        if ($this->reason !== null) {
+            $expectation->because($this->reason);
+        }
+
+        $this->negated = false;
+        $this->reason = null;
+
+        return $expectation;
     }
 
     /**

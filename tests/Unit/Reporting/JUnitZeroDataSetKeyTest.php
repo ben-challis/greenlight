@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class JUnitZeroDataSetKeyTest
 {
@@ -29,7 +30,7 @@ final class JUnitZeroDataSetKeyTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('JUnit MUST preserve the data-set key "0" in the testcase name')
             ->toContain('<testcase name="checksValue[0]"');
     }

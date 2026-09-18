@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Rector;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Rector\AssertionConversion;
 use Greenlight\Rector\AssertionMap;
+
+use function Greenlight\expect;
 
 final class AssertionMapTest
 {
@@ -28,20 +29,20 @@ final class AssertionMapTest
         $conversion = AssertionMap::lookup($method);
 
         if ($expected === null) {
-            Expect::that($conversion)->because('unknown assertions have no conversion')->toBeNull();
+            expect($conversion)->because('unknown assertions have no conversion')->toBeNull();
 
             return;
         }
 
-        Expect::that($conversion)
+        expect($conversion)
             ->because(\sprintf('Expected a conversion for PHPUnit assertion "%s".', $method))
             ->toBeInstanceOf(AssertionConversion::class);
 
-        Expect::that($conversion->matcher)->because('lookup preserves conversion metadata')->toBe($expected['matcher']);
-        Expect::that($conversion->subject)->toBe($expected['subject']);
-        Expect::that($conversion->matcherArguments)->toBe($expected['matcherArguments']);
-        Expect::that($conversion->arity)->toBe($expected['arity']);
-        Expect::that($conversion->negated)->toBe($expected['negated']);
+        expect($conversion->matcher)->because('lookup preserves conversion metadata')->toBe($expected['matcher']);
+        expect($conversion->subject)->toBe($expected['subject']);
+        expect($conversion->matcherArguments)->toBe($expected['matcherArguments']);
+        expect($conversion->arity)->toBe($expected['arity']);
+        expect($conversion->negated)->toBe($expected['negated']);
     }
 
     /**

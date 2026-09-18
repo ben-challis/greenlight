@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Doubles\ProtectedPropertyContract;
+
+use function Greenlight\expect;
 
 final readonly class ProxyProtectedPropertyTest
 {
@@ -23,10 +24,10 @@ final readonly class ProxyProtectedPropertyTest
         try {
             $property = new \ReflectionProperty($double, 'status');
 
-            Expect::that($property->isProtected())
+            expect($property->isProtected())
                 ->because('a proxy property MUST preserve protected visibility')
                 ->toBeTrue();
-            Expect::that((string) $property->getType())
+            expect((string) $property->getType())
                 ->toBe('string');
         } finally {
             $doubles->dispose();

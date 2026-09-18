@@ -9,12 +9,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Fixture\Execution\Artifact\UnknownSizeFileStream;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactUnknownSizeTest
 {
@@ -41,7 +42,7 @@ final readonly class ArtifactUnknownSizeTest
             new TestArtifactBudget(),
         );
 
-        Expect::that(static fn() => $attachments->file(
+        expect()->calling(static fn() => $attachments->file(
             'evidence.txt',
             self::SCHEME . '://evidence',
         ))

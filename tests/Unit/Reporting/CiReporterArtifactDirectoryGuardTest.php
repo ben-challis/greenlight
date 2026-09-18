@@ -9,12 +9,13 @@ use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\GithubReporter;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class CiReporterArtifactDirectoryGuardTest
 {
@@ -27,7 +28,7 @@ final class CiReporterArtifactDirectoryGuardTest
         $reporter->onEvent(new TestFinished($this->result(), 1.0));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('GitHub MUST NOT announce an artifact directory that the run did not create')
             ->toBe('');
     }
@@ -41,7 +42,7 @@ final class CiReporterArtifactDirectoryGuardTest
         $reporter->onEvent(new TestFinished($this->result(), 1.0));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('TeamCity MUST retain attachment metadata without an artifact publication command')
             ->toBe(
                 "##teamcity[testMetadata testName='Example\\AttachmentTest::passes' "

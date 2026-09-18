@@ -104,12 +104,12 @@ callback can specify and check the throwable:
 
 <!-- php-example {"example":"phpstan-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::that($callback)->toThrow(DomainException::class, message: 'Exact message');
-Expect::that($callback)->toThrow(DomainException::class, matching: '/message/i');
-Expect::that($callback)->toThrow($failure);
-Expect::that($callback)->toThrow(
+Expect::calling($callback)->toThrow(DomainException::class, message: 'Exact message');
+Expect::calling($callback)->toThrow(DomainException::class, matching: '/message/i');
+Expect::calling($callback)->toThrow($failure);
+Expect::calling($callback)->toThrow(
     static function (DomainException $error): void {
-        Expect::that($error->getPrevious())->toBeInstanceOf(LengthException::class);
+        Expect::value($error->getPrevious())->toBeInstanceOf(LengthException::class);
     },
 );
 ```
@@ -128,17 +128,10 @@ A call that supplies a message constraint with a Throwable instance causes the
 `greenlight.toThrow.instanceConstraint` error. Greenlight also rejects the call
 at run time.
 
-The subject for `toThrow()` must be callable. The extension reports a known
-incompatible subject before the test runs:
-
-<!-- php-example {"example":"phpstan-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
-```php
-Expect::that(42)->toThrow(DomainException::class);
-```
-
-This call causes the `greenlight.toThrow.subjectType` error. The extension
-does not report the error for a `mixed` subject. Greenlight validates unresolved
-subject types at run time.
+`Expect::calling()` requires a callable through its native PHP parameter type.
+PHPStan reports an ordinary argument-type error for a non-callable argument.
+`Expect::value()` does not expose `toThrow()`. PHPStan reports an undefined
+method for that call, even without the Greenlight extension.
 
 ## Mock plan checks
 
@@ -174,12 +167,12 @@ A dynamic method name or position keeps the documented `mixed` value type.
 
 These checks apply when a plugin adds matchers through `ExpectationExtension`.
 See [plugins](plugins.md). Built-in matchers such as `toBe()` are real methods
-on `Expectation`. The extension supplies their signatures on temporal chains.
+on immediate and temporal value expectations. Their signatures do not require
+the extension.
 
-Temporal matcher calls and custom matcher calls use `__call()` at run time.
-PHPStan cannot infer their signatures from `__call()`. The extension reflects
-native matcher methods from `Expectation`. It also loads configuration files
-and reflects each custom matcher closure.
+Custom matcher calls use `__call()` at run time. PHPStan cannot infer their
+signatures from `__call()`. The extension loads configuration files and reflects
+each custom matcher closure.
 
 The declared closure return type must be compatible with `bool`. PHPStan leaves
 an absent or `mixed` return type unresolved.
@@ -206,14 +199,14 @@ The extension checks calls against those closure signatures:
 
 <!-- php-example {"example":"phpstan-example-06","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::that($id)->toBeValidUuid();     // checked: name, arguments, types
-Expect::that($id)->toBeValidUuuid();    // fails analysis: unknown matcher
-Expect::that($hash)->toHaveDigestLength('six'); // fails analysis: expects int
-Expect::that(123)->toBeValidUuid();      // fails analysis: expects a string subject
+Expect::value($id)->toBeValidUuid();     // checked: name, arguments, types
+Expect::value($id)->toBeValidUuuid();    // fails analysis: unknown matcher
+Expect::value($hash)->toHaveDigestLength('six'); // fails analysis: expects int
+Expect::value(123)->toBeValidUuid();      // fails analysis: expects a string subject
 ```
 
 The first closure parameter declares the accepted subject type. PHPStan gets
-this type from `that()` and temporal probes.
+this type from `value()` and return-value probes.
 
 Each custom matcher returns the same typed chain. Thus, later custom matchers
 receive the same subject type.
@@ -222,13 +215,13 @@ The same checks apply to temporal expectations:
 
 <!-- php-example {"example":"phpstan-example-07","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::eventually(fn(): string => $hash)
+Expect::calling(fn(): string => $hash)->returnValue()->eventually()
     ->within(1.0)
     ->toHaveDigestLength(6);
 ```
 
-Temporal return types mix in the native `Expectation<T>` matcher declarations.
-Thus, native and extension matchers keep the probe subject type.
+Temporal value expectations declare native matcher methods through a PHP trait.
+Generic PHPDoc types preserve the probe return type across these methods.
 
 If configuration files register one matcher name with different parameter or
 return types, analysis fails. PHPStan does not select one signature.
@@ -252,7 +245,7 @@ passes:
 <!-- php-example {"example":"phpstan-subject-refinement","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 /** @var FileCoverage|null $file */
-Expect::that($file)->not()->toBeNull();
+Expect::value($file)->not()->toBeNull();
 
 $file->coveredLines; // PHPStan knows that this value is FileCoverage.
 ```
@@ -265,7 +258,8 @@ PHPStan applies this refinement to these native matchers:
 * `toBeArray()`, `toBeString()`, `toBeInt()`, `toBeFloat()`, and `toBeBool()`
 * `toBeCallable()` and `toBeIterable()`
 
-The call must contain `Expect::that()` and the matcher in the same expression.
+The call must contain `Expect::value()` or `Greenlight\expect()` and the matcher
+in the same expression.
 PHPStan also follows `because()` and `not()` in that expression.
 
 A stored expectation does not narrow the original subject. A temporal

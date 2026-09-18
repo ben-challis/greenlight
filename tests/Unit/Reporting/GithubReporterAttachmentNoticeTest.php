@@ -9,11 +9,12 @@ use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\GithubReporter;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class GithubReporterAttachmentNoticeTest
 {
@@ -51,7 +52,7 @@ final class GithubReporterAttachmentNoticeTest
         ));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('the attachment notice MUST escape workflow-command data')
             ->toBe(
                 '::notice::Greenlight attachments: '

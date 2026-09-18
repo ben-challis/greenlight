@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\IntegrationFixture;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\FixtureResource;
+
+use function Greenlight\expect;
 
 final readonly class FixtureResourceAccessTest
 {
@@ -19,13 +20,13 @@ final readonly class FixtureResourceAccessTest
             ['password' => 'secret'],
         );
 
-        Expect::that($resource->has('host'))
+        expect($resource->has('host'))
             ->because('ordinary fixture values MUST be discoverable')
             ->toBeTrue();
-        Expect::that($resource->has('password'))
+        expect($resource->has('password'))
             ->because('fixture secrets MUST be discoverable without revealing them')
             ->toBeTrue();
-        Expect::that($resource->has('missing'))
+        expect($resource->has('missing'))
             ->because('unknown fixture keys MUST remain absent')
             ->toBeFalse();
     }
@@ -35,13 +36,13 @@ final readonly class FixtureResourceAccessTest
     {
         $resource = FixtureResource::empty();
 
-        Expect::that(static fn(): mixed => $resource->value('host'))
+        expect()->calling(static fn(): mixed => $resource->value('host'))
             ->because('missing ordinary values MUST identify their key')
             ->toThrow(
                 \OutOfBoundsException::class,
                 message: 'Fixture resource has no ordinary value named "host".',
             );
-        Expect::that(static fn() => $resource->secret('password'))
+        expect()->calling(static fn() => $resource->secret('password'))
             ->because('missing secrets MUST identify their key')
             ->toThrow(
                 \OutOfBoundsException::class,
@@ -57,10 +58,10 @@ final readonly class FixtureResourceAccessTest
             'map' => [],
         ])->toWire());
 
-        Expect::that($resource->list('list'))
+        expect($resource->list('list'))
             ->because('an empty transported collection MUST remain usable as a list')
             ->toBe([]);
-        Expect::that($resource->map('map'))
+        expect($resource->map('map'))
             ->because('an empty transported collection MUST remain usable as a map')
             ->toBe([]);
     }
@@ -81,7 +82,7 @@ final readonly class FixtureResourceAccessTest
             'asMap' => ['value'],
         ]);
 
-        Expect::that(static fn(): mixed => match ($accessor) {
+        expect()->calling(static fn(): mixed => match ($accessor) {
             'string' => $resource->string($key),
             'int' => $resource->int($key),
             'float' => $resource->float($key),

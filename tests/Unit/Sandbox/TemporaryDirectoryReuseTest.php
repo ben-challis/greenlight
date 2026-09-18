@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class TemporaryDirectoryReuseTest
 {
@@ -26,10 +27,10 @@ final readonly class TemporaryDirectoryReuseTest
         $second = $directory->path();
 
         try {
-            Expect::that($second)
+            expect($second)
                 ->because('use after disposal MUST create a fresh temp directory')
                 ->not()->toBe($first);
-            Expect::that(\is_dir($second))
+            expect(\is_dir($second))
                 ->toBeTrue();
         } finally {
             $directory->dispose();

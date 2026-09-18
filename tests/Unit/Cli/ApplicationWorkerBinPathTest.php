@@ -7,13 +7,14 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final readonly class ApplicationWorkerBinPathTest
 {
@@ -53,12 +54,12 @@ final readonly class ApplicationWorkerBinPathTest
             MemoryStream::close($stdout, $stderr);
         }
 
-        Expect::that($exit)
+        expect($exit)
             ->because('an inaccessible worker binary MUST use the in-process fallback')
             ->toBe(0);
-        Expect::that($warning)
+        expect($warning)
             ->because('an inaccessible worker binary MUST not leak an engine diagnostic')
             ->toBeNull();
-        Expect::that($errors)->toBe('');
+        expect($errors)->toBe('');
     }
 }

@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Config;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\FixturePath;
+
+use function Greenlight\expect;
 
 final readonly class ConfigLoaderThrowableTest
 {
@@ -17,19 +18,19 @@ final readonly class ConfigLoaderThrowableTest
     {
         $directory = FixturePath::get('ConfigFiles/ThrowingError');
 
-        Expect::that(static fn() => new ConfigLoader()->loadFromDirectory($directory))
+        expect()->calling(static fn() => new ConfigLoader()->loadFromDirectory($directory))
             ->toThrow(
                 static function (ConfigFileError $error) use ($directory): void {
-                    Expect::that($error->getMessage())
+                    expect($error->getMessage())
                         ->because('configuration errors MUST retain their type, source file, and message')
                         ->toBe(
                             'Configuration file "' . $directory . '/greenlight.php" threw '
                             . 'TypeError: config type exploded',
                         );
-                    Expect::that($error->getPrevious())
+                    expect($error->getPrevious())
                         ->because('the wrapped configuration error MUST remain available as the cause')
                         ->toBeInstanceOf(\TypeError::class);
-                    Expect::that($error->getPrevious()->getMessage())->toBe('config type exploded');
+                    expect($error->getPrevious()->getMessage())->toBe('config type exploded');
                 },
             );
     }

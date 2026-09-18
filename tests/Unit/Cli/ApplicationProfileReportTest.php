@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final readonly class ApplicationProfileReportTest
 {
@@ -42,13 +43,13 @@ final readonly class ApplicationProfileReportTest
         \rewind($stdout);
         \rewind($stderr);
 
-        Expect::that($exit)
+        expect($exit)
             ->because('an invalid profile stream MUST fail cleanly')
             ->toBe(1);
-        Expect::that(\stream_get_contents($stdout))
+        expect(\stream_get_contents($stdout))
             ->because('an invalid profile stream MUST NOT write to standard output')
             ->toBe('');
-        Expect::that(\stream_get_contents($stderr))
+        expect(\stream_get_contents($stderr))
             ->because('an invalid profile stream MUST write its diagnostic to standard error')
             ->toBe($diagnostic);
     }

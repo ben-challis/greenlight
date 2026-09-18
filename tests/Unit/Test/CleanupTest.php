@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Test;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\CleanupFailed;
+
+use function Greenlight\expect;
 
 final readonly class CleanupTest
 {
@@ -26,7 +27,7 @@ final readonly class CleanupTest
         $cleanup->close();
         $cleanup->close();
 
-        Expect::that($trace)
+        expect($trace)
             ->because('cleanup callbacks run once in reverse registration order')
             ->toBe(['second', 'first']);
     }
@@ -55,13 +56,13 @@ final readonly class CleanupTest
             $trace[] = 'first';
         });
 
-        Expect::that(static fn() => $cleanup->close())
+        expect()->calling(static fn() => $cleanup->close())
             ->because('callback failures MUST NOT prevent later cleanup')
             ->toThrow(
                 static function (CleanupFailed $cleanupFailed) use ($firstFailure, $secondFailure, &$trace): void {
-                    Expect::that($trace)->toBe(['first', 'first failure', 'second failure', 'last']);
-                    Expect::that($cleanupFailed->failures)->toBe([$firstFailure, $secondFailure]);
-                    Expect::that($cleanupFailed->getPrevious())->toBeNull();
+                    expect($trace)->toBe(['first', 'first failure', 'second failure', 'last']);
+                    expect($cleanupFailed->failures)->toBe([$firstFailure, $secondFailure]);
+                    expect($cleanupFailed->getPrevious())->toBeNull();
                 },
             );
     }
@@ -82,7 +83,7 @@ final readonly class CleanupTest
 
         $cleanup->close();
 
-        Expect::that($trace)->toBe(['value', 'void']);
+        expect($trace)->toBe(['value', 'void']);
     }
 
     #[Test]
@@ -91,7 +92,7 @@ final readonly class CleanupTest
         $cleanup = new Cleanup();
         $cleanup->close();
 
-        Expect::that(static fn() => $cleanup->defer(static function (): void {}))
+        expect()->calling(static fn() => $cleanup->defer(static function (): void {}))
             ->because('a closed cleanup stack cannot accept callbacks')
             ->toThrow(
                 \LogicException::class,

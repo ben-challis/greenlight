@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+
+use function Greenlight\expect;
 
 final readonly class TemporalRetryCompositionTest
 {
@@ -23,7 +24,7 @@ final readonly class TemporalRetryCompositionTest
         ];
 
         ExpectationRuntime::withClock($clock, static function () use (&$calls, &$responses): void {
-            Expect::eventually(static function () use (&$calls, &$responses): string {
+            expect()->calling(static function () use (&$calls, &$responses): string {
                 ++$calls;
                 $response = \array_shift($responses);
 
@@ -32,7 +33,7 @@ final readonly class TemporalRetryCompositionTest
                 }
 
                 return $response ?? 'ready';
-            })
+            })->returnValue()->eventually()
                 ->retryOnException(\RuntimeException::class)
                 ->retryOnException(\LogicException::class)
                 ->pollEvery(0.010)
@@ -40,10 +41,10 @@ final readonly class TemporalRetryCompositionTest
                 ->toBe('ready');
         });
 
-        Expect::that($calls)
+        expect($calls)
             ->because('repeated retry configuration MUST accumulate exception types')
             ->toBe(3);
-        Expect::that($clock->sleeps)
+        expect($clock->sleeps)
             ->toBe([0.010, 0.010]);
     }
 }

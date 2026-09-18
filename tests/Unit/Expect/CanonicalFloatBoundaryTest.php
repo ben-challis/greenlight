@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class CanonicalFloatBoundaryTest
 {
@@ -14,7 +15,7 @@ final class CanonicalFloatBoundaryTest
     #[DataSet('exactFloatIntegerBoundaries')]
     public function canonicalEqualityAlignsExactFloatIntegerBoundaries(int $integer, float $middle): void
     {
-        Expect::that([$integer, $middle])
+        expect([$integer, $middle])
             ->because('canonical equality MUST align an exactly representable boundary integer with its float')
             ->toEqualCanonicalizing([$middle, (float) $integer]);
     }

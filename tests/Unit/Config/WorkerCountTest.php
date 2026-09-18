@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\WorkerCount;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class WorkerCountTest
 {
@@ -18,22 +19,22 @@ final class WorkerCountTest
         $auto = WorkerCount::auto();
         $fixed = WorkerCount::exactly(3);
 
-        Expect::that($auto->fixed)
+        expect($auto->fixed)
             ->because('the automatic worker count has no fixed value')
             ->toBeNull();
-        Expect::that($auto->isAuto())
+        expect($auto->isAuto())
             ->because('the automatic worker count identifies its state')
             ->toBeTrue();
-        Expect::that($auto->describe())
+        expect($auto->describe())
             ->because('the automatic worker count has a stable description')
             ->toBe('auto');
-        Expect::that($fixed->fixed)
+        expect($fixed->fixed)
             ->because('the fixed worker count exposes its value')
             ->toBe(3);
-        Expect::that($fixed->isAuto())
+        expect($fixed->isAuto())
             ->because('the fixed worker count identifies its state')
             ->toBeFalse();
-        Expect::that($fixed->describe())
+        expect($fixed->describe())
             ->because('the fixed worker count renders its value')
             ->toBe('3');
     }
@@ -42,7 +43,7 @@ final class WorkerCountTest
     #[DataSet('nonpositiveCounts')]
     public function nonpositiveCountsGiveExactGuidance(int $count, string $message): void
     {
-        Expect::that(static fn(): WorkerCount => WorkerCount::exactly($count)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        expect()->calling(static fn(): WorkerCount => WorkerCount::exactly($count)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a worker count must be positive')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }

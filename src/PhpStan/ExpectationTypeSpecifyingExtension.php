@@ -8,6 +8,7 @@ use Greenlight\Expect\Expect;
 use Greenlight\Expect\Expectation;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
@@ -18,6 +19,7 @@ use PHPStan\Analyser\TypeSpecifier;
 use PHPStan\Analyser\TypeSpecifierAwareExtension;
 use PHPStan\Analyser\TypeSpecifierContext;
 use PHPStan\Reflection\MethodReflection;
+use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\BooleanType;
 use PHPStan\Type\CallableType;
@@ -34,14 +36,16 @@ use PHPStan\Type\Type;
 /**
  * Narrows the subject after a synchronous type expectation passes.
  *
- * The call must contain `Expect::that()` in the same expression. This
- * constraint keeps the original subject expression available to PHPStan.
+ * The call must contain `Expect::value()` or `Greenlight\expect()` in the same
+ * expression. This constraint keeps the original subject available to PHPStan.
  *
  * @internal
  */
 final class ExpectationTypeSpecifyingExtension implements MethodTypeSpecifyingExtension, TypeSpecifierAwareExtension
 {
     private TypeSpecifier $typeSpecifier;
+
+    public function __construct(private readonly ReflectionProvider $reflectionProvider) {}
 
     #[\Override]
     public function getClass(): string
@@ -107,11 +111,23 @@ final class ExpectationTypeSpecifyingExtension implements MethodTypeSpecifyingEx
             $receiver = $receiver->var;
         }
 
+        if ($receiver instanceof FuncCall && $receiver->name instanceof Name) {
+            $function = $this->reflectionProvider->resolveFunctionName($receiver->name, $scope);
+
+            if ($function === null || \strtolower($function) !== 'greenlight\\expect') {
+                return null;
+            }
+
+            $argument = $receiver->getArgs()[0] ?? null;
+
+            return $argument instanceof Arg && !$argument->unpack ? $argument->value : null;
+        }
+
         if (!$receiver instanceof StaticCall
             || !$receiver->class instanceof Name
             || !$receiver->name instanceof Identifier
             || $scope->resolveName($receiver->class) !== Expect::class
-            || $receiver->name->toString() !== 'that'
+            || $receiver->name->toString() !== 'value'
         ) {
             return null;
         }

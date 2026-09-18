@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Unit\Execution\Artifact;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Artifact\StreamWriter;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Execution\Artifact\PartialWriteStream;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactStreamPartialWriteTest
 {
@@ -30,10 +31,10 @@ final readonly class ArtifactStreamPartialWriteTest
         try {
             StreamWriter::writeFully($stream, 'evidence');
 
-            Expect::that(PartialWriteStream::$written)
+            expect(PartialWriteStream::$written)
                 ->because('a partial write MUST continue from the first unwritten byte')
                 ->toBe('evidence');
-            Expect::that(PartialWriteStream::$writes)
+            expect(PartialWriteStream::$writes)
                 ->because('the fixture accepts at most two bytes from each write')
                 ->toBe(4);
         } finally {

@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Execution\Worker\Capture;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Worker\OutputCapture;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\CapturedOutput;
+
+use function Greenlight\expect;
 
 final readonly class OutputCaptureClosedBufferReuseTest
 {
@@ -16,13 +17,13 @@ final readonly class OutputCaptureClosedBufferReuseTest
     {
         [$first, $second, $levelAfterSecondStop, $baseline] = $this->captureTwice();
 
-        Expect::that($first->stdout)
+        expect($first->stdout)
             ->because('closing the first capture buffer MUST preserve its output')
             ->toBe('first');
-        Expect::that($second->stdout)
+        expect($second->stdout)
             ->because('a reused capture MUST collect output in its second window')
             ->toBe('second');
-        Expect::that($levelAfterSecondStop)
+        expect($levelAfterSecondStop)
             ->because('the second stop MUST restore the original output-buffer level')
             ->toBe($baseline);
     }

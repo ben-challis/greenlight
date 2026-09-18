@@ -10,13 +10,14 @@ use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactSession;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactRecoveryAttemptFloorTest
 {
@@ -44,14 +45,14 @@ final readonly class ArtifactRecoveryAttemptFloorTest
             attempts: 10,
         ));
 
-        Expect::that($recovered->attempts)
+        expect($recovered->attempts)
             ->because('stale recovery metadata MUST NOT reduce a reported attempt count')
             ->toBe(10);
-        Expect::that($recovered->attachments)
+        expect($recovered->attachments)
             ->toHaveCount(1);
-        Expect::that($recovered->attachments[0]->name)
+        expect($recovered->attachments[0]->name)
             ->toBe('evidence.txt');
-        Expect::that((string) \file_get_contents($recovered->attachments[0]->path))
+        expect((string) \file_get_contents($recovered->attachments[0]->path))
             ->toBe('completed evidence');
     }
 
@@ -78,7 +79,7 @@ final readonly class ArtifactRecoveryAttemptFloorTest
             attempts: 3,
         ));
 
-        Expect::that($recovered->attempts)
+        expect($recovered->attempts)
             ->because('corrupt recovery metadata MUST NOT inflate a reported attempt count')
             ->toBe(3);
     }
@@ -107,10 +108,10 @@ final readonly class ArtifactRecoveryAttemptFloorTest
             $warning,
         );
 
-        Expect::that($recovered->attempts)
+        expect($recovered->attempts)
             ->because('a missing recovery marker MUST preserve the reported attempt count')
             ->toBe(3);
-        Expect::that($warning)
+        expect($warning)
             ->because('a missing recovery marker MUST not leak an engine diagnostic')
             ->toBeNull();
     }

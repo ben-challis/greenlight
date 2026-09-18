@@ -7,18 +7,19 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\InvalidDoubleUsage;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+
+use function Greenlight\expect;
 
 final class InvalidDoubleUsageTest
 {
     #[Test]
     public function defaultValueErrorsNameTheParameterAndMethod(): void
     {
-        Expect::that(InvalidDoubleUsage::defaultValueNotReproducible('limit', 'Example', 'run')->getMessage())
+        expect(InvalidDoubleUsage::defaultValueNotReproducible('limit', 'Example', 'run')->getMessage())
             ->toBe('Doubles cannot reproduce the default value of parameter $limit from Example::run() in a proxy.');
 
-        Expect::that(InvalidDoubleUsage::objectDefaultNotReproducible('clock', 'Example', 'run')->getMessage())
+        expect(InvalidDoubleUsage::objectDefaultNotReproducible('clock', 'Example', 'run')->getMessage())
             ->toBe(
                 'Doubles cannot reproduce the object default of parameter $clock from Example::run() in a proxy. '
                 . 'Use an interface without object defaults instead.',
@@ -40,7 +41,7 @@ final class InvalidDoubleUsageTest
             default => Fail::because(\sprintf('Unknown doubles diagnostic factory "%s".', $factory)),
         };
 
-        Expect::that($error->getMessage())
+        expect($error->getMessage())
             ->because('the doubles diagnostic MUST identify the unsupported reflection input')
             ->toBe($expected);
     }

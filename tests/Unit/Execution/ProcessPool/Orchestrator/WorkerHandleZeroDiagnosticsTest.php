@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerHandle;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final class WorkerHandleZeroDiagnosticsTest
 {
@@ -24,7 +25,7 @@ final class WorkerHandleZeroDiagnosticsTest
 
         $handle->drainPipes();
 
-        Expect::that($handle->diagnostics)
+        expect($handle->diagnostics)
             ->because('pipe draining MUST retain non-empty diagnostics')
             ->toBe('0');
     }

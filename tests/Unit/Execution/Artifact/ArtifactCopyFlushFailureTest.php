@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Execution\Artifact;
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Artifact\NativeFileCopier;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Execution\Artifact\UnflushableStream;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactCopyFlushFailureTest
 {
@@ -34,7 +35,7 @@ final readonly class ArtifactCopyFlushFailureTest
 
         UnflushableStream::reset();
 
-        Expect::that(static fn() => new NativeFileCopier()->copy(
+        expect()->calling(static fn() => new NativeFileCopier()->copy(
             $source,
             self::SCHEME . '://destination',
         ))
@@ -43,7 +44,7 @@ final readonly class ArtifactCopyFlushFailureTest
                 AttachmentError::class,
                 message: 'Failed to flush the published attachment.',
             );
-        Expect::that(UnflushableStream::closedStreams())
+        expect(UnflushableStream::closedStreams())
             ->because('a flush failure MUST close the destination stream')
             ->toBe(1);
     }

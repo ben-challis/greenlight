@@ -8,8 +8,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Discovery\Plan\PlanOrder;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final class PlanOrderClassIntegrityTest
 {
@@ -29,7 +30,7 @@ final class PlanOrderClassIntegrityTest
             $ordered->entries,
         );
 
-        Expect::that($ids)
+        expect($ids)
             ->because('class priority MUST preserve method order')
             ->toBe([
                 'Acme\\BetaTest::first',
@@ -37,7 +38,7 @@ final class PlanOrderClassIntegrityTest
                 'Acme\\AlphaTest::first',
                 'Acme\\AlphaTest::second',
             ]);
-        Expect::that($ordered->seed)
+        expect($ordered->seed)
             ->because('class priority MUST preserve the reproducible plan seed')
             ->toBe(4242);
     }

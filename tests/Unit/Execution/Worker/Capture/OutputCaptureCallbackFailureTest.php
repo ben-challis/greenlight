@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Execution\Worker\Capture;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Worker\OutputCapture;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class OutputCaptureCallbackFailureTest
 {
@@ -41,7 +42,7 @@ final readonly class OutputCaptureCallbackFailureTest
         });
 
         try {
-            Expect::that($capture->stop(...))
+            expect()->calling($capture->stop(...))
                 ->because('capture cleanup MUST preserve the first callback failure')
                 ->toThrow($first);
             $levelAfterStop = \ob_get_level();
@@ -61,10 +62,10 @@ final readonly class OutputCaptureCallbackFailureTest
             } while ($active !== $previous);
         }
 
-        Expect::that($levelAfterStop)
+        expect($levelAfterStop)
             ->because('a callback failure MUST NOT leave capture buffers active')
             ->toBe($baseline);
-        Expect::that($messages)
+        expect($messages)
             ->because('the previous error handler MUST receive later diagnostics')
             ->toBe(['After capture.']);
 
@@ -72,6 +73,6 @@ final readonly class OutputCaptureCallbackFailureTest
         echo 'Next capture.';
         $captured = $capture->stop();
 
-        Expect::that($captured->stdout)->toBe('Next capture.');
+        expect($captured->stdout)->toBe('Next capture.');
     }
 }

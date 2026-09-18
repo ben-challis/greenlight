@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Config;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\InvalidConfiguration;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class InvalidConfigurationTest
 {
@@ -19,9 +20,9 @@ final class InvalidConfigurationTest
         $previous = new \InvalidArgumentException('The supplied value is invalid.', 17);
         $error = $wrap($previous);
 
-        Expect::that($error->getMessage())->toBe($previous->getMessage());
-        Expect::that($error->getCode())->toBe(17);
-        Expect::that($error->getPrevious())->toBe($previous);
+        expect($error->getMessage())->toBe($previous->getMessage());
+        expect($error->getCode())->toBe(17);
+        expect($error->getPrevious())->toBe($previous);
     }
 
     /** @return iterable<string, array{\Closure(\InvalidArgumentException): InvalidConfiguration}> */

@@ -6,12 +6,133 @@ This reference lists immediate and temporal expectation types.
 
 These signatures are the public API.
 
+## `CallExpectation`
+
+Namespace: `Greenlight\Expect`
+
+Checks a call's captured outcome. Construct with `Expect::calling()`.
+Matchers in one immediate chain share one invocation.
+
+```php
+final class CallExpectation
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L13)
+
+PHPDoc:
+
+- `@template T`
+
+### `not()`
+
+```php
+public function not(): self
+```
+
+PHPDoc:
+
+- `@return self<T>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L36)
+
+### `because()`
+
+```php
+public function because(string $reason): self
+```
+
+PHPDoc:
+
+- `@param non-empty-string $reason`
+- `@return self<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L50)
+
+### `toReturn()`
+
+Checks identity with the return value. An unexpected throwable propagates.
+
+```php
+public function toReturn(mixed $expected): self
+```
+
+PHPDoc:
+
+- `@return self<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L65)
+
+### `returnValue()`
+
+Selects the return value without invoking the call.
+
+```php
+public function returnValue(): ReturnValueExpectation
+```
+
+PHPDoc:
+
+- `@return ReturnValueExpectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L79)
+
+### `toThrow()`
+
+Checks the thrown type, exact object, or typed callback constraint.
+With no constraint, matches any Throwable.
+
+```php
+public function toThrow(
+    string|\Closure|\Throwable $throwable = \Throwable::class,
+    ?string $matching = null,
+    ?string $message = null,
+): self
+```
+
+PHPDoc:
+
+- `@template TThrowable of \Throwable`
+- `@param class-string<TThrowable>|TThrowable|\Closure(TThrowable): void $throwable`
+- `@return self<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L109)
+
+### `eventually()`
+
+```php
+public function eventually(): PendingEventuallyCall
+```
+
+PHPDoc:
+
+- `@return PendingEventuallyCall<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L137)
+
+### `consistently()`
+
+```php
+public function consistently(): PendingConsistentlyCall
+```
+
+PHPDoc:
+
+- `@return PendingConsistentlyCall<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L160)
+
 ## `ConsistentlyExpectation`
 
 Namespace: `Greenlight\Expect`
 
 Checks each probe value for a fixed period and fails on the first mismatch.
-Use `Expect::consistently()` and `for()` to create this object.
+Use `Expect::calling(...)->returnValue()->consistently()` and `for()` to create this object.
 
 ```php
 final class ConsistentlyExpectation extends TemporalExpectation
@@ -24,52 +145,6 @@ PHPDoc:
 - `@template T`
 - `@extends TemporalExpectation<T>`
 
-### `__call()`
-
-Runs a native or configured extension matcher against each probe value.
-
-```php
-final public function __call(string $name, array $arguments): Expectation
-```
-
-PHPDoc:
-
-- `@param array<array-key, mixed> $arguments`
-- `@return Expectation<T>`
-- `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
-- `@throws ExpectationFailed`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L86)
-
-### `not()`
-
-Negates the next matcher for every value returned by the probe.
-
-```php
-final public function not(): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L42)
-
-### `because()`
-
-Sets a reason for the next matcher. The next matcher consumes the
-reason.
-
-If the matcher fails, the failure message ends with "because" and the
-reason. An empty reason causes a usage failure.
-
-```php
-final public function because(string $reason): static
-```
-
-PHPDoc:
-
-- `@param non-empty-string $reason`
-- `@throws ExpectationFailed`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L60)
-
 ### `toBe()`
 
 Passes when the subject and expected value are identical (===).
@@ -83,7 +158,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L141)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L23)
 
 ### `toEqual()`
 
@@ -99,7 +174,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L158)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L36)
 
 ### `toEqualCanonicalizing()`
 
@@ -117,7 +192,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L177)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L51)
 
 ### `toBeOneOf()`
 
@@ -132,7 +207,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L193)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L63)
 
 ### `toBeIn()`
 
@@ -150,7 +225,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L213)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L79)
 
 ### `toBeInstanceOf()`
 
@@ -164,7 +239,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L231)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L91)
 
 ### `toBeTrue()`
 
@@ -177,7 +252,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L245)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L101)
 
 ### `toBeFalse()`
 
@@ -190,7 +265,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L255)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L111)
 
 ### `toBeNull()`
 
@@ -203,7 +278,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L265)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L121)
 
 ### `toBeArray()`
 
@@ -216,7 +291,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L275)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L131)
 
 ### `toBeString()`
 
@@ -229,7 +304,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L290)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L141)
 
 ### `toBeInt()`
 
@@ -242,7 +317,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L305)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L151)
 
 ### `toBeFloat()`
 
@@ -255,7 +330,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L320)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L161)
 
 ### `toBeBool()`
 
@@ -268,7 +343,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L335)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L171)
 
 ### `toBeCallable()`
 
@@ -281,7 +356,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L350)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L181)
 
 ### `toBeIterable()`
 
@@ -294,7 +369,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L365)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L191)
 
 ### `toContain()`
 
@@ -311,7 +386,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L384)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L205)
 
 ### `toHaveCount()`
 
@@ -327,7 +402,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L433)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L218)
 
 ### `toBeEmpty()`
 
@@ -345,7 +420,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L464)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L233)
 
 ### `toHaveLength()`
 
@@ -362,7 +437,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L491)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L247)
 
 ### `toHaveKey()`
 
@@ -379,7 +454,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L522)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L261)
 
 ### `toContainSubset()`
 
@@ -398,7 +473,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L554)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L278)
 
 ### `toBeGreaterThan()`
 
@@ -411,7 +486,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L584)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L288)
 
 ### `toBeGreaterThanOrEqual()`
 
@@ -424,7 +499,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L598)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L298)
 
 ### `toBeLessThan()`
 
@@ -437,7 +512,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L612)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L308)
 
 ### `toBeLessThanOrEqual()`
 
@@ -450,7 +525,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L626)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L318)
 
 ### `toBeWithin()`
 
@@ -466,7 +541,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L643)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L331)
 
 ### `toMatch()`
 
@@ -480,7 +555,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException when the pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L670)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L342)
 
 ### `toStartWith()`
 
@@ -493,7 +568,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L686)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L352)
 
 ### `toEndWith()`
 
@@ -506,7 +581,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L700)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L362)
 
 ### `toBeJson()`
 
@@ -522,7 +597,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L717)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L375)
 
 ### `toMatchJson()`
 
@@ -540,53 +615,60 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L736)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L390)
 
-### `toThrow()`
+### `not()`
 
-The subject must be callable. The matcher calls it with no arguments.
-It passes when the subject throws an instance of the specified class.
-A Throwable instance instead requires the subject to throw that exact
-object.
-
-The throwable can instead be a callback with one typed Throwable
-parameter. Its parameter type specifies the expected throwable class.
-Greenlight gives the caught throwable to the callback after its type
-matches. The callback matches when it returns no value without an
-expectation failure.
-
-The optional `matching:` argument checks the message with a regular
-expression. The `message:` argument checks the exact message. Do not use
-these arguments with a throwable callback or instance.
-
-With `not()`, a throwable that does not satisfy all applicable
-constraints makes the matcher pass. A different object does not satisfy
-an instance constraint.
+Negates the next matcher for every value returned by the probe.
 
 ```php
-public function toThrow(
-    string|\Closure|\Throwable $throwable,
-    ?string $matching = null,
-    ?string $message = null,
-): Expectation
+final public function not(): static
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L44)
+
+### `because()`
+
+Sets a reason for the next matcher. The next matcher consumes the
+reason.
+
+If the matcher fails, the failure message ends with "because" and the
+reason. An empty reason causes a usage failure.
+
+```php
+final public function because(string $reason): static
 ```
 
 PHPDoc:
 
-- `@template TThrowable of \Throwable`
-- `@param class-string<TThrowable>|TThrowable|\Closure(TThrowable): void $throwable`
-- `@return Expectation<T>`
-- `@throws \InvalidArgumentException when the match pattern is not a valid regular expression`
+- `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L795)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L62)
+
+### `__call()`
+
+Runs a native or configured extension matcher against each probe value.
+
+```php
+final public function __call(string $name, array $arguments): Expectation
+```
+
+PHPDoc:
+
+- `@param array<array-key, mixed> $arguments`
+- `@return Expectation<T>`
+- `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L88)
 
 ## `EventuallyExpectation`
 
 Namespace: `Greenlight\Expect`
 
 Polls the probe until its matcher passes or the deadline expires.
-Use `Expect::eventually()` and `within()` to create this object.
+Use `Expect::calling(...)->returnValue()->eventually()` and `within()` to create this object.
 
 ```php
 final class EventuallyExpectation extends TemporalExpectation
@@ -599,52 +681,6 @@ PHPDoc:
 - `@template T`
 - `@extends TemporalExpectation<T>`
 
-### `__call()`
-
-Runs a native or configured extension matcher against each probe value.
-
-```php
-final public function __call(string $name, array $arguments): Expectation
-```
-
-PHPDoc:
-
-- `@param array<array-key, mixed> $arguments`
-- `@return Expectation<T>`
-- `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
-- `@throws ExpectationFailed`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L86)
-
-### `not()`
-
-Negates the next matcher for every value returned by the probe.
-
-```php
-final public function not(): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L42)
-
-### `because()`
-
-Sets a reason for the next matcher. The next matcher consumes the
-reason.
-
-If the matcher fails, the failure message ends with "because" and the
-reason. An empty reason causes a usage failure.
-
-```php
-final public function because(string $reason): static
-```
-
-PHPDoc:
-
-- `@param non-empty-string $reason`
-- `@throws ExpectationFailed`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L60)
-
 ### `toBe()`
 
 Passes when the subject and expected value are identical (===).
@@ -658,7 +694,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L141)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L23)
 
 ### `toEqual()`
 
@@ -674,7 +710,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L158)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L36)
 
 ### `toEqualCanonicalizing()`
 
@@ -692,7 +728,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L177)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L51)
 
 ### `toBeOneOf()`
 
@@ -707,7 +743,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L193)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L63)
 
 ### `toBeIn()`
 
@@ -725,7 +761,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L213)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L79)
 
 ### `toBeInstanceOf()`
 
@@ -739,7 +775,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L231)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L91)
 
 ### `toBeTrue()`
 
@@ -752,7 +788,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L245)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L101)
 
 ### `toBeFalse()`
 
@@ -765,7 +801,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L255)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L111)
 
 ### `toBeNull()`
 
@@ -778,7 +814,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L265)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L121)
 
 ### `toBeArray()`
 
@@ -791,7 +827,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L275)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L131)
 
 ### `toBeString()`
 
@@ -804,7 +840,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L290)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L141)
 
 ### `toBeInt()`
 
@@ -817,7 +853,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L305)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L151)
 
 ### `toBeFloat()`
 
@@ -830,7 +866,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L320)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L161)
 
 ### `toBeBool()`
 
@@ -843,7 +879,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L335)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L171)
 
 ### `toBeCallable()`
 
@@ -856,7 +892,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L350)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L181)
 
 ### `toBeIterable()`
 
@@ -869,7 +905,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L365)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L191)
 
 ### `toContain()`
 
@@ -886,7 +922,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L384)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L205)
 
 ### `toHaveCount()`
 
@@ -902,7 +938,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L433)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L218)
 
 ### `toBeEmpty()`
 
@@ -920,7 +956,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L464)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L233)
 
 ### `toHaveLength()`
 
@@ -937,7 +973,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L491)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L247)
 
 ### `toHaveKey()`
 
@@ -954,7 +990,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L522)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L261)
 
 ### `toContainSubset()`
 
@@ -973,7 +1009,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L554)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L278)
 
 ### `toBeGreaterThan()`
 
@@ -986,7 +1022,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L584)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L288)
 
 ### `toBeGreaterThanOrEqual()`
 
@@ -999,7 +1035,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L598)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L298)
 
 ### `toBeLessThan()`
 
@@ -1012,7 +1048,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L612)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L308)
 
 ### `toBeLessThanOrEqual()`
 
@@ -1025,7 +1061,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L626)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L318)
 
 ### `toBeWithin()`
 
@@ -1041,7 +1077,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L643)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L331)
 
 ### `toMatch()`
 
@@ -1055,7 +1091,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException when the pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L670)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L342)
 
 ### `toStartWith()`
 
@@ -1068,7 +1104,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L686)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L352)
 
 ### `toEndWith()`
 
@@ -1081,7 +1117,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L700)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L362)
 
 ### `toBeJson()`
 
@@ -1097,7 +1133,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L717)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L375)
 
 ### `toMatchJson()`
 
@@ -1115,46 +1151,53 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L736)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L390)
 
-### `toThrow()`
+### `not()`
 
-The subject must be callable. The matcher calls it with no arguments.
-It passes when the subject throws an instance of the specified class.
-A Throwable instance instead requires the subject to throw that exact
-object.
-
-The throwable can instead be a callback with one typed Throwable
-parameter. Its parameter type specifies the expected throwable class.
-Greenlight gives the caught throwable to the callback after its type
-matches. The callback matches when it returns no value without an
-expectation failure.
-
-The optional `matching:` argument checks the message with a regular
-expression. The `message:` argument checks the exact message. Do not use
-these arguments with a throwable callback or instance.
-
-With `not()`, a throwable that does not satisfy all applicable
-constraints makes the matcher pass. A different object does not satisfy
-an instance constraint.
+Negates the next matcher for every value returned by the probe.
 
 ```php
-public function toThrow(
-    string|\Closure|\Throwable $throwable,
-    ?string $matching = null,
-    ?string $message = null,
-): Expectation
+final public function not(): static
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L44)
+
+### `because()`
+
+Sets a reason for the next matcher. The next matcher consumes the
+reason.
+
+If the matcher fails, the failure message ends with "because" and the
+reason. An empty reason causes a usage failure.
+
+```php
+final public function because(string $reason): static
 ```
 
 PHPDoc:
 
-- `@template TThrowable of \Throwable`
-- `@param class-string<TThrowable>|TThrowable|\Closure(TThrowable): void $throwable`
-- `@return Expectation<T>`
-- `@throws \InvalidArgumentException when the match pattern is not a valid regular expression`
+- `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L795)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L62)
+
+### `__call()`
+
+Runs a native or configured extension matcher against each probe value.
+
+```php
+final public function __call(string $name, array $arguments): Expectation
+```
+
+PHPDoc:
+
+- `@param array<array-key, mixed> $arguments`
+- `@return Expectation<T>`
+- `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L88)
 
 ## `Expect`
 
@@ -1164,17 +1207,20 @@ Creates immediate and temporal expectations.
 
 The worker loads the configured expectation extensions before test execution.
 Each expectation chain uses a snapshot of those extensions.
+The runner also loads `Greenlight\expect($value)` for value expectations.
+Use `Greenlight\expect()->calling($call)` to select a call explicitly.
+Import the function for short expectation calls.
 
 ```php
 final class Expect
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L16)
 
-### `that()`
+### `value()`
 
 ```php
-public static function that(mixed $value): Expectation
+public static function value(mixed $value): Expectation
 ```
 
 PHPDoc:
@@ -1183,49 +1229,30 @@ PHPDoc:
 - `@param T $value`
 - `@return Expectation<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L30)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L33)
 
-### `eventually()`
+### `calling()`
 
-Polls the probe until its matcher passes or the deadline expires.
+Selects a call without executing it.
 
 ```php
-public static function eventually(callable $probe): PendingEventually
+public static function calling(callable $call): CallExpectation
 ```
 
 PHPDoc:
 
 - `@template T`
-- `@param callable(): T $probe`
-- `@return PendingEventually<T>`
+- `@param callable(): T $call`
+- `@return CallExpectation<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L44)
-
-### `consistently()`
-
-Polls the probe for a fixed period and fails on the first mismatch.
-
-```php
-public static function consistently(callable $probe): PendingConsistently
-```
-
-PHPDoc:
-
-- `@template T`
-- `@param callable(): T $probe`
-- `@return PendingConsistently<T>`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L47)
 
 ## `Expectation`
 
 Namespace: `Greenlight\Expect`
 
-A fluent matcher chain for one subject value.
-
-Use `Expect::that()` to create an instance.
-
-A failed matcher throws `ExpectationFailed` immediately.
+Checks one value. Callable values are never invoked.
+Use `Expect::value()` to create an expectation.
 
 `toEqual()` uses these rules for deep equality:
 
@@ -1248,86 +1275,29 @@ A failed matcher throws `ExpectationFailed` immediately.
   The comparison safely processes cyclic structures.
 
 ```php
-final class Expectation
+class Expectation
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L40)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L33)
 
 PHPDoc:
 
 - `@template T`
-
-### `__call()`
-
-Dispatches extension matchers. If an `ExpectationExtension` provides the
-requested matcher, this method gives it the subject and arguments.
-
-An extension cannot replace a native matcher. PHP calls the native
-method directly.
-
-```php
-public function __call(string $name, array $arguments): self
-```
-
-PHPDoc:
-
-- `@param array<array-key, mixed> $arguments`
-- `@return self<T>`
-- `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
-- `@throws ExpectationFailed`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L73)
-
-### `not()`
-
-Inverts the next matcher in the chain. That matcher consumes the
-inversion. Negation does not apply to subject type checks. A matcher
-fails if it cannot process the subject type.
-
-```php
-public function not(): self
-```
-
-PHPDoc:
-
-- `@return self<T>`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L101)
-
-### `because()`
-
-Sets a reason for the next matcher in the chain. The next matcher
-consumes the reason.
-
-If the matcher fails, the failure message ends with "because" and the
-reason. An empty reason causes a usage failure.
-
-```php
-public function because(string $reason): self
-```
-
-PHPDoc:
-
-- `@param non-empty-string $reason`
-- `@return self<T>`
-- `@throws ExpectationFailed`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L121)
 
 ### `toBe()`
 
 Passes when the subject and expected value are identical (===).
 
 ```php
-public function toBe(mixed $expected): self
+public function toBe(mixed $expected): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L141)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L23)
 
 ### `toEqual()`
 
@@ -1335,15 +1305,15 @@ Passes when the subject and expected value satisfy the rules for deep
 equality in the `Expectation` class description.
 
 ```php
-public function toEqual(mixed $expected): self
+public function toEqual(mixed $expected): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L158)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L36)
 
 ### `toEqualCanonicalizing()`
 
@@ -1353,30 +1323,30 @@ Thus, lists in object properties keep their order. Associative arrays
 keep their keys.
 
 ```php
-public function toEqualCanonicalizing(mixed $expected): self
+public function toEqualCanonicalizing(mixed $expected): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L177)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L51)
 
 ### `toBeOneOf()`
 
 Passes when the subject is identical (===) to one of the options.
 
 ```php
-public function toBeOneOf(mixed ...$options): self
+public function toBeOneOf(mixed ...$options): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L193)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L63)
 
 ### `toBeIn()`
 
@@ -1385,160 +1355,160 @@ matcher is the reverse of `toContain()`. The check consumes a `Traversable`
 haystack.
 
 ```php
-public function toBeIn(iterable $haystack): self
+public function toBeIn(iterable $haystack): Expectation
 ```
 
 PHPDoc:
 
 - `@param iterable<mixed> $haystack`
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L213)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L79)
 
 ### `toBeInstanceOf()`
 
 ```php
-public function toBeInstanceOf(string $class): self
+public function toBeInstanceOf(string $class): Expectation
 ```
 
 PHPDoc:
 
 - `@param class-string $class`
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L231)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L91)
 
 ### `toBeTrue()`
 
 ```php
-public function toBeTrue(): self
+public function toBeTrue(): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L245)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L101)
 
 ### `toBeFalse()`
 
 ```php
-public function toBeFalse(): self
+public function toBeFalse(): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L255)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L111)
 
 ### `toBeNull()`
 
 ```php
-public function toBeNull(): self
+public function toBeNull(): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L265)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L121)
 
 ### `toBeArray()`
 
 ```php
-public function toBeArray(): self
+public function toBeArray(): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L275)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L131)
 
 ### `toBeString()`
 
 ```php
-public function toBeString(): self
+public function toBeString(): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L290)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L141)
 
 ### `toBeInt()`
 
 ```php
-public function toBeInt(): self
+public function toBeInt(): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L305)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L151)
 
 ### `toBeFloat()`
 
 ```php
-public function toBeFloat(): self
+public function toBeFloat(): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L320)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L161)
 
 ### `toBeBool()`
 
 ```php
-public function toBeBool(): self
+public function toBeBool(): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L335)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L171)
 
 ### `toBeCallable()`
 
 ```php
-public function toBeCallable(): self
+public function toBeCallable(): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L350)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L181)
 
 ### `toBeIterable()`
 
 ```php
-public function toBeIterable(): self
+public function toBeIterable(): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L365)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L191)
 
 ### `toContain()`
 
@@ -1547,15 +1517,15 @@ subject, checks for the value by identity (===). Iteration stops at the
 first match or the end of the subject.
 
 ```php
-public function toContain(mixed $needle): self
+public function toContain(mixed $needle): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L384)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L205)
 
 ### `toHaveCount()`
 
@@ -1563,15 +1533,15 @@ Accepts an array, `Countable`, or `Traversable` subject. Uses `count()`
 for arrays and `Countable` objects. Otherwise, consumes the iterator.
 
 ```php
-public function toHaveCount(int $count): self
+public function toHaveCount(int $count): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L433)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L218)
 
 ### `toBeEmpty()`
 
@@ -1581,15 +1551,15 @@ Accepts a string, array, `Countable`, or `Traversable` subject. Uses
 objects, consumes the iterator.
 
 ```php
-public function toBeEmpty(): self
+public function toBeEmpty(): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L464)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L233)
 
 ### `toHaveLength()`
 
@@ -1598,15 +1568,15 @@ strings, measures the number of bytes. Array and `Countable` subjects use
 `count()`.
 
 ```php
-public function toHaveLength(int $length): self
+public function toHaveLength(int $length): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L491)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L247)
 
 ### `toHaveKey()`
 
@@ -1615,15 +1585,15 @@ matcher uses `array_key_exists()` for arrays and `offsetExists()` for
 `ArrayAccess`.
 
 ```php
-public function toHaveKey(int|string $key): self
+public function toHaveKey(int|string $key): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L522)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L261)
 
 ### `toContainSubset()`
 
@@ -1633,68 +1603,68 @@ related nested subject array can contain extra keys. The failure
 identifies the first different key by its dot-separated path.
 
 ```php
-public function toContainSubset(array $subset): self
+public function toContainSubset(array $subset): Expectation
 ```
 
 PHPDoc:
 
 - `@param array<array-key, mixed> $subset`
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L554)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L278)
 
 ### `toBeGreaterThan()`
 
 ```php
-public function toBeGreaterThan(int|float $bound): self
+public function toBeGreaterThan(int|float $bound): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L584)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L288)
 
 ### `toBeGreaterThanOrEqual()`
 
 ```php
-public function toBeGreaterThanOrEqual(int|float $bound): self
+public function toBeGreaterThanOrEqual(int|float $bound): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L598)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L298)
 
 ### `toBeLessThan()`
 
 ```php
-public function toBeLessThan(int|float $bound): self
+public function toBeLessThan(int|float $bound): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L612)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L308)
 
 ### `toBeLessThanOrEqual()`
 
 ```php
-public function toBeLessThanOrEqual(int|float $bound): self
+public function toBeLessThanOrEqual(int|float $bound): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L626)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L318)
 
 ### `toBeWithin()`
 
@@ -1702,55 +1672,55 @@ Passes when the absolute difference between the numeric subject and
 `$of` is not more than `$delta`. Use a finite tolerance of zero or more.
 
 ```php
-public function toBeWithin(float $delta, float $of): self
+public function toBeWithin(float $delta, float $of): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L643)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L331)
 
 ### `toMatch()`
 
 ```php
-public function toMatch(string $pattern): self
+public function toMatch(string $pattern): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws \InvalidArgumentException when the pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L670)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L342)
 
 ### `toStartWith()`
 
 ```php
-public function toStartWith(string $prefix): self
+public function toStartWith(string $prefix): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L686)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L352)
 
 ### `toEndWith()`
 
 ```php
-public function toEndWith(string $suffix): self
+public function toEndWith(string $suffix): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L700)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L362)
 
 ### `toBeJson()`
 
@@ -1758,15 +1728,15 @@ The subject must be a string. The matcher passes when the string
 contains valid JSON.
 
 ```php
-public function toBeJson(): self
+public function toBeJson(): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L717)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L375)
 
 ### `toMatchJson()`
 
@@ -1776,54 +1746,79 @@ the results. Object-key order has no effect. Invalid subject JSON causes
 an expectation failure. Invalid expected JSON causes a usage error.
 
 ```php
-public function toMatchJson(string $expected): self
+public function toMatchJson(string $expected): Expectation
 ```
 
 PHPDoc:
 
-- `@return self<T>`
+- `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L736)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L390)
 
-### `toThrow()`
-
-The subject must be callable. The matcher calls it with no arguments.
-It passes when the subject throws an instance of the specified class.
-A Throwable instance instead requires the subject to throw that exact
-object.
-
-The throwable can instead be a callback with one typed Throwable
-parameter. Its parameter type specifies the expected throwable class.
-Greenlight gives the caught throwable to the callback after its type
-matches. The callback matches when it returns no value without an
-expectation failure.
-
-The optional `matching:` argument checks the message with a regular
-expression. The `message:` argument checks the exact message. Do not use
-these arguments with a throwable callback or instance.
-
-With `not()`, a throwable that does not satisfy all applicable
-constraints makes the matcher pass. A different object does not satisfy
-an instance constraint.
+### `not()`
 
 ```php
-public function toThrow(
-    string|\Closure|\Throwable $throwable,
-    ?string $matching = null,
-    ?string $message = null,
-): self
+public function not(): static
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L58)
+
+### `because()`
+
+```php
+public function because(string $reason): static
 ```
 
 PHPDoc:
 
-- `@template TThrowable of \Throwable`
-- `@param class-string<TThrowable>|TThrowable|\Closure(TThrowable): void $throwable`
-- `@return self<T>`
-- `@throws \InvalidArgumentException when the match pattern is not a valid regular expression`
+- `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L795)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L70)
+
+### `__call()`
+
+```php
+public function __call(string $name, array $arguments): Expectation
+```
+
+PHPDoc:
+
+- `@param array<array-key, mixed> $arguments`
+- `@return Expectation<T>`
+- `@throws \BadMethodCallException`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L87)
+
+## `ExpectationBuilder`
+
+Namespace: `Greenlight\Expect`
+
+Selects an explicit call subject after `Greenlight\expect()` with no argument.
+
+```php
+final readonly class ExpectationBuilder
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ExpectationBuilder.php#L10)
+
+### `calling()`
+
+Selects a call for later execution.
+
+```php
+public function calling(callable $call): CallExpectation
+```
+
+PHPDoc:
+
+- `@template T`
+- `@param callable(): T $call`
+- `@return CallExpectation<T>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ExpectationBuilder.php#L21)
 
 ## `ExpectationExtension`
 
@@ -1942,7 +1937,7 @@ PHPDoc:
 Namespace: `Greenlight\Expect`
 
 Collects poll options until `for()` sets the duration.
-Use `Expect::consistently()` to create this object.
+Use `Expect::calling(...)->returnValue()->consistently()` to create this object.
 
 ```php
 final class PendingConsistently
@@ -1954,6 +1949,32 @@ PHPDoc:
 
 - `@template T`
 
+### `not()`
+
+```php
+public function not(): self
+```
+
+PHPDoc:
+
+- `@return self<T>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L21)
+
+### `because()`
+
+```php
+public function because(string $reason): self
+```
+
+PHPDoc:
+
+- `@param non-empty-string $reason`
+- `@return self<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L35)
+
 ### `pollEvery()`
 
 ```php
@@ -1965,7 +1986,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws \InvalidArgumentException if the interval is not finite or is less than 0.001 seconds`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L58)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L86)
 
 ### `for()`
 
@@ -1975,17 +1996,85 @@ public function for(float $seconds): ConsistentlyExpectation
 
 PHPDoc:
 
+- `@throws ExpectationFailed`
 - `@return ConsistentlyExpectation<T>`
 - `@throws \InvalidArgumentException if the duration is not finite or is not positive`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L76)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L106)
+
+## `PendingConsistentlyCall`
+
+Namespace: `Greenlight\Expect`
+
+Collects time controls for a call expectation.
+
+```php
+final readonly class PendingConsistentlyCall
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L12)
+
+PHPDoc:
+
+- `@template T`
+
+### `not()`
+
+```php
+public function not(): self
+```
+
+PHPDoc:
+
+- `@return self<T>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L38)
+
+### `because()`
+
+```php
+public function because(string $reason): self
+```
+
+PHPDoc:
+
+- `@param non-empty-string $reason`
+- `@return self<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L52)
+
+### `pollEvery()`
+
+```php
+public function pollEvery(float $seconds): self
+```
+
+PHPDoc:
+
+- `@return self<T>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L60)
+
+### `for()`
+
+```php
+public function for(float $seconds): TemporalCallExpectation
+```
+
+PHPDoc:
+
+- `@return TemporalCallExpectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L72)
 
 ## `PendingEventually`
 
 Namespace: `Greenlight\Expect`
 
 Collects poll options until `within()` sets the deadline.
-Use `Expect::eventually()` to create this object.
+Use `Expect::calling(...)->returnValue()->eventually()` to create this object.
 
 ```php
 final class PendingEventually
@@ -1997,6 +2086,32 @@ PHPDoc:
 
 - `@template T`
 
+### `not()`
+
+```php
+public function not(): self
+```
+
+PHPDoc:
+
+- `@return self<T>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L21)
+
+### `because()`
+
+```php
+public function because(string $reason): self
+```
+
+PHPDoc:
+
+- `@param non-empty-string $reason`
+- `@return self<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L35)
+
 ### `pollEvery()`
 
 ```php
@@ -2008,7 +2123,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws \InvalidArgumentException if the interval is not finite or is less than 0.001 seconds`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L63)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L91)
 
 ### `retryOnException()`
 
@@ -2022,7 +2137,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws \InvalidArgumentException if a type does not extend Exception`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L84)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L112)
 
 ### `within()`
 
@@ -2032,74 +2147,96 @@ public function within(float $seconds): EventuallyExpectation
 
 PHPDoc:
 
+- `@throws ExpectationFailed`
 - `@return EventuallyExpectation<T>`
 - `@throws \InvalidArgumentException if the duration is not finite or is not positive`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L101)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L131)
 
-## `TemporalExpectation`
+## `PendingEventuallyCall`
 
 Namespace: `Greenlight\Expect`
 
-Contains the matcher dispatch and probe operations for eventual and
-consistent expectations.
+Collects time controls for a call expectation.
 
 ```php
-abstract class TemporalExpectation
+final readonly class PendingEventuallyCall
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L12)
 
 PHPDoc:
 
 - `@template T`
-- `@mixin Expectation<T>`
 
-### `__call()`
-
-Runs a native or configured extension matcher against each probe value.
+### `not()`
 
 ```php
-final public function __call(string $name, array $arguments): Expectation
+public function not(): self
 ```
 
 PHPDoc:
 
-- `@param array<array-key, mixed> $arguments`
-- `@return Expectation<T>`
-- `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
-- `@throws ExpectationFailed`
+- `@return self<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L86)
-
-### `not()`
-
-Negates the next matcher for every value returned by the probe.
-
-```php
-final public function not(): static
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L42)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L38)
 
 ### `because()`
 
-Sets a reason for the next matcher. The next matcher consumes the
-reason.
-
-If the matcher fails, the failure message ends with "because" and the
-reason. An empty reason causes a usage failure.
-
 ```php
-final public function because(string $reason): static
+public function because(string $reason): self
 ```
 
 PHPDoc:
 
 - `@param non-empty-string $reason`
+- `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L60)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L52)
+
+### `pollEvery()`
+
+```php
+public function pollEvery(float $seconds): self
+```
+
+PHPDoc:
+
+- `@return self<T>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L60)
+
+### `within()`
+
+```php
+public function within(float $seconds): TemporalCallExpectation
+```
+
+PHPDoc:
+
+- `@return TemporalCallExpectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L72)
+
+## `ReturnValueExpectation`
+
+Namespace: `Greenlight\Expect`
+
+Checks a call's return value immediately or over time.
+A temporal matcher invokes the original call once per observation.
+
+```php
+final class ReturnValueExpectation extends Expectation
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ReturnValueExpectation.php#L15)
+
+PHPDoc:
+
+- `@template T`
+- `@extends Expectation<T>`
 
 ### `toBe()`
 
@@ -2114,7 +2251,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L141)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L23)
 
 ### `toEqual()`
 
@@ -2130,7 +2267,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L158)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L36)
 
 ### `toEqualCanonicalizing()`
 
@@ -2148,7 +2285,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L177)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L51)
 
 ### `toBeOneOf()`
 
@@ -2163,7 +2300,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L193)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L63)
 
 ### `toBeIn()`
 
@@ -2181,7 +2318,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L213)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L79)
 
 ### `toBeInstanceOf()`
 
@@ -2195,7 +2332,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L231)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L91)
 
 ### `toBeTrue()`
 
@@ -2208,7 +2345,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L245)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L101)
 
 ### `toBeFalse()`
 
@@ -2221,7 +2358,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L255)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L111)
 
 ### `toBeNull()`
 
@@ -2234,7 +2371,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L265)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L121)
 
 ### `toBeArray()`
 
@@ -2247,7 +2384,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L275)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L131)
 
 ### `toBeString()`
 
@@ -2260,7 +2397,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L290)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L141)
 
 ### `toBeInt()`
 
@@ -2273,7 +2410,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L305)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L151)
 
 ### `toBeFloat()`
 
@@ -2286,7 +2423,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L320)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L161)
 
 ### `toBeBool()`
 
@@ -2299,7 +2436,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L335)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L171)
 
 ### `toBeCallable()`
 
@@ -2312,7 +2449,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L350)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L181)
 
 ### `toBeIterable()`
 
@@ -2325,7 +2462,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L365)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L191)
 
 ### `toContain()`
 
@@ -2342,7 +2479,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L384)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L205)
 
 ### `toHaveCount()`
 
@@ -2358,7 +2495,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L433)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L218)
 
 ### `toBeEmpty()`
 
@@ -2376,7 +2513,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L464)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L233)
 
 ### `toHaveLength()`
 
@@ -2393,7 +2530,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L491)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L247)
 
 ### `toHaveKey()`
 
@@ -2410,7 +2547,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L522)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L261)
 
 ### `toContainSubset()`
 
@@ -2429,7 +2566,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L554)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L278)
 
 ### `toBeGreaterThan()`
 
@@ -2442,7 +2579,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L584)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L288)
 
 ### `toBeGreaterThanOrEqual()`
 
@@ -2455,7 +2592,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L598)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L298)
 
 ### `toBeLessThan()`
 
@@ -2468,7 +2605,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L612)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L308)
 
 ### `toBeLessThanOrEqual()`
 
@@ -2481,7 +2618,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L626)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L318)
 
 ### `toBeWithin()`
 
@@ -2497,7 +2634,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L643)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L331)
 
 ### `toMatch()`
 
@@ -2511,7 +2648,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException when the pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L670)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L342)
 
 ### `toStartWith()`
 
@@ -2524,7 +2661,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L686)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L352)
 
 ### `toEndWith()`
 
@@ -2537,7 +2674,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L700)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L362)
 
 ### `toBeJson()`
 
@@ -2553,7 +2690,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L717)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L375)
 
 ### `toMatchJson()`
 
@@ -2571,43 +2708,675 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L736)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L390)
+
+### `not()`
+
+```php
+public function not(): static
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L58)
+
+### `because()`
+
+```php
+public function because(string $reason): static
+```
+
+PHPDoc:
+
+- `@param non-empty-string $reason`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L70)
+
+### `__call()`
+
+```php
+public function __call(string $name, array $arguments): Expectation
+```
+
+PHPDoc:
+
+- `@param array<array-key, mixed> $arguments`
+- `@return Expectation<T>`
+- `@throws \BadMethodCallException`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L87)
+
+### `eventually()`
+
+```php
+public function eventually(): PendingEventually
+```
+
+PHPDoc:
+
+- `@return PendingEventually<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ReturnValueExpectation.php#L38)
+
+### `consistently()`
+
+```php
+public function consistently(): PendingConsistently
+```
+
+PHPDoc:
+
+- `@return PendingConsistently<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ReturnValueExpectation.php#L67)
+
+## `TemporalCallExpectation`
+
+Namespace: `Greenlight\Expect`
+
+Checks a call outcome on each poll and retains the last matched outcome.
+
+```php
+final readonly class TemporalCallExpectation
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L12)
+
+PHPDoc:
+
+- `@template T`
+
+### `not()`
+
+```php
+public function not(): self
+```
+
+PHPDoc:
+
+- `@return self<T>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L27)
+
+### `because()`
+
+```php
+public function because(string $reason): self
+```
+
+PHPDoc:
+
+- `@param non-empty-string $reason`
+- `@return self<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L41)
+
+### `toReturn()`
+
+```php
+public function toReturn(mixed $expected): CallExpectation
+```
+
+PHPDoc:
+
+- `@return CallExpectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L53)
 
 ### `toThrow()`
 
-The subject must be callable. The matcher calls it with no arguments.
-It passes when the subject throws an instance of the specified class.
-A Throwable instance instead requires the subject to throw that exact
-object.
-
-The throwable can instead be a callback with one typed Throwable
-parameter. Its parameter type specifies the expected throwable class.
-Greenlight gives the caught throwable to the callback after its type
-matches. The callback matches when it returns no value without an
-expectation failure.
-
-The optional `matching:` argument checks the message with a regular
-expression. The `message:` argument checks the exact message. Do not use
-these arguments with a throwable callback or instance.
-
-With `not()`, a throwable that does not satisfy all applicable
-constraints makes the matcher pass. A different object does not satisfy
-an instance constraint.
-
 ```php
 public function toThrow(
-    string|\Closure|\Throwable $throwable,
+    string|\Closure|\Throwable $throwable = \Throwable::class,
     ?string $matching = null,
     ?string $message = null,
-): Expectation
+): CallExpectation
 ```
 
 PHPDoc:
 
 - `@template TThrowable of \Throwable`
 - `@param class-string<TThrowable>|TThrowable|\Closure(TThrowable): void $throwable`
-- `@return Expectation<T>`
-- `@throws \InvalidArgumentException when the match pattern is not a valid regular expression`
+- `@return CallExpectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L795)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L69)
+
+## `TemporalExpectation`
+
+Namespace: `Greenlight\Expect`
+
+Contains the matcher dispatch and probe operations for eventual and
+consistent expectations.
+
+```php
+abstract class TemporalExpectation
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L17)
+
+PHPDoc:
+
+- `@template T`
+
+### `toBe()`
+
+Passes when the subject and expected value are identical (===).
+
+```php
+public function toBe(mixed $expected): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L23)
+
+### `toEqual()`
+
+Passes when the subject and expected value satisfy the rules for deep
+equality in the `Expectation` class description.
+
+```php
+public function toEqual(mixed $expected): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L36)
+
+### `toEqualCanonicalizing()`
+
+Uses the `toEqual()` rules but ignores list-element order. Canonicalization
+recurses through array values. It does not inspect object properties.
+Thus, lists in object properties keep their order. Associative arrays
+keep their keys.
+
+```php
+public function toEqualCanonicalizing(mixed $expected): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L51)
+
+### `toBeOneOf()`
+
+Passes when the subject is identical (===) to one of the options.
+
+```php
+public function toBeOneOf(mixed ...$options): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L63)
+
+### `toBeIn()`
+
+Passes when the haystack contains the subject by identity (===). This
+matcher is the reverse of `toContain()`. The check consumes a `Traversable`
+haystack.
+
+```php
+public function toBeIn(iterable $haystack): Expectation
+```
+
+PHPDoc:
+
+- `@param iterable<mixed> $haystack`
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L79)
+
+### `toBeInstanceOf()`
+
+```php
+public function toBeInstanceOf(string $class): Expectation
+```
+
+PHPDoc:
+
+- `@param class-string $class`
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L91)
+
+### `toBeTrue()`
+
+```php
+public function toBeTrue(): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L101)
+
+### `toBeFalse()`
+
+```php
+public function toBeFalse(): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L111)
+
+### `toBeNull()`
+
+```php
+public function toBeNull(): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L121)
+
+### `toBeArray()`
+
+```php
+public function toBeArray(): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L131)
+
+### `toBeString()`
+
+```php
+public function toBeString(): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L141)
+
+### `toBeInt()`
+
+```php
+public function toBeInt(): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L151)
+
+### `toBeFloat()`
+
+```php
+public function toBeFloat(): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L161)
+
+### `toBeBool()`
+
+```php
+public function toBeBool(): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L171)
+
+### `toBeCallable()`
+
+```php
+public function toBeCallable(): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L181)
+
+### `toBeIterable()`
+
+```php
+public function toBeIterable(): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L191)
+
+### `toContain()`
+
+For a string subject, checks for a string needle. For an iterable
+subject, checks for the value by identity (===). Iteration stops at the
+first match or the end of the subject.
+
+```php
+public function toContain(mixed $needle): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L205)
+
+### `toHaveCount()`
+
+Accepts an array, `Countable`, or `Traversable` subject. Uses `count()`
+for arrays and `Countable` objects. Otherwise, consumes the iterator.
+
+```php
+public function toHaveCount(int $count): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L218)
+
+### `toBeEmpty()`
+
+Passes when the subject is an empty string or contains no elements.
+Accepts a string, array, `Countable`, or `Traversable` subject. Uses
+`count()` for arrays and `Countable` objects. For other `Traversable`
+objects, consumes the iterator.
+
+```php
+public function toBeEmpty(): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L233)
+
+### `toHaveLength()`
+
+For a valid UTF-8 string, measures the number of code points. For other
+strings, measures the number of bytes. Array and `Countable` subjects use
+`count()`.
+
+```php
+public function toHaveLength(int $length): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L247)
+
+### `toHaveKey()`
+
+The subject must be an array or an `ArrayAccess` implementation. The
+matcher uses `array_key_exists()` for arrays and `offsetExists()` for
+`ArrayAccess`.
+
+```php
+public function toHaveKey(int|string $key): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L261)
+
+### `toContainSubset()`
+
+Each subset key must exist in the subject with an equal value. Equality
+uses the `toEqual()` rules. A nested array is also a subset. The
+related nested subject array can contain extra keys. The failure
+identifies the first different key by its dot-separated path.
+
+```php
+public function toContainSubset(array $subset): Expectation
+```
+
+PHPDoc:
+
+- `@param array<array-key, mixed> $subset`
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L278)
+
+### `toBeGreaterThan()`
+
+```php
+public function toBeGreaterThan(int|float $bound): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L288)
+
+### `toBeGreaterThanOrEqual()`
+
+```php
+public function toBeGreaterThanOrEqual(int|float $bound): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L298)
+
+### `toBeLessThan()`
+
+```php
+public function toBeLessThan(int|float $bound): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L308)
+
+### `toBeLessThanOrEqual()`
+
+```php
+public function toBeLessThanOrEqual(int|float $bound): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L318)
+
+### `toBeWithin()`
+
+Passes when the absolute difference between the numeric subject and
+`$of` is not more than `$delta`. Use a finite tolerance of zero or more.
+
+```php
+public function toBeWithin(float $delta, float $of): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L331)
+
+### `toMatch()`
+
+```php
+public function toMatch(string $pattern): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws \InvalidArgumentException when the pattern is not a valid regular expression`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L342)
+
+### `toStartWith()`
+
+```php
+public function toStartWith(string $prefix): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L352)
+
+### `toEndWith()`
+
+```php
+public function toEndWith(string $suffix): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L362)
+
+### `toBeJson()`
+
+The subject must be a string. The matcher passes when the string
+contains valid JSON.
+
+```php
+public function toBeJson(): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L375)
+
+### `toMatchJson()`
+
+The subject must be a string that contains valid JSON. The matcher
+decodes the subject and expected JSON. It then applies deep equality to
+the results. Object-key order has no effect. Invalid subject JSON causes
+an expectation failure. Invalid expected JSON causes a usage error.
+
+```php
+public function toMatchJson(string $expected): Expectation
+```
+
+PHPDoc:
+
+- `@return Expectation<T>`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L390)
+
+### `not()`
+
+Negates the next matcher for every value returned by the probe.
+
+```php
+final public function not(): static
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L44)
+
+### `because()`
+
+Sets a reason for the next matcher. The next matcher consumes the
+reason.
+
+If the matcher fails, the failure message ends with "because" and the
+reason. An empty reason causes a usage failure.
+
+```php
+final public function because(string $reason): static
+```
+
+PHPDoc:
+
+- `@param non-empty-string $reason`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L62)
+
+### `__call()`
+
+Runs a native or configured extension matcher against each probe value.
+
+```php
+final public function __call(string $name, array $arguments): Expectation
+```
+
+PHPDoc:
+
+- `@param array<array-key, mixed> $arguments`
+- `@return Expectation<T>`
+- `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
+- `@throws ExpectationFailed`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L88)

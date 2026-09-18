@@ -9,7 +9,6 @@ use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\InvalidDoubleUsage;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Internal\Filesystem\AtomicFileError;
 use Greenlight\Internal\Php\ErrorTrap;
@@ -17,6 +16,8 @@ use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Doubles\ProxyStorageContract;
 use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class ProxyStorageTest
 {
@@ -33,7 +34,7 @@ final readonly class ProxyStorageTest
 
         $doubles = new Doubles($directory);
 
-        Expect::that(static fn(): object => $doubles->stub(ProxyStorageContract::class))
+        expect()->calling(static fn(): object => $doubles->stub(ProxyStorageContract::class))
             ->because('a file that blocks the proxy directory MUST produce a typed storage error')
             ->toThrow(
                 InvalidDoubleUsage::class,
@@ -52,7 +53,7 @@ final readonly class ProxyStorageTest
         FilesystemRestriction::toProject($root);
 
         $doubles = new Doubles($directory);
-        Expect::that(
+        expect()->calling(
             static function () use ($doubles, &$warning): void {
                 ErrorTrap::run(
                     static fn() => $doubles->stub(ProxyStorageContract::class),
@@ -61,7 +62,7 @@ final readonly class ProxyStorageTest
             },
         )->because('a restricted proxy directory causes a typed storage error')
             ->toThrow(InvalidDoubleUsage::class);
-        Expect::that($warning)
+        expect($warning)
             ->because('a restricted proxy directory MUST not leak engine diagnostics')
             ->toBeNull();
     }
@@ -69,7 +70,7 @@ final readonly class ProxyStorageTest
     #[Test]
     public function aProxyDirectoryErrorPreservesAZeroStringReason(): void
     {
-        Expect::that(InvalidDoubleUsage::proxyDirectoryNotCreated('/tmp/proxies', '0')->getMessage())
+        expect(InvalidDoubleUsage::proxyDirectoryNotCreated('/tmp/proxies', '0')->getMessage())
             ->because('a proxy-directory diagnostic MUST preserve a zero-string reason')
             ->toBe('Doubles could not create the proxy directory /tmp/proxies: 0.');
     }
@@ -88,13 +89,13 @@ final readonly class ProxyStorageTest
 
         $doubles = new Doubles($blockedDirectory);
 
-        Expect::that(static fn(): object => $doubles->stub(ProxyStorageContract::class))
+        expect()->calling(static fn(): object => $doubles->stub(ProxyStorageContract::class))
             ->because('a directory at the proxy file path MUST produce a typed file error')
             ->toThrow(
                 static function (InvalidDoubleUsage $error) use ($file): void {
-                    Expect::that($error->getMessage())
+                    expect($error->getMessage())
                         ->toBe('Doubles could not write the proxy file ' . $file . '.');
-                    Expect::that($error->getPrevious())
+                    expect($error->getPrevious())
                         ->because('the proxy error preserves the atomic file failure')
                         ->toBeInstanceOf(AtomicFileError::class);
                 },
@@ -119,20 +120,20 @@ final readonly class ProxyStorageTest
 
         $doubles = new Doubles($cacheDirectory);
 
-        Expect::that(static fn(): object => $doubles->stub(ProxyStorageContract::class))
+        expect()->calling(static fn(): object => $doubles->stub(ProxyStorageContract::class))
             ->because('a corrupt cached proxy file MUST produce a typed storage error')
             ->toThrow(
                 static function (InvalidDoubleUsage $error) use ($file, $previousType): void {
-                    Expect::that($error->getMessage())
+                    expect($error->getMessage())
                         ->toBe('Doubles could not load the proxy file ' . $file . '. Delete the file and retry.');
 
                     if ($previousType === null) {
-                        Expect::that($error->getPrevious())->toBeNull();
+                        expect($error->getPrevious())->toBeNull();
 
                         return;
                     }
 
-                    Expect::that($error->getPrevious())->toBeInstanceOf($previousType);
+                    expect($error->getPrevious())->toBeInstanceOf($previousType);
                 },
             );
     }

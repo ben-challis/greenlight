@@ -8,7 +8,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Diff\BaselineDiff;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class BaselineRemovedFileTest
 {
@@ -20,7 +21,7 @@ final readonly class BaselineRemovedFileTest
         ]);
         $report = BaselineDiff::between($baseline, CoverageMap::empty());
 
-        Expect::that($report->hasRegressions())
+        expect($report->hasRegressions())
             ->because('removing a source file MUST NOT fail the coverage regression gate')
             ->toBeFalse();
     }
@@ -38,10 +39,10 @@ final readonly class BaselineRemovedFileTest
 
         $report = BaselineDiff::between($baseline, $current);
 
-        Expect::that($report->totalDelta())
+        expect($report->totalDelta())
             ->because('displayed totals still describe the complete coverage maps')
             ->toBeLessThan(0.0);
-        Expect::that($report->hasRegressions())
+        expect($report->hasRegressions())
             ->because('a removed file MUST NOT make unchanged source coverage fail the regression gate')
             ->toBeFalse();
     }

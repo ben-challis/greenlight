@@ -60,6 +60,8 @@ final readonly class Application
      */
     public function run(array $argv, string $workingDirectory, ?string $binPath = null): int
     {
+        require_once __DIR__ . '/../Expect/functions.php';
+
         if (($argv[0] ?? null) === '__watch-run') {
             $result = new WatchRunCommand($this->console)->run(\array_slice($argv, 1), $workingDirectory, $binPath);
 

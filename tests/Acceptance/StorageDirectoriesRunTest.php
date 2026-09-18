@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class StorageDirectoriesRunTest
 {
@@ -47,8 +48,9 @@ final readonly class StorageDirectoriesRunTest
 
             use Greenlight\Attribute\Test;
             use Greenlight\Doubles\Doubles;
-            use Greenlight\Expect\Expect;
             use Greenlight\Sandbox\TemporaryDirectory;
+
+            use function Greenlight\expect;
 
             interface Collaborator {}
 
@@ -65,7 +67,7 @@ final readonly class StorageDirectoriesRunTest
                     $double = $this->doubles->spy(Collaborator::class);
                     file_put_contents(dirname(__DIR__) . '/observed-temporary-path.txt', $this->temporaryDirectory->path());
 
-                    Expect::that($double)->toBeInstanceOf(Collaborator::class);
+                    expect($double)->toBeInstanceOf(Collaborator::class);
                 }
             }
 
@@ -76,22 +78,22 @@ final readonly class StorageDirectoriesRunTest
         $proxyFiles = \glob($project->path('storage/generated-code/*.php'));
         $temporaryPath = (string) \file_get_contents($project->path('observed-temporary-path.txt'));
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because($result->output() === '' ? 'The configured storage run returned no output.' : $result->output())
             ->toBe(0);
-        Expect::that(\is_file($project->path('storage/state/run-state.json')))
+        expect(\is_file($project->path('storage/state/run-state.json')))
             ->because('run state MUST use its configured persistent directory')
             ->toBeTrue();
-        Expect::that($discoveryFiles === false ? [] : $discoveryFiles)
+        expect($discoveryFiles === false ? [] : $discoveryFiles)
             ->because('discovery metadata MUST use its configured data-cache directory')
             ->toHaveCount(1);
-        Expect::that($proxyFiles === false ? [] : $proxyFiles)
+        expect($proxyFiles === false ? [] : $proxyFiles)
             ->because('worker proxy PHP MUST use its configured generated-code directory')
             ->toHaveCount(1);
-        Expect::that($temporaryPath)
+        expect($temporaryPath)
             ->because('the worker temporary directory MUST use the configured runtime root')
             ->toStartWith($project->path('storage/temporary/greenlight-'));
-        Expect::that(\is_dir($temporaryPath))
+        expect(\is_dir($temporaryPath))
             ->because('test disposal MUST remove the owned temporary child')
             ->toBeFalse();
     }

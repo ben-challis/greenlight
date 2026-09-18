@@ -10,10 +10,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class AttachmentMediaTypeValidationTest
 {
@@ -36,7 +37,7 @@ final readonly class AttachmentMediaTypeValidationTest
             $budget,
         );
 
-        Expect::that(static fn() => $attachments->text(
+        expect()->calling(static fn() => $attachments->text(
             'report.txt',
             'body',
             $mediaType,
@@ -49,12 +50,12 @@ final readonly class AttachmentMediaTypeValidationTest
                     $mediaType,
                 ),
             );
-        Expect::that($attachments->collected())
+        expect($attachments->collected())
             ->toBe([]);
-        Expect::that($budget->attachments)
+        expect($budget->attachments)
             ->because('an invalid media type MUST NOT consume the shared attachment count')
             ->toBe(0);
-        Expect::that($budget->bytes)
+        expect($budget->bytes)
             ->because('an invalid media type MUST NOT consume the shared byte count')
             ->toBe(0);
     }

@@ -9,8 +9,9 @@ use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Execution\ProcessPool\Orchestrator\Distributor;
 use Greenlight\Execution\ProcessPool\Orchestrator\SchedulingUnit;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final readonly class DistributorPartitionTest
 {
@@ -27,7 +28,7 @@ final readonly class DistributorPartitionTest
 
         [$pooled, $isolated] = new Distributor()->units($plan);
 
-        Expect::that(\array_map($this->unitShape(...), $pooled))
+        expect(\array_map($this->unitShape(...), $pooled))
             ->because('pooled distribution MUST preserve every entry, its order, and the plan seed')
             ->toBe([
                 [
@@ -41,7 +42,7 @@ final readonly class DistributorPartitionTest
                     'isolated' => false,
                 ],
             ]);
-        Expect::that(\array_map($this->unitShape(...), $isolated))
+        expect(\array_map($this->unitShape(...), $isolated))
             ->because('isolated distribution MUST preserve every entry, its order, and the plan seed')
             ->toBe([
                 [

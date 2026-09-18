@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Test;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\ResourceName;
+
+use function Greenlight\expect;
 
 final class ResourceNameTest
 {
@@ -17,7 +18,7 @@ final class ResourceNameTest
     {
         ResourceName::assertValid($name);
 
-        Expect::that(ResourceName::isValid($name))
+        expect(ResourceName::isValid($name))
             ->because('canonical resource names MUST be accepted')
             ->toBeTrue();
     }
@@ -39,10 +40,10 @@ final class ResourceNameTest
     #[DataSet('invalidNames')]
     public function rejectsNonCanonicalResourceNames(string $name): void
     {
-        Expect::that(ResourceName::isValid($name))
+        expect(ResourceName::isValid($name))
             ->because('noncanonical resource names MUST be rejected')
             ->toBeFalse();
-        Expect::that(static fn() => ResourceName::assertValid($name))
+        expect()->calling(static fn() => ResourceName::assertValid($name))
             ->because('assertValid() MUST report the rejected resource name')
             ->toThrow(
                 \InvalidArgumentException::class,

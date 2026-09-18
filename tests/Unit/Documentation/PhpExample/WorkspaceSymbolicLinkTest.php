@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Documentation\PhpExample;
 use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\Test;
 use Greenlight\Documentation\PhpExample\Workspace;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class WorkspaceSymbolicLinkTest
 {
@@ -29,9 +30,9 @@ final readonly class WorkspaceSymbolicLinkTest
 
         new Workspace()->publish($root, []);
 
-        Expect::that(\file_get_contents($target . '/sentinel.txt'))->toBe('keep');
-        Expect::that(\is_link($path))->toBeFalse();
-        Expect::that(\is_file($root . '/build/docs-php/manifest.json'))->toBeTrue();
+        expect(\file_get_contents($target . '/sentinel.txt'))->toBe('keep');
+        expect(\is_link($path))->toBeFalse();
+        expect(\is_file($root . '/build/docs-php/manifest.json'))->toBeTrue();
     }
 
     #[Test]
@@ -43,7 +44,7 @@ final readonly class WorkspaceSymbolicLinkTest
 
         new Workspace()->publish($root, []);
 
-        Expect::that(\is_link($root . '/build/docs-php'))->toBeFalse();
-        Expect::that(\is_file($root . '/build/docs-php/manifest.json'))->toBeTrue();
+        expect(\is_link($root . '/build/docs-php'))->toBeFalse();
+        expect(\is_file($root . '/build/docs-php/manifest.json'))->toBeTrue();
     }
 }

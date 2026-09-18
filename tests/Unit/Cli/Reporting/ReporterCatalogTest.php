@@ -8,12 +8,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Reporting\ReporterCatalog;
 use Greenlight\Cli\Reporting\ReporterSetupFailed;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Output;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReporterDefinition;
 use Greenlight\Tests\Unit\Reporting\BufferOutput;
 use Greenlight\Tests\Unit\Reporting\RecordingReporter;
+
+use function Greenlight\expect;
 
 final class ReporterCatalogTest
 {
@@ -38,9 +39,9 @@ final class ReporterCatalogTest
         $first = $catalog->create('custom', $output);
         $second = $catalog->create('custom', $output);
 
-        Expect::that($first)->not()->toBe($second);
-        Expect::that($created)->toBe([$first, $second]);
-        Expect::that($outputs)->toBe([$output, $output]);
+        expect($first)->not()->toBe($second);
+        expect($created)->toBe([$first, $second]);
+        expect($outputs)->toBe([$output, $output]);
     }
 
     #[Test]
@@ -58,9 +59,9 @@ final class ReporterCatalogTest
             );
         };
 
-        Expect::that(static fn() => new ReporterCatalog([$definition(), $definition()]))
+        expect()->calling(static fn() => new ReporterCatalog([$definition(), $definition()]))
             ->toThrow(ReporterSetupFailed::class, '/Reporter name "plain" is registered more than one time\./');
-        Expect::that($calls)->toBe(0);
+        expect($calls)->toBe(0);
     }
 
     #[Test]
@@ -73,7 +74,7 @@ final class ReporterCatalogTest
             ),
         ]);
 
-        Expect::that(static fn() => $catalog->create('broken', new BufferOutput()))
+        expect()->calling(static fn() => $catalog->create('broken', new BufferOutput()))
             ->toThrow(ReporterSetupFailed::class, '/Reporter factory "broken" failed: Cannot start\./');
     }
 
@@ -91,7 +92,7 @@ final class ReporterCatalogTest
 
         $catalog = new ReporterCatalog([$definition]);
 
-        Expect::that(static fn() => $catalog->create('invalid', new BufferOutput()))
+        expect()->calling(static fn() => $catalog->create('invalid', new BufferOutput()))
             ->toThrow(ReporterSetupFailed::class, '/Reporter factory "invalid" did not return a Reporter object\./');
     }
 
@@ -103,7 +104,7 @@ final class ReporterCatalogTest
             new ReporterDefinition('custom', static fn(Output $output): Reporter => new RecordingReporter()),
         ]);
 
-        Expect::that(static fn() => $catalog->create('missing', new BufferOutput()))
+        expect()->calling(static fn() => $catalog->create('missing', new BufferOutput()))
             ->toThrow(CliError::class, '/Unknown reporter "missing"\. Select one of: plain, custom\./');
     }
 }

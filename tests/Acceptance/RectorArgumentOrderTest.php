@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\RectorProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class RectorArgumentOrderTest
@@ -27,7 +28,7 @@ final readonly class RectorArgumentOrderTest
         $probes = RectorProbe::convertBatch($this->workspace, $cases, name: 'assertion-order');
 
         foreach ($probes as $caseName => $probe) {
-            Expect::that($probe->code)
+            expect($probe->code)
                 ->because('Assertion argument order case: ' . $caseName . '.')
                 ->toBe($cases[$caseName]);
         }
@@ -44,8 +45,8 @@ final readonly class RectorArgumentOrderTest
             self::assertEqualsWithDelta(0.3, 0.1 + 0.2, 0.001);
             PHP), name: 'independent-arguments');
 
-        Expect::that($probe->changed)->toBeTrue();
-        Expect::that($probe->runConvertedTests()->exitCode)->toBe(0);
+        expect($probe->changed)->toBeTrue();
+        expect($probe->runConvertedTests()->exitCode)->toBe(0);
     }
 
     /**

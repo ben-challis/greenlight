@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCacheEntry;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class DiscoveryCacheEntryTest
 {
@@ -30,11 +31,11 @@ final class DiscoveryCacheEntryTest
 
         $entry = DiscoveryCacheEntry::fromDecoded($decoded);
 
-        Expect::that($entry)
+        expect($entry)
             ->because('The decoded discovery cache entry MUST be valid.')
             ->toBeInstanceOf(DiscoveryCacheEntry::class);
 
-        Expect::that($entry->jsonSerialize())
+        expect($entry->jsonSerialize())
             ->because('a valid decoded entry serializes to the same shape')
             ->toBe($decoded);
     }
@@ -48,11 +49,11 @@ final class DiscoveryCacheEntryTest
             'entries' => [['class' => 'Example\Test']],
         ]);
 
-        Expect::that($entry)
+        expect($entry)
             ->because('The legacy discovery cache entry MUST be valid.')
             ->toBeInstanceOf(DiscoveryCacheEntry::class);
 
-        Expect::that($entry->dependencies)
+        expect($entry->dependencies)
             ->because('a legacy entry without dependencies MUST use an empty dependency map')
             ->toBe([]);
     }
@@ -64,7 +65,7 @@ final class DiscoveryCacheEntryTest
     #[DataSet('malformedDecodedEntries')]
     public function aMalformedDecodedEntryIsRejected(array $decoded): void
     {
-        Expect::that(DiscoveryCacheEntry::fromDecoded($decoded))
+        expect(DiscoveryCacheEntry::fromDecoded($decoded))
             ->because('a malformed decoded entry is rejected')
             ->toBeNull();
     }
@@ -74,7 +75,7 @@ final class DiscoveryCacheEntryTest
     {
         $entry = new DiscoveryCacheEntry(100, 200, [[]]);
 
-        Expect::that($entry->planEntries())
+        expect($entry->planEntries())
             ->because('an undecodable plan entry MUST become a cache miss')
             ->toBeNull();
     }

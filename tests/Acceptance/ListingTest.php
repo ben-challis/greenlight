@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class ListingTest
 {
@@ -20,8 +21,8 @@ final readonly class ListingTest
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'listing');
         $result = GreenlightCli::run($project->directory, ['run', '--list-tests']);
         $output = $result->stdoutLines();
-        Expect::that($result->exitCode)->because('--list-tests prints the selection in plan order and does not run tests')->toBe(0);
-        Expect::that($output)->because('--list-tests prints the selection in plan order and does not run tests')
+        expect($result->exitCode)->because('--list-tests prints the selection in plan order and does not run tests')->toBe(0);
+        expect($output)->because('--list-tests prints the selection in plan order and does not run tests')
             ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one')
             ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\CharlieTest::crawls')
             ->toContain('7 tests');
@@ -35,7 +36,7 @@ final readonly class ListingTest
                 $classes[] = $class;
             }
         }
-        Expect::that($classes)->because('--list-tests prints the selection in plan order and does not run tests')->toBe(\array_values(\array_unique($classes)));
+        expect($classes)->because('--list-tests prints the selection in plan order and does not run tests')->toBe(\array_values(\array_unique($classes)));
     }
 
     #[Test]
@@ -44,7 +45,7 @@ final readonly class ListingTest
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'listing');
         $first = GreenlightCli::run($project->directory, ['run', '--list-tests'])->stdoutLines();
         $second = GreenlightCli::run($project->directory, ['run', '--list-tests'])->stdoutLines();
-        Expect::that($second)->because('list tests is deterministic across runs')->toBe($first);
+        expect($second)->because('list tests is deterministic across runs')->toBe($first);
     }
 
     #[Test]
@@ -65,10 +66,10 @@ final readonly class ListingTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--list-tests', '--no-ansi']);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('list tests MUST report discovery failures')
             ->toBe(1);
-        Expect::that($result->stderr)
+        expect($result->stderr)
             ->toBe(\sprintf(
                 'greenlight: Test file "%s" does not declare a class, interface, trait, or enum.',
                 $testFile,
@@ -81,8 +82,8 @@ final readonly class ListingTest
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'listing');
         $result = GreenlightCli::run($project->directory, ['run', '--list-tests', '--exclude-group=slow']);
         $output = $result->stdoutLines();
-        Expect::that($result->exitCode)->because('list tests composes with exclude group')->toBe(0);
-        Expect::that($output)->because('list tests composes with exclude group')
+        expect($result->exitCode)->because('list tests composes with exclude group')->toBe(0);
+        expect($output)->because('list tests composes with exclude group')
             ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one')
             ->toContain('5 tests')
             ->not()->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two')
@@ -96,18 +97,18 @@ final readonly class ListingTest
         $full = GreenlightCli::run($project->directory, ['run', '--list-tests'])->stdoutLines();
         $firstResult = GreenlightCli::run($project->directory, ['run', '--list-tests', '--shard=1/2']);
         $secondResult = GreenlightCli::run($project->directory, ['run', '--list-tests', '--shard=2/2']);
-        Expect::that($firstResult->exitCode)->because('list tests composes with sharding into disjoint slices')->toBe(0);
-        Expect::that($secondResult->exitCode)->because('list tests composes with sharding into disjoint slices')->toBe(0);
+        expect($firstResult->exitCode)->because('list tests composes with sharding into disjoint slices')->toBe(0);
+        expect($secondResult->exitCode)->because('list tests composes with sharding into disjoint slices')->toBe(0);
         $first = $firstResult->stdoutLines();
         $second = $secondResult->stdoutLines();
         $firstIds = $this->testIdLines($first);
         $secondIds = $this->testIdLines($second);
-        Expect::that(\array_values(\array_intersect($firstIds, $secondIds)))->because('list tests composes with sharding into disjoint slices')->toBe([]);
+        expect(\array_values(\array_intersect($firstIds, $secondIds)))->because('list tests composes with sharding into disjoint slices')->toBe([]);
         $union = [...$firstIds, ...$secondIds];
         \sort($union);
         $fullIds = $this->testIdLines($full);
         \sort($fullIds);
-        Expect::that($union)->because('list tests composes with sharding into disjoint slices')->toBe($fullIds);
+        expect($union)->because('list tests composes with sharding into disjoint slices')->toBe($fullIds);
     }
 
     #[Test]
@@ -116,13 +117,13 @@ final readonly class ListingTest
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'listing');
         $result = GreenlightCli::run($project->directory, ['run', '--list-groups']);
         $output = $result->stdoutLines();
-        Expect::that($result->exitCode)->because('list groups prints each group with its test count')->toBe(0);
-        Expect::that($output)->because('list groups prints each group with its test count')
+        expect($result->exitCode)->because('list groups prints each group with its test count')->toBe(0);
+        expect($output)->because('list groups prints each group with its test count')
             ->toContain('basic (2 tests)')
             ->toContain('slow (2 tests)')
             ->toContain('2 groups');
         $second = GreenlightCli::run($project->directory, ['run', '--list-groups'])->stdoutLines();
-        Expect::that($second)->because('list groups prints each group with its test count')->toBe($output);
+        expect($second)->because('list groups prints each group with its test count')->toBe($output);
     }
 
     #[Test]
@@ -134,8 +135,8 @@ final readonly class ListingTest
         );
         $output = $result->stdoutLines();
 
-        Expect::that($result->exitCode)->because('list suites prints the configured suites')->toBe(0);
-        Expect::that($output)->because('list suites prints the configured suites')
+        expect($result->exitCode)->because('list suites prints the configured suites')->toBe(0);
+        expect($output)->because('list suites prints the configured suites')
             ->toContain('unit: tests/Unit')
             ->toContain('integration: tests/Integration [tags: io]')
             ->toContain('2 suites');
@@ -147,8 +148,8 @@ final readonly class ListingTest
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'listing');
         $result = GreenlightCli::run($project->directory, ['run', '--list-suites']);
         $output = $result->stdoutLines();
-        Expect::that($result->exitCode)->because('list suites with no suites configured prints zero')->toBe(0);
-        Expect::that($output)->toContain('0 suites');
+        expect($result->exitCode)->because('list suites with no suites configured prints zero')->toBe(0);
+        expect($output)->toContain('0 suites');
     }
 
     /**

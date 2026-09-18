@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Config;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Wire\InvalidWirePayload;
 use Greenlight\Tests\Support\JsonWire;
+
+use function Greenlight\expect;
 
 final class ArtifactConfigurationWireTest
 {
@@ -32,7 +33,7 @@ final class ArtifactConfigurationWireTest
             JsonWire::roundTrip($configuration->toWire()),
         );
 
-        Expect::that($restored)
+        expect($restored)
             ->because('workers MUST receive every configured artifact safety limit')
             ->toEqual($configuration);
     }
@@ -43,7 +44,7 @@ final class ArtifactConfigurationWireTest
         $payload = new ArtifactConfiguration()->toWire();
         $payload['directory'] = "artifacts\0hidden";
 
-        Expect::that(static fn(): ArtifactConfiguration => ArtifactConfiguration::fromWire($payload))
+        expect()->calling(static fn(): ArtifactConfiguration => ArtifactConfiguration::fromWire($payload))
             ->because('artifact directories MUST remain valid file-system paths across the worker wire')
             ->toThrow(
                 InvalidWirePayload::class,
@@ -60,7 +61,7 @@ final class ArtifactConfigurationWireTest
 
         $restored = ArtifactConfiguration::fromWire(JsonWire::roundTrip($payload));
 
-        Expect::that($restored->toWire()[$field])
+        expect($restored->toWire()[$field])
             ->because('artifact safety limits MUST remain positive across the worker wire')
             ->toBe(1);
     }

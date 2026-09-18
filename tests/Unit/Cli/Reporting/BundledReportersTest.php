@@ -8,7 +8,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\TerminalCapabilities;
 use Greenlight\Cli\Reporting\BundledReporters;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\GithubReporter;
 use Greenlight\Reporting\JsonLinesReporter;
 use Greenlight\Reporting\JUnitReporter;
@@ -17,6 +16,8 @@ use Greenlight\Reporting\RunHeader;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Reporting\TtyReporter;
 use Greenlight\Tests\Unit\Reporting\BufferOutput;
+
+use function Greenlight\expect;
 
 final readonly class BundledReportersTest
 {
@@ -36,7 +37,7 @@ final readonly class BundledReportersTest
             $reporters[$definition->name] = ($definition->factory)($output)::class;
         }
 
-        Expect::that($reporters)->toBe([
+        expect($reporters)->toBe([
             'tty' => TtyReporter::class,
             'plain' => PlainReporter::class,
             'junit' => JUnitReporter::class,

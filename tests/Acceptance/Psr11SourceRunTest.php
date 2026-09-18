@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class Psr11SourceRunTest
 {
@@ -21,10 +22,10 @@ final readonly class Psr11SourceRunTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--workers=1']);
         $output = $result->output();
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because($output === '' ? 'The named PSR-11 source run returned no output.' : $output)
             ->toBe(0);
-        Expect::that($output)->toContain('2 tests, 2 passed');
+        expect($output)->toContain('2 tests, 2 passed');
     }
 
     private function writeProject(): AcceptanceProject
@@ -54,9 +55,10 @@ final readonly class Psr11SourceRunTest
             namespace Psr11SourceProbe;
 
             use Greenlight\Attribute\Test;
-            use Greenlight\Expect\Expect;
             use Greenlight\Harness\Service;
             use Psr\Container\ContainerInterface;
+
+            use function Greenlight\expect;
 
             final readonly class ContainerSourcesTest
             {
@@ -82,19 +84,19 @@ final readonly class Psr11SourceRunTest
 
                 private function checkFreshSources(): void
                 {
-                    Expect::that($this->billing->source)->toBe('billing');
-                    Expect::that($this->legacy->source)->toBe('legacy');
-                    Expect::that($this->billingContainer)->not()->toBe($this->legacyContainer);
-                    Expect::that($this->billingContainerAgain)->toBe($this->billingContainer);
-                    Expect::that($this->billingContainer->get(Counter::class))->toBe($this->billing);
-                    Expect::that($this->legacyContainer->get('application.counter'))->toBe($this->legacy);
-                    Expect::that($this->billing->calls)->toBe(0);
-                    Expect::that($this->legacy->calls)->toBe(0);
+                    expect($this->billing->source)->toBe('billing');
+                    expect($this->legacy->source)->toBe('legacy');
+                    expect($this->billingContainer)->not()->toBe($this->legacyContainer);
+                    expect($this->billingContainerAgain)->toBe($this->billingContainer);
+                    expect($this->billingContainer->get(Counter::class))->toBe($this->billing);
+                    expect($this->legacyContainer->get('application.counter'))->toBe($this->legacy);
+                    expect($this->billing->calls)->toBe(0);
+                    expect($this->legacy->calls)->toBe(0);
 
                     ++$this->billing->calls;
 
-                    Expect::that($this->billing->calls)->toBe(1);
-                    Expect::that($this->legacy->calls)->toBe(0);
+                    expect($this->billing->calls)->toBe(1);
+                    expect($this->legacy->calls)->toBe(0);
 
                     ++$this->legacy->calls;
                 }

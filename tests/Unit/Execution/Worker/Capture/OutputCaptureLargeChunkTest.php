@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Execution\Worker\Capture;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Worker\OutputCapture;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class OutputCaptureLargeChunkTest
 {
@@ -21,8 +22,8 @@ final readonly class OutputCaptureLargeChunkTest
         echo $chunk . \str_repeat('x', 65_536);
         $output = $capture->stop();
 
-        Expect::that($output->stdout)->toBe($expected);
-        Expect::that($output->stdoutTruncated)->toBeTrue();
+        expect($output->stdout)->toBe($expected);
+        expect($output->stdoutTruncated)->toBeTrue();
     }
 
     /** @return iterable<string, array{string, string, string}> */

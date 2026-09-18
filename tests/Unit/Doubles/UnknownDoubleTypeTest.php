@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\InvalidDoubleUsage;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class UnknownDoubleTypeTest
 {
@@ -17,7 +18,7 @@ final class UnknownDoubleTypeTest
         $doubles = new Doubles();
         $mock = new \ReflectionMethod(Doubles::class, 'mock');
 
-        Expect::that(static fn(): mixed => $mock->invoke($doubles, 'Example\MissingContract'))
+        expect()->calling(static fn(): mixed => $mock->invoke($doubles, 'Example\MissingContract'))
             ->because('a double needs a loadable class or interface')
             ->toThrow(
                 InvalidDoubleUsage::class,

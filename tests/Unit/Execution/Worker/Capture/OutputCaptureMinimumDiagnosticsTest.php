@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Execution\Worker\Capture;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Worker\OutputCapture;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class OutputCaptureMinimumDiagnosticsTest
 {
@@ -23,12 +24,12 @@ final class OutputCaptureMinimumDiagnosticsTest
             $captured = $capture->stop();
         }
 
-        Expect::that($captured->diagnostics)
+        expect($captured->diagnostics)
             ->because('the minimum diagnostic bound MUST retain only the first entry')
             ->toHaveCount(1);
-        Expect::that($captured->diagnostics[0]->message)
+        expect($captured->diagnostics[0]->message)
             ->toBe('first diagnostic');
-        Expect::that($captured->diagnosticsTruncated)
+        expect($captured->diagnosticsTruncated)
             ->toBeTrue();
     }
 }

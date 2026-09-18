@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Execution\Artifact;
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Artifact\StreamWriter;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Execution\Artifact\WarningWriteStream;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactStreamWriteDiagnosticTest
 {
@@ -36,7 +37,7 @@ final readonly class ArtifactStreamWriteDiagnosticTest
         });
 
         try {
-            Expect::that(static fn() => StreamWriter::writeFully($stream, 'evidence'))
+            expect()->calling(static fn() => StreamWriter::writeFully($stream, 'evidence'))
                 ->because('a stream diagnostic becomes only an attachment error')
                 ->toThrow(
                     AttachmentError::class,
@@ -47,7 +48,7 @@ final readonly class ArtifactStreamWriteDiagnosticTest
             \fclose($stream);
         }
 
-        Expect::that($diagnostic)
+        expect($diagnostic)
             ->because('attachment write diagnostics MUST NOT reach the host error handler')
             ->toBeNull();
     }

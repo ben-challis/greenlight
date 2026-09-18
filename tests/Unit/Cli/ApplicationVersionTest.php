@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class ApplicationVersionTest
 {
@@ -19,9 +20,9 @@ final readonly class ApplicationVersionTest
             flags: \JSON_THROW_ON_ERROR,
         );
 
-        Expect::that($metadata)
+        expect($metadata)
             ->toBeArray();
-        Expect::that($metadata['version'] ?? null)
+        expect($metadata['version'] ?? null)
             ->toBe(Application::VERSION);
     }
 }

@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Cli\Input;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Input\ParsedArguments;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ParsedArgumentsTest
 {
@@ -17,7 +18,7 @@ final class ParsedArgumentsTest
             'group' => ['first', 'last'],
         ]);
 
-        Expect::that($arguments->value('group'))
+        expect($arguments->value('group'))
             ->because('a singular lookup uses the last repeated option value')
             ->toBe('last');
     }
@@ -30,15 +31,15 @@ final class ParsedArgumentsTest
             'flag' => [null],
         ]);
 
-        Expect::that($arguments->values('option'))
+        expect($arguments->values('option'))
             ->because('repeatable values retain input order and omit absent values')
             ->toBe(['first', 'last']);
-        Expect::that($arguments->has('flag'))
+        expect($arguments->has('flag'))
             ->because('a flag with no value is still present')
             ->toBeTrue();
-        Expect::that($arguments->value('flag'))
+        expect($arguments->value('flag'))
             ->toBeNull();
-        Expect::that($arguments->has('missing'))
+        expect($arguments->has('missing'))
             ->toBeFalse();
     }
 
@@ -49,10 +50,10 @@ final class ParsedArgumentsTest
             'option' => ['', null, '0'],
         ]);
 
-        Expect::that($arguments->values('option'))
+        expect($arguments->values('option'))
             ->because('repeatable option values MUST remove only absent null entries')
             ->toBe(['', '0']);
-        Expect::that($arguments->value('option'))
+        expect($arguments->value('option'))
             ->because('a singular option lookup MUST preserve a final zero string')
             ->toBe('0');
     }

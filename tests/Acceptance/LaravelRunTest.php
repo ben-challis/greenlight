@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Illuminate\Foundation\Application;
+
+use function Greenlight\expect;
 
 #[SkipUnless(ClassAvailable::class, Application::class)]
 final readonly class LaravelRunTest
@@ -23,8 +24,8 @@ final readonly class LaravelRunTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($result->output())->toContain('4 tests, 4 passed');
+        expect($result->exitCode)->toBe(0);
+        expect($result->output())->toContain('4 tests, 4 passed');
     }
 
     private function writeProject(): AcceptanceProject
@@ -86,12 +87,13 @@ final readonly class LaravelRunTest
             namespace LaravelProbe;
 
             use Greenlight\Attribute\Test;
-            use Greenlight\Expect\Expect;
             use Greenlight\Harness\Service;
             use Greenlight\Tests\Fixture\Laravel\Greeter;
             use Greenlight\Tests\Fixture\Laravel\NamedGreeter;
             use Greenlight\Tests\Fixture\Laravel\VisitCounter;
             use Illuminate\Contracts\Foundation\Application;
+
+            use function Greenlight\expect;
 
             final class %sTest
             {
@@ -107,10 +109,10 @@ final readonly class LaravelRunTest
                 {
                     $this->counter->record();
 
-                    Expect::that($this->greeter->greet('Ada'))->toBe('Hello, Ada!');
-                    Expect::that($this->named->greet())->toContain('fixture.named_greeter');
-                    Expect::that($this->app->environment())->toBe('testing');
-                    Expect::that($this->counter->count())->toBe(1);
+                    expect($this->greeter->greet('Ada'))->toBe('Hello, Ada!');
+                    expect($this->named->greet())->toContain('fixture.named_greeter');
+                    expect($this->app->environment())->toBe('testing');
+                    expect($this->counter->count())->toBe(1);
                 }
 
                 #[Test]
@@ -120,7 +122,7 @@ final readonly class LaravelRunTest
                     // counter would still hold the previous test's visit.
                     $this->counter->record();
 
-                    Expect::that($this->counter->count())->toBe(1);
+                    expect($this->counter->count())->toBe(1);
                 }
             }
             PHP;

@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Doubles\ReferenceReturn;
+
+use function Greenlight\expect;
 
 final readonly class ProxyReferenceReturnTest
 {
@@ -26,10 +27,10 @@ final readonly class ProxyReferenceReturnTest
         try {
             $method = new \ReflectionMethod($double, 'value');
 
-            Expect::that($method->returnsReference())
+            expect($method->returnsReference())
                 ->because('a proxy method MUST preserve its by-reference return signature')
                 ->toBeTrue();
-            Expect::that($double->value())
+            expect($double->value())
                 ->toBe('answer');
         } finally {
             $doubles->dispose();

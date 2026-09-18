@@ -13,13 +13,14 @@ use Greenlight\Cli\State\RunState;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\StorageBuilder;
 use Greenlight\Config\StorageLayout;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest;
 use Greenlight\Tests\Fixture\DiscoveryBasic\BravoTest;
 use Greenlight\Tests\Fixture\DiscoveryBasic\CharlieTest;
 use Greenlight\Tests\Fixture\DiscoveryBasic\DeltaTest;
 use Greenlight\Tests\Support\FixturePath;
+
+use function Greenlight\expect;
 
 final readonly class SelectionPlanOrderTest
 {
@@ -38,7 +39,7 @@ final readonly class SelectionPlanOrderTest
         $resolved = ConfigurationResolver::resolve($configuration, $overrides);
         $loaded = new LoadedConfiguration($resolved, $workingDirectory . '/greenlight.php', $overrides, [$directory]);
         $layout = StorageLayout::resolve($resolved->storage, $workingDirectory);
-        Expect::that(RunState::forFile($layout->runStateFile)->record([
+        expect(RunState::forFile($layout->runStateFile)->record([
             'not-a-test-id',
             CharlieTest::class . '::crawls',
             AlphaTest::class . '::two',
@@ -48,7 +49,7 @@ final readonly class SelectionPlanOrderTest
 
         $plan = SelectionPlan::resolve($loaded, $workingDirectory, false);
 
-        Expect::that($plan->classes())->toBe([CharlieTest::class, AlphaTest::class, BravoTest::class, DeltaTest::class]);
-        Expect::that($plan->count())->toBe(7);
+        expect($plan->classes())->toBe([CharlieTest::class, AlphaTest::class, BravoTest::class, DeltaTest::class]);
+        expect($plan->count())->toBe(7);
     }
 }
