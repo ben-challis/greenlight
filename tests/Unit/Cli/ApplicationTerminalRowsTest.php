@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Output\TerminalRowsResolver;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\EnvironmentVariables;
+
+use function Greenlight\expect;
 
 final readonly class ApplicationTerminalRowsTest
 {
@@ -20,7 +21,7 @@ final readonly class ApplicationTerminalRowsTest
 
         $rows = TerminalRowsResolver::resolve();
 
-        Expect::value($rows)
+        expect($rows)
             ->because('a positive LINES value MUST set the reporter terminal height')
             ->toBe(37);
     }

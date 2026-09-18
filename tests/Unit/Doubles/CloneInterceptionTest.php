@@ -8,12 +8,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Tests\Fixture\Doubles\CloneableRecorder;
 use Greenlight\Tests\Fixture\Doubles\CloneProbe;
 use Greenlight\Tests\Fixture\Doubles\FinalCloneProbe;
 use Greenlight\Tests\Fixture\Doubles\MixedCaseMagicMethods;
+
+use function Greenlight\expect;
 
 final readonly class CloneInterceptionTest
 {
@@ -29,10 +30,10 @@ final readonly class CloneInterceptionTest
 
         $clone = clone $double;
 
-        Expect::value(CloneProbe::$calls)
+        expect(CloneProbe::$calls)
             ->because('a mock MUST NOT run the doubled clone method')
             ->toBe(0);
-        Expect::value($this->doubles->callsTo($clone, '__clone'))
+        expect($this->doubles->callsTo($clone, '__clone'))
             ->because('the clone MUST use the same interaction state as the original double')
             ->toEqual([[]]);
     }
@@ -43,7 +44,7 @@ final readonly class CloneInterceptionTest
         $double = $this->doubles->spy(CloneProbe::class);
         $clone = clone $double;
 
-        Expect::value($this->doubles->callsTo($clone, '__clone'))
+        expect($this->doubles->callsTo($clone, '__clone'))
             ->because('a spy MUST record the clone interaction')
             ->toEqual([[]]);
     }
@@ -62,14 +63,14 @@ final readonly class CloneInterceptionTest
         $first->record('first');
         $second->record('second');
 
-        Expect::value($first)->not()->toBe($original);
-        Expect::value($second)->not()->toBe($first);
-        Expect::value($this->doubles->callsTo($original, '__clone'))->toEqual([[], []]);
-        Expect::value($this->doubles->callsTo($first, '__clone'))->toEqual([[], []]);
-        Expect::value($this->doubles->callsTo($second, '__clone'))->toEqual([[], []]);
-        Expect::value($this->doubles->callsTo($original, 'record'))->toEqual([['original'], ['first'], ['second']]);
-        Expect::value($this->doubles->callsTo($first, 'record'))->toEqual([['original'], ['first'], ['second']]);
-        Expect::value($this->doubles->callsTo($second, 'record'))->toEqual([['original'], ['first'], ['second']]);
+        expect($first)->not()->toBe($original);
+        expect($second)->not()->toBe($first);
+        expect($this->doubles->callsTo($original, '__clone'))->toEqual([[], []]);
+        expect($this->doubles->callsTo($first, '__clone'))->toEqual([[], []]);
+        expect($this->doubles->callsTo($second, '__clone'))->toEqual([[], []]);
+        expect($this->doubles->callsTo($original, 'record'))->toEqual([['original'], ['first'], ['second']]);
+        expect($this->doubles->callsTo($first, 'record'))->toEqual([['original'], ['first'], ['second']]);
+        expect($this->doubles->callsTo($second, 'record'))->toEqual([['original'], ['first'], ['second']]);
     }
 
     #[Test]
@@ -81,9 +82,9 @@ final readonly class CloneInterceptionTest
         });
         $clone = clone $original;
 
-        Expect::calling(static fn(): object => clone $clone)
+        expect()->calling(static fn(): object => clone $clone)
             ->toThrow(ExpectationFailed::class, '/unexpected call to .*::__clone\(\)/');
-        Expect::calling(static fn() => $doubles->dispose())
+        expect()->calling(static fn() => $doubles->dispose())
             ->toThrow(ExpectationFailed::class, '/unexpected call to .*::__clone\(\)/');
     }
 
@@ -93,10 +94,10 @@ final readonly class CloneInterceptionTest
         $doubles = new Doubles();
         $double = $doubles->mock(CloneProbe::class);
 
-        Expect::calling(static fn(): object => clone $double)
+        expect()->calling(static fn(): object => clone $double)
             ->toThrow(ExpectationFailed::class, '/unexpected call to .*::__clone\(\)/');
-        Expect::value($doubles->callsTo($double, '__clone'))->toEqual([[]]);
-        Expect::calling(static fn() => $doubles->dispose())
+        expect($doubles->callsTo($double, '__clone'))->toEqual([[]]);
+        expect()->calling(static fn() => $doubles->dispose())
             ->toThrow(ExpectationFailed::class, '/unexpected call to .*::__clone\(\)/');
     }
 
@@ -108,11 +109,11 @@ final readonly class CloneInterceptionTest
             $plan->expects('__clone')->once()->andThrows($failure);
         });
 
-        Expect::calling(static fn(): object => clone $double)
+        expect()->calling(static fn(): object => clone $double)
             ->toThrow(static function (\RuntimeException $actual) use ($failure): void {
-                Expect::value($actual)->toBe($failure);
+                expect($actual)->toBe($failure);
             });
-        Expect::value($this->doubles->callsTo($double, '__clone'))->toEqual([[]]);
+        expect($this->doubles->callsTo($double, '__clone'))->toEqual([[]]);
     }
 
     #[Test]
@@ -123,8 +124,8 @@ final readonly class CloneInterceptionTest
         });
         $clone = clone $double;
 
-        Expect::value($this->doubles->callsTo($double, '__clone'))->toEqual([[]]);
-        Expect::value($this->doubles->callsTo($clone, '__CLONE'))->toEqual([[]]);
+        expect($this->doubles->callsTo($double, '__clone'))->toEqual([[]]);
+        expect($this->doubles->callsTo($clone, '__CLONE'))->toEqual([[]]);
     }
 
     #[Test]
@@ -139,16 +140,16 @@ final readonly class CloneInterceptionTest
         unset($original);
         \gc_collect_cycles();
 
-        Expect::value($originalReference->get())->toBeNull();
+        expect($originalReference->get())->toBeNull();
         $clone->record('after release');
-        Expect::value($doubles->callsTo($clone, '__clone'))->toEqual([[]]);
-        Expect::value($doubles->callsTo($clone, 'record'))->toEqual([['after release']]);
+        expect($doubles->callsTo($clone, '__clone'))->toEqual([[]]);
+        expect($doubles->callsTo($clone, 'record'))->toEqual([['after release']]);
 
         $doubles->dispose();
         unset($clone);
         \gc_collect_cycles();
 
-        Expect::value($cloneReference->get())->toBeNull();
+        expect($cloneReference->get())->toBeNull();
     }
 
     #[Test]
@@ -161,8 +162,8 @@ final readonly class CloneInterceptionTest
         unset($clone);
         \gc_collect_cycles();
 
-        Expect::value($reference->get())->toBeNull();
-        Expect::value($this->doubles->callsTo($original, '__clone'))->toEqual([[]]);
+        expect($reference->get())->toBeNull();
+        expect($this->doubles->callsTo($original, '__clone'))->toEqual([[]]);
     }
 
     #[Test]
@@ -170,7 +171,7 @@ final readonly class CloneInterceptionTest
     {
         $double = $this->doubles->stub(CloneProbe::class);
 
-        Expect::calling(static fn(): object => clone $double)
+        expect()->calling(static fn(): object => clone $double)
             ->because('a stub MUST reject the clone interaction')
             ->toThrow(
                 InvalidDoubleUsage::class,
@@ -187,9 +188,9 @@ final readonly class CloneInterceptionTest
 
         $clone = clone $double;
 
-        Expect::value(FinalCloneProbe::$calls)
+        expect(FinalCloneProbe::$calls)
             ->because('a class double cannot intercept a final clone method')
             ->toBe(1);
-        Expect::value($clone)->toBeInstanceOf(FinalCloneProbe::class);
+        expect($clone)->toBeInstanceOf(FinalCloneProbe::class);
     }
 }

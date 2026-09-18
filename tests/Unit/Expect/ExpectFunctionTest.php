@@ -39,9 +39,9 @@ final readonly class ExpectFunctionTest
             return 7;
         });
 
-        Expect::value($calls)->toBe(0);
+        expect($calls)->toBe(0);
         $call->toReturn(7)->returnValue()->toBeGreaterThan(6);
-        Expect::value($calls)->toBe(1);
+        expect($calls)->toBe(1);
     }
 
     #[Test]
@@ -67,7 +67,7 @@ final readonly class ExpectFunctionTest
         $line = __LINE__ + 1;
         $detail = FailureProbe::detailOf(static fn() => expect(1)->toBe(2));
 
-        Expect::value($detail->location?->file)->toBe(__FILE__);
-        Expect::value($detail->location?->line)->toBe($line);
+        expect($detail->location?->file)->toBe(__FILE__);
+        expect($detail->location?->line)->toBe($line);
     }
 }

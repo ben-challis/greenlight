@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class CanonicalObjectPropertyOrderTest
 {
@@ -17,7 +18,7 @@ final class CanonicalObjectPropertyOrderTest
         $equivalentFirst = $this->objectWithProperties(['b' => 2, 'a' => 1]);
         $equivalentSecond = $this->objectWithProperties(['b' => 1, 'a' => 2]);
 
-        Expect::value([$first, $second])
+        expect([$first, $second])
             ->because('canonical equality MUST ignore object property insertion order')
             ->toEqualCanonicalizing([$equivalentFirst, $equivalentSecond]);
     }

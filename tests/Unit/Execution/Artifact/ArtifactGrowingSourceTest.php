@@ -10,11 +10,12 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Fixture\Execution\Artifact\GrowingFileStream;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactGrowingSourceTest
 {
@@ -38,15 +39,15 @@ final readonly class ArtifactGrowingSourceTest
         GrowingFileStream::$maximumStagedBytes = 0;
         $attachments = $store->forAttempt(new TestId(self::class, __FUNCTION__), 1, new TestArtifactBudget());
 
-        Expect::calling(static fn() => $attachments->file('growing.txt', 'growingattachment://source'))
+        expect()->calling(static fn() => $attachments->file('growing.txt', 'growingattachment://source'))
             ->toThrow(AttachmentError::class, message: 'Attachment source "growingattachment://source" changed while it was being copied.');
-        Expect::value(GrowingFileStream::$maximumStagedBytes)->toBeLessThanOrEqual($initialSize);
-        Expect::value(\glob($store->session()->stagingDirectory . '/*/attempt-*/*.part'))->toBe([]);
-        Expect::value($attachments->collected())->toBe([]);
+        expect(GrowingFileStream::$maximumStagedBytes)->toBeLessThanOrEqual($initialSize);
+        expect(\glob($store->session()->stagingDirectory . '/*/attempt-*/*.part'))->toBe([]);
+        expect($attachments->collected())->toBe([]);
 
         $attachments->bytes('valid.bin', \str_repeat('v', 8192));
 
-        Expect::value($attachments->collected()[0]->sizeBytes)->toBe(8192);
+        expect($attachments->collected()[0]->sizeBytes)->toBe(8192);
     }
 
     /** @return iterable<string, array{int}> */

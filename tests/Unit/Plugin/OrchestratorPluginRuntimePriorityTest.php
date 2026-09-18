@@ -11,7 +11,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
 use Greenlight\Execution\Plugin\OrchestratorPluginRuntime;
 use Greenlight\Execution\Plugin\PluginRuntimeError;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\IntegrationFixtureDefinition;
 use Greenlight\Plugin\AttachmentRetentionDecider;
 use Greenlight\Plugin\IntegrationFixtureProvider;
@@ -20,6 +19,8 @@ use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\CollectingEventSink;
+
+use function Greenlight\expect;
 
 final readonly class OrchestratorPluginRuntimePriorityTest
 {
@@ -42,7 +43,7 @@ final readonly class OrchestratorPluginRuntimePriorityTest
             [...$runtime->fixtureDefinitions()],
         );
 
-        Expect::value($ids)
+        expect($ids)
             ->because('integration fixture providers MUST keep stable plugin priority order')
             ->toBe([
                 'early',
@@ -81,12 +82,12 @@ final readonly class OrchestratorPluginRuntimePriorityTest
 
         $retain = $runtime->retainAttachment($result, $attachment);
 
-        Expect::value($events->getArrayCopy())->toBe([
+        expect($events->getArrayCopy())->toBe([
             'early:discard',
             'default:retain',
             'late:retain',
         ]);
-        Expect::value($retain)->toBeFalse();
+        expect($retain)->toBeFalse();
     }
 
     #[Test]
@@ -127,12 +128,12 @@ final readonly class OrchestratorPluginRuntimePriorityTest
             $decider::class,
         );
 
-        Expect::calling(static fn(): bool => $runtime->retainAttachment($result, $attachment))
+        expect()->calling(static fn(): bool => $runtime->retainAttachment($result, $attachment))
             ->because('the runtime MUST identify the failing attachment decider')
             ->toThrow(
                 static function (PluginRuntimeError $error) use ($failure, $message): void {
-                    Expect::value($error->getMessage())->toBe($message);
-                    Expect::value($error->getPrevious())->toBe($failure);
+                    expect($error->getMessage())->toBe($message);
+                    expect($error->getPrevious())->toBe($failure);
                 },
             );
     }

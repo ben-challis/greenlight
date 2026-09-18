@@ -8,12 +8,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactRecoveryOrderTest
 {
@@ -44,10 +45,10 @@ final readonly class ArtifactRecoveryOrderTest
             attempts: 10,
         ));
 
-        Expect::value($recovered->attachments)
+        expect($recovered->attachments)
             ->because('crash recovery orders evidence by numeric attempt')
             ->toHaveCount(2);
-        Expect::value(\array_map(
+        expect(\array_map(
             static fn($attachment): array => [$attachment->attempt, $attachment->name],
             $recovered->attachments,
         ))

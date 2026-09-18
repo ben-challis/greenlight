@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanUnpackedCaptureArgumentTest
@@ -67,9 +68,9 @@ final readonly class PhpStanUnpackedCaptureArgumentTest
             PHP,
         );
 
-        Expect::value($probe->goodPassed)->because('PHPStan messages: ' . \implode("\n", $probe->goodErrors))->toBeTrue();
-        Expect::value($probe->exitCode)->toBe(1);
-        Expect::value(\count($probe->errors))->toBe(3);
-        Expect::value($probe->messages())->toContain('expects int, mixed given');
+        expect($probe->goodPassed)->because('PHPStan messages: ' . \implode("\n", $probe->goodErrors))->toBeTrue();
+        expect($probe->exitCode)->toBe(1);
+        expect(\count($probe->errors))->toBe(3);
+        expect($probe->messages())->toContain('expects int, mixed given');
     }
 }

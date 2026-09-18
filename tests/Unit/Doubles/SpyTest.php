@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\InvalidDoubleUsage;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\Notifier;
+
+use function Greenlight\expect;
 
 final readonly class SpyTest
 {
@@ -24,8 +25,8 @@ final readonly class SpyTest
         $spy->flush();
         $spy->notify('dev', 'second');
 
-        Expect::value($this->doubles->callsTo($spy, 'notify'))->because('records every call in order with arguments')->toBe([['ops', 'first'], ['dev', 'second']]);
-        Expect::value($this->doubles->callsTo($spy, 'flush'))->toBe([[]]);
+        expect($this->doubles->callsTo($spy, 'notify'))->because('records every call in order with arguments')->toBe([['ops', 'first'], ['dev', 'second']]);
+        expect($this->doubles->callsTo($spy, 'flush'))->toBe([[]]);
     }
 
     #[Test]
@@ -33,7 +34,7 @@ final readonly class SpyTest
     {
         $spy = $this->doubles->spy(Notifier::class);
 
-        Expect::value($this->doubles->callsTo($spy, 'notify'))->because('an uncalled method has no recorded calls')->toBe([]);
+        expect($this->doubles->callsTo($spy, 'notify'))->because('an uncalled method has no recorded calls')->toBe([]);
     }
 
     #[Test]
@@ -43,7 +44,7 @@ final readonly class SpyTest
 
         $spy->tag('first', 1, 2, 3);
 
-        Expect::value($this->doubles->callsTo($spy, 'tag'))->because('variadic arguments are recorded flattened')->toBe([['first', 1, 2, 3]]);
+        expect($this->doubles->callsTo($spy, 'tag'))->because('variadic arguments are recorded flattened')->toBe([['first', 1, 2, 3]]);
     }
 
     #[Test]
@@ -51,7 +52,7 @@ final readonly class SpyTest
     {
         $spy = $this->doubles->spy(Calculator::class);
 
-        Expect::calling(static fn(): int => $spy->add(1, 2))->because('value returning methods cannot be spied on')
+        expect()->calling(static fn(): int => $spy->add(1, 2))->because('value returning methods cannot be spied on')
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'The spy of "' . Calculator::class . '" cannot supply a value for "add()". '
@@ -65,7 +66,7 @@ final readonly class SpyTest
     {
         $foreign = new \stdClass();
 
-        Expect::calling(fn(): array => $this->doubles->callsTo($foreign, 'add'))->because('calls to rejects foreign objects') // @phpstan-ignore greenlight.doubles.callsToMethod (deliberately invalid: tests runtime validation)
+        expect()->calling(fn(): array => $this->doubles->callsTo($foreign, 'add'))->because('calls to rejects foreign objects') // @phpstan-ignore greenlight.doubles.callsToMethod (deliberately invalid: tests runtime validation)
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'This Doubles factory did not create the stdClass instance.',
@@ -79,7 +80,7 @@ final readonly class SpyTest
 
         $spy->notify('ops', 'deploy finished');
 
-        Expect::value($this->doubles->callsTo($spy, 'notify'))->because('spy recordings work with expect directly')->toHaveCount(1);
-        Expect::value($this->doubles->callsTo($spy, 'notify')[0])->toEqual(['ops', 'deploy finished']);
+        expect($this->doubles->callsTo($spy, 'notify'))->because('spy recordings work with expect directly')->toHaveCount(1);
+        expect($this->doubles->callsTo($spy, 'notify')[0])->toEqual(['ops', 'deploy finished']);
     }
 }

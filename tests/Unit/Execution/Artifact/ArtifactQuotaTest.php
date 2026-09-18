@@ -11,9 +11,10 @@ use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactSession;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactQuotaTest
 {
@@ -38,7 +39,7 @@ final readonly class ArtifactQuotaTest
             new TestArtifactBudget(),
         );
 
-        Expect::calling(static function () use ($attachments): void {
+        expect()->calling(static function () use ($attachments): void {
             $attachments->text('evidence.txt', 'body');
         })
             ->because('shared quota accounting MUST NOT follow symbolic links')
@@ -46,7 +47,7 @@ final readonly class ArtifactQuotaTest
                 AttachmentError::class,
                 message: 'Attachment quota path is unsafe.',
             );
-        Expect::value((string) \file_get_contents($outside))
+        expect((string) \file_get_contents($outside))
             ->because('a rejected quota path MUST NOT change its target')
             ->toBe('untouched');
     }
@@ -69,7 +70,7 @@ final readonly class ArtifactQuotaTest
             new TestArtifactBudget(),
         );
 
-        Expect::calling(static function () use ($attachments): void {
+        expect()->calling(static function () use ($attachments): void {
             $attachments->text('evidence.txt', 'body');
         })
             ->because('corrupt shared quota metadata MUST stop attachment staging')
@@ -77,7 +78,7 @@ final readonly class ArtifactQuotaTest
                 AttachmentError::class,
                 message: 'Attachment quota metadata is corrupt.',
             );
-        Expect::value(\glob($staging . '/*/attempt-*'))
+        expect(\glob($staging . '/*/attempt-*'))
             ->because('a rejected quota reservation MUST NOT leave staging data')
             ->toBe([]);
     }
@@ -115,12 +116,12 @@ final readonly class ArtifactQuotaTest
             new TestArtifactBudget(),
         );
 
-        Expect::calling(static function () use ($attachments): void {
+        expect()->calling(static function () use ($attachments): void {
             $attachments->text('evidence.txt', 'body');
         })
             ->because('quota accounting MUST reject additions that exceed an integer limit')
             ->toThrow(AttachmentError::class, message: $message);
-        Expect::value((string) \file_get_contents($quota))
+        expect((string) \file_get_contents($quota))
             ->because('a rejected quota reservation MUST keep its previous accounting')
             ->toBe($metadata);
     }

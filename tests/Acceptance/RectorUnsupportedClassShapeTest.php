@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\AllowParallel;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\RectorProbe;
+
+use function Greenlight\expect;
 
 #[AllowParallel]
 #[RequiresResource('analysis-process')]
@@ -29,8 +30,8 @@ final readonly class RectorUnsupportedClassShapeTest
         $probes = RectorProbe::convertBatch($this->tempDirectory, $cases, name: 'unsupported-class-shapes');
 
         foreach ($probes as $caseName => $probe) {
-            Expect::value($probe->changed)->because('unsupported class shape case: ' . $caseName)->toBeFalse();
-            Expect::value($probe->code)->because('unsupported class shape case: ' . $caseName)->toBe($cases[$caseName]);
+            expect($probe->changed)->because('unsupported class shape case: ' . $caseName)->toBeFalse();
+            expect($probe->code)->because('unsupported class shape case: ' . $caseName)->toBe($cases[$caseName]);
         }
     }
 }

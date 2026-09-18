@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Cli\Watch;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\Debouncer;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class DebouncerZeroTimestampTest
 {
@@ -16,7 +17,7 @@ final class DebouncerZeroTimestampTest
         $debouncer = new Debouncer(0.5);
         $debouncer->noteChange(0.0);
 
-        Expect::value($debouncer->shouldFire(0.5))
+        expect($debouncer->shouldFire(0.5))
             ->because('a zero timestamp MUST start the quiet period')
             ->toBeTrue();
     }

@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Attribute;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class TimeoutValidationTest
 {
@@ -15,7 +16,7 @@ final class TimeoutValidationTest
     #[DataSet('invalidSeconds')]
     public function invalidSecondsHaveAnActionableDiagnostic(float $seconds): void
     {
-        Expect::calling(static fn(): Timeout => new Timeout($seconds))
+        expect()->calling(static fn(): Timeout => new Timeout($seconds))
             ->because('invalid timeout seconds MUST explain the accepted range')
             ->toThrow(
                 \InvalidArgumentException::class,

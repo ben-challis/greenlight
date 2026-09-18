@@ -12,7 +12,8 @@ use Greenlight\Doubles\ArgumentType;
 use Greenlight\Doubles\IntersectionTypeMatcher;
 use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Doubles\UnionTypeMatcher;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ArgumentTypeTest
 {
@@ -26,12 +27,12 @@ final class ArgumentTypeTest
     ): void {
         $type = $this->parameterType($method);
 
-        Expect::value($type->accepts($accepted))
+        expect($type->accepts($accepted))
             ->because($method . ' MUST accept its compatible value')
             ->toBeTrue();
 
         if ($mustReject) {
-            Expect::value($type->accepts($rejected))
+            expect($type->accepts($rejected))
                 ->because($method . ' MUST reject its incompatible value')
                 ->toBeFalse();
         }
@@ -65,33 +66,33 @@ final class ArgumentTypeTest
         $parent = $this->parameterType('parentType', ArgumentTypeChild::class);
         $static = $this->returnType('staticType', ArgumentTypeChild::class);
 
-        Expect::value($nullable->accepts(null))->toBeTrue();
-        Expect::value($nullable->describe())->toBe('string|null');
-        Expect::value($combined->accepts(new \ArrayObject()))->toBeTrue();
-        Expect::value($combined->accepts('value'))->toBeTrue();
-        Expect::value($combined->accepts(null))->toBeTrue();
-        Expect::value($combined->accepts(new \stdClass()))->toBeFalse();
-        Expect::value($combined->describe())->toBe('(IteratorAggregate&Countable)|string|null');
-        Expect::value($self->accepts(new ArgumentTypeFixture()))->toBeTrue();
-        Expect::value($self->describe())->toBe(ArgumentTypeFixture::class);
-        Expect::value($parent->accepts(new ArgumentTypeParent()))->toBeTrue();
-        Expect::value($parent->describe())->toBe(ArgumentTypeParent::class);
-        Expect::value($static->describe())->toBe(ArgumentTypeChild::class);
+        expect($nullable->accepts(null))->toBeTrue();
+        expect($nullable->describe())->toBe('string|null');
+        expect($combined->accepts(new \ArrayObject()))->toBeTrue();
+        expect($combined->accepts('value'))->toBeTrue();
+        expect($combined->accepts(null))->toBeTrue();
+        expect($combined->accepts(new \stdClass()))->toBeFalse();
+        expect($combined->describe())->toBe('(IteratorAggregate&Countable)|string|null');
+        expect($self->accepts(new ArgumentTypeFixture()))->toBeTrue();
+        expect($self->describe())->toBe(ArgumentTypeFixture::class);
+        expect($parent->accepts(new ArgumentTypeParent()))->toBeTrue();
+        expect($parent->describe())->toBe(ArgumentTypeParent::class);
+        expect($static->describe())->toBe(ArgumentTypeChild::class);
     }
 
     #[Test]
     public function namedTypeFactoriesKeepOnlySoundKnownBounds(): void
     {
-        Expect::value(ArgumentType::fromTypeName('\\' . \DateTimeInterface::class)?->describe())
+        expect(ArgumentType::fromTypeName('\\' . \DateTimeInterface::class)?->describe())
             ->toBe(\DateTimeInterface::class);
-        Expect::value(ArgumentType::fromTypeName(ArgumentTypeEnum::class)?->describe())
+        expect(ArgumentType::fromTypeName(ArgumentTypeEnum::class)?->describe())
             ->toBe(ArgumentTypeEnum::class);
-        Expect::value(ArgumentType::fromTypeName('unknown type'))->toBeNull();
-        Expect::value(ArgumentType::fromIntersectionTypeNames(['unknown type']))->toBeNull();
-        Expect::value(ArgumentType::fromIntersectionTypeNames(['int', 'unknown type'])?->describe())
+        expect(ArgumentType::fromTypeName('unknown type'))->toBeNull();
+        expect(ArgumentType::fromIntersectionTypeNames(['unknown type']))->toBeNull();
+        expect(ArgumentType::fromIntersectionTypeNames(['int', 'unknown type'])?->describe())
             ->toBe('int');
-        Expect::value(ArgumentType::fromUnionTypeNames(['int', 'unknown type']))->toBeNull();
-        Expect::value(ArgumentType::fromUnionTypeNames(['int', 'string'])?->describe())
+        expect(ArgumentType::fromUnionTypeNames(['int', 'unknown type']))->toBeNull();
+        expect(ArgumentType::fromUnionTypeNames(['int', 'string'])?->describe())
             ->toBe('int|string');
     }
 
@@ -99,7 +100,7 @@ final class ArgumentTypeTest
     #[DataSet('typeOverlaps')]
     public function overlapDetectsPossibleSharedValues(string $left, string $right, bool $expected): void
     {
-        Expect::value($this->parameterType($left)->overlaps($this->parameterType($right)))
+        expect($this->parameterType($left)->overlaps($this->parameterType($right)))
             ->because($left . ' and ' . $right . ' MUST have the specified overlap')
             ->toBe($expected);
     }
@@ -143,11 +144,11 @@ final class ArgumentTypeTest
         $union = new UnionTypeMatcher(['int', 'string']);
         $unknownUnion = new UnionTypeMatcher(['int', 'unknown type']);
 
-        Expect::value($untyped->argumentType())->toBeNull();
-        Expect::value($intersection->argumentType()?->describe())->toBe('int');
-        Expect::value($unknownIntersection->argumentType())->toBeNull();
-        Expect::value($union->argumentType()?->describe())->toBe('int|string');
-        Expect::value($unknownUnion->argumentType())->toBeNull();
+        expect($untyped->argumentType())->toBeNull();
+        expect($intersection->argumentType()?->describe())->toBe('int');
+        expect($unknownIntersection->argumentType())->toBeNull();
+        expect($union->argumentType()?->describe())->toBe('int|string');
+        expect($unknownUnion->argumentType())->toBeNull();
     }
 
     #[Test]
@@ -155,12 +156,12 @@ final class ArgumentTypeTest
     {
         $type = new ArgumentTypeParentNamedType();
 
-        Expect::calling(static fn(): ArgumentType => ArgumentType::fromReflection($type))
+        expect()->calling(static fn(): ArgumentType => ArgumentType::fromReflection($type))
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'Closure uses the parent type but has no parent class.',
             );
-        Expect::calling(static fn(): ArgumentType => ArgumentType::fromReflection(
+        expect()->calling(static fn(): ArgumentType => ArgumentType::fromReflection(
             $type,
             self::reflectionClass(\stdClass::class),
         ))->toThrow(
@@ -172,13 +173,13 @@ final class ArgumentTypeTest
     #[Test]
     public function unsupportedReflectionTypesAreRejected(): void
     {
-        Expect::calling(static fn(): ArgumentType => ArgumentType::fromReflection(
+        expect()->calling(static fn(): ArgumentType => ArgumentType::fromReflection(
             new ArgumentTypeUnsupportedReflectionType(),
         ))->toThrow(
             InvalidDoubleUsage::class,
             message: 'Unsupported reflection type ' . ArgumentTypeUnsupportedReflectionType::class . '.',
         );
-        Expect::calling(static fn(): ArgumentType => ArgumentType::fromReflection(
+        expect()->calling(static fn(): ArgumentType => ArgumentType::fromReflection(
             new ArgumentTypeEmptyNamedType(),
         ))->toThrow(
             InvalidDoubleUsage::class,
@@ -191,9 +192,9 @@ final class ArgumentTypeTest
     {
         $unresolved = ArgumentType::fromReflection(new ArgumentTypeUnresolvedNamedType());
 
-        Expect::value($unresolved->overlaps($this->parameterType('closedClassType')))->toBeTrue();
-        Expect::value($this->parameterType('callableType')->overlaps($unresolved))->toBeTrue();
-        Expect::value($this->parameterType('iterableType')->overlaps($unresolved))->toBeTrue();
+        expect($unresolved->overlaps($this->parameterType('closedClassType')))->toBeTrue();
+        expect($this->parameterType('callableType')->overlaps($unresolved))->toBeTrue();
+        expect($this->parameterType('iterableType')->overlaps($unresolved))->toBeTrue();
     }
 
     /**

@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Tools;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 require_once __DIR__ . '/../../../tools/benchmark.php';
 
@@ -30,7 +31,7 @@ final readonly class BenchmarkTest
             'with-comparisons' => false,
         ]);
 
-        Expect::value($options)->toBe([
+        expect($options)->toBe([
             'shapes' => ['many-isolated'],
             'scale' => 2,
             'workers' => 3,
@@ -49,11 +50,11 @@ final readonly class BenchmarkTest
         $configurationIds = ['parallel', 'one', 'phpunit', 'paratest', 'pest', 'pest-parallel'];
         $schedule = \benchmarkSchedule($configurationIds, 12, 731, 'many-fast:sample');
 
-        Expect::value($schedule)->because('the same seed MUST reproduce the configuration order')
+        expect($schedule)->because('the same seed MUST reproduce the configuration order')
             ->toBe(\benchmarkSchedule($configurationIds, 12, 731, 'many-fast:sample'));
-        Expect::value($schedule[1])->because('the second round MUST reverse the first round')
+        expect($schedule[1])->because('the second round MUST reverse the first round')
             ->toBe(\array_reverse($schedule[0]));
-        Expect::value($schedule[3])->because('the fourth round MUST reverse the third round')
+        expect($schedule[3])->because('the fourth round MUST reverse the third round')
             ->toBe(\array_reverse($schedule[2]));
 
         foreach ($schedule as $order) {
@@ -61,7 +62,7 @@ final readonly class BenchmarkTest
             $expected = $configurationIds;
             \sort($expected);
 
-            Expect::value($order)->because('each round MUST contain each configuration once')->toBe($expected);
+            expect($order)->because('each round MUST contain each configuration once')->toBe($expected);
         }
 
         foreach ($configurationIds as $configurationId) {
@@ -72,7 +73,7 @@ final readonly class BenchmarkTest
                     $schedule,
                     static fn(array $order): bool => $order[$position] === $configurationId,
                 ));
-                Expect::value($positionCount)
+                expect($positionCount)
                     ->because('the default sample count MUST put each configuration in each position twice')
                     ->toBe(2);
             }
@@ -82,7 +83,7 @@ final readonly class BenchmarkTest
     #[Test]
     public function distributionReportsRobustLocationAndVariationStatistics(): void
     {
-        Expect::value(\benchmarkDistribution([9.0, 1.0, 5.0, 3.0]))->toBe([
+        expect(\benchmarkDistribution([9.0, 1.0, 5.0, 3.0]))->toBe([
             'firstQuartile' => 2.0,
             'median' => 4.0,
             'thirdQuartile' => 7.0,
@@ -95,7 +96,7 @@ final readonly class BenchmarkTest
     #[DataSet('invalidOptions')]
     public function rejectsInvalidBenchmarkOptions(array $options, string $message): void
     {
-        Expect::calling(static fn() => \benchmarkParseOptions($options))
+        expect()->calling(static fn() => \benchmarkParseOptions($options))
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }
 
@@ -140,10 +141,10 @@ final readonly class BenchmarkTest
     {
         $project = $this->tempDirectory->path() . '/benchmark-' . $shape;
 
-        Expect::value(\benchmarkGenerateShape($shape, 1, $project))
+        expect(\benchmarkGenerateShape($shape, 1, $project))
             ->because('each specialized benchmark shape MUST contain tests')
             ->toBeGreaterThan(0);
-        Expect::value((string) \file_get_contents($project . '/' . $relativeFile))
+        expect((string) \file_get_contents($project . '/' . $relativeFile))
             ->toContain($expectedText);
     }
 
@@ -164,14 +165,14 @@ final readonly class BenchmarkTest
     {
         $configurations = \benchmarkConfigurations('many-fast', '/tmp/project', '/tmp/root', 4, true);
 
-        Expect::value($configurations)->toHaveKey('pest');
-        Expect::value($configurations)->toHaveKey('pest-parallel');
-        Expect::value($configurations['phpunit']['command'])->toContain('--cache-directory=.benchmark-cache/phpunit');
-        Expect::value($configurations['paratest']['command'])->toContain('--cache-directory=.benchmark-cache/paratest');
-        Expect::value($configurations['pest']['command'])->toContain('--configuration=pest.xml');
-        Expect::value($configurations['pest']['command'])->toContain('--cache-directory=.benchmark-cache/pest');
-        Expect::value($configurations['pest-parallel']['command'])->toContain('--parallel --processes=4');
-        Expect::value($configurations['pest-parallel']['command'])->toContain('--cache-directory=.benchmark-cache/pest-parallel');
+        expect($configurations)->toHaveKey('pest');
+        expect($configurations)->toHaveKey('pest-parallel');
+        expect($configurations['phpunit']['command'])->toContain('--cache-directory=.benchmark-cache/phpunit');
+        expect($configurations['paratest']['command'])->toContain('--cache-directory=.benchmark-cache/paratest');
+        expect($configurations['pest']['command'])->toContain('--configuration=pest.xml');
+        expect($configurations['pest']['command'])->toContain('--cache-directory=.benchmark-cache/pest');
+        expect($configurations['pest-parallel']['command'])->toContain('--parallel --processes=4');
+        expect($configurations['pest-parallel']['command'])->toContain('--cache-directory=.benchmark-cache/pest-parallel');
     }
 
     #[Test]
@@ -191,7 +192,7 @@ final readonly class BenchmarkTest
             ];
             PHP);
 
-        Expect::value(\benchmarkInstalledPackages($project))->toBe([
+        expect(\benchmarkInstalledPackages($project))->toBe([
             'vendor/alpha' => '1.0.0',
             'vendor/zeta' => '2.0.0',
         ]);

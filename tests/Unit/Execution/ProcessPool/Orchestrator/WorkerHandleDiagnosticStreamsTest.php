@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerHandle;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final readonly class WorkerHandleDiagnosticStreamsTest
 {
@@ -24,7 +25,7 @@ final readonly class WorkerHandleDiagnosticStreamsTest
 
         $handle->drainPipes();
 
-        Expect::value($handle->diagnostics)
+        expect($handle->diagnostics)
             ->because('worker diagnostics MUST contain standard output followed by standard error')
             ->toBe("standard output\nstandard error\n");
     }
@@ -43,7 +44,7 @@ final readonly class WorkerHandleDiagnosticStreamsTest
 
         $handle->drainPipes();
 
-        Expect::value($handle->diagnostics)
+        expect($handle->diagnostics)
             ->because('one pipe drain MUST retain the bounded tail of all available output')
             ->toBe($tail);
     }

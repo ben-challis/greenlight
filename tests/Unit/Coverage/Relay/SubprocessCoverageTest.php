@@ -11,7 +11,6 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Coverage\Relay\SharedCoverageDirectory;
 use Greenlight\Coverage\Relay\SubprocessCoverage;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
@@ -21,6 +20,8 @@ use Greenlight\Tests\Fixture\Coverage\UnavailableFakeDriver;
 use Greenlight\Tests\Support\CoverageJson;
 use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\SourceOnlyPhp;
+
+use function Greenlight\expect;
 
 final readonly class SubprocessCoverageTest
 {
@@ -38,17 +39,17 @@ final readonly class SubprocessCoverageTest
 
         $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
 
-        Expect::value($directory)->toBeString();
-        Expect::value($directory !== '/outer/dir')->toBeTrue();
-        Expect::value(\is_dir($directory))->toBeTrue();
-        Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/project/src' . \PATH_SEPARATOR . '/project/lib');
-        Expect::value(SubprocessCoverage::requested())->toBeTrue();
+        expect($directory)->toBeString();
+        expect($directory !== '/outer/dir')->toBeTrue();
+        expect(\is_dir($directory))->toBeTrue();
+        expect(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/project/src' . \PATH_SEPARATOR . '/project/lib');
+        expect(SubprocessCoverage::requested())->toBeTrue();
 
-        Expect::value($shared->drain())->toBeNull();
+        expect($shared->drain())->toBeNull();
 
-        Expect::value(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe('/outer/dir');
-        Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBeFalse();
-        Expect::value(\is_dir($directory))->toBeFalse();
+        expect(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe('/outer/dir');
+        expect(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBeFalse();
+        expect(\is_dir($directory))->toBeFalse();
     }
 
     #[Test]
@@ -56,7 +57,7 @@ final readonly class SubprocessCoverageTest
     {
         $blocker = $this->tempDirectory->path() . '/not-a-directory';
 
-        Expect::value(\file_put_contents($blocker, 'blocked'))
+        expect(\file_put_contents($blocker, 'blocked'))
             ->because('the test setup MUST create the blocking file')
             ->toBe(7);
 
@@ -64,12 +65,16 @@ final readonly class SubprocessCoverageTest
         $result = PhpSubprocess::run($root, SourceOnlyPhp::command(
             $root . '/src',
             <<<'PHP'
+            use function Greenlight\expect;
+
+            require_once 'src/Expect/functions.php';
+
             $blocker = $argv[1];
             $message = '/^Failed to create shared coverage directory "'
                 . preg_quote($blocker, '/')
                 . '\/greenlight-coverage-[0-9a-f]{12}": mkdir\(\): Not a directory\.$/D';
 
-            \Greenlight\Expect\Expect::calling(
+            expect()->calling(
                 static fn(): \Greenlight\Coverage\Relay\SharedCoverageDirectory =>
                     \Greenlight\Coverage\Relay\SharedCoverageDirectory::open(new \Greenlight\Coverage\Collection\CoverageSettings([])),
             )
@@ -82,13 +87,13 @@ final readonly class SubprocessCoverageTest
             arguments: [$blocker],
         ));
 
-        Expect::value($result->exitCode)
+        expect($result->exitCode)
             ->because('coverage setup MUST fail before it exports a nonexistent relay directory')
             ->toBe(0);
-        Expect::value($result->stdout)
+        expect($result->stdout)
             ->because('the child MUST emit success only after the exact coverage error matches')
             ->toBe('matched');
-        Expect::value($result->stderr)
+        expect($result->stderr)
             ->toBe('');
     }
 
@@ -100,7 +105,7 @@ final readonly class SubprocessCoverageTest
         $shared = SharedCoverageDirectory::open(new CoverageSettings([]));
         $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
 
-        Expect::value($directory)
+        expect($directory)
             ->because(\sprintf('%s MUST contain a relay directory.', SubprocessCoverage::DIRECTORY_ENV))
             ->toBeString();
 
@@ -110,17 +115,17 @@ final readonly class SubprocessCoverageTest
 
         $merged = $shared->drain();
 
-        Expect::value($merged)
+        expect($merged)
             ->because('SharedCoverageDirectory::drain() MUST return CoverageMap.')
             ->toBeInstanceOf(CoverageMap::class);
 
         $files = $merged->files();
 
-        Expect::value(\array_keys($files))->toBe(['/app/a.php', '/app/b.php']);
-        Expect::value($files['/app/a.php']->coveredLines)->toBe([1, 2, 3]);
-        Expect::value($files['/app/a.php']->uncoveredLines)->toBe([]);
-        Expect::value($files['/app/b.php']->coveredLines)->toBe([7]);
-        Expect::value(\is_dir($directory))->toBeFalse();
+        expect(\array_keys($files))->toBe(['/app/a.php', '/app/b.php']);
+        expect($files['/app/a.php']->coveredLines)->toBe([1, 2, 3]);
+        expect($files['/app/a.php']->uncoveredLines)->toBe([]);
+        expect($files['/app/b.php']->coveredLines)->toBe([7]);
+        expect(\is_dir($directory))->toBeFalse();
     }
 
     #[Test]
@@ -131,7 +136,7 @@ final readonly class SubprocessCoverageTest
         $shared = SharedCoverageDirectory::open(new CoverageSettings([]));
         $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
 
-        Expect::value($directory)
+        expect($directory)
             ->because('The coverage relay directory environment variable MUST contain a path.')
             ->toBeString();
 
@@ -141,19 +146,19 @@ final readonly class SubprocessCoverageTest
             Fail::because('Expected to create an unreadable coverage dump symlink.');
         }
 
-        Expect::value($shared->drain())
+        expect($shared->drain())
             ->because('drain skips unreadable coverage dumps')
             ->toBeNull();
-        Expect::value(\is_link($unreadable))
+        expect(\is_link($unreadable))
             ->because('drain removes unreadable coverage dumps')
             ->toBeFalse();
-        Expect::value(\is_dir($directory))
+        expect(\is_dir($directory))
             ->because('drain removes the empty relay directory')
             ->toBeFalse();
-        Expect::value(\getenv(SubprocessCoverage::DIRECTORY_ENV))
+        expect(\getenv(SubprocessCoverage::DIRECTORY_ENV))
             ->because('drain restores the previous relay directory')
             ->toBe('/outer/dir');
-        Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))
+        expect(\getenv(SubprocessCoverage::INCLUDE_ENV))
             ->because('drain restores an unset include-path variable')
             ->toBeFalse();
     }
@@ -163,8 +168,8 @@ final readonly class SubprocessCoverageTest
     {
         $this->environment->unset(SubprocessCoverage::DIRECTORY_ENV);
 
-        Expect::value(SubprocessCoverage::requested())->toBeFalse();
-        Expect::value(SubprocessCoverage::begin())->toBeNull();
+        expect(SubprocessCoverage::requested())->toBeFalse();
+        expect(SubprocessCoverage::begin())->toBeNull();
     }
 
     #[Test]
@@ -173,14 +178,14 @@ final readonly class SubprocessCoverageTest
         $this->environment->set(SubprocessCoverage::DIRECTORY_ENV, '0');
         $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
 
-        Expect::value($relay)
+        expect($relay)
             ->because('The non-empty falsey directory MUST start subprocess coverage.')
             ->toBeInstanceOf(SubprocessCoverage::class);
 
-        Expect::value(SubprocessCoverage::requested())
+        expect(SubprocessCoverage::requested())
             ->because('a non-empty falsey directory MUST request subprocess coverage')
             ->toBeTrue();
-        Expect::value(RecordingFakeDriver::started())
+        expect(RecordingFakeDriver::started())
             ->because('a non-empty falsey directory MUST start the selected coverage driver')
             ->toBeTrue();
 
@@ -199,37 +204,37 @@ final readonly class SubprocessCoverageTest
 
         $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
 
-        Expect::value($relay)
+        expect($relay)
             ->because('The available fake driver MUST start subprocess coverage.')
             ->toBeInstanceOf(SubprocessCoverage::class);
 
-        Expect::value(RecordingFakeDriver::started())
+        expect(RecordingFakeDriver::started())
             ->because('subprocess coverage starts the selected driver')
             ->toBeTrue();
 
         $relay->write();
 
-        Expect::value(RecordingFakeDriver::started())
+        expect(RecordingFakeDriver::started())
             ->because('writing subprocess coverage stops the selected driver')
             ->toBeFalse();
 
         $dumps = \glob($directory . '/*.json');
 
-        Expect::value($dumps)
+        expect($dumps)
             ->because('Subprocess coverage MUST write a list of JSON dumps.')
             ->toBeArray();
-        Expect::value($dumps)
+        expect($dumps)
             ->because('Subprocess coverage MUST write exactly one JSON dump.')
             ->toHaveCount(1);
 
         $files = CoverageJson::read($dumps[0])->files();
 
-        Expect::value(\array_keys($files))
+        expect(\array_keys($files))
             ->because('empty include segments are ignored and the configured path filters the dump')
             ->toBe(['/project/src/Included.php']);
-        Expect::value($files['/project/src/Included.php']->coveredLines)
+        expect($files['/project/src/Included.php']->coveredLines)
             ->toBe([10]);
-        Expect::value($files['/project/src/Included.php']->uncoveredLines)
+        expect($files['/project/src/Included.php']->uncoveredLines)
             ->toBe([11]);
     }
 
@@ -241,16 +246,16 @@ final readonly class SubprocessCoverageTest
         $this->environment->unset(SubprocessCoverage::INCLUDE_ENV);
         $relay = SubprocessCoverage::begin(new DriverSelector([RecordingFakeDriver::class]));
 
-        Expect::value($relay)
+        expect($relay)
             ->because('The available fake driver MUST start subprocess coverage.')
             ->toBeInstanceOf(SubprocessCoverage::class);
 
         $relay->write();
 
-        Expect::value(RecordingFakeDriver::started())
+        expect(RecordingFakeDriver::started())
             ->because('a failed relay write MUST still stop the coverage driver')
             ->toBeFalse();
-        Expect::value(\file_exists($directory))
+        expect(\file_exists($directory))
             ->because('a failed relay write MUST NOT create an incomplete relay directory')
             ->toBeFalse();
     }
@@ -263,13 +268,13 @@ final readonly class SubprocessCoverageTest
         $this->environment->unset(SubprocessCoverage::INCLUDE_ENV);
         $relay = SubprocessCoverage::begin(new DriverSelector([AvailableFakeDriver::class]));
 
-        Expect::value($relay)
+        expect($relay)
             ->because('The available fake driver MUST start subprocess coverage.')
             ->toBeInstanceOf(SubprocessCoverage::class);
 
         $relay->write();
 
-        Expect::value(\glob($directory . '/*.json'))
+        expect(\glob($directory . '/*.json'))
             ->because('subprocess coverage does not write an empty map')
             ->toBe([]);
     }
@@ -281,10 +286,10 @@ final readonly class SubprocessCoverageTest
         $this->environment->set(SubprocessCoverage::DIRECTORY_ENV, $directory);
         $this->environment->unset(SubprocessCoverage::INCLUDE_ENV);
 
-        Expect::value(SubprocessCoverage::begin(new DriverSelector([UnavailableFakeDriver::class])))
+        expect(SubprocessCoverage::begin(new DriverSelector([UnavailableFakeDriver::class])))
             ->because('a missing coverage driver does not fail a subprocess run')
             ->toBeNull();
-        Expect::value(\glob($directory . '/*.json'))
+        expect(\glob($directory . '/*.json'))
             ->toBe([]);
     }
 
@@ -296,10 +301,10 @@ final readonly class SubprocessCoverageTest
         $shared = SharedCoverageDirectory::open(new CoverageSettings([]));
         $shared->drain();
 
-        Expect::value(\getenv(SubprocessCoverage::DIRECTORY_ENV))
+        expect(\getenv(SubprocessCoverage::DIRECTORY_ENV))
             ->because('drain MUST restore falsey relay values exactly')
             ->toBe('0');
-        Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))
+        expect(\getenv(SubprocessCoverage::INCLUDE_ENV))
             ->toBe('0');
     }
 

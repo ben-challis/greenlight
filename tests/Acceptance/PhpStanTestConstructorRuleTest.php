@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\AllowParallel;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[AllowParallel]
 #[RequiresResource('analysis-process')]
@@ -157,20 +158,20 @@ final readonly class PhpStanTestConstructorRuleTest
         );
 
         $probe = $probes['constructor shapes'];
-        Expect::value($probe->exitCode)->because('test constructors must have resolvable shapes')->toBe(1);
-        Expect::value($probe->goodPassed)->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(5);
-        Expect::value($probe->messages())->toContain('Greenlight cannot instantiate test class GreenlightTestConstructorProbe\PrivateConstructorProbe because its constructor is not public')
+        expect($probe->exitCode)->because('test constructors must have resolvable shapes')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(5);
+        expect($probe->messages())->toContain('Greenlight cannot instantiate test class GreenlightTestConstructorProbe\PrivateConstructorProbe because its constructor is not public')
             ->toContain('Greenlight cannot resolve constructor parameter $scalar of test class GreenlightTestConstructorProbe\InvalidParametersProbe')
             ->toContain('Greenlight cannot resolve constructor parameter $union of test class GreenlightTestConstructorProbe\InvalidParametersProbe')
             ->toContain('Greenlight cannot resolve constructor parameter $object of test class GreenlightTestConstructorProbe\InvalidParametersProbe')
             ->toContain('Greenlight cannot resolve constructor parameter $value of test class GreenlightTestConstructorProbe\InvalidInheritedTestConstructorProbe');
 
         $probe = $probes['variadic constructor parameters'];
-        Expect::value($probe->exitCode)->because('scalar variadic parameters cannot be resolved')->toBe(1);
-        Expect::value($probe->goodPassed)->toBeTrue();
-        Expect::value($probe->errors)->toHaveCount(1);
-        Expect::value($probe->messages())->toContain(
+        expect($probe->exitCode)->because('scalar variadic parameters cannot be resolved')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect($probe->errors)->toHaveCount(1);
+        expect($probe->messages())->toContain(
             'Greenlight cannot resolve constructor parameter $values of test class '
                 . 'GreenlightTestConstructorVariadicProbe\ScalarVariadicConstructorProbe',
         );

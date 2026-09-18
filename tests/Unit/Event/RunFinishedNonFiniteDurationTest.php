@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Event;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\RunFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ResultSummary;
+
+use function Greenlight\expect;
 
 final readonly class RunFinishedNonFiniteDurationTest
 {
@@ -16,7 +17,7 @@ final readonly class RunFinishedNonFiniteDurationTest
     #[DataSet('nonFiniteDurations')]
     public function rejectsANonFiniteDuration(float $duration): void
     {
-        Expect::calling(static fn(): RunFinished => new RunFinished(
+        expect()->calling(static fn(): RunFinished => new RunFinished(
             'run-1',
             new ResultSummary(passed: 1),
             $duration,

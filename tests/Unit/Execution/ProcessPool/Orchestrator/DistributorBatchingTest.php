@@ -8,8 +8,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Execution\ProcessPool\Orchestrator\Distributor;
 use Greenlight\Execution\ProcessPool\Orchestrator\SchedulingUnit;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final readonly class DistributorBatchingTest
 {
@@ -28,16 +29,16 @@ final readonly class DistributorBatchingTest
             'Acme\\GammaTest' => 0.02,
         ]);
 
-        Expect::value($this->classShape($pooled))
+        expect($this->classShape($pooled))
             ->because('a batch MUST preserve class order and stay below its predicted duration limit')
             ->toBe([
                 ['Acme\\AlphaTest', 'Acme\\BetaTest'],
                 ['Acme\\GammaTest'],
             ]);
-        Expect::value($pooled[0]->resources)
+        expect($pooled[0]->resources)
             ->because('resource order MUST NOT change resource-set compatibility')
             ->toBe(['redis', 'postgres']);
-        Expect::value($isolated)->toBe([]);
+        expect($isolated)->toBe([]);
     }
 
     #[Test]
@@ -58,7 +59,7 @@ final readonly class DistributorBatchingTest
             'Acme\\LargeTest' => 0.051,
         ]);
 
-        Expect::value($this->classShape($pooled))
+        expect($this->classShape($pooled))
             ->because('unsafe duration or resource combinations MUST keep one-class assignments')
             ->toBe([
                 ['Acme\\FreeTest'],
@@ -83,13 +84,13 @@ final readonly class DistributorBatchingTest
             'Acme\\NextTest' => 0.001,
         ]);
 
-        Expect::value($this->classShape($pooled))
+        expect($this->classShape($pooled))
             ->because('a mixed-isolation class has no safe pooled duration estimate')
             ->toBe([
                 ['Acme\\MixedTest'],
                 ['Acme\\NextTest'],
             ]);
-        Expect::value($this->classShape($isolated))
+        expect($this->classShape($isolated))
             ->because('an isolated entry MUST remain a separate unit')
             ->toBe([['Acme\\MixedTest']]);
     }
@@ -108,7 +109,7 @@ final readonly class DistributorBatchingTest
             'Acme\\NextTest' => 0.001,
         ]);
 
-        Expect::value($this->classShape($pooled))
+        expect($this->classShape($pooled))
             ->because('opted-in entries MUST remain separate scheduling units')
             ->toBe([
                 ['Acme\\ParallelTest'],
@@ -130,10 +131,10 @@ final readonly class DistributorBatchingTest
             'Acme\\BetaTest' => 0.001,
         ]);
 
-        Expect::value($this->classShape($pooled))
+        expect($this->classShape($pooled))
             ->because('batching a seeded plan MUST preserve its class order')
             ->toBe([['Acme\\AlphaTest', 'Acme\\BetaTest']]);
-        Expect::value($pooled[0]->plan->seed)->toBe(4242);
+        expect($pooled[0]->plan->seed)->toBe(4242);
     }
 
     #[Test]
@@ -150,17 +151,17 @@ final readonly class DistributorBatchingTest
 
         [$pooled] = new Distributor()->units(new ExecutionPlan($entries), $durations, workerCount: 4);
 
-        Expect::value($pooled)
+        expect($pooled)
             ->because('many fast classes SHOULD need fewer assignments without reducing worker capacity')
             ->toHaveCount(4);
 
         foreach ($pooled as $unit) {
-            Expect::value($unit->plan->classes())
+            expect($unit->plan->classes())
                 ->because('a stale zero-duration estimate MUST NOT create a large tail unit')
                 ->toHaveCount(16);
         }
 
-        Expect::value(\array_merge(...$this->classShape($pooled)))
+        expect(\array_merge(...$this->classShape($pooled)))
             ->because('batching MUST preserve every class in plan order')
             ->toBe(\array_keys($durations));
     }
@@ -185,7 +186,7 @@ final readonly class DistributorBatchingTest
 
         [$pooled] = new Distributor()->units(new ExecutionPlan($entries), $durations, workerCount: 4);
 
-        Expect::value($this->classShape($pooled))
+        expect($this->classShape($pooled))
             ->because('batching MUST preserve worker capacity for each resource-compatible run')
             ->toBe([
                 ['Acme\\FreeATest', 'Acme\\FreeBTest', 'Acme\\FreeCTest', 'Acme\\FreeDTest', 'Acme\\FreeETest'],

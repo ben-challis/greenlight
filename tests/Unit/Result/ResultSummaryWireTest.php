@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Wire\InvalidWirePayload;
 use Greenlight\Result\ResultSummary;
+
+use function Greenlight\expect;
 
 final class ResultSummaryWireTest
 {
@@ -19,7 +20,7 @@ final class ResultSummaryWireTest
         $payload = $this->payload();
         $payload[$field] = -1;
 
-        Expect::value(ResultSummary::fromWire($payload)->toWire()[$field])
+        expect(ResultSummary::fromWire($payload)->toWire()[$field])
             ->because('negative wire counts normalize to zero')
             ->toBe(0);
     }
@@ -31,7 +32,7 @@ final class ResultSummaryWireTest
         $payload = $this->payload();
         $payload[$field] = 'one';
 
-        Expect::calling(static fn(): ResultSummary => ResultSummary::fromWire($payload))
+        expect()->calling(static fn(): ResultSummary => ResultSummary::fromWire($payload))
             ->because('non-integer wire counts name their field')
             ->toThrow(
                 InvalidWirePayload::class,

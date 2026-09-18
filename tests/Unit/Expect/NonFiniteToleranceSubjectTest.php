@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class NonFiniteToleranceSubjectTest
 {
@@ -14,16 +15,16 @@ final class NonFiniteToleranceSubjectTest
     #[DataSet('nonFiniteSubjects')]
     public function aNonFiniteSubjectCannotBeWithinAFiniteTolerance(float $subject, float $delta, float $of): void
     {
-        Expect::value($subject)->not()->toBeWithin($delta, $of);
+        expect($subject)->not()->toBeWithin($delta, $of);
     }
 
     #[Test]
     public function finiteSubjectsStillMatchWhenAToleranceBoundaryOverflows(): void
     {
-        Expect::value(\PHP_FLOAT_MAX)->toBeWithin(\PHP_FLOAT_MAX, \PHP_FLOAT_MAX);
-        Expect::value(-\PHP_FLOAT_MAX)->toBeWithin(\PHP_FLOAT_MAX, -\PHP_FLOAT_MAX);
-        Expect::value(0.0)->toBeWithin(\PHP_FLOAT_MAX, \PHP_FLOAT_MAX);
-        Expect::value(0.0)->toBeWithin(\PHP_FLOAT_MAX, -\PHP_FLOAT_MAX);
+        expect(\PHP_FLOAT_MAX)->toBeWithin(\PHP_FLOAT_MAX, \PHP_FLOAT_MAX);
+        expect(-\PHP_FLOAT_MAX)->toBeWithin(\PHP_FLOAT_MAX, -\PHP_FLOAT_MAX);
+        expect(0.0)->toBeWithin(\PHP_FLOAT_MAX, \PHP_FLOAT_MAX);
+        expect(0.0)->toBeWithin(\PHP_FLOAT_MAX, -\PHP_FLOAT_MAX);
     }
 
     /** @return iterable<string, array{float, float, float}> */

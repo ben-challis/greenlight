@@ -43,6 +43,8 @@ use Greenlight\Tests\Fixture\Plugins\QuarantinePlugin;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\FixturePath;
 
+use function Greenlight\expect;
+
 final readonly class PluginTest
 {
     public function __construct(private Cleanup $cleanup) {}
@@ -68,7 +70,7 @@ final readonly class PluginTest
             new StandardHarnessPlugin(channel: $bootstrap->channel),
         ]);
 
-        Expect::calling(static fn() => $plugins->prepareWorker(
+        expect()->calling(static fn() => $plugins->prepareWorker(
             $bootstrap,
             [],
         ))
@@ -92,12 +94,12 @@ final readonly class PluginTest
 
         $quarantined = $byMethod['flakyAndQuarantined'];
 
-        Expect::value($quarantined->outcome)->because('quarantine plugin transforms failures with provenance')->toBe(Outcome::Skipped);
-        Expect::value($quarantined->transformations)->toHaveCount(1);
-        Expect::value($quarantined->transformations[0]->transformedBy)->toBe(QuarantinePlugin::class);
-        Expect::value($quarantined->transformations[0]->from)->toBe(Outcome::Errored);
-        Expect::value($quarantined->transformations[0]->to)->toBe(Outcome::Skipped);
-        Expect::value($byMethod['passes']->outcome)->toBe(Outcome::Passed);
+        expect($quarantined->outcome)->because('quarantine plugin transforms failures with provenance')->toBe(Outcome::Skipped);
+        expect($quarantined->transformations)->toHaveCount(1);
+        expect($quarantined->transformations[0]->transformedBy)->toBe(QuarantinePlugin::class);
+        expect($quarantined->transformations[0]->from)->toBe(Outcome::Errored);
+        expect($quarantined->transformations[0]->to)->toBe(Outcome::Skipped);
+        expect($byMethod['passes']->outcome)->toBe(Outcome::Passed);
     }
 
     #[Test]
@@ -120,12 +122,12 @@ final readonly class PluginTest
             $rogue::class,
         );
 
-        Expect::value($results[0]->outcome)
+        expect($results[0]->outcome)
             ->because('unattributed outcome changes error the test naming the plugin')
             ->toBe(Outcome::Errored);
-        Expect::value($results[0]->error?->message)
+        expect($results[0]->error?->message)
             ->toBe($message);
-        Expect::value($results[0]->error?->class)->toBe(PluginRuntimeError::class);
+        expect($results[0]->error?->class)->toBe(PluginRuntimeError::class);
     }
 
     #[Test]
@@ -148,18 +150,18 @@ final readonly class PluginTest
         $result = $results[0];
         $expectedId = 'Greenlight\\Tests\\Fixture\\Lifecycle\\Order\\OrderTest::theTest';
 
-        Expect::value((string) $result->id)
+        expect((string) $result->id)
             ->because('afterTest() MUST NOT replace the executed test identity')
             ->toBe($expectedId);
-        Expect::value($result->outcome)
+        expect($result->outcome)
             ->toBe(Outcome::Errored);
-        Expect::value($result->error?->message)
+        expect($result->error?->message)
             ->toBe(\sprintf(
                 'Plugin "%s" changed the test identity during afterTest() from "%s" to "Rogue\\InjectedTest::wrong".',
                 $rogue::class,
                 $expectedId,
             ));
-        Expect::value($result->error?->class)->toBe(PluginRuntimeError::class);
+        expect($result->error?->class)->toBe(PluginRuntimeError::class);
     }
 
     #[Test]
@@ -179,12 +181,12 @@ final readonly class PluginTest
             $broken::class,
         );
 
-        Expect::value($results[0]->outcome)
+        expect($results[0]->outcome)
             ->because('throwing before test errors the test naming the plugin')
             ->toBe(Outcome::Errored);
-        Expect::value($results[0]->error?->message)
+        expect($results[0]->error?->message)
             ->toBe($message);
-        Expect::value($results[0]->error?->class)->toBe(PluginRuntimeError::class);
+        expect($results[0]->error?->class)->toBe(PluginRuntimeError::class);
     }
 
     #[Test]
@@ -211,38 +213,38 @@ final readonly class PluginTest
         }
 
         // The passed test becomes an error that names the plugin.
-        Expect::value($byMethod['passes']->outcome)
+        expect($byMethod['passes']->outcome)
             ->because('throwing after test keeps the outcome and records the plugin failure')
             ->toBe(Outcome::Errored);
-        Expect::value($byMethod['passes']->error?->message)
+        expect($byMethod['passes']->error?->message)
             ->toBe($pluginFailure);
-        Expect::value($byMethod['passes']->error?->class)->toBe(PluginRuntimeError::class);
+        expect($byMethod['passes']->error?->class)->toBe(PluginRuntimeError::class);
 
         // The test keeps its original error. Greenlight records the plugin
         // failure as a failure detail.
         $errored = $byMethod['explodes'];
-        Expect::value($errored->outcome)
+        expect($errored->outcome)
             ->because('throwing after test keeps the outcome and records the plugin failure')
             ->toBe(Outcome::Errored);
-        Expect::value($errored->error?->message)
+        expect($errored->error?->message)
             ->toContain('intentional boom');
-        Expect::value($errored->failures[0]->message ?? '')
+        expect($errored->failures[0]->message ?? '')
             ->toBe($pluginFailure);
 
         // The test keeps its assertion failure. Greenlight adds the plugin
         // failure after it and does not replace either failure with an error.
         [, $failedResults] = $this->runSuite('PluginAssertionFailure', [$broken]);
         $failed = $failedResults[0];
-        Expect::value($failed->outcome)
+        expect($failed->outcome)
             ->because('a plugin failure MUST NOT replace an assertion failure')
             ->toBe(Outcome::Failed);
-        Expect::value($failed->error)
+        expect($failed->error)
             ->toBe(null);
-        Expect::value($failed->failures)
+        expect($failed->failures)
             ->toHaveCount(2);
-        Expect::value($failed->failures[0]->message)
+        expect($failed->failures[0]->message)
             ->toContain('intentional assertion failure');
-        Expect::value($failed->failures[1]->message)
+        expect($failed->failures[1]->message)
             ->toBe($pluginFailure);
     }
 
@@ -269,13 +271,13 @@ final readonly class PluginTest
             $byMethod[$result->id->method] = $result;
         }
 
-        Expect::value($byMethod['passes']->outcome)
+        expect($byMethod['passes']->outcome)
             ->because('a retry decider MUST NOT run after a successful test')
             ->toBe(Outcome::Passed);
-        Expect::value($byMethod['explodes']->outcome)
+        expect($byMethod['explodes']->outcome)
             ->because('a retry decider failure MUST error the unsuccessful test')
             ->toBe(Outcome::Errored);
-        Expect::value($byMethod['explodes']->error?->message)
+        expect($byMethod['explodes']->error?->message)
             ->toBe('retry decision failed');
     }
 
@@ -292,8 +294,8 @@ final readonly class PluginTest
 
         [$summary, $results] = $this->runSuite('Lifecycle/Order', [$skipper]);
 
-        Expect::value($summary->skipped)->because('context skip from before test skips the test')->toBe(1);
-        Expect::value($results[0]->skipReason)->toBe('flaky on this platform');
+        expect($summary->skipped)->because('context skip from before test skips the test')->toBe(1);
+        expect($results[0]->skipReason)->toBe('flaky on this platform');
     }
 
     #[Test]
@@ -319,10 +321,10 @@ final readonly class PluginTest
 
         [$summary] = $this->runSuite('Lifecycle/Order', [$skipper]);
 
-        Expect::value($summary->skipped)
+        expect($summary->skipped)
             ->because('the plugin skip stops test execution')
             ->toBe(1);
-        Expect::value(TraceLog::drain())
+        expect(TraceLog::drain())
             ->because('the plugin skip MUST preserve fixture and subscriber teardown order')
             ->toBe(['construct', 'after2', 'after1', 'plugin-after']);
     }
@@ -340,8 +342,8 @@ final readonly class PluginTest
 
         [$summary, $results] = $this->runSuite('Lifecycle/Order', [$skipper]);
 
-        Expect::value($summary->skipped)->because('skip signal from before test skips the test')->toBe(1);
-        Expect::value($results[0]->skipReason)->toBe('quarantined environment');
+        expect($summary->skipped)->because('skip signal from before test skips the test')->toBe(1);
+        expect($results[0]->skipReason)->toBe('quarantined environment');
     }
 
     #[Test]
@@ -395,7 +397,7 @@ final readonly class PluginTest
 
         $this->runSuite('Lifecycle/Order', [$late, $early]);
 
-        Expect::value(TraceLog::drain())
+        expect(TraceLog::drain())
             ->because('test subscribers MUST enter by priority and unwind in reverse')
             ->toBe([
                 'construct',
@@ -419,8 +421,8 @@ final readonly class PluginTest
 
         [$summary] = $this->runSuite('Lifecycle/Services', [new ProbeProvider()]);
 
-        Expect::value($summary->passed)->because('harness providers contribute injectable services')->toBe(2);
-        Expect::value(TraceLog::drain())->toContain('probe1:disposed');
+        expect($summary->passed)->because('harness providers contribute injectable services')->toBe(2);
+        expect(TraceLog::drain())->toContain('probe1:disposed');
     }
 
     #[Test]
@@ -429,14 +431,14 @@ final readonly class PluginTest
         $restoreExtensions = Expect::install([new EvenNumbersExtension()]);
         $this->cleanup->defer($restoreExtensions);
 
-        Expect::value(4)->toBeEven();
-        Expect::value(3)->not()->toBeEven();
+        expect(4)->toBeEven();
+        expect(3)->not()->toBeEven();
 
-        Expect::calling(static function (): void {
-            Expect::value(3)->toBeEven();
+        expect()->calling(static function (): void {
+            expect(3)->toBeEven();
         })->toThrow(ExpectationFailed::class, matching: '/extension matcher toBeEven/');
 
-        Expect::calling(static fn(): Expectation => Expect::value(3)->__call('toBeSomethingUnknown', []))
+        expect()->calling(static fn(): Expectation => expect(3)->__call('toBeSomethingUnknown', []))
             ->toThrow(\BadMethodCallException::class, matching: '/toBeSomethingUnknown/');
     }
 

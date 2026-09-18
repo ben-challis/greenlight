@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class ToThrowZeroMessageTest
 {
     #[Test]
     public function exactZeroMessageMatches(): void
     {
-        Expect::calling(static fn() => throw new \RuntimeException('0'))
+        expect()->calling(static fn() => throw new \RuntimeException('0'))
             ->because('toThrow() MUST treat a zero message as an exact constraint')
             ->toThrow(\RuntimeException::class, message: '0');
     }
@@ -21,19 +22,19 @@ final readonly class ToThrowZeroMessageTest
     public function exactZeroMessageRejectsAndDescribesOtherMessages(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::calling(static fn() => throw new \RuntimeException('other'))
+            static fn() => expect()->calling(static fn() => throw new \RuntimeException('other'))
                 ->toThrow(\RuntimeException::class, message: '0'),
         );
 
-        Expect::value($detail->message)
+        expect($detail->message)
             ->because('a zero exact-message mismatch MUST retain its constraint')
             ->toBe(
                 "Expected a callable that threw RuntimeException with message 'other' "
                 . "to throw RuntimeException with message '0'.",
             );
-        Expect::value($detail->expected)
+        expect($detail->expected)
             ->toBe(\RuntimeException::class);
-        Expect::value($detail->actual)
+        expect($detail->actual)
             ->toBe("a callable that threw RuntimeException with message 'other'");
     }
 }

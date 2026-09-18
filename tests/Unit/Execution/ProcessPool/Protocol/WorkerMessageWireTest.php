@@ -9,9 +9,10 @@ use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class WorkerMessageWireTest
 {
@@ -25,7 +26,7 @@ final class WorkerMessageWireTest
             'pid' => $number,
         ]);
 
-        Expect::value($hello->pid)
+        expect($hello->pid)
             ->because('a decoded worker process ID MUST be positive')
             ->toBe(1);
     }
@@ -39,7 +40,7 @@ final class WorkerMessageWireTest
             'attempt' => $number,
         ]);
 
-        Expect::value($attempt->attempt)
+        expect($attempt->attempt)
             ->because('a decoded attempt number MUST be positive')
             ->toBe(1);
     }
@@ -64,7 +65,7 @@ final class WorkerMessageWireTest
             'leaks' => [],
         ]);
 
-        Expect::value($done->peakMemoryBytes)
+        expect($done->peakMemoryBytes)
             ->because('decoded peak memory MUST NOT be negative')
             ->toBe(0);
     }

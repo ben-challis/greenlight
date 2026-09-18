@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\PhpStan;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\PhpStan\MatcherMap;
 use Greenlight\PhpStan\MatcherMapError;
+
+use function Greenlight\expect;
 
 final class MatcherMapConflictDiagnosticTest
 {
@@ -17,7 +18,7 @@ final class MatcherMapConflictDiagnosticTest
     #[Test]
     public function conflictingSignaturesIdentifyBothDeclarations(): void
     {
-        Expect::calling(
+        expect()->calling(
             static fn(): MatcherMap => MatcherMap::fromConfigFiles([
                 self::CONFIG,
                 self::CONFLICTING_CONFIG,

@@ -8,8 +8,9 @@ use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactCleanupRootSymlinkTest
 {
@@ -36,11 +37,11 @@ final readonly class ArtifactCleanupRootSymlinkTest
         try {
             $store->cleanup();
 
-            Expect::value(\is_file($sentinel))
+            expect(\is_file($sentinel))
                 ->because('artifact cleanup preserves files outside its staging directory')
                 ->toBeTrue();
-            Expect::value(\file_get_contents($sentinel))->toBe('keep');
-            Expect::value(\is_link($staging))->toBeFalse();
+            expect(\file_get_contents($sentinel))->toBe('keep');
+            expect(\is_link($staging))->toBeFalse();
             $store->cleanup();
         } finally {
             if (\is_link($staging)) {

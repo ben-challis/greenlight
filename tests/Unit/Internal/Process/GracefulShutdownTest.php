@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Internal\Process;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Process\GracefulShutdown;
+
+use function Greenlight\expect;
 
 final class GracefulShutdownTest
 {
@@ -15,8 +16,8 @@ final class GracefulShutdownTest
     {
         $shutdown = new GracefulShutdown();
 
-        Expect::value($shutdown->requested())->because('starts with nothing requested')->toBeFalse();
-        Expect::value($shutdown->signal())->because('starts with nothing requested')->toBe(null);
+        expect($shutdown->requested())->because('starts with nothing requested')->toBeFalse();
+        expect($shutdown->signal())->because('starts with nothing requested')->toBe(null);
     }
 
     #[Test]
@@ -25,13 +26,13 @@ final class GracefulShutdownTest
         $sigint = new GracefulShutdown();
         $sigint->request(2);
 
-        Expect::value($sigint->requested())->because('has a requested signal')->toBeTrue();
-        Expect::value($sigint->signal())->because('keeps the requested signal')->toBe(2);
+        expect($sigint->requested())->because('has a requested signal')->toBeTrue();
+        expect($sigint->signal())->because('keeps the requested signal')->toBe(2);
 
         $sigterm = new GracefulShutdown();
         $sigterm->request(15);
 
-        Expect::value($sigterm->signal())->because('keeps the requested signal')->toBe(15);
+        expect($sigterm->signal())->because('keeps the requested signal')->toBe(15);
     }
 
     #[Test]
@@ -41,6 +42,6 @@ final class GracefulShutdownTest
         $shutdown->request(15);
         $shutdown->request(2);
 
-        Expect::value($shutdown->signal())->because('keeps the first signal')->toBe(15);
+        expect($shutdown->signal())->because('keeps the first signal')->toBe(15);
     }
 }

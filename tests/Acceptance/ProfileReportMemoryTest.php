@@ -8,7 +8,6 @@ use Greenlight\Attribute\Test;
 use Greenlight\Event\RunFinished;
 use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Internal\Event\EventCodec;
 use Greenlight\Result\Outcome;
@@ -17,6 +16,8 @@ use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class ProfileReportMemoryTest
 {
@@ -53,9 +54,9 @@ final readonly class ProfileReportMemoryTest
             \fclose($stream);
         }
 
-        Expect::value(\filesize($path))->toBeGreaterThan(32 * 1024 * 1024);
+        expect(\filesize($path))->toBeGreaterThan(32 * 1024 * 1024);
         $result = GreenlightCli::run($directory, ['profile:report', '--input=profile.jsonl', '--no-ansi'], phpArguments: ['-d', 'memory_limit=32M']);
-        Expect::value($result->exitCode)->toBe(0);
-        Expect::value($result->stdout)->toBe("Profile:\n  Workers: 1 requested, 0 spawned");
+        expect($result->exitCode)->toBe(0);
+        expect($result->stdout)->toBe("Profile:\n  Workers: 1 requested, 0 spawned");
     }
 }

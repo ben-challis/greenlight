@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Orchestrator\DispatchKind;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceScheduler;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\SchedulingFixture;
+
+use function Greenlight\expect;
 
 final readonly class ResourceLeaseIdentityTest
 {
@@ -27,29 +28,29 @@ final readonly class ResourceLeaseIdentityTest
         $first = SchedulingFixture::assignedLease($scheduler);
         $second = SchedulingFixture::assignedLease($scheduler);
 
-        Expect::value($first->id)
+        expect($first->id)
             ->because('the first resource lease MUST use the first lease ID')
             ->toBe(1);
-        Expect::value($second->id)
+        expect($second->id)
             ->because('the second resource lease MUST use a distinct lease ID')
             ->toBe(2);
 
-        Expect::value($scheduler->dispatch(true)->kind)
+        expect($scheduler->dispatch(true)->kind)
             ->because('two concurrent resource leases MUST use all configured capacity')
             ->toBe(DispatchKind::Wait);
 
         $scheduler->release($first);
 
-        Expect::value(SchedulingFixture::assignedLease($scheduler)->unit)
+        expect(SchedulingFixture::assignedLease($scheduler)->unit)
             ->because('the first release MUST restore one resource slot')
             ->toBe($thirdUnit);
-        Expect::value($scheduler->dispatch(true)->kind)
+        expect($scheduler->dispatch(true)->kind)
             ->because('the first release MUST restore only one resource slot')
             ->toBe(DispatchKind::Wait);
 
         $scheduler->release($second);
 
-        Expect::value(SchedulingFixture::assignedLease($scheduler)->unit)
+        expect(SchedulingFixture::assignedLease($scheduler)->unit)
             ->because('the second release MUST independently restore one resource slot')
             ->toBe($fourthUnit);
     }

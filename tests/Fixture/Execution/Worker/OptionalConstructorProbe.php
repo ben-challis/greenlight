@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\Execution\Worker;
 
-use Greenlight\Expect\Expect;
+
+
+use function Greenlight\expect;
 
 final readonly class OptionalConstructorProbe
 {
@@ -12,7 +14,7 @@ final readonly class OptionalConstructorProbe
 
     public function usesDeclaredDefault(): void
     {
-        Expect::value($this->value)
+        expect($this->value)
             ->because('the worker uses optional built-in constructor defaults')
             ->toBe('declared default');
     }

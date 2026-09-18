@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Coverage;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageError;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class CoverageErrorTest
 {
@@ -19,7 +20,7 @@ final readonly class CoverageErrorTest
     ): void {
         $error = CoverageError::sharedDirectoryCreationFailed('/tmp/coverage', $cause);
 
-        Expect::value($error->getMessage())
+        expect($error->getMessage())
             ->because('shared coverage creation diagnostics MUST retain each available cause')
             ->toBe($expected);
     }

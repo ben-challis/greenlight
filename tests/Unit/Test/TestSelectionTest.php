@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Test;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\TestExclusions;
 use Greenlight\Test\TestInclusions;
 use Greenlight\Test\TestSelection;
+
+use function Greenlight\expect;
 
 final readonly class TestSelectionTest
 {
@@ -20,14 +21,14 @@ final readonly class TestSelectionTest
             exclude: new TestExclusions(['quarantined'], ['Legacy'], ['manual'], ['/vendor/tests']),
         );
 
-        Expect::value($selection->accepts('Acme\FastTest', 'works', ['fast'], '/project/tests/FastTest.php'))->toBeTrue();
-        Expect::value($selection->accepts('Acme\FastTest', 'works', ['slow'], '/project/tests/FastTest.php'))->toBeFalse();
-        Expect::value($selection->accepts('Acme\FastTest', 'works', ['fast', 'quarantined'], '/project/tests/FastTest.php'))->toBeFalse();
-        Expect::value($selection->accepts('Acme\LegacyTest', 'works', ['fast'], '/project/tests/LegacyTest.php'))->toBeFalse();
-        Expect::value($selection->accepts('Acme\FastTest', 'manualCheck', ['fast'], '/project/tests/FastTest.php'))->toBeFalse();
-        Expect::value($selection->accepts('Acme\FastTest', 'works', ['fast'], '/vendor/tests/FastTest.php'))->toBeFalse();
-        Expect::value($selection->acceptsId('Acme\FastTest::worksNow'))->toBeTrue();
-        Expect::value($selection->acceptsId('Acme\ExactTest::only'))->toBeTrue();
-        Expect::value($selection->acceptsId('Acme\FastTest::other'))->toBeFalse();
+        expect($selection->accepts('Acme\FastTest', 'works', ['fast'], '/project/tests/FastTest.php'))->toBeTrue();
+        expect($selection->accepts('Acme\FastTest', 'works', ['slow'], '/project/tests/FastTest.php'))->toBeFalse();
+        expect($selection->accepts('Acme\FastTest', 'works', ['fast', 'quarantined'], '/project/tests/FastTest.php'))->toBeFalse();
+        expect($selection->accepts('Acme\LegacyTest', 'works', ['fast'], '/project/tests/LegacyTest.php'))->toBeFalse();
+        expect($selection->accepts('Acme\FastTest', 'manualCheck', ['fast'], '/project/tests/FastTest.php'))->toBeFalse();
+        expect($selection->accepts('Acme\FastTest', 'works', ['fast'], '/vendor/tests/FastTest.php'))->toBeFalse();
+        expect($selection->acceptsId('Acme\FastTest::worksNow'))->toBeTrue();
+        expect($selection->acceptsId('Acme\ExactTest::only'))->toBeTrue();
+        expect($selection->acceptsId('Acme\FastTest::other'))->toBeFalse();
     }
 }

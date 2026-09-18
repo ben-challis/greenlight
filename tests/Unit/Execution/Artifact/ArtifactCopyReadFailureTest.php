@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Execution\Artifact;
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Artifact\NativeFileCopier;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Execution\Artifact\UnreadableCopySourceStream;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactCopyReadFailureTest
 {
@@ -28,7 +29,7 @@ final readonly class ArtifactCopyReadFailureTest
         UnreadableCopySourceStream::reset();
         $destination = $this->tempDirectory->path() . '/destination.txt';
 
-        Expect::calling(static fn() => new NativeFileCopier()->copy(
+        expect()->calling(static fn() => new NativeFileCopier()->copy(
             self::SCHEME . '://source',
             $destination,
         ))
@@ -37,7 +38,7 @@ final readonly class ArtifactCopyReadFailureTest
                 AttachmentError::class,
                 message: 'Failed to read attachment staging content.',
             );
-        Expect::value(UnreadableCopySourceStream::closedStreams())
+        expect(UnreadableCopySourceStream::closedStreams())
             ->because('a read failure MUST close the source stream')
             ->toBe(1);
     }

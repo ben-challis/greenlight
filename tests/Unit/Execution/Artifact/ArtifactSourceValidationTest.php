@@ -10,11 +10,12 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactSourceValidationTest
 {
@@ -46,7 +47,7 @@ final readonly class ArtifactSourceValidationTest
         );
 
         $warning = null;
-        Expect::calling(static function () use ($attachments, $source, &$warning): void {
+        expect()->calling(static function () use ($attachments, $source, &$warning): void {
             ErrorTrap::run(
                 static fn() => $attachments->file('evidence.txt', $source),
                 $warning,
@@ -57,10 +58,10 @@ final readonly class ArtifactSourceValidationTest
                 AttachmentError::class,
                 message: \sprintf('Attachment source "%s" %s.', $source, $reason),
             );
-        Expect::value($warning)
+        expect($warning)
             ->because('an invalid attachment source MUST not leak an engine diagnostic')
             ->toBeNull();
-        Expect::value($attachments->collected())
+        expect($attachments->collected())
             ->because('an invalid source does not create an attachment')
             ->toBe([]);
     }

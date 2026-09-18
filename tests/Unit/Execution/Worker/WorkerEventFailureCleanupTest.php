@@ -13,7 +13,6 @@ use Greenlight\Event\TestFinished;
 use Greenlight\Execution\Worker\HarnessServiceDisposal;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Execution\Worker\WorkerError;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
@@ -21,6 +20,8 @@ use Greenlight\Tests\Fixture\HarnessDisposalMatrix\FailingHarnessService;
 use Greenlight\Tests\Fixture\Lifecycle\Services\ServiceProbe;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
 use Greenlight\Tests\Support\FixturePath;
+
+use function Greenlight\expect;
 
 final readonly class WorkerEventFailureCleanupTest
 {
@@ -48,8 +49,8 @@ final readonly class WorkerEventFailureCleanupTest
             $caught = $error;
         }
 
-        Expect::value($caught)->toBe($failure);
-        Expect::value(TraceLog::drain())->toBe(['probe1:created', 'probe1:touched', 'probe1:disposed']);
+        expect($caught)->toBe($failure);
+        expect(TraceLog::drain())->toBe(['probe1:created', 'probe1:touched', 'probe1:disposed']);
     }
 
     #[Test]
@@ -61,10 +62,10 @@ final readonly class WorkerEventFailureCleanupTest
             new ServiceDefinition(FailingHarnessService::class, Scope::PerClass, static fn(): FailingHarnessService => new FailingHarnessService()),
         ]);
 
-        Expect::calling(fn() => $worker->run($plan, $this->failingSink($failure)))->toThrow(
+        expect()->calling(fn() => $worker->run($plan, $this->failingSink($failure)))->toThrow(
             static function (WorkerError $error) use ($failure): void {
-                Expect::value($error->getPrevious())->toBe($failure);
-                Expect::value($error->getMessage())
+                expect($error->getPrevious())->toBe($failure);
+                expect($error->getMessage())
                     ->toContain('Event delivery failed.')
                     ->toContain('harness service disposal broke');
             },

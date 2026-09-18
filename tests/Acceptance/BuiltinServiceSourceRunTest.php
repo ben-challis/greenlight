@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Artifact\Attachments;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class BuiltinServiceSourceRunTest
 {
@@ -41,8 +42,9 @@ final readonly class BuiltinServiceSourceRunTest
             namespace BuiltinSourceProbe;
 
             use Greenlight\Attribute\Test;
-            use Greenlight\Expect\Expect;
             use Greenlight\Harness\Service;
+
+            use function Greenlight\expect;
 
             final readonly class BuiltinSourceTest
             {
@@ -51,7 +53,7 @@ final readonly class BuiltinServiceSourceRunTest
                 #[Test]
                 public function receivesTheRequestedService(): void
                 {
-                    Expect::value(\is_object($this->service))->toBeTrue();
+                    expect(\is_object($this->service))->toBeTrue();
                 }
             }
 
@@ -63,10 +65,10 @@ final readonly class BuiltinServiceSourceRunTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--workers=1']);
         $output = $result->output();
 
-        Expect::value($result->exitCode)
+        expect($result->exitCode)
             ->because($output === '' ? 'The built-in source run returned no output.' : $output)
             ->toBe(1);
-        Expect::value($output)->toContain('1 test, 0 passed, 1 errored');
-        Expect::value($output)->toContain('source "' . $source . '"');
+        expect($output)->toContain('1 test, 0 passed, 1 errored');
+        expect($output)->toContain('source "' . $source . '"');
     }
 }

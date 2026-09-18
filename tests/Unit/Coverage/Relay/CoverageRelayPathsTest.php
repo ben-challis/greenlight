@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Coverage\Relay;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Relay\CoverageRelayPaths;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class CoverageRelayPathsTest
 {
@@ -18,11 +19,11 @@ final readonly class CoverageRelayPathsTest
     {
         $encoded = CoverageRelayPaths::encode([$path]);
 
-        Expect::value($encoded)
+        expect($encoded)
             ->because('the relay environment value MUST not contain reserved bytes')
             ->not()->toContain(\PATH_SEPARATOR)
             ->not()->toContain("\0");
-        Expect::value(CoverageRelayPaths::decode($encoded))
+        expect(CoverageRelayPaths::decode($encoded))
             ->because('the child process MUST receive the exact include path')
             ->toBe([$path]);
     }
@@ -32,10 +33,10 @@ final readonly class CoverageRelayPathsTest
     {
         $encoded = '/project/src' . \PATH_SEPARATOR . '/project/lib';
 
-        Expect::value(CoverageRelayPaths::encode(['/project/src', '/project/lib']))
+        expect(CoverageRelayPaths::encode(['/project/src', '/project/lib']))
             ->because('ordinary relay values remain compatible')
             ->toBe($encoded);
-        Expect::value(CoverageRelayPaths::decode($encoded))
+        expect(CoverageRelayPaths::decode($encoded))
             ->toBe(['/project/src', '/project/lib']);
     }
 

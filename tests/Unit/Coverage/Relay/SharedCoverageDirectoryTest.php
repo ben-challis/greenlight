@@ -11,10 +11,11 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Coverage\Relay\SharedCoverageDirectory;
 use Greenlight\Coverage\Relay\SubprocessCoverage;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\CoverageJson;
+
+use function Greenlight\expect;
 
 final readonly class SharedCoverageDirectoryTest
 {
@@ -49,24 +50,24 @@ final readonly class SharedCoverageDirectoryTest
         );
 
         try {
-            Expect::value($innerDirectory)->not()->toBe($outerDirectory);
-            Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/inner/src');
-            Expect::value($inner->drain()?->toWire())->toBe([
+            expect($innerDirectory)->not()->toBe($outerDirectory);
+            expect(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/inner/src');
+            expect($inner->drain()?->toWire())->toBe([
                 'files' => ['/inner/src/B.php' => [[3], [4]]],
             ]);
-            Expect::value(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe($outerDirectory);
-            Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/outer/src');
-            Expect::value(\is_dir($innerDirectory))->toBeFalse();
-            Expect::value(\is_file($outerDirectory . '/outer.json'))
+            expect(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe($outerDirectory);
+            expect(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/outer/src');
+            expect(\is_dir($innerDirectory))->toBeFalse();
+            expect(\is_file($outerDirectory . '/outer.json'))
                 ->because('the inner session must preserve its parent coverage dump')
                 ->toBeTrue();
 
-            Expect::value($outer->drain()?->toWire())->toBe([
+            expect($outer->drain()?->toWire())->toBe([
                 'files' => ['/outer/src/A.php' => [[1], [2]]],
             ]);
-            Expect::value(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe('/original/relay');
-            Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/original/src');
-            Expect::value(\is_dir($outerDirectory))->toBeFalse();
+            expect(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe('/original/relay');
+            expect(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/original/src');
+            expect(\is_dir($outerDirectory))->toBeFalse();
         } finally {
             $inner->drain();
             $outer->drain();
@@ -87,18 +88,18 @@ final readonly class SharedCoverageDirectoryTest
         CoverageJson::write($dump, new CoverageMap([new FileCoverage('/outer/src/A.php', [1], [2])]));
 
         try {
-            Expect::calling(static fn() => SharedCoverageDirectory::open(
+            expect()->calling(static fn() => SharedCoverageDirectory::open(
                 new CoverageSettings(['/inner/src']),
                 $dump,
             ))->toThrow(CoverageError::class, matching: '/Failed to create shared coverage directory/');
 
-            Expect::value(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe($outerDirectory);
-            Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/outer/src');
-            Expect::value($outer->drain()?->toWire())->toBe([
+            expect(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe($outerDirectory);
+            expect(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/outer/src');
+            expect($outer->drain()?->toWire())->toBe([
                 'files' => ['/outer/src/A.php' => [[1], [2]]],
             ]);
-            Expect::value(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBeFalse();
-            Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBeFalse();
+            expect(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBeFalse();
+            expect(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBeFalse();
         } finally {
             $outer->drain();
         }
@@ -107,7 +108,7 @@ final readonly class SharedCoverageDirectoryTest
     private function relayDirectory(): string
     {
         $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
-        Expect::value($directory)->toBeString();
+        expect($directory)->toBeString();
 
         return $directory;
     }

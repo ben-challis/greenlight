@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class TemporaryDirectoryRestrictedDisposalTest
 {
@@ -50,10 +51,10 @@ final readonly class TemporaryDirectoryRestrictedDisposalTest
             $root,
         ]);
 
-        Expect::value($result->exitCode)
+        expect($result->exitCode)
             ->because('restricted root disposal MUST produce a typed fixture error')
             ->toBe(23);
-        Expect::value($result->stdout)
+        expect($result->stdout)
             ->because('restricted root disposal MUST contain diagnostics and identify the failed cleanup')
             ->toStartWith("clean\nFailed to remove temp directory \"")
             ->toContain('open_basedir restriction in effect');

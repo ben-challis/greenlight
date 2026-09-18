@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Coverage;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class FileCoverageLineValidationTest
 {
@@ -22,7 +23,7 @@ final class FileCoverageLineValidationTest
         array $uncovered,
         int $line,
     ): void {
-        Expect::calling(
+        expect()->calling(
             static fn(): FileCoverage => new FileCoverage(
                 '/src/A.php',
                 $covered,

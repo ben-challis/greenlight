@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Execution\Artifact;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Artifact\ArtifactSession;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Wire\InvalidWirePayload;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactSessionTest
 {
@@ -21,16 +22,16 @@ final readonly class ArtifactSessionTest
         $session = new ArtifactSession($stagingDirectory, $publicDirectory);
         $decoded = ArtifactSession::fromWire($session->toWire());
 
-        Expect::value($session->stagingDirectory)
+        expect($session->stagingDirectory)
             ->because('an artifact session MUST retain its staging directory')
             ->toBe($stagingDirectory);
-        Expect::value($session->publicDirectory)
+        expect($session->publicDirectory)
             ->because('an artifact session MUST retain its public directory')
             ->toBe($publicDirectory);
-        Expect::value($decoded->stagingDirectory)
+        expect($decoded->stagingDirectory)
             ->because('the artifact staging directory MUST survive the wire')
             ->toBe($stagingDirectory);
-        Expect::value($decoded->publicDirectory)
+        expect($decoded->publicDirectory)
             ->because('the artifact public directory MUST survive the wire')
             ->toBe($publicDirectory);
     }
@@ -42,7 +43,7 @@ final readonly class ArtifactSessionTest
         string $publicDirectory,
         string $message,
     ): void {
-        Expect::calling(static fn(): ArtifactSession => new ArtifactSession(
+        expect()->calling(static fn(): ArtifactSession => new ArtifactSession(
             $stagingDirectory,
             $publicDirectory,
         ))
@@ -56,7 +57,7 @@ final readonly class ArtifactSessionTest
         string $field,
         string $value,
     ): void {
-        Expect::calling(static fn(): ArtifactSession => new ArtifactSession(
+        expect()->calling(static fn(): ArtifactSession => new ArtifactSession(
             $field === 'stagingDirectory' ? $value : '/project/.greenlight/staging/run-1',
             $field === 'publicDirectory' ? $value : '/project/build/artifacts/run-1',
         ))
@@ -80,7 +81,7 @@ final readonly class ArtifactSessionTest
             ->toWire();
         $payload[$field] = $value;
 
-        Expect::calling(static fn(): ArtifactSession => ArtifactSession::fromWire($payload))
+        expect()->calling(static fn(): ArtifactSession => ArtifactSession::fromWire($payload))
             ->because('artifact session directories MUST remain valid file-system paths across the worker wire')
             ->toThrow(
                 InvalidWirePayload::class,

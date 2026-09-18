@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\ClassFileParser;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class ClassFileParserDanglingTokenTest
 {
@@ -19,7 +20,7 @@ final readonly class ClassFileParserDanglingTokenTest
         $file = $this->tempDirectory->path() . '/Dangling.php';
         \file_put_contents($file, '<?php class');
 
-        Expect::value(ClassFileParser::declarationsIn($file))
+        expect(ClassFileParser::declarationsIn($file))
             ->because('a dangling class token does not declare a class')
             ->toBe([]);
     }

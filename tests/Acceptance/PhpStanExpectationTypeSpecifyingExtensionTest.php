@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanExpectationTypeSpecifyingExtensionTest
@@ -130,13 +131,13 @@ final readonly class PhpStanExpectationTypeSpecifyingExtensionTest
             PHP,
         );
 
-        Expect::value($probe->exitCode)
+        expect($probe->exitCode)
             ->because('PHPStan keeps unsafe stored and temporal subjects nullable')
             ->toBe(1);
-        Expect::value($probe->goodPassed)
+        expect($probe->goodPassed)
             ->because('PHPStan messages: ' . $probe->messages())
             ->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(2);
-        Expect::value($probe->messages())->toContain('expects string, string|null given');
+        expect(\count($probe->errors))->toBe(2);
+        expect($probe->messages())->toContain('expects string, string|null given');
     }
 }

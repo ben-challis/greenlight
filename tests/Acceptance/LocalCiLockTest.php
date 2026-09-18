@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class LocalCiLockTest
 {
@@ -50,14 +51,14 @@ final readonly class LocalCiLockTest
         $this->cleanup->defer($second->terminate(...));
 
         \usleep(250_000);
-        Expect::value(\file_exists($startedMarker))
+        expect(\file_exists($startedMarker))
             ->because('the second command MUST wait while the only slot is in use')
             ->toBeFalse();
 
         $first->write("continue\n");
-        Expect::value($first->wait(2.0)->exitCode)->toBe(0);
-        Expect::value($second->wait(2.0)->exitCode)->toBe(0);
-        Expect::value(\file_get_contents($startedMarker))->toBe('started');
+        expect($first->wait(2.0)->exitCode)->toBe(0);
+        expect($second->wait(2.0)->exitCode)->toBe(0);
+        expect(\file_get_contents($startedMarker))->toBe('started');
     }
 
     #[Test]
@@ -74,7 +75,7 @@ final readonly class LocalCiLockTest
             ],
         );
 
-        Expect::value($result->exitCode)->because('hosted CI bypasses the local lock')->toBe(7);
+        expect($result->exitCode)->because('hosted CI bypasses the local lock')->toBe(7);
     }
 
     #[Test]
@@ -102,11 +103,11 @@ final readonly class LocalCiLockTest
             $environment,
         );
 
-        Expect::value($second->exitCode)
+        expect($second->exitCode)
             ->because('the second command can use the configured second slot')
             ->toBe(9);
         $first->write("continue\n");
-        Expect::value($first->wait(2.0)->exitCode)->toBe(0);
+        expect($first->wait(2.0)->exitCode)->toBe(0);
     }
 
     /**

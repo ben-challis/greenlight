@@ -10,7 +10,6 @@ use Greenlight\Condition\PhpVersionAtLeast;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\TestDefinition;
 use Greenlight\Tests\Fixture\DiscoveryAttributeArguments\ArgumentsMergeTest;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\AlwaysFalse;
@@ -19,6 +18,8 @@ use Greenlight\Tests\Fixture\DiscoveryAttributes\MergedTest;
 use Greenlight\Tests\Fixture\DiscoveryAttributes\PlainTest;
 use Greenlight\Tests\Fixture\DiscoveryGroupInvalid\EmptyGroupTest;
 use Greenlight\Tests\Support\FixturePath;
+
+use function Greenlight\expect;
 
 final class AttributeMergeTest
 {
@@ -42,14 +43,14 @@ final class AttributeMergeTest
     {
         $definition = $this->definitionByTest()[MergedTest::class . '::inheritsClassLevel'];
 
-        Expect::value($definition->groups)->because('plain method on class with attributes inherits everything')->toBe(['cls-a', 'cls-b']);
-        Expect::value($definition->skip->reason)->because('plain method on class with attributes inherits everything')->toBe('class-wide skip');
-        Expect::value($definition->skip->condition)->because('plain method on class with attributes inherits everything')->toBe(AlwaysTrue::class);
-        Expect::value($definition->retry->times)->because('plain method on class with attributes inherits everything')->toBe(2);
-        Expect::value($definition->retry->onlyOn)->because('plain method on class with attributes inherits everything')->toBe(null);
-        Expect::value($definition->execution->timeoutSeconds)->because('plain method on class with attributes inherits everything')->toBe(30.0);
-        Expect::value($definition->scheduling->isolated)->because('plain method on class with attributes inherits everything')->toBe(true);
-        Expect::value($definition->scheduling->resources)->because('plain method on class with attributes inherits everything')->toBe(['postgres', 'redis']);
+        expect($definition->groups)->because('plain method on class with attributes inherits everything')->toBe(['cls-a', 'cls-b']);
+        expect($definition->skip->reason)->because('plain method on class with attributes inherits everything')->toBe('class-wide skip');
+        expect($definition->skip->condition)->because('plain method on class with attributes inherits everything')->toBe(AlwaysTrue::class);
+        expect($definition->retry->times)->because('plain method on class with attributes inherits everything')->toBe(2);
+        expect($definition->retry->onlyOn)->because('plain method on class with attributes inherits everything')->toBe(null);
+        expect($definition->execution->timeoutSeconds)->because('plain method on class with attributes inherits everything')->toBe(30.0);
+        expect($definition->scheduling->isolated)->because('plain method on class with attributes inherits everything')->toBe(true);
+        expect($definition->scheduling->resources)->because('plain method on class with attributes inherits everything')->toBe(['postgres', 'redis']);
     }
 
     #[Test]
@@ -57,14 +58,14 @@ final class AttributeMergeTest
     {
         $definition = $this->definitionByTest()[MergedTest::class . '::overridesClassLevel'];
 
-        Expect::value($definition->groups)->because('method level attributes win and groups merge as union')->toBe(['cls-a', 'cls-b', 'm']);
-        Expect::value($definition->skip->reason)->because('method level attributes win and groups merge as union')->toBe('method skip');
-        Expect::value($definition->skip->condition)->because('method level attributes win and groups merge as union')->toBe(AlwaysFalse::class);
-        Expect::value($definition->retry->times)->because('method level attributes win and groups merge as union')->toBe(5);
-        Expect::value($definition->retry->onlyOn)->because('method level attributes win and groups merge as union')->toBe(\RuntimeException::class);
-        Expect::value($definition->execution->timeoutSeconds)->because('method level attributes win and groups merge as union')->toBe(1.5);
-        Expect::value($definition->scheduling->isolated)->because('method level attributes win and groups merge as union')->toBe(true);
-        Expect::value($definition->scheduling->resources)->because('method level attributes win and groups merge as union')->toBe(['postgres', 'redis', 'sandbox']);
+        expect($definition->groups)->because('method level attributes win and groups merge as union')->toBe(['cls-a', 'cls-b', 'm']);
+        expect($definition->skip->reason)->because('method level attributes win and groups merge as union')->toBe('method skip');
+        expect($definition->skip->condition)->because('method level attributes win and groups merge as union')->toBe(AlwaysFalse::class);
+        expect($definition->retry->times)->because('method level attributes win and groups merge as union')->toBe(5);
+        expect($definition->retry->onlyOn)->because('method level attributes win and groups merge as union')->toBe(\RuntimeException::class);
+        expect($definition->execution->timeoutSeconds)->because('method level attributes win and groups merge as union')->toBe(1.5);
+        expect($definition->scheduling->isolated)->because('method level attributes win and groups merge as union')->toBe(true);
+        expect($definition->scheduling->resources)->because('method level attributes win and groups merge as union')->toBe(['postgres', 'redis', 'sandbox']);
     }
 
     #[Test]
@@ -72,15 +73,15 @@ final class AttributeMergeTest
     {
         $definition = $this->definitionByTest()[PlainTest::class . '::bare'];
 
-        Expect::value($definition->groups)->because('bare method on bare class has defaults')->toBe([]);
-        Expect::value($definition->skip->reason)->because('bare method on bare class has defaults')->toBe(null);
-        Expect::value($definition->skip->condition)->because('bare method on bare class has defaults')->toBe(null);
-        Expect::value($definition->retry->times)->because('bare method on bare class has defaults')->toBe(null);
-        Expect::value($definition->retry->onlyOn)->because('bare method on bare class has defaults')->toBe(null);
-        Expect::value($definition->execution->timeoutSeconds)->because('bare method on bare class has defaults')->toBe(null);
-        Expect::value($definition->scheduling->isolated)->because('bare method on bare class has defaults')->toBe(false);
-        Expect::value($definition->dataProvider->method)->because('bare method on bare class has defaults')->toBe(null);
-        Expect::value($definition->scheduling->resources)->because('bare method on bare class has defaults')->toBe([]);
+        expect($definition->groups)->because('bare method on bare class has defaults')->toBe([]);
+        expect($definition->skip->reason)->because('bare method on bare class has defaults')->toBe(null);
+        expect($definition->skip->condition)->because('bare method on bare class has defaults')->toBe(null);
+        expect($definition->retry->times)->because('bare method on bare class has defaults')->toBe(null);
+        expect($definition->retry->onlyOn)->because('bare method on bare class has defaults')->toBe(null);
+        expect($definition->execution->timeoutSeconds)->because('bare method on bare class has defaults')->toBe(null);
+        expect($definition->scheduling->isolated)->because('bare method on bare class has defaults')->toBe(false);
+        expect($definition->dataProvider->method)->because('bare method on bare class has defaults')->toBe(null);
+        expect($definition->scheduling->resources)->because('bare method on bare class has defaults')->toBe([]);
     }
 
     #[Test]
@@ -96,11 +97,11 @@ final class AttributeMergeTest
         $inherited = $map['inheritsClassCondition'];
         $overridden = $map['overridesClassCondition'];
 
-        Expect::value($inherited->skip->condition)->because('skip unless arguments inherit from the class and are overridden together')->toBe(EnvironmentVariableEquals::class);
-        Expect::value($inherited->skip->arguments)->because('skip unless arguments inherit from the class and are overridden together')->toBe(['GREENLIGHT_MERGE_PROBE', 'on']);
-        Expect::value($overridden->skip->condition)->because('skip unless arguments inherit from the class and are overridden together')->toBe(PhpVersionAtLeast::class);
-        Expect::value($overridden->skip->arguments)->because('skip unless arguments inherit from the class and are overridden together')->toBe(['8.0']);
-        Expect::value($inherited->class)->because('skip unless arguments inherit from the class and are overridden together')->toBe(ArgumentsMergeTest::class);
+        expect($inherited->skip->condition)->because('skip unless arguments inherit from the class and are overridden together')->toBe(EnvironmentVariableEquals::class);
+        expect($inherited->skip->arguments)->because('skip unless arguments inherit from the class and are overridden together')->toBe(['GREENLIGHT_MERGE_PROBE', 'on']);
+        expect($overridden->skip->condition)->because('skip unless arguments inherit from the class and are overridden together')->toBe(PhpVersionAtLeast::class);
+        expect($overridden->skip->arguments)->because('skip unless arguments inherit from the class and are overridden together')->toBe(['8.0']);
+        expect($inherited->class)->because('skip unless arguments inherit from the class and are overridden together')->toBe(ArgumentsMergeTest::class);
     }
 
     #[Test]
@@ -108,13 +109,13 @@ final class AttributeMergeTest
     {
         $dir = FixturePath::get('DiscoveryAttributeArgumentsInvalid');
 
-        Expect::calling(static fn(): ExecutionPlan => new TestDiscoverer()->discover([$dir]))
+        expect()->calling(static fn(): ExecutionPlan => new TestDiscoverer()->discover([$dir]))
             ->toThrow(static function (DiscoveryError $error): void {
-                Expect::value($error->getMessage())->toBe(
+                expect($error->getMessage())->toBe(
                     'Attribute on Greenlight\Tests\Fixture\DiscoveryAttributeArgumentsInvalid\NonScalarArgumentTest::neverDiscovered() is invalid: '
                     . 'Use a scalar or null for #[SkipUnless] argument 1 of condition "Greenlight\Condition\EnvironmentVariableEquals". Received array.',
                 );
-                Expect::value($error->getPrevious())->toBeInstanceOf(\InvalidArgumentException::class);
+                expect($error->getPrevious())->toBeInstanceOf(\InvalidArgumentException::class);
             });
     }
 
@@ -123,13 +124,13 @@ final class AttributeMergeTest
     {
         $dir = FixturePath::get('DiscoveryResourceInvalid');
 
-        Expect::calling(static fn(): ExecutionPlan => new TestDiscoverer()->discover([$dir]))
+        expect()->calling(static fn(): ExecutionPlan => new TestDiscoverer()->discover([$dir]))
             ->toThrow(static function (DiscoveryError $error): void {
-                Expect::value($error->getMessage())
+                expect($error->getMessage())
                     ->toContain('InvalidResourceTest')
                     ->toContain('neverDiscovered')
                     ->toContain('Resource names');
-                Expect::value($error->getPrevious())->toBeInstanceOf(\InvalidArgumentException::class);
+                expect($error->getPrevious())->toBeInstanceOf(\InvalidArgumentException::class);
             });
     }
 
@@ -138,7 +139,7 @@ final class AttributeMergeTest
     {
         $dir = FixturePath::get('DiscoveryGroupInvalid');
 
-        Expect::calling(
+        expect()->calling(
             static fn(): ExecutionPlan => new TestDiscoverer()->discover([$dir]),
         )
             ->because('an empty group name cannot enter the execution plan')
@@ -156,13 +157,13 @@ final class AttributeMergeTest
     {
         $definition = $this->definitionByTest()[PlainTest::class . '::fullyDecorated'];
 
-        Expect::value($definition->groups)->because('method level attributes apply without class level counterparts')->toBe(['only-here']);
-        Expect::value($definition->skip->reason)->because('method level attributes apply without class level counterparts')->toBe('not today');
-        Expect::value($definition->skip->condition)->because('method level attributes apply without class level counterparts')->toBe(AlwaysTrue::class);
-        Expect::value($definition->retry->times)->because('method level attributes apply without class level counterparts')->toBe(3);
-        Expect::value($definition->retry->onlyOn)->because('method level attributes apply without class level counterparts')->toBe(\LogicException::class);
-        Expect::value($definition->execution->timeoutSeconds)->because('method level attributes apply without class level counterparts')->toBe(2.5);
-        Expect::value($definition->scheduling->isolated)->because('method level attributes apply without class level counterparts')->toBe(true);
-        Expect::value($definition->scheduling->resources)->because('method level attributes apply without class level counterparts')->toBe(['method-only']);
+        expect($definition->groups)->because('method level attributes apply without class level counterparts')->toBe(['only-here']);
+        expect($definition->skip->reason)->because('method level attributes apply without class level counterparts')->toBe('not today');
+        expect($definition->skip->condition)->because('method level attributes apply without class level counterparts')->toBe(AlwaysTrue::class);
+        expect($definition->retry->times)->because('method level attributes apply without class level counterparts')->toBe(3);
+        expect($definition->retry->onlyOn)->because('method level attributes apply without class level counterparts')->toBe(\LogicException::class);
+        expect($definition->execution->timeoutSeconds)->because('method level attributes apply without class level counterparts')->toBe(2.5);
+        expect($definition->scheduling->isolated)->because('method level attributes apply without class level counterparts')->toBe(true);
+        expect($definition->scheduling->resources)->because('method level attributes apply without class level counterparts')->toBe(['method-only']);
     }
 }

@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class ProfileMachineOutputTest
 {
@@ -27,7 +28,7 @@ final readonly class ProfileMachineOutputTest
             '--no-ansi',
         ]);
 
-        Expect::value($result->exitCode)->toBe(0);
+        expect($result->exitCode)->toBe(0);
         $report = $fileOutput ? (string) \file_get_contents($project->path('report.out')) : $result->stdout;
 
         if ($reporter === 'jsonl') {
@@ -35,17 +36,17 @@ final readonly class ProfileMachineOutputTest
                 static fn(string $line): mixed => \json_decode($line, true, flags: \JSON_THROW_ON_ERROR),
                 \explode("\n", \trim($report)),
             );
-            Expect::value(\array_column($events, 'event'))
+            expect(\array_column($events, 'event'))
                 ->toContain('run-started')
                 ->toContain('run-finished');
         } else {
             $document = \simplexml_load_string($report);
-            Expect::value($document)->toBeInstanceOf(\SimpleXMLElement::class);
-            Expect::value((string) $document['tests'])->toBe('1');
+            expect($document)->toBeInstanceOf(\SimpleXMLElement::class);
+            expect((string) $document['tests'])->toBe('1');
         }
 
-        Expect::value($fileOutput ? $result->stdout : $result->stderr)->toContain('Profile:');
-        Expect::value($report)->not()->toContain('Profile:');
+        expect($fileOutput ? $result->stdout : $result->stderr)->toContain('Profile:');
+        expect($report)->not()->toContain('Profile:');
     }
 
     /** @return iterable<string, array{string, bool}> */

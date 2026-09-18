@@ -14,7 +14,6 @@ use Greenlight\Execution\ProcessPool\Orchestrator\OrchestratorConfiguration;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
@@ -23,6 +22,8 @@ use Greenlight\Test\TestDefinition;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\ScriptedWorkerTransport;
+
+use function Greenlight\expect;
 
 final readonly class OrchestratorTransportTest
 {
@@ -43,22 +44,22 @@ final readonly class OrchestratorTransportTest
 
         $summary = $orchestrator->run($this->plan($id), new CollectingEventSink(), 1);
 
-        Expect::value($summary->passed)
+        expect($summary->passed)
             ->because('the scripted worker MUST complete its assignment')
             ->toBe(1);
-        Expect::value($transport->started)
+        expect($transport->started)
             ->because('the orchestrator MUST allocate one transport worker and one channel')
             ->toBe([['workerId' => 'w-1', 'channel' => 1]]);
-        Expect::value(\array_map(
+        expect(\array_map(
             static fn(array $sent): string => $sent['message']::tag(),
             $transport->sent,
         ))
             ->because('the transport MUST observe orchestration protocol decisions in order')
             ->toBe(['bootstrap', 'assign', 'drain']);
-        Expect::value($orchestrator->workerTimings())
+        expect($orchestrator->workerTimings())
             ->because('transport retirement MUST produce one completed worker timing record')
             ->toHaveCount(1);
-        Expect::value($transport->isClosed())
+        expect($transport->isClosed())
             ->because('the orchestrator MUST close its transport after the run')
             ->toBeTrue();
     }
@@ -77,14 +78,14 @@ final readonly class OrchestratorTransportTest
         $summary = $orchestrator->run($this->plan($id, timeoutSeconds: 0.1), $sink, 1);
         $results = $sink->results();
 
-        Expect::value($summary->failed)
+        expect($summary->failed)
             ->because('orchestration policy MUST contain the timed-out test')
             ->toBe(1);
-        Expect::value($results)->toHaveCount(1);
-        Expect::value($results[0]->failures[0]->message ?? '')
+        expect($results)->toHaveCount(1);
+        expect($results[0]->failures[0]->message ?? '')
             ->because('the synthetic result MUST identify the configured time limit')
             ->toContain('exceeded its 0.100-second time limit');
-        Expect::value($orchestrator->workerTimings())
+        expect($orchestrator->workerTimings())
             ->because('forced transport retirement MUST complete before the run returns')
             ->toHaveCount(1);
     }
@@ -105,9 +106,9 @@ final readonly class OrchestratorTransportTest
 
         $summary = $orchestrator->run($plan, new CollectingEventSink(), 1);
 
-        Expect::value($summary->failed)->toBe(1);
-        Expect::value($summary->total())->toBe(1);
-        Expect::value($transport->started)->toHaveCount(1);
+        expect($summary->failed)->toBe(1);
+        expect($summary->total())->toBe(1);
+        expect($transport->started)->toHaveCount(1);
     }
 
     private function plan(TestId $id, ?float $timeoutSeconds = null): ExecutionPlan

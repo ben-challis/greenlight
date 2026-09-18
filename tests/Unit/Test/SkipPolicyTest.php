@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Unit\Test;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Wire\InvalidWirePayload;
 use Greenlight\Test\SkipPolicy;
 use Greenlight\Tests\Support\JsonWire;
+
+use function Greenlight\expect;
 
 final class SkipPolicyTest
 {
@@ -19,7 +20,7 @@ final class SkipPolicyTest
         $policy = new SkipPolicy('0', 'App\OnPosix', ['redis', 42, 1.5, true, null]);
         $restored = SkipPolicy::fromWire(JsonWire::roundTrip($policy->toWire()));
 
-        Expect::value($restored->toWire())
+        expect($restored->toWire())
             ->because('the complete skip policy MUST survive the wire')
             ->toBe($policy->toWire());
     }
@@ -27,7 +28,7 @@ final class SkipPolicyTest
     #[Test]
     public function rejectsNonScalarArgumentsOnBothSides(): void
     {
-        Expect::calling(static fn(): SkipPolicy => new SkipPolicy(arguments: [['nested']]))
+        expect()->calling(static fn(): SkipPolicy => new SkipPolicy(arguments: [['nested']]))
             ->because('a direct skip policy MUST name the invalid argument type')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -37,7 +38,7 @@ final class SkipPolicyTest
         $payload = new SkipPolicy()->toWire();
         $payload['arguments'] = ['named' => 'value'];
 
-        Expect::calling(static fn(): SkipPolicy => SkipPolicy::fromWire($payload))
+        expect()->calling(static fn(): SkipPolicy => SkipPolicy::fromWire($payload))
             ->because('wire skip arguments MUST use a list')
             ->toThrow(InvalidWirePayload::class);
     }
@@ -46,14 +47,14 @@ final class SkipPolicyTest
     #[DataSet('nonFiniteArguments')]
     public function rejectsNonFiniteArgumentsOnBothSides(float $argument): void
     {
-        Expect::calling(static fn(): SkipPolicy => new SkipPolicy(arguments: [$argument]))
+        expect()->calling(static fn(): SkipPolicy => new SkipPolicy(arguments: [$argument]))
             ->because('direct skip arguments MUST contain finite floats')
             ->toThrow(\InvalidArgumentException::class);
 
         $payload = new SkipPolicy()->toWire();
         $payload['arguments'] = [$argument];
 
-        Expect::calling(static fn(): SkipPolicy => SkipPolicy::fromWire($payload))
+        expect()->calling(static fn(): SkipPolicy => SkipPolicy::fromWire($payload))
             ->because('wire skip arguments MUST contain finite floats')
             ->toThrow(InvalidWirePayload::class);
     }

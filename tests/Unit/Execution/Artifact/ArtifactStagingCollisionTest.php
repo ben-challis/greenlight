@@ -11,8 +11,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactSession;
 use Greenlight\Execution\Artifact\ArtifactStore;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactStagingCollisionTest
 {
@@ -26,7 +27,7 @@ final readonly class ArtifactStagingCollisionTest
         \file_put_contents($source, 'evidence');
         [$store, $configuration, $part] = $this->store($root);
 
-        Expect::calling(static fn() => $store->stageFile(
+        expect()->calling(static fn() => $store->stageFile(
             $source,
             'evidence.txt',
             'Example-EvidenceTest/attempt-1/01-evidence.txt',
@@ -40,7 +41,7 @@ final readonly class ArtifactStagingCollisionTest
                 AttachmentError::class,
                 message: 'Greenlight did not create the attachment staging file.',
             );
-        Expect::value((string) \file_get_contents($part))
+        expect((string) \file_get_contents($part))
             ->because('a rejected file attachment MUST NOT delete the existing staging part')
             ->toBe('occupied');
 
@@ -55,7 +56,7 @@ final readonly class ArtifactStagingCollisionTest
             $configuration,
         );
 
-        Expect::value($staged->name)
+        expect($staged->name)
             ->because('a rejected file attachment MUST release its run quota')
             ->toBe('evidence.txt');
     }
@@ -66,7 +67,7 @@ final readonly class ArtifactStagingCollisionTest
         $root = $this->tempDirectory->subdirectory('byte-staging-collision');
         [$store, $configuration, $part] = $this->store($root);
 
-        Expect::calling(static fn() => $store->stageBytes(
+        expect()->calling(static fn() => $store->stageBytes(
             'evidence',
             'evidence.txt',
             'Example-EvidenceTest/attempt-1/01-evidence.txt',
@@ -81,7 +82,7 @@ final readonly class ArtifactStagingCollisionTest
                 AttachmentError::class,
                 message: 'Greenlight did not create the attachment staging file.',
             );
-        Expect::value((string) \file_get_contents($part))
+        expect((string) \file_get_contents($part))
             ->because('a rejected byte attachment MUST NOT delete the existing staging part')
             ->toBe('occupied');
 
@@ -97,7 +98,7 @@ final readonly class ArtifactStagingCollisionTest
             $configuration,
         );
 
-        Expect::value($staged->name)
+        expect($staged->name)
             ->because('a rejected byte attachment MUST release its run quota')
             ->toBe('evidence.txt');
     }
@@ -108,7 +109,7 @@ final readonly class ArtifactStagingCollisionTest
         $root = $this->tempDirectory->subdirectory('final-staging-collision');
         [$store, $configuration, $path] = $this->store($root, '');
 
-        Expect::calling(static fn() => $store->stageBytes(
+        expect()->calling(static fn() => $store->stageBytes(
             'evidence',
             'evidence.txt',
             'Example-EvidenceTest/attempt-1/01-evidence.txt',
@@ -123,7 +124,7 @@ final readonly class ArtifactStagingCollisionTest
                 AttachmentError::class,
                 message: 'Attachment staging path already exists.',
             );
-        Expect::value((string) \file_get_contents($path))
+        expect((string) \file_get_contents($path))
             ->because('a rejected attachment MUST NOT replace the existing staging file')
             ->toBe('occupied');
 
@@ -139,7 +140,7 @@ final readonly class ArtifactStagingCollisionTest
             $configuration,
         );
 
-        Expect::value($staged->name)
+        expect($staged->name)
             ->because('a final staging collision MUST release its run quota')
             ->toBe('evidence.txt');
     }

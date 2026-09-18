@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Coverage\Export;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Export\JsonExporter;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class JsonExporterCompatibilityTest
 {
@@ -42,14 +43,14 @@ final readonly class JsonExporterCompatibilityTest
             \JSON_THROW_ON_ERROR,
         );
 
-        Expect::value($map->toWire())
+        expect($map->toWire())
             ->because('coverage JSON readers MUST ignore additive fields')
             ->toBe([
                 'files' => [
                     '/src/A.php' => [[3], [5]],
                 ],
             ]);
-        Expect::value($exported)
+        expect($exported)
             ->because('coverage JSON readers MUST recalculate derived values')
             ->toBe([
                 'v' => 1,

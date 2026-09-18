@@ -9,10 +9,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactTestQuotaRollbackTest
 {
@@ -43,7 +44,7 @@ final readonly class ArtifactTestQuotaRollbackTest
         );
         $first->text('accepted.txt', '1234');
 
-        Expect::calling(static fn() => $first->text('rejected.txt', '12'))
+        expect()->calling(static fn() => $first->text('rejected.txt', '12'))
             ->because('the per-test byte limit MUST reject excess evidence')
             ->toThrow(
                 AttachmentError::class,
@@ -57,7 +58,7 @@ final readonly class ArtifactTestQuotaRollbackTest
         );
         $second->text('accepted.txt', '12');
 
-        Expect::value($second->collected())
+        expect($second->collected())
             ->because('a test quota rejection MUST release its run quota')
             ->toHaveCount(1);
     }
@@ -85,7 +86,7 @@ final readonly class ArtifactTestQuotaRollbackTest
             $budget,
         );
 
-        Expect::calling(static fn() => $first->text('rejected.txt', 'x'))
+        expect()->calling(static fn() => $first->text('rejected.txt', 'x'))
             ->because('per-test quota arithmetic MUST NOT overflow')
             ->toThrow(
                 AttachmentError::class,
@@ -94,7 +95,7 @@ final readonly class ArtifactTestQuotaRollbackTest
                     \PHP_INT_MAX,
                 ),
             );
-        Expect::value($budget->bytes)
+        expect($budget->bytes)
             ->because('a rejected attachment MUST NOT change the test budget')
             ->toBe(\PHP_INT_MAX);
 
@@ -105,7 +106,7 @@ final readonly class ArtifactTestQuotaRollbackTest
         );
         $second->text('accepted.txt', 'x');
 
-        Expect::value($second->collected())
+        expect($second->collected())
             ->because('an overflow-safe test quota rejection MUST release its run quota')
             ->toHaveCount(1);
     }

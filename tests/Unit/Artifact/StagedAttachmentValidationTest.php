@@ -9,15 +9,16 @@ use Greenlight\Artifact\AttachmentRetention;
 use Greenlight\Artifact\StagedAttachment;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Wire\InvalidWirePayload;
+
+use function Greenlight\expect;
 
 final class StagedAttachmentValidationTest
 {
     #[Test]
     public function rejectsAnEmptyStorageKeyAtConstruction(): void
     {
-        Expect::calling(static fn(): StagedAttachment => new StagedAttachment(
+        expect()->calling(static fn(): StagedAttachment => new StagedAttachment(
             'artifact',
             AttachmentKind::Text,
             'text/plain',
@@ -40,7 +41,7 @@ final class StagedAttachmentValidationTest
     #[DataSet('invalidStorageKeyPayloads')]
     public function wireDecodingRequiresAStorageKey(array $payload): void
     {
-        Expect::calling(static fn(): StagedAttachment => StagedAttachment::fromWire($payload))
+        expect()->calling(static fn(): StagedAttachment => StagedAttachment::fromWire($payload))
             ->because('a staged attachment wire payload MUST contain its private storage coordinate')
             ->toThrow(InvalidWirePayload::class);
     }
@@ -68,13 +69,13 @@ final class StagedAttachmentValidationTest
             'attempt' => $attempt,
         ]);
 
-        Expect::value($staged->sizeBytes)
+        expect($staged->sizeBytes)
             ->because('staged attachment wire decoding MUST normalize a negative size to zero')
             ->toBe(0);
-        Expect::value($staged->attempt)
+        expect($staged->attempt)
             ->because('staged attachment wire decoding MUST normalize a nonpositive attempt to one')
             ->toBe(1);
-        Expect::value($staged->storageKey)
+        expect($staged->storageKey)
             ->because('staged attachment wire decoding MUST preserve the storage key')
             ->toBe('test/attempt-1/01-artifact.txt');
     }

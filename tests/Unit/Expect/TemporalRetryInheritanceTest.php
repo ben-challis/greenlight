@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+
+use function Greenlight\expect;
 
 final readonly class TemporalRetryInheritanceTest
 {
@@ -19,7 +20,7 @@ final readonly class TemporalRetryInheritanceTest
         ExpectationRuntime::withClock(
             new FakePollingClock(),
             static function () use (&$calls): void {
-                Expect::calling(static function () use (&$calls): string {
+                expect()->calling(static function () use (&$calls): string {
                     if (++$calls === 1) {
                         throw new \RuntimeException('not ready');
                     }
@@ -33,7 +34,7 @@ final readonly class TemporalRetryInheritanceTest
             },
         );
 
-        Expect::value($calls)
+        expect($calls)
             ->because('a retryable parent exception MUST include each subclass')
             ->toBe(2);
     }

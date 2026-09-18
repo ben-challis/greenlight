@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Tests\Fixture\Plugins\FactoryIdentityChildPlugin;
 use Greenlight\Tests\Fixture\Plugins\FactoryIdentityPlugin;
+
+use function Greenlight\expect;
 
 final class PluginFactoryTypeIdentityTest
 {
@@ -35,8 +36,8 @@ final class PluginFactoryTypeIdentityTest
         ));
         $definition = PluginDefinition::fromFactory($factory);
 
-        Expect::value($definition->create())->toBeInstanceOf(FactoryIdentityPlugin::class);
-        Expect::value($definition->pluginClass)->toBe(FactoryIdentityPlugin::class);
+        expect($definition->create())->toBeInstanceOf(FactoryIdentityPlugin::class);
+        expect($definition->pluginClass)->toBe(FactoryIdentityPlugin::class);
     }
 
     #[Test]
@@ -44,8 +45,8 @@ final class PluginFactoryTypeIdentityTest
     {
         $definition = PluginDefinition::fromFactory(FactoryIdentityPlugin::scopedFactory());
 
-        Expect::value($definition->pluginClass)->toBe(FactoryIdentityPlugin::class);
-        Expect::value($definition->create())->toBeInstanceOf(FactoryIdentityPlugin::class);
+        expect($definition->pluginClass)->toBe(FactoryIdentityPlugin::class);
+        expect($definition->create())->toBeInstanceOf(FactoryIdentityPlugin::class);
     }
 
     #[Test]
@@ -53,7 +54,7 @@ final class PluginFactoryTypeIdentityTest
     {
         $definition = PluginDefinition::fromFactory(FactoryIdentityChildPlugin::parentFactory());
 
-        Expect::value($definition->pluginClass)->toBe(FactoryIdentityPlugin::class);
-        Expect::value($definition->create())->toBeInstanceOf(FactoryIdentityPlugin::class);
+        expect($definition->pluginClass)->toBe(FactoryIdentityPlugin::class);
+        expect($definition->create())->toBeInstanceOf(FactoryIdentityPlugin::class);
     }
 }

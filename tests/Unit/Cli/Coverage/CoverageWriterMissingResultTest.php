@@ -9,10 +9,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Coverage\CoverageWriter;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Config\CoverageConfiguration;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Style;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final readonly class CoverageWriterMissingResultTest
 {
@@ -48,9 +49,9 @@ final readonly class CoverageWriterMissingResultTest
             new Style(false),
         );
 
-        Expect::value($result)->toBe($accepted);
-        Expect::value($out)->because('missing coverage MUST NOT write to standard output')->toBe('');
-        Expect::value($err)->toBe($diagnostic);
+        expect($result)->toBe($accepted);
+        expect($out)->because('missing coverage MUST NOT write to standard output')->toBe('');
+        expect($err)->toBe($diagnostic);
     }
 
     /** @return iterable<string, array{CoverageConfiguration, bool, non-empty-string}> */

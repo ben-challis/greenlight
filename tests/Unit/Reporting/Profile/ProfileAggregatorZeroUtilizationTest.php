@@ -10,10 +10,11 @@ use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\WorkerSpawned;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Profile\ProfileAggregator;
 use Greenlight\Reporting\Style;
 use Greenlight\Result\ResultSummary;
+
+use function Greenlight\expect;
 
 final readonly class ProfileAggregatorZeroUtilizationTest
 {
@@ -32,7 +33,7 @@ final readonly class ProfileAggregatorZeroUtilizationTest
             $aggregator->onEvent($event);
         }
 
-        Expect::value($aggregator->render(new Style(ansi: false)))
+        expect($aggregator->render(new Style(ansi: false)))
             ->because('measured idle time MUST render zero utilization')
             ->toContain("\n  w-1           1  0.000s    0%\n");
     }

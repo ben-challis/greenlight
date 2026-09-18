@@ -14,10 +14,11 @@ use Greenlight\Config\CoverageBuilder;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\SuiteBuilder;
 use Greenlight\Config\WatchBuilder;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\TestInclusions;
 use Greenlight\Test\TestSelection;
 use Greenlight\Tests\Fixture\Plugins\NamedFakePlugin;
+
+use function Greenlight\expect;
 
 final class PlanFormatterTest
 {
@@ -40,7 +41,7 @@ final class PlanFormatterTest
         $temporary = \rtrim(\sys_get_temp_dir(), '/');
         $projectKey = \substr(\sha1('/project'), 0, 12);
 
-        Expect::value(PlanFormatter::format($configuration, '/project/greenlight.php', '/project'))->toBe(
+        expect(PlanFormatter::format($configuration, '/project/greenlight.php', '/project'))->toBe(
             <<<PLAN
                 Run plan
                   configuration file: /project/greenlight.php
@@ -86,10 +87,10 @@ final class PlanFormatterTest
 
         $formatted = PlanFormatter::format($configuration, '/project/greenlight.php', '/project');
 
-        Expect::value($formatted)
+        expect($formatted)
             ->because('the plan names the one resolved seed and configured plugins')
             ->toContain('  order: random (seed ');
-        Expect::value($formatted)
+        expect($formatted)
             ->toContain('  plugins: ' . NamedFakePlugin::class);
     }
 
@@ -119,7 +120,7 @@ final class PlanFormatterTest
         $temporary = \rtrim(\sys_get_temp_dir(), '/');
         $projectKey = \substr(\sha1('/project'), 0, 12);
 
-        Expect::value(PlanFormatter::format($configuration, '/project/greenlight.php', '/project'))
+        expect(PlanFormatter::format($configuration, '/project/greenlight.php', '/project'))
             ->because('the run plan MUST show each configured execution detail')
             ->toBe(
                 <<<PLAN
@@ -165,7 +166,7 @@ final class PlanFormatterTest
             new CliOverrides(),
         );
 
-        Expect::value(PlanFormatter::format($configuration, '/project/greenlight.php', '/project'))
+        expect(PlanFormatter::format($configuration, '/project/greenlight.php', '/project'))
             ->toContain('  watch debounce: 350 ms')
             ->toContain('  additional watch paths: templates, config/app.yaml')
             ->toContain('  watch include patterns: **/*.twig, **/*.yaml')

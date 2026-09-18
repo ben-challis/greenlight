@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanTestAttributePlacementRuleTest
@@ -98,10 +99,10 @@ final readonly class PhpStanTestAttributePlacementRuleTest
             PHP,
         );
 
-        Expect::value($probe->exitCode)->because('test metadata on methods requires the test attribute')->toBe(1);
-        Expect::value($probe->goodPassed)->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(10);
-        Expect::value($probe->messages())->toContain('#[Group] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::dataHelper() has no effect')
+        expect($probe->exitCode)->because('test metadata on methods requires the test attribute')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(10);
+        expect($probe->messages())->toContain('#[Group] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::dataHelper() has no effect')
             ->toContain('#[DataRow] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::dataHelper() has no effect')
             ->toContain('#[NoExpectations] on GreenlightTestAttributePlacementProbe\BadTestAttributePlacementProbe::assertionHelper() has no effect')
             ->toContain(

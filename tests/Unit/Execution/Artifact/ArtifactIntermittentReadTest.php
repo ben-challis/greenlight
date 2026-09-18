@@ -8,12 +8,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Fixture\Execution\Artifact\IntermittentFileReadStream;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactIntermittentReadTest
 {
@@ -46,19 +47,19 @@ final readonly class ArtifactIntermittentReadTest
         $attachments->file('evidence.txt', self::SCHEME . '://evidence', 'text/plain');
         $collected = $attachments->collected();
 
-        Expect::value($collected)
+        expect($collected)
             ->because('the intermittent source MUST produce one staged attachment')
             ->toHaveCount(1);
 
         $attachment = $collected[0];
         $stagedPath = $store->session()->stagingDirectory . '/' . $attachment->storageKey;
 
-        Expect::value(\file_get_contents($stagedPath))
+        expect(\file_get_contents($stagedPath))
             ->because('a transient empty source read MUST not truncate the staged attachment')
             ->toBe('evidence');
-        Expect::value($attachment->sizeBytes)
+        expect($attachment->sizeBytes)
             ->toBe(8);
-        Expect::value($attachment->sha256)
+        expect($attachment->sha256)
             ->toBe(\hash('sha256', 'evidence'));
     }
 }

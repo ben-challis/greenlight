@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\InvalidConfiguration;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ResultPolicyConfigurationTest
 {
@@ -26,7 +27,7 @@ final class ResultPolicyConfigurationTest
         $builder = GreenlightConfig::create();
         $configure($builder);
 
-        Expect::value($builder->build()->execution->policy->toWire()[$field])
+        expect($builder->build()->execution->policy->toWire()[$field])
             ->because('the public configuration flag must reach the result policy')
             ->toBe($expected);
     }
@@ -103,7 +104,7 @@ final class ResultPolicyConfigurationTest
             ->execution
             ->runPolicy;
 
-        Expect::value($policy->failOnSkipped)
+        expect($policy->failOnSkipped)
             ->because('the public configuration flag MUST reach the run policy')
             ->toBeTrue();
     }
@@ -117,7 +118,7 @@ final class ResultPolicyConfigurationTest
             ->execution
             ->runPolicy;
 
-        Expect::value($policy->failOnRetriedPass)
+        expect($policy->failOnRetriedPass)
             ->because('the public configuration flag MUST reach the run policy')
             ->toBeTrue();
     }
@@ -132,7 +133,7 @@ final class ResultPolicyConfigurationTest
             ->execution
             ->policy;
 
-        Expect::value($policy->ignoreDeprecations)
+        expect($policy->ignoreDeprecations)
             ->because('multiple public configuration calls add each pattern')
             ->toBe(['vendor *', 'legacy?', 'third-party']);
     }
@@ -146,7 +147,7 @@ final class ResultPolicyConfigurationTest
             ->execution
             ->policy;
 
-        Expect::value($policy->ignoreDeprecations)
+        expect($policy->ignoreDeprecations)
             ->because('configuration MUST retain each non-empty deprecation pattern')
             ->toBe(['0']);
     }
@@ -158,7 +159,7 @@ final class ResultPolicyConfigurationTest
     #[DataSet('patternsContainingAnEmptyValue')]
     public function emptyIgnorePatternsGiveExactGuidance(array $patterns): void
     {
-        Expect::calling(
+        expect()->calling(
             static fn(): GreenlightConfig => GreenlightConfig::create()
                 ->ignoreDeprecationsMatching(...$patterns), // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         )

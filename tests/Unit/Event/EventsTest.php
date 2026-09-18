@@ -16,12 +16,13 @@ use Greenlight\Event\TestStarted;
 use Greenlight\Event\WireEvent;
 use Greenlight\Event\WorkerSpawned;
 use Greenlight\Event\WorkerTiming;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\JsonWire;
+
+use function Greenlight\expect;
 
 final class EventsTest
 {
@@ -47,9 +48,9 @@ final class EventsTest
             $class = $event::class;
             $restored = $class::fromWire(JsonWire::roundTrip($event->toWire()));
 
-            Expect::value($restored::class)->toBe($class);
-            Expect::value($restored->occurredAt)->toBe($event->occurredAt);
-            Expect::value($restored->toWire())->toBe($event->toWire());
+            expect($restored::class)->toBe($class);
+            expect($restored->occurredAt)->toBe($event->occurredAt);
+            expect($restored->toWire())->toBe($event->toWire());
         }
     }
 
@@ -63,7 +64,7 @@ final class EventsTest
         WireEvent $event,
         array $payload,
     ): void {
-        Expect::value($event->toWire())
+        expect($event->toWire())
             ->because(\sprintf('%s events MUST preserve their published fields', $kind))
             ->toBe($payload);
     }
@@ -138,19 +139,19 @@ final class EventsTest
             'occurredAt' => 1_780_000_001.0,
         ]);
 
-        Expect::value($started->workerId)
+        expect($started->workerId)
             ->because('legacy class-started events have no worker attribution')
             ->toBe('');
-        Expect::value($started->isolated)
+        expect($started->isolated)
             ->because('legacy class-started events have no isolation marker')
             ->toBeFalse();
-        Expect::value($finished->workerId)
+        expect($finished->workerId)
             ->because('legacy class-finished events have no worker attribution')
             ->toBe('');
-        Expect::value($run->artifactsDirectory)
+        expect($run->artifactsDirectory)
             ->because('legacy run-started events have no artifacts directory')
             ->toBeNull();
-        Expect::value($finishedRun->workerTimings)
+        expect($finishedRun->workerTimings)
             ->because('legacy run-finished events have no worker timing data')
             ->toBe([]);
     }
@@ -161,10 +162,10 @@ final class EventsTest
         $timing = new WorkerTiming('w-1', 0.1, 0.2, 0.3, 1, 0.4, 0.5, 0.6, 0.7, 0.8);
         $event = new RunFinished('run-1', new ResultSummary(passed: 1), 2.0, 3.0, [$timing]);
 
-        Expect::value($event->toWire())
+        expect($event->toWire())
             ->because('run-finished adds timing data without changing its existing fields')
             ->toHaveKey('workerTimings');
-        Expect::value(RunFinished::fromWire(JsonWire::roundTrip($event->toWire()))->workerTimings[0]->toWire())
+        expect(RunFinished::fromWire(JsonWire::roundTrip($event->toWire()))->workerTimings[0]->toWire())
             ->because('run-finished worker timing MUST survive the event wire')
             ->toBe($timing->toWire());
     }
@@ -178,10 +179,10 @@ final class EventsTest
             ->add(Outcome::Failed)
             ->add(Outcome::Skipped);
 
-        Expect::value($summary->total())->because('run finished carries summary semantics')->toBe(4);
-        Expect::value($summary->passed)->because('run finished carries summary semantics')->toBe(2);
-        Expect::value($summary->isSuccessful())->because('run finished carries summary semantics')->toBeFalse();
-        Expect::value(new ResultSummary(passed: 1, skipped: 2)->isSuccessful())->because('run finished carries summary semantics')->toBeTrue();
+        expect($summary->total())->because('run finished carries summary semantics')->toBe(4);
+        expect($summary->passed)->because('run finished carries summary semantics')->toBe(2);
+        expect($summary->isSuccessful())->because('run finished carries summary semantics')->toBeFalse();
+        expect(new ResultSummary(passed: 1, skipped: 2)->isSuccessful())->because('run finished carries summary semantics')->toBeTrue();
     }
 
     #[Test]
@@ -191,6 +192,6 @@ final class EventsTest
 
         $readThroughInterface = static fn(Event $e): float => $e->occurredAt;
 
-        Expect::value($readThroughInterface($event))->because('events expose occurred at through the interface')->toBe(123.5);
+        expect($readThroughInterface($event))->because('events expose occurred at through the interface')->toBe(123.5);
     }
 }

@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\TestDiscoverer;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class TestDiscovererNonClassTest
 {
@@ -26,10 +27,10 @@ final readonly class TestDiscovererNonClassTest
         ));
         $discoverer = new TestDiscoverer();
 
-        Expect::value($discoverer->testFiles([$directory]))
+        expect($discoverer->testFiles([$directory]))
             ->because('a matching non-class declaration is a test-file candidate')
             ->toBe([$file]);
-        Expect::value($discoverer->discover([$directory])->count())
+        expect($discoverer->discover([$directory])->count())
             ->because('a matching non-class declaration MUST be ignored')
             ->toBe(0);
     }

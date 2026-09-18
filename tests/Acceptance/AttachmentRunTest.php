@@ -7,13 +7,14 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
+
+use function Greenlight\expect;
 
 final readonly class AttachmentRunTest
 {
@@ -39,7 +40,7 @@ final readonly class AttachmentRunTest
             ['run', '--reporter=jsonl', '--workers=' . $workers],
         );
 
-        Expect::value($result->exitCode)->toBe(1);
+        expect($result->exitCode)->toBe(1);
 
         /** @var array<string, TestResult> $results */
         $results = [];
@@ -63,8 +64,8 @@ final readonly class AttachmentRunTest
 
         $projectDirectory = (string) \realpath($project->directory);
 
-        Expect::value($artifactsDirectory)->toBe($projectDirectory . '/artifacts/' . \basename($artifactsDirectory));
-        Expect::value($results)
+        expect($artifactsDirectory)->toBe($projectDirectory . '/artifacts/' . \basename($artifactsDirectory));
+        expect($results)
             ->toHaveKey('failsWithEvidence')
             ->toHaveKey('passesWithAlwaysEvidence')
             ->toHaveKey('passesWithoutRetainingDefaultEvidence')
@@ -72,29 +73,29 @@ final readonly class AttachmentRunTest
             ->toHaveKey('becomesErroredDuringClassTeardown')
             ->toHaveKey('retryDeciderThrows');
 
-        Expect::value($results['failsWithEvidence']->attachments)->toHaveCount(3);
-        Expect::value($results['passesWithAlwaysEvidence']->attachments)->toHaveCount(1);
-        Expect::value($results['passesWithoutRetainingDefaultEvidence']->attachments)->toBe([]);
-        Expect::value($results['retainsTheFailedRetryAttempt']->attempts)->toBe(2);
-        Expect::value($results['retainsTheFailedRetryAttempt']->attachments)->toHaveCount(2);
-        Expect::value($results['retainsTheFailedRetryAttempt']->attachments[0]->attempt)->toBe(1);
-        Expect::value($results['becomesErroredDuringClassTeardown']->outcome->isSuccessful())->toBeFalse();
-        Expect::value($results['becomesErroredDuringClassTeardown']->attachments)->toHaveCount(1);
-        Expect::value($results['retryDeciderThrows']->outcome)->toBe(Outcome::Errored);
-        Expect::value($results['retryDeciderThrows']->error?->message)->toBe('retry decider failed');
-        Expect::value($results['retryDeciderThrows']->attempts)->toBe(1);
-        Expect::value($results['retryDeciderThrows']->attachments)->toHaveCount(2);
+        expect($results['failsWithEvidence']->attachments)->toHaveCount(3);
+        expect($results['passesWithAlwaysEvidence']->attachments)->toHaveCount(1);
+        expect($results['passesWithoutRetainingDefaultEvidence']->attachments)->toBe([]);
+        expect($results['retainsTheFailedRetryAttempt']->attempts)->toBe(2);
+        expect($results['retainsTheFailedRetryAttempt']->attachments)->toHaveCount(2);
+        expect($results['retainsTheFailedRetryAttempt']->attachments[0]->attempt)->toBe(1);
+        expect($results['becomesErroredDuringClassTeardown']->outcome->isSuccessful())->toBeFalse();
+        expect($results['becomesErroredDuringClassTeardown']->attachments)->toHaveCount(1);
+        expect($results['retryDeciderThrows']->outcome)->toBe(Outcome::Errored);
+        expect($results['retryDeciderThrows']->error?->message)->toBe('retry decider failed');
+        expect($results['retryDeciderThrows']->attempts)->toBe(1);
+        expect($results['retryDeciderThrows']->attachments)->toHaveCount(2);
 
         foreach ($results as $testResult) {
             foreach ($testResult->attachments as $attachment) {
-                Expect::value(\is_file($attachment->path))
+                expect(\is_file($attachment->path))
                     ->because(\sprintf(
                         'The attachment for test "%s" MUST exist at "%s".',
                         $testResult->id,
                         $attachment->path,
                     ))
                     ->toBeTrue();
-                Expect::value(\hash_file('sha256', $attachment->path))
+                expect(\hash_file('sha256', $attachment->path))
                     ->because(\sprintf(
                         'The SHA-256 digest for the attachment from test "%s" MUST match the file at "%s".',
                         $testResult->id,
@@ -119,7 +120,8 @@ final readonly class AttachmentRunTest
             use Greenlight\Attribute\Test;
             use Greenlight\Artifact\AttachmentRetention;
             use Greenlight\Artifact\Attachments;
-            use Greenlight\Expect\Expect;
+
+            use function Greenlight\expect;
 
             final readonly class AttachmentProbeTest
             {
@@ -145,14 +147,14 @@ final readonly class AttachmentRunTest
                         'kept',
                         retention: AttachmentRetention::Always,
                     );
-                    Expect::value(true)->toBeTrue();
+                    expect(true)->toBeTrue();
                 }
 
                 #[Test]
                 public function passesWithoutRetainingDefaultEvidence(): void
                 {
                     $this->attachments->text('discarded.txt', 'discarded');
-                    Expect::value(true)->toBeTrue();
+                    expect(true)->toBeTrue();
                 }
 
                 #[Test]
@@ -167,7 +169,7 @@ final readonly class AttachmentRunTest
                         throw new \RuntimeException('retry me');
                     }
 
-                    Expect::value(true)->toBeTrue();
+                    expect(true)->toBeTrue();
                 }
 
                 #[Test]
@@ -188,8 +190,9 @@ final readonly class AttachmentRunTest
 
             use Greenlight\Attribute\Test;
             use Greenlight\Artifact\Attachments;
-            use Greenlight\Expect\Expect;
             use Greenlight\Harness\Disposable;
+
+            use function Greenlight\expect;
 
             final class FailingClassResource implements Disposable
             {
@@ -213,7 +216,7 @@ final readonly class AttachmentRunTest
                 {
                     $this->attachments->text('before-teardown.txt', 'keep this');
                     $this->resource->use();
-                    Expect::value(true)->toBeTrue();
+                    expect(true)->toBeTrue();
                 }
             }
             PHP);

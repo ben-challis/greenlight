@@ -10,11 +10,12 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\JsonWire;
+
+use function Greenlight\expect;
 
 final class TestDiscovererTest
 {
@@ -36,7 +37,7 @@ final class TestDiscovererTest
     #[DataSet('invalidProviderTimeBudgets')]
     public function rejectsAnInvalidProviderTimeBudgetWithExactGuidance(float $budgetSeconds): void
     {
-        Expect::calling(
+        expect()->calling(
             static fn(): TestDiscoverer => new TestDiscoverer($budgetSeconds),
         )->toThrow(
             \InvalidArgumentException::class,
@@ -61,7 +62,7 @@ final class TestDiscovererTest
     {
         $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')]);
 
-        Expect::value($this->ids($plan))->because('discovers basic suite in file order without seed')->toBe([
+        expect($this->ids($plan))->because('discovers basic suite in file order without seed')->toBe([
             'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one',
             'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two',
             'Greenlight\Tests\Fixture\DiscoveryBasic\BravoTest::zulu',
@@ -71,8 +72,8 @@ final class TestDiscovererTest
             'Greenlight\Tests\Fixture\DiscoveryBasic\DeltaTest::flies',
         ]);
 
-        Expect::value($plan->seed)->because('discovers basic suite in file order without seed')->toBe(null);
-        Expect::value($plan->count())->because('discovers basic suite in file order without seed')->toBe(7);
+        expect($plan->seed)->because('discovers basic suite in file order without seed')->toBe(null);
+        expect($plan->count())->because('discovers basic suite in file order without seed')->toBe(7);
     }
 
     #[Test]
@@ -81,7 +82,7 @@ final class TestDiscovererTest
         $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')]);
 
         foreach ($plan->classes() as $class) {
-            Expect::value($class)
+            expect($class)
                 ->not()->toContain('AbstractSharedTest')
                 ->not()->toContain('NoTestMethodsTest');
         }
@@ -94,9 +95,9 @@ final class TestDiscovererTest
         $first = $discoverer->discover([FixturePath::get('DiscoveryBasic')], null, 1234);
         $second = $discoverer->discover([FixturePath::get('DiscoveryBasic')], null, 1234);
 
-        Expect::value(\json_encode($second->toWire(), \JSON_THROW_ON_ERROR))->because('same seed produces byte identical plans')
+        expect(\json_encode($second->toWire(), \JSON_THROW_ON_ERROR))->because('same seed produces byte identical plans')
             ->toBe(\json_encode($first->toWire(), \JSON_THROW_ON_ERROR));
-        Expect::value($first->seed)->because('same seed produces byte identical plans')->toBe(1234);
+        expect($first->seed)->because('same seed produces byte identical plans')->toBe(1234);
     }
 
     #[Test]
@@ -109,7 +110,7 @@ final class TestDiscovererTest
             $orders[] = \implode(',', $discoverer->discover([FixturePath::get('DiscoveryBasic')], null, $seed)->classes());
         }
 
-        Expect::value(\count(\array_unique($orders)))->because('different seeds produce different class order')->toBeGreaterThan(1);
+        expect(\count(\array_unique($orders)))->because('different seeds produce different class order')->toBeGreaterThan(1);
     }
 
     #[Test]
@@ -124,7 +125,7 @@ final class TestDiscovererTest
             }
         }
 
-        Expect::value($bravoMethods)->because('seeded plan keeps method declaration order within class')->toBe(['zulu', 'alpha', 'mike']);
+        expect($bravoMethods)->because('seeded plan keeps method declaration order within class')->toBe(['zulu', 'alpha', 'mike']);
     }
 
     #[Test]
@@ -133,7 +134,7 @@ final class TestDiscovererTest
         $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], null, 99);
         $restored = ExecutionPlan::fromWire(JsonWire::roundTrip($plan->toWire()));
 
-        Expect::value(\json_encode($restored->toWire(), \JSON_THROW_ON_ERROR))->because('seeded plan survives the wire')
+        expect(\json_encode($restored->toWire(), \JSON_THROW_ON_ERROR))->because('seeded plan survives the wire')
             ->toBe(\json_encode($plan->toWire(), \JSON_THROW_ON_ERROR));
     }
 
@@ -142,7 +143,7 @@ final class TestDiscovererTest
     {
         $directory = FixturePath::get('DoesNotExist');
 
-        Expect::calling(
+        expect()->calling(
             static fn(): ExecutionPlan => new TestDiscoverer()->discover([$directory]),
         )->because('an unknown directory causes an error')->toThrow(
             DiscoveryError::class,
@@ -153,13 +154,13 @@ final class TestDiscovererTest
     #[Test]
     public function aNativeDirectoryThrowableBecomesADiscoveryError(): void
     {
-        Expect::calling(
+        expect()->calling(
             static fn(): array => new TestDiscoverer()->testFiles(["invalid\0tests"]),
         )
             ->because('a native directory throwable MUST not escape the discovery seam')
             ->toThrow(
                 static function (DiscoveryError $error): void {
-                    Expect::value($error->getPrevious())
+                    expect($error->getPrevious())
                         ->because('the discovery error MUST preserve the native directory error')
                         ->toBeInstanceOf(\ValueError::class);
                 },
@@ -174,7 +175,7 @@ final class TestDiscovererTest
         $directory = \dirname($root);
         FilesystemRestriction::toProject($root);
 
-        Expect::calling(
+        expect()->calling(
             static function () use ($directory, &$warning): void {
                 ErrorTrap::run(
                     static fn() => new TestDiscoverer()->testFiles([$directory]),
@@ -186,7 +187,7 @@ final class TestDiscovererTest
             message: \sprintf('Discovery directory "%s" is missing or is not a directory.', $directory),
         );
 
-        Expect::value($warning)
+        expect($warning)
             ->because('inaccessible discovery paths MUST not leak engine diagnostics')
             ->toBeNull();
     }
@@ -197,6 +198,6 @@ final class TestDiscovererTest
         $dir = FixturePath::get('DiscoveryBasic');
         $plan = new TestDiscoverer()->discover([$dir, $dir]);
 
-        Expect::value($plan->count())->because('overlapping directories do not duplicate entries')->toBe(7);
+        expect($plan->count())->because('overlapping directories do not duplicate entries')->toBe(7);
     }
 }

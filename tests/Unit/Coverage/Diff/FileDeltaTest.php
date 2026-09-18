@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Coverage\Diff;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Diff\FileDelta;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class FileDeltaTest
 {
@@ -16,13 +17,13 @@ final readonly class FileDeltaTest
     {
         $delta = new FileDelta('0', 75.0, 50.0, [2, 5]);
 
-        Expect::value($delta->file)
+        expect($delta->file)
             ->because('a zero-string coverage delta file path is not empty')
             ->toBe('0');
-        Expect::value($delta->newlyUncoveredLines)
+        expect($delta->newlyUncoveredLines)
             ->because('a coverage delta MUST retain its newly uncovered lines')
             ->toBe([2, 5]);
-        Expect::value($delta->delta())
+        expect($delta->delta())
             ->because('a coverage delta MUST calculate the percentage change')
             ->toBe(-25.0);
     }
@@ -37,7 +38,7 @@ final readonly class FileDeltaTest
         array $newlyUncoveredLines,
         string $message,
     ): void {
-        Expect::calling(static fn(): FileDelta => new FileDelta(
+        expect()->calling(static fn(): FileDelta => new FileDelta(
             $file,
             100.0,
             50.0,

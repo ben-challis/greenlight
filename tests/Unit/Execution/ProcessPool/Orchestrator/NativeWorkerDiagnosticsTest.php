@@ -9,8 +9,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Execution\ProcessPool\Orchestrator\NativeWorkerTransport;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerTransportEventKind;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class NativeWorkerDiagnosticsTest
 {
@@ -36,7 +37,7 @@ final readonly class NativeWorkerDiagnosticsTest
                 }
             }
 
-            Expect::value($transport->diagnostics('diagnostics'))
+            expect($transport->diagnostics('diagnostics'))
                 ->toBe(\str_repeat('x', 65_536 - \strlen('final diagnostic')) . 'final diagnostic');
         } finally {
             $transport->close();

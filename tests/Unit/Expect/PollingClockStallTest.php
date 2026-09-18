@@ -5,19 +5,20 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Tests\Fixture\Expect\StalledPollingClock;
+
+use function Greenlight\expect;
 
 final class PollingClockStallTest
 {
     #[Test]
     public function aStalledClockCannotCauseAnUnlimitedWait(): void
     {
-        Expect::calling(static function (): void {
+        expect()->calling(static function (): void {
             ExpectationRuntime::withClock(
                 new StalledPollingClock(),
-                static fn() => Expect::calling(static fn(): string => 'pending')->returnValue()->eventually()
+                static fn() => expect()->calling(static fn(): string => 'pending')->returnValue()->eventually()
                     ->pollEvery(0.010)
                     ->within(0.100)
                     ->toBe('ready'),

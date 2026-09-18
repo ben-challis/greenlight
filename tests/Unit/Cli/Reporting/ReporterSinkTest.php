@@ -9,9 +9,10 @@ use Greenlight\Cli\Reporting\ReporterSink;
 use Greenlight\Doubles\Fake;
 use Greenlight\Event\Event;
 use Greenlight\Event\RunStarted;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReportGenerationFailed;
+
+use function Greenlight\expect;
 
 final class ReporterSinkTest
 {
@@ -34,7 +35,7 @@ final class ReporterSinkTest
 
         new ReporterSink($reporter)->emit($event);
 
-        Expect::value($reporter->received)
+        expect($reporter->received)
             ->because('the reporter sink MUST preserve event identity')
             ->toBe($event);
     }
@@ -57,7 +58,7 @@ final class ReporterSinkTest
         };
         $sink = new ReporterSink($reporter);
 
-        Expect::calling(static function () use ($sink): void {
+        expect()->calling(static function () use ($sink): void {
             $sink->emit(new RunStarted('run-1', 1, 1, 1.0));
         })
             ->because('a reporter failure MUST stop event delivery')

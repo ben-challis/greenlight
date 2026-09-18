@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Test;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\TestChannel;
+
+use function Greenlight\expect;
 
 final readonly class TestChannelTest
 {
@@ -16,15 +17,15 @@ final readonly class TestChannelTest
     {
         $channel = new TestChannel(3);
 
-        Expect::value($channel->number)->because('exposes the slot number and a prefixed label')->toBe(3);
-        Expect::value($channel->label())->toBe('gl-3');
+        expect($channel->number)->because('exposes the slot number and a prefixed label')->toBe(3);
+        expect($channel->label())->toBe('gl-3');
     }
 
     #[Test]
     #[DataSet('nonPositiveNumbers')]
     public function rejectsNonPositiveNumbers(int $number): void
     {
-        Expect::calling(static fn(): TestChannel => new TestChannel($number))
+        expect()->calling(static fn(): TestChannel => new TestChannel($number))
             ->because('a test channel MUST identify a positive worker slot')
             ->toThrow(
                 \InvalidArgumentException::class,

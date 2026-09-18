@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\Autoloaders;
+
+use function Greenlight\expect;
 
 final readonly class AutoloadersTest
 {
@@ -27,7 +28,7 @@ final readonly class AutoloadersTest
         try {
             \class_exists('GreenlightAutoloadersBeforeDisposal');
 
-            Expect::value($calls)->toBe([
+            expect($calls)->toBe([
                 'first:GreenlightAutoloadersBeforeDisposal',
                 'second:GreenlightAutoloadersBeforeDisposal',
             ]);
@@ -36,7 +37,7 @@ final readonly class AutoloadersTest
             $calls = [];
             \class_exists('GreenlightAutoloadersAfterDisposal');
 
-            Expect::value($calls)
+            expect($calls)
                 ->because('disposal MUST remove all autoloaders that the sandbox owns')
                 ->toBe([]);
         } finally {

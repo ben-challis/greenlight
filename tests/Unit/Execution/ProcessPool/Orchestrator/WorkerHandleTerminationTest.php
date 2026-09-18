@@ -8,11 +8,12 @@ use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerHandle;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Tests\Support\ConnectedStreamPair;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class WorkerHandleTerminationTest
 {
@@ -47,7 +48,7 @@ final readonly class WorkerHandleTerminationTest
 
             \stream_set_timeout($pipes[1], 2);
 
-            Expect::value(\fgets($pipes[1]))
+            expect(\fgets($pipes[1]))
                 ->because('the worker process fixture MUST signal that it is ready')
                 ->toBe("ready\n");
 
@@ -62,10 +63,10 @@ final readonly class WorkerHandleTerminationTest
             $handle->channel = $channel;
             $handle->terminate();
 
-            Expect::value($channel->isEof())
+            expect($channel->isEof())
                 ->because('worker termination MUST close its protocol channel')
                 ->toBeTrue();
-            Expect::value(\is_resource($process))
+            expect(\is_resource($process))
                 ->because('worker termination MUST close its process handle')
                 ->toBeFalse();
         } finally {

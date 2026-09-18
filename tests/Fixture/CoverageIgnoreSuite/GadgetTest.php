@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Fixture\CoverageIgnoreSuite;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
 use Greenlight\Tests\Fixture\CoverageIgnoreLib\Gadget;
+
+use function Greenlight\expect;
 
 final readonly class GadgetTest
 {
     #[Test]
     public function doublesIntegers(): void
     {
-        Expect::value(Gadget::double(21))->toBe(42);
+        expect(Gadget::double(21))->toBe(42);
     }
 }

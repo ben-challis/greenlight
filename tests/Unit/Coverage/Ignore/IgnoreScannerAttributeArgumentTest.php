@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Coverage\Ignore;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Ignore\IgnoreScanner;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class IgnoreScannerAttributeArgumentTest
 {
@@ -30,7 +31,7 @@ final readonly class IgnoreScannerAttributeArgumentTest
         $file = $this->tempDirectory->path() . '/Example.php';
         \file_put_contents($file, $source);
 
-        Expect::value(new IgnoreScanner()->ignoredLines($file))
+        expect(new IgnoreScanner()->ignoredLines($file))
             ->because('attribute arguments MUST NOT be interpreted as coverage attributes')
             ->toBe([]);
     }

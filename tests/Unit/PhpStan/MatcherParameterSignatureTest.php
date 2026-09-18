@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\PhpStan;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\PhpStan\MatcherMap;
+
+use function Greenlight\expect;
 
 final class MatcherParameterSignatureTest
 {
@@ -19,7 +20,7 @@ final class MatcherParameterSignatureTest
     {
         $parameter = new \ReflectionMethod(self::class, $method)->getParameters()[0];
 
-        Expect::value(MatcherMap::parameterSignature($parameter, 'null'))
+        expect(MatcherMap::parameterSignature($parameter, 'null'))
             ->because('generated matcher signatures MUST distinguish optional and variadic parameters')
             ->toBe($expected);
     }
@@ -31,12 +32,12 @@ final class MatcherParameterSignatureTest
         $selfParameter = $map->parameters('toAcceptSelfArgument')[0];
         $parentParameter = $map->parameters('toAcceptParentArgument')[0];
 
-        Expect::value(MatcherMap::parameterSignature($selfParameter, 'null'))
+        expect(MatcherMap::parameterSignature($selfParameter, 'null'))
             ->because('self uses the matcher closure scope')
             ->toBe(
                 '\\Greenlight\\Tests\\Fixture\\PhpStanScopedMatcher\\ScopedMatcherExtension $other',
             );
-        Expect::value(MatcherMap::parameterSignature($parentParameter, 'null'))
+        expect(MatcherMap::parameterSignature($parentParameter, 'null'))
             ->because('parent uses the matcher closure parent scope')
             ->toBe(
                 '\\Greenlight\\Tests\\Fixture\\PhpStanScopedMatcher\\MatcherSubject $other',

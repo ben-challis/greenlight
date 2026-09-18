@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class ReporterOutputAliasTest
 {
@@ -31,9 +32,9 @@ final readonly class ReporterOutputAliasTest
         $this->expectDuplicate($project, 'reports/report.txt', \str_replace('{root}', $project->directory, $alias));
 
         if ($exists) {
-            Expect::value(\file_get_contents($project->path('reports/report.txt')))->toBe('Existing report.');
+            expect(\file_get_contents($project->path('reports/report.txt')))->toBe('Existing report.');
         } else {
-            Expect::value(\is_dir($project->path('reports')))->toBeFalse();
+            expect(\is_dir($project->path('reports')))->toBeFalse();
         }
     }
 
@@ -46,7 +47,7 @@ final readonly class ReporterOutputAliasTest
 
         $this->expectDuplicate($project, 'actual/reports/report.txt', 'linked/reports/report.txt');
 
-        Expect::value(\is_dir($project->path('actual/reports')))->toBeFalse();
+        expect(\is_dir($project->path('actual/reports')))->toBeFalse();
     }
 
     #[Test]
@@ -58,7 +59,7 @@ final readonly class ReporterOutputAliasTest
 
         $this->expectDuplicate($project, 'report.txt', 'linked.txt');
 
-        Expect::value(\file_get_contents($project->path('report.txt')))->toBe('Existing report.');
+        expect(\file_get_contents($project->path('report.txt')))->toBe('Existing report.');
     }
 
     #[Test]
@@ -70,7 +71,7 @@ final readonly class ReporterOutputAliasTest
 
         $this->expectDuplicate($project, 'reports/report.txt', 'reports/sub/../report.txt');
 
-        Expect::value(\file_get_contents($project->path('reports/report.txt')))->toBe('Existing report.');
+        expect(\file_get_contents($project->path('reports/report.txt')))->toBe('Existing report.');
     }
 
     #[Test]
@@ -86,9 +87,9 @@ final readonly class ReporterOutputAliasTest
             '--reporter=plain=linked/../report.txt',
         ]);
 
-        Expect::value($result->exitCode)->toBe(0);
-        Expect::value(\file_get_contents($project->path('report.txt')))->toStartWith('{');
-        Expect::value(\file_get_contents($project->path('actual/report.txt')))->toContain('1 test, 1 passed');
+        expect($result->exitCode)->toBe(0);
+        expect(\file_get_contents($project->path('report.txt')))->toStartWith('{');
+        expect(\file_get_contents($project->path('actual/report.txt')))->toContain('1 test, 1 passed');
     }
 
     private function expectDuplicate(AcceptanceProject $project, string $first, string $second): void
@@ -99,9 +100,9 @@ final readonly class ReporterOutputAliasTest
             '--reporter=plain=' . $second,
         ]);
 
-        Expect::value($result->exitCode)->toBe(64);
-        Expect::value($result->stdout)->toBe('');
-        Expect::value($result->stderr)->toBe(
+        expect($result->exitCode)->toBe(64);
+        expect($result->stdout)->toBe('');
+        expect($result->stderr)->toBe(
             \sprintf('greenlight: Write reporter output to file "%s" only once.', $second),
         );
     }

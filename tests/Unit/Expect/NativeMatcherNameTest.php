@@ -11,6 +11,8 @@ use Greenlight\Expect\ExpectationExtensionError;
 use Greenlight\Tests\Fixture\Expect\EvenNumbersExtension;
 use Greenlight\Tests\Fixture\PhpStanNativeMatcherOverride\NativeMatcherOverrideExtension;
 
+use function Greenlight\expect;
+
 final class NativeMatcherNameTest
 {
     /** @param non-empty-string $name */
@@ -24,7 +26,7 @@ final class NativeMatcherNameTest
         $restore = Expect::install([new EvenNumbersExtension()]);
 
         try {
-            Expect::calling(static fn() => Expect::install([new NativeMatcherOverrideExtension($name)]))
+            expect()->calling(static fn() => Expect::install([new NativeMatcherOverrideExtension($name)]))
                 ->toThrow(
                     ExpectationExtensionError::class,
                     message: \sprintf(
@@ -32,7 +34,7 @@ final class NativeMatcherNameTest
                         $name,
                     ),
                 );
-            Expect::value(4)->toBeEven();
+            expect(4)->toBeEven();
         } finally {
             $restore();
         }

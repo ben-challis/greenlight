@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Discovery\Plan;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanOrder;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final class PlanOrderTest
 {
@@ -23,7 +24,7 @@ final class PlanOrderTest
             classSeconds: ['Acme\B' => 0.5, 'Acme\E' => 2.0],
         );
 
-        Expect::value($this->classes($ordered))->because('failed first then longest then unknown in discovered order')->toBe(['Acme\D', 'Acme\E', 'Acme\B', 'Acme\A', 'Acme\C']);
+        expect($this->classes($ordered))->because('failed first then longest then unknown in discovered order')->toBe(['Acme\D', 'Acme\E', 'Acme\B', 'Acme\A', 'Acme\C']);
     }
 
     #[Test]
@@ -33,7 +34,7 @@ final class PlanOrderTest
 
         $ordered = PlanOrder::schedule($plan, ['Acme\A'], ['Acme\A' => 0.1, 'Acme\B' => 9.0]);
 
-        Expect::value($this->classes($ordered))->because('priority wins over recorded duration')->toBe(['Acme\A', 'Acme\B']);
+        expect($this->classes($ordered))->because('priority wins over recorded duration')->toBe(['Acme\A', 'Acme\B']);
     }
 
     #[Test]
@@ -43,10 +44,10 @@ final class PlanOrderTest
 
         $ordered = PlanOrder::schedule($plan, ['Acme\B', 'Acme\B', 'Acme\Missing', 'Acme\B'], []);
 
-        Expect::value($this->classes($ordered))
+        expect($this->classes($ordered))
             ->because('priority inputs MUST preserve each planned test exactly once')
             ->toBe(['Acme\B', 'Acme\A']);
-        Expect::value($ordered->count())
+        expect($ordered->count())
             ->toBe(2);
     }
 
@@ -55,7 +56,7 @@ final class PlanOrderTest
     {
         $plan = $this->plan(['Acme\B', 'Acme\A']);
 
-        Expect::value(PlanOrder::schedule($plan, [], []))->because('with nothing recorded the plan is untouched')->toBe($plan);
+        expect(PlanOrder::schedule($plan, [], []))->because('with nothing recorded the plan is untouched')->toBe($plan);
     }
 
     /**

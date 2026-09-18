@@ -6,14 +6,15 @@ namespace Greenlight\Tests\Unit\Condition;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\FunctionAvailable;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class FunctionAvailableTest
 {
     #[Test]
     public function rejectsAnEmptyFunctionName(): void
     {
-        Expect::calling(static fn(): FunctionAvailable => new FunctionAvailable('')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        expect()->calling(static fn(): FunctionAvailable => new FunctionAvailable('')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a function availability condition MUST identify the function')
             ->toThrow(
                 \InvalidArgumentException::class,

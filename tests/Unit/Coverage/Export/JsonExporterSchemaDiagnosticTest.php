@@ -9,7 +9,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\JsonExporter;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class JsonExporterSchemaDiagnosticTest
 {
@@ -17,7 +18,7 @@ final class JsonExporterSchemaDiagnosticTest
     #[DataSet('invalidSchemaVersions')]
     public function invalidSchemaVersionsIdentifyTheSupportedVersion(string $document): void
     {
-        Expect::calling(static fn(): CoverageMap => JsonExporter::import($document))
+        expect()->calling(static fn(): CoverageMap => JsonExporter::import($document))
             ->because('an invalid coverage schema MUST identify the supported version')
             ->toThrow(
                 CoverageError::class,

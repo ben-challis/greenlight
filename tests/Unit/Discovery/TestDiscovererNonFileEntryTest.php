@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\TestDiscoverer;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class TestDiscovererNonFileEntryTest
 {
@@ -25,7 +26,7 @@ final readonly class TestDiscovererNonFileEntryTest
             Fail::because('Expected to create the directory link fixture.');
         }
 
-        Expect::value(new TestDiscoverer()->testFiles([$scanned]))
+        expect(new TestDiscoverer()->testFiles([$scanned]))
             ->because('test discovery MUST ignore directory links that resemble test files')
             ->toBe([]);
     }

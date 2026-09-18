@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanDoublePlanRuleTest
@@ -72,19 +73,19 @@ final readonly class PhpStanDoublePlanRuleTest
             PHP,
         );
 
-        Expect::value($probe->exitCode)->because('mock plans must satisfy their doubled methods')->toBe(1);
-        Expect::value($probe->goodPassed)->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(8);
-        Expect::value($probe->messages())
+        expect($probe->exitCode)->because('mock plans must satisfy their doubled methods')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(8);
+        expect($probe->messages())
             ->toContain('Mock plan method Greenlight\\Tests\\Fixture\\Doubles\\Wide::missing() does not exist');
-        Expect::value($probe->messages())->toContain('withNoArguments() supplies 0 arguments');
-        Expect::value($probe->messages())->toContain('with() supplies 1 argument');
-        Expect::value($probe->messages())->toContain('parameter $limit has type string, but the parameter requires int');
-        Expect::value($probe->messages())->toContain('parameter $rest has type string, but the parameter requires int');
-        Expect::value($probe->messages())
+        expect($probe->messages())->toContain('withNoArguments() supplies 0 arguments');
+        expect($probe->messages())->toContain('with() supplies 1 argument');
+        expect($probe->messages())->toContain('parameter $limit has type string, but the parameter requires int');
+        expect($probe->messages())->toContain('parameter $rest has type string, but the parameter requires int');
+        expect($probe->messages())
             ->toContain('matcher for Greenlight\\Tests\\Fixture\\Doubles\\Wide::unionType() accepts '
                 . 'Countable&Greenlight\\Tests\\Fixture\\Doubles\\Marker, but parameter $value requires int|string');
-        Expect::value($probe->messages())
+        expect($probe->messages())
             ->toContain('matcher for Greenlight\\Tests\\Fixture\\Doubles\\Wide::intersectionType() accepts int|string, '
                 . 'but parameter $value requires Countable&Greenlight\\Tests\\Fixture\\Doubles\\Marker');
     }

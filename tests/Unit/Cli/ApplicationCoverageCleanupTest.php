@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
 use Greenlight\Coverage\Relay\SubprocessCoverage;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
@@ -15,6 +14,8 @@ use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final readonly class ApplicationCoverageCleanupTest
 {
@@ -68,17 +69,17 @@ final readonly class ApplicationCoverageCleanupTest
         $stderr = MemoryStream::open();
         $this->cleanup->defer(static fn() => MemoryStream::close($stderr));
 
-        Expect::calling(fn() => Application::forStreams($stdout, $stderr)->run(
+        expect()->calling(fn() => Application::forStreams($stdout, $stderr)->run(
             ['run', '--reporter=plain', '--no-ansi'],
             $project->directory,
         ))
             ->because('a run event failure MUST propagate after coverage cleanup')
             ->toThrow(ReportGenerationFailed::class);
 
-        Expect::value(\getenv(SubprocessCoverage::DIRECTORY_ENV))
+        expect(\getenv(SubprocessCoverage::DIRECTORY_ENV))
             ->because('a failed run MUST restore an absent coverage relay directory')
             ->toBeFalse();
-        Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))
+        expect(\getenv(SubprocessCoverage::INCLUDE_ENV))
             ->because('a failed run MUST restore absent coverage include paths')
             ->toBeFalse();
     }

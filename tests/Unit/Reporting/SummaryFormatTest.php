@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Style;
 use Greenlight\Reporting\SummaryFormat;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class SummaryFormatTest
 {
@@ -25,7 +26,7 @@ final class SummaryFormatTest
             retriedPasses: 1,
         );
 
-        Expect::value($line)
+        expect($line)
             ->because(
                 'the final summary shows each test outcome and the expectation count',
             )
@@ -41,7 +42,7 @@ final class SummaryFormatTest
             new Style(ansi: false),
         );
 
-        Expect::value($line)
+        expect($line)
             ->because(
                 'the final summary omits unused outcomes and singularizes counts',
             )
@@ -56,7 +57,7 @@ final class SummaryFormatTest
             $this->skip('App\BetaTest', 'two', null),
         ], new Style(ansi: false));
 
-        Expect::value($block)->because('an empty line separates each skip reason')->toBe(
+        expect($block)->because('an empty line separates each skip reason')->toBe(
             "\nSkipped:\n"
             . "  App\AlphaTest::one (needs redis)\n"
             . "\n"
@@ -77,7 +78,7 @@ final class SummaryFormatTest
             ),
         ], new Style(ansi: false));
 
-        Expect::value($block)
+        expect($block)
             ->because('retried passes MUST retain their test IDs and attempt counts')
             ->toBe(
                 "\nPassed after retry:\n"
@@ -93,7 +94,7 @@ final class SummaryFormatTest
             $this->skip('App\AlphaTest', 'one', '0'),
         ], new Style(ansi: false));
 
-        Expect::value($block)
+        expect($block)
             ->because('a zero-string skip reason MUST remain distinct from a missing reason')
             ->toBe(
                 "\nSkipped:\n"
@@ -112,7 +113,7 @@ final class SummaryFormatTest
 
         $block = SummaryFormat::skipped($results, new Style(ansi: false));
 
-        Expect::value($block)->because('shared reasons group with a cap')->toContain("  xdebug not loaded:\n    App\GammaTest::case1\n")
+        expect($block)->because('shared reasons group with a cap')->toContain("  xdebug not loaded:\n    App\GammaTest::case1\n")
             ->toContain("    App\GammaTest::case5\n")
             ->not()->toContain('case6')
             ->toContain('    … and 2 more');
@@ -127,7 +128,7 @@ final class SummaryFormatTest
             $five[] = $this->skip('App\DeltaTest', \sprintf('case%d', $i), 'shared reason');
         }
 
-        Expect::value(SummaryFormat::skipped($five, new Style(ansi: false)))->because('exactly five lists all without overflow')->toBe(
+        expect(SummaryFormat::skipped($five, new Style(ansi: false)))->because('exactly five lists all without overflow')->toBe(
             "\nSkipped:\n"
             . "  shared reason:\n"
             . "    App\DeltaTest::case1\n"
@@ -147,7 +148,7 @@ final class SummaryFormatTest
             $six[] = $this->skip('App\DeltaTest', \sprintf('case%d', $i), 'shared reason');
         }
 
-        Expect::value(SummaryFormat::skipped($six, new Style(ansi: false)))->because('six lists five and reports one overflow')->toBe(
+        expect(SummaryFormat::skipped($six, new Style(ansi: false)))->because('six lists five and reports one overflow')->toBe(
             "\nSkipped:\n"
             . "  shared reason:\n"
             . "    App\DeltaTest::case1\n"
@@ -167,7 +168,7 @@ final class SummaryFormatTest
             new TestId('App\BetaTest', 'two'),
         ], new Style(ansi: false));
 
-        Expect::value($block)->because('leaks list every test under one header')->toBe(
+        expect($block)->because('leaks list every test under one header')->toBe(
             "\nTest instance leaks:\n"
             . "  App\AlphaTest::one\n"
             . "  App\BetaTest::two\n",
@@ -179,8 +180,8 @@ final class SummaryFormatTest
     {
         $block = SummaryFormat::leaks([new TestId('App\AlphaTest', 'one')], new Style(ansi: true));
 
-        Expect::value($block)->because('leaks color the header red and nothing without leaks')->toContain("\x1b[31mTest instance leaks:\x1b[0m");
-        Expect::value(SummaryFormat::leaks([], new Style(ansi: true)))->toBe('');
+        expect($block)->because('leaks color the header red and nothing without leaks')->toContain("\x1b[31mTest instance leaks:\x1b[0m");
+        expect(SummaryFormat::leaks([], new Style(ansi: true)))->toBe('');
     }
 
     #[Test]
@@ -188,7 +189,7 @@ final class SummaryFormatTest
     {
         $line = SummaryFormat::coverage(88.3, 5283, 5983, new Style(ansi: false));
 
-        Expect::value($line)->because('coverage shows covered of executable lines')->toBe('Coverage: 88.30% (5283 of 5983 lines)');
+        expect($line)->because('coverage shows covered of executable lines')->toBe('Coverage: 88.30% (5283 of 5983 lines)');
     }
 
     #[Test]
@@ -196,7 +197,7 @@ final class SummaryFormatTest
     {
         $line = SummaryFormat::coverage(100.0, 1, 1, new Style(ansi: false));
 
-        Expect::value($line)->because('coverage singularizes a single executable line')->toBe('Coverage: 100.00% (1 of 1 line)');
+        expect($line)->because('coverage singularizes a single executable line')->toBe('Coverage: 100.00% (1 of 1 line)');
     }
 
     #[Test]
@@ -204,7 +205,7 @@ final class SummaryFormatTest
     {
         $line = SummaryFormat::coverage(88.3, 5283, 5983, new Style(ansi: true));
 
-        Expect::value($line)->because('coverage colors the percentage green')->toContain("\x1b[32m88.30%\x1b[0m");
+        expect($line)->because('coverage colors the percentage green')->toContain("\x1b[32m88.30%\x1b[0m");
     }
 
     #[Test]
@@ -212,7 +213,7 @@ final class SummaryFormatTest
     {
         $line = SummaryFormat::coverageExport('json', 'build/coverage/coverage.json');
 
-        Expect::value($line)->because('coverage export renders an indented format and target line')->toBe('  json → build/coverage/coverage.json');
+        expect($line)->because('coverage export renders an indented format and target line')->toBe('  json → build/coverage/coverage.json');
     }
 
     /**

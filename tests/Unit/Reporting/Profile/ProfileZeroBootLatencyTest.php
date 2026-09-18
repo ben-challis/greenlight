@@ -10,10 +10,11 @@ use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\WorkerSpawned;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Profile\ProfileAggregator;
 use Greenlight\Reporting\Style;
 use Greenlight\Result\ResultSummary;
+
+use function Greenlight\expect;
 
 final readonly class ProfileZeroBootLatencyTest
 {
@@ -32,7 +33,7 @@ final readonly class ProfileZeroBootLatencyTest
             $aggregator->onEvent($event);
         }
 
-        Expect::value($aggregator->render(new Style(ansi: false)))
+        expect($aggregator->render(new Style(ansi: false)))
             ->because('zero boot latency is measured and MUST NOT be treated as missing')
             ->toContain(
                 'Boot latency: 0.000s average (spawn to first class, 1 worker)',

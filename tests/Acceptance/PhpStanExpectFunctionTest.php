@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
 use Greenlight\Tests\Support\ProjectFiles;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanExpectFunctionTest
@@ -57,10 +58,10 @@ final readonly class PhpStanExpectFunctionTest
             $files->path('phpstan.neon'),
         );
 
-        Expect::value($probe->goodErrors)->toBe([]);
-        Expect::value($probe->exitCode)->toBe(1);
-        Expect::value(\count($probe->errors))->toBe(3);
-        Expect::value($probe->messages())->toContain('undefined method');
+        expect($probe->goodErrors)->toBe([]);
+        expect($probe->exitCode)->toBe(1);
+        expect(\count($probe->errors))->toBe(3);
+        expect($probe->messages())->toContain('undefined method');
     }
 
     #[Test]
@@ -123,9 +124,9 @@ final readonly class PhpStanExpectFunctionTest
             PHP,
         );
 
-        Expect::value($probe->goodErrors)->toBe([]);
-        Expect::value($probe->exitCode)->toBe(1);
-        Expect::value(\count($probe->errors))->toBe(3);
-        Expect::value($probe->messages())->toContain('expects string, string|null given');
+        expect($probe->goodErrors)->toBe([]);
+        expect($probe->exitCode)->toBe(1);
+        expect(\count($probe->errors))->toBe(3);
+        expect($probe->messages())->toContain('expects string, string|null given');
     }
 }

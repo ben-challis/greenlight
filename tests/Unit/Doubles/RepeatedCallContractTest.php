@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\InvalidDoubleUsage;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class RepeatedCallContractTest
 {
@@ -22,13 +23,13 @@ final readonly class RepeatedCallContractTest
         $spy->many('first', 'second');
         $spy->many();
 
-        Expect::calling(static fn(): mixed => new \ReflectionMethod($spy, 'record')->invokeArgs($spy, ['first', 'second']))
+        expect()->calling(static fn(): mixed => new \ReflectionMethod($spy, 'record')->invokeArgs($spy, ['first', 'second']))
             ->toThrow(InvalidDoubleUsage::class, '/accepts at most 1 argument/');
 
         $spy->record('last');
 
-        Expect::value($this->doubles->callsTo($spy, 'record'))->toBe([[], ['first'], ['last']]);
-        Expect::value($this->doubles->callsTo($spy, 'many'))->toBe([['first', 'second'], []]);
+        expect($this->doubles->callsTo($spy, 'record'))->toBe([[], ['first'], ['last']]);
+        expect($this->doubles->callsTo($spy, 'many'))->toBe([['first', 'second'], []]);
     }
 
     #[Test]
@@ -39,13 +40,13 @@ final readonly class RepeatedCallContractTest
         $first->record('first');
         $second->record();
 
-        Expect::calling(static fn(): mixed => new \ReflectionMethod($second, 'record')->invokeArgs($second, ['unexpected']))
+        expect()->calling(static fn(): mixed => new \ReflectionMethod($second, 'record')->invokeArgs($second, ['unexpected']))
             ->toThrow(InvalidDoubleUsage::class, '/accepts at most 0 arguments/');
 
         $first->record('last');
 
-        Expect::value($this->doubles->callsTo($first, 'record'))->toBe([['first'], ['last']]);
-        Expect::value($this->doubles->callsTo($second, 'record'))->toBe([[]]);
+        expect($this->doubles->callsTo($first, 'record'))->toBe([['first'], ['last']]);
+        expect($this->doubles->callsTo($second, 'record'))->toBe([[]]);
     }
 }
 

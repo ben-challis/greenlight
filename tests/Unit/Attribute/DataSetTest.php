@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Attribute;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class DataSetTest
 {
@@ -17,7 +18,7 @@ final class DataSetTest
         ?string $method,
         string $message,
     ): void {
-        Expect::calling(
+        expect()->calling(
             static fn(): object => new \ReflectionClass(DataSet::class)->newInstance($provider, $method),
         )
             ->because('data set provider identifiers MUST be non-empty')

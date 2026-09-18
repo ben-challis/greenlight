@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Wire\InvalidWirePayload;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class TestResultWireTest
 {
@@ -21,7 +22,7 @@ final class TestResultWireTest
         $payload = $this->payload();
         $payload[$field] = $wireValue;
 
-        Expect::value(TestResult::fromWire($payload)->toWire()[$field])
+        expect(TestResult::fromWire($payload)->toWire()[$field])
             ->because('out of range wire values normalize to safe bounds')
             ->toBe($expected);
     }
@@ -32,7 +33,7 @@ final class TestResultWireTest
         $payload = $this->payload();
         unset($payload['risky']);
 
-        Expect::value(TestResult::fromWire($payload)->risky)
+        expect(TestResult::fromWire($payload)->risky)
             ->because('a missing risky flag uses the backward compatible default')
             ->toBeFalse();
     }
@@ -43,7 +44,7 @@ final class TestResultWireTest
         $payload = $this->payload();
         $payload['outcome'] = 'unknown';
 
-        Expect::calling(static fn(): TestResult => TestResult::fromWire($payload))
+        expect()->calling(static fn(): TestResult => TestResult::fromWire($payload))
             ->because('an invalid outcome names the wire field')
             ->toThrow(
                 InvalidWirePayload::class,

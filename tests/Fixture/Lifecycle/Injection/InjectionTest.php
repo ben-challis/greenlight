@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Fixture\Lifecycle\Injection;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+
+use function Greenlight\expect;
 
 final readonly class InjectionTest
 {
@@ -14,6 +16,6 @@ final readonly class InjectionTest
     #[Test]
     public function usesTheInjectedService(): void
     {
-        Expect::value($this->probe->ping())->toBe('pong');
+        expect($this->probe->ping())->toBe('pong');
     }
 }

@@ -8,9 +8,10 @@ use App\DisposalProbe;
 use App\Greeter;
 use App\VisitCounter;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Hyperf\Context\Context;
 use Hyperf\Coroutine\Coroutine;
+
+use function Greenlight\expect;
 
 final readonly class HyperfAttemptLifetimeTest
 {
@@ -23,10 +24,10 @@ final readonly class HyperfAttemptLifetimeTest
     #[Test]
     public function firstAttemptUsesAnIsolatedContainer(): void
     {
-        Expect::value(Coroutine::inCoroutine())->toBeTrue();
-        Expect::value($this->greeter->greet('Ada'))->toBe('Hello, Ada through AOP');
-        Expect::value($this->counter->count())->toBe(0);
-        Expect::value($this->probe->snapshot())->toBe([
+        expect(Coroutine::inCoroutine())->toBeTrue();
+        expect($this->greeter->greet('Ada'))->toBe('Hello, Ada through AOP');
+        expect($this->counter->count())->toBe(0);
+        expect($this->probe->snapshot())->toBe([
             'containers' => 1,
             'resets' => 0,
             'disposals' => 0,
@@ -41,9 +42,9 @@ final readonly class HyperfAttemptLifetimeTest
     #[Test]
     public function nextAttemptGetsANewContainerAndCoroutineContext(): void
     {
-        Expect::value($this->counter->count())->toBe(0);
-        Expect::value(Context::has('greenlight.hyperf.probe'))->toBeFalse();
-        Expect::value($this->probe->snapshot())->toBe([
+        expect($this->counter->count())->toBe(0);
+        expect(Context::has('greenlight.hyperf.probe'))->toBeFalse();
+        expect($this->probe->snapshot())->toBe([
             'containers' => 2,
             'resets' => 1,
             'disposals' => 1,

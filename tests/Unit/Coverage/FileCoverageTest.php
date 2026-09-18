@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Coverage;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class FileCoverageTest
 {
@@ -14,7 +15,7 @@ final class FileCoverageTest
     public function emptyFilePathsAreRejected(): void
     {
         // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
-        Expect::calling(static fn(): FileCoverage => new FileCoverage('', [], []))
+        expect()->calling(static fn(): FileCoverage => new FileCoverage('', [], []))
             ->because('coverage entries MUST identify a file')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -29,13 +30,13 @@ final class FileCoverageTest
         $second = new FileCoverage('0', [2], []);
         $merged = $first->merge($second);
 
-        Expect::value($merged->file)
+        expect($merged->file)
             ->because('a zero-string coverage file path is not empty')
             ->toBe('0');
-        Expect::value($merged->coveredLines)
+        expect($merged->coveredLines)
             ->because('coverage for the zero-string path MUST merge normally')
             ->toBe([1, 2]);
-        Expect::value($merged->percentage())
+        expect($merged->percentage())
             ->toBe(100.0);
     }
 
@@ -44,8 +45,8 @@ final class FileCoverageTest
     {
         $file = new FileCoverage('/src/A.php', [9, 3, 3, 5], [12, 7, 12]);
 
-        Expect::value($file->coveredLines)->because('line lists are sorted and deduplicated')->toBe([3, 5, 9]);
-        Expect::value($file->uncoveredLines)->toBe([7, 12]);
+        expect($file->coveredLines)->because('line lists are sorted and deduplicated')->toBe([3, 5, 9]);
+        expect($file->uncoveredLines)->toBe([7, 12]);
     }
 
     #[Test]
@@ -53,8 +54,8 @@ final class FileCoverageTest
     {
         $file = new FileCoverage('/src/A.php', [3, 5], [3, 7]);
 
-        Expect::value($file->coveredLines)->because('covered wins when a line appears in both sets')->toBe([3, 5]);
-        Expect::value($file->uncoveredLines)->toBe([7]);
+        expect($file->coveredLines)->because('covered wins when a line appears in both sets')->toBe([3, 5]);
+        expect($file->uncoveredLines)->toBe([7]);
     }
 
     #[Test]
@@ -62,7 +63,7 @@ final class FileCoverageTest
     {
         $file = new FileCoverage('/src/A.php', [9, 3, 5], [12, 3, 7]);
 
-        Expect::value($file->lineHits())
+        expect($file->lineHits())
             ->because('line hits are canonical and covered wins')
             ->toBe([
                 3 => 1,
@@ -78,15 +79,15 @@ final class FileCoverageTest
     {
         $file = new FileCoverage('/src/A.php', [1, 2, 3], [4]);
 
-        Expect::value($file->percentage())->because('percentage is covered over executable')->toBeWithin(0.001, 75.0);
-        Expect::value($file->executableLineCount())->toBe(4);
-        Expect::value($file->coveredLineCount())->toBe(3);
+        expect($file->percentage())->because('percentage is covered over executable')->toBeWithin(0.001, 75.0);
+        expect($file->executableLineCount())->toBe(4);
+        expect($file->coveredLineCount())->toBe(3);
     }
 
     #[Test]
     public function fileWithoutExecutableLinesCountsAsFullyCovered(): void
     {
-        Expect::value(new FileCoverage('/src/A.php', [], [])->percentage())->because('file without executable lines counts as fully covered')->toBe(100.0);
+        expect(new FileCoverage('/src/A.php', [], [])->percentage())->because('file without executable lines counts as fully covered')->toBe(100.0);
     }
 
     #[Test]
@@ -97,8 +98,8 @@ final class FileCoverageTest
 
         $merged = $a->merge($b);
 
-        Expect::value($merged->coveredLines)->because('merge unions coverage and covered wins')->toBe([3, 5]);
-        Expect::value($merged->uncoveredLines)->toBe([7, 9]);
+        expect($merged->coveredLines)->because('merge unions coverage and covered wins')->toBe([3, 5]);
+        expect($merged->uncoveredLines)->toBe([7, 9]);
     }
 
     #[Test]
@@ -107,7 +108,7 @@ final class FileCoverageTest
         $a = new FileCoverage('/src/A.php', [1], []);
         $b = new FileCoverage('/src/B.php', [1], []);
 
-        Expect::calling(static fn(): FileCoverage => $a->merge($b))->because('merging different files is rejected')
+        expect()->calling(static fn(): FileCoverage => $a->merge($b))->because('merging different files is rejected')
             ->toThrow(\LogicException::class, '/Cannot merge coverage of "\/src\/B\.php"/');
     }
 }

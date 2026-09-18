@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class SequentialFallbackTest
 {
@@ -26,10 +27,10 @@ final readonly class SequentialFallbackTest
             phpArguments: ['-d', 'disable_functions=' . $function],
         );
 
-        Expect::value($result->exitCode)
+        expect($result->exitCode)
             ->because(\sprintf('the runner uses in-process execution when PHP disables %s', $function))
             ->toBe(0);
-        Expect::value($result->output())->toContain('1 test, 1 passed')
+        expect($result->output())->toContain('1 test, 1 passed')
             ->not()->toContain($function);
     }
 

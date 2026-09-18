@@ -9,8 +9,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
 use JsonSchema\Validator;
+
+use function Greenlight\expect;
 
 final readonly class JsonExporterJsonSchemaTest
 {
@@ -29,7 +30,7 @@ final readonly class JsonExporterJsonSchemaTest
         ];
 
         foreach ($documents as $case => $json) {
-            Expect::value($this->isValid($json))
+            expect($this->isValid($json))
                 ->because($case . ' MUST match the shipped coverage schema')
                 ->toBeTrue();
         }
@@ -39,7 +40,7 @@ final readonly class JsonExporterJsonSchemaTest
     #[DataSet('invalidDocuments')]
     public function invalidProducerDocumentsDoNotMatchTheSchema(string $json): void
     {
-        Expect::value($this->isValid($json))
+        expect($this->isValid($json))
             ->because('an invalid producer document MUST NOT match the coverage schema')
             ->toBeFalse();
     }
@@ -69,7 +70,7 @@ final readonly class JsonExporterJsonSchemaTest
             }
             JSON;
 
-        Expect::value($this->isValid($json))
+        expect($this->isValid($json))
             ->because('version 1 MUST permit additive fields')
             ->toBeTrue();
     }

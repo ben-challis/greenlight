@@ -8,12 +8,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
 use Greenlight\Execution\Plugin\PluginRuntimeError;
 use Greenlight\Execution\Plugin\RunPolicyRuntime;
-use Greenlight\Expect\Expect;
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\Prioritized;
 use Greenlight\Plugin\RunAcceptancePolicy;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\RunPolicy;
+
+use function Greenlight\expect;
 
 final readonly class RunPolicyRuntimeTest
 {
@@ -31,13 +32,13 @@ final readonly class RunPolicyRuntimeTest
 
         $messages = $runtime->failureMessages(new ResultSummary(passed: 2), 1);
 
-        Expect::value($events->getArrayCopy())->toBe([
+        expect($events->getArrayCopy())->toBe([
             'early:2:1',
             'default:2:1',
             'accepted:2:1',
             'late:2:1',
         ]);
-        Expect::value($messages)->toBe([
+        expect($messages)->toBe([
             'early failure',
             'default failure',
             'late failure',
@@ -53,8 +54,8 @@ final readonly class RunPolicyRuntimeTest
             new RecordingRunPolicy($events, 'policy', 0, 'must not run'),
         ]);
 
-        Expect::value($runtime->failureMessages(new ResultSummary(failed: 1), 0))->toBe([]);
-        Expect::value($events->getArrayCopy())->toBe([]);
+        expect($runtime->failureMessages(new ResultSummary(failed: 1), 0))->toBe([]);
+        expect($events->getArrayCopy())->toBe([]);
     }
 
     #[Test]
@@ -63,12 +64,12 @@ final readonly class RunPolicyRuntimeTest
         $failure = new \RuntimeException('Policy exploded');
         $runtime = RunPolicyRuntime::fromPlugins([new FailingRunPolicy($failure)]);
 
-        Expect::calling(static fn(): array => $runtime->failureMessages(new ResultSummary(passed: 1), 0))
+        expect()->calling(static fn(): array => $runtime->failureMessages(new ResultSummary(passed: 1), 0))
             ->toThrow(static function (PluginRuntimeError $error) use ($failure): void {
-                Expect::value($error->getMessage())->toBe(
+                expect($error->getMessage())->toBe(
                     'Plugin "Greenlight\\Tests\\Unit\\Execution\\FailingRunPolicy" caused an error during failureMessage(): Policy exploded',
                 );
-                Expect::value($error->getPrevious())->toBe($failure);
+                expect($error->getPrevious())->toBe($failure);
             });
     }
 
@@ -81,7 +82,7 @@ final readonly class RunPolicyRuntimeTest
             new RecordingRunPolicy($events, 'empty', 0, "\n"),
         ]);
 
-        Expect::calling(static fn(): array => $runtime->failureMessages(new ResultSummary(passed: 1), 0))
+        expect()->calling(static fn(): array => $runtime->failureMessages(new ResultSummary(passed: 1), 0))
             ->toThrow(
                 PluginRuntimeError::class,
                 message: 'Plugin "Greenlight\\Tests\\Unit\\Execution\\RecordingRunPolicy" returned an empty failure message from failureMessage().',
@@ -95,7 +96,7 @@ final readonly class RunPolicyRuntimeTest
             static fn(): FailingPolicyCreation => new FailingPolicyCreation(),
         );
 
-        Expect::calling(static fn(): RunPolicyRuntime => RunPolicyRuntime::fromDefinitions(
+        expect()->calling(static fn(): RunPolicyRuntime => RunPolicyRuntime::fromDefinitions(
             [$definition],
             new RunPolicy(),
         ))->toThrow(
@@ -112,7 +113,7 @@ final readonly class RunPolicyRuntimeTest
             new RunPolicy(failOnSkipped: true, failOnRetriedPass: true),
         );
 
-        Expect::value($runtime->failureMessages(new ResultSummary(skipped: 2), 1))->toBe([
+        expect($runtime->failureMessages(new ResultSummary(skipped: 2), 1))->toBe([
             "Greenlight failed because the fail-on-skipped policy found 2 skipped tests.\n"
             . 'Greenlight failed because the fail-on-retried-pass policy found 1 test that passed after retry.',
         ]);

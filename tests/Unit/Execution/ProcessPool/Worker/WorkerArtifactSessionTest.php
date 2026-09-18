@@ -7,13 +7,14 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Worker;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Execution\ProcessPool\Worker\WorkerProcess;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Plugin\CommandResult;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class WorkerArtifactSessionTest
 {
@@ -137,10 +138,10 @@ final readonly class WorkerArtifactSessionTest
         $workerResult = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
         $serverExit = $server->wait(2.0)->exitCode;
 
-        Expect::value($workerResult)
+        expect($workerResult)
             ->because('a worker with artifact settings MUST complete its assignment')
             ->toEqual(CommandResult::success());
-        Expect::value($serverExit)
+        expect($serverExit)
             ->because('the worker MUST stage evidence in the assigned artifact session')
             ->toBe(0);
     }

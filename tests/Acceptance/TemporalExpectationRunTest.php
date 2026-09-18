@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class TemporalExpectationRunTest
 {
@@ -26,8 +27,9 @@ final readonly class TemporalExpectationRunTest
         namespace TemporalProbe;
 
         use Greenlight\Attribute\Test;
-        use Greenlight\Expect\Expect;
         use Greenlight\Tests\Support\PhpSubprocess;
+
+        use function Greenlight\expect;
 
         final class AsynchronousAdapterTest
         {
@@ -74,7 +76,7 @@ final readonly class TemporalExpectationRunTest
                     \fclose($pipes[1]);
                     $released = false;
 
-                    Expect::calling(
+                    expect()->calling(
                         static function () use ($marker, $pipes, &$released): string|false {
                             $state = \is_file($marker) ? \file_get_contents($marker) : false;
 
@@ -114,7 +116,7 @@ final readonly class TemporalExpectationRunTest
             '--reporter=plain',
         ]);
 
-        Expect::value($result->exitCode)->because('a worker polls real asynchronous external state')->toBe(0);
-        Expect::value($result->output())->toContain('1 test, 1 passed, 1 expectation');
+        expect($result->exitCode)->because('a worker polls real asynchronous external state')->toBe(0);
+        expect($result->output())->toContain('1 test, 1 passed, 1 expectation');
     }
 }

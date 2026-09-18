@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\PrivateHandlerMethod;
+
+use function Greenlight\expect;
 
 final readonly class PrivateHandlerMethodTest
 {
@@ -16,7 +17,7 @@ final readonly class PrivateHandlerMethodTest
     #[Test]
     public function privateParentHandlerMethodsRemainValid(): void
     {
-        Expect::value($this->doubles->stub(PrivateHandlerMethod::class))
+        expect($this->doubles->stub(PrivateHandlerMethod::class))
             ->because('a private parent method does not conflict with the proxy handler method')
             ->toBeInstanceOf(PrivateHandlerMethod::class);
     }

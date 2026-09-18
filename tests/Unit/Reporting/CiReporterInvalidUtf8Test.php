@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\GithubReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\TeamCityReporter;
@@ -15,6 +14,8 @@ use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class CiReporterInvalidUtf8Test
 {
@@ -35,10 +36,10 @@ final class CiReporterInvalidUtf8Test
 
         $reporter->onEvent(new TestFinished($result, 1.0));
 
-        Expect::value($output->buffer())
+        expect($output->buffer())
             ->because('a CI command stream MUST replace invalid UTF-8')
             ->toContain("invalid \u{FFFD} byte");
-        Expect::value(\preg_match('//u', $output->buffer()))
+        expect(\preg_match('//u', $output->buffer()))
             ->because('a CI command stream MUST contain only valid UTF-8')
             ->toBe(1);
     }

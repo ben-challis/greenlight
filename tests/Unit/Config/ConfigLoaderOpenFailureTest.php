@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Config;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Filesystem\StatableFileStream;
+
+use function Greenlight\expect;
 
 final readonly class ConfigLoaderOpenFailureTest
 {
@@ -24,7 +25,7 @@ final readonly class ConfigLoaderOpenFailureTest
         $this->streamWrappers->register(self::SCHEME, StatableFileStream::class);
         $file = self::SCHEME . '://greenlight.php';
 
-        Expect::calling(
+        expect()->calling(
             static function () use ($file, &$warning): void {
                 ErrorTrap::run(
                     static fn() => new ConfigLoader()->loadFile($file),
@@ -35,13 +36,13 @@ final readonly class ConfigLoaderOpenFailureTest
             ->because('a configuration open failure MUST become only a configuration error')
             ->toThrow(
                 static function (ConfigFileError $error) use ($file): void {
-                    Expect::value($error->getMessage())
+                    expect($error->getMessage())
                         ->toContain(\sprintf('Configuration file "%s" threw Error:', $file));
-                    Expect::value($error->getPrevious())
+                    expect($error->getPrevious())
                         ->toBeInstanceOf(\Error::class);
                 },
             );
-        Expect::value($warning)
+        expect($warning)
             ->because('a configuration open failure MUST not leak an engine diagnostic')
             ->toBeNull();
     }

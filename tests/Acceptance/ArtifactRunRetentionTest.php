@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactRunRetentionTest
 {
@@ -63,12 +64,12 @@ final readonly class ArtifactRunRetentionTest
         $runs = \glob($project->path('artifacts/*'), \GLOB_ONLYDIR);
         $runs = $runs === false ? [] : $runs;
 
-        Expect::value($first->exitCode)->toBe(0);
-        Expect::value($second->exitCode)->toBe(0);
-        Expect::value($runs)
+        expect($first->exitCode)->toBe(0);
+        expect($second->exitCode)->toBe(0);
+        expect($runs)
             ->because('run completion MUST apply the configured completed-run count')
             ->toHaveCount(1);
-        Expect::value(\is_file(($runs[0] ?? '') . '/.greenlight-run.json'))->toBeTrue();
+        expect(\is_file(($runs[0] ?? '') . '/.greenlight-run.json'))->toBeTrue();
     }
 
     #[Test]
@@ -94,12 +95,12 @@ final readonly class ArtifactRunRetentionTest
         $dryRun = GreenlightCli::run($project->directory, ['artifacts:prune', '--dry-run', '--no-ansi']);
         $prune = GreenlightCli::run($project->directory, ['artifacts:prune', '--no-ansi']);
 
-        Expect::value($dryRun->exitCode)->toBe(0);
-        Expect::value($dryRun->stdout)->toContain('Would prune')->toContain('run-first')->toContain('count limit');
-        Expect::value(\is_dir($project->path('artifacts/run-second')))->toBeTrue();
-        Expect::value($prune->exitCode)->toBe(0);
-        Expect::value($prune->stdout)->toContain('Pruned')->toContain('run-first');
-        Expect::value(\is_dir($project->path('artifacts/run-first')))->toBeFalse();
+        expect($dryRun->exitCode)->toBe(0);
+        expect($dryRun->stdout)->toContain('Would prune')->toContain('run-first')->toContain('count limit');
+        expect(\is_dir($project->path('artifacts/run-second')))->toBeTrue();
+        expect($prune->exitCode)->toBe(0);
+        expect($prune->stdout)->toContain('Pruned')->toContain('run-first');
+        expect(\is_dir($project->path('artifacts/run-first')))->toBeFalse();
     }
 
     #[Test]
@@ -128,12 +129,12 @@ final readonly class ArtifactRunRetentionTest
             '--no-ansi',
         ]);
 
-        Expect::value($noPolicy->exitCode)->toBe(0);
-        Expect::value($noPolicy->stdout)->toContain('No artifact retention policy is configured.');
-        Expect::value($missingConfig->exitCode)->toBe(1);
-        Expect::value($missingConfig->output())->toContain('missing.php');
-        Expect::value($emptyDirectory->exitCode)->toBe(64);
-        Expect::value($emptyDirectory->output())->toContain('--artifacts-dir requires a value.');
+        expect($noPolicy->exitCode)->toBe(0);
+        expect($noPolicy->stdout)->toContain('No artifact retention policy is configured.');
+        expect($missingConfig->exitCode)->toBe(1);
+        expect($missingConfig->output())->toContain('missing.php');
+        expect($emptyDirectory->exitCode)->toBe(64);
+        expect($emptyDirectory->output())->toContain('--artifacts-dir requires a value.');
 
         $project->writeFile('greenlight.php', <<<'PHP'
             <?php
@@ -152,8 +153,8 @@ final readonly class ArtifactRunRetentionTest
         $dryRun = GreenlightCli::run($project->directory, ['artifacts:prune', '--dry-run', '--no-ansi']);
         $prune = GreenlightCli::run($project->directory, ['artifacts:prune', '--no-ansi']);
 
-        Expect::value($dryRun->stdout)->toContain('No completed artifact runs would be pruned.');
-        Expect::value($prune->stdout)->toContain('No completed artifact runs were pruned.');
+        expect($dryRun->stdout)->toContain('No completed artifact runs would be pruned.');
+        expect($prune->stdout)->toContain('No completed artifact runs were pruned.');
     }
 
     #[Test]
@@ -177,9 +178,9 @@ final readonly class ArtifactRunRetentionTest
 
         $result = GreenlightCli::run($project->directory, ['artifacts:prune', '--no-ansi']);
 
-        Expect::value($result->exitCode)->toBe(0);
-        Expect::value($result->stdout)->toContain('No completed artifact runs were pruned.');
-        Expect::value($result->stderr)
+        expect($result->exitCode)->toBe(0);
+        expect($result->stdout)->toContain('No completed artifact runs were pruned.');
+        expect($result->stderr)
             ->toContain('Greenlight did not prune artifacts because the artifact parent is not canonical.');
     }
 

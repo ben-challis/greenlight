@@ -9,10 +9,11 @@ use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceLease;
 use Greenlight\Execution\ProcessPool\Orchestrator\SchedulingUnit;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerState;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final readonly class WorkerHandleAssignmentLifecycleTest
 {
@@ -21,7 +22,7 @@ final readonly class WorkerHandleAssignmentLifecycleTest
     {
         $handle = new WorkerState('worker-1', 1, 1.0);
 
-        Expect::value($handle->isFresh())
+        expect($handle->isFresh())
             ->because('a worker MUST be fresh before its first assignment completes')
             ->toBeTrue();
 
@@ -35,19 +36,19 @@ final readonly class WorkerHandleAssignmentLifecycleTest
         $lease = $this->lease();
         $handle->beginAssignment($lease);
 
-        Expect::value($handle->lease)
+        expect($handle->lease)
             ->because('assignment start MUST transfer the resource lease')
             ->toBe($lease);
-        Expect::value($handle->assigned)
+        expect($handle->assigned)
             ->because('assignment start MUST transfer the execution plan')
             ->toBe($lease->unit->plan);
-        Expect::value($handle->isolatedAssignment)
+        expect($handle->isolatedAssignment)
             ->because('assignment start MUST transfer the isolation state')
             ->toBeTrue();
-        Expect::value($handle->tally)
+        expect($handle->tally)
             ->because('assignment start MUST replace the result tally')
             ->not()->toBe($staleTally);
-        Expect::value($handle->tally->toWire())
+        expect($handle->tally->toWire())
             ->because('assignment start MUST reset each result count')
             ->toBe([
                 'passed' => 0,
@@ -55,16 +56,16 @@ final readonly class WorkerHandleAssignmentLifecycleTest
                 'errored' => 0,
                 'skipped' => 0,
             ]);
-        Expect::value($handle->finished)
+        expect($handle->finished)
             ->because('assignment start MUST clear the finished tests')
             ->toBeEmpty();
-        Expect::value($handle->inFlight)
+        expect($handle->inFlight)
             ->because('assignment start MUST clear the active test ID')
             ->toBeNull();
-        Expect::value($handle->inFlightAttempt)
+        expect($handle->inFlightAttempt)
             ->because('assignment start MUST reset the active attempt')
             ->toBe(0);
-        Expect::value($handle->isFresh())
+        expect($handle->isFresh())
             ->because('a worker MUST stay fresh until its first assignment completes')
             ->toBeTrue();
 
@@ -72,22 +73,22 @@ final readonly class WorkerHandleAssignmentLifecycleTest
         $handle->inFlightAttempt = 3;
         $handle->finishAssignment();
 
-        Expect::value($handle->lease)
+        expect($handle->lease)
             ->because('assignment finish MUST clear the resource lease')
             ->toBeNull();
-        Expect::value($handle->assigned)
+        expect($handle->assigned)
             ->because('assignment finish MUST clear the execution plan')
             ->toBeNull();
-        Expect::value($handle->isolatedAssignment)
+        expect($handle->isolatedAssignment)
             ->because('assignment finish MUST clear the isolation state')
             ->toBeFalse();
-        Expect::value($handle->inFlight)
+        expect($handle->inFlight)
             ->because('assignment finish MUST clear the active test ID')
             ->toBeNull();
-        Expect::value($handle->inFlightAttempt)
+        expect($handle->inFlightAttempt)
             ->because('assignment finish MUST reset the active attempt')
             ->toBe(0);
-        Expect::value($handle->isFresh())
+        expect($handle->isFresh())
             ->because('assignment finish MUST mark the worker as used')
             ->toBeFalse();
     }

@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\AllowParallel;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[AllowParallel]
 #[RequiresResource('analysis-process')]
@@ -30,12 +31,12 @@ final readonly class PhpStanMatcherSignatureTest
 
                         declare(strict_types=1);
 
-                        use Greenlight\Expect\Expect;
+                        use function Greenlight\expect;
 
                         function greenlightGoodProbe(): void
                         {
-                            Expect::value('c0ffee')->toBeHexadecimal();
-                            Expect::value('c0ffee')->toHaveDigestLength(6);
+                            expect('c0ffee')->toBeHexadecimal();
+                            expect('c0ffee')->toHaveDigestLength(6);
                         }
                         PHP,
                     'bad' => <<<'PHP'
@@ -43,12 +44,12 @@ final readonly class PhpStanMatcherSignatureTest
 
                         declare(strict_types=1);
 
-                        use Greenlight\Expect\Expect;
+                        use function Greenlight\expect;
 
                         function greenlightBadProbe(): void
                         {
-                            Expect::value('c0ffee')->toHaveDigestLength('six');
-                            Expect::value('c0ffee')->toBeHexadecimal(123);
+                            expect('c0ffee')->toHaveDigestLength('six');
+                            expect('c0ffee')->toBeHexadecimal(123);
                         }
                         PHP,
                 ],
@@ -58,20 +59,20 @@ final readonly class PhpStanMatcherSignatureTest
 
                         declare(strict_types=1);
 
-                        use Greenlight\Expect\Expect;
+                        use function Greenlight\expect;
 
                         function greenlightGoodTemporalProbe(): void
                         {
-                            Expect::calling(static fn(): string => 'c0ffee')->returnValue()->eventually()
+                            expect()->calling(static fn(): string => 'c0ffee')->returnValue()->eventually()
                                 ->within(1.0)
                                 ->toHaveDigestLength(6);
-                            Expect::calling(static fn(): string => 'c0ffee')->returnValue()->consistently()
+                            expect()->calling(static fn(): string => 'c0ffee')->returnValue()->consistently()
                                 ->for(0.1)
                                 ->toBeHexadecimal();
-                            Expect::calling(static fn(): float => 1.0)->returnValue()->eventually()
+                            expect()->calling(static fn(): float => 1.0)->returnValue()->eventually()
                                 ->within(1.0)
                                 ->toBeWithin(of: 1.0, delta: 0.1);
-                            Expect::calling(static fn(): string => 'greenlight')->returnValue()->consistently()
+                            expect()->calling(static fn(): string => 'greenlight')->returnValue()->consistently()
                                 ->for(0.1)
                                 ->toBeOneOf(other: 'red', expected: 'greenlight');
                         }
@@ -81,20 +82,20 @@ final readonly class PhpStanMatcherSignatureTest
 
                         declare(strict_types=1);
 
-                        use Greenlight\Expect\Expect;
+                        use function Greenlight\expect;
 
                         function greenlightBadTemporalProbe(): void
                         {
-                            Expect::calling(static fn(): string => 'c0ffee')->returnValue()->eventually()
+                            expect()->calling(static fn(): string => 'c0ffee')->returnValue()->eventually()
                                 ->within(1.0)
                                 ->toHaveDigestLength('six');
-                            Expect::calling(static fn(): string => 'c0ffee')->returnValue()->consistently()
+                            expect()->calling(static fn(): string => 'c0ffee')->returnValue()->consistently()
                                 ->for(0.1)
                                 ->toBeHexadecimal(123);
-                            Expect::calling(static fn(): float => 1.0)->returnValue()->eventually()
+                            expect()->calling(static fn(): float => 1.0)->returnValue()->eventually()
                                 ->within(1.0)
                                 ->toBeWithin(delta: 'close', of: 1.0);
-                            Expect::calling(static fn(): bool => true)->returnValue()->consistently()
+                            expect()->calling(static fn(): bool => true)->returnValue()->consistently()
                                 ->for(0.1)
                                 ->toBeTrue(123);
                         }
@@ -104,17 +105,17 @@ final readonly class PhpStanMatcherSignatureTest
         );
 
         $probe = $probes['synchronous matchers'];
-        Expect::value($probe->exitCode)->because('reflected matcher signatures are enforced')->toBe(1);
-        Expect::value($probe->goodPassed)->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(2);
-        Expect::value($probe->messages())->toContain('toHaveDigestLength() expects int, string given')
+        expect($probe->exitCode)->because('reflected matcher signatures are enforced')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(2);
+        expect($probe->messages())->toContain('toHaveDigestLength() expects int, string given')
             ->toContain('invoked with 1 parameter, 0 required');
 
         $probe = $probes['temporal matchers'];
-        Expect::value($probe->exitCode)->because('temporal matcher signatures are enforced')->toBe(1);
-        Expect::value($probe->goodPassed)->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(5);
-        Expect::value($probe->messages())->toContain('toHaveDigestLength() expects int, string given')
+        expect($probe->exitCode)->because('temporal matcher signatures are enforced')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(5);
+        expect($probe->messages())->toContain('toHaveDigestLength() expects int, string given')
             ->toContain('toBeWithin() expects float, string given')
             ->toContain('invoked with 1 parameter, 0 required');
     }
@@ -129,7 +130,7 @@ final readonly class PhpStanMatcherSignatureTest
 
             declare(strict_types=1);
 
-            use Greenlight\Expect\Expect;
+            use function Greenlight\expect;
 
             final class GreenlightMatcherNameCollision
             {
@@ -141,10 +142,10 @@ final readonly class PhpStanMatcherSignatureTest
 
             function greenlightGoodMatcherReturnProbe(): void
             {
-                Expect::value('value')->toReturnBoolean();
-                Expect::value('value')->toReturnMixed();
-                Expect::value('value')->toReturnUntyped();
-                Expect::value((new GreenlightMatcherNameCollision())->toReturnText())->toBe('value');
+                expect('value')->toReturnBoolean();
+                expect('value')->toReturnMixed();
+                expect('value')->toReturnUntyped();
+                expect((new GreenlightMatcherNameCollision())->toReturnText())->toBe('value');
             }
             PHP,
             <<<'PHP'
@@ -152,12 +153,12 @@ final readonly class PhpStanMatcherSignatureTest
 
             declare(strict_types=1);
 
-            use Greenlight\Expect\Expect;
+            use function Greenlight\expect;
 
             function greenlightBadMatcherReturnProbe(): void
             {
-                Expect::value('value')->toReturnText();
-                Expect::calling(static fn(): string => 'value')->returnValue()->eventually()
+                expect('value')->toReturnText();
+                expect()->calling(static fn(): string => 'value')->returnValue()->eventually()
                     ->within(1.0)
                     ->toReturnText();
             }
@@ -165,10 +166,10 @@ final readonly class PhpStanMatcherSignatureTest
             FixturePath::get('PhpStanMatcherReturn/probe.neon'),
         );
 
-        Expect::value($probe->exitCode)->because('declared matcher return types must be boolean')->toBe(1);
-        Expect::value($probe->goodPassed)->toBeTrue();
-        Expect::value(\count($probe->errors))->toBe(2);
-        Expect::value($probe->messages())
+        expect($probe->exitCode)->because('declared matcher return types must be boolean')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(2);
+        expect($probe->messages())
             ->toContain('toReturnText() must return bool, but its declared return type is string');
     }
 }

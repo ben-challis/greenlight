@@ -9,10 +9,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class StagedAttachmentNamingTest
 {
@@ -40,7 +41,7 @@ final readonly class StagedAttachmentNamingTest
             $attachments->seal(),
         );
 
-        Expect::value($names)
+        expect($names)
             ->because('duplicate extensionless attachment names MUST remain distinct')
             ->toBe(['01-evidence', '02-evidence-2']);
     }

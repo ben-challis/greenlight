@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Execution\Artifact;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactCleanupIdempotenceTest
 {
@@ -36,7 +37,7 @@ final readonly class ArtifactCleanupIdempotenceTest
 
         $store->cleanup();
 
-        Expect::value(\is_dir($staging))
+        expect(\is_dir($staging))
             ->because('the owning store MUST remove its original staging directory')
             ->toBeFalse();
 
@@ -45,11 +46,11 @@ final readonly class ArtifactCleanupIdempotenceTest
 
         $store->cleanup();
 
-        Expect::value(\is_file($replacement))
+        expect(\is_file($replacement))
             ->because('a spent store MUST NOT delete replacement state at the same path')
             ->toBeTrue();
 
-        Expect::value((string) \file_get_contents($replacement))
+        expect((string) \file_get_contents($replacement))
             ->because('replacement staging content MUST remain intact')
             ->toBe('replacement state');
     }

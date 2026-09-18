@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\IntegrationFixture;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\FixtureResource;
 use Greenlight\Internal\Wire\InvalidWirePayload;
+
+use function Greenlight\expect;
 
 final readonly class FixtureResourceWireValidationTest
 {
@@ -21,7 +22,7 @@ final readonly class FixtureResourceWireValidationTest
         array $payload,
         string $message,
     ): void {
-        Expect::calling(static fn(): FixtureResource => FixtureResource::fromWire($payload))
+        expect()->calling(static fn(): FixtureResource => FixtureResource::fromWire($payload))
             ->because('invalid fixture resources MUST remain protocol errors at the wire boundary')
             ->toThrow(InvalidWirePayload::class, message: $message);
     }

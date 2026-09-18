@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Discovery\Plan;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanOrder;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final readonly class PlanOrderDurationTieTest
 {
@@ -27,7 +28,7 @@ final readonly class PlanOrderDurationTieTest
             'Acme\\GammaTest' => 1.0,
         ]);
 
-        Expect::value($ordered->classes())
+        expect($ordered->classes())
             ->because('equal recorded durations MUST preserve discovery order')
             ->toBe([
                 'Acme\\GammaTest',

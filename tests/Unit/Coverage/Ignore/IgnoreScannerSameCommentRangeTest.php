@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Coverage\Ignore;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Ignore\IgnoreScanner;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class IgnoreScannerSameCommentRangeTest
 {
@@ -26,7 +27,7 @@ final readonly class IgnoreScannerSameCommentRangeTest
             $kept = 1;
             PHP);
 
-        Expect::value(\array_keys(new IgnoreScanner()->ignoredLines($path)))
+        expect(\array_keys(new IgnoreScanner()->ignoredLines($path)))
             ->because('range markers in one comment MUST close before later source lines')
             ->toBe([2, 3, 4, 5]);
     }

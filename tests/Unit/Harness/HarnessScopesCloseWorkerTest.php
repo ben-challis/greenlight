@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\Disposable;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+
+use function Greenlight\expect;
 
 final class HarnessScopesCloseWorkerTest
 {
@@ -35,13 +36,13 @@ final class HarnessScopesCloseWorkerTest
         $scopes->resolve($workerService::class, 'test');
         $failures = $scopes->closeWorker();
 
-        Expect::value(\array_map(
+        expect(\array_map(
             static fn(\Throwable $failure): string => $failure->getMessage(),
             $failures,
         ))
             ->because('worker cleanup MUST retain a disposal failure')
             ->toBe(['worker disposal failed']);
-        Expect::value($scopes->closeWorker())
+        expect($scopes->closeWorker())
             ->because('failed cleanup MUST still empty the worker scope')
             ->toBe([]);
     }

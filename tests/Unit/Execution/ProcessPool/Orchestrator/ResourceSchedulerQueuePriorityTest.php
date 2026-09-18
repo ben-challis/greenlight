@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Orchestrator\DispatchKind;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceScheduler;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\SchedulingFixture;
+
+use function Greenlight\expect;
 
 final readonly class ResourceSchedulerQueuePriorityTest
 {
@@ -24,13 +25,13 @@ final readonly class ResourceSchedulerQueuePriorityTest
         $staleWorkerDecision = $scheduler->dispatch(false);
         $isolatedLease = SchedulingFixture::assignedLease($scheduler, freshWorker: true);
 
-        Expect::value($pooledLease->unit->plan->classes())
+        expect($pooledLease->unit->plan->classes())
             ->because('pooled work MUST run before isolated work')
             ->toBe(['Acme\\PooledTest']);
-        Expect::value($staleWorkerDecision->kind)
+        expect($staleWorkerDecision->kind)
             ->because('isolated work MUST wait for a fresh worker')
             ->toBe(DispatchKind::Drain);
-        Expect::value($isolatedLease->unit->plan->classes())
+        expect($isolatedLease->unit->plan->classes())
             ->because('a fresh worker MUST receive the isolated work')
             ->toBe(['Acme\\IsolatedTest']);
     }

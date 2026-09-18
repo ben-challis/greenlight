@@ -8,8 +8,9 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Wire\InvalidWirePayload;
+
+use function Greenlight\expect;
 
 final readonly class ClassLifecycleNullWorkerWireTest
 {
@@ -26,7 +27,7 @@ final readonly class ClassLifecycleNullWorkerWireTest
             'workerId' => null,
         ];
 
-        Expect::calling(static fn(): TestClassStarted|TestClassFinished => $eventClass::fromWire($payload))
+        expect()->calling(static fn(): TestClassStarted|TestClassFinished => $eventClass::fromWire($payload))
             ->because('class lifecycle worker IDs MUST distinguish explicit null from a missing legacy field')
             ->toThrow(
                 InvalidWirePayload::class,

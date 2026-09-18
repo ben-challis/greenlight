@@ -9,7 +9,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\StorageBuilder;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class StorageBuilderTest
 {
@@ -27,11 +28,11 @@ final readonly class StorageBuilderTest
             ->build()
             ->storage;
 
-        Expect::value($configuration->rootDirectory)->toBe('build/greenlight');
-        Expect::value($configuration->stateDirectory)->toBe('/shared/state');
-        Expect::value($configuration->cacheDirectory)->toBe('/local/cache');
-        Expect::value($configuration->generatedCodeDirectory)->toBe('/local/code');
-        Expect::value($configuration->temporaryDirectory)->toBe('/local/tmp');
+        expect($configuration->rootDirectory)->toBe('build/greenlight');
+        expect($configuration->stateDirectory)->toBe('/shared/state');
+        expect($configuration->cacheDirectory)->toBe('/local/cache');
+        expect($configuration->generatedCodeDirectory)->toBe('/local/code');
+        expect($configuration->temporaryDirectory)->toBe('/local/tmp');
     }
 
     /** @param \Closure(StorageBuilder): mixed $configure */
@@ -41,7 +42,7 @@ final readonly class StorageBuilderTest
         \Closure $configure,
         string $message,
     ): void {
-        Expect::calling(static fn(): mixed => $configure(new StorageBuilder()))
+        expect()->calling(static fn(): mixed => $configure(new StorageBuilder()))
             ->toThrow(InvalidConfiguration::class, message: $message);
     }
 

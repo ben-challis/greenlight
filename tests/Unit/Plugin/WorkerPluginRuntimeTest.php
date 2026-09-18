@@ -9,7 +9,6 @@ use Greenlight\Doubles\Fake;
 use Greenlight\Event\RunStarted;
 use Greenlight\Execution\Plugin\OrchestratorPluginRuntime;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
-use Greenlight\Expect\Expect;
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\Prioritized;
 use Greenlight\Plugin\WorkerBootstrapContext;
@@ -20,6 +19,8 @@ use Greenlight\Tests\Fixture\Plugins\QuarantinePlugin;
 use Greenlight\Tests\Fixture\Plugins\RecordingRunSubscriber;
 use Greenlight\Tests\Support\CollectingEventSink;
 
+use function Greenlight\expect;
+
 final class WorkerPluginRuntimeTest
 {
     #[Test]
@@ -27,11 +28,11 @@ final class WorkerPluginRuntimeTest
     {
         $runtime = WorkerPluginRuntime::fromDefinitions([]);
 
-        Expect::value($runtime->runWorker(static fn(): string => 'worker result'))
+        expect($runtime->runWorker(static fn(): string => 'worker result'))
             ->toBe('worker result');
-        Expect::value($runtime->runTestAttempt(static fn(): string => 'attempt result'))
+        expect($runtime->runTestAttempt(static fn(): string => 'attempt result'))
             ->toBe('attempt result');
-        Expect::value(WorkerPluginRuntime::requiresInitialBootstrapBarrier([]))
+        expect(WorkerPluginRuntime::requiresInitialBootstrapBarrier([]))
             ->toBeFalse();
     }
 
@@ -72,14 +73,14 @@ final class WorkerPluginRuntimeTest
         $event = new RunStarted('run-1', 1, 1, 1.0);
         $orchestrator->emit($event);
 
-        Expect::value($orchestratorConstructions)->toBe(1);
-        Expect::value($workerConstructions)->toBe(1);
-        Expect::value($mixedInstances)->toHaveCount(2);
-        Expect::value($mixedInstances[1])
+        expect($orchestratorConstructions)->toBe(1);
+        expect($workerConstructions)->toBe(1);
+        expect($mixedInstances)->toHaveCount(2);
+        expect($mixedInstances[1])
             ->because('mixed-capability plugins MUST use a separate instance on each side')
             ->not()
             ->toBe($mixedInstances[0]);
-        Expect::value($sink->events)->toBe([$event]);
+        expect($sink->events)->toBe([$event]);
     }
 
     #[Test]
@@ -124,8 +125,8 @@ final class WorkerPluginRuntimeTest
             return 'result';
         });
 
-        Expect::value($result)->toBe('result');
-        Expect::value($events->getArrayCopy())->toBe([
+        expect($result)->toBe('result');
+        expect($events->getArrayCopy())->toBe([
             'early:enter',
             'late:enter',
             'worker',
@@ -149,7 +150,7 @@ final class WorkerPluginRuntimeTest
             $events->append('worker');
         });
 
-        Expect::value($events->getArrayCopy())->toBe([
+        expect($events->getArrayCopy())->toBe([
             'first:enter',
             'second:enter',
             'worker',
@@ -170,10 +171,10 @@ final class WorkerPluginRuntimeTest
             },
         )];
 
-        Expect::value(WorkerPluginRuntime::requiresInitialBootstrapBarrier($definitions))
+        expect(WorkerPluginRuntime::requiresInitialBootstrapBarrier($definitions))
             ->because('the orchestrator MUST inspect bootstrap capability metadata without creating worker plugins')
             ->toBeTrue();
-        Expect::value($constructions)->toBe(0);
+        expect($constructions)->toBe(0);
     }
 }
 

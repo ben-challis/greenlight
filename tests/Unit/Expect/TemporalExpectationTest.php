@@ -15,6 +15,8 @@ use Greenlight\Tests\Fixture\Expect\FakePollingClock;
 use Greenlight\Tests\Fixture\Expect\PositiveNumbersExtension;
 use Greenlight\Tests\Fixture\Expect\TransientProbeFailure;
 
+use function Greenlight\expect;
+
 final readonly class TemporalExpectationTest
 {
     public function __construct(private Cleanup $cleanup) {}
@@ -27,7 +29,7 @@ final readonly class TemporalExpectationTest
         $calls = 0;
 
         ExpectationRuntime::withClock($clock, static function () use (&$calls, $values): void {
-            Expect::calling(static function () use (&$calls, $values): string {
+            expect()->calling(static function () use (&$calls, $values): string {
                 return $values[$calls++];
             })->returnValue()->eventually()
                 ->pollEvery(0.010)
@@ -36,8 +38,8 @@ final readonly class TemporalExpectationTest
                 ->toBe('ready');
         });
 
-        Expect::value($calls)->because('eventually() stops at the first matching observation')->toBe(3);
-        Expect::value($clock->sleeps)->toEqual([0.010, 0.010]);
+        expect($calls)->because('eventually() stops at the first matching observation')->toBe(3);
+        expect($clock->sleeps)->toEqual([0.010, 0.010]);
     }
 
     #[Test]
@@ -46,15 +48,15 @@ final readonly class TemporalExpectationTest
         $clock = new FakePollingClock();
 
         ExpectationRuntime::withClock($clock, static function (): void {
-            Expect::calling(static fn(): float => 10.1)->returnValue()->eventually()
+            expect()->calling(static fn(): float => 10.1)->returnValue()->eventually()
                 ->within(0.100)
                 ->toBeWithin(delta: 0.2, of: 10.0);
-            Expect::calling(static fn(): string => 'greenlight')->returnValue()->consistently()
+            expect()->calling(static fn(): string => 'greenlight')->returnValue()->consistently()
                 ->for(0.001)
                 ->toBeOneOf(other: 'red', expected: 'greenlight');
         });
 
-        Expect::value($clock->sleeps)
+        expect($clock->sleeps)
             ->because('native matcher dispatch MUST preserve named and variadic arguments')
             ->toBe([0.001]);
     }
@@ -63,10 +65,10 @@ final readonly class TemporalExpectationTest
     public function temporalFailureLocationPointsAtTheMatcherCall(): void
     {
         $line = __LINE__ + 1;
-        $detail = FailureProbe::detailOf(static fn() => Expect::calling(static fn(): int => 1)->returnValue()->eventually()->within(0.001)->toBe(2));
+        $detail = FailureProbe::detailOf(static fn() => expect()->calling(static fn(): int => 1)->returnValue()->eventually()->within(0.001)->toBe(2));
 
-        Expect::value($detail->location?->file)->toBe(__FILE__);
-        Expect::value($detail->location?->line)->toBe($line);
+        expect($detail->location?->file)->toBe(__FILE__);
+        expect($detail->location?->line)->toBe($line);
     }
 
     #[Test]
@@ -80,7 +82,7 @@ final readonly class TemporalExpectationTest
         })();
 
         ExpectationRuntime::withClock($clock, static function () use (&$calls, $values, $haystack): void {
-            Expect::calling(static function () use (&$calls, $values): string {
+            expect()->calling(static function () use (&$calls, $values): string {
                 return $values[$calls++];
             })->returnValue()->eventually()
                 ->pollEvery(0.010)
@@ -88,10 +90,10 @@ final readonly class TemporalExpectationTest
                 ->toBeIn($haystack);
         });
 
-        Expect::value($calls)
+        expect($calls)
             ->because('eventually() reuses a one-shot iterable across retries')
             ->toBe(2);
-        Expect::value($clock->sleeps)
+        expect($clock->sleeps)
             ->toEqual([0.010]);
     }
 
@@ -104,7 +106,7 @@ final readonly class TemporalExpectationTest
         $detail = FailureProbe::detailOf(static function () use ($clock, &$value): void {
             ExpectationRuntime::withClock(
                 $clock,
-                static fn() => Expect::calling(static function () use (&$value): int {
+                static fn() => expect()->calling(static function () use (&$value): int {
                     return ++$value;
                 })->returnValue()->eventually()
                     ->pollEvery(0.010)
@@ -113,14 +115,14 @@ final readonly class TemporalExpectationTest
             );
         });
 
-        Expect::value($detail->message)->because('eventually() failure keeps the final diff and bounded history')->toBe(
+        expect($detail->message)->because('eventually() failure keeps the final diff and bounded history')->toBe(
             'The eventually() expectation did not pass within 0.030 seconds after 4 observations. '
             . 'Last failure: Expected 4 to equal 99. Observations: '
             . "+0.0ms 1\n+10.0ms 2\n+20.0ms 3\n+30.0ms 4.",
         );
-        Expect::value($detail->expected)->toBe('99');
-        Expect::value($detail->actual)->toBe('4');
-        Expect::value($detail->location?->file)->toBe(__FILE__);
+        expect($detail->expected)->toBe('99');
+        expect($detail->actual)->toBe('4');
+        expect($detail->location?->file)->toBe(__FILE__);
     }
 
     #[Test]
@@ -133,7 +135,7 @@ final readonly class TemporalExpectationTest
         ExpectationRuntime::withClock(
             $clock,
             static function () use (&$calls, $values): void {
-                Expect::calling(static function () use (&$calls, $values): string {
+                expect()->calling(static function () use (&$calls, $values): string {
                     return $values[$calls++];
                 })->returnValue()->eventually()
                     ->pollEvery(0.010)
@@ -143,7 +145,7 @@ final readonly class TemporalExpectationTest
             },
         );
 
-        Expect::value($calls)->because('eventually() negation waits until the negated matcher passes')->toBe(3);
+        expect($calls)->because('eventually() negation waits until the negated matcher passes')->toBe(3);
     }
 
     #[Test]
@@ -155,7 +157,7 @@ final readonly class TemporalExpectationTest
         try {
             $detail = FailureProbe::detailOf(static fn() => ExpectationRuntime::withClock(
                 $clock,
-                static fn() => Expect::calling(static fn(): string => 'pending')->returnValue()->eventually()
+                static fn() => expect()->calling(static fn(): string => 'pending')->returnValue()->eventually()
                     ->within(1.000)
                     ->toBe('ready'),
             ));
@@ -163,7 +165,7 @@ final readonly class TemporalExpectationTest
             ExpectationRuntime::leaveAttempt();
         }
 
-        Expect::value($detail->message)->toBe(
+        expect($detail->message)->toBe(
             'No time remains for the requested 1.000-second eventually() wait.',
         );
     }
@@ -174,16 +176,16 @@ final readonly class TemporalExpectationTest
         $clock = new FakePollingClock();
         $failure = new TransientProbeFailure('not ready');
 
-        Expect::calling(static fn() => ExpectationRuntime::withClock(
+        expect()->calling(static fn() => ExpectationRuntime::withClock(
             $clock,
-            static fn() => Expect::calling(
+            static fn() => expect()->calling(
                 static fn(): never => throw $failure,
             )->returnValue()->eventually()->within(0.100)->toBe('ready'),
         ))->because('probe exceptions propagate unless explicitly retryable')->toThrow($failure);
 
         $calls = 0;
         ExpectationRuntime::withClock($clock, static function () use (&$calls): void {
-            Expect::calling(static function () use (&$calls): string {
+            expect()->calling(static function () use (&$calls): string {
                 if (++$calls < 3) {
                     throw new TransientProbeFailure('not ready');
                 }
@@ -196,7 +198,7 @@ final readonly class TemporalExpectationTest
                 ->toBe('ready');
         });
 
-        Expect::value($calls)->because('probe exceptions propagate unless explicitly retryable')->toBe(3);
+        expect($calls)->because('probe exceptions propagate unless explicitly retryable')->toBe(3);
     }
 
     #[Test]
@@ -210,7 +212,7 @@ final readonly class TemporalExpectationTest
 
         $detail = FailureProbe::detailOf(static fn() => ExpectationRuntime::withClock(
             $clock,
-            static fn() => Expect::calling(
+            static fn() => expect()->calling(
                 static fn(): never => throw new TransientProbeFailure('not ready'),
             )->returnValue()->eventually()
                 ->retryOnException(TransientProbeFailure::class)
@@ -219,15 +221,15 @@ final readonly class TemporalExpectationTest
                 ->toBe('ready'),
         ));
 
-        Expect::value($detail->message)
+        expect($detail->message)
             ->because('eventually() failure preserves retryable exception diagnostics')
             ->toBe(
                 'The eventually() expectation did not pass within 0.020 seconds after 3 observations. '
                 . "Observations: +0.0ms {$rendered} (×3).",
             );
-        Expect::value($detail->expected)
+        expect($detail->expected)
             ->toBeNull();
-        Expect::value($detail->actual)
+        expect($detail->actual)
             ->toBe($rendered);
     }
 
@@ -238,9 +240,9 @@ final readonly class TemporalExpectationTest
         $calls = 0;
         $failure = new \Error('programming error');
 
-        Expect::calling(static function () use ($clock, &$calls): void {
+        expect()->calling(static function () use ($clock, &$calls): void {
             ExpectationRuntime::withClock($clock, static function () use (&$calls): void {
-                Expect::calling(static function () use (&$calls): string { // @phpstan-ignore greenlight.expectationArgument.pattern (deliberately invalid: tests runtime validation)
+                expect()->calling(static function () use (&$calls): string { // @phpstan-ignore greenlight.expectationArgument.pattern (deliberately invalid: tests runtime validation)
                     ++$calls;
 
                     return 'value';
@@ -251,11 +253,11 @@ final readonly class TemporalExpectationTest
             });
         })->because('errors and matcher misuse are never retried')->toThrow(\InvalidArgumentException::class);
 
-        Expect::value($calls)->because('errors and matcher misuse are never retried')->toBe(1);
+        expect($calls)->because('errors and matcher misuse are never retried')->toBe(1);
 
-        Expect::calling(static function () use ($clock, &$calls, $failure): void {
+        expect()->calling(static function () use ($clock, &$calls, $failure): void {
             ExpectationRuntime::withClock($clock, static function () use (&$calls, $failure): void {
-                Expect::calling(static function () use (&$calls, $failure): never {
+                expect()->calling(static function () use (&$calls, $failure): never {
                     ++$calls;
 
                     throw $failure;
@@ -266,7 +268,7 @@ final readonly class TemporalExpectationTest
             });
         })->because('errors and matcher misuse are never retried')->toThrow($failure);
 
-        Expect::value($calls)->because('errors and matcher misuse are never retried')->toBe(2);
+        expect($calls)->because('errors and matcher misuse are never retried')->toBe(2);
     }
 
     #[Test]
@@ -278,7 +280,7 @@ final readonly class TemporalExpectationTest
         ExpectationRuntime::withClock(
             $clock,
             static function () use (&$calls): void {
-                Expect::calling(static function () use (&$calls): string {
+                expect()->calling(static function () use (&$calls): string {
                     ++$calls;
 
                     return 'stable';
@@ -290,7 +292,7 @@ final readonly class TemporalExpectationTest
             },
         );
 
-        Expect::value($calls)->because('consistently() samples through the whole period')->toBe(4);
+        expect($calls)->because('consistently() samples through the whole period')->toBe(4);
     }
 
     #[Test]
@@ -302,7 +304,7 @@ final readonly class TemporalExpectationTest
 
         $detail = FailureProbe::detailOf(static function () use ($clock, $values, &$calls): void {
             ExpectationRuntime::withClock($clock, static function () use ($values, &$calls): void {
-                Expect::calling(static function () use ($values, &$calls): string {
+                expect()->calling(static function () use ($values, &$calls): string {
                     return $values[$calls++];
                 })->returnValue()->consistently()
                     ->pollEvery(0.010)
@@ -311,14 +313,14 @@ final readonly class TemporalExpectationTest
             });
         });
 
-        Expect::value($calls)->because('consistently() fails on the first violation')->toBe(3);
-        Expect::value($detail->message)->toBe(
+        expect($calls)->because('consistently() fails on the first violation')->toBe(3);
+        expect($detail->message)->toBe(
             'The consistently() expectation failed after 0.020 seconds and 3 observations. '
                 . "Last failure: Expected 'changed' to be 'stable'. Observations: "
                 . "+0.0ms 'stable' (×2)\n+20.0ms 'changed'.",
         );
-        Expect::value($detail->expected)->toBe("'stable'");
-        Expect::value($detail->actual)->toBe("'changed'");
+        expect($detail->expected)->toBe("'stable'");
+        expect($detail->actual)->toBe("'changed'");
     }
 
     #[Test]
@@ -328,12 +330,12 @@ final readonly class TemporalExpectationTest
 
         $detail = FailureProbe::detailOf(static fn() => ExpectationRuntime::withClock(
             $clock,
-            static fn() => Expect::calling(static fn(): string => 'changed')->returnValue()->consistently()
+            static fn() => expect()->calling(static fn(): string => 'changed')->returnValue()->consistently()
                 ->for(1.000)
                 ->toBe('stable'),
         ));
 
-        Expect::value($detail->message)->toBe(
+        expect($detail->message)->toBe(
             'The consistently() expectation failed on the first observation. '
             . "Last failure: Expected 'changed' to be 'stable'. "
             . "Observations: +0.0ms 'changed'.",
@@ -349,7 +351,7 @@ final readonly class TemporalExpectationTest
         try {
             $detail = FailureProbe::detailOf(static fn() => ExpectationRuntime::withClock(
                 $clock,
-                static fn() => Expect::calling(static fn(): string => 'stable')->returnValue()->consistently()
+                static fn() => expect()->calling(static fn(): string => 'stable')->returnValue()->consistently()
                     ->for(1.000)
                     ->toBe('stable'),
             ));
@@ -357,7 +359,7 @@ final readonly class TemporalExpectationTest
             ExpectationRuntime::leaveAttempt();
         }
 
-        Expect::value($detail->message)->toBe(
+        expect($detail->message)->toBe(
             'No time remains for the requested 1.000-second consistently() observation period. '
             . "Observations: +0.0ms 'stable'.",
         );
@@ -371,11 +373,11 @@ final readonly class TemporalExpectationTest
 
         ExpectationRuntime::withClock(
             $clock,
-            static fn() => Expect::calling(static fn(): int => 1)->returnValue()->eventually()->within(0.100)->toBe(1),
+            static fn() => expect()->calling(static fn(): int => 1)->returnValue()->eventually()->within(0.100)->toBe(1),
         );
         $count = ExpectationCounter::count();
 
-        Expect::value($count)->because('a temporal matcher counts as one expectation')->toBe(1);
+        expect($count)->because('a temporal matcher counts as one expectation')->toBe(1);
     }
 
     #[Test]
@@ -388,14 +390,14 @@ final readonly class TemporalExpectationTest
 
         ExpectationRuntime::withClock(
             $clock,
-            static fn() => Expect::calling(static function () use (&$subjects): int {
+            static fn() => expect()->calling(static function () use (&$subjects): int {
                 return \array_shift($subjects) ?? 2;
             })->returnValue()->eventually()
                 ->within(0.100)
                 ->__call('toBePositive', []),
         );
 
-        Expect::value($clock->sleeps)
+        expect($clock->sleeps)
             ->because('the extension matcher MUST reject the negative probe before it accepts the positive probe')
             ->toBe([0.025]);
     }
@@ -409,7 +411,7 @@ final readonly class TemporalExpectationTest
         try {
             $detail = FailureProbe::detailOf(static fn() => ExpectationRuntime::withClock(
                 $clock,
-                static fn() => Expect::calling(static fn(): string => 'pending')->returnValue()->eventually()
+                static fn() => expect()->calling(static fn(): string => 'pending')->returnValue()->eventually()
                     ->pollEvery(0.010)
                     ->within(1.000)
                     ->toBe('ready'),
@@ -418,7 +420,7 @@ final readonly class TemporalExpectationTest
             ExpectationRuntime::leaveAttempt();
         }
 
-        Expect::value($detail->message)->because('the outer test deadline truncates an eventually wait')->toBe(
+        expect($detail->message)->because('the outer test deadline truncates an eventually wait')->toBe(
             'The test time limit stopped the eventually() expectation after 3 observations. '
             . 'The requested wait was 1.000 seconds. '
             . "Last failure: Expected 'pending' to be 'ready'. "
@@ -435,7 +437,7 @@ final readonly class TemporalExpectationTest
         try {
             $detail = FailureProbe::detailOf(static fn() => ExpectationRuntime::withClock(
                 $clock,
-                static fn() => Expect::calling(static fn(): string => 'stable')->returnValue()->consistently()
+                static fn() => expect()->calling(static fn(): string => 'stable')->returnValue()->consistently()
                     ->pollEvery(0.010)
                     ->for(1.000)
                     ->toBe('stable'),
@@ -444,7 +446,7 @@ final readonly class TemporalExpectationTest
             ExpectationRuntime::leaveAttempt();
         }
 
-        Expect::value($detail->message)->toBe(
+        expect($detail->message)->toBe(
             'The test time limit ended the consistently() expectation early. '
             . 'The requested observation period was 1.000 seconds. '
             . "Observations: +0.0ms 'stable' (×3).",
@@ -454,34 +456,34 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function pollingDurationsAndExceptionTypesAreValidated(): void
     {
-        Expect::calling(static fn() => Expect::calling(static fn(): int => 1)->returnValue()->eventually()->within(0.0))->because('polling durations and exception types are validated') // @phpstan-ignore greenlight.expectationArgument.duration (deliberately invalid: tests runtime validation)
+        expect()->calling(static fn() => expect()->calling(static fn(): int => 1)->returnValue()->eventually()->within(0.0))->because('polling durations and exception types are validated') // @phpstan-ignore greenlight.expectationArgument.duration (deliberately invalid: tests runtime validation)
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Set Eventually duration to a finite value greater than 0.000 seconds.',
             );
-        Expect::calling(static fn() => Expect::calling(static fn(): int => 1)->returnValue()->eventually()->pollEvery(0.0009))->because('polling durations and exception types are validated') // @phpstan-ignore greenlight.expectationArgument.duration (deliberately invalid: tests runtime validation)
+        expect()->calling(static fn() => expect()->calling(static fn(): int => 1)->returnValue()->eventually()->pollEvery(0.0009))->because('polling durations and exception types are validated') // @phpstan-ignore greenlight.expectationArgument.duration (deliberately invalid: tests runtime validation)
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Set Polling interval to a finite value of at least 0.001 seconds.',
             );
-        Expect::calling(static fn() => Expect::calling(static fn(): int => 1)->returnValue()->consistently()->for(\NAN))->because('polling durations and exception types are validated') // @phpstan-ignore greenlight.expectationArgument.duration (deliberately invalid: tests runtime validation)
+        expect()->calling(static fn() => expect()->calling(static fn(): int => 1)->returnValue()->consistently()->for(\NAN))->because('polling durations and exception types are validated') // @phpstan-ignore greenlight.expectationArgument.duration (deliberately invalid: tests runtime validation)
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Use a finite consistency duration greater than 0.000 seconds.',
             );
-        Expect::calling(static fn() => Expect::calling(static fn(): int => 1)->returnValue()->consistently()->pollEvery(0.0009))->because('polling durations and exception types are validated') // @phpstan-ignore greenlight.expectationArgument.duration (deliberately invalid: tests runtime validation)
+        expect()->calling(static fn() => expect()->calling(static fn(): int => 1)->returnValue()->consistently()->pollEvery(0.0009))->because('polling durations and exception types are validated') // @phpstan-ignore greenlight.expectationArgument.duration (deliberately invalid: tests runtime validation)
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Use a finite polling interval of at least 0.001 seconds.',
             );
-        Expect::calling(static function (): void {
+        expect()->calling(static function (): void {
             new \ReflectionMethod(PendingEventually::class, 'retryOnException')
-                ->invoke(Expect::calling(static fn(): int => 1)->returnValue()->eventually(), \Error::class);
+                ->invoke(expect()->calling(static fn(): int => 1)->returnValue()->eventually(), \Error::class);
         })->because('polling durations and exception types are validated')->toThrow(\InvalidArgumentException::class);
 
         $probed = false;
-        Expect::calling(static function () use (&$probed): void {
-            $eventually = Expect::calling(static function () use (&$probed) {
+        expect()->calling(static function () use (&$probed): void {
+            $eventually = expect()->calling(static function () use (&$probed) {
                 $probed = true;
 
             })->eventually()
@@ -491,7 +493,7 @@ final readonly class TemporalExpectationTest
             ExpectationFailed::class,
             matching: '/^Specify matching: or message: for toThrow\(\)\. Do not specify both\./',
         );
-        Expect::value($probed)->because('polling durations and exception types are validated')->toBeFalse();
+        expect($probed)->because('polling durations and exception types are validated')->toBeFalse();
     }
 
     #[Test]
@@ -500,13 +502,13 @@ final readonly class TemporalExpectationTest
         $clock = new FakePollingClock();
 
         ExpectationRuntime::withClock($clock, static function (): void {
-            Expect::calling(static fn(): int => 1)->returnValue()->consistently()
+            expect()->calling(static fn(): int => 1)->returnValue()->consistently()
                 ->pollEvery(0.001)
                 ->for(0.001)
                 ->toBe(1);
         });
 
-        Expect::value($clock->sleeps)
+        expect($clock->sleeps)
             ->because('the minimum consistency polling interval MUST remain valid')
             ->toBe([0.001]);
     }
@@ -519,7 +521,7 @@ final readonly class TemporalExpectationTest
         $detail = FailureProbe::detailOf(static function () use ($clock): void {
             ExpectationRuntime::withClock(
                 $clock,
-                static fn() => Expect::calling(static fn(): string => 'pending')->returnValue()->eventually()
+                static fn() => expect()->calling(static fn(): string => 'pending')->returnValue()->eventually()
                     ->pollEvery(0.010)
                     ->within(0.030)
                     ->because('the job must finish')
@@ -527,7 +529,7 @@ final readonly class TemporalExpectationTest
             );
         });
 
-        Expect::value($detail->message)->because('eventually() carries the reason into the failure')
+        expect($detail->message)->because('eventually() carries the reason into the failure')
             ->toContain('The eventually() expectation did not pass within 0.030 seconds')
             ->toContain("Last failure: Expected 'pending' to be 'done' because the job must finish.");
     }
@@ -540,14 +542,14 @@ final readonly class TemporalExpectationTest
         $detail = FailureProbe::detailOf(static function () use ($clock): void {
             ExpectationRuntime::withClock(
                 $clock,
-                static fn() => Expect::calling(static fn(): int => 1)->returnValue()->consistently()
+                static fn() => expect()->calling(static fn(): int => 1)->returnValue()->consistently()
                     ->for(0.030)
                     ->because('the queue must stay empty')
                     ->toBe(0),
             );
         });
 
-        Expect::value($detail->message)->because('consistently() carries the reason into the failure')
+        expect($detail->message)->because('consistently() carries the reason into the failure')
             ->toContain('The consistently() expectation failed on the first observation.')
             ->toContain('Last failure: Expected 1 to be 0 because the queue must stay empty.');
     }
@@ -556,10 +558,10 @@ final readonly class TemporalExpectationTest
     public function temporalBecauseRequiresANonEmptyReason(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::calling(static fn(): bool => true)->returnValue()->eventually()->within(0.030)->because('   '), // @phpstan-ignore greenlight.expectationArgument.reason (deliberately invalid: tests runtime validation)
+            static fn() => expect()->calling(static fn(): bool => true)->returnValue()->eventually()->within(0.030)->because('   '), // @phpstan-ignore greenlight.expectationArgument.reason (deliberately invalid: tests runtime validation)
         );
 
-        Expect::value($detail->message)->because('temporal because requires a non empty reason')->toBe('because() requires a non-empty reason.');
+        expect($detail->message)->because('temporal because requires a non empty reason')->toBe('because() requires a non-empty reason.');
     }
 
     #[Test]
@@ -570,7 +572,7 @@ final readonly class TemporalExpectationTest
 
         $detail = FailureProbe::detailOf(static function () use ($clock, &$value): void {
             ExpectationRuntime::withClock($clock, static function () use (&$value): void {
-                Expect::calling(static function () use (&$value): int {
+                expect()->calling(static function () use (&$value): int {
                     return (int) \floor($value++ / 2);
                 })->returnValue()->eventually()
                     ->pollEvery(0.001)
@@ -579,7 +581,7 @@ final readonly class TemporalExpectationTest
             });
         });
 
-        Expect::value($detail->message)->because('observation history collapses repeats and bounds changes')->toContain('(×2)')
+        expect($detail->message)->because('observation history collapses repeats and bounds changes')->toContain('(×2)')
             ->toContain('earlier changes omitted');
     }
 

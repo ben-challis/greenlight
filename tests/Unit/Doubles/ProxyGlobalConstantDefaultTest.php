@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Doubles\GlobalConstantDefault;
+
+use function Greenlight\expect;
 
 final readonly class ProxyGlobalConstantDefaultTest
 {
@@ -27,12 +28,12 @@ final readonly class ProxyGlobalConstantDefaultTest
         try {
             $answer = $double->limit();
 
-            Expect::value($parameter->getDefaultValueConstantName())
+            expect($parameter->getDefaultValueConstantName())
                 ->because('a generated method MUST preserve its global default constant')
                 ->toBe('PHP_INT_MAX');
-            Expect::value($parameter->getDefaultValue())
+            expect($parameter->getDefaultValue())
                 ->toBe(\PHP_INT_MAX);
-            Expect::value($answer)
+            expect($answer)
                 ->toBe(42);
         } finally {
             $doubles->dispose();

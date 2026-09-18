@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Internal\Filesystem;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Filesystem\AtomicFile;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class AtomicFileEmptyWriteTest
 {
@@ -21,10 +22,10 @@ final readonly class AtomicFileEmptyWriteTest
 
         AtomicFile::write($path, '');
 
-        Expect::value(\file_get_contents($path))
+        expect(\file_get_contents($path))
             ->because('an empty atomic write MUST replace the target')
             ->toBe('');
-        Expect::value(\glob($path . '.tmp-*'))
+        expect(\glob($path . '.tmp-*'))
             ->because('an empty atomic write MUST leave no temporary file')
             ->toBe([]);
     }

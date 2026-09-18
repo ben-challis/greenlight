@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\MetadataFactory;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\DiscoveryAttributeArgumentsInvalid\WrongResourceTypeTest;
+
+use function Greenlight\expect;
 
 final readonly class MetadataFactoryResourceErrorTest
 {
@@ -17,16 +18,16 @@ final readonly class MetadataFactoryResourceErrorTest
     {
         $class = $this->fixtureClass();
 
-        Expect::calling(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
+        expect()->calling(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
             ->because('discovery MUST wrap an invalid resource attribute with its method location')
             ->toThrow(
                 static function (DiscoveryError $error) use ($class): void {
-                    Expect::value($error->getMessage())->toMatch(
+                    expect($error->getMessage())->toMatch(
                         '/^Attribute on '
                         . \preg_quote($class . '::neverDiscovered()', '/')
                         . ' is invalid:/',
                     );
-                    Expect::value($error->getPrevious())
+                    expect($error->getPrevious())
                         ->because('the discovery error MUST preserve the invalid resource attribute cause')
                         ->toBeInstanceOf(\TypeError::class);
                 },

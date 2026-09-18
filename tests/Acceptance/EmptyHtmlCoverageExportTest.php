@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\CoverageJson;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class EmptyHtmlCoverageExportTest
 {
@@ -37,9 +38,9 @@ final readonly class EmptyHtmlCoverageExportTest
             "--no-ansi",
         ]);
 
-        Expect::value($result->exitCode)->toBe(0);
-        Expect::value(\is_dir($directory . "/html"))->toBeTrue();
-        Expect::value((string) \file_get_contents($directory . "/html/index.html"))
+        expect($result->exitCode)->toBe(0);
+        expect(\is_dir($directory . "/html"))->toBeTrue();
+        expect((string) \file_get_contents($directory . "/html/index.html"))
             ->toContain("Greenlight Coverage")
             ->toContain("100.00%");
     }

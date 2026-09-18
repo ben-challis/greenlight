@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\TypeRenderer;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\TypeRenderingChild;
 use Greenlight\Tests\Fixture\Doubles\TypeRenderingLeft;
 use Greenlight\Tests\Fixture\Doubles\TypeRenderingParent;
 use Greenlight\Tests\Fixture\Doubles\TypeRenderingRight;
+
+use function Greenlight\expect;
 
 final class TypeRendererTest
 {
@@ -24,11 +25,11 @@ final class TypeRendererTest
             ? $reflection->getReturnType()
             : $reflection->getParameters()[$parameter]->getType();
 
-        Expect::value($type)
+        expect($type)
             ->because(\sprintf('%s() MUST have the requested reflected type.', $method))
             ->toBeInstanceOf(\ReflectionType::class);
 
-        Expect::value(TypeRenderer::render($type, $reflection->getDeclaringClass()))
+        expect(TypeRenderer::render($type, $reflection->getDeclaringClass()))
             ->because('the reflected type renders as valid PHP source')
             ->toBe($expected);
     }
@@ -44,25 +45,25 @@ final class TypeRendererTest
         $mixed = $nullableClassAndMixed->getReturnType();
         $null = $returnsNull->getReturnType();
 
-        Expect::value($nullableClass)
+        expect($nullableClass)
             ->because('The nullable-class closure MUST expose its declared type.')
             ->toBeInstanceOf(\ReflectionType::class);
-        Expect::value($mixed)
+        expect($mixed)
             ->because('The mixed closure MUST expose its declared type.')
             ->toBeInstanceOf(\ReflectionType::class);
-        Expect::value($null)
+        expect($null)
             ->because('The null closure MUST expose its declared type.')
             ->toBeInstanceOf(\ReflectionType::class);
 
         $context = new \ReflectionMethod(TypeRenderingChild::class, 'nullable')->getDeclaringClass();
 
-        Expect::value(TypeRenderer::render($nullableClass, $context))
+        expect(TypeRenderer::render($nullableClass, $context))
             ->because('nullable class names MUST retain valid PHP syntax')
             ->toBe('?\ArrayObject');
-        Expect::value(TypeRenderer::render($mixed, $context))
+        expect(TypeRenderer::render($mixed, $context))
             ->because('mixed MUST NOT gain a nullable prefix')
             ->toBe('mixed');
-        Expect::value(TypeRenderer::render($null, $context))
+        expect(TypeRenderer::render($null, $context))
             ->because('null MUST NOT gain a nullable prefix')
             ->toBe('null');
     }

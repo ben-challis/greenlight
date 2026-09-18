@@ -8,10 +8,11 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ExtensionLoaded;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 #[SkipUnless(ExtensionLoaded::class, 'pcov')]
 final readonly class DisabledPcovTest
@@ -47,12 +48,12 @@ final readonly class DisabledPcovTest
 
         $evidence = \sprintf('stdout: %s\nstderr: %s', \substr($result->stdout, 0, 2_000), \substr($result->stderr, 0, 2_000));
 
-        Expect::value($result->exitCode)->because($evidence)->toBe($required ? 1 : 0);
-        Expect::value($result->stdout)->because($evidence)->toContain('PASS ');
-        Expect::value($result->output())->not()->toContain('NativePcovRuntime::collect()');
+        expect($result->exitCode)->because($evidence)->toBe($required ? 1 : 0);
+        expect($result->stdout)->because($evidence)->toContain('PASS ');
+        expect($result->output())->not()->toContain('NativePcovRuntime::collect()');
 
         if ($required) {
-            Expect::value($result->stderr)->because($evidence)->toContain('Coverage is required, but no worker collected it.');
+            expect($result->stderr)->because($evidence)->toContain('Coverage is required, but no worker collected it.');
         }
     }
 

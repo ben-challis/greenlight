@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Doubles\VariadicReference;
+
+use function Greenlight\expect;
 
 final readonly class ProxyVariadicReferenceTest
 {
@@ -33,10 +34,10 @@ final readonly class ProxyVariadicReferenceTest
         try {
             $double->mutate($first, $second);
 
-            Expect::value($first)
+            expect($first)
                 ->because('a proxy callback MUST preserve the first variadic reference')
                 ->toBe('first changed');
-            Expect::value($second)
+            expect($second)
                 ->because('a proxy callback MUST preserve the second variadic reference')
                 ->toBe('second changed');
         } finally {

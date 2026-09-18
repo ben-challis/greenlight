@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Plugin\TestPlan;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class TestPlanTest
 {
@@ -21,8 +22,8 @@ final readonly class TestPlanTest
 
         $replacement = $plan->withTests([$betaFirst, $betaSecond]);
 
-        Expect::value($replacement->tests)->toBe([$betaFirst, $betaSecond]);
-        Expect::value($plan->tests)->toBe([$alpha, $betaFirst, $betaSecond]);
+        expect($replacement->tests)->toBe([$betaFirst, $betaSecond]);
+        expect($plan->tests)->toBe([$alpha, $betaFirst, $betaSecond]);
     }
 
     #[Test]
@@ -31,7 +32,7 @@ final readonly class TestPlanTest
         $test = new TestId('Acme\\ProbeTest', 'passes');
         $plan = TestPlan::create([$test]);
 
-        Expect::calling(static fn(): TestPlan => $plan->withTests([$test, $test]))
+        expect()->calling(static fn(): TestPlan => $plan->withTests([$test, $test]))
             ->toThrow(\InvalidArgumentException::class, message: 'Test plan ID "Acme\\ProbeTest::passes" occurs more than once.');
     }
 
@@ -44,7 +45,7 @@ final readonly class TestPlanTest
             new TestId('Acme\\BetaTest', 'passes'),
         ]);
 
-        Expect::calling(static fn(): TestPlan => $plan->withTests([
+        expect()->calling(static fn(): TestPlan => $plan->withTests([
             $plan->tests[0],
             $plan->tests[2],
             $plan->tests[1],

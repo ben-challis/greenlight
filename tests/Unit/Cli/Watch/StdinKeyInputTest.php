@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Cli\Watch;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\StdinKeyInput;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class StdinKeyInputTest
 {
@@ -21,7 +22,7 @@ final class StdinKeyInputTest
             read: static fn(): string|false => $readResult,
         );
 
-        Expect::value($input->poll())
+        expect($input->poll())
             ->because('poll returns a key only when one is available')
             ->toBe($expected);
     }
@@ -54,17 +55,17 @@ final class StdinKeyInputTest
             },
         );
 
-        Expect::value($blocking)
+        expect($blocking)
             ->because('terminal input becomes non-blocking')
             ->toBe([false]);
-        Expect::value($commands)
+        expect($commands)
             ->because('terminal input enables raw mode')
             ->toBe(['stty -icanon -echo < /dev/tty 2> /dev/null']);
 
         $input->restore();
         $input->restore();
 
-        Expect::value($commands)
+        expect($commands)
             ->because('terminal input restores canonical mode exactly once')
             ->toBe([
                 'stty -icanon -echo < /dev/tty 2> /dev/null',
@@ -92,10 +93,10 @@ final class StdinKeyInputTest
 
         $input->restore();
 
-        Expect::value($blocking)
+        expect($blocking)
             ->because('non-terminal input MUST remain non-blocking')
             ->toBe([false]);
-        Expect::value($commands)
+        expect($commands)
             ->because('non-terminal input does not change terminal mode')
             ->toBe([]);
     }
@@ -103,7 +104,7 @@ final class StdinKeyInputTest
     #[Test]
     public function failureToDisableBlockingInputIsRejected(): void
     {
-        Expect::calling(static fn(): StdinKeyInput => new StdinKeyInput(
+        expect()->calling(static fn(): StdinKeyInput => new StdinKeyInput(
             configureBlocking: static fn(bool $enabled): false => false,
             isTty: static fn(): bool => false,
             read: static fn(): false => false,

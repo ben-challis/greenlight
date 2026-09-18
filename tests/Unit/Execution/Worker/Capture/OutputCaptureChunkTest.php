@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Execution\Worker\Capture;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Worker\OutputCapture;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class OutputCaptureChunkTest
 {
@@ -22,8 +23,8 @@ final readonly class OutputCaptureChunkTest
 
         $output = $capture->stop();
 
-        Expect::value($output->stdout)->toBe(\str_repeat('abcd', 16_384));
-        Expect::value($output->stdoutTruncated)->toBeFalse();
+        expect($output->stdout)->toBe(\str_repeat('abcd', 16_384));
+        expect($output->stdoutTruncated)->toBeFalse();
     }
 
     #[Test]
@@ -36,7 +37,7 @@ final readonly class OutputCaptureChunkTest
         echo "\xACtail";
         $output = $capture->stop();
 
-        Expect::value($output->stdout)->toBe('ab€');
-        Expect::value($output->stdoutTruncated)->toBeTrue();
+        expect($output->stdout)->toBe('ab€');
+        expect($output->stdoutTruncated)->toBeTrue();
     }
 }

@@ -18,7 +18,6 @@ use Greenlight\Execution\ProcessPool\Protocol\Messages\Fatal;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\Worker\WorkerError;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
@@ -35,6 +34,8 @@ use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\PlanEntryFixture;
 use Greenlight\Tests\Support\ScriptedWorkerTransport;
 
+use function Greenlight\expect;
+
 final class OrchestratorTest
 {
     #[Test]
@@ -50,7 +51,7 @@ final class OrchestratorTest
             connectDeadlineSeconds: 0.5,
         );
 
-        Expect::calling(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a spawned worker that never connects fails the run instead of hanging it')
+        expect()->calling(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a spawned worker that never connects fails the run instead of hanging it')
             ->toThrow(ProtocolError::class, '/did not connect within 0\.5 seconds/');
     }
 
@@ -64,7 +65,7 @@ final class OrchestratorTest
             workingDirectory: $missingDirectory,
         );
 
-        Expect::calling(
+        expect()->calling(
             fn(): ResultSummary => $orchestrator->run(
                 $this->plan(),
                 new CollectingEventSink(),
@@ -118,12 +119,12 @@ final class OrchestratorTest
         $summary = $orchestrator->run($this->passingPlan(), $sink, 1);
         $results = $sink->results();
 
-        Expect::value($summary->passed)
+        expect($summary->passed)
             ->because('a legitimate worker MUST complete the plan after an invalid hello token')
             ->toBe(1);
-        Expect::value($summary->isSuccessful())->toBeTrue();
-        Expect::value($results)->toHaveCount(1);
-        Expect::value((string) $results[0]->id)
+        expect($summary->isSuccessful())->toBeTrue();
+        expect($results)->toHaveCount(1);
+        expect((string) $results[0]->id)
             ->toBe(CleanTest::class . '::passesAndIsCollectable');
     }
 
@@ -152,10 +153,10 @@ final class OrchestratorTest
             }
         }
 
-        Expect::value($summary->passed)
+        expect($summary->passed)
             ->because('a replacement worker MUST complete the undelivered assignment')
             ->toBe(1);
-        Expect::value($workers)
+        expect($workers)
             ->because('the disconnected worker MUST NOT start the test class')
             ->toBe(['w-2']);
     }
@@ -183,7 +184,7 @@ final class OrchestratorTest
             progressDeadlineSeconds: 0.5,
         );
 
-        Expect::calling(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a connected worker that goes silent before starting its assignment fails the run')
+        expect()->calling(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a connected worker that goes silent before starting its assignment fails the run')
             ->toThrow(ProtocolError::class, '/sent no message for 0\.5 seconds/');
     }
 
@@ -196,7 +197,7 @@ final class OrchestratorTest
         $transport = new ScriptedWorkerTransport([[new Ready(), ...$messages]]);
         $orchestrator = new Orchestrator($transport);
 
-        Expect::calling(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('unexpected attempt messages name the protocol drift')
+        expect()->calling(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('unexpected attempt messages name the protocol drift')
             ->toThrow(
                 ProtocolError::class,
                 matching: '/' . \preg_quote($expectedDiagnostic, '/') . '$/',
@@ -240,7 +241,7 @@ final class OrchestratorTest
         ]]);
         $orchestrator = new Orchestrator($transport);
 
-        Expect::calling(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a worker fatal message fails the run with its diagnostic')
+        expect()->calling(fn(): ResultSummary => $orchestrator->run($this->plan(), new CollectingEventSink(), 1))->because('a worker fatal message fails the run with its diagnostic')
             ->toThrow(
                 ProtocolError::class,
                 '/reported a fatal Greenlight error: fixture worker failed \(\/fixture\/worker\.php:42\)/',
@@ -270,14 +271,14 @@ final class OrchestratorTest
         );
         $results = $sink->results();
 
-        Expect::value($summary->total())
+        expect($summary->total())
             ->because('the failed-or-errored test limit MUST stop before the remaining batched class runs')
             ->toBe(1);
-        Expect::value($summary->errored)
+        expect($summary->errored)
             ->toBe(1);
-        Expect::value($results)
+        expect($results)
             ->toHaveCount(1);
-        Expect::value((string) $results[0]->id)
+        expect((string) $results[0]->id)
             ->toBe(AaTest::class . '::fails');
     }
 
@@ -295,18 +296,18 @@ final class OrchestratorTest
         $summary = $orchestrator->run($this->crashDiagnosticsPlan(), $sink, 1);
         $results = $sink->results();
 
-        Expect::value($summary->errored)
+        expect($summary->errored)
             ->because('a worker crash MUST produce one synthetic error result')
             ->toBe(1);
-        Expect::value($results)
+        expect($results)
             ->toHaveCount(1);
-        Expect::value($results[0]->error?->message)
+        expect($results[0]->error?->message)
             ->because('the synthetic error MUST preserve the worker diagnostic output')
             ->toBe(
                 "Worker \"w-1\" crashed during this test: the worker process exited unexpectedly.\n"
                 . "Worker output:\nThe worker emitted crash diagnostics.",
             );
-        Expect::value($results[0]->error?->class)->toBe(WorkerError::class);
+        expect($results[0]->error?->class)->toBe(WorkerError::class);
     }
 
     #[Test]
@@ -331,11 +332,11 @@ final class OrchestratorTest
         );
         $results = $sink->results();
 
-        Expect::value($summary->errored)->toBe(1);
-        Expect::value($summary->passed)
+        expect($summary->errored)->toBe(1);
+        expect($summary->passed)
             ->because('crash containment MUST requeue later classes in a batched assignment')
             ->toBe(1);
-        Expect::value(\array_map(
+        expect(\array_map(
             static fn(TestResult $result): string => (string) $result->id,
             $results,
         ))
@@ -364,9 +365,9 @@ final class OrchestratorTest
             [CrashDiagnosticsTest::class => 0.001, CleanTest::class => 0.001],
         );
 
-        Expect::value($summary->errored)->toBe(1);
-        Expect::value($summary->total())->toBe(1);
-        Expect::value($sink->results())->toHaveCount(1);
+        expect($summary->errored)->toBe(1);
+        expect($summary->total())->toBe(1);
+        expect($sink->results())->toHaveCount(1);
     }
 
     #[Test]
@@ -383,13 +384,13 @@ final class OrchestratorTest
         $summary = $orchestrator->run($this->crashUnicodeDiagnosticsPlan(), $sink, 1);
         $results = $sink->results();
 
-        Expect::value($summary->errored)
+        expect($summary->errored)
             ->because('a worker crash MUST produce one synthetic error result')
             ->toBe(1);
-        Expect::value($results)
+        expect($results)
             ->because('a worker crash MUST produce one synthetic test result')
             ->toHaveCount(1);
-        Expect::value($results[0]->error?->message)
+        expect($results[0]->error?->message)
             ->because('the diagnostic tail MUST contain only complete Unicode characters within its byte limit')
             ->toBe(
                 "Worker \"w-1\" crashed during this test: the worker process exited unexpectedly.\n"

@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Artifact\Attachment;
 use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\AttachmentFormat;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class AttachmentFormatBoundaryTest
 {
@@ -40,12 +41,12 @@ final class AttachmentFormatBoundaryTest
             attachments: $attachments,
         );
 
-        Expect::value(AttachmentFormat::render($result))
+        expect(AttachmentFormat::render($result))
             ->because('the exact attachment display limit MUST NOT report an empty remainder')
             ->toContain('attachment-10.txt')
             ->not()
             ->toContain('and 0 more');
-        Expect::value(AttachmentFormat::paths($attachments))
+        expect(AttachmentFormat::paths($attachments))
             ->because('the exact attachment path limit MUST NOT report an empty remainder')
             ->toContain('attachment-10.txt')
             ->not()

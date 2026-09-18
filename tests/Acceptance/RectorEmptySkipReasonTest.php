@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\RectorProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class RectorEmptySkipReasonTest
@@ -32,11 +33,11 @@ final readonly class RectorEmptySkipReasonTest
         }
         PHP_WRAP);
 
-        Expect::value($probe->changed)->toBeTrue();
+        expect($probe->changed)->toBeTrue();
         $run = $probe->runConvertedTests();
 
-        Expect::value($run->exitCode)->because('The converted test must remain skipped.')->toBe(0);
-        Expect::value($run->stdout)->toContain('1 skipped');
+        expect($run->exitCode)->because('The converted test must remain skipped.')->toBe(0);
+        expect($run->stdout)->toContain('1 skipped');
     }
 
     #[Test]
@@ -62,7 +63,7 @@ final readonly class RectorEmptySkipReasonTest
         PHP_WRAP;
         $probe = RectorProbe::convert($this->tempDirectory, $source);
 
-        Expect::value($probe->code)->toBe($source);
+        expect($probe->code)->toBe($source);
     }
 
     #[Test]
@@ -83,10 +84,10 @@ final readonly class RectorEmptySkipReasonTest
         }
         PHP_WRAP);
 
-        Expect::value($probe->changed)->toBeTrue();
+        expect($probe->changed)->toBeTrue();
         $run = $probe->runConvertedTests();
 
-        Expect::value($run->exitCode)->because('The converted test must remain skipped.')->toBe(0);
-        Expect::value($run->stdout)->toContain('1 skipped')->toContain('Skipped dynamically.');
+        expect($run->exitCode)->because('The converted test must remain skipped.')->toBe(0);
+        expect($run->stdout)->toContain('1 skipped')->toContain('Skipped dynamically.');
     }
 }

@@ -7,14 +7,15 @@ namespace Greenlight\Tests\Unit\Config;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\CoverageBuilder;
 use Greenlight\Config\InvalidConfiguration;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class CoverageExportPathValidationTest
 {
     #[Test]
     public function nullBytesAreRejectedAtTheConfigurationBoundary(): void
     {
-        Expect::calling(static fn(): CoverageBuilder => new CoverageBuilder()->export('json', "coverage\0hidden.json"))
+        expect()->calling(static fn(): CoverageBuilder => new CoverageBuilder()->export('json', "coverage\0hidden.json"))
             ->because('coverage export targets MUST be valid file-system paths')
             ->toThrow(
                 InvalidConfiguration::class,

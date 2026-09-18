@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class TestAttemptRunnerRunTest
 {
@@ -29,7 +30,6 @@ final readonly class TestAttemptRunnerRunTest
             use Greenlight\Attribute\Before;
             use Greenlight\Attribute\Test;
             use Greenlight\Result\TestResult;
-            use Greenlight\Expect\Expect;
             use Greenlight\Harness\Disposable;
             use Greenlight\Harness\Scope;
             use Greenlight\Harness\ServiceDefinition;
@@ -38,6 +38,8 @@ final readonly class TestAttemptRunnerRunTest
             use Greenlight\Plugin\HarnessProvider;
             use Greenlight\Plugin\TestAttemptRunner;
             use Greenlight\Plugin\TestContext;
+
+            use function Greenlight\expect;
 
             final class Boundary
             {
@@ -123,13 +125,13 @@ final readonly class TestAttemptRunnerRunTest
                 public function firstAttemptStaysInsideTheBoundary(): void
                 {
                     Boundary::record('test');
-                    Expect::value(Boundary::$active)->toBeTrue();
+                    expect(Boundary::$active)->toBeTrue();
                 }
 
                 #[Test]
                 public function nextAttemptSeesTheCompletedFirstBoundary(): void
                 {
-                    Expect::value(Boundary::$events)->toBe([
+                    expect(Boundary::$events)->toBe([
                         'constructor',
                         'beforeTest',
                         'before',
@@ -166,10 +168,10 @@ final readonly class TestAttemptRunnerRunTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
         $output = $result->output();
-        Expect::value($result->exitCode)
+        expect($result->exitCode)
             ->because($output === '' ? 'The subprocess returned no output.' : $output)
             ->toBe(0);
-        Expect::value($result->output())->toContain('2 tests, 2 passed');
+        expect($result->output())->toContain('2 tests, 2 passed');
     }
 
     #[Test]
@@ -223,8 +225,8 @@ final readonly class TestAttemptRunnerRunTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::value($result->exitCode)->toBe(1);
-        Expect::value($result->output())
+        expect($result->exitCode)->toBe(1);
+        expect($result->output())
             ->toContain('The attempt runtime failed before the test started.')
             ->toContain('1 test, 0 passed, 1 errored');
     }

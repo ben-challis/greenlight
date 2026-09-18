@@ -6,12 +6,13 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class ExpectFunctionRunTest
 {
@@ -25,8 +26,8 @@ final readonly class ExpectFunctionRunTest
         $project = $this->project();
         $result = GreenlightCli::run($project->directory, ['run', '--workers=' . $workers, '--reporter=plain']);
 
-        Expect::value($result->exitCode)->because('Runner output: ' . $result->output())->toBe(0);
-        Expect::value($result->output())->toContain('1 test, 1 passed');
+        expect($result->exitCode)->because('Runner output: ' . $result->output())->toBe(0);
+        expect($result->output())->toContain('1 test, 1 passed');
     }
 
     #[Test]
@@ -41,8 +42,8 @@ final readonly class ExpectFunctionRunTest
         $process->write('q');
         $result = $process->wait(10.0);
 
-        Expect::value($result->exitCode)->because('Watch output: ' . $result->output())->toBe(0);
-        Expect::value(\substr_count($result->stdout, '1 test, 1 passed'))->toBe(2);
+        expect($result->exitCode)->because('Watch output: ' . $result->output())->toBe(0);
+        expect(\substr_count($result->stdout, '1 test, 1 passed'))->toBe(2);
     }
 
     #[Test]
@@ -66,7 +67,7 @@ final readonly class ExpectFunctionRunTest
             \Greenlight\expect(expect('separate'))->toBe('separate');
             PHP]);
 
-        Expect::value($result->exitCode)->because('PHP output: ' . $result->output())->toBe(0);
+        expect($result->exitCode)->because('PHP output: ' . $result->output())->toBe(0);
     }
 
     private function project(): AcceptanceProject

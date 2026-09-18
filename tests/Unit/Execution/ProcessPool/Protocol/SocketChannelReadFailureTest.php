@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Protocol;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Execution\ProcessPool\Protocol\ReadFailureStream;
+
+use function Greenlight\expect;
 
 final readonly class SocketChannelReadFailureTest
 {
@@ -36,7 +37,7 @@ final readonly class SocketChannelReadFailureTest
         $channel = new SocketChannel($stream);
         $this->cleanup->defer($channel->close(...));
 
-        Expect::calling(static fn() => $channel->poll())
+        expect()->calling(static fn() => $channel->poll())
             ->because('a failed read MUST not masquerade as an idle channel')
             ->toThrow(
                 ProtocolError::class,

@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class CustomReporterTest
 {
@@ -89,12 +90,12 @@ final readonly class CustomReporterTest
             '--no-ansi',
         ]);
 
-        Expect::value($result->exitCode)->toBe(0);
-        Expect::value($result->stdout)
+        expect($result->exitCode)->toBe(0);
+        expect($result->stdout)
             ->because('reporters MUST finish in selection order with fresh state for each run')
             ->toContain("second\nfirst-1\n")
             ->toContain("second\nfirst-2\n");
-        Expect::value($result->stderr)->toBe('');
+        expect($result->stderr)->toBe('');
 
         $fileResult = GreenlightCli::run($project->directory, [
             'run',
@@ -102,10 +103,10 @@ final readonly class CustomReporterTest
             '--no-ansi',
         ]);
 
-        Expect::value($fileResult->exitCode)->toBe(0);
-        Expect::value($fileResult->stdout)->toBe('');
-        Expect::value($fileResult->stderr)->toBe('');
-        Expect::value((string) \file_get_contents($project->path('reports/custom.txt')))
+        expect($fileResult->exitCode)->toBe(0);
+        expect($fileResult->stdout)->toBe('');
+        expect($fileResult->stderr)->toBe('');
+        expect((string) \file_get_contents($project->path('reports/custom.txt')))
             ->because('configured reporter factories MUST receive their selected file output')
             ->toBe("second\n");
     }
@@ -149,10 +150,10 @@ final readonly class CustomReporterTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--no-ansi']);
 
-        Expect::value($result->exitCode)->toBe(1);
-        Expect::value($result->stderr)
+        expect($result->exitCode)->toBe(1);
+        expect($result->stderr)
             ->toBe('greenlight: Reporter name "plain" is registered more than one time.');
-        Expect::value($result->stdout)
+        expect($result->stdout)
             ->because('a duplicate reporter name MUST fail before the test starts')
             ->toBe('');
     }
@@ -195,10 +196,10 @@ final readonly class CustomReporterTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=broken', '--no-ansi']);
 
-        Expect::value($result->exitCode)->toBe(1);
-        Expect::value($result->stderr)
+        expect($result->exitCode)->toBe(1);
+        expect($result->stderr)
             ->toBe('greenlight: Reporter factory "broken" failed: Connection failed.');
-        Expect::value($result->stdout)
+        expect($result->stdout)
             ->because('a reporter factory failure MUST stop before the test starts')
             ->toBe('');
     }
@@ -235,10 +236,10 @@ final readonly class CustomReporterTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--no-ansi']);
 
-        Expect::value($result->exitCode)->toBe(1);
-        Expect::value($result->stderr)
+        expect($result->exitCode)->toBe(1);
+        expect($result->stderr)
             ->toBe('greenlight: Reporter provider "FailingReporterProvider" failed: Configuration failed.');
-        Expect::value($result->stdout)
+        expect($result->stdout)
             ->because('a reporter provider failure MUST stop before the test starts')
             ->toBe('');
     }

@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Output;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReporterDefinition;
+
+use function Greenlight\expect;
 
 final readonly class ReporterDefinitionTest
 {
@@ -19,8 +20,8 @@ final readonly class ReporterDefinitionTest
         $factory = static fn(Output $output): Reporter => new RecordingReporter();
         $definition = new ReporterDefinition('company-json', $factory);
 
-        Expect::value($definition->name)->toBe('company-json');
-        Expect::value($definition->factory)->toBe($factory);
+        expect($definition->name)->toBe('company-json');
+        expect($definition->factory)->toBe($factory);
     }
 
     /** @param non-empty-string $name */
@@ -28,7 +29,7 @@ final readonly class ReporterDefinitionTest
     #[DataSet('invalidNames')]
     public function rejectsNamesThatAreNotCommandLineTokens(string $name): void
     {
-        Expect::calling(static fn() => new ReporterDefinition(
+        expect()->calling(static fn() => new ReporterDefinition(
             $name,
             static fn(Output $output): Reporter => new RecordingReporter(),
         ))->toThrow(\InvalidArgumentException::class);
@@ -39,7 +40,7 @@ final readonly class ReporterDefinitionTest
     {
         $factory = static fn(Output $output): Reporter => new RecordingReporter();
 
-        Expect::calling(static fn(): object => new \ReflectionClass(ReporterDefinition::class)->newInstance('', $factory))
+        expect()->calling(static fn(): object => new \ReflectionClass(ReporterDefinition::class)->newInstance('', $factory))
             ->toThrow(\InvalidArgumentException::class);
     }
 

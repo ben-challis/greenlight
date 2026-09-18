@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\OutcomeTransformation;
 use Greenlight\Tests\Support\JsonWire;
+
+use function Greenlight\expect;
 
 final readonly class OutcomeTransformationTest
 {
@@ -18,22 +19,22 @@ final readonly class OutcomeTransformationTest
         $transformation = new OutcomeTransformation('0', Outcome::Failed, Outcome::Skipped);
         $decoded = OutcomeTransformation::fromWire(JsonWire::roundTrip($transformation->toWire()));
 
-        Expect::value($transformation->transformedBy)
+        expect($transformation->transformedBy)
             ->because('an outcome transformation MUST retain each non-empty source')
             ->toBe('0');
-        Expect::value($decoded->transformedBy)
+        expect($decoded->transformedBy)
             ->because('the transformation source MUST survive the wire')
             ->toBe('0');
-        Expect::value($decoded->from)
+        expect($decoded->from)
             ->toBe(Outcome::Failed);
-        Expect::value($decoded->to)
+        expect($decoded->to)
             ->toBe(Outcome::Skipped);
     }
 
     #[Test]
     public function rejectsAnEmptySource(): void
     {
-        Expect::calling(
+        expect()->calling(
             static fn(): OutcomeTransformation => new OutcomeTransformation(
                 '',
                 Outcome::Failed,

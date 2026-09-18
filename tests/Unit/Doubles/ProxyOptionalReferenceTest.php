@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Doubles\OptionalReference;
+
+use function Greenlight\expect;
 
 final readonly class ProxyOptionalReferenceTest
 {
@@ -37,13 +38,13 @@ final readonly class ProxyOptionalReferenceTest
             $omitted = $double->supplied();
             $provided = $double->supplied($value);
 
-            Expect::value($omitted)
+            expect($omitted)
                 ->because('a proxy callback MUST NOT receive an omitted optional argument')
                 ->toBe(0);
-            Expect::value($provided)
+            expect($provided)
                 ->because('a proxy callback MUST receive a supplied optional argument')
                 ->toBe(1);
-            Expect::value($value)
+            expect($value)
                 ->because('a proxy callback MUST preserve a supplied optional reference')
                 ->toBe('changed');
         } finally {

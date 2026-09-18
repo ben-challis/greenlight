@@ -6,13 +6,14 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\PhpStan\IdeHelper;
 use Greenlight\PhpStan\MatcherMap;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\ProjectFiles;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class IdeHelperTypeResolutionTest
@@ -35,6 +36,6 @@ final readonly class IdeHelperTypeResolutionTest
             $project->path('helper.php'),
         ]);
 
-        Expect::value($result->exitCode)->because('PHPStan output: ' . $result->output())->toBe(0);
+        expect($result->exitCode)->because('PHPStan output: ' . $result->output())->toBe(0);
     }
 }

@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class SymfonyRunTest
 {
@@ -19,8 +20,8 @@ final readonly class SymfonyRunTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
-        Expect::value($result->exitCode)->because('injects container services and resets state between tests')->toBe(0);
-        Expect::value($result->output())->toContain('4 tests, 4 passed');
+        expect($result->exitCode)->because('injects container services and resets state between tests')->toBe(0);
+        expect($result->output())->toContain('4 tests, 4 passed');
     }
 
     private function writeProject(): AcceptanceProject
@@ -96,12 +97,13 @@ final readonly class SymfonyRunTest
             namespace SymfonyProbe;
 
             use Greenlight\Attribute\Test;
-            use Greenlight\Expect\Expect;
             use Greenlight\Harness\Service;
             use Greenlight\Tests\Fixture\Symfony\Greeter;
             use Greenlight\Tests\Fixture\Symfony\NamedGreeter;
             use Greenlight\Tests\Fixture\Symfony\VisitCounter;
             use Symfony\Component\HttpKernel\KernelInterface;
+
+            use function Greenlight\expect;
 
             final class %sTest
             {
@@ -117,10 +119,10 @@ final readonly class SymfonyRunTest
                 {
                     $this->counter->record();
 
-                    Expect::value($this->greeter->greet('Ada'))->toBe('Hello, Ada!');
-                    Expect::value($this->named->greet())->toContain('fixture.named_greeter');
-                    Expect::value($this->kernel->getEnvironment())->toBe('test');
-                    Expect::value($this->counter->count())->toBe(1);
+                    expect($this->greeter->greet('Ada'))->toBe('Hello, Ada!');
+                    expect($this->named->greet())->toContain('fixture.named_greeter');
+                    expect($this->kernel->getEnvironment())->toBe('test');
+                    expect($this->counter->count())->toBe(1);
                 }
 
                 #[Test]
@@ -130,7 +132,7 @@ final readonly class SymfonyRunTest
                     // still contains the previous test's visit.
                     $this->counter->record();
 
-                    Expect::value($this->counter->count())->toBe(1);
+                    expect($this->counter->count())->toBe(1);
                 }
             }
             PHP;

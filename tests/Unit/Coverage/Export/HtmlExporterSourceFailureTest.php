@@ -9,11 +9,12 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\HtmlExporter;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Coverage\UnreadableAfterStatStream;
 use Greenlight\Tests\Support\FilesystemRestriction;
+
+use function Greenlight\expect;
 
 final readonly class HtmlExporterSourceFailureTest
 {
@@ -37,10 +38,10 @@ final readonly class HtmlExporterSourceFailureTest
             $warning,
         );
 
-        Expect::value($warning)
+        expect($warning)
             ->because('a restricted source path MUST not leak engine diagnostics')
             ->toBeNull();
-        Expect::value($pages[HtmlExporter::pageName($path)])
+        expect($pages[HtmlExporter::pageName($path)])
             ->because('a restricted source shows only coverage line numbers')
             ->toContain('<span class="cov"><span class="num">2</span></span>')
             ->toContain('<span class="unc"><span class="num">4</span></span>');
@@ -56,7 +57,7 @@ final readonly class HtmlExporterSourceFailureTest
             new FileCoverage($path, [2], [4]),
         ]);
 
-        Expect::value(\is_file($path) && \is_readable($path))
+        expect(\is_file($path) && \is_readable($path))
             ->because('the source passes the exporter readability checks')
             ->toBeTrue();
 
@@ -66,10 +67,10 @@ final readonly class HtmlExporterSourceFailureTest
         );
         $page = $pages[HtmlExporter::pageName($path)];
 
-        Expect::value($warning)
+        expect($warning)
             ->because('a late source read failure MUST not leak an engine diagnostic')
             ->toBeNull();
-        Expect::value($page)
+        expect($page)
             ->because('a late read failure shows only coverage line numbers')
             ->toContain('<span class="cov"><span class="num">2</span></span>')
             ->toContain('<span class="unc"><span class="num">4</span></span>');

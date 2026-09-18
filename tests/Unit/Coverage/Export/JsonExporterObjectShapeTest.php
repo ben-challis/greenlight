@@ -9,7 +9,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\JsonExporter;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class JsonExporterObjectShapeTest
 {
@@ -17,7 +18,7 @@ final readonly class JsonExporterObjectShapeTest
     #[DataSet('invalidObjectShapes')]
     public function importRejectsInvalidObjectShapes(string $json, string $message): void
     {
-        Expect::calling(
+        expect()->calling(
             static fn(): CoverageMap => JsonExporter::import($json),
         )
             ->because('the coverage JSON schema requires object-shaped file maps and entries')

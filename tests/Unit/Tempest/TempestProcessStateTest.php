@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Tempest;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Process\EnvironmentBackup;
 use Greenlight\Tempest\TempestProcessState;
 use Tempest\Container\GenericContainer;
+
+use function Greenlight\expect;
 
 #[SkipUnless(ClassAvailable::class, GenericContainer::class)]
 final readonly class TempestProcessStateTest
@@ -30,18 +31,18 @@ final readonly class TempestProcessStateTest
 
             $state = TempestProcessState::activate('testing', $replacementContainer);
 
-            Expect::value(\getenv('ENVIRONMENT'))->toBe('testing');
-            Expect::value($_ENV['ENVIRONMENT'])->toBe('testing');
-            Expect::value($_SERVER['ENVIRONMENT'])->toBe('testing');
-            Expect::value(GenericContainer::instance())->toBe($replacementContainer);
+            expect(\getenv('ENVIRONMENT'))->toBe('testing');
+            expect($_ENV['ENVIRONMENT'])->toBe('testing');
+            expect($_SERVER['ENVIRONMENT'])->toBe('testing');
+            expect(GenericContainer::instance())->toBe($replacementContainer);
 
             $state->restore();
 
-            Expect::value(\getenv('ENVIRONMENT'))->toBe('process-original');
-            Expect::value(\array_key_exists('ENVIRONMENT', $_ENV))->toBeTrue();
-            Expect::value($_ENV['ENVIRONMENT'])->toBeNull();
-            Expect::value($_SERVER['ENVIRONMENT'])->toBe('server-original');
-            Expect::value(GenericContainer::instance())->toBe($originalContainer);
+            expect(\getenv('ENVIRONMENT'))->toBe('process-original');
+            expect(\array_key_exists('ENVIRONMENT', $_ENV))->toBeTrue();
+            expect($_ENV['ENVIRONMENT'])->toBeNull();
+            expect($_SERVER['ENVIRONMENT'])->toBe('server-original');
+            expect(GenericContainer::instance())->toBe($originalContainer);
         } finally {
             $state?->restore();
             $backup->restore();
@@ -63,10 +64,10 @@ final readonly class TempestProcessStateTest
             $state = TempestProcessState::activate('testing');
             $state->restore();
 
-            Expect::value(\getenv('ENVIRONMENT'))->toBeFalse();
-            Expect::value(\array_key_exists('ENVIRONMENT', $_ENV))->toBeFalse();
-            Expect::value(\array_key_exists('ENVIRONMENT', $_SERVER))->toBeFalse();
-            Expect::value(GenericContainer::instance())->toBe($originalContainer);
+            expect(\getenv('ENVIRONMENT'))->toBeFalse();
+            expect(\array_key_exists('ENVIRONMENT', $_ENV))->toBeFalse();
+            expect(\array_key_exists('ENVIRONMENT', $_SERVER))->toBeFalse();
+            expect(GenericContainer::instance())->toBe($originalContainer);
         } finally {
             $state?->restore();
             $backup->restore();

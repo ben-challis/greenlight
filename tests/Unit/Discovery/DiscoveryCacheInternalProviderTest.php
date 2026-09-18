@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\Plan\PlanEntry;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\DataProvider;
 use Greenlight\Test\TestDefinition;
 use Greenlight\Tests\Support\DiscoveryCachePath;
+
+use function Greenlight\expect;
 
 final readonly class DiscoveryCacheInternalProviderTest
 {
@@ -49,10 +50,10 @@ final readonly class DiscoveryCacheInternalProviderTest
             $cache = DiscoveryCache::forDirectories([$directory]);
             $cache->store($source, [$entry]);
 
-            Expect::value(new \ReflectionMethod($providerClass, 'listAbbreviations')->getFileName())
+            expect(new \ReflectionMethod($providerClass, 'listAbbreviations')->getFileName())
                 ->because('the inherited provider method belongs to the PHP runtime')
                 ->toBeFalse();
-            Expect::value($cache->persist())
+            expect($cache->persist())
                 ->because('an internal provider method MUST NOT block cache persistence')
                 ->toBeTrue();
 
@@ -62,13 +63,13 @@ final readonly class DiscoveryCacheInternalProviderTest
                 $cached ?? [],
             );
 
-            Expect::value($cachedWire)
+            expect($cachedWire)
                 ->because('the cache MUST retain an entry whose provider inherits an internal method')
                 ->toBe([$entry->toWire()]);
 
             \file_put_contents($providerSource, "\n// changed\n", \FILE_APPEND);
 
-            Expect::value(DiscoveryCache::forDirectories([$directory])->lookup($source))
+            expect(DiscoveryCache::forDirectories([$directory])->lookup($source))
                 ->because('the cache MUST still track the user provider class source')
                 ->toBeNull();
         } finally {

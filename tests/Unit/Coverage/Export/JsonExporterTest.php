@@ -10,7 +10,8 @@ use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\JsonExporter;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class JsonExporterTest
 {
@@ -23,7 +24,7 @@ final class JsonExporterTest
 
         $decoded = \json_decode(new JsonExporter()->export($map)[JsonExporter::FILE_NAME], true, 512, \JSON_THROW_ON_ERROR);
 
-        Expect::value($decoded)->because('document matches the documented schema')->toBe([
+        expect($decoded)->because('document matches the documented schema')->toBe([
             'v' => 1,
             'files' => [
                 '/src/A.php' => [
@@ -46,7 +47,7 @@ final class JsonExporterTest
     {
         $json = new JsonExporter()->export(CoverageMap::empty())[JsonExporter::FILE_NAME];
 
-        Expect::value($json)->because('empty map encodes files as an object')->toContain('"files":{}');
+        expect($json)->because('empty map encodes files as an object')->toContain('"files":{}');
     }
 
     #[Test]
@@ -57,7 +58,7 @@ final class JsonExporterTest
             new FileCoverage("/src/\xB2.php", [2], []),
         ]);
 
-        Expect::calling(static fn(): array => new JsonExporter()->export($map))
+        expect()->calling(static fn(): array => new JsonExporter()->export($map))
             ->because('distinct coverage paths MUST NOT collapse to the same JSON object key')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -75,14 +76,14 @@ final class JsonExporterTest
 
         $restored = JsonExporter::import(new JsonExporter()->export($map)[JsonExporter::FILE_NAME]);
 
-        Expect::value($restored->toWire())->because('import restores the exported coverage map')->toBe($map->toWire());
+        expect($restored->toWire())->because('import restores the exported coverage map')->toBe($map->toWire());
     }
 
     #[Test]
     #[DataSet('invalidDocuments')]
     public function importReportsEachInvalidDocumentExactly(string $json, string $message): void
     {
-        Expect::calling(static fn(): CoverageMap => JsonExporter::import($json))
+        expect()->calling(static fn(): CoverageMap => JsonExporter::import($json))
             ->because('each invalid coverage JSON document MUST give its exact diagnostic')
             ->toThrow(CoverageError::class, message: $message);
     }
@@ -90,7 +91,7 @@ final class JsonExporterTest
     #[Test]
     public function importReportsMalformedJsonWithOptionalPhpLocation(): void
     {
-        Expect::calling(static fn(): CoverageMap => JsonExporter::import('not json'))
+        expect()->calling(static fn(): CoverageMap => JsonExporter::import('not json'))
             ->because('malformed coverage JSON MUST include the PHP syntax error')
             ->toThrow(
                 CoverageError::class,

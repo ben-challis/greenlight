@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\OutcomeTransformation;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class TestResultFailureTransitionTest
 {
@@ -38,19 +39,19 @@ final readonly class TestResultFailureTransitionTest
 
         $failed = $original->failedBy('result policy', [$policyFailure]);
 
-        Expect::value($original->toWire())
+        expect($original->toWire())
             ->because('a failure transition MUST NOT change the original result')
             ->toBe($originalWire);
-        Expect::value($failed->outcome)
+        expect($failed->outcome)
             ->because('a failure transition MUST use the failed outcome')
             ->toBe(Outcome::Failed);
-        Expect::value(\array_map(
+        expect(\array_map(
             static fn(FailureDetail $failure): array => $failure->toWire(),
             $failed->failures,
         ))
             ->because('a failure transition MUST append failure evidence')
             ->toBe([$earlierFailure->toWire(), $policyFailure->toWire()]);
-        Expect::value(\array_map(
+        expect(\array_map(
             static fn(OutcomeTransformation $transformation): array => $transformation->toWire(),
             $failed->transformations,
         ))
@@ -63,10 +64,10 @@ final readonly class TestResultFailureTransitionTest
                     Outcome::Failed,
                 )->toWire(),
             ]);
-        Expect::value($failed->attempts)
+        expect($failed->attempts)
             ->because('a failure transition MUST preserve the attempt count')
             ->toBe(2);
-        Expect::value($failed->expectations)
+        expect($failed->expectations)
             ->because('a failure transition MUST preserve the expectation count')
             ->toBe(3);
     }
