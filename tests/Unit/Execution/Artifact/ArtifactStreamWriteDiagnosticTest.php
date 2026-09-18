@@ -36,7 +36,7 @@ final readonly class ArtifactStreamWriteDiagnosticTest
         });
 
         try {
-            Expect::that(static fn() => StreamWriter::writeFully($stream, 'evidence'))
+            Expect::calling(static fn() => StreamWriter::writeFully($stream, 'evidence'))
                 ->because('a stream diagnostic becomes only an attachment error')
                 ->toThrow(
                     AttachmentError::class,
@@ -47,7 +47,7 @@ final readonly class ArtifactStreamWriteDiagnosticTest
             \fclose($stream);
         }
 
-        Expect::that($diagnostic)
+        Expect::value($diagnostic)
             ->because('attachment write diagnostics MUST NOT reach the host error handler')
             ->toBeNull();
     }

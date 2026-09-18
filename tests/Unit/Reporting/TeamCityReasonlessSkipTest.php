@@ -28,7 +28,7 @@ final class TeamCityReasonlessSkipTest
 
         $reporter->onEvent(new TestFinished($result, 1.0));
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('a reasonless skip MUST retain the TeamCity fallback message')
             ->toBe(
                 "##teamcity[testIgnored name='Acme\\NetworkTest::pings' message='skipped' flowId='Acme\\NetworkTest']\n"
@@ -51,7 +51,7 @@ final class TeamCityReasonlessSkipTest
 
         $reporter->onEvent(new TestFinished($result, 1.0));
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('a zero-string skip reason MUST remain distinct from a missing reason')
             ->toBe(
                 "##teamcity[testIgnored name='Acme\\NetworkTest::pings' message='0' flowId='Acme\\NetworkTest']\n"

@@ -26,10 +26,10 @@ final class ProjectRootNormalizerTest
             '/new/worktree',
         );
 
-        Expect::that(\array_keys($baseline->files()))
+        Expect::value(\array_keys($baseline->files()))
             ->because('normalization MUST remove only the explicit checkout root')
             ->toBe(['src/A.php']);
-        Expect::that(BaselineDiff::between($baseline, $current)->hasRegressions())
+        Expect::value(BaselineDiff::between($baseline, $current)->hasRegressions())
             ->because('the same project-relative file MUST compare across checkout roots')
             ->toBeFalse();
     }
@@ -39,7 +39,7 @@ final class ProjectRootNormalizerTest
     {
         $map = new CoverageMap([new FileCoverage('/dependency/A.php', [1], [])]);
 
-        Expect::that(static fn(): CoverageMap => ProjectRootNormalizer::normalize($map, '/project'))
+        Expect::calling(static fn(): CoverageMap => ProjectRootNormalizer::normalize($map, '/project'))
             ->because('partial path normalization can hide unmatched coverage files')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -50,7 +50,7 @@ final class ProjectRootNormalizerTest
     #[Test]
     public function aRelativeProjectRootIsRejected(): void
     {
-        Expect::that(static fn(): CoverageMap => ProjectRootNormalizer::normalize(CoverageMap::empty(), 'project'))
+        Expect::calling(static fn(): CoverageMap => ProjectRootNormalizer::normalize(CoverageMap::empty(), 'project'))
             ->because('normalization requires an explicit absolute checkout root')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -67,7 +67,7 @@ final class ProjectRootNormalizerTest
             '/new/worktree/',
         );
 
-        Expect::that($relocated->toWire())
+        Expect::value($relocated->toWire())
             ->because('relocation MUST change only the project root')
             ->toBe([
                 'files' => [
@@ -79,7 +79,7 @@ final class ProjectRootNormalizerTest
     #[Test]
     public function relocationRejectsARelativeTargetRoot(): void
     {
-        Expect::that(static fn(): CoverageMap => ProjectRootNormalizer::relocate(
+        Expect::calling(static fn(): CoverageMap => ProjectRootNormalizer::relocate(
             CoverageMap::empty(),
             '/old/worktree',
             'new/worktree',
@@ -98,7 +98,7 @@ final class ProjectRootNormalizerTest
     {
         $map = new CoverageMap([new FileCoverage($path, [1], [])]);
 
-        Expect::that(static function () use ($map): void {
+        Expect::calling(static function () use ($map): void {
             ProjectRootNormalizer::requireAbsolutePaths($map);
         })
             ->because('fully qualified coverage paths MUST be accepted')
@@ -124,7 +124,7 @@ final class ProjectRootNormalizerTest
     {
         $map = new CoverageMap([new FileCoverage($path, [1], [])]);
 
-        Expect::that(static function () use ($map): void {
+        Expect::calling(static function () use ($map): void {
             ProjectRootNormalizer::requireAbsolutePaths($map);
         })
             ->because('coverage JSON MUST reject relative file paths')

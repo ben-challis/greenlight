@@ -21,6 +21,6 @@ final class AttributesTest
     #[Test]
     public function beforeHookRunsBeforeTests(): void
     {
-        Expect::that($this->beforeRan)->because('before hook runs before tests')->toBeTrue();
+        Expect::value($this->beforeRan)->because('before hook runs before tests')->toBeTrue();
     }
 }

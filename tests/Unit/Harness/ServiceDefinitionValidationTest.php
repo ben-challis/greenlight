@@ -14,7 +14,7 @@ final readonly class ServiceDefinitionValidationTest
     #[Test]
     public function rejectsAnEmptyServiceType(): void
     {
-        Expect::that(static fn(): ServiceDefinition => new ServiceDefinition(
+        Expect::calling(static fn(): ServiceDefinition => new ServiceDefinition(
             '',
             Scope::PerTest,
             static fn(): \stdClass => new \stdClass(),
@@ -29,7 +29,7 @@ final readonly class ServiceDefinitionValidationTest
     #[Test]
     public function rejectsAnEmptySourceName(): void
     {
-        Expect::that(static fn(): ServiceDefinition => new ServiceDefinition(
+        Expect::calling(static fn(): ServiceDefinition => new ServiceDefinition(
             \stdClass::class,
             Scope::PerTest,
             static fn(): \stdClass => new \stdClass(),

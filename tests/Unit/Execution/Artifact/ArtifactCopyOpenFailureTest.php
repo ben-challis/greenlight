@@ -31,7 +31,7 @@ final readonly class ArtifactCopyOpenFailureTest
         TrackedOpenStream::reset();
 
         $destinationWarning = null;
-        Expect::that(static function () use ($root, &$destinationWarning): void {
+        Expect::calling(static function () use ($root, &$destinationWarning): void {
             ErrorTrap::run(
                 static fn() => new NativeFileCopier()->copy(
                     self::SCHEME . '://source',
@@ -45,11 +45,11 @@ final readonly class ArtifactCopyOpenFailureTest
                 AttachmentError::class,
                 message: 'Failed to copy attachment into its output directory.',
             );
-        Expect::that($destinationWarning)
+        Expect::value($destinationWarning)
             ->because('a destination open failure MUST not leak an engine diagnostic')
             ->toBeNull();
 
-        Expect::that(TrackedOpenStream::closedStreams())
+        Expect::value(TrackedOpenStream::closedStreams())
             ->because('a destination open failure MUST close the source stream')
             ->toBe(1);
     }
@@ -60,7 +60,7 @@ final readonly class ArtifactCopyOpenFailureTest
         $root = $this->tempDirectory->subdirectory('missing-copy-source');
         $destination = $root . '/destination.txt';
 
-        Expect::that(static fn() => new NativeFileCopier()->copy(
+        Expect::calling(static fn() => new NativeFileCopier()->copy(
             $root . '/missing-source.txt',
             $destination,
         ))
@@ -69,7 +69,7 @@ final readonly class ArtifactCopyOpenFailureTest
                 AttachmentError::class,
                 message: 'Failed to copy attachment into its output directory.',
             );
-        Expect::that(\file_exists($destination))
+        Expect::value(\file_exists($destination))
             ->because('a source open failure MUST not leave an empty destination')
             ->toBeFalse();
     }

@@ -30,7 +30,7 @@ final class CheckoutServiceTest
 
         $payment = new CheckoutService($gateway)->checkout(1999, 'GBP');
 
-        Expect::that($payment->id)->toBe('payment-123');
+        Expect::value($payment->id)->toBe('payment-123');
     }
 }
 ```
@@ -227,8 +227,8 @@ $captor = $plan->expects('save')
 
 // Exercise the subject.
 
-Expect::that($captor->values())->toHaveCount(2);
-Expect::that($captor->value())->toBeInstanceOf(Order::class);
+Expect::value($captor->values())->toHaveCount(2);
+Expect::value($captor->value())->toBeInstanceOf(Order::class);
 ```
 
 `values()` returns each captured value. `value()` returns the last value. It
@@ -250,7 +250,7 @@ $events = $this->doubles->spy(EventPublisher::class);
 
 new CheckoutService($events)->checkout();
 
-Expect::that(
+Expect::value(
     $this->doubles->callsTo($events, 'publish'),
 )->toEqual([[new OrderPlaced('order-1')]]);
 ```

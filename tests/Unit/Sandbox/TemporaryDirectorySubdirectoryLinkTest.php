@@ -37,7 +37,7 @@ final class TemporaryDirectorySubdirectoryLinkTest
         }
 
         try {
-            Expect::that(static fn(): string => $directory->subdirectory($name))
+            Expect::calling(static fn(): string => $directory->subdirectory($name))
                 ->because('a subdirectory MUST remain inside its temp directory')
                 ->toThrow(
                     TemporaryDirectoryError::class,
@@ -47,10 +47,10 @@ final class TemporaryDirectorySubdirectoryLinkTest
                     ),
                 );
 
-            Expect::that(\file_get_contents($sentinel))
+            Expect::value(\file_get_contents($sentinel))
                 ->because('a rejected symbolic link MUST leave its target unchanged')
                 ->toBe('keep');
-            Expect::that(\is_dir($targetPath . '/created'))
+            Expect::value(\is_dir($targetPath . '/created'))
                 ->toBeFalse();
         } finally {
             $directory->dispose();

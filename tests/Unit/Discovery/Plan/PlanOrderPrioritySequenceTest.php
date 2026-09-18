@@ -31,7 +31,7 @@ final class PlanOrderPrioritySequenceTest
             ],
         );
 
-        Expect::that($ordered->classes())
+        Expect::value($ordered->classes())
             ->because('priority classes MUST retain the caller sequence before duration ordering')
             ->toBe([
                 'Acme\\GammaTest',
@@ -39,7 +39,7 @@ final class PlanOrderPrioritySequenceTest
                 'Acme\\DeltaTest',
                 'Acme\\BetaTest',
             ]);
-        Expect::that($ordered->seed)
+        Expect::value($ordered->seed)
             ->because('priority ordering MUST preserve the plan seed')
             ->toBe(4242);
     }

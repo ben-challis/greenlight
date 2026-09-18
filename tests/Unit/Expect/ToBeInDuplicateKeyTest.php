@@ -17,7 +17,7 @@ final readonly class ToBeInDuplicateKeyTest
             yield 'shared' => 'second';
         };
 
-        Expect::that('first')
+        Expect::value('first')
             ->because('toBeIn() MUST inspect every traversable value regardless of its key')
             ->toBeIn($values());
     }

@@ -26,10 +26,10 @@ final readonly class HtmlExporterUnreadableSourceTest
         $path = self::SCHEME . '://Source.php';
         UnreadableSourceStream::$openCalls = 0;
 
-        Expect::that(\is_file($path))
+        Expect::value(\is_file($path))
             ->because('the fixture MUST be a regular file')
             ->toBeTrue();
-        Expect::that(\is_readable($path))
+        Expect::value(\is_readable($path))
             ->because('the fixture MUST reject reads')
             ->toBeFalse();
 
@@ -38,11 +38,11 @@ final readonly class HtmlExporterUnreadableSourceTest
         ]);
         $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($path)];
 
-        Expect::that($page)
+        Expect::value($page)
             ->because('an unreadable source shows only coverage line numbers')
             ->toContain('<span class="cov"><span class="num">2</span></span>')
             ->toContain('<span class="unc"><span class="num">4</span></span>');
-        Expect::that(UnreadableSourceStream::$openCalls)
+        Expect::value(UnreadableSourceStream::$openCalls)
             ->because('the exporter rejects an unreadable source before opening it')
             ->toBe(0);
     }

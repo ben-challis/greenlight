@@ -51,7 +51,7 @@ final class GithubReporterAttachmentNoticeTest
         ));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('the attachment notice MUST escape workflow-command data')
             ->toBe(
                 '::notice::Greenlight attachments: '

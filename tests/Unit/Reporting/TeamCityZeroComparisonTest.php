@@ -35,7 +35,7 @@ final class TeamCityZeroComparisonTest
 
         $reporter->onEvent(new TestFinished($result, 1.0));
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('TeamCity comparison metadata MUST preserve the string "0"')
             ->toContain($attributes);
     }

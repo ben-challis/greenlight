@@ -15,13 +15,13 @@ final readonly class MemoryStreamTest
     {
         $stream = MemoryStream::open('initial content');
 
-        Expect::that(\stream_get_contents($stream))
+        Expect::value(\stream_get_contents($stream))
             ->because('the shared stream MUST expose all initial content from its start')
             ->toBe('initial content');
 
         MemoryStream::close($stream, $stream);
 
-        Expect::that(\is_resource($stream))
+        Expect::value(\is_resource($stream))
             ->because('the shared close operation MUST tolerate an already closed stream')
             ->toBeFalse();
     }

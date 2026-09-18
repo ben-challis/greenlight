@@ -27,7 +27,7 @@ final readonly class AutoloadersTest
         try {
             \class_exists('GreenlightAutoloadersBeforeDisposal');
 
-            Expect::that($calls)->toBe([
+            Expect::value($calls)->toBe([
                 'first:GreenlightAutoloadersBeforeDisposal',
                 'second:GreenlightAutoloadersBeforeDisposal',
             ]);
@@ -36,7 +36,7 @@ final readonly class AutoloadersTest
             $calls = [];
             \class_exists('GreenlightAutoloadersAfterDisposal');
 
-            Expect::that($calls)
+            Expect::value($calls)
                 ->because('disposal MUST remove all autoloaders that the sandbox owns')
                 ->toBe([]);
         } finally {

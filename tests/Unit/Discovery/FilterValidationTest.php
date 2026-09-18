@@ -16,7 +16,7 @@ final class FilterValidationTest
     #[DataSet('filterDimensions')]
     public function emptyFilterValuesAreRejected(string $dimension): void
     {
-        Expect::that(static fn(): TestInclusions|TestExclusions => self::withValue($dimension, ''))
+        Expect::calling(static fn(): TestInclusions|TestExclusions => self::withValue($dimension, ''))
             ->because('an empty filter value MUST NOT broaden or suppress test selection')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -35,7 +35,7 @@ final class FilterValidationTest
 
         $property = $this->propertyName($dimension);
 
-        Expect::that(\get_object_vars($filter)[$property] ?? null)
+        Expect::value(\get_object_vars($filter)[$property] ?? null)
             ->because('a non-empty falsey filter value MUST retain its selection meaning')
             ->toBe(['0']);
     }

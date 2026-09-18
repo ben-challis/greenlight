@@ -22,9 +22,9 @@ final readonly class AcceptanceProjectTest
         $project = AcceptanceProject::create($this->workspace, 'project');
         $project->writeFile('nested/example.txt', 'contents');
 
-        Expect::that($project->directory)->because('creates a project and writes nested files')->toBe($this->workspace->path() . '/project');
-        Expect::that($project->path('nested/example.txt'))->toBe($project->directory . '/nested/example.txt');
-        Expect::that(\file_get_contents($project->path('nested/example.txt')))->toBe('contents');
+        Expect::value($project->directory)->because('creates a project and writes nested files')->toBe($this->workspace->path() . '/project');
+        Expect::value($project->path('nested/example.txt'))->toBe($project->directory . '/nested/example.txt');
+        Expect::value(\file_get_contents($project->path('nested/example.txt')))->toBe('contents');
     }
 
     #[Test]
@@ -34,13 +34,13 @@ final readonly class AcceptanceProjectTest
         $project->writeFile('blocked', 'keep');
         $parent = $project->path('blocked');
 
-        Expect::that(static fn() => $project->writeFile('blocked/example.txt', 'contents'))
+        Expect::calling(static fn() => $project->writeFile('blocked/example.txt', 'contents'))
             ->because('a blocked parent directory MUST fail before the fixture continues')
             ->toThrow(
                 \RuntimeException::class,
                 matching: \sprintf('/^Failed to create acceptance project directory "%s"/', \preg_quote($parent, '/')),
             );
-        Expect::that(\file_get_contents($parent))
+        Expect::value(\file_get_contents($parent))
             ->because('a failed directory creation MUST preserve the blocking file')
             ->toBe('keep');
     }
@@ -52,13 +52,13 @@ final readonly class AcceptanceProjectTest
         $project->writeFile('blocked/seed.txt', 'keep');
         $target = $project->path('blocked');
 
-        Expect::that(static fn() => $project->writeFile('blocked', 'contents'))
+        Expect::calling(static fn() => $project->writeFile('blocked', 'contents'))
             ->because('an unwritable target MUST fail before the fixture continues')
             ->toThrow(
                 \RuntimeException::class,
                 matching: \sprintf('/^Failed to write acceptance project file "%s"/', \preg_quote($target, '/')),
             );
-        Expect::that(\file_get_contents($project->path('blocked/seed.txt')))
+        Expect::value(\file_get_contents($project->path('blocked/seed.txt')))
             ->because('a failed file write MUST preserve the target directory contents')
             ->toBe('keep');
     }
@@ -69,7 +69,7 @@ final readonly class AcceptanceProjectTest
     {
         $project = AcceptanceProject::create($this->workspace, 'invalid-path');
 
-        Expect::that(static fn() => $project->writeFile($relativePath, 'contents'))
+        Expect::calling(static fn() => $project->writeFile($relativePath, 'contents'))
             ->because('acceptance project writes MUST stay in the project directory')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -113,7 +113,7 @@ final readonly class AcceptanceProjectTest
 
         $builder = require $project->path('greenlight.php');
 
-        Expect::that($builder)
+        Expect::value($builder)
             ->because(\sprintf(
                 'The generated configuration "%s" MUST return GreenlightConfig.',
                 $project->path('greenlight.php'),
@@ -123,17 +123,17 @@ final readonly class AcceptanceProjectTest
         $configuration = $builder->build();
         $testsDirectory = \realpath($project->path('tests'));
 
-        Expect::that($testsDirectory)
+        Expect::value($testsDirectory)
             ->because(\sprintf(
                 'The generated tests directory at "%s" MUST exist.',
                 $project->path('tests'),
             ))
             ->toBeString();
 
-        Expect::that(\file_get_contents($project->path('loaded.txt')))->because('configures the project with test files and the requested worker count')->toBe('firstsecond');
-        Expect::that($configuration->discovery->paths)->toBe([$testsDirectory]);
-        Expect::that($configuration->workers->count->fixed)->toBe(3);
-        Expect::that($configuration->order->randomized)->toBeFalse();
+        Expect::value(\file_get_contents($project->path('loaded.txt')))->because('configures the project with test files and the requested worker count')->toBe('firstsecond');
+        Expect::value($configuration->discovery->paths)->toBe([$testsDirectory]);
+        Expect::value($configuration->workers->count->fixed)->toBe(3);
+        Expect::value($configuration->order->randomized)->toBeFalse();
     }
 
     #[Test]
@@ -149,8 +149,8 @@ final readonly class AcceptanceProjectTest
 
         $configuration = require $project->path('greenlight.php');
 
-        Expect::that($configuration)->because('escapes test file paths in generated configuration')->toBeInstanceOf(GreenlightConfig::class);
-        Expect::that(\file_get_contents($project->path('loaded.txt')))->toBe('loaded');
+        Expect::value($configuration)->because('escapes test file paths in generated configuration')->toBeInstanceOf(GreenlightConfig::class);
+        Expect::value(\file_get_contents($project->path('loaded.txt')))->toBe('loaded');
     }
 
     #[Test]
@@ -159,14 +159,14 @@ final readonly class AcceptanceProjectTest
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->workspace, 'listing');
         $builder = require $project->path('greenlight.php');
 
-        Expect::that($builder)
+        Expect::value($builder)
             ->because(\sprintf(
                 'The generated configuration "%s" MUST return GreenlightConfig.',
                 $project->path('greenlight.php'),
             ))
             ->toBeInstanceOf(GreenlightConfig::class);
 
-        Expect::that($builder->build()->discovery->paths)->because('project with discovery basic tests targets the shared fixture')->toBe([
+        Expect::value($builder->build()->discovery->paths)->because('project with discovery basic tests targets the shared fixture')->toBe([
             \dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic',
         ]);
     }
@@ -181,22 +181,22 @@ final readonly class AcceptanceProjectTest
         $twoConfiguration = require $two->path('greenlight.php');
         $discoverer = new TestDiscoverer();
 
-        Expect::that($oneConfiguration)
+        Expect::value($oneConfiguration)
             ->because('the one-test preset MUST generate a Greenlight configuration')
             ->toBeInstanceOf(GreenlightConfig::class);
-        Expect::that($twoConfiguration)
+        Expect::value($twoConfiguration)
             ->because('the two-test preset MUST generate a Greenlight configuration')
             ->toBeInstanceOf(GreenlightConfig::class);
-        Expect::that($discoverer->discover($oneConfiguration->build()->discovery->paths)->classes())
+        Expect::value($discoverer->discover($oneConfiguration->build()->discovery->paths)->classes())
             ->because('the one-test preset MUST contain one generated test class')
             ->toBe($one->testClasses());
-        Expect::that($discoverer->discover($twoConfiguration->build()->discovery->paths)->classes())
+        Expect::value($discoverer->discover($twoConfiguration->build()->discovery->paths)->classes())
             ->because('the two-test preset MUST contain two generated test classes')
             ->toBe($two->testClasses());
-        Expect::that($one->testClasses())
+        Expect::value($one->testClasses())
             ->because('the same project name MUST produce the same test namespace')
             ->toBe($sameOne->testClasses());
-        Expect::that(\array_intersect($one->testClasses(), $two->testClasses()))
+        Expect::value(\array_intersect($one->testClasses(), $two->testClasses()))
             ->because('different project names MUST produce unique test namespaces')
             ->toBe([]);
     }

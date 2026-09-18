@@ -29,11 +29,11 @@ final readonly class CpuCoresFallbackTest
             $warning,
         );
 
-        Expect::that($count)
+        Expect::value($count)
             ->because('an unavailable platform CPU count MUST use the conservative default')
             ->toBe(4);
 
-        Expect::that($warning)
+        Expect::value($warning)
             ->because('unavailable platform CPU probes MUST not leak engine diagnostics')
             ->toBeNull();
     }

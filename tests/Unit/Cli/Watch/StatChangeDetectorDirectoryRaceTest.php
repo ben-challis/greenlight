@@ -25,10 +25,10 @@ final readonly class StatChangeDetectorDirectoryRaceTest
 
         $changed = ErrorTrap::run(static fn() => $detector->poll(), $warning);
 
-        Expect::that($changed)
+        Expect::value($changed)
             ->because('a directory that vanishes during a scan MUST behave as a missing directory')
             ->toBe([]);
-        Expect::that($warning)
+        Expect::value($warning)
             ->because('a directory race MUST NOT leak an engine diagnostic')
             ->toBeNull();
     }

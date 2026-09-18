@@ -17,7 +17,7 @@ final class CanonicalAssociativeArrayOrderTest
         $equivalentFirst = ['b' => 2, 'a' => 1];
         $equivalentSecond = ['b' => 1, 'a' => 2];
 
-        Expect::that([$first, $second])
+        Expect::value([$first, $second])
             ->because('canonical equality MUST ignore associative key insertion order')
             ->toEqualCanonicalizing([$equivalentFirst, $equivalentSecond]);
     }

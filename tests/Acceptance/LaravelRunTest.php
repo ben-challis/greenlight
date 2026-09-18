@@ -23,8 +23,8 @@ final readonly class LaravelRunTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($result->output())->toContain('4 tests, 4 passed');
+        Expect::value($result->exitCode)->toBe(0);
+        Expect::value($result->output())->toContain('4 tests, 4 passed');
     }
 
     private function writeProject(): AcceptanceProject
@@ -107,10 +107,10 @@ final readonly class LaravelRunTest
                 {
                     $this->counter->record();
 
-                    Expect::that($this->greeter->greet('Ada'))->toBe('Hello, Ada!');
-                    Expect::that($this->named->greet())->toContain('fixture.named_greeter');
-                    Expect::that($this->app->environment())->toBe('testing');
-                    Expect::that($this->counter->count())->toBe(1);
+                    Expect::value($this->greeter->greet('Ada'))->toBe('Hello, Ada!');
+                    Expect::value($this->named->greet())->toContain('fixture.named_greeter');
+                    Expect::value($this->app->environment())->toBe('testing');
+                    Expect::value($this->counter->count())->toBe(1);
                 }
 
                 #[Test]
@@ -120,7 +120,7 @@ final readonly class LaravelRunTest
                     // counter would still hold the previous test's visit.
                     $this->counter->record();
 
-                    Expect::that($this->counter->count())->toBe(1);
+                    Expect::value($this->counter->count())->toBe(1);
                 }
             }
             PHP;

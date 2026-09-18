@@ -17,7 +17,7 @@ final class CanonicalObjectPropertyOrderTest
         $equivalentFirst = $this->objectWithProperties(['b' => 2, 'a' => 1]);
         $equivalentSecond = $this->objectWithProperties(['b' => 1, 'a' => 2]);
 
-        Expect::that([$first, $second])
+        Expect::value([$first, $second])
             ->because('canonical equality MUST ignore object property insertion order')
             ->toEqualCanonicalizing([$equivalentFirst, $equivalentSecond]);
     }

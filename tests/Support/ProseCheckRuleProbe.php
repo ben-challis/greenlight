@@ -37,19 +37,19 @@ final readonly class ProseCheckRuleProbe
         }
 
         $invalidResult = self::run($invalidFiles->directory);
-        Expect::that($invalidResult->exitCode)->because('blocking rules reject all invalid prose cases')->toBe(1);
+        Expect::value($invalidResult->exitCode)->because('blocking rules reject all invalid prose cases')->toBe(1);
 
         foreach ($cases as $name => $case) {
-            Expect::that($invalidResult->output())
+            Expect::value($invalidResult->output())
                 ->because('reports each rule with its invalid case filename')
                 ->toContain($name . '.md:3: ' . $case['rule'] . ':');
         }
 
         $validResult = self::run($validFiles->directory);
-        Expect::that($validResult->exitCode)->because('blocking rules accept all valid prose cases')->toBe(0);
+        Expect::value($validResult->exitCode)->because('blocking rules accept all valid prose cases')->toBe(0);
 
         foreach (\array_keys($cases) as $name) {
-            Expect::that($validResult->output())
+            Expect::value($validResult->output())
                 ->because('reports no diagnostic for each valid case filename')
                 ->not()->toContain($name . '.md:');
         }

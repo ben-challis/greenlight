@@ -22,7 +22,7 @@ final class PlainReporterWorkerSummaryTest
         $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.3));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('the plain summary MUST report its only spawned worker')
             ->toContain("Workers: 1 spawned\n");
     }
@@ -35,7 +35,7 @@ final class PlainReporterWorkerSummaryTest
         $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.3));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('an in-process run MUST NOT report a spawned worker')
             ->not()
             ->toContain('Workers:');

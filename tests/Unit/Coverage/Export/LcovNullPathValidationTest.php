@@ -19,7 +19,7 @@ final class LcovNullPathValidationTest
             new FileCoverage("/src/A\0hidden.php", [1], []),
         ]);
 
-        Expect::that(static fn(): array => new LcovExporter()->export($map))
+        Expect::calling(static fn(): array => new LcovExporter()->export($map))
             ->because('LCOV source records MUST contain valid file paths')
             ->toThrow(
                 \InvalidArgumentException::class,

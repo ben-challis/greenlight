@@ -21,7 +21,7 @@ final readonly class FixtureResourceWireValidationTest
         array $payload,
         string $message,
     ): void {
-        Expect::that(static fn(): FixtureResource => FixtureResource::fromWire($payload))
+        Expect::calling(static fn(): FixtureResource => FixtureResource::fromWire($payload))
             ->because('invalid fixture resources MUST remain protocol errors at the wire boundary')
             ->toThrow(InvalidWirePayload::class, message: $message);
     }

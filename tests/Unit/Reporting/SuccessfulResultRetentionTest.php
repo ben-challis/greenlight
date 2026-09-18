@@ -59,14 +59,14 @@ final readonly class SuccessfulResultRetentionTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         unset($result, $captured);
 
-        Expect::that($reference->get())
+        Expect::value($reference->get())
             ->because('successful footers do not need captured output')
             ->toBeNull();
 
         $reporter->finish();
 
-        Expect::that($output->buffer())->toContain('artifacts/response.json');
-        Expect::that($output->buffer())->toContain($outcome === Outcome::Skipped
+        Expect::value($output->buffer())->toContain('artifacts/response.json');
+        Expect::value($output->buffer())->toContain($outcome === Outcome::Skipped
             ? 'ExampleTest::example (Example skip reason.)'
             : 'ExampleTest::example (2 attempts)');
     }

@@ -37,10 +37,10 @@ final readonly class HtmlExporterSourceFailureTest
             $warning,
         );
 
-        Expect::that($warning)
+        Expect::value($warning)
             ->because('a restricted source path MUST not leak engine diagnostics')
             ->toBeNull();
-        Expect::that($pages[HtmlExporter::pageName($path)])
+        Expect::value($pages[HtmlExporter::pageName($path)])
             ->because('a restricted source shows only coverage line numbers')
             ->toContain('<span class="cov"><span class="num">2</span></span>')
             ->toContain('<span class="unc"><span class="num">4</span></span>');
@@ -56,7 +56,7 @@ final readonly class HtmlExporterSourceFailureTest
             new FileCoverage($path, [2], [4]),
         ]);
 
-        Expect::that(\is_file($path) && \is_readable($path))
+        Expect::value(\is_file($path) && \is_readable($path))
             ->because('the source passes the exporter readability checks')
             ->toBeTrue();
 
@@ -66,10 +66,10 @@ final readonly class HtmlExporterSourceFailureTest
         );
         $page = $pages[HtmlExporter::pageName($path)];
 
-        Expect::that($warning)
+        Expect::value($warning)
             ->because('a late source read failure MUST not leak an engine diagnostic')
             ->toBeNull();
-        Expect::that($page)
+        Expect::value($page)
             ->because('a late read failure shows only coverage line numbers')
             ->toContain('<span class="cov"><span class="num">2</span></span>')
             ->toContain('<span class="unc"><span class="num">4</span></span>');

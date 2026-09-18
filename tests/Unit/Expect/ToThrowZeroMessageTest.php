@@ -12,7 +12,7 @@ final readonly class ToThrowZeroMessageTest
     #[Test]
     public function exactZeroMessageMatches(): void
     {
-        Expect::that(static fn() => throw new \RuntimeException('0'))
+        Expect::calling(static fn() => throw new \RuntimeException('0'))
             ->because('toThrow() MUST treat a zero message as an exact constraint')
             ->toThrow(\RuntimeException::class, message: '0');
     }
@@ -21,19 +21,19 @@ final readonly class ToThrowZeroMessageTest
     public function exactZeroMessageRejectsAndDescribesOtherMessages(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that(static fn() => throw new \RuntimeException('other'))
+            static fn() => Expect::calling(static fn() => throw new \RuntimeException('other'))
                 ->toThrow(\RuntimeException::class, message: '0'),
         );
 
-        Expect::that($detail->message)
+        Expect::value($detail->message)
             ->because('a zero exact-message mismatch MUST retain its constraint')
             ->toBe(
                 "Expected a callable that threw RuntimeException with message 'other' "
                 . "to throw RuntimeException with message '0'.",
             );
-        Expect::that($detail->expected)
+        Expect::value($detail->expected)
             ->toBe(\RuntimeException::class);
-        Expect::that($detail->actual)
+        Expect::value($detail->actual)
             ->toBe("a callable that threw RuntimeException with message 'other'");
     }
 }

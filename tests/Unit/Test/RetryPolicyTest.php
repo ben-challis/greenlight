@@ -18,7 +18,7 @@ final readonly class RetryPolicyTest
         $policy = new RetryPolicy(3, \RuntimeException::class);
         $restored = RetryPolicy::fromWire(JsonWire::roundTrip($policy->toWire()));
 
-        Expect::that($restored->toWire())
+        Expect::value($restored->toWire())
             ->because('the retry policy MUST survive the wire')
             ->toBe($policy->toWire());
     }
@@ -26,14 +26,14 @@ final readonly class RetryPolicyTest
     #[Test]
     public function rejectsInvalidTimesOnBothSides(): void
     {
-        Expect::that(static fn(): RetryPolicy => new RetryPolicy(0))
+        Expect::calling(static fn(): RetryPolicy => new RetryPolicy(0))
             ->because('a direct retry policy MUST require a positive count')
             ->toThrow(\InvalidArgumentException::class, message: 'Retry times must be at least 1.');
 
         $payload = new RetryPolicy()->toWire();
         $payload['times'] = 0;
 
-        Expect::that(static fn(): RetryPolicy => RetryPolicy::fromWire($payload))
+        Expect::calling(static fn(): RetryPolicy => RetryPolicy::fromWire($payload))
             ->because('a wire retry policy MUST require a positive count')
             ->toThrow(InvalidWirePayload::class);
     }

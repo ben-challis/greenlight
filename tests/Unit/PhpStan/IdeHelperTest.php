@@ -19,13 +19,13 @@ final class IdeHelperTest
 
         $rendered = IdeHelper::render($map);
 
-        Expect::that($rendered)->because('renders one method annotation per matcher with reflected signatures')->toContain('namespace Greenlight\Expect;')
+        Expect::value($rendered)->because('renders one method annotation per matcher with reflected signatures')->toContain('namespace Greenlight\Expect;')
             ->toContain(' * @method self toBeHexadecimal()')
             ->toContain(' * @method self toHaveDigestLength(int $length)')
             ->toContain(' * @method self toBePositive()')
-            ->toContain(' * @method Expectation<T> toBeWithin(float $delta, float $of)')
+            ->not()->toContain('@method Expectation<T> toBeWithin')
             ->toContain(' * @method Expectation<T> toHaveDigestLength(int $length)')
-            ->toContain('final class Expectation {}')
+            ->toContain('class Expectation {}')
             ->toContain('The IDE does not execute or autoload');
     }
 
@@ -34,7 +34,7 @@ final class IdeHelperTest
     {
         $map = MatcherMap::fromConfigFiles([FixturePath::get('PhpStanIdeHelperDnf/greenlight.php')]);
 
-        Expect::that(IdeHelper::render($map))
+        Expect::value(IdeHelper::render($map))
             ->because('generated matcher annotations preserve disjunctive normal form types')
             ->toContain(' * @method self toCompareWith((\\Countable&\\Iterator)|string $comparison)');
     }

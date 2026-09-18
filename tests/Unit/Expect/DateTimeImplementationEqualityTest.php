@@ -15,7 +15,7 @@ final class DateTimeImplementationEqualityTest
         $mutable = new \DateTime('2026-07-28T12:00:00.123456+00:00');
         $immutable = new \DateTimeImmutable('2026-07-28T13:00:00.123456+01:00');
 
-        Expect::that($mutable)
+        Expect::value($mutable)
             ->because('date time equality MUST ignore implementation and time zone differences')
             ->toEqual($immutable);
     }

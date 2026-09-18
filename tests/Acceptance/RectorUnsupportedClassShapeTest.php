@@ -29,8 +29,8 @@ final readonly class RectorUnsupportedClassShapeTest
         $probes = RectorProbe::convertBatch($this->tempDirectory, $cases, name: 'unsupported-class-shapes');
 
         foreach ($probes as $caseName => $probe) {
-            Expect::that($probe->changed)->because('unsupported class shape case: ' . $caseName)->toBeFalse();
-            Expect::that($probe->code)->because('unsupported class shape case: ' . $caseName)->toBe($cases[$caseName]);
+            Expect::value($probe->changed)->because('unsupported class shape case: ' . $caseName)->toBeFalse();
+            Expect::value($probe->code)->because('unsupported class shape case: ' . $caseName)->toBe($cases[$caseName]);
         }
     }
 }

@@ -23,7 +23,7 @@ final class ThrowableDetailWireBoundsTest
             'stackFrames' => [],
         ]);
 
-        Expect::that($restored->line)
+        Expect::value($restored->line)
             ->because('wire throwable details MUST identify at least the first source line')
             ->toBe(1);
     }

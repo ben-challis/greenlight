@@ -84,13 +84,13 @@ final readonly class PhpStanCaptureArgumentReturnTypeExtensionTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)
+        Expect::value($probe->exitCode)
             ->because('PHPStan rejects a captor value used as the wrong parameter type')
             ->toBe(1);
-        Expect::that($probe->goodPassed)
+        Expect::value($probe->goodPassed)
             ->because('PHPStan messages: ' . $probe->messages())
             ->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(1);
-        Expect::that($probe->messages())->toContain('expects int, string given');
+        Expect::value(\count($probe->errors))->toBe(1);
+        Expect::value($probe->messages())->toContain('expects int, string given');
     }
 }

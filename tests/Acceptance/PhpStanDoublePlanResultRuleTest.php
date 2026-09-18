@@ -79,18 +79,18 @@ final readonly class PhpStanDoublePlanResultRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)
+        Expect::value($probe->exitCode)
             ->because('PHPStan rejects invalid mock plan results and limits')
             ->toBe(1);
-        Expect::that($probe->goodPassed)
+        Expect::value($probe->goodPassed)
             ->because('PHPStan messages: ' . $probe->messages())
             ->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(9);
-        Expect::that($probe->messages())->toContain('times(-1) requires a count of zero or more');
-        Expect::that($probe->messages())->toContain('atLeast(0) requires a count of one or more');
-        Expect::that($probe->messages())->toContain('andReturnsSequence() on InvalidResultPlan::add() requires at least one value');
-        Expect::that($probe->messages())->toContain('andReturns() value #1 for InvalidResultPlan::add() has type string, but the method returns int');
-        Expect::that($probe->messages())->toContain('andReturnsUsing() answer for InvalidResultPlan::add()');
-        Expect::that($probe->messages())->toContain('captureArgument(2) for InvalidResultPlan::add() requires a position from zero to 1');
+        Expect::value(\count($probe->errors))->toBe(9);
+        Expect::value($probe->messages())->toContain('times(-1) requires a count of zero or more');
+        Expect::value($probe->messages())->toContain('atLeast(0) requires a count of one or more');
+        Expect::value($probe->messages())->toContain('andReturnsSequence() on InvalidResultPlan::add() requires at least one value');
+        Expect::value($probe->messages())->toContain('andReturns() value #1 for InvalidResultPlan::add() has type string, but the method returns int');
+        Expect::value($probe->messages())->toContain('andReturnsUsing() answer for InvalidResultPlan::add()');
+        Expect::value($probe->messages())->toContain('captureArgument(2) for InvalidResultPlan::add() requires a position from zero to 1');
     }
 }

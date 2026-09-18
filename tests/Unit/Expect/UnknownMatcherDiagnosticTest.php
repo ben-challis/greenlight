@@ -13,8 +13,8 @@ final class UnknownMatcherDiagnosticTest
     #[Test]
     public function unknownMatchersIdentifyTheMissingRegistration(): void
     {
-        Expect::that(
-            static fn(): Expectation => Expect::that(4)->__call('toBeUnavailableMatcher', []),
+        Expect::calling(
+            static fn(): Expectation => Expect::value(4)->__call('toBeUnavailableMatcher', []),
         )
             ->because('an unknown matcher MUST identify the missing native or extension registration')
             ->toThrow(
@@ -22,8 +22,8 @@ final class UnknownMatcherDiagnosticTest
                 message: 'Greenlight has no native or registered extension matcher named toBeUnavailableMatcher.',
             );
 
-        Expect::that(
-            static fn(): Expectation => Expect::eventually(static fn(): int => 4)
+        Expect::calling(
+            static fn(): Expectation => Expect::calling(static fn(): int => 4)->returnValue()->eventually()
                 ->within(0.001)
                 ->__call('toBeUnavailableMatcher', []),
         )

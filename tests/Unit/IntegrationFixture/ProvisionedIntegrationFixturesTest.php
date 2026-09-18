@@ -18,7 +18,7 @@ final readonly class ProvisionedIntegrationFixturesTest
         $session = new ProvisionedIntegrationFixtures();
         $session->expose('database', FixtureResource::empty(), []);
 
-        Expect::that(static function () use ($session): void {
+        Expect::calling(static function () use ($session): void {
             $session->expose('database', FixtureResource::empty(), []);
         })
             ->because('an integration fixture MUST expose resources at most once')
@@ -33,7 +33,7 @@ final readonly class ProvisionedIntegrationFixturesTest
     {
         $session = new ProvisionedIntegrationFixtures();
 
-        Expect::that(static fn(): FixtureResource => $session->dependency('database', null))
+        Expect::calling(static fn(): FixtureResource => $session->dependency('database', null))
             ->because('an integration fixture dependency MUST be provisioned before use')
             ->toThrow(
                 \LogicException::class,
@@ -51,7 +51,7 @@ final readonly class ProvisionedIntegrationFixturesTest
         $session = new ProvisionedIntegrationFixtures();
         $session->close();
 
-        Expect::that(static function () use ($mutate, $session): void {
+        Expect::calling(static function () use ($mutate, $session): void {
             $mutate($session);
         })
             ->because('a closed integration fixture session MUST reject further mutation')
@@ -105,16 +105,16 @@ final readonly class ProvisionedIntegrationFixturesTest
             throw $cacheFailure;
         });
 
-        Expect::that($session->close())
+        Expect::value($session->close())
             ->because('cleanup failures MUST NOT prevent later cleanup callbacks from running')
             ->toBe([
                 ['cache', $cacheFailure],
                 ['network', $networkFailure],
             ]);
-        Expect::that($trace)
+        Expect::value($trace)
             ->because('cleanup callbacks MUST run in reverse acquisition order')
             ->toBe(['cache', 'database', 'network']);
-        Expect::that($session->close())
+        Expect::value($session->close())
             ->because('closing an integration fixture session more than once MUST be safe')
             ->toBe([]);
     }

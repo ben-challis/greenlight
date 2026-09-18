@@ -23,7 +23,7 @@ final readonly class TemporalRetryCompositionTest
         ];
 
         ExpectationRuntime::withClock($clock, static function () use (&$calls, &$responses): void {
-            Expect::eventually(static function () use (&$calls, &$responses): string {
+            Expect::calling(static function () use (&$calls, &$responses): string {
                 ++$calls;
                 $response = \array_shift($responses);
 
@@ -32,7 +32,7 @@ final readonly class TemporalRetryCompositionTest
                 }
 
                 return $response ?? 'ready';
-            })
+            })->returnValue()->eventually()
                 ->retryOnException(\RuntimeException::class)
                 ->retryOnException(\LogicException::class)
                 ->pollEvery(0.010)
@@ -40,10 +40,10 @@ final readonly class TemporalRetryCompositionTest
                 ->toBe('ready');
         });
 
-        Expect::that($calls)
+        Expect::value($calls)
             ->because('repeated retry configuration MUST accumulate exception types')
             ->toBe(3);
-        Expect::that($clock->sleeps)
+        Expect::value($clock->sleeps)
             ->toBe([0.010, 0.010]);
     }
 }

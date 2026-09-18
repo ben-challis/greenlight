@@ -67,7 +67,7 @@ final readonly class RetryDeciderOrderTest
 
         new Worker(new StandardHarnessPlugin()->services(), $plugins)->run($plan, $sink);
 
-        Expect::that($calls->getArrayCopy())
+        Expect::value($calls->getArrayCopy())
             ->because('retry deciders MUST stop after acceptance and continue after decline')
             ->toBe([
                 'first:1',

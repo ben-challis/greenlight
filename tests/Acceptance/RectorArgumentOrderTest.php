@@ -27,7 +27,7 @@ final readonly class RectorArgumentOrderTest
         $probes = RectorProbe::convertBatch($this->workspace, $cases, name: 'assertion-order');
 
         foreach ($probes as $caseName => $probe) {
-            Expect::that($probe->code)
+            Expect::value($probe->code)
                 ->because('Assertion argument order case: ' . $caseName . '.')
                 ->toBe($cases[$caseName]);
         }
@@ -44,8 +44,8 @@ final readonly class RectorArgumentOrderTest
             self::assertEqualsWithDelta(0.3, 0.1 + 0.2, 0.001);
             PHP), name: 'independent-arguments');
 
-        Expect::that($probe->changed)->toBeTrue();
-        Expect::that($probe->runConvertedTests()->exitCode)->toBe(0);
+        Expect::value($probe->changed)->toBeTrue();
+        Expect::value($probe->runConvertedTests()->exitCode)->toBe(0);
     }
 
     /**

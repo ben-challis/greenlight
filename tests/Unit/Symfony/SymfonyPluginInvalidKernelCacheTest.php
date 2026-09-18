@@ -25,13 +25,13 @@ final class SymfonyPluginInvalidKernelCacheTest
         });
         $resolve = static fn(): ?object => $plugin->resolve(Greeter::class, []);
 
-        Expect::that($resolve)
+        Expect::calling($resolve)
             ->because('the first invalid kernel fails validation')
             ->toThrow(SymfonyBridgeError::class, matching: '/without the Symfony test container/');
-        Expect::that($resolve)
+        Expect::calling($resolve)
             ->because('a later resolution validates a new kernel')
             ->toThrow(SymfonyBridgeError::class, matching: '/without the Symfony test container/');
-        Expect::that($factoryCalls)
+        Expect::value($factoryCalls)
             ->because('an invalid kernel MUST NOT enter the plugin cache')
             ->toBe(2);
     }

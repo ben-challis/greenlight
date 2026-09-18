@@ -24,7 +24,7 @@ final readonly class HyperfCoroutineResultTest
 
         $result = $plugin->runWorker(static fn(): mixed => $plugin->runTestAttempt(static fn(): null => null));
 
-        Expect::that($result)->toBeNull();
+        Expect::value($result)->toBeNull();
     }
 
     #[Test]
@@ -35,7 +35,7 @@ final readonly class HyperfCoroutineResultTest
 
         $result = $plugin->runWorker(static fn(): mixed => $plugin->runTestAttempt(static fn(): false => false));
 
-        Expect::that($result)->toBeFalse();
+        Expect::value($result)->toBeFalse();
     }
 
     #[Test]
@@ -52,7 +52,7 @@ final readonly class HyperfCoroutineResultTest
             $caught = $threw;
         }
 
-        Expect::that($caught)->toBe($failure);
+        Expect::value($caught)->toBe($failure);
     }
 
     #[Test]
@@ -79,8 +79,8 @@ final readonly class HyperfCoroutineResultTest
             $caught = $threw;
         }
 
-        Expect::that($disposedInCoroutine)->toBeTrue();
-        Expect::that($caught)->toBe($failure);
+        Expect::value($disposedInCoroutine)->toBeTrue();
+        Expect::value($caught)->toBe($failure);
     }
 
     /** @return iterable<string, array{ContainerLifetime}> */

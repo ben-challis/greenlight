@@ -19,7 +19,7 @@ final class ProtocolErrorSummaryMismatchTest
             '{"passed":2,"failed":0}',
         );
 
-        Expect::that($error->getMessage())
+        Expect::value($error->getMessage())
             ->because(
                 'a summary mismatch MUST identify which totals the worker reported '
                 . 'and which totals the event stream observed',

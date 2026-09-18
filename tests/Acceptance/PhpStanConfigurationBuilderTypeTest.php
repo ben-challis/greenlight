@@ -111,16 +111,16 @@ final readonly class PhpStanConfigurationBuilderTypeTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)
+        Expect::value($probe->exitCode)
             ->because('PHPStan rejects configuration values that cannot pass runtime validation')
             ->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(29);
-        Expect::that($probe->messages())->toContain('Minimum coverage percentage must be from 0 through 100.');
-        Expect::that($probe->messages())->toContain('Minimum coverage percentage can have at most two decimal places.');
-        Expect::that($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::workers() expects');
-        Expect::that($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::randomizeOrder() expects');
-        Expect::that($probe->messages())->toContain('Greenlight\Config\ArtifactBuilder::maxRunAttachments() expects');
-        Expect::that($probe->messages())->toContain('Greenlight\Config\StorageBuilder::temporaryDirectory() expects');
+        Expect::value($probe->goodPassed)->toBeTrue();
+        Expect::value(\count($probe->errors))->toBe(29);
+        Expect::value($probe->messages())->toContain('Minimum coverage percentage must be from 0 through 100.');
+        Expect::value($probe->messages())->toContain('Minimum coverage percentage can have at most two decimal places.');
+        Expect::value($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::workers() expects');
+        Expect::value($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::randomizeOrder() expects');
+        Expect::value($probe->messages())->toContain('Greenlight\Config\ArtifactBuilder::maxRunAttachments() expects');
+        Expect::value($probe->messages())->toContain('Greenlight\Config\StorageBuilder::temporaryDirectory() expects');
     }
 }

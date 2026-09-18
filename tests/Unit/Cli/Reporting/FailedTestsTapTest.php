@@ -31,14 +31,14 @@ final readonly class FailedTestsTapTest
 
         $tap->emit($event);
 
-        Expect::that($inner->events)
+        Expect::value($inner->events)
             ->because('the tap MUST forward lifecycle events unchanged')
             ->toBe([$event]);
-        Expect::that($tap->failedTests())
+        Expect::value($tap->failedTests())
             ->toBe([]);
-        Expect::that($tap->classSeconds())
+        Expect::value($tap->classSeconds())
             ->toBe([]);
-        Expect::that($tap->retriedPasses())
+        Expect::value($tap->retriedPasses())
             ->toBe(0);
     }
 
@@ -66,22 +66,22 @@ final readonly class FailedTestsTapTest
             $tap->emit($event);
         }
 
-        Expect::that($tap->failedTests())
+        Expect::value($tap->failedTests())
             ->because('failed reruns MUST contain each unsuccessful test once in encounter order')
             ->toBe([
                 'App\AlphaTest::fails',
                 'App\BetaTest::errors',
             ]);
-        Expect::that($tap->classSeconds())
+        Expect::value($tap->classSeconds())
             ->because('scheduling history MUST include each complete class span')
             ->toBe([
                 'App\AlphaTest' => 7.5,
                 'App\BetaTest' => 6.0,
             ]);
-        Expect::that($inner->events)
+        Expect::value($inner->events)
             ->because('the tap MUST forward every event unchanged')
             ->toBe($events);
-        Expect::that($tap->retriedPasses())
+        Expect::value($tap->retriedPasses())
             ->because('the tap MUST count only passed tests that used retry')
             ->toBe(1);
     }
@@ -108,13 +108,13 @@ final readonly class FailedTestsTapTest
             $tap->emit($event);
         }
 
-        Expect::that($tap->classSeconds())
+        Expect::value($tap->classSeconds())
             ->because('only valid start and finish pairs MUST supply advisory durations')
             ->toBe([
                 'App\CrashTest' => 4.0,
                 'App\RestartedTest' => 3.0,
             ]);
-        Expect::that($tap->failedTests())
+        Expect::value($tap->failedTests())
             ->because('an incomplete class MUST still supply its failed test ID')
             ->toBe(['App\CrashTest::crashes']);
     }
@@ -130,16 +130,16 @@ final readonly class FailedTestsTapTest
         $tap->emit($this->finished('App\ExtremeTest', 'second', Outcome::Failed, 0.0));
         $tap->emit(new TestClassFinished('App\ExtremeTest', \PHP_FLOAT_MAX, 'worker-2'));
 
-        Expect::that($tap->classSeconds())
+        Expect::value($tap->classSeconds())
             ->because('accepted durations MUST remain finite when their sum exceeds the float range')
             ->toBe(['App\ExtremeTest' => \PHP_FLOAT_MAX]);
 
         $state = RunState::forFile($this->tempDirectory->path() . '/overflow-state.json');
 
-        Expect::that($state->record($tap->failedTests(), $tap->classSeconds()))
+        Expect::value($state->record($tap->failedTests(), $tap->classSeconds()))
             ->because('scheduling history and failed IDs MUST remain persistable after duration saturation')
             ->toBeTrue();
-        Expect::that($state->failedTests())
+        Expect::value($state->failedTests())
             ->toBe([
                 'App\ExtremeTest::first',
                 'App\ExtremeTest::second',

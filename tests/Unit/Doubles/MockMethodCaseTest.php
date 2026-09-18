@@ -21,7 +21,7 @@ final readonly class MockMethodCaseTest
             $plan->expects('ADD')->with(1, 2)->once()->andReturns(3);
         });
 
-        Expect::that($calculator->add(1, 2))
+        Expect::value($calculator->add(1, 2))
             ->because('mock method names MUST follow PHP case-insensitive dispatch')
             ->toBe(3);
     }

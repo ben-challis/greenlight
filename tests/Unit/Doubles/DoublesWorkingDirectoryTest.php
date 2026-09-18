@@ -23,20 +23,20 @@ final readonly class DoublesWorkingDirectoryTest
     {
         $original = \getcwd();
 
-        Expect::that($original)
+        Expect::value($original)
             ->because('The test process MUST start in a working directory.')
             ->toBeString();
 
         $deleted = $this->tempDirectory->subdirectory('deleted-working-directory');
         $this->cleanup->defer(static fn(): bool => \chdir($original));
 
-        Expect::that(\chdir($deleted))
+        Expect::value(\chdir($deleted))
             ->because('the test enters its temporary directory')
             ->toBeTrue();
-        Expect::that(\rmdir($deleted))
+        Expect::value(\rmdir($deleted))
             ->because('the current temporary directory can be removed')
             ->toBeTrue();
-        Expect::that(static fn(): Doubles => new Doubles())
+        Expect::calling(static fn(): Doubles => new Doubles())
             ->because('the default proxy directory needs a current working directory')
             ->toThrow(
                 InvalidDoubleUsage::class,

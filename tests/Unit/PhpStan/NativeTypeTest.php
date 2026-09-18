@@ -20,7 +20,7 @@ final class NativeTypeTest extends MatcherSubject
     {
         $type = new \ReflectionMethod(self::class, $method)->getParameters()[0]->getType();
 
-        Expect::that(NativeType::fromReflection($type)->describe(VerbosityLevel::typeOnly()))
+        Expect::value(NativeType::fromReflection($type)->describe(VerbosityLevel::typeOnly()))
             ->because('reflected native types map to their PHPStan equivalents')
             ->toBe($expected);
     }
@@ -33,10 +33,10 @@ final class NativeTypeTest extends MatcherSubject
         $type = new \ReflectionMethod(self::class, $method)->getParameters()[0]->getType();
         $mapped = NativeType::fromReflection($type);
 
-        Expect::that($mapped->isObject()->yes())
+        Expect::value($mapped->isObject()->yes())
             ->because('reflected object types stay object types')
             ->toBeTrue();
-        Expect::that($mapped->getObjectClassNames())
+        Expect::value($mapped->getObjectClassNames())
             ->because('reflected object types keep every required class')
             ->toBe($expected);
     }
@@ -48,10 +48,10 @@ final class NativeTypeTest extends MatcherSubject
         $type = new \ReflectionMethod(self::class, $method)->getParameters()[0]->getType();
         $mapped = NativeType::fromReflection($type);
 
-        Expect::that($mapped::class)
+        Expect::value($mapped::class)
             ->because('literal native booleans map to PHPStan boolean constants')
             ->toBe(ConstantBooleanType::class);
-        Expect::that($mapped->describe(VerbosityLevel::typeOnly()))
+        Expect::value($mapped->describe(VerbosityLevel::typeOnly()))
             ->toBe($expected ? 'true' : 'false');
     }
 
@@ -66,13 +66,13 @@ final class NativeTypeTest extends MatcherSubject
         $parentParameter = new \ReflectionFunction($parentClosure)->getParameters()[0];
         $staticReflection = new \ReflectionFunction($staticClosure);
 
-        Expect::that(NativeType::fromParameter($selfParameter)->getObjectClassNames())
+        Expect::value(NativeType::fromParameter($selfParameter)->getObjectClassNames())
             ->because('self uses the closure scope class')
             ->toBe([self::class]);
-        Expect::that(NativeType::fromParameter($parentParameter)->getObjectClassNames())
+        Expect::value(NativeType::fromParameter($parentParameter)->getObjectClassNames())
             ->because('parent uses the closure scope parent class')
             ->toBe([MatcherSubject::class]);
-        Expect::that(NativeType::fromReflection(
+        Expect::value(NativeType::fromReflection(
             $staticReflection->getReturnType(),
             $staticReflection->getClosureScopeClass(),
         )->getObjectClassNames())

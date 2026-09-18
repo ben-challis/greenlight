@@ -17,15 +17,15 @@ final readonly class PluginLifecycleTest
         $context = PluginLifecycle::context();
         $result = PluginLifecycle::passedResult();
 
-        Expect::that(PluginLifecycle::context())
+        Expect::value(PluginLifecycle::context())
             ->because('each plugin test MUST receive independent lifecycle state')
             ->not()
             ->toBe($context);
-        Expect::that($context->id->equals($result->id))
+        Expect::value($context->id->equals($result->id))
             ->because('the shared context and result MUST identify the same test')
             ->toBeTrue();
-        Expect::that($context->definition->class)->toBe($context->id->class);
-        Expect::that($context->definition->method)->toBe($context->id->method);
-        Expect::that($result->outcome)->toBe(Outcome::Passed);
+        Expect::value($context->definition->class)->toBe($context->id->class);
+        Expect::value($context->definition->method)->toBe($context->id->method);
+        Expect::value($result->outcome)->toBe(Outcome::Passed);
     }
 }

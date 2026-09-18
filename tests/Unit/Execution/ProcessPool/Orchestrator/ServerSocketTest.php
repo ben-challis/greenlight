@@ -19,7 +19,7 @@ final readonly class ServerSocketTest
         $temporaryDirectory = \is_dir('/tmp') ? '/tmp' : \sys_get_temp_dir();
         $blocked = \tempnam($temporaryDirectory, 'greenlight-socket-');
 
-        Expect::that($blocked)
+        Expect::value($blocked)
             ->because('The test MUST create the blocked socket directory fixture.')
             ->toBeString();
 
@@ -27,10 +27,10 @@ final readonly class ServerSocketTest
         $socket = ServerSocket::listen($blocked);
         $this->cleanup->defer($socket->close(...));
 
-        Expect::that($socket->address)
+        Expect::value($socket->address)
             ->because('the orchestrator MUST use TCP when its Unix socket cannot open')
             ->toStartWith('tcp://127.0.0.1:');
-        Expect::that(\is_resource($socket->stream()))
+        Expect::value(\is_resource($socket->stream()))
             ->toBeTrue();
     }
 }

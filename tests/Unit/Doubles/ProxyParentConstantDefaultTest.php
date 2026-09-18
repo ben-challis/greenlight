@@ -28,12 +28,12 @@ final readonly class ProxyParentConstantDefaultTest
         try {
             $answer = $double->mode();
 
-            Expect::that($parameter->getDefaultValueConstantName())
+            Expect::value($parameter->getDefaultValueConstantName())
                 ->because('a generated method MUST resolve a parent constant against the parent type')
                 ->toBe(ParentConstantDefaultBase::class . '::MODE');
-            Expect::that($parameter->getDefaultValue())
+            Expect::value($parameter->getDefaultValue())
                 ->toBe('inherited');
-            Expect::that($answer)
+            Expect::value($answer)
                 ->toBe('answered');
         } finally {
             $doubles->dispose();

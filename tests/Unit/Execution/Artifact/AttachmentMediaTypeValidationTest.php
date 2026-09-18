@@ -36,7 +36,7 @@ final readonly class AttachmentMediaTypeValidationTest
             $budget,
         );
 
-        Expect::that(static fn() => $attachments->text(
+        Expect::calling(static fn() => $attachments->text(
             'report.txt',
             'body',
             $mediaType,
@@ -49,12 +49,12 @@ final readonly class AttachmentMediaTypeValidationTest
                     $mediaType,
                 ),
             );
-        Expect::that($attachments->collected())
+        Expect::value($attachments->collected())
             ->toBe([]);
-        Expect::that($budget->attachments)
+        Expect::value($budget->attachments)
             ->because('an invalid media type MUST NOT consume the shared attachment count')
             ->toBe(0);
-        Expect::that($budget->bytes)
+        Expect::value($budget->bytes)
             ->because('an invalid media type MUST NOT consume the shared byte count')
             ->toBe(0);
     }

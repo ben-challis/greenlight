@@ -23,7 +23,7 @@ final class CoberturaExporterTest
 
         $xml = new \SimpleXMLElement(new CoberturaExporter(1234)->export($map)[CoberturaExporter::FILE_NAME]);
 
-        Expect::that($this->structure($xml))
+        Expect::value($this->structure($xml))
             ->because('document carries metrics for every file')
             ->toBe([
                 'attributes' => [
@@ -84,7 +84,7 @@ final class CoberturaExporterTest
     {
         $xml = new \SimpleXMLElement(new CoberturaExporter()->export(CoverageMap::empty())[CoberturaExporter::FILE_NAME]);
 
-        Expect::that($this->structure($xml))
+        Expect::value($this->structure($xml))
             ->because('empty map still produces a parsable document')
             ->toBe([
                 'attributes' => [

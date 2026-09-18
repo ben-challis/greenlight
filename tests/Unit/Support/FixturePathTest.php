@@ -14,7 +14,7 @@ final readonly class FixturePathTest
     #[Test]
     public function resolvesAFileInsideTheSharedFixtureDirectory(): void
     {
-        Expect::that(FixturePath::get('DiscoveryBasic/AlphaTest.php'))
+        Expect::value(FixturePath::get('DiscoveryBasic/AlphaTest.php'))
             ->because('fixture paths MUST use the shared fixture directory')
             ->toBe(\dirname(__DIR__, 2) . '/Fixture/DiscoveryBasic/AlphaTest.php');
     }
@@ -23,7 +23,7 @@ final readonly class FixturePathTest
     #[DataSet('unsafePaths')]
     public function rejectsPathsThatCanEscapeOrVaryByPlatform(string $relative): void
     {
-        Expect::that(static fn(): string => FixturePath::get($relative))
+        Expect::calling(static fn(): string => FixturePath::get($relative))
             ->because('fixture paths MUST stay inside the shared fixture directory')
             ->toThrow(
                 \InvalidArgumentException::class,

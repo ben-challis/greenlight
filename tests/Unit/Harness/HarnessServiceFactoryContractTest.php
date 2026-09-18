@@ -29,7 +29,7 @@ final class HarnessServiceFactoryContractTest
             ),
         ]);
 
-        Expect::that(static fn(): object => $scopes->resolve(\Countable::class, 'probe'))
+        Expect::calling(static fn(): object => $scopes->resolve(\Countable::class, 'probe'))
             ->because('a harness factory contract error MUST identify a non-object value')
             ->toThrow(
                 UnresolvableService::class,
@@ -55,7 +55,7 @@ final class HarnessServiceFactoryContractTest
     {
         $scopes = $this->scopesFor(\Countable::class);
 
-        Expect::that(static fn(): object => $scopes->resolve(\Countable::class, 'probe'))
+        Expect::calling(static fn(): object => $scopes->resolve(\Countable::class, 'probe'))
             ->because('an immediate harness factory MUST return its registered type')
             ->toThrow(
                 UnresolvableService::class,
@@ -69,7 +69,7 @@ final class HarnessServiceFactoryContractTest
     {
         $scopes = $this->scopesFor(FactoryContractTarget::class);
         $service = $scopes->resolve(FactoryContractTarget::class, 'probe');
-        Expect::that(static fn(): string => $service->value())
+        Expect::calling(static fn(): string => $service->value())
             ->because('a lazy harness factory MUST return its registered type when initialized')
             ->toThrow(
                 UnresolvableService::class,

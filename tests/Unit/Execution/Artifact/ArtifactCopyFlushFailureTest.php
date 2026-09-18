@@ -34,7 +34,7 @@ final readonly class ArtifactCopyFlushFailureTest
 
         UnflushableStream::reset();
 
-        Expect::that(static fn() => new NativeFileCopier()->copy(
+        Expect::calling(static fn() => new NativeFileCopier()->copy(
             $source,
             self::SCHEME . '://destination',
         ))
@@ -43,7 +43,7 @@ final readonly class ArtifactCopyFlushFailureTest
                 AttachmentError::class,
                 message: 'Failed to flush the published attachment.',
             );
-        Expect::that(UnflushableStream::closedStreams())
+        Expect::value(UnflushableStream::closedStreams())
             ->because('a flush failure MUST close the destination stream')
             ->toBe(1);
     }

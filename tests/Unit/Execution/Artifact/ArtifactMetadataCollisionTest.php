@@ -35,7 +35,7 @@ final readonly class ArtifactMetadataCollisionTest
             $configuration,
         );
 
-        Expect::that(static fn() => $store->stageBytes(
+        Expect::calling(static fn() => $store->stageBytes(
             'evidence',
             'evidence.txt',
             $storageKey,
@@ -50,10 +50,10 @@ final readonly class ArtifactMetadataCollisionTest
                 AttachmentError::class,
                 message: 'Failed to finalize attachment recovery metadata.',
             );
-        Expect::that(\is_dir($metadata))
+        Expect::value(\is_dir($metadata))
             ->because('rollback MUST preserve pre-existing metadata blockers')
             ->toBeTrue();
-        Expect::that(\file_exists($staging . '/' . $storageKey))
+        Expect::value(\file_exists($staging . '/' . $storageKey))
             ->because('rollback MUST remove attachment content without completed metadata')
             ->toBeFalse();
 
@@ -69,7 +69,7 @@ final readonly class ArtifactMetadataCollisionTest
             $configuration,
         );
 
-        Expect::that($staged->name)
+        Expect::value($staged->name)
             ->because('a metadata failure MUST release its run quota')
             ->toBe('replacement.txt');
     }

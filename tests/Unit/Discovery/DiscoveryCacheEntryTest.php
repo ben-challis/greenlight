@@ -30,11 +30,11 @@ final class DiscoveryCacheEntryTest
 
         $entry = DiscoveryCacheEntry::fromDecoded($decoded);
 
-        Expect::that($entry)
+        Expect::value($entry)
             ->because('The decoded discovery cache entry MUST be valid.')
             ->toBeInstanceOf(DiscoveryCacheEntry::class);
 
-        Expect::that($entry->jsonSerialize())
+        Expect::value($entry->jsonSerialize())
             ->because('a valid decoded entry serializes to the same shape')
             ->toBe($decoded);
     }
@@ -48,11 +48,11 @@ final class DiscoveryCacheEntryTest
             'entries' => [['class' => 'Example\Test']],
         ]);
 
-        Expect::that($entry)
+        Expect::value($entry)
             ->because('The legacy discovery cache entry MUST be valid.')
             ->toBeInstanceOf(DiscoveryCacheEntry::class);
 
-        Expect::that($entry->dependencies)
+        Expect::value($entry->dependencies)
             ->because('a legacy entry without dependencies MUST use an empty dependency map')
             ->toBe([]);
     }
@@ -64,7 +64,7 @@ final class DiscoveryCacheEntryTest
     #[DataSet('malformedDecodedEntries')]
     public function aMalformedDecodedEntryIsRejected(array $decoded): void
     {
-        Expect::that(DiscoveryCacheEntry::fromDecoded($decoded))
+        Expect::value(DiscoveryCacheEntry::fromDecoded($decoded))
             ->because('a malformed decoded entry is rejected')
             ->toBeNull();
     }
@@ -74,7 +74,7 @@ final class DiscoveryCacheEntryTest
     {
         $entry = new DiscoveryCacheEntry(100, 200, [[]]);
 
-        Expect::that($entry->planEntries())
+        Expect::value($entry->planEntries())
             ->because('an undecodable plan entry MUST become a cache miss')
             ->toBeNull();
     }

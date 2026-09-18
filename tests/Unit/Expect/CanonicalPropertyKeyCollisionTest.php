@@ -15,8 +15,8 @@ final class CanonicalPropertyKeyCollisionTest
         $first = (object) ['a' => null, 'b' => null];
         $second = (object) ['a=>null:NULL,b' => null];
 
-        Expect::that([$first, $second])->toEqualCanonicalizing([$second, $first]);
-        Expect::that([$first, $first])->not()->toEqualCanonicalizing([$first, $second]);
+        Expect::value([$first, $second])->toEqualCanonicalizing([$second, $first]);
+        Expect::value([$first, $first])->not()->toEqualCanonicalizing([$first, $second]);
     }
 
     #[Test]
@@ -25,6 +25,6 @@ final class CanonicalPropertyKeyCollisionTest
         $first = (object) ["a'" => null, 'b\\' => null];
         $second = (object) ["a'=>null:NULL,b\\" => null];
 
-        Expect::that([$first, $second])->toEqualCanonicalizing([$second, $first]);
+        Expect::value([$first, $second])->toEqualCanonicalizing([$second, $first]);
     }
 }

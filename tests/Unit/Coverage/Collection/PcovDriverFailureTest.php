@@ -20,16 +20,16 @@ final class PcovDriverFailureTest
         $runtime->startFailure = $failure;
         $driver = new PcovDriver($runtime);
 
-        Expect::that(static function () use ($driver): void {
+        Expect::calling(static function () use ($driver): void {
             $driver->start();
         })
             ->because('a PCOV start failure MUST remain the reported failure')
             ->toThrow($failure);
-        Expect::that($runtime->calls)
+        Expect::value($runtime->calls)
             ->because('a PCOV start failure MUST stop before collection begins')
             ->toBe(['start']);
 
-        Expect::that(static fn(): mixed => $driver->stop())
+        Expect::calling(static fn(): mixed => $driver->stop())
             ->because('a PCOV start failure MUST leave its collection window closed')
             ->toThrow(
                 \LogicException::class,
@@ -46,14 +46,14 @@ final class PcovDriverFailureTest
         $driver = new PcovDriver($runtime);
         $driver->start();
 
-        Expect::that(static fn(): mixed => $driver->stop())
+        Expect::calling(static fn(): mixed => $driver->stop())
             ->because('a PCOV collection failure MUST remain the reported failure')
             ->toThrow($failure);
-        Expect::that($runtime->calls)
+        Expect::value($runtime->calls)
             ->because('a PCOV collection failure MUST still stop and clear extension state')
             ->toBe(['start', 'collect', 'stop', 'clear']);
 
-        Expect::that(static fn(): mixed => $driver->stop())
+        Expect::calling(static fn(): mixed => $driver->stop())
             ->because('a failed PCOV collection MUST close its collection window')
             ->toThrow(
                 \LogicException::class,
@@ -74,7 +74,7 @@ final class PcovDriverFailureTest
         $driver = new PcovDriver($runtime);
         $driver->start();
 
-        Expect::that(static fn(): mixed => $driver->stop())
+        Expect::calling(static fn(): mixed => $driver->stop())
             ->because('PCOV cleanup failures MUST preserve their precedence and causes')
             ->toThrow(
                 static function (\RuntimeException $caught) use (
@@ -82,16 +82,16 @@ final class PcovDriverFailureTest
                     $stopFailure,
                     $collectFailure,
                 ): void {
-                    Expect::that($caught)->toBe($clearFailure);
-                    Expect::that($caught->getPrevious())->toBe($stopFailure);
-                    Expect::that($caught->getPrevious()?->getPrevious())->toBe($collectFailure);
+                    Expect::value($caught)->toBe($clearFailure);
+                    Expect::value($caught->getPrevious())->toBe($stopFailure);
+                    Expect::value($caught->getPrevious()?->getPrevious())->toBe($collectFailure);
                 },
             );
-        Expect::that($runtime->calls)
+        Expect::value($runtime->calls)
             ->because('PCOV cleanup MUST attempt every operation after collection fails')
             ->toBe(['start', 'collect', 'stop', 'clear']);
 
-        Expect::that(static fn(): mixed => $driver->stop())
+        Expect::calling(static fn(): mixed => $driver->stop())
             ->because('simultaneous PCOV failures MUST close the collection window')
             ->toThrow(
                 \LogicException::class,
@@ -120,14 +120,14 @@ final class PcovDriverFailureTest
         $driver = new PcovDriver($runtime);
         $driver->start();
 
-        Expect::that(static fn(): mixed => $driver->stop())
+        Expect::calling(static fn(): mixed => $driver->stop())
             ->because('a PCOV cleanup failure MUST remain the reported failure')
             ->toThrow($failure);
-        Expect::that($runtime->calls)
+        Expect::value($runtime->calls)
             ->because('PCOV cleanup MUST attempt clear even if stop fails')
             ->toBe(['start', 'collect', 'stop', 'clear']);
 
-        Expect::that(static fn(): mixed => $driver->stop())
+        Expect::calling(static fn(): mixed => $driver->stop())
             ->because('a PCOV cleanup failure MUST close its collection window')
             ->toThrow(
                 \LogicException::class,

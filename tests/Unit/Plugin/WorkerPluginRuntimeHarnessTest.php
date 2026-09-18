@@ -58,7 +58,7 @@ final class WorkerPluginRuntimeHarnessTest
             [],
         );
 
-        Expect::that($calls->getArrayCopy())
+        Expect::value($calls->getArrayCopy())
             ->because('harness providers MUST keep stable plugin priority order')
             ->toBe([
                 'early',
@@ -106,7 +106,7 @@ final class WorkerPluginRuntimeHarnessTest
             [],
         );
 
-        Expect::that($scopes->resolve(\stdClass::class, 'test'))
+        Expect::value($scopes->resolve(\stdClass::class, 'test'))
             ->because('a terminal resolver MUST follow all fallback-capable resolvers')
             ->toBe($answer);
     }

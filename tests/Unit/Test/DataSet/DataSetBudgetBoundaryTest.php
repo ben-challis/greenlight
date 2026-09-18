@@ -24,7 +24,7 @@ final readonly class DataSetBudgetBoundaryTest
             5.0,
         );
 
-        Expect::that($rows)
+        Expect::value($rows)
             ->because('a provider MUST exceed its time budget before discovery rejects it')
             ->toBe([
                 'first case' => ['a'],
@@ -43,7 +43,7 @@ final readonly class DataSetBudgetBoundaryTest
             \PHP_FLOAT_MAX,
         );
 
-        Expect::that($rows)
+        Expect::value($rows)
             ->because('a finite provider budget MUST retain its duration after conversion to nanoseconds')
             ->toBe([
                 'first case' => ['a'],

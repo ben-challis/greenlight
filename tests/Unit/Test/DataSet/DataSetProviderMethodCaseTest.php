@@ -24,7 +24,7 @@ final class DataSetProviderMethodCaseTest
             5.0,
         );
 
-        Expect::that($rows)
+        Expect::value($rows)
             ->because('data-set provider names MUST follow PHP case-insensitive method lookup')
             ->toBe([
                 'from attribute' => ['inline'],

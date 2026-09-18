@@ -31,7 +31,7 @@ final class FilterIncludeCompositionTest
             paths: ['/repo/tests/Unit/'],
         ));
 
-        Expect::that($filter->accepts($class, $method, $groups, $path))
+        Expect::value($filter->accepts($class, $method, $groups, $path))
             ->because('a candidate MUST satisfy every configured include dimension')
             ->toBe($accepted);
     }

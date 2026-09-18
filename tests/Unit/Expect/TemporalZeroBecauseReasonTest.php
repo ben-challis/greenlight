@@ -17,20 +17,20 @@ final readonly class TemporalZeroBecauseReasonTest
         $clock = new FakePollingClock();
         $detail = FailureProbe::detailOf(static fn() => ExpectationRuntime::withClock(
             $clock,
-            static fn() => Expect::consistently(static fn(): bool => false)
+            static fn() => Expect::calling(static fn(): bool => false)->returnValue()->consistently()
                 ->for(1.000)
                 ->because('0')
                 ->toBeTrue(),
         ));
 
-        Expect::that($detail->message)
+        Expect::value($detail->message)
             ->because('a temporal expectation MUST retain a zero reason')
             ->toBe(
                 'The consistently() expectation failed on the first observation. '
                 . 'Last failure: Expected false to be true because 0. '
                 . 'Observations: +0.0ms false.',
             );
-        Expect::that($clock->sleeps)
+        Expect::value($clock->sleeps)
             ->because('a first-observation failure MUST NOT wait')
             ->toBe([]);
     }

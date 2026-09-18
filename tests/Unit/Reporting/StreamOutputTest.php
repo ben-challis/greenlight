@@ -35,7 +35,7 @@ final readonly class StreamOutputTest
 
         \rewind($stream);
 
-        Expect::that(\stream_get_contents($stream))->because('writes accumulate on the stream')->toBe('first second');
+        Expect::value(\stream_get_contents($stream))->because('writes accumulate on the stream')->toBe('first second');
     }
 
     #[Test]
@@ -43,7 +43,7 @@ final readonly class StreamOutputTest
     {
         $stream = ErrorTrap::run(static fn() => \fopen('php://memory', 'r'));
 
-        Expect::that($stream)
+        Expect::value($stream)
             ->because('Greenlight MUST open the read-only in-memory stream.')
             ->not()
             ->toBeFalse();
@@ -51,7 +51,7 @@ final readonly class StreamOutputTest
 
         $output = new StreamOutput($stream);
 
-        Expect::that(static function () use ($output): void {
+        Expect::calling(static function () use ($output): void {
             $output->write('cannot be written');
         })
             ->because('a stream write failure becomes a reporting error')
@@ -69,11 +69,11 @@ final readonly class StreamOutputTest
 
         $output = new StreamOutput($stream);
 
-        Expect::that(static fn() => $output->write('cannot be written'))
+        Expect::calling(static fn() => $output->write('cannot be written'))
             ->because('a native stream throwable MUST not escape the reporting seam')
             ->toThrow(
                 static function (ReportGenerationFailed $error): void {
-                    Expect::that($error->getPrevious())
+                    Expect::value($error->getPrevious())
                         ->because('the reporting error MUST preserve the native stream error')
                         ->toBeInstanceOf(\TypeError::class);
                 },
@@ -87,7 +87,7 @@ final readonly class StreamOutputTest
 
         new StreamOutput($stream)->write('complete reporter output');
 
-        Expect::that(PartialWriteStream::contents())
+        Expect::value(PartialWriteStream::contents())
             ->because('a short stream write MUST NOT truncate reporter output')
             ->toBe('complete reporter output');
     }
@@ -99,7 +99,7 @@ final readonly class StreamOutputTest
 
         $output = new StreamOutput($stream);
 
-        Expect::that(static fn() => $output->write('cannot make progress'))
+        Expect::calling(static fn() => $output->write('cannot make progress'))
             ->because('a zero-byte write MUST stop instead of retrying without a limit')
             ->toThrow(
                 ReportGenerationFailed::class,
@@ -116,7 +116,7 @@ final readonly class StreamOutputTest
 
         $stream = ErrorTrap::run(static fn() => \fopen(self::PARTIAL_WRITE_SCHEME . '://' . $path, 'wb'));
 
-        Expect::that($stream)
+        Expect::value($stream)
             ->because('Greenlight MUST open the partial-write stream.')
             ->not()
             ->toBeFalse();

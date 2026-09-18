@@ -15,8 +15,8 @@ final class GracefulShutdownTest
     {
         $shutdown = new GracefulShutdown();
 
-        Expect::that($shutdown->requested())->because('starts with nothing requested')->toBeFalse();
-        Expect::that($shutdown->signal())->because('starts with nothing requested')->toBe(null);
+        Expect::value($shutdown->requested())->because('starts with nothing requested')->toBeFalse();
+        Expect::value($shutdown->signal())->because('starts with nothing requested')->toBe(null);
     }
 
     #[Test]
@@ -25,13 +25,13 @@ final class GracefulShutdownTest
         $sigint = new GracefulShutdown();
         $sigint->request(2);
 
-        Expect::that($sigint->requested())->because('has a requested signal')->toBeTrue();
-        Expect::that($sigint->signal())->because('keeps the requested signal')->toBe(2);
+        Expect::value($sigint->requested())->because('has a requested signal')->toBeTrue();
+        Expect::value($sigint->signal())->because('keeps the requested signal')->toBe(2);
 
         $sigterm = new GracefulShutdown();
         $sigterm->request(15);
 
-        Expect::that($sigterm->signal())->because('keeps the requested signal')->toBe(15);
+        Expect::value($sigterm->signal())->because('keeps the requested signal')->toBe(15);
     }
 
     #[Test]
@@ -41,6 +41,6 @@ final class GracefulShutdownTest
         $shutdown->request(15);
         $shutdown->request(2);
 
-        Expect::that($shutdown->signal())->because('keeps the first signal')->toBe(15);
+        Expect::value($shutdown->signal())->because('keeps the first signal')->toBe(15);
     }
 }

@@ -26,7 +26,7 @@ final readonly class OrchestratorPluginRuntimeFixtureTest
             new FakeIntegrationFixtureProvider([$second]),
         ], new CollectingEventSink());
 
-        Expect::that([...$runtime->fixtureDefinitions()])
+        Expect::value([...$runtime->fixtureDefinitions()])
             ->because('the runtime MUST retain integration fixture provider order')
             ->toBe([$first, $second]);
     }
@@ -47,13 +47,13 @@ final readonly class OrchestratorPluginRuntimeFixtureTest
 
         $runtime = OrchestratorPluginRuntime::fromPlugins([$provider], new CollectingEventSink());
 
-        Expect::that(fn(): array => [...$runtime->fixtureDefinitions()])
+        Expect::calling(fn(): array => [...$runtime->fixtureDefinitions()])
             ->toThrow(static function (IntegrationFixtureError $error) use ($failure, $provider): void {
-                Expect::that($error->getMessage())->toBe(\sprintf(
+                Expect::value($error->getMessage())->toBe(\sprintf(
                     'Integration fixture provider "%s" failed: provider exploded.',
                     $provider::class,
                 ));
-                Expect::that($error->getPrevious())->toBe($failure);
+                Expect::value($error->getPrevious())->toBe($failure);
             });
     }
 
@@ -65,7 +65,7 @@ final readonly class OrchestratorPluginRuntimeFixtureTest
 
         $runtime = OrchestratorPluginRuntime::fromPlugins([$provider], new CollectingEventSink());
 
-        Expect::that(fn(): array => [...$runtime->fixtureDefinitions()])
+        Expect::calling(fn(): array => [...$runtime->fixtureDefinitions()])
             ->because('integration fixture providers MUST return fixture definitions')
             ->toThrow(
                 IntegrationFixtureError::class,
@@ -98,7 +98,7 @@ final readonly class OrchestratorPluginRuntimeFixtureTest
             $laterProvider,
         ], new CollectingEventSink());
 
-        Expect::that(fn() => IntegrationFixtureManager::provision(
+        Expect::calling(fn() => IntegrationFixtureManager::provision(
             $runtime->fixtureDefinitions(),
             'run-duplicate',
             1,

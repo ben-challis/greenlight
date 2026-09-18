@@ -43,7 +43,7 @@ final readonly class ArtifactTestQuotaRollbackTest
         );
         $first->text('accepted.txt', '1234');
 
-        Expect::that(static fn() => $first->text('rejected.txt', '12'))
+        Expect::calling(static fn() => $first->text('rejected.txt', '12'))
             ->because('the per-test byte limit MUST reject excess evidence')
             ->toThrow(
                 AttachmentError::class,
@@ -57,7 +57,7 @@ final readonly class ArtifactTestQuotaRollbackTest
         );
         $second->text('accepted.txt', '12');
 
-        Expect::that($second->collected())
+        Expect::value($second->collected())
             ->because('a test quota rejection MUST release its run quota')
             ->toHaveCount(1);
     }
@@ -85,7 +85,7 @@ final readonly class ArtifactTestQuotaRollbackTest
             $budget,
         );
 
-        Expect::that(static fn() => $first->text('rejected.txt', 'x'))
+        Expect::calling(static fn() => $first->text('rejected.txt', 'x'))
             ->because('per-test quota arithmetic MUST NOT overflow')
             ->toThrow(
                 AttachmentError::class,
@@ -94,7 +94,7 @@ final readonly class ArtifactTestQuotaRollbackTest
                     \PHP_INT_MAX,
                 ),
             );
-        Expect::that($budget->bytes)
+        Expect::value($budget->bytes)
             ->because('a rejected attachment MUST NOT change the test budget')
             ->toBe(\PHP_INT_MAX);
 
@@ -105,7 +105,7 @@ final readonly class ArtifactTestQuotaRollbackTest
         );
         $second->text('accepted.txt', 'x');
 
-        Expect::that($second->collected())
+        Expect::value($second->collected())
             ->because('an overflow-safe test quota rejection MUST release its run quota')
             ->toHaveCount(1);
     }

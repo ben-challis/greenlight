@@ -42,10 +42,10 @@ final readonly class CoverageDiffOutputTest
             ],
         );
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('removing an uncovered file MUST NOT fail the coverage diff')
             ->toBe(0);
-        Expect::that($result->output())
+        Expect::value($result->output())
             ->because('a removed zero-percent file has no useful file-level delta')
             ->toBe('Coverage: baseline 50.00%, current 100.00% (+50.00)');
     }
@@ -74,10 +74,10 @@ final readonly class CoverageDiffOutputTest
             ],
         );
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('explicit roots MUST compare matching project-relative files')
             ->toBe(1);
-        Expect::that($result->stdoutLines())
+        Expect::value($result->stdoutLines())
             ->because('portable comparison output MUST use the normalized project-relative path')
             ->toBe([
                 'Coverage: baseline 100.00%, current 50.00% (-50.00)',
@@ -101,7 +101,7 @@ final readonly class CoverageDiffOutputTest
             '--maximum-uncovered-lines=1',
         ]);
 
-        Expect::that($passing->exitCode)
+        Expect::value($passing->exitCode)
             ->because('the current report equals both inclusive limits')
             ->toBe(0);
 
@@ -113,10 +113,10 @@ final readonly class CoverageDiffOutputTest
             '--maximum-uncovered-lines=0',
         ]);
 
-        Expect::that($failing->exitCode)
+        Expect::value($failing->exitCode)
             ->because('a current report that fails a gate MUST fail coverage:diff')
             ->toBe(1);
-        Expect::that($failing->output())
+        Expect::value($failing->output())
             ->toContain('Coverage gate failed: 50.00% is less than the minimum 50.01%.')
             ->toContain('Coverage gate failed: 1 uncovered line exceeds the maximum 0.')
             ->not()->toContain('Coverage regressed against the baseline.');

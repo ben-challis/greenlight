@@ -33,7 +33,7 @@ final readonly class ArtifactOutputSafetyTest
     {
         $workingDirectory = $this->tempDirectory->subdirectory('invalid-output');
 
-        Expect::that(static fn(): ArtifactStore => ArtifactStore::open(
+        Expect::calling(static fn(): ArtifactStore => ArtifactStore::open(
             new ArtifactConfiguration("published\0outside"),
             $workingDirectory,
             'run-1',
@@ -70,16 +70,16 @@ final readonly class ArtifactOutputSafetyTest
             $workingDirectoryWarning,
         );
 
-        Expect::that($absoluteStore->publicDirectory())
+        Expect::value($absoluteStore->publicDirectory())
             ->because('a restricted absolute output directory MUST keep its configured path')
             ->toBe($restricted . '/run-output');
-        Expect::that($workingDirectoryStore->publicDirectory())
+        Expect::value($workingDirectoryStore->publicDirectory())
             ->because('a restricted working directory MUST keep its configured path')
             ->toBe($restricted . '/artifacts/run-working-directory');
-        Expect::that($absoluteWarning)
+        Expect::value($absoluteWarning)
             ->because('a restricted absolute artifact path MUST not leak engine diagnostics')
             ->toBeNull();
-        Expect::that($workingDirectoryWarning)
+        Expect::value($workingDirectoryWarning)
             ->because('a restricted working directory MUST not leak engine diagnostics')
             ->toBeNull();
     }
@@ -96,7 +96,7 @@ final readonly class ArtifactOutputSafetyTest
         \mkdir($store->publicDirectory(), 0o777, true);
         \symlink($outside, $store->publicDirectory() . '/' . $firstSegment);
 
-        Expect::that(static fn(): TestResult => $store->publish(new TestResult(
+        Expect::calling(static fn(): TestResult => $store->publish(new TestResult(
             $id,
             Outcome::Failed,
             0.1,
@@ -108,10 +108,10 @@ final readonly class ArtifactOutputSafetyTest
                 AttachmentError::class,
                 message: 'Attachment output directory contains a symbolic link.',
             );
-        Expect::that(\glob($outside . '/*'))
+        Expect::value(\glob($outside . '/*'))
             ->because('a rejected publication MUST NOT write outside its output directory')
             ->toBe([]);
-        Expect::that(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
+        Expect::value(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
             ->because('rejected evidence remains available for recovery')
             ->toBeTrue();
     }
@@ -128,7 +128,7 @@ final readonly class ArtifactOutputSafetyTest
         $blocker = $store->publicDirectory() . '/' . $firstSegment;
         \file_put_contents($blocker, 'keep');
 
-        Expect::that(static fn(): TestResult => $store->publish(new TestResult(
+        Expect::calling(static fn(): TestResult => $store->publish(new TestResult(
             $id,
             Outcome::Failed,
             0.1,
@@ -140,10 +140,10 @@ final readonly class ArtifactOutputSafetyTest
                 AttachmentError::class,
                 message: 'Attachment output path contains a non-directory entry.',
             );
-        Expect::that((string) \file_get_contents($blocker))
+        Expect::value((string) \file_get_contents($blocker))
             ->because('a rejected publication MUST NOT replace the blocking entry')
             ->toBe('keep');
-        Expect::that(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
+        Expect::value(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
             ->because('rejected evidence remains available for recovery')
             ->toBeTrue();
     }
@@ -166,7 +166,7 @@ final readonly class ArtifactOutputSafetyTest
         $this->cleanup->defer($store->cleanup(...));
         $this->cleanup->defer(static fn(): bool => \chmod($readOnly, 0o700));
 
-        Expect::that(static fn(): TestResult => $store->publish(new TestResult(
+        Expect::calling(static fn(): TestResult => $store->publish(new TestResult(
             $id,
             Outcome::Failed,
             0.1,
@@ -178,7 +178,7 @@ final readonly class ArtifactOutputSafetyTest
                 AttachmentError::class,
                 matching: '/^Failed to create attachment output directory/',
             );
-        Expect::that(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
+        Expect::value(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
             ->because('rejected evidence MUST remain available for recovery')
             ->toBeTrue();
     }

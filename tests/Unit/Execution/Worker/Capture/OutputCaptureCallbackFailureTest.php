@@ -41,7 +41,7 @@ final readonly class OutputCaptureCallbackFailureTest
         });
 
         try {
-            Expect::that($capture->stop(...))
+            Expect::calling($capture->stop(...))
                 ->because('capture cleanup MUST preserve the first callback failure')
                 ->toThrow($first);
             $levelAfterStop = \ob_get_level();
@@ -61,10 +61,10 @@ final readonly class OutputCaptureCallbackFailureTest
             } while ($active !== $previous);
         }
 
-        Expect::that($levelAfterStop)
+        Expect::value($levelAfterStop)
             ->because('a callback failure MUST NOT leave capture buffers active')
             ->toBe($baseline);
-        Expect::that($messages)
+        Expect::value($messages)
             ->because('the previous error handler MUST receive later diagnostics')
             ->toBe(['After capture.']);
 
@@ -72,6 +72,6 @@ final readonly class OutputCaptureCallbackFailureTest
         echo 'Next capture.';
         $captured = $capture->stop();
 
-        Expect::that($captured->stdout)->toBe('Next capture.');
+        Expect::value($captured->stdout)->toBe('Next capture.');
     }
 }

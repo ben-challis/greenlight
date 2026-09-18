@@ -40,7 +40,7 @@ final class FakeFixtureTest
     #[DataSet('manualInMemoryFixtures')]
     public function manualInMemoryFixturesIdentifyThemselvesAsFakes(string $fixture): void
     {
-        Expect::that(\is_subclass_of($fixture, Fake::class))
+        Expect::value(\is_subclass_of($fixture, Fake::class))
             ->because('a manual in-memory fixture MUST identify itself as a fake')
             ->toBeTrue();
     }
@@ -50,7 +50,7 @@ final class FakeFixtureTest
     #[DataSet('optionalLaravelFixtures')]
     public function optionalLaravelFixturesIdentifyThemselvesAsFakes(string $fixture): void
     {
-        Expect::that(\is_subclass_of($fixture, Fake::class))
+        Expect::value(\is_subclass_of($fixture, Fake::class))
             ->because('the optional Laravel fixture MUST identify itself as a fake')
             ->toBeTrue();
     }

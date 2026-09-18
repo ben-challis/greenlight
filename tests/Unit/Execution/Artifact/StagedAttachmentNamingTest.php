@@ -40,7 +40,7 @@ final readonly class StagedAttachmentNamingTest
             $attachments->seal(),
         );
 
-        Expect::that($names)
+        Expect::value($names)
             ->because('duplicate extensionless attachment names MUST remain distinct')
             ->toBe(['01-evidence', '02-evidence-2']);
     }

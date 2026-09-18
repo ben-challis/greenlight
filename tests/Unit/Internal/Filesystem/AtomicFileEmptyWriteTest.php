@@ -21,10 +21,10 @@ final readonly class AtomicFileEmptyWriteTest
 
         AtomicFile::write($path, '');
 
-        Expect::that(\file_get_contents($path))
+        Expect::value(\file_get_contents($path))
             ->because('an empty atomic write MUST replace the target')
             ->toBe('');
-        Expect::that(\glob($path . '.tmp-*'))
+        Expect::value(\glob($path . '.tmp-*'))
             ->because('an empty atomic write MUST leave no temporary file')
             ->toBe([]);
     }

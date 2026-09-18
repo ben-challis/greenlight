@@ -17,7 +17,7 @@ final class MatcherMapConflictDiagnosticTest
     #[Test]
     public function conflictingSignaturesIdentifyBothDeclarations(): void
     {
-        Expect::that(
+        Expect::calling(
             static fn(): MatcherMap => MatcherMap::fromConfigFiles([
                 self::CONFIG,
                 self::CONFLICTING_CONFIG,

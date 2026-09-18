@@ -27,7 +27,7 @@ final class CiReporterArtifactDirectoryGuardTest
         $reporter->onEvent(new TestFinished($this->result(), 1.0));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('GitHub MUST NOT announce an artifact directory that the run did not create')
             ->toBe('');
     }
@@ -41,7 +41,7 @@ final class CiReporterArtifactDirectoryGuardTest
         $reporter->onEvent(new TestFinished($this->result(), 1.0));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('TeamCity MUST retain attachment metadata without an artifact publication command')
             ->toBe(
                 "##teamcity[testMetadata testName='Example\\AttachmentTest::passes' "

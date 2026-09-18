@@ -67,9 +67,9 @@ final readonly class PhpStanUnpackedCaptureArgumentTest
             PHP,
         );
 
-        Expect::that($probe->goodPassed)->because('PHPStan messages: ' . \implode("\n", $probe->goodErrors))->toBeTrue();
-        Expect::that($probe->exitCode)->toBe(1);
-        Expect::that(\count($probe->errors))->toBe(3);
-        Expect::that($probe->messages())->toContain('expects int, mixed given');
+        Expect::value($probe->goodPassed)->because('PHPStan messages: ' . \implode("\n", $probe->goodErrors))->toBeTrue();
+        Expect::value($probe->exitCode)->toBe(1);
+        Expect::value(\count($probe->errors))->toBe(3);
+        Expect::value($probe->messages())->toContain('expects int, mixed given');
     }
 }

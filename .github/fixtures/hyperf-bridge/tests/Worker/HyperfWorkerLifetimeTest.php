@@ -29,12 +29,12 @@ final readonly class HyperfWorkerLifetimeTest
     #[Test]
     public function firstAttemptUsesTheBootedWorkerContainer(): void
     {
-        Expect::that($this->application)->toBeInstanceOf(Application::class);
-        Expect::that(Coroutine::inCoroutine())->toBeTrue();
-        Expect::that($this->greeter->greet('Ada'))->toBe('Hello, Ada through AOP');
-        Expect::that($this->namedGreeter->greet())->toBe('Named service');
-        Expect::that($this->counter->count())->toBe(0);
-        Expect::that($this->probe->snapshot())->toBe([
+        Expect::value($this->application)->toBeInstanceOf(Application::class);
+        Expect::value(Coroutine::inCoroutine())->toBeTrue();
+        Expect::value($this->greeter->greet('Ada'))->toBe('Hello, Ada through AOP');
+        Expect::value($this->namedGreeter->greet())->toBe('Named service');
+        Expect::value($this->counter->count())->toBe(0);
+        Expect::value($this->probe->snapshot())->toBe([
             'containers' => 1,
             'resets' => 0,
             'disposals' => 0,
@@ -49,9 +49,9 @@ final readonly class HyperfWorkerLifetimeTest
     #[Test]
     public function nextAttemptKeepsWorkerStateButReplacesCoroutineContext(): void
     {
-        Expect::that($this->counter->count())->toBe(1);
-        Expect::that(Context::has('greenlight.hyperf.probe'))->toBeFalse();
-        Expect::that($this->probe->snapshot())->toBe([
+        Expect::value($this->counter->count())->toBe(1);
+        Expect::value(Context::has('greenlight.hyperf.probe'))->toBeFalse();
+        Expect::value($this->probe->snapshot())->toBe([
             'containers' => 1,
             'resets' => 1,
             'disposals' => 0,

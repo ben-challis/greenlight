@@ -18,22 +18,22 @@ final readonly class OutcomeTransformationTest
         $transformation = new OutcomeTransformation('0', Outcome::Failed, Outcome::Skipped);
         $decoded = OutcomeTransformation::fromWire(JsonWire::roundTrip($transformation->toWire()));
 
-        Expect::that($transformation->transformedBy)
+        Expect::value($transformation->transformedBy)
             ->because('an outcome transformation MUST retain each non-empty source')
             ->toBe('0');
-        Expect::that($decoded->transformedBy)
+        Expect::value($decoded->transformedBy)
             ->because('the transformation source MUST survive the wire')
             ->toBe('0');
-        Expect::that($decoded->from)
+        Expect::value($decoded->from)
             ->toBe(Outcome::Failed);
-        Expect::that($decoded->to)
+        Expect::value($decoded->to)
             ->toBe(Outcome::Skipped);
     }
 
     #[Test]
     public function rejectsAnEmptySource(): void
     {
-        Expect::that(
+        Expect::calling(
             static fn(): OutcomeTransformation => new OutcomeTransformation(
                 '',
                 Outcome::Failed,

@@ -31,9 +31,9 @@ final class ScopeContainerLazyDisposalOrderTest
             },
         ));
 
-        Expect::that($calls)->toBe(1);
-        Expect::that($container->dispose())->toHaveCount(1);
-        Expect::that($container->dispose())->toBe([]);
+        Expect::value($calls)->toBe(1);
+        Expect::value($container->dispose())->toHaveCount(1);
+        Expect::value($container->dispose())->toBe([]);
     }
 
     #[Test]
@@ -53,13 +53,13 @@ final class ScopeContainerLazyDisposalOrderTest
             static fn(): SecondaryServiceProbe => new SecondaryServiceProbe(),
         ));
 
-        Expect::that($first)->toBeInstanceOf(ServiceProbe::class);
-        Expect::that($second)->toBeInstanceOf(SecondaryServiceProbe::class);
+        Expect::value($first)->toBeInstanceOf(ServiceProbe::class);
+        Expect::value($second)->toBeInstanceOf(SecondaryServiceProbe::class);
         $second->touch();
         $first->touch();
 
-        Expect::that($container->dispose())->toBe([]);
-        Expect::that(TraceLog::drain())->toBe([
+        Expect::value($container->dispose())->toBe([]);
+        Expect::value(TraceLog::drain())->toBe([
             'secondary:created',
             'secondary:touched',
             'probe1:created',
@@ -67,7 +67,7 @@ final class ScopeContainerLazyDisposalOrderTest
             'probe1:disposed',
             'secondary:disposed',
         ]);
-        Expect::that($container->dispose())->toBe([]);
-        Expect::that(TraceLog::drain())->toBe([]);
+        Expect::value($container->dispose())->toBe([]);
+        Expect::value(TraceLog::drain())->toBe([]);
     }
 }

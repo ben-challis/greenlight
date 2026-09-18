@@ -18,7 +18,7 @@ final class StubTest
         $doubles = new Doubles();
         $stub = $doubles->stub(Stubbable::class);
 
-        Expect::that($stub)->because('satisfies the type without running anything')->toBeInstanceOf(Stubbable::class);
+        Expect::value($stub)->because('satisfies the type without running anything')->toBeInstanceOf(Stubbable::class);
 
         $doubles->dispose();
     }
@@ -29,7 +29,7 @@ final class StubTest
         $doubles = new Doubles();
         $stub = $doubles->stub(Stubbable::class);
 
-        Expect::that(static fn(): string => $stub->name())->because('each call is an authoring error')
+        Expect::calling(static fn(): string => $stub->name())->because('each call is an authoring error')
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'Code called "name()" on the stub of "' . Stubbable::class . '". '
@@ -46,7 +46,7 @@ final class StubTest
         $doubles = new Doubles();
         $stub = $doubles->stub(Stubbable::class);
 
-        Expect::that(static function () use ($stub): void {
+        Expect::calling(static function () use ($stub): void {
             $stub->touch();
         })->because('even void calls are authoring errors')->toThrow(
             InvalidDoubleUsage::class,

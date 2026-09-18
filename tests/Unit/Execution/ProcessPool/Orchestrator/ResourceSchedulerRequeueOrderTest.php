@@ -32,10 +32,10 @@ final readonly class ResourceSchedulerRequeueOrderTest
         $scheduler->release($first);
         $second = SchedulingFixture::assignedLease($scheduler, $freshWorker);
 
-        Expect::that($first->unit->plan->classes())
+        Expect::value($first->unit->plan->classes())
             ->because('pending work MUST remain first in its queue')
             ->toBe(['Acme\\PendingTest']);
-        Expect::that($second->unit->plan->classes())
+        Expect::value($second->unit->plan->classes())
             ->because('requeued work MUST append behind pending work in its queue')
             ->toBe(['Acme\\RetriedTest']);
     }

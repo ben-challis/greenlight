@@ -25,19 +25,19 @@ final readonly class ArgumentCaptureTest
             $variadicCaptor = $plan->expects('variadic')->once()->andReturns([])->captureArgument(1);
         });
 
-        Expect::that($wide->withDefaults())
+        Expect::value($wide->withDefaults())
             ->because('capture argument ignores omitted optional and variadic positions')
             ->toBe('defaults');
-        Expect::that($wide->variadic('head'))->toBe([]);
+        Expect::value($wide->variadic('head'))->toBe([]);
 
-        Expect::that($optionalCaptor)
+        Expect::value($optionalCaptor)
             ->because('The optional captureArgument() call MUST return ArgumentCaptor.')
             ->toBeInstanceOf(ArgumentCaptor::class);
-        Expect::that($variadicCaptor)
+        Expect::value($variadicCaptor)
             ->because('The variadic captureArgument() call MUST return ArgumentCaptor.')
             ->toBeInstanceOf(ArgumentCaptor::class);
 
-        Expect::that($optionalCaptor->values())->toBe([]);
-        Expect::that($variadicCaptor->values())->toBe([]);
+        Expect::value($optionalCaptor->values())->toBe([]);
+        Expect::value($variadicCaptor->values())->toBe([]);
     }
 }

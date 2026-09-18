@@ -33,7 +33,7 @@ final class TeamCityPartialDiffTest
 
         $reporter->onEvent(new TestFinished($result, 1.0));
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('TeamCity details MUST retain each available partial diff side')
             ->toBe(
                 "##teamcity[testFailed name='Acme\\PartialDiffTest::reports' message='primary failure'"

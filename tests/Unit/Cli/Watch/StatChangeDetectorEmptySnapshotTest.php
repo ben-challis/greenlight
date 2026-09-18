@@ -19,14 +19,14 @@ final readonly class StatChangeDetectorEmptySnapshotTest
         $directory = $this->tempDirectory->subdirectory('empty-watch-directory');
         $detector = new StatChangeDetector([$directory]);
 
-        Expect::that($detector->poll())
+        Expect::value($detector->poll())
             ->because('the first poll MUST record an empty snapshot')
             ->toBe([]);
 
         $file = $directory . '/FirstTest.php';
         \file_put_contents($file, '<?php');
 
-        Expect::that($detector->poll())
+        Expect::value($detector->poll())
             ->because('the first PHP file MUST be reported after an empty snapshot')
             ->toBe([$file]);
     }

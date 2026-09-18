@@ -17,7 +17,7 @@ final class WatchMinimumDebounceTest
             ->debounceMilliseconds(1)
             ->toConfiguration();
 
-        Expect::that($configuration->debounceMilliseconds)
+        Expect::value($configuration->debounceMilliseconds)
             ->because('watch mode MUST accept its documented minimum debounce')
             ->toBe(1);
     }

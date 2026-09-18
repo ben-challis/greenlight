@@ -158,7 +158,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
                         #[\Greenlight\Attribute\Test]
                         public function testFormatsTotals(): void
                         {
-                            \Greenlight\Expect\Expect::that(Price::fromString('9.99')->times(2)->format())->toBe('19.98');
+                            \Greenlight\Expect\Expect::value(Price::fromString('9.99')->times(2)->format())->toBe('19.98');
                         }
                     }
                     CODE_SAMPLE,
@@ -1174,7 +1174,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         }
 
         $expectation = new MethodCall(
-            new StaticCall(new FullyQualified(Expect::class), 'that', [new Arg($subject)]),
+            new StaticCall(new FullyQualified(Expect::class), 'calling', [new Arg($subject)]),
             'toThrow',
             $toThrowArgs,
         );
@@ -1253,7 +1253,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     {
         $chain = new StaticCall(
             new FullyQualified(Expect::class),
-            'that',
+            'value',
             [new Arg($arguments[$conversion->subject]->value)],
         );
 

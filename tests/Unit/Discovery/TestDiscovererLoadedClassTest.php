@@ -55,7 +55,7 @@ final readonly class TestDiscovererLoadedClassTest
         };
         $this->autoloaders->register($loader);
 
-        Expect::that(
+        Expect::calling(
             static fn(): ExecutionPlan => new TestDiscoverer()->discover([$expectedDirectory]),
         )->because('discovery MUST reject class paths that it cannot resolve')->toThrow(
             DiscoveryError::class,
@@ -98,7 +98,7 @@ final readonly class TestDiscovererLoadedClassTest
         };
         $this->autoloaders->register($loader);
 
-        Expect::that(
+        Expect::calling(
             static fn(): ExecutionPlan => new TestDiscoverer()->discover([$expectedDirectory]),
         )->because('discovery MUST reject a class that the autoloader loaded from another file')->toThrow(
             DiscoveryError::class,

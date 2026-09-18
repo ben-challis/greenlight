@@ -21,11 +21,11 @@ final class ExactIdSelectionCopyTest
         $replacement = $original->withExactIds(['App\\ExampleTest::second']);
         $filtered = $replacement->withExcludedPaths(['/project/generated']);
 
-        Expect::that($original->acceptsId('App\\ExampleTest::first'))->toBeTrue();
-        Expect::that($original->acceptsId('App\\ExampleTest::second'))->toBeFalse();
-        Expect::that($filtered->acceptsId('App\\ExampleTest::first'))->toBeFalse();
-        Expect::that($filtered->acceptsId('App\\ExampleTest::second'))->toBeTrue();
-        Expect::that($filtered->acceptsId('App\\ExampleTest::pattern'))->toBeTrue();
-        Expect::that($filtered->acceptsId('app\\ExampleTest::second'))->toBeFalse();
+        Expect::value($original->acceptsId('App\\ExampleTest::first'))->toBeTrue();
+        Expect::value($original->acceptsId('App\\ExampleTest::second'))->toBeFalse();
+        Expect::value($filtered->acceptsId('App\\ExampleTest::first'))->toBeFalse();
+        Expect::value($filtered->acceptsId('App\\ExampleTest::second'))->toBeTrue();
+        Expect::value($filtered->acceptsId('App\\ExampleTest::pattern'))->toBeTrue();
+        Expect::value($filtered->acceptsId('app\\ExampleTest::second'))->toBeFalse();
     }
 }

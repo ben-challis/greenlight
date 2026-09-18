@@ -17,7 +17,7 @@ final readonly class CommandDefinitionTest
     #[DataSet('invalidDefinitions')]
     public function invalidDefinitionsAreRejected(string $name, string $description, string $message): void
     {
-        Expect::that(static fn(): CommandDefinition => new CommandDefinition(
+        Expect::calling(static fn(): CommandDefinition => new CommandDefinition(
             $name,
             $description,
             static fn(CommandInvocation $invocation): CommandResult => CommandResult::success(),

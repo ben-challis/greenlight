@@ -20,15 +20,15 @@ final class LaravelOnceStateResetTest
     public function resetClearsMemoizedOnceValues(): void
     {
         try {
-            Expect::that($this->memoizedValue())
+            Expect::value($this->memoizedValue())
                 ->because('Laravel once() MUST memoize a value before the reset')
                 ->toBe(1);
-            Expect::that($this->memoizedValue())
+            Expect::value($this->memoizedValue())
                 ->toBe(1);
 
             LaravelStateResetter::reset();
 
-            Expect::that($this->memoizedValue())
+            Expect::value($this->memoizedValue())
                 ->because('a reset MUST discard Laravel once() values from the previous application')
                 ->toBe(2);
         } finally {

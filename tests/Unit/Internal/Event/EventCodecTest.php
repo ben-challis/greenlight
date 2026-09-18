@@ -26,7 +26,7 @@ final class EventCodecTest
     #[Test]
     public function publishedTagsKeepTheirEventClasses(): void
     {
-        Expect::that(EventCodec::tags())
+        Expect::value(EventCodec::tags())
             ->because('published event tags MUST keep their machine-readable meanings')
             ->toBe([
                 'run-started' => RunStarted::class,
@@ -45,8 +45,8 @@ final class EventCodecTest
         foreach (CannedStream::events() as $event) {
             $decoded = EventCodec::fromTagged(EventCodec::toTagged($event));
 
-            Expect::that($decoded::class)->toBe($event::class);
-            Expect::that($decoded->occurredAt)->toBe($event->occurredAt);
+            Expect::value($decoded::class)->toBe($event::class);
+            Expect::value($decoded->occurredAt)->toBe($event->occurredAt);
         }
     }
 
@@ -55,7 +55,7 @@ final class EventCodecTest
     {
         $event = CannedStream::events()[0];
 
-        Expect::that(EventCodec::encodeJsonLine($event))->toBe(
+        Expect::value(EventCodec::encodeJsonLine($event))->toBe(
             "{\"v\":1,\"event\":\"run-started\",\"data\":{\"runId\":\"run-1\",\"plannedTests\":6,\"workers\":2,\"occurredAt\":1750000000.5,\"artifactsDirectory\":null}}\n",
         );
     }
@@ -68,21 +68,21 @@ final class EventCodecTest
             1,
         ));
 
-        Expect::that($event::class)->toBe(RunStarted::class);
-        Expect::that($event->occurredAt)->toBe(1.0);
+        Expect::value($event::class)->toBe(RunStarted::class);
+        Expect::value($event->occurredAt)->toBe(1.0);
     }
 
     #[Test]
     public function malformedJsonIsRejectedByTheCodec(): void
     {
-        Expect::that(static fn(): Event => EventCodec::decodeJsonLine('{'))
+        Expect::calling(static fn(): Event => EventCodec::decodeJsonLine('{'))
             ->toThrow(EventCodecFailed::class, message: 'The JSONL line is not valid JSON.');
     }
 
     #[Test]
     public function malformedJsonEnvelopesAreRejectedByTheCodec(): void
     {
-        Expect::that(static fn(): Event => EventCodec::decodeJsonLine('{"event":7,"data":[]}'))
+        Expect::calling(static fn(): Event => EventCodec::decodeJsonLine('{"event":7,"data":[]}'))
             ->toThrow(EventCodecFailed::class, message: 'The JSONL line does not contain an event envelope.');
     }
 
@@ -90,7 +90,7 @@ final class EventCodecTest
     #[DataSet('malformedJsonEnvelopeShapes')]
     public function malformedJsonEnvelopeShapesAreRejectedByTheCodec(string $line): void
     {
-        Expect::that(static fn(): Event => EventCodec::decodeJsonLine($line))
+        Expect::calling(static fn(): Event => EventCodec::decodeJsonLine($line))
             ->toThrow(EventCodecFailed::class, message: 'The JSONL line does not contain an event envelope.');
     }
 
@@ -105,14 +105,14 @@ final class EventCodecTest
     #[Test]
     public function malformedTaggedEventIdentifiersAreRejectedByTheCodec(): void
     {
-        Expect::that(static fn(): WireEvent => EventCodec::fromTagged(['data' => []]))
+        Expect::calling(static fn(): WireEvent => EventCodec::fromTagged(['data' => []]))
             ->toThrow(EventCodecFailed::class, message: 'Wire payload is missing the "event" key.');
     }
 
     #[Test]
     public function malformedTaggedEventDataIsRejectedByTheCodec(): void
     {
-        Expect::that(static fn(): WireEvent => EventCodec::fromTagged([
+        Expect::calling(static fn(): WireEvent => EventCodec::fromTagged([
             'event' => 'run-started',
             'data' => [true],
         ]))->toThrow(EventCodecFailed::class, message: 'Wire payload key "data" must be a map, got array.');
@@ -121,21 +121,21 @@ final class EventCodecTest
     #[Test]
     public function unsupportedJsonVersionsAreRejectedByTheCodec(): void
     {
-        Expect::that(static fn(): Event => EventCodec::decodeJsonLine('{"v":2,"event":"run-started","data":{}}'))
+        Expect::calling(static fn(): Event => EventCodec::decodeJsonLine('{"v":2,"event":"run-started","data":{}}'))
             ->toThrow(EventCodecFailed::class, message: 'Unsupported JSONL version 2.');
     }
 
     #[Test]
     public function unknownTagsAreRejectedByTheCodec(): void
     {
-        Expect::that(static fn(): Event => EventCodec::decodeJsonLine('{"v":1,"event":"future-event","data":{}}'))
+        Expect::calling(static fn(): Event => EventCodec::decodeJsonLine('{"v":1,"event":"future-event","data":{}}'))
             ->toThrow(EventCodecFailed::class, message: 'Unknown event type "future-event".');
     }
 
     #[Test]
     public function invalidKnownEventPayloadsAreRejectedByTheCodec(): void
     {
-        Expect::that(static fn(): Event => EventCodec::decodeJsonLine('{"v":1,"event":"run-started","data":{}}'))
+        Expect::calling(static fn(): Event => EventCodec::decodeJsonLine('{"v":1,"event":"run-started","data":{}}'))
             ->toThrow(EventCodecFailed::class, message: 'Wire payload is missing the "runId" key.');
     }
 
@@ -146,7 +146,7 @@ final class EventCodecTest
             public float $occurredAt = 1.0;
         };
 
-        Expect::that(static fn(): array => EventCodec::toTagged($event))
+        Expect::calling(static fn(): array => EventCodec::toTagged($event))
             ->toThrow(
                 EventCodecFailed::class,
                 message: \sprintf('Event "%s" has no stable tag.', $event::class),
@@ -172,7 +172,7 @@ final class EventCodecTest
             }
         };
 
-        Expect::that(static fn(): array => EventCodec::toTagged($event))
+        Expect::calling(static fn(): array => EventCodec::toTagged($event))
             ->toThrow(
                 EventCodecFailed::class,
                 message: \sprintf('Event "%s" has no stable tag.', $event::class),

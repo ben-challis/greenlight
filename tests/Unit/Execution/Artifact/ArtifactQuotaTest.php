@@ -38,7 +38,7 @@ final readonly class ArtifactQuotaTest
             new TestArtifactBudget(),
         );
 
-        Expect::that(static function () use ($attachments): void {
+        Expect::calling(static function () use ($attachments): void {
             $attachments->text('evidence.txt', 'body');
         })
             ->because('shared quota accounting MUST NOT follow symbolic links')
@@ -46,7 +46,7 @@ final readonly class ArtifactQuotaTest
                 AttachmentError::class,
                 message: 'Attachment quota path is unsafe.',
             );
-        Expect::that((string) \file_get_contents($outside))
+        Expect::value((string) \file_get_contents($outside))
             ->because('a rejected quota path MUST NOT change its target')
             ->toBe('untouched');
     }
@@ -69,7 +69,7 @@ final readonly class ArtifactQuotaTest
             new TestArtifactBudget(),
         );
 
-        Expect::that(static function () use ($attachments): void {
+        Expect::calling(static function () use ($attachments): void {
             $attachments->text('evidence.txt', 'body');
         })
             ->because('corrupt shared quota metadata MUST stop attachment staging')
@@ -77,7 +77,7 @@ final readonly class ArtifactQuotaTest
                 AttachmentError::class,
                 message: 'Attachment quota metadata is corrupt.',
             );
-        Expect::that(\glob($staging . '/*/attempt-*'))
+        Expect::value(\glob($staging . '/*/attempt-*'))
             ->because('a rejected quota reservation MUST NOT leave staging data')
             ->toBe([]);
     }
@@ -115,12 +115,12 @@ final readonly class ArtifactQuotaTest
             new TestArtifactBudget(),
         );
 
-        Expect::that(static function () use ($attachments): void {
+        Expect::calling(static function () use ($attachments): void {
             $attachments->text('evidence.txt', 'body');
         })
             ->because('quota accounting MUST reject additions that exceed an integer limit')
             ->toThrow(AttachmentError::class, message: $message);
-        Expect::that((string) \file_get_contents($quota))
+        Expect::value((string) \file_get_contents($quota))
             ->because('a rejected quota reservation MUST keep its previous accounting')
             ->toBe($metadata);
     }

@@ -20,7 +20,7 @@ final readonly class FileDeltaMissingSideTest
     ): void {
         $delta = new FileDelta('/src/Example.php', $baseline, $current, []);
 
-        Expect::that($delta->delta())
+        Expect::value($delta->delta())
             ->because('an absent coverage-map side MUST contribute zero percent')
             ->toBe($expected);
     }

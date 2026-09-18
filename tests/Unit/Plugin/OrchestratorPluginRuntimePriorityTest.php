@@ -42,7 +42,7 @@ final readonly class OrchestratorPluginRuntimePriorityTest
             [...$runtime->fixtureDefinitions()],
         );
 
-        Expect::that($ids)
+        Expect::value($ids)
             ->because('integration fixture providers MUST keep stable plugin priority order')
             ->toBe([
                 'early',
@@ -81,12 +81,12 @@ final readonly class OrchestratorPluginRuntimePriorityTest
 
         $retain = $runtime->retainAttachment($result, $attachment);
 
-        Expect::that($events->getArrayCopy())->toBe([
+        Expect::value($events->getArrayCopy())->toBe([
             'early:discard',
             'default:retain',
             'late:retain',
         ]);
-        Expect::that($retain)->toBeFalse();
+        Expect::value($retain)->toBeFalse();
     }
 
     #[Test]
@@ -127,12 +127,12 @@ final readonly class OrchestratorPluginRuntimePriorityTest
             $decider::class,
         );
 
-        Expect::that(static fn(): bool => $runtime->retainAttachment($result, $attachment))
+        Expect::calling(static fn(): bool => $runtime->retainAttachment($result, $attachment))
             ->because('the runtime MUST identify the failing attachment decider')
             ->toThrow(
                 static function (PluginRuntimeError $error) use ($failure, $message): void {
-                    Expect::that($error->getMessage())->toBe($message);
-                    Expect::that($error->getPrevious())->toBe($failure);
+                    Expect::value($error->getMessage())->toBe($message);
+                    Expect::value($error->getPrevious())->toBe($failure);
                 },
             );
     }

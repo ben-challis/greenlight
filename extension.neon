@@ -24,7 +24,6 @@ rules:
     - Greenlight\PhpStan\TimeoutConstructorRule
     - Greenlight\PhpStan\ToThrowCallbackRule
     - Greenlight\PhpStan\ToThrowConstraintRule
-    - Greenlight\PhpStan\ToThrowSubjectRule
 
 services:
     greenlight.argumentTypeCombinationReturnTypeExtension:

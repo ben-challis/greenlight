@@ -36,7 +36,7 @@ final readonly class NativeWorkerDiagnosticsTest
                 }
             }
 
-            Expect::that($transport->diagnostics('diagnostics'))
+            Expect::value($transport->diagnostics('diagnostics'))
                 ->toBe(\str_repeat('x', 65_536 - \strlen('final diagnostic')) . 'final diagnostic');
         } finally {
             $transport->close();

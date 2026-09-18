@@ -20,7 +20,7 @@ final readonly class ApplicationTerminalRowsTest
 
         $rows = TerminalRowsResolver::resolve();
 
-        Expect::that($rows)
+        Expect::value($rows)
             ->because('a positive LINES value MUST set the reporter terminal height')
             ->toBe(37);
     }

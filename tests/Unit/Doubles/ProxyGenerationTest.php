@@ -35,7 +35,7 @@ final readonly class ProxyGenerationTest
         $first = $this->doubles->spy(Calculator::class);
         $second = $this->doubles->spy(Calculator::class);
 
-        Expect::that($second::class)->because('the same type reuses the generated class')->toBe($first::class);
+        Expect::value($second::class)->because('the same type reuses the generated class')->toBe($first::class);
     }
 
     #[Test]
@@ -44,7 +44,7 @@ final readonly class ProxyGenerationTest
         $alpha = $this->doubles->spy(CacheAlpha::class);
         $beta = $this->doubles->spy(CacheBeta::class);
 
-        Expect::that($alpha::class)->because('different signatures generate different classes')->not()->toBe($beta::class);
+        Expect::value($alpha::class)->because('different signatures generate different classes')->not()->toBe($beta::class);
     }
 
     #[Test]
@@ -72,13 +72,13 @@ final readonly class ProxyGenerationTest
         );
         $files = \glob($directory . '/*.php');
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('default proxy generation MUST succeed in the private process')
             ->toBe(0);
-        Expect::that($result->stderr)
+        Expect::value($result->stderr)
             ->because('default proxy generation MUST not emit diagnostics')
             ->toBe('');
-        Expect::that($files === false ? [] : $files)
+        Expect::value($files === false ? [] : $files)
             ->because('the default cache MUST use system temp and the working-directory key')
             ->toHaveCount(1);
     }
@@ -95,7 +95,7 @@ final readonly class ProxyGenerationTest
 
             $files = \glob($directory . '/*.php');
 
-            Expect::that($files === false ? [] : $files)
+            Expect::value($files === false ? [] : $files)
                 ->because('the proxy file is written once and reused')
                 ->toHaveCount(1);
         } finally {
@@ -114,7 +114,7 @@ final readonly class ProxyGenerationTest
         try {
             $clock = $doubles->stub(Clock::class);
 
-            Expect::that($clock)
+            Expect::value($clock)
                 ->because('a freshly generated class double never runs the doubled constructor')
                 ->toBeInstanceOf(Clock::class);
         } finally {
@@ -130,7 +130,7 @@ final readonly class ProxyGenerationTest
 
         unset($double);
 
-        Expect::that(DestructorProbe::$calls)
+        Expect::value(DestructorProbe::$calls)
             ->because('class doubles suppress the doubled destructor')
             ->toBe(0);
     }
@@ -141,7 +141,7 @@ final readonly class ProxyGenerationTest
         $double = $this->doubles->stub(PropertyContract::class);
         $double->status = 'ready';
 
-        Expect::that($double->status)
+        Expect::value($double->status)
             ->because('a generated proxy satisfies its interface property contract')
             ->toBe('ready');
     }
@@ -154,16 +154,16 @@ final readonly class ProxyGenerationTest
         });
         $parameter = new \ReflectionMethod($double, 'mode')->getParameters()[0];
 
-        Expect::that($parameter->getDefaultValue())
+        Expect::value($parameter->getDefaultValue())
             ->because('self constant defaults resolve against the doubled type')
             ->toBe('fast');
-        Expect::that($double->mode())->toBe('answered');
+        Expect::value($double->mode())->toBe('answered');
     }
 
     #[Test]
     public function unavailableInternalDefaultsAreRejectedBeforeProxyGeneration(): void
     {
-        Expect::that(fn(): object => $this->doubles->stub(\ReflectionClass::class))
+        Expect::calling(fn(): object => $this->doubles->stub(\ReflectionClass::class))
             ->because('an unavailable internal default cannot produce a valid proxy signature')
             ->toThrow(
                 InvalidDoubleUsage::class,
@@ -187,11 +187,11 @@ final readonly class ProxyGenerationTest
         $wide->byReference($items);
         $wide->returnsVoid();
 
-        Expect::that($wide->unionType('text'))
+        Expect::value($wide->unionType('text'))
             ->because('wide signatures round trip through the proxy')
             ->toBe('answered');
-        Expect::that($wide->nullable('x'))->toBeNull();
-        Expect::that($wide->variadic('head', 1, 2))->toBe(['head']);
+        Expect::value($wide->nullable('x'))->toBeNull();
+        Expect::value($wide->variadic('head', 1, 2))->toBe(['head']);
     }
 
     #[Test]
@@ -201,7 +201,7 @@ final readonly class ProxyGenerationTest
             $plan->expects('returnsNever')->andReturns(null); // @phpstan-ignore greenlight.mockPlan.answer (deliberately invalid: tests runtime validation)
         });
 
-        Expect::that(static fn() => $wide->returnsNever())->because('a never returning method requires andThrows()')
+        Expect::calling(static fn() => $wide->returnsNever())->because('a never returning method requires andThrows()')
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'Greenlight\Tests\Fixture\Doubles\Wide::returnsNever() declares never. '
@@ -215,7 +215,7 @@ final readonly class ProxyGenerationTest
         $double = $this->doubles->mock(StaticMethodFixture::class);
         $proxyClass = $double::class;
 
-        Expect::that(static fn(): string => $proxyClass::lookup())
+        Expect::calling(static fn(): string => $proxyClass::lookup())
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: StaticMethodFixture::class . '::lookup() is static. '
@@ -231,7 +231,7 @@ final readonly class ProxyGenerationTest
             $plan->expects('returnsNever')->andThrows($throwable);
         });
 
-        Expect::that(static fn() => $wide->returnsNever())->because('a configured never returning method throws its plan')
+        Expect::calling(static fn() => $wide->returnsNever())->because('a configured never returning method throws its plan')
             ->toThrow($throwable);
     }
 

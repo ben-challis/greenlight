@@ -12,7 +12,7 @@ final readonly class OptionalConstructorProbe
 
     public function usesDeclaredDefault(): void
     {
-        Expect::that($this->value)
+        Expect::value($this->value)
             ->because('the worker uses optional built-in constructor defaults')
             ->toBe('declared default');
     }

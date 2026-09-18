@@ -24,7 +24,7 @@ final readonly class TestResultNullRiskyWireTest
         )->toWire();
         $payload['risky'] = null;
 
-        Expect::that(static fn(): TestResult => TestResult::fromWire($payload))
+        Expect::calling(static fn(): TestResult => TestResult::fromWire($payload))
             ->because('an explicit null risky flag MUST NOT use the missing-field default')
             ->toThrow(
                 InvalidWirePayload::class,

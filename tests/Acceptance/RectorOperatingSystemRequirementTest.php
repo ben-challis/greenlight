@@ -43,10 +43,10 @@ final readonly class RectorOperatingSystemRequirementTest
             name: 'operating-system-requirement',
         );
 
-        Expect::that($probe->changed)
+        Expect::value($probe->changed)
             ->because('the operating-system requirement MUST be convertible')
             ->toBeTrue();
-        Expect::that($probe->code)
+        Expect::value($probe->code)
             ->because('the converted condition MUST keep the requested operating-system family')
             ->toContain(
                 '#[\Greenlight\Attribute\SkipUnless('
@@ -55,10 +55,10 @@ final readonly class RectorOperatingSystemRequirementTest
 
         $run = $probe->runConvertedTests();
 
-        Expect::that($run->exitCode)
+        Expect::value($run->exitCode)
             ->because('the converted operating-system condition MUST permit the matching family')
             ->toBe(0);
-        Expect::that($run->stdout)
+        Expect::value($run->stdout)
             ->toContain('1 test, 1 passed');
     }
 }

@@ -38,7 +38,7 @@ final readonly class StreamOutputDiagnosticTest
         try {
             $output = new StreamOutput($stream);
 
-            Expect::that(static fn() => $output->write('cannot be written'))
+            Expect::calling(static fn() => $output->write('cannot be written'))
                 ->because('a stream diagnostic becomes only a reporting error')
                 ->toThrow(
                     ReportGenerationFailed::class,
@@ -49,7 +49,7 @@ final readonly class StreamOutputDiagnosticTest
             \fclose($stream);
         }
 
-        Expect::that($diagnostic)
+        Expect::value($diagnostic)
             ->because('reporter write diagnostics MUST NOT reach the host error handler')
             ->toBeNull();
     }

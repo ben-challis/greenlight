@@ -161,10 +161,10 @@ final readonly class WorkerProcessFatalSendFailureTest
         $workerResult = new WorkerProcess()->run($address, 'worker-under-test', 'token');
         $serverResult = $server->wait(3.0);
 
-        Expect::that($workerResult)
+        Expect::value($workerResult)
             ->because('a failed final report MUST not escape the worker process')
             ->toEqual(CommandResult::failure());
-        Expect::that($serverResult->exitCode)
+        Expect::value($serverResult->exitCode)
             ->because('the protocol fixture MUST reset the channel before it releases the assignment failure')
             ->toBe(0);
     }

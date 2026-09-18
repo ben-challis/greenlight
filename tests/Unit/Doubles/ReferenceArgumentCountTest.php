@@ -20,7 +20,7 @@ final readonly class ReferenceArgumentCountTest
         $spy = $this->doubles->spy(Wide::class);
         $items = [];
 
-        Expect::that(static function () use ($spy, &$items): void {
+        Expect::calling(static function () use ($spy, &$items): void {
             $spy->byReference($items, 'extra'); // @phpstan-ignore arguments.count (Deliberately passes too many arguments.)
         })->toThrow(InvalidDoubleUsage::class, '/supplies 2 arguments, but the method accepts at most 1 argument/');
     }

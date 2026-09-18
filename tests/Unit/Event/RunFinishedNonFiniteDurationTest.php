@@ -16,7 +16,7 @@ final readonly class RunFinishedNonFiniteDurationTest
     #[DataSet('nonFiniteDurations')]
     public function rejectsANonFiniteDuration(float $duration): void
     {
-        Expect::that(static fn(): RunFinished => new RunFinished(
+        Expect::calling(static fn(): RunFinished => new RunFinished(
             'run-1',
             new ResultSummary(passed: 1),
             $duration,

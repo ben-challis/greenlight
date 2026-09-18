@@ -121,7 +121,7 @@ bailStopsTheRunAfterTheThreshold
 We recommend `Greenlight\Expect\Expect` for assertions.
 
 Do not create an array only to group independent expectation subjects.
-Give each subject to `Expect::that()` directly.
+Give each subject to `Expect::value()` directly.
 
 Tests can compare an array when the behavior produces the array. Examples
 include wire payloads and ordered sequences.

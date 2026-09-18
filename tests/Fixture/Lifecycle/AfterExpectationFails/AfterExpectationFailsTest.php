@@ -23,12 +23,12 @@ final class AfterExpectationFailsTest
     #[Test]
     public function failsBeforeTeardown(): void
     {
-        Expect::that('body actual')->toBe('body expected');
+        Expect::value('body actual')->toBe('body expected');
     }
 
     #[After]
     public function verifies(): void
     {
-        Expect::that('actual')->toBe('expected');
+        Expect::value('actual')->toBe('expected');
     }
 }

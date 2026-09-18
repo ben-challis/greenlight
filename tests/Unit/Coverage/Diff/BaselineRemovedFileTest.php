@@ -20,7 +20,7 @@ final readonly class BaselineRemovedFileTest
         ]);
         $report = BaselineDiff::between($baseline, CoverageMap::empty());
 
-        Expect::that($report->hasRegressions())
+        Expect::value($report->hasRegressions())
             ->because('removing a source file MUST NOT fail the coverage regression gate')
             ->toBeFalse();
     }
@@ -38,10 +38,10 @@ final readonly class BaselineRemovedFileTest
 
         $report = BaselineDiff::between($baseline, $current);
 
-        Expect::that($report->totalDelta())
+        Expect::value($report->totalDelta())
             ->because('displayed totals still describe the complete coverage maps')
             ->toBeLessThan(0.0);
-        Expect::that($report->hasRegressions())
+        Expect::value($report->hasRegressions())
             ->because('a removed file MUST NOT make unchanged source coverage fail the regression gate')
             ->toBeFalse();
     }

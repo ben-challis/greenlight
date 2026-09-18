@@ -21,10 +21,10 @@ final class ResultSummaryOutcomeTest
     {
         $original = new ResultSummary(passed: 1, failed: 2, errored: 3, skipped: 4);
 
-        Expect::that($original->add($outcome)->toWire())
+        Expect::value($original->add($outcome)->toWire())
             ->because('adding an outcome MUST increment only its matching summary count')
             ->toBe($expected);
-        Expect::that($original->toWire())
+        Expect::value($original->toWire())
             ->because('adding an outcome MUST leave the original summary unchanged')
             ->toBe([
                 'passed' => 1,
@@ -62,7 +62,7 @@ final class ResultSummaryOutcomeTest
     {
         $summary = new ResultSummary(passed: \PHP_INT_MAX);
 
-        Expect::that($summary->add(Outcome::Passed)->passed)
+        Expect::value($summary->add(Outcome::Passed)->passed)
             ->because('adding an outcome MUST NOT overflow its summary count')
             ->toBe(\PHP_INT_MAX);
     }

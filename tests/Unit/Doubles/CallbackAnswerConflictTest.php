@@ -18,7 +18,7 @@ final readonly class CallbackAnswerConflictTest
     #[Test]
     public function aReturnValueAfterACallbackIsRejected(): void
     {
-        Expect::that(
+        Expect::calling(
             fn(): mixed => $this->doubles->mock(
                 Calculator::class,
                 static function (MockPlan $plan): void {

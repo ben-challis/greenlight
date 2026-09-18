@@ -27,19 +27,19 @@ final class ExactFrameLimitTest
         $buffer->feed($frame);
         $body = $buffer->next();
 
-        Expect::that(\strlen($frame))
+        Expect::value(\strlen($frame))
             ->because('the framed body MUST be exactly the configured limit')
             ->toBe(self::LIMIT + 4);
 
-        Expect::that($body)
+        Expect::value($body)
             ->because('A frame body at the configured limit MUST be accepted.')
             ->not()
             ->toBeNull();
 
-        Expect::that($codec->decode($body))
+        Expect::value($codec->decode($body))
             ->because('the exact-limit frame MUST survive the protocol round trip')
             ->toBe($envelope);
-        Expect::that($buffer->hasPendingBytes())
+        Expect::value($buffer->hasPendingBytes())
             ->toBeFalse();
     }
 
@@ -53,7 +53,7 @@ final class ExactFrameLimitTest
         ];
         $body = \json_encode($envelope, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE);
 
-        Expect::that(\strlen($body))
+        Expect::value(\strlen($body))
             ->because('the Unicode frame fixture MUST reach the exact byte limit')
             ->toBe(self::LIMIT);
 
@@ -61,15 +61,15 @@ final class ExactFrameLimitTest
         $buffer->feed(\pack('N', \strlen($body)) . $body);
         $decodedBody = $buffer->next();
 
-        Expect::that($decodedBody)
+        Expect::value($decodedBody)
             ->because('A Unicode frame body at the configured byte limit MUST be complete.')
             ->not()
             ->toBeNull();
 
-        Expect::that(new JsonFrameCodec(self::LIMIT)->decode($decodedBody))
+        Expect::value(new JsonFrameCodec(self::LIMIT)->decode($decodedBody))
             ->because('frame lengths MUST count Unicode bytes, not characters')
             ->toBe($envelope);
-        Expect::that($buffer->hasPendingBytes())
+        Expect::value($buffer->hasPendingBytes())
             ->toBeFalse();
     }
 }

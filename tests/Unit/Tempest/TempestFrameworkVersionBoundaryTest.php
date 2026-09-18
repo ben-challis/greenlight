@@ -15,7 +15,7 @@ final readonly class TempestFrameworkVersionBoundaryTest
     #[Test]
     public function rejectsAnUnavailableFrameworkVersion(): void
     {
-        Expect::that(static function (): void {
+        Expect::calling(static function (): void {
             TempestFrameworkRequirement::checkVersion(null);
         })->toThrow(
             TempestBridgeError::class,
@@ -31,7 +31,7 @@ final readonly class TempestFrameworkVersionBoundaryTest
     {
         TempestFrameworkRequirement::checkVersion($version);
 
-        Expect::that($version)
+        Expect::value($version)
             ->because('the supported Tempest version MUST be 3.18 or later in major version 3')
             ->toMatch('/^3\.(?:1[89]|[2-9][0-9]|[1-9][0-9]{2,})(?:\.|$)/D');
     }
@@ -50,7 +50,7 @@ final readonly class TempestFrameworkVersionBoundaryTest
     #[DataSet('unsupportedVersions')]
     public function rejectsVersionsWithoutTheRequiredLifecycle(string $version): void
     {
-        Expect::that(static function () use ($version): void {
+        Expect::calling(static function () use ($version): void {
             TempestFrameworkRequirement::checkVersion($version);
         })
             ->because('the Tempest bridge MUST require the verified long-running lifecycle')

@@ -29,15 +29,16 @@ final readonly class PhpStanToThrowRuleTest
 
             use Greenlight\Expect\Expect;
 
-            function greenlightGoodToThrowSubjectProbe(mixed $subject): void
+            /** @param callable(): mixed $subject */
+            function greenlightGoodToThrowSubjectProbe(callable $subject): void
             {
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(DomainException::class);
-                Expect::that($subject)->toThrow(DomainException::class);
-                Expect::eventually(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                Expect::calling($subject)->toThrow(DomainException::class);
+                Expect::calling(static fn() => throw new DomainException('boom'))->eventually()
                     ->within(1.0)
                     ->toThrow(DomainException::class);
-                Expect::consistently(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))->consistently()
                     ->for(0.1)
                     ->toThrow(DomainException::class);
             }
@@ -51,22 +52,16 @@ final readonly class PhpStanToThrowRuleTest
 
             function greenlightBadToThrowSubjectProbe(): void
             {
-                Expect::that(1)->toThrow(DomainException::class);
-                Expect::that('not callable')->toThrow(DomainException::class);
-                Expect::eventually(static fn(): int => 1)
-                    ->within(1.0)
-                    ->toThrow(DomainException::class);
-                Expect::consistently(static fn(): string => 'not callable')
-                    ->for(0.1)
-                    ->toThrow(DomainException::class);
+                Expect::calling(1)->toThrow(DomainException::class);
+                Expect::calling('not callable')->toThrow(DomainException::class);
             }
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('toThrow requires a callable subject')->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(4);
-        Expect::that($probe->messages())->toContain('toThrow() requires a callable subject. The subject type is');
+        Expect::value($probe->exitCode)->because('toThrow requires a callable subject')->toBe(1);
+        Expect::value($probe->goodPassed)->toBeTrue();
+        Expect::value(\count($probe->errors))->toBe(4);
+        Expect::value($probe->messages())->toContain('expects callable(): mixed');
     }
 
     #[Test]
@@ -85,25 +80,25 @@ final readonly class PhpStanToThrowRuleTest
             {
                 $failure = new DomainException('boom');
 
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(DomainException::class);
-                Expect::that(static fn() => throw $failure)
+                Expect::calling(static fn() => throw $failure)
                     ->toThrow($failure);
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(DomainException::class, matching: '/boom/');
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(DomainException::class, message: 'boom');
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(DomainException::class, null, 'boom');
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(...[DomainException::class, null, 'boom']);
-                Expect::eventually(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))->eventually()
                     ->within(1.0)
                     ->toThrow(DomainException::class, message: 'boom');
-                Expect::consistently(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))->consistently()
                     ->for(0.1)
                     ->toThrow(DomainException::class, message: 'boom');
-                Expect::eventually(static fn(): Closure => static fn() => throw $failure)
+                Expect::calling(static fn() => throw $failure)->eventually()
                     ->within(1.0)
                     ->toThrow($failure);
             }
@@ -119,52 +114,52 @@ final readonly class PhpStanToThrowRuleTest
             {
                 $failure = new DomainException('boom');
 
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(DomainException::class, matching: '/boom/', message: 'boom');
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(DomainException::class, '/boom/', 'boom');
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(...[
                         'throwable' => DomainException::class,
                         'matching' => '/boom/',
                         'message' => 'boom',
                     ]);
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(...[DomainException::class, '/boom/', 'boom']);
-                Expect::eventually(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))->eventually()
                     ->within(1.0)
                     ->toThrow(DomainException::class, matching: '/boom/', message: 'boom');
-                Expect::consistently(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))->consistently()
                     ->for(0.1)
                     ->toThrow(DomainException::class, matching: '/boom/', message: 'boom');
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(
                         static function (DomainException $error): void {},
                         matching: '/boom/',
                     );
-                Expect::eventually(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))->eventually()
                     ->within(1.0)
                     ->toThrow(
                         static function (DomainException $error): void {},
                         message: 'boom',
                     );
-                Expect::that(static fn() => throw $failure)
+                Expect::calling(static fn() => throw $failure)
                     ->toThrow($failure, matching: '/boom/');
-                Expect::eventually(static fn(): Closure => static fn() => throw $failure)
+                Expect::calling(static fn() => throw $failure)->eventually()
                     ->within(1.0)
                     ->toThrow($failure, message: 'boom');
             }
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('pattern and exact message constraints are mutually exclusive')->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(10);
-        Expect::that($probe->messages())->toContain('toThrow() accepts either matching: or message:, not both');
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->exitCode)->because('pattern and exact message constraints are mutually exclusive')->toBe(1);
+        Expect::value($probe->goodPassed)->toBeTrue();
+        Expect::value(\count($probe->errors))->toBe(10);
+        Expect::value($probe->messages())->toContain('toThrow() accepts either matching: or message:, not both');
+        Expect::value($probe->messages())->toContain(
             'Do not specify matching: or message: when the throwable is a callback.',
         );
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->messages())->toContain(
             'Do not specify matching: or message: when the throwable argument is a Throwable instance.',
         );
     }
@@ -183,17 +178,17 @@ final readonly class PhpStanToThrowRuleTest
 
             function greenlightGoodToThrowCallbackProbe(): void
             {
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(
                         static function (DomainException $error): void {
-                            Expect::that($error->getPrevious())->toBeNull();
+                            Expect::value($error->getPrevious())->toBeNull();
                         },
                     );
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(
                         throwable: static function (Throwable $error): void {},
                     );
-                Expect::eventually(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))->eventually()
                     ->within(1.0)
                     ->toThrow(
                         static function (DomainException $error): void {},
@@ -209,32 +204,32 @@ final readonly class PhpStanToThrowRuleTest
 
             function greenlightBadToThrowCallbackProbe(): void
             {
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(
                         static function (): void {},
                     );
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(
                         static function (string $error): void {},
                     );
-                Expect::eventually(static fn(): Closure => static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))->eventually()
                     ->within(1.0)
                     ->toThrow(
                         static function (DomainException &$error): void {},
                     );
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(
                         static function (DomainException $error, string $context): void {},
                     );
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(
                         static function (DomainException ...$error): void {},
                     );
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(
                         static fn(DomainException $error): int => 1,
                     );
-                Expect::that(static fn() => throw new DomainException('boom'))
+                Expect::calling(static fn() => throw new DomainException('boom'))
                     ->toThrow(
                         static function (?DomainException $error): void {},
                     );
@@ -242,17 +237,17 @@ final readonly class PhpStanToThrowRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(7);
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->exitCode)->toBe(1);
+        Expect::value($probe->goodPassed)->toBeTrue();
+        Expect::value(\count($probe->errors))->toBe(7);
+        Expect::value($probe->messages())->toContain(
             'Give the throwable callback for toThrow() one typed Throwable argument.',
         );
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->messages())->toContain(
             'Declare one named, non-null Throwable parameter type for the toThrow() callback.',
         );
-        Expect::that($probe->messages())->toContain(
-            'Parameter #1 $throwable of method Greenlight\\Expect\\Expectation<Closure>::toThrow() expects',
+        Expect::value($probe->messages())->toContain(
+            'Parameter #1 $throwable of method Greenlight\\Expect\\CallExpectation<',
         );
     }
 }

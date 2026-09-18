@@ -36,11 +36,11 @@ final readonly class ArtifactCleanupRootSymlinkTest
         try {
             $store->cleanup();
 
-            Expect::that(\is_file($sentinel))
+            Expect::value(\is_file($sentinel))
                 ->because('artifact cleanup preserves files outside its staging directory')
                 ->toBeTrue();
-            Expect::that(\file_get_contents($sentinel))->toBe('keep');
-            Expect::that(\is_link($staging))->toBeFalse();
+            Expect::value(\file_get_contents($sentinel))->toBe('keep');
+            Expect::value(\is_link($staging))->toBeFalse();
             $store->cleanup();
         } finally {
             if (\is_link($staging)) {

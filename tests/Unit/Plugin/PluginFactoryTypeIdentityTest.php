@@ -35,8 +35,8 @@ final class PluginFactoryTypeIdentityTest
         ));
         $definition = PluginDefinition::fromFactory($factory);
 
-        Expect::that($definition->create())->toBeInstanceOf(FactoryIdentityPlugin::class);
-        Expect::that($definition->pluginClass)->toBe(FactoryIdentityPlugin::class);
+        Expect::value($definition->create())->toBeInstanceOf(FactoryIdentityPlugin::class);
+        Expect::value($definition->pluginClass)->toBe(FactoryIdentityPlugin::class);
     }
 
     #[Test]
@@ -44,8 +44,8 @@ final class PluginFactoryTypeIdentityTest
     {
         $definition = PluginDefinition::fromFactory(FactoryIdentityPlugin::scopedFactory());
 
-        Expect::that($definition->pluginClass)->toBe(FactoryIdentityPlugin::class);
-        Expect::that($definition->create())->toBeInstanceOf(FactoryIdentityPlugin::class);
+        Expect::value($definition->pluginClass)->toBe(FactoryIdentityPlugin::class);
+        Expect::value($definition->create())->toBeInstanceOf(FactoryIdentityPlugin::class);
     }
 
     #[Test]
@@ -53,7 +53,7 @@ final class PluginFactoryTypeIdentityTest
     {
         $definition = PluginDefinition::fromFactory(FactoryIdentityChildPlugin::parentFactory());
 
-        Expect::that($definition->pluginClass)->toBe(FactoryIdentityPlugin::class);
-        Expect::that($definition->create())->toBeInstanceOf(FactoryIdentityPlugin::class);
+        Expect::value($definition->pluginClass)->toBe(FactoryIdentityPlugin::class);
+        Expect::value($definition->create())->toBeInstanceOf(FactoryIdentityPlugin::class);
     }
 }

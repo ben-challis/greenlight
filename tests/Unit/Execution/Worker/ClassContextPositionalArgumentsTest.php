@@ -21,7 +21,7 @@ final readonly class ClassContextPositionalArgumentsTest
             'sterling',
         );
 
-        Expect::that($arguments)
+        Expect::value($arguments)
             ->because('provider row keys MUST NOT become named test arguments')
             ->toBe(['GBP', 100]);
     }

@@ -17,7 +17,7 @@ final readonly class OptionSpecTest
     {
         $arguments = new ArgumentParser([new OptionSpec('0')])->parse(['--0']);
 
-        Expect::that($arguments->has('0'))
+        Expect::value($arguments->has('0'))
             ->because('a zero-string long option name is not empty')
             ->toBeTrue();
     }
@@ -29,7 +29,7 @@ final readonly class OptionSpecTest
         ?string $short,
         string $message,
     ): void {
-        Expect::that(static fn(): OptionSpec => new OptionSpec($name, short: $short))
+        Expect::calling(static fn(): OptionSpec => new OptionSpec($name, short: $short))
             ->because('the argument parser MUST receive unambiguous option definitions')
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }

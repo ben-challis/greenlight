@@ -26,10 +26,10 @@ final readonly class ProxyReferenceReturnTest
         try {
             $method = new \ReflectionMethod($double, 'value');
 
-            Expect::that($method->returnsReference())
+            Expect::value($method->returnsReference())
                 ->because('a proxy method MUST preserve its by-reference return signature')
                 ->toBeTrue();
-            Expect::that($double->value())
+            Expect::value($double->value())
                 ->toBe('answer');
         } finally {
             $doubles->dispose();

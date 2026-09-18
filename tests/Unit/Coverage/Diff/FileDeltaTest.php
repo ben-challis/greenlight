@@ -16,13 +16,13 @@ final readonly class FileDeltaTest
     {
         $delta = new FileDelta('0', 75.0, 50.0, [2, 5]);
 
-        Expect::that($delta->file)
+        Expect::value($delta->file)
             ->because('a zero-string coverage delta file path is not empty')
             ->toBe('0');
-        Expect::that($delta->newlyUncoveredLines)
+        Expect::value($delta->newlyUncoveredLines)
             ->because('a coverage delta MUST retain its newly uncovered lines')
             ->toBe([2, 5]);
-        Expect::that($delta->delta())
+        Expect::value($delta->delta())
             ->because('a coverage delta MUST calculate the percentage change')
             ->toBe(-25.0);
     }
@@ -37,7 +37,7 @@ final readonly class FileDeltaTest
         array $newlyUncoveredLines,
         string $message,
     ): void {
-        Expect::that(static fn(): FileDelta => new FileDelta(
+        Expect::calling(static fn(): FileDelta => new FileDelta(
             $file,
             100.0,
             50.0,

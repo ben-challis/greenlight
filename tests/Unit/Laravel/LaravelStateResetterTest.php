@@ -28,7 +28,7 @@ final class LaravelStateResetterTest
             LaravelStateResetter::reset();
             Str::random(8);
 
-            Expect::that($factoryCalls)
+            Expect::value($factoryCalls)
                 ->because('Laravel reset MUST remove a custom random-string factory')
                 ->toBe(0);
         } finally {

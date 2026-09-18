@@ -33,16 +33,16 @@ final readonly class SocketChannelTest
         $sender = new SocketChannel($peer);
         $this->cleanup->defer($sender->close(...));
 
-        Expect::that($receiver->receive(0.0))
+        Expect::value($receiver->receive(0.0))
             ->because('an empty receive can reach its deadline')
             ->toBeNull();
-        Expect::that($receiver->isEof())
+        Expect::value($receiver->isEof())
             ->because('a receive deadline MUST NOT mark an open channel as EOF')
             ->toBeFalse();
 
         $sender->send(new Drain());
 
-        Expect::that($receiver->receive(0.0))
+        Expect::value($receiver->receive(0.0))
             ->because('a channel remains usable after a receive deadline')
             ->toBeInstanceOf(Drain::class);
     }
@@ -59,13 +59,13 @@ final readonly class SocketChannelTest
         $sender->send(new Drain());
         $sender->close();
 
-        Expect::that($receiver->poll())
+        Expect::value($receiver->poll())
             ->because('a complete final frame MUST be delivered before peer EOF')
             ->toBeInstanceOf(Drain::class);
-        Expect::that($receiver->poll())
+        Expect::value($receiver->poll())
             ->because('the channel reaches clean EOF after the final frame')
             ->toBeNull();
-        Expect::that($receiver->isEof())
+        Expect::value($receiver->isEof())
             ->toBeTrue();
     }
 
@@ -79,18 +79,18 @@ final readonly class SocketChannelTest
             \fwrite($peer, \pack('N', 10) . 'abc');
             \fclose($peer);
 
-            Expect::that($channel->poll())
+            Expect::value($channel->poll())
                 ->because('the first poll reads the incomplete frame')
                 ->toBeNull();
 
-            Expect::that(static fn(): mixed => $channel->poll())
+            Expect::calling(static fn(): mixed => $channel->poll())
                 ->because('peer EOF MUST reject an incomplete frame')
                 ->toThrow(
                     ProtocolError::class,
                     message: 'Malformed frame: peer closed the connection with an incomplete frame.',
                 );
 
-            Expect::that(static fn(): mixed => $channel->poll())
+            Expect::calling(static fn(): mixed => $channel->poll())
                 ->because('an incomplete frame MUST remain invalid after it is reported')
                 ->toThrow(
                     ProtocolError::class,
@@ -114,15 +114,15 @@ final readonly class SocketChannelTest
         try {
             \fclose($stream);
 
-            Expect::that($channel->poll())
+            Expect::value($channel->poll())
                 ->because('polling an externally closed stream reaches EOF')
                 ->toBeNull();
-            Expect::that($channel->isEof())
+            Expect::value($channel->isEof())
                 ->toBeTrue();
-            Expect::that($channel->poll())
+            Expect::value($channel->poll())
                 ->toBeNull();
 
-            Expect::that(static function () use ($channel): void {
+            Expect::calling(static function () use ($channel): void {
                 $channel->send(new Drain());
             })
                 ->because('a closed channel MUST reject writes')
@@ -147,10 +147,10 @@ final readonly class SocketChannelTest
         $channel = new SocketChannel($stream);
         $this->cleanup->defer($channel->close(...));
 
-        Expect::that($channel->receive(1.0))
+        Expect::value($channel->receive(1.0))
             ->because('a stream-select failure MUST end the receive wait')
             ->toBeNull();
-        Expect::that($channel->isEof())
+        Expect::value($channel->isEof())
             ->because('a stream-select failure MUST NOT mark the channel as EOF')
             ->toBeFalse();
     }

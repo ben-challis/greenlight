@@ -39,8 +39,8 @@ final readonly class IgnoreScannerStringBraceTest
         $map = new CoverageMap([new FileCoverage($path, [], [5, 6, 10])]);
         $filtered = new IgnoreFilter()->apply($map);
 
-        Expect::that($filtered->files()[$path] ?? null)->toBeInstanceOf(FileCoverage::class);
-        Expect::that($filtered->files()[$path]->uncoveredLines)->toBe([10]);
+        Expect::value($filtered->files()[$path] ?? null)->toBeInstanceOf(FileCoverage::class);
+        Expect::value($filtered->files()[$path]->uncoveredLines)->toBe([10]);
     }
 
     /** @return iterable<string, array{string}> */

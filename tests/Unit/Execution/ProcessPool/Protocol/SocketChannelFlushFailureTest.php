@@ -37,7 +37,7 @@ final readonly class SocketChannelFlushFailureTest
         $channel = new SocketChannel($stream);
         $this->cleanup->defer($channel->close(...));
 
-        Expect::that(static function () use ($channel): void {
+        Expect::calling(static function () use ($channel): void {
             $channel->send(new Drain());
         })
             ->because('a failed flush MUST reject an incomplete send')

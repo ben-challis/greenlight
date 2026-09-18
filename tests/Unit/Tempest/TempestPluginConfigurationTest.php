@@ -19,14 +19,14 @@ final readonly class TempestPluginConfigurationTest
     #[Test]
     public function exposesTheConfiguredSource(): void
     {
-        Expect::that(new TempestPlugin('/project')->source())->toBeNull();
-        Expect::that(new TempestPlugin('/project', source: 'application')->source())->toBe('application');
+        Expect::value(new TempestPlugin('/project')->source())->toBeNull();
+        Expect::value(new TempestPlugin('/project', source: 'application')->source())->toBe('application');
     }
 
     #[Test]
     public function rejectsAnEmptySource(): void
     {
-        Expect::that(static fn(): TempestPlugin => new TempestPlugin('/project', source: ''))
+        Expect::calling(static fn(): TempestPlugin => new TempestPlugin('/project', source: ''))
             ->toThrow(\InvalidArgumentException::class, message: 'Service source must not be empty.');
     }
 
@@ -35,11 +35,11 @@ final readonly class TempestPluginConfigurationTest
     {
         $definitions = new TempestPlugin('/project')->services();
 
-        Expect::that($definitions)->toHaveCount(2);
-        Expect::that($definitions[0]->type)->toBe(Kernel::class);
-        Expect::that($definitions[0]->scope)->toBe(Scope::PerWorker);
-        Expect::that($definitions[1]->type)->toBe(Container::class);
-        Expect::that($definitions[1]->scope)->toBe(Scope::PerWorker);
+        Expect::value($definitions)->toHaveCount(2);
+        Expect::value($definitions[0]->type)->toBe(Kernel::class);
+        Expect::value($definitions[0]->scope)->toBe(Scope::PerWorker);
+        Expect::value($definitions[1]->type)->toBe(Container::class);
+        Expect::value($definitions[1]->scope)->toBe(Scope::PerWorker);
     }
 
     #[Test]
@@ -51,7 +51,7 @@ final readonly class TempestPluginConfigurationTest
 
         $plugin->beforeTest($context);
 
-        Expect::that($plugin->afterTest($context, $result))
+        Expect::value($plugin->afterTest($context, $result))
             ->because('an unused Tempest bridge MUST preserve the test result')
             ->toBe($result);
     }
@@ -59,14 +59,14 @@ final readonly class TempestPluginConfigurationTest
     #[Test]
     public function rejectsAnEmptyApplicationRoot(): void
     {
-        Expect::that(static fn(): TempestPlugin => new TempestPlugin(''))
+        Expect::calling(static fn(): TempestPlugin => new TempestPlugin(''))
             ->toThrow(\InvalidArgumentException::class, message: 'Tempest application root cannot be empty.');
     }
 
     #[Test]
     public function rejectsAnEmptyEnvironment(): void
     {
-        Expect::that(static fn(): TempestPlugin => new TempestPlugin('/project', environment: ''))
+        Expect::calling(static fn(): TempestPlugin => new TempestPlugin('/project', environment: ''))
             ->toThrow(\InvalidArgumentException::class, message: 'Tempest environment cannot be empty.');
     }
 

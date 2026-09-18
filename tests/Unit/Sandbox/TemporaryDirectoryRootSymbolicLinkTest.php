@@ -30,15 +30,15 @@ final class TemporaryDirectoryRootSymbolicLinkTest
         }
 
         try {
-            Expect::that(static fn() => $directory->dispose())
+            Expect::calling(static fn() => $directory->dispose())
                 ->because('disposal MUST remove the root symbolic link without entry traversal')
                 ->not()
                 ->toThrow(\Throwable::class);
 
-            Expect::that(\is_link($root))
+            Expect::value(\is_link($root))
                 ->because('disposal MUST remove the root symbolic link')
                 ->toBeFalse();
-            Expect::that(\file_get_contents($sentinel))
+            Expect::value(\file_get_contents($sentinel))
                 ->because('disposal MUST leave the root symbolic link target unchanged')
                 ->toBe('keep');
         } finally {
@@ -72,7 +72,7 @@ final class TemporaryDirectoryRootSymbolicLinkTest
                 throw new SkipTest('The filesystem does not enforce directory write permissions.');
             }
 
-            Expect::that(static fn() => $directory->dispose())
+            Expect::calling(static fn() => $directory->dispose())
                 ->because('fixture cleanup MUST report a root symbolic link that it cannot remove')
                 ->toThrow(
                     TemporaryDirectoryError::class,

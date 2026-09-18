@@ -40,7 +40,7 @@ final readonly class ClassFileParserTest
             ClassFileParser::declarationsIn($file),
         );
 
-        Expect::that($declarations)
+        Expect::value($declarations)
             ->because('discovery MUST return only named class-like declarations')
             ->toBe([
                 ['Example\Contract', 'interface'],
@@ -74,7 +74,7 @@ final readonly class ClassFileParserTest
             ClassFileParser::declarationsIn($file),
         );
 
-        Expect::that($declarations)
+        Expect::value($declarations)
             ->because('a global bracketed namespace clears the previous namespace')
             ->toBe([
                 ['Example\Named\NamedTest', 'class'],
@@ -85,11 +85,11 @@ final readonly class ClassFileParserTest
     #[Test]
     public function aNativeReadThrowableBecomesADiscoveryError(): void
     {
-        Expect::that(static fn(): array => ClassFileParser::declarationsIn("invalid\0Test.php"))
+        Expect::calling(static fn(): array => ClassFileParser::declarationsIn("invalid\0Test.php"))
             ->because('a native file-read throwable MUST not escape the discovery seam')
             ->toThrow(
                 static function (DiscoveryError $error): void {
-                    Expect::that($error->getPrevious())
+                    Expect::value($error->getPrevious())
                         ->because('the discovery error MUST preserve the native file-read error')
                         ->toBeInstanceOf(\ValueError::class);
                 },

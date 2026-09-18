@@ -27,10 +27,10 @@ final readonly class RepeatSingleIterationTest
             '--repeat=1',
         ]);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('one requested iteration MUST complete as a standard run')
             ->toBe(0);
-        Expect::that($result->output())
+        Expect::value($result->output())
             ->because('one requested iteration MUST omit repeat-loop output')
             ->toContain('1 test, 1 passed')
             ->not()

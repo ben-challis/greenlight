@@ -22,7 +22,7 @@ final class FileCoverageLineValidationTest
         array $uncovered,
         int $line,
     ): void {
-        Expect::that(
+        Expect::calling(
             static fn(): FileCoverage => new FileCoverage(
                 '/src/A.php',
                 $covered,

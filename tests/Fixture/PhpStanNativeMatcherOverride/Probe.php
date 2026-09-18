@@ -8,5 +8,5 @@ use Greenlight\Expect\Expect;
 
 function nativeMatcherOverrideProbe(): void
 {
-    Expect::that(1)->toBeInt();
+    Expect::value(1)->toBeInt();
 }

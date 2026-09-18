@@ -46,19 +46,19 @@ final readonly class ArtifactIntermittentReadTest
         $attachments->file('evidence.txt', self::SCHEME . '://evidence', 'text/plain');
         $collected = $attachments->collected();
 
-        Expect::that($collected)
+        Expect::value($collected)
             ->because('the intermittent source MUST produce one staged attachment')
             ->toHaveCount(1);
 
         $attachment = $collected[0];
         $stagedPath = $store->session()->stagingDirectory . '/' . $attachment->storageKey;
 
-        Expect::that(\file_get_contents($stagedPath))
+        Expect::value(\file_get_contents($stagedPath))
             ->because('a transient empty source read MUST not truncate the staged attachment')
             ->toBe('evidence');
-        Expect::that($attachment->sizeBytes)
+        Expect::value($attachment->sizeBytes)
             ->toBe(8);
-        Expect::that($attachment->sha256)
+        Expect::value($attachment->sha256)
             ->toBe(\hash('sha256', 'evidence'));
     }
 }

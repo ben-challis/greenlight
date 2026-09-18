@@ -18,7 +18,7 @@ final class MatcherMapFirstDeclarationTest
     #[Test]
     public function anIdenticalRedeclarationDoesNotReplaceTheFirstDeclarationPath(): void
     {
-        Expect::that(
+        Expect::calling(
             static fn(): MatcherMap => MatcherMap::fromConfigFiles([
                 self::CONFIG,
                 self::CONFIG_ALIAS,

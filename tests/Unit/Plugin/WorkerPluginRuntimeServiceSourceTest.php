@@ -38,9 +38,9 @@ final readonly class WorkerPluginRuntimeServiceSourceTest
             $this->plugin(new ArrayContainer([Greeter::class => $selected]), 'billing'),
         ], [new ServiceDefinition(Greeter::class, Scope::PerWorker, static fn(): Greeter => $global)]);
 
-        Expect::that($scopes->resolve(Greeter::class, 'test', [new Service(source: 'billing')]))->toBe($selected);
-        Expect::that($earlier->calls)->toBe(0);
-        Expect::that($scopes->resolve(Greeter::class, 'test'))->toBe($global);
+        Expect::value($scopes->resolve(Greeter::class, 'test', [new Service(source: 'billing')]))->toBe($selected);
+        Expect::value($earlier->calls)->toBe(0);
+        Expect::value($scopes->resolve(Greeter::class, 'test'))->toBe($global);
     }
 
     #[Test]
@@ -53,10 +53,10 @@ final readonly class WorkerPluginRuntimeServiceSourceTest
             $this->plugin(new ArrayContainer(['application.greeter' => $legacy]), 'legacy'),
         ]);
 
-        Expect::that($scopes->resolve(Greeter::class, 'test', [
+        Expect::value($scopes->resolve(Greeter::class, 'test', [
             new Service('application.greeter', source: 'legacy'),
         ]))->toBe($legacy);
-        Expect::that($scopes->resolve(Greeter::class, 'test', [
+        Expect::value($scopes->resolve(Greeter::class, 'test', [
             new Service('application.greeter', source: 'billing'),
         ]))->toBe($billing);
     }
@@ -69,7 +69,7 @@ final readonly class WorkerPluginRuntimeServiceSourceTest
             $this->plugin(new ArrayContainer([]), 'legacy'),
         ]);
 
-        Expect::that(static fn(): object => $scopes->resolve(Greeter::class, 'test', [
+        Expect::calling(static fn(): object => $scopes->resolve(Greeter::class, 'test', [
             new Service('application.greeter', source: 'legacy'),
         ]))->toThrow(ServiceResolutionFailed::class, matching: '/no service "application.greeter"/');
     }
@@ -83,10 +83,10 @@ final readonly class WorkerPluginRuntimeServiceSourceTest
             $later,
         ]);
 
-        Expect::that(static fn(): object => $scopes->resolve(Greeter::class, 'test', [
+        Expect::calling(static fn(): object => $scopes->resolve(Greeter::class, 'test', [
             new Service(source: 'billing'),
         ]))->toThrow(ServiceResolutionFailed::class);
-        Expect::that($later->calls)->toBe(0);
+        Expect::value($later->calls)->toBe(0);
     }
 
     #[Test]
@@ -99,7 +99,7 @@ final readonly class WorkerPluginRuntimeServiceSourceTest
             $this->plugin(new ArrayContainer([Greeter::class => $legacy]), 'legacy'),
         ]);
 
-        Expect::that($scopes->resolve(Greeter::class, 'test'))->toBe($billing);
+        Expect::value($scopes->resolve(Greeter::class, 'test'))->toBe($billing);
     }
 
     #[Test]
@@ -111,10 +111,10 @@ final readonly class WorkerPluginRuntimeServiceSourceTest
             $this->plugin(new ArrayContainer([Greeter::class => new Greeter()]), 'billing'),
         ]);
 
-        Expect::that(static fn(): object => $scopes->resolve(Greeter::class, 'test', [
+        Expect::calling(static fn(): object => $scopes->resolve(Greeter::class, 'test', [
             new Service(source: 'missing'),
         ]))->toThrow(ServiceResolutionFailed::class, matching: '/source "missing"/');
-        Expect::that($earlier->calls)->toBe(0);
+        Expect::value($earlier->calls)->toBe(0);
     }
 
     #[Test]
@@ -127,9 +127,9 @@ final readonly class WorkerPluginRuntimeServiceSourceTest
             $this->provider('legacy', $legacy),
         ]);
 
-        Expect::that($scopes->resolve(\stdClass::class, 'test', [new Service(source: 'billing')]))->toBe($billing);
-        Expect::that($scopes->resolve(\stdClass::class, 'test', [new Service(source: 'legacy')]))->toBe($legacy);
-        Expect::that($scopes->resolve(\stdClass::class, 'test', [new Service(source: 'billing')]))->toBe($billing);
+        Expect::value($scopes->resolve(\stdClass::class, 'test', [new Service(source: 'billing')]))->toBe($billing);
+        Expect::value($scopes->resolve(\stdClass::class, 'test', [new Service(source: 'legacy')]))->toBe($legacy);
+        Expect::value($scopes->resolve(\stdClass::class, 'test', [new Service(source: 'billing')]))->toBe($billing);
     }
 
     #[Test]
@@ -143,9 +143,9 @@ final readonly class WorkerPluginRuntimeServiceSourceTest
         ]);
         $scopes->openTest();
 
-        Expect::that($scopes->resolve(ContainerInterface::class, 'test', [new Service(source: 'billing')]))->toBe($billing);
-        Expect::that($scopes->resolve(ContainerInterface::class, 'test', [new Service(source: 'legacy')]))->toBe($legacy);
-        Expect::that(static fn(): object => $scopes->resolve(ContainerInterface::class, 'test'))
+        Expect::value($scopes->resolve(ContainerInterface::class, 'test', [new Service(source: 'billing')]))->toBe($billing);
+        Expect::value($scopes->resolve(ContainerInterface::class, 'test', [new Service(source: 'legacy')]))->toBe($legacy);
+        Expect::calling(static fn(): object => $scopes->resolve(ContainerInterface::class, 'test'))
             ->toThrow(ServiceResolutionFailed::class, matching: '/source/');
 
         $scopes->closeTest();
@@ -154,7 +154,7 @@ final readonly class WorkerPluginRuntimeServiceSourceTest
     #[Test]
     public function duplicatePluginSourcesFailWorkerPreparation(): void
     {
-        Expect::that(fn(): HarnessScopes => $this->prepare([
+        Expect::calling(fn(): HarnessScopes => $this->prepare([
             $this->plugin(new ArrayContainer([]), 'billing'),
             $this->plugin(new ArrayContainer([]), 'billing'),
         ]))->toThrow(\InvalidArgumentException::class, matching: '/source "billing"/');
@@ -172,9 +172,9 @@ final readonly class WorkerPluginRuntimeServiceSourceTest
             $this->provider('0', $zero),
         ]);
 
-        Expect::that($scopes->resolve(\stdClass::class, 'test', [new Service(source: 'billing')]))->toBe($lower);
-        Expect::that($scopes->resolve(\stdClass::class, 'test', [new Service(source: 'Billing')]))->toBe($upper);
-        Expect::that($scopes->resolve(\stdClass::class, 'test', [new Service(source: '0')]))->toBe($zero);
+        Expect::value($scopes->resolve(\stdClass::class, 'test', [new Service(source: 'billing')]))->toBe($lower);
+        Expect::value($scopes->resolve(\stdClass::class, 'test', [new Service(source: 'Billing')]))->toBe($upper);
+        Expect::value($scopes->resolve(\stdClass::class, 'test', [new Service(source: '0')]))->toBe($zero);
     }
 
     /**

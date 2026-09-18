@@ -24,8 +24,8 @@ final readonly class SpyTest
         $spy->flush();
         $spy->notify('dev', 'second');
 
-        Expect::that($this->doubles->callsTo($spy, 'notify'))->because('records every call in order with arguments')->toBe([['ops', 'first'], ['dev', 'second']]);
-        Expect::that($this->doubles->callsTo($spy, 'flush'))->toBe([[]]);
+        Expect::value($this->doubles->callsTo($spy, 'notify'))->because('records every call in order with arguments')->toBe([['ops', 'first'], ['dev', 'second']]);
+        Expect::value($this->doubles->callsTo($spy, 'flush'))->toBe([[]]);
     }
 
     #[Test]
@@ -33,7 +33,7 @@ final readonly class SpyTest
     {
         $spy = $this->doubles->spy(Notifier::class);
 
-        Expect::that($this->doubles->callsTo($spy, 'notify'))->because('an uncalled method has no recorded calls')->toBe([]);
+        Expect::value($this->doubles->callsTo($spy, 'notify'))->because('an uncalled method has no recorded calls')->toBe([]);
     }
 
     #[Test]
@@ -43,7 +43,7 @@ final readonly class SpyTest
 
         $spy->tag('first', 1, 2, 3);
 
-        Expect::that($this->doubles->callsTo($spy, 'tag'))->because('variadic arguments are recorded flattened')->toBe([['first', 1, 2, 3]]);
+        Expect::value($this->doubles->callsTo($spy, 'tag'))->because('variadic arguments are recorded flattened')->toBe([['first', 1, 2, 3]]);
     }
 
     #[Test]
@@ -51,7 +51,7 @@ final readonly class SpyTest
     {
         $spy = $this->doubles->spy(Calculator::class);
 
-        Expect::that(static fn(): int => $spy->add(1, 2))->because('value returning methods cannot be spied on')
+        Expect::calling(static fn(): int => $spy->add(1, 2))->because('value returning methods cannot be spied on')
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'The spy of "' . Calculator::class . '" cannot supply a value for "add()". '
@@ -65,7 +65,7 @@ final readonly class SpyTest
     {
         $foreign = new \stdClass();
 
-        Expect::that(fn(): array => $this->doubles->callsTo($foreign, 'add'))->because('calls to rejects foreign objects') // @phpstan-ignore greenlight.doubles.callsToMethod (deliberately invalid: tests runtime validation)
+        Expect::calling(fn(): array => $this->doubles->callsTo($foreign, 'add'))->because('calls to rejects foreign objects') // @phpstan-ignore greenlight.doubles.callsToMethod (deliberately invalid: tests runtime validation)
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'This Doubles factory did not create the stdClass instance.',
@@ -79,7 +79,7 @@ final readonly class SpyTest
 
         $spy->notify('ops', 'deploy finished');
 
-        Expect::that($this->doubles->callsTo($spy, 'notify'))->because('spy recordings work with expect directly')->toHaveCount(1);
-        Expect::that($this->doubles->callsTo($spy, 'notify')[0])->toEqual(['ops', 'deploy finished']);
+        Expect::value($this->doubles->callsTo($spy, 'notify'))->because('spy recordings work with expect directly')->toHaveCount(1);
+        Expect::value($this->doubles->callsTo($spy, 'notify')[0])->toEqual(['ops', 'deploy finished']);
     }
 }

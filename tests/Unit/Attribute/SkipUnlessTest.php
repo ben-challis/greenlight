@@ -17,7 +17,7 @@ final class SkipUnlessTest
     #[DataSet('invalidConditionClasses')]
     public function invalidConditionClassesAreRejected(string $condition): void
     {
-        Expect::that(
+        Expect::calling(
             static fn(): object => new \ReflectionClass(SkipUnless::class)->newInstance($condition),
         )
             ->because('a skip condition MUST name an instantiable Condition class')
@@ -45,7 +45,7 @@ final class SkipUnlessTest
     #[DataSet('nonFiniteFloats')]
     public function nonFiniteFloatArgumentsAreRejected(float $argument): void
     {
-        Expect::that(
+        Expect::calling(
             static fn(): SkipUnless => new SkipUnless(EnvironmentVariableSet::class, $argument),
         )
             ->because('skip condition arguments MUST be safe for the JSON worker protocol')

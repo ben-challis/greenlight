@@ -36,7 +36,7 @@ final readonly class SocketChannelReadFailureTest
         $channel = new SocketChannel($stream);
         $this->cleanup->defer($channel->close(...));
 
-        Expect::that(static fn() => $channel->poll())
+        Expect::calling(static fn() => $channel->poll())
             ->because('a failed read MUST not masquerade as an idle channel')
             ->toThrow(
                 ProtocolError::class,

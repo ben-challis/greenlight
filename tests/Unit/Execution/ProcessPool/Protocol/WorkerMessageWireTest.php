@@ -25,7 +25,7 @@ final class WorkerMessageWireTest
             'pid' => $number,
         ]);
 
-        Expect::that($hello->pid)
+        Expect::value($hello->pid)
             ->because('a decoded worker process ID MUST be positive')
             ->toBe(1);
     }
@@ -39,7 +39,7 @@ final class WorkerMessageWireTest
             'attempt' => $number,
         ]);
 
-        Expect::that($attempt->attempt)
+        Expect::value($attempt->attempt)
             ->because('a decoded attempt number MUST be positive')
             ->toBe(1);
     }
@@ -64,7 +64,7 @@ final class WorkerMessageWireTest
             'leaks' => [],
         ]);
 
-        Expect::that($done->peakMemoryBytes)
+        Expect::value($done->peakMemoryBytes)
             ->because('decoded peak memory MUST NOT be negative')
             ->toBe(0);
     }

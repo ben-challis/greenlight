@@ -21,10 +21,10 @@ final readonly class Psr11SourceRunTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--workers=1']);
         $output = $result->output();
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because($output === '' ? 'The named PSR-11 source run returned no output.' : $output)
             ->toBe(0);
-        Expect::that($output)->toContain('2 tests, 2 passed');
+        Expect::value($output)->toContain('2 tests, 2 passed');
     }
 
     private function writeProject(): AcceptanceProject
@@ -82,19 +82,19 @@ final readonly class Psr11SourceRunTest
 
                 private function checkFreshSources(): void
                 {
-                    Expect::that($this->billing->source)->toBe('billing');
-                    Expect::that($this->legacy->source)->toBe('legacy');
-                    Expect::that($this->billingContainer)->not()->toBe($this->legacyContainer);
-                    Expect::that($this->billingContainerAgain)->toBe($this->billingContainer);
-                    Expect::that($this->billingContainer->get(Counter::class))->toBe($this->billing);
-                    Expect::that($this->legacyContainer->get('application.counter'))->toBe($this->legacy);
-                    Expect::that($this->billing->calls)->toBe(0);
-                    Expect::that($this->legacy->calls)->toBe(0);
+                    Expect::value($this->billing->source)->toBe('billing');
+                    Expect::value($this->legacy->source)->toBe('legacy');
+                    Expect::value($this->billingContainer)->not()->toBe($this->legacyContainer);
+                    Expect::value($this->billingContainerAgain)->toBe($this->billingContainer);
+                    Expect::value($this->billingContainer->get(Counter::class))->toBe($this->billing);
+                    Expect::value($this->legacyContainer->get('application.counter'))->toBe($this->legacy);
+                    Expect::value($this->billing->calls)->toBe(0);
+                    Expect::value($this->legacy->calls)->toBe(0);
 
                     ++$this->billing->calls;
 
-                    Expect::that($this->billing->calls)->toBe(1);
-                    Expect::that($this->legacy->calls)->toBe(0);
+                    Expect::value($this->billing->calls)->toBe(1);
+                    Expect::value($this->legacy->calls)->toBe(0);
 
                     ++$this->legacy->calls;
                 }

@@ -27,12 +27,12 @@ final readonly class EnvironmentVariablesReuseTest
             $sandbox->set($name, 'second session');
             $sandbox->dispose();
 
-            Expect::that(\getenv($name))
+            Expect::value(\getenv($name))
                 ->because('use after disposal MUST capture the new environment baseline')
                 ->toBe('new baseline');
-            Expect::that($_ENV[$name] ?? null)
+            Expect::value($_ENV[$name] ?? null)
                 ->toBe('new baseline');
-            Expect::that($_SERVER[$name] ?? null)
+            Expect::value($_SERVER[$name] ?? null)
                 ->toBe('new baseline');
         } finally {
             $sandbox->dispose();

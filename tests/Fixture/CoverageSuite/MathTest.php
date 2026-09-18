@@ -13,6 +13,6 @@ final readonly class MathTest
     #[Test]
     public function addsTwoIntegers(): void
     {
-        Expect::that(new Math()->add(2, 3))->toBe(5);
+        Expect::value(new Math()->add(2, 3))->toBe(5);
     }
 }

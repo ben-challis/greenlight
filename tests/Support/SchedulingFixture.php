@@ -35,11 +35,11 @@ final class SchedulingFixture
     {
         $decision = $scheduler->dispatch($freshWorker);
 
-        Expect::that($decision->kind)
+        Expect::value($decision->kind)
             ->because('the scheduling fixture requires an assignment')
             ->toBe(DispatchKind::Assign);
 
-        Expect::that($decision->lease)
+        Expect::value($decision->lease)
             ->because(\sprintf('Expected an assignment, got %s.', $decision->kind->name))
             ->toBeInstanceOf(ResourceLease::class);
 

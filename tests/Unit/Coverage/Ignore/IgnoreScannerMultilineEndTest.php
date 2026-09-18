@@ -27,7 +27,7 @@ final readonly class IgnoreScannerMultilineEndTest
             $kept = 2;
             PHP);
 
-        Expect::that(\array_keys(new IgnoreScanner()->ignoredLines($path)))
+        Expect::value(\array_keys(new IgnoreScanner()->ignoredLines($path)))
             ->because('a multiline end marker MUST include its complete comment')
             ->toBe([2, 3, 4, 5, 6]);
     }

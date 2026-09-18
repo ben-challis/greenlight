@@ -20,14 +20,14 @@ final readonly class MethodArgumentContractTest
     #[Test]
     public function plannedArgumentsMustSatisfyTheMethodDeclaration(): void
     {
-        Expect::that(fn(): Wide => $this->doubles->mock(Wide::class, static function (MockPlan $plan): void {
+        Expect::calling(fn(): Wide => $this->doubles->mock(Wide::class, static function (MockPlan $plan): void {
             $plan->expects(self::requiredMethod())->withNoArguments();
         }))->toThrow(
             InvalidDoubleUsage::class,
             '/withNoArguments\(\) supplies 0 arguments .* but the method requires 1 argument/',
         );
 
-        Expect::that(fn(): Wide => $this->doubles->mock(Wide::class, static function (MockPlan $plan): void {
+        Expect::calling(fn(): Wide => $this->doubles->mock(Wide::class, static function (MockPlan $plan): void {
             $plan->expects(self::emptyMethod())->with(1);
         }))->toThrow(
             InvalidDoubleUsage::class,
@@ -38,7 +38,7 @@ final readonly class MethodArgumentContractTest
     #[Test]
     public function plannedPredicateTypeMustOverlapTheMethodParameterType(): void
     {
-        Expect::that(fn(): PredicateTarget => $this->doubles->mock(
+        Expect::calling(fn(): PredicateTarget => $this->doubles->mock(
             PredicateTarget::class,
             static function (MockPlan $plan): void {
                 $plan->expects(self::predicateMethod())->with(Argument::predicate(
@@ -78,7 +78,7 @@ final readonly class MethodArgumentContractTest
             $plan->expects('returnsVoid')->never();
         });
 
-        Expect::that(static fn(): mixed => new \ReflectionMethod($wide, 'returnsVoid')->invokeArgs($wide, [1]))
+        Expect::calling(static fn(): mixed => new \ReflectionMethod($wide, 'returnsVoid')->invokeArgs($wide, [1]))
             ->toThrow(
                 InvalidDoubleUsage::class,
                 '/accepts at most 0 arguments/',
@@ -90,7 +90,7 @@ final readonly class MethodArgumentContractTest
     {
         $contract = MethodCallContract::from(Wide::class, 'unionType');
 
-        Expect::that(static fn() => $contract->assertCallArgumentCount(0))
+        Expect::calling(static fn() => $contract->assertCallArgumentCount(0))
             ->toThrow(
                 InvalidDoubleUsage::class,
                 '/supplies 0 arguments, but the method requires 1 argument/',

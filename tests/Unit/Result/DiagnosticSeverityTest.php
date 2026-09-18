@@ -15,7 +15,7 @@ final class DiagnosticSeverityTest
     #[DataSet('errorLevels')]
     public function mapsPhpErrorLevelsExactly(int $level, ?DiagnosticSeverity $expected): void
     {
-        Expect::that(DiagnosticSeverity::fromErrorLevel($level))
+        Expect::value(DiagnosticSeverity::fromErrorLevel($level))
             ->because('the PHP error level has an explicit capture severity')
             ->toBe($expected);
     }

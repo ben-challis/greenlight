@@ -24,7 +24,7 @@ final readonly class TestResultNullAttachmentsWireTest
         )->toWire();
         $payload['attachments'] = null;
 
-        Expect::that(static fn(): TestResult => TestResult::fromWire($payload))
+        Expect::calling(static fn(): TestResult => TestResult::fromWire($payload))
             ->because('explicit null attachments MUST NOT use the missing-field default')
             ->toThrow(
                 InvalidWirePayload::class,

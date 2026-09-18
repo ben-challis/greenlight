@@ -29,7 +29,7 @@ final readonly class ArtifactStreamWriteFailureTest
         }
 
         try {
-            Expect::that(static fn() => StreamWriter::writeFully($stream, 'evidence'))
+            Expect::calling(static fn() => StreamWriter::writeFully($stream, 'evidence'))
                 ->because('a write without progress MUST fail instead of looping')
                 ->toThrow(
                     AttachmentError::class,

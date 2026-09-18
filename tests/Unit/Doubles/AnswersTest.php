@@ -26,9 +26,9 @@ final readonly class AnswersTest
             $plan->expects('add')->times(3)->andReturnsSequence(1, 2, 3);
         });
 
-        Expect::that($calculator->add(0, 0))->because('a sequence returns its values in order')->toBe(1);
-        Expect::that($calculator->add(0, 0))->toBe(2);
-        Expect::that($calculator->add(0, 0))->toBe(3);
+        Expect::value($calculator->add(0, 0))->because('a sequence returns its values in order')->toBe(1);
+        Expect::value($calculator->add(0, 0))->toBe(2);
+        Expect::value($calculator->add(0, 0))->toBe(3);
     }
 
     #[Test]
@@ -40,10 +40,10 @@ final readonly class AnswersTest
                 ->andReturnsSequence(null, 'ready');
         });
 
-        Expect::that($wide->nullable('first'))
+        Expect::value($wide->nullable('first'))
             ->because('a null sequence element MUST be consumed as a configured return value')
             ->toBeNull();
-        Expect::that($wide->nullable('second'))->toBe('ready');
+        Expect::value($wide->nullable('second'))->toBe('ready');
     }
 
     #[Test]
@@ -53,10 +53,10 @@ final readonly class AnswersTest
             $plan->expects('add')->atLeast(1)->andReturnsSequence(5);
         });
 
-        Expect::that($calculator->add(0, 0))
+        Expect::value($calculator->add(0, 0))
             ->because('a matched call after sequence exhaustion is an authoring error')
             ->toBe(5);
-        Expect::that(static fn(): int => $calculator->add(0, 0))
+        Expect::calling(static fn(): int => $calculator->add(0, 0))
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'The return sequence for add() has no value after 1 time. '
@@ -67,7 +67,7 @@ final readonly class AnswersTest
     #[Test]
     public function anEmptySequenceIsRejected(): void
     {
-        Expect::that(fn(): mixed => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+        Expect::calling(fn(): mixed => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturnsSequence(); // @phpstan-ignore greenlight.mockPlan.answer (deliberately invalid: tests runtime validation)
         }))
             ->because('an empty sequence is rejected')
@@ -84,13 +84,13 @@ final readonly class AnswersTest
             $plan->expects('add')->once()->andReturnsUsing(static fn(int $a, int $b): int => $a + $b);
         });
 
-        Expect::that($calculator->add(19, 23))->because('andReturnsUsing() receives the call arguments')->toBe(42);
+        Expect::value($calculator->add(19, 23))->because('andReturnsUsing() receives the call arguments')->toBe(42);
     }
 
     #[Test]
     public function aSecondAnswerKindOnOneExpectationIsRejected(): void
     {
-        Expect::that(fn(): mixed => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+        Expect::calling(fn(): mixed => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturns(1)->andReturnsSequence(2, 3);
         }))
             ->because('a second answer kind on one expectation is rejected')
@@ -100,7 +100,7 @@ final readonly class AnswersTest
     #[Test]
     public function aCallbackAfterAReturnValueIsRejected(): void
     {
-        Expect::that(fn(): mixed => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+        Expect::calling(fn(): mixed => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturns(1)->andReturnsUsing(static fn(): int => 2);
         }))
             ->because('a callback after a return value is rejected')
@@ -110,7 +110,7 @@ final readonly class AnswersTest
     #[Test]
     public function aReturnValueAfterASequenceIsRejected(): void
     {
-        Expect::that(fn(): mixed => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+        Expect::calling(fn(): mixed => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturnsSequence(1)->andReturns(2);
         }))
             ->because('a return value after a sequence is rejected')
@@ -120,7 +120,7 @@ final readonly class AnswersTest
     #[Test]
     public function aThrowableAfterAReturnValueIsRejected(): void
     {
-        Expect::that(fn(): mixed => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+        Expect::calling(fn(): mixed => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andReturns(1)->andThrows(new \RuntimeException('boom'));
         }))
             ->because('a throwable after a return value is rejected')
@@ -130,7 +130,7 @@ final readonly class AnswersTest
     #[Test]
     public function aReturnValueAfterAThrowableIsRejected(): void
     {
-        Expect::that(fn(): mixed => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+        Expect::calling(fn(): mixed => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->andThrows(new \RuntimeException('boom'))->andReturns(1);
         }))
             ->because('a return value after a throwable is rejected')
@@ -144,7 +144,7 @@ final readonly class AnswersTest
             $plan->expects('add')->times(2)->andReturnsSequence(10, 20);
         });
 
-        Expect::that($calculator->add(1, 1))->because('a sequence with times stays consistent')->toBe(10);
-        Expect::that($calculator->add(2, 2))->toBe(20);
+        Expect::value($calculator->add(1, 1))->because('a sequence with times stays consistent')->toBe(10);
+        Expect::value($calculator->add(2, 2))->toBe(20);
     }
 }

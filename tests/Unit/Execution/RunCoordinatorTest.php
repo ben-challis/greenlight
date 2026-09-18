@@ -64,14 +64,14 @@ final readonly class RunCoordinatorTest
             new InProcessExecution(),
         );
 
-        Expect::that($subscriber?->events)
+        Expect::value($subscriber?->events)
             ->because('run subscribers observe the same event stream as the configured sink')
             ->toBe($sink->events);
-        Expect::that($subscriber?->sequence())
+        Expect::value($subscriber?->sequence())
             ->because('the subscriber observes both run boundaries')
             ->toContain('RunStarted')
             ->toContain('RunFinished');
-        Expect::that($result->summary->passed)->toBe(7);
+        Expect::value($result->summary->passed)->toBe(7);
     }
 
     #[Test]
@@ -101,14 +101,14 @@ final readonly class RunCoordinatorTest
             ),
         );
 
-        Expect::that($subscriber?->events)
+        Expect::value($subscriber?->events)
             ->because('process-pool run subscribers observe the configured sink event stream')
             ->toBe($sink->events);
-        Expect::that($subscriber?->sequence())
+        Expect::value($subscriber?->sequence())
             ->because('the process-pool subscriber observes both run boundaries')
             ->toContain('RunStarted')
             ->toContain('RunFinished');
-        Expect::that($result->summary->passed)->toBe(7);
+        Expect::value($result->summary->passed)->toBe(7);
     }
 
     #[Test]
@@ -118,7 +118,7 @@ final readonly class RunCoordinatorTest
         $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
         $protocolFailure = ProtocolError::malformedFrame('scripted process-pool failure');
 
-        Expect::that(fn() => $this->coordinator()->run(
+        Expect::calling(fn() => $this->coordinator()->run(
             $resolved,
             $resolved->selection,
             [FixturePath::get('DiscoveryBasic')],
@@ -131,7 +131,7 @@ final readonly class RunCoordinatorTest
                 transport: new ScriptedWorkerTransport([], startFailure: $protocolFailure),
             ),
         ))->toThrow(static function (ExecutionFailed $error) use ($protocolFailure): void {
-            Expect::that($error->getPrevious())
+            Expect::value($error->getPrevious())
                 ->because('the execution failure MUST preserve the process protocol failure')
                 ->toBe($protocolFailure);
         });
@@ -173,20 +173,20 @@ final readonly class RunCoordinatorTest
             $execution,
         );
 
-        Expect::that($execution->executeCalls)
+        Expect::value($execution->executeCalls)
             ->because('an empty plan MUST NOT start its execution adapter')
             ->toBe(0);
-        Expect::that($sink->sequence())->toBe(['RunStarted', 'RunFinished']);
-        Expect::that($sink->events[0])->toBeInstanceOf(RunStarted::class);
-        Expect::that($sink->events[1])->toBeInstanceOf(RunFinished::class);
+        Expect::value($sink->sequence())->toBe(['RunStarted', 'RunFinished']);
+        Expect::value($sink->events[0])->toBeInstanceOf(RunStarted::class);
+        Expect::value($sink->events[1])->toBeInstanceOf(RunFinished::class);
 
         $started = $sink->events[0];
         $finished = $sink->events[1];
 
-        Expect::that($started->workers)->toBe(3);
-        Expect::that($started->plannedTests)->toBe(0);
-        Expect::that($finished->runId)->toBe($started->runId);
-        Expect::that($result->plannedTests)->toBe(0);
+        Expect::value($started->workers)->toBe(3);
+        Expect::value($started->plannedTests)->toBe(0);
+        Expect::value($finished->runId)->toBe($started->runId);
+        Expect::value($result->plannedTests)->toBe(0);
     }
 
     #[Test]
@@ -202,11 +202,11 @@ final readonly class RunCoordinatorTest
         $first = $coordinator->run($resolved, $resolved->selection, [$fixtureDirectory], $firstSink, new InProcessExecution());
         $second = $coordinator->run($resolved, $resolved->selection, [$fixtureDirectory], $secondSink, new InProcessExecution());
 
-        Expect::that($first->seed)
+        Expect::value($first->seed)
             ->because('the run result MUST report its explicit random seed')
             ->toBe(4242);
-        Expect::that($second->seed)->toBe(4242);
-        Expect::that($this->resultIds($firstSink))
+        Expect::value($second->seed)->toBe(4242);
+        Expect::value($this->resultIds($firstSink))
             ->because('the same explicit seed MUST reproduce the coordinated run order')
             ->toBe($this->resultIds($secondSink));
     }
@@ -233,10 +233,10 @@ final readonly class RunCoordinatorTest
             $result = $coordinator->run($configuration, $configuration->selection, [$fixtureDirectory], $sink, new InProcessExecution());
             $ids = $this->resultIds($sink);
 
-            Expect::that($result->plannedTests)
+            Expect::value($result->plannedTests)
                 ->because('each coordinated shard reports the number of tests it executes')
                 ->toBe(\count($ids));
-            Expect::that($result->summary->total())->toBe(\count($ids));
+            Expect::value($result->summary->total())->toBe(\count($ids));
 
             $shardedIds = [...$shardedIds, ...$ids];
         }
@@ -244,7 +244,7 @@ final readonly class RunCoordinatorTest
         \sort($completeIds);
         \sort($shardedIds);
 
-        Expect::that($shardedIds)
+        Expect::value($shardedIds)
             ->because('all coordinated shards reconstitute the complete run exactly once')
             ->toBe($completeIds);
     }
@@ -265,11 +265,11 @@ final readonly class RunCoordinatorTest
             new InProcessExecution(),
         );
 
-        Expect::that(\getenv('GREENLIGHT_CHANNEL'))
+        Expect::value(\getenv('GREENLIGHT_CHANNEL'))
             ->because('in-process execution MUST restore the caller process environment')
             ->toBe('caller-channel');
-        Expect::that($_ENV['GREENLIGHT_CHANNEL'] ?? null)->toBe('caller-channel');
-        Expect::that($_SERVER['GREENLIGHT_CHANNEL'] ?? null)->toBe('caller-channel');
+        Expect::value($_ENV['GREENLIGHT_CHANNEL'] ?? null)->toBe('caller-channel');
+        Expect::value($_SERVER['GREENLIGHT_CHANNEL'] ?? null)->toBe('caller-channel');
     }
 
     #[Test]
@@ -283,7 +283,7 @@ final readonly class RunCoordinatorTest
         $resolved = ConfigurationResolver::resolve($configuration, new CliOverrides());
         $fixtureDirectory = FixturePath::get('DiscoveryBasic');
 
-        Expect::that(fn() => $this->coordinator()->run(
+        Expect::calling(fn() => $this->coordinator()->run(
             $resolved,
             $resolved->selection,
             [$fixtureDirectory],
@@ -293,20 +293,20 @@ final readonly class RunCoordinatorTest
             ->because('in-process bootstrap failures MUST use the execution failure contract')
             ->toThrow(
                 static function (ExecutionFailed $error) use ($failure): void {
-                    Expect::that($error->getMessage())->toBe(\sprintf(
+                    Expect::value($error->getMessage())->toBe(\sprintf(
                         'Worker "in-process" reported a fatal Greenlight error: worker bootstrap exploded (%s:%d).',
                         $failure->getFile(),
                         $failure->getLine(),
                     ));
-                    Expect::that($error->getPrevious())->toBe($failure);
+                    Expect::value($error->getPrevious())->toBe($failure);
                 },
             );
 
-        Expect::that(\getenv('GREENLIGHT_CHANNEL'))
+        Expect::value(\getenv('GREENLIGHT_CHANNEL'))
             ->because('failed in-process execution MUST restore an absent caller environment value')
             ->toBeFalse();
-        Expect::that(\array_key_exists('GREENLIGHT_CHANNEL', $_ENV))->toBeFalse();
-        Expect::that(\array_key_exists('GREENLIGHT_CHANNEL', $_SERVER))->toBeFalse();
+        Expect::value(\array_key_exists('GREENLIGHT_CHANNEL', $_ENV))->toBeFalse();
+        Expect::value(\array_key_exists('GREENLIGHT_CHANNEL', $_SERVER))->toBeFalse();
     }
 
     private function coordinator(): RunCoordinator

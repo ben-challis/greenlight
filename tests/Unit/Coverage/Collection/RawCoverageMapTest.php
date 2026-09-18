@@ -20,8 +20,8 @@ final readonly class RawCoverageMapTest
 
         $file = $map->files()['/src/A.php'];
 
-        Expect::that($file->coveredLines)->because('conversion splits statuses and drops dead code')->toBe([3, 6]);
-        Expect::that($file->uncoveredLines)->toBe([4]);
+        Expect::value($file->coveredLines)->because('conversion splits statuses and drops dead code')->toBe([3, 6]);
+        Expect::value($file->uncoveredLines)->toBe([4]);
     }
 
     #[Test]
@@ -34,7 +34,7 @@ final readonly class RawCoverageMapTest
 
         $map = $raw->toMap(new PathFilter(['/project/src']));
 
-        Expect::that(\array_keys($map->files()))->because('conversion applies the path filter')->toBe(['/project/src/A.php']);
+        Expect::value(\array_keys($map->files()))->because('conversion applies the path filter')->toBe(['/project/src/A.php']);
     }
 
     #[Test]
@@ -42,7 +42,7 @@ final readonly class RawCoverageMapTest
     {
         $map = new RawCoverage(['/src/A.php' => [3 => -2]])->toMap();
 
-        Expect::that($map->isEmpty())->because('conversion drops files with no executable lines')->toBeTrue();
+        Expect::value($map->isEmpty())->because('conversion drops files with no executable lines')->toBeTrue();
     }
 
     #[Test]
@@ -52,10 +52,10 @@ final readonly class RawCoverageMapTest
             '/src/A.php' => [-1 => 1, 0 => -1, 1 => 1],
         ])->toMap();
 
-        Expect::that($map->files()['/src/A.php']->coveredLines)
+        Expect::value($map->files()['/src/A.php']->coveredLines)
             ->because('raw coverage drops non-positive line numbers')
             ->toBe([1]);
-        Expect::that($map->files()['/src/A.php']->uncoveredLines)->toBe([]);
+        Expect::value($map->files()['/src/A.php']->uncoveredLines)->toBe([]);
     }
 
     #[Test]
@@ -66,7 +66,7 @@ final readonly class RawCoverageMapTest
             '/src/A.php' => [1 => 0, 2 => -2, 3 => 1, 4 => -1],
         ])->toMap();
 
-        Expect::that($map->toWire())
+        Expect::value($map->toWire())
             ->because('raw coverage MUST keep only usable paths and documented driver statuses')
             ->toBe([
                 'files' => [

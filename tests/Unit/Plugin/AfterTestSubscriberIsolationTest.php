@@ -60,13 +60,13 @@ final readonly class AfterTestSubscriberIsolationTest
 
         new Worker(new StandardHarnessPlugin()->services(), $plugins)->run($plan, $sink);
 
-        Expect::that($calls->getArrayCopy())
+        Expect::value($calls->getArrayCopy())
             ->because('an afterTest() failure MUST NOT stop later subscribers')
             ->toBe([
                 'broken:after',
                 'observer:after:errored',
             ]);
-        Expect::that($sink->results()[0]->outcome)
+        Expect::value($sink->results()[0]->outcome)
             ->because('the later subscriber MUST receive the errored result')
             ->toBe(Outcome::Errored);
     }

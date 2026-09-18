@@ -42,23 +42,23 @@ final readonly class ArtifactStagingRootCollisionTest
             $configuration,
         );
 
-        Expect::that($stage)
+        Expect::calling($stage)
             ->because('a non-directory staging parent MUST block attachments')
             ->toThrow(
                 AttachmentError::class,
                 matching: '/^Failed to create attachment staging directory/',
             );
-        Expect::that((string) \file_get_contents($blocker))
+        Expect::value((string) \file_get_contents($blocker))
             ->because('a rejected staging root MUST preserve the existing entry')
             ->toBe('occupied');
-        Expect::that(\is_dir($staging))
+        Expect::value(\is_dir($staging))
             ->because('a rejected staging root MUST not create a directory')
             ->toBeFalse();
 
         \unlink($blocker);
         \mkdir($blocker);
 
-        Expect::that($stage()->name)
+        Expect::value($stage()->name)
             ->because('staging MUST succeed after the parent becomes a directory')
             ->toBe('evidence.txt');
     }

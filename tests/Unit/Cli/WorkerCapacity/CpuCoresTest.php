@@ -31,10 +31,10 @@ final readonly class CpuCoresTest
     {
         $this->installFakeOptionalCounter(notFound: false);
 
-        Expect::that(CpuCores::count())
+        Expect::value(CpuCores::count())
             ->because('the optional CPU counter supplies the worker count')
             ->toBe(7);
-        Expect::that(FakeCpuCoreCounter::$calls)
+        Expect::value(FakeCpuCoreCounter::$calls)
             ->because('the optional CPU counter runs once')
             ->toBe(1);
     }
@@ -45,10 +45,10 @@ final readonly class CpuCoresTest
     {
         $this->installFakeOptionalCounter(notFound: true);
 
-        Expect::that(CpuCores::count())
+        Expect::value(CpuCores::count())
             ->because('the typed not-found error falls through to the built-in probe')
             ->toBeGreaterThan(0);
-        Expect::that(FakeCpuCoreCounter::$calls)
+        Expect::value(FakeCpuCoreCounter::$calls)
             ->because('the fallback follows one optional attempt')
             ->toBe(1);
     }
@@ -58,10 +58,10 @@ final readonly class CpuCoresTest
     {
         $result = $this->runBuiltInProbe();
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('the built-in CPU probe runs without the optional package')
             ->toBe(0);
-        Expect::that($result->stdout)
+        Expect::value($result->stdout)
             ->because('the built-in CPU probe returns a positive integer')
             ->toMatch('/^[1-9]\d*$/D');
     }
@@ -84,10 +84,10 @@ final readonly class CpuCoresTest
 
         $result = $this->runBuiltInProbe(['PATH' => $bin]);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('the built-in CPU probe MUST complete for malformed system output')
             ->toBe(0);
-        Expect::that($result->stdout)
+        Expect::value($result->stdout)
             ->because('malformed system output MUST use the conservative CPU count')
             ->toBe('4');
     }

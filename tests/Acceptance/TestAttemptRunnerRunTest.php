@@ -123,13 +123,13 @@ final readonly class TestAttemptRunnerRunTest
                 public function firstAttemptStaysInsideTheBoundary(): void
                 {
                     Boundary::record('test');
-                    Expect::that(Boundary::$active)->toBeTrue();
+                    Expect::value(Boundary::$active)->toBeTrue();
                 }
 
                 #[Test]
                 public function nextAttemptSeesTheCompletedFirstBoundary(): void
                 {
-                    Expect::that(Boundary::$events)->toBe([
+                    Expect::value(Boundary::$events)->toBe([
                         'constructor',
                         'beforeTest',
                         'before',
@@ -166,10 +166,10 @@ final readonly class TestAttemptRunnerRunTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
         $output = $result->output();
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because($output === '' ? 'The subprocess returned no output.' : $output)
             ->toBe(0);
-        Expect::that($result->output())->toContain('2 tests, 2 passed');
+        Expect::value($result->output())->toContain('2 tests, 2 passed');
     }
 
     #[Test]
@@ -223,8 +223,8 @@ final readonly class TestAttemptRunnerRunTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->output())
+        Expect::value($result->exitCode)->toBe(1);
+        Expect::value($result->output())
             ->toContain('The attempt runtime failed before the test started.')
             ->toContain('1 test, 0 passed, 1 errored');
     }

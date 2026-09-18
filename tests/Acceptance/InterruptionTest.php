@@ -89,58 +89,58 @@ final readonly class InterruptionTest
             static fn(Event $event): bool => $event instanceof TestFinished,
         ));
 
-        Expect::that($result->stdout)
+        Expect::value($result->stdout)
             ->because('The interrupted run MUST report a finished test.')
             ->toContain('"test-finished"');
-        Expect::that($finished)
+        Expect::value($finished)
             ->because('The interrupted run MUST finish an active test.')
             ->not()
             ->toBeEmpty();
 
         foreach ($finished as $event) {
-            Expect::that($event->result->outcome)
+            Expect::value($event->result->outcome)
                 ->because('Terminal SIGINT MUST NOT fail a test subprocess.')
                 ->toBe(Outcome::Passed);
         }
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('SIGINT MUST produce exit code 130.')
             ->toBe(130);
 
         foreach ($expectedDiagnostics as $diagnostic) {
-            Expect::that($result->stderr)
+            Expect::value($result->stderr)
                 ->because('SIGINT MUST report each interruption diagnostic.')
                 ->toContain($diagnostic);
         }
 
-        Expect::that($result->stderr)
+        Expect::value($result->stderr)
             ->because('Interruption diagnostics MUST remain plain when standard error is a pipe.')
             ->not()
             ->toContain("\x1b[");
 
         $workerPids = $this->spawnedWorkerPids($events);
-        Expect::that($workerPids)
+        Expect::value($workerPids)
             ->because('The interrupted run MUST start at least one worker.')
             ->not()
             ->toBeEmpty();
 
         foreach ($workerPids as $pid) {
             $alive = Subprocess::run($root, ['ps', '-p', (string) $pid, '-o', 'pid=']);
-            Expect::that(\trim($alive->stdout))
+            Expect::value(\trim($alive->stdout))
                 ->because(\sprintf('Worker process %d MUST NOT exist after the run exits.', $pid))
                 ->toBe('');
         }
 
         $sockets = \glob($tmp . '/greenlight-*/orchestrator.sock');
-        Expect::that(\is_array($sockets) ? $sockets : [])
+        Expect::value(\is_array($sockets) ? $sockets : [])
             ->because('The interrupted run MUST remove its orchestrator socket.')
             ->toBe([]);
         $cleaned = \file($markerDir . '/cleaned.log', \FILE_IGNORE_NEW_LINES);
-        Expect::that(\is_array($cleaned) ? $cleaned : [])
+        Expect::value(\is_array($cleaned) ? $cleaned : [])
             ->because('The interrupted run MUST clean its integration fixtures.')
             ->toBe(['cleaned']);
         $resources = \glob($markerDir . '/resource-*');
-        Expect::that(\is_array($resources) ? $resources : [])
+        Expect::value(\is_array($resources) ? $resources : [])
             ->because('The interrupted run MUST remove its integration fixture resources.')
             ->toBe([]);
     }

@@ -17,7 +17,7 @@ final readonly class FixtureResourceDepthTest
     {
         $resource = FixtureResource::from(self::nestedValues($shape, 16));
 
-        Expect::that($resource)
+        Expect::value($resource)
             ->because('fixture resources MUST accept the maximum JSON container depth')
             ->toBeInstanceOf(FixtureResource::class);
     }
@@ -29,7 +29,7 @@ final readonly class FixtureResourceDepthTest
         $pathSegment = $shape === 'map' ? 'nested' : '0';
         $path = 'values.root.' . \implode('.', \array_fill(0, 16, $pathSegment));
 
-        Expect::that(static fn(): FixtureResource => FixtureResource::from(
+        Expect::calling(static fn(): FixtureResource => FixtureResource::from(
             self::nestedValues($shape, 17),
         ))
             ->because('fixture resources MUST reject JSON containers beyond the maximum depth')

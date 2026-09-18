@@ -29,10 +29,10 @@ final readonly class CloneInterceptionTest
 
         $clone = clone $double;
 
-        Expect::that(CloneProbe::$calls)
+        Expect::value(CloneProbe::$calls)
             ->because('a mock MUST NOT run the doubled clone method')
             ->toBe(0);
-        Expect::that($this->doubles->callsTo($clone, '__clone'))
+        Expect::value($this->doubles->callsTo($clone, '__clone'))
             ->because('the clone MUST use the same interaction state as the original double')
             ->toEqual([[]]);
     }
@@ -43,7 +43,7 @@ final readonly class CloneInterceptionTest
         $double = $this->doubles->spy(CloneProbe::class);
         $clone = clone $double;
 
-        Expect::that($this->doubles->callsTo($clone, '__clone'))
+        Expect::value($this->doubles->callsTo($clone, '__clone'))
             ->because('a spy MUST record the clone interaction')
             ->toEqual([[]]);
     }
@@ -62,14 +62,14 @@ final readonly class CloneInterceptionTest
         $first->record('first');
         $second->record('second');
 
-        Expect::that($first)->not()->toBe($original);
-        Expect::that($second)->not()->toBe($first);
-        Expect::that($this->doubles->callsTo($original, '__clone'))->toEqual([[], []]);
-        Expect::that($this->doubles->callsTo($first, '__clone'))->toEqual([[], []]);
-        Expect::that($this->doubles->callsTo($second, '__clone'))->toEqual([[], []]);
-        Expect::that($this->doubles->callsTo($original, 'record'))->toEqual([['original'], ['first'], ['second']]);
-        Expect::that($this->doubles->callsTo($first, 'record'))->toEqual([['original'], ['first'], ['second']]);
-        Expect::that($this->doubles->callsTo($second, 'record'))->toEqual([['original'], ['first'], ['second']]);
+        Expect::value($first)->not()->toBe($original);
+        Expect::value($second)->not()->toBe($first);
+        Expect::value($this->doubles->callsTo($original, '__clone'))->toEqual([[], []]);
+        Expect::value($this->doubles->callsTo($first, '__clone'))->toEqual([[], []]);
+        Expect::value($this->doubles->callsTo($second, '__clone'))->toEqual([[], []]);
+        Expect::value($this->doubles->callsTo($original, 'record'))->toEqual([['original'], ['first'], ['second']]);
+        Expect::value($this->doubles->callsTo($first, 'record'))->toEqual([['original'], ['first'], ['second']]);
+        Expect::value($this->doubles->callsTo($second, 'record'))->toEqual([['original'], ['first'], ['second']]);
     }
 
     #[Test]
@@ -81,9 +81,9 @@ final readonly class CloneInterceptionTest
         });
         $clone = clone $original;
 
-        Expect::that(static fn(): object => clone $clone)
+        Expect::calling(static fn(): object => clone $clone)
             ->toThrow(ExpectationFailed::class, '/unexpected call to .*::__clone\(\)/');
-        Expect::that(static fn() => $doubles->dispose())
+        Expect::calling(static fn() => $doubles->dispose())
             ->toThrow(ExpectationFailed::class, '/unexpected call to .*::__clone\(\)/');
     }
 
@@ -93,10 +93,10 @@ final readonly class CloneInterceptionTest
         $doubles = new Doubles();
         $double = $doubles->mock(CloneProbe::class);
 
-        Expect::that(static fn(): object => clone $double)
+        Expect::calling(static fn(): object => clone $double)
             ->toThrow(ExpectationFailed::class, '/unexpected call to .*::__clone\(\)/');
-        Expect::that($doubles->callsTo($double, '__clone'))->toEqual([[]]);
-        Expect::that(static fn() => $doubles->dispose())
+        Expect::value($doubles->callsTo($double, '__clone'))->toEqual([[]]);
+        Expect::calling(static fn() => $doubles->dispose())
             ->toThrow(ExpectationFailed::class, '/unexpected call to .*::__clone\(\)/');
     }
 
@@ -108,11 +108,11 @@ final readonly class CloneInterceptionTest
             $plan->expects('__clone')->once()->andThrows($failure);
         });
 
-        Expect::that(static fn(): object => clone $double)
+        Expect::calling(static fn(): object => clone $double)
             ->toThrow(static function (\RuntimeException $actual) use ($failure): void {
-                Expect::that($actual)->toBe($failure);
+                Expect::value($actual)->toBe($failure);
             });
-        Expect::that($this->doubles->callsTo($double, '__clone'))->toEqual([[]]);
+        Expect::value($this->doubles->callsTo($double, '__clone'))->toEqual([[]]);
     }
 
     #[Test]
@@ -123,8 +123,8 @@ final readonly class CloneInterceptionTest
         });
         $clone = clone $double;
 
-        Expect::that($this->doubles->callsTo($double, '__clone'))->toEqual([[]]);
-        Expect::that($this->doubles->callsTo($clone, '__CLONE'))->toEqual([[]]);
+        Expect::value($this->doubles->callsTo($double, '__clone'))->toEqual([[]]);
+        Expect::value($this->doubles->callsTo($clone, '__CLONE'))->toEqual([[]]);
     }
 
     #[Test]
@@ -139,16 +139,16 @@ final readonly class CloneInterceptionTest
         unset($original);
         \gc_collect_cycles();
 
-        Expect::that($originalReference->get())->toBeNull();
+        Expect::value($originalReference->get())->toBeNull();
         $clone->record('after release');
-        Expect::that($doubles->callsTo($clone, '__clone'))->toEqual([[]]);
-        Expect::that($doubles->callsTo($clone, 'record'))->toEqual([['after release']]);
+        Expect::value($doubles->callsTo($clone, '__clone'))->toEqual([[]]);
+        Expect::value($doubles->callsTo($clone, 'record'))->toEqual([['after release']]);
 
         $doubles->dispose();
         unset($clone);
         \gc_collect_cycles();
 
-        Expect::that($cloneReference->get())->toBeNull();
+        Expect::value($cloneReference->get())->toBeNull();
     }
 
     #[Test]
@@ -161,8 +161,8 @@ final readonly class CloneInterceptionTest
         unset($clone);
         \gc_collect_cycles();
 
-        Expect::that($reference->get())->toBeNull();
-        Expect::that($this->doubles->callsTo($original, '__clone'))->toEqual([[]]);
+        Expect::value($reference->get())->toBeNull();
+        Expect::value($this->doubles->callsTo($original, '__clone'))->toEqual([[]]);
     }
 
     #[Test]
@@ -170,7 +170,7 @@ final readonly class CloneInterceptionTest
     {
         $double = $this->doubles->stub(CloneProbe::class);
 
-        Expect::that(static fn(): object => clone $double)
+        Expect::calling(static fn(): object => clone $double)
             ->because('a stub MUST reject the clone interaction')
             ->toThrow(
                 InvalidDoubleUsage::class,
@@ -187,9 +187,9 @@ final readonly class CloneInterceptionTest
 
         $clone = clone $double;
 
-        Expect::that(FinalCloneProbe::$calls)
+        Expect::value(FinalCloneProbe::$calls)
             ->because('a class double cannot intercept a final clone method')
             ->toBe(1);
-        Expect::that($clone)->toBeInstanceOf(FinalCloneProbe::class);
+        Expect::value($clone)->toBeInstanceOf(FinalCloneProbe::class);
     }
 }

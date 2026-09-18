@@ -19,7 +19,7 @@ final readonly class SpyMethodValidationTest
     {
         $spy = $this->doubles->spy(Notifier::class);
 
-        Expect::that(fn(): array => $this->doubles->callsTo($spy, 'notifiy')) // @phpstan-ignore greenlight.doubles.callsToMethod (deliberately invalid: tests runtime validation)
+        Expect::calling(fn(): array => $this->doubles->callsTo($spy, 'notifiy')) // @phpstan-ignore greenlight.doubles.callsToMethod (deliberately invalid: tests runtime validation)
             ->because('a misspelled method MUST NOT look like an uncalled method')
             ->toThrow(
                 InvalidDoubleUsage::class,

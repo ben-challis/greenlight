@@ -94,11 +94,11 @@ final class ProtocolTest
             }
         }
 
-        Expect::that($received)->because('every message survives the framed round trip')->toHaveCount(\count($messages));
+        Expect::value($received)->because('every message survives the framed round trip')->toHaveCount(\count($messages));
 
         foreach ($messages as $i => $original) {
-            Expect::that($received[$i]::class)->toBe($original::class);
-            Expect::that($received[$i]->toWire())->toEqual($original->toWire());
+            Expect::value($received[$i]::class)->toBe($original::class);
+            Expect::value($received[$i]->toWire())->toEqual($original->toWire());
         }
     }
 
@@ -122,14 +122,14 @@ final class ProtocolTest
             stopAfterFailures: 2,
         )->toWire());
 
-        Expect::that($assign->slice->seed)->because('assign carries the plan intact')->toBe(42);
-        Expect::that($assign->artifactSession?->stagingDirectory)->toBe('/tmp/staging');
-        Expect::that($assign->artifactSession?->publicDirectory)->toBe('build/artifacts/run-1');
-        Expect::that($assign->artifactConfiguration?->maxRunAttachments)->toBe(123);
-        Expect::that($assign->stopAfterFailures)->toBe(2);
-        Expect::that($assign->slice->entries[0]->id->dataSetKey)->toBe('data set one');
-        Expect::that($assign->slice->entries[0]->definition->scheduling->isolated)->toBeTrue();
-        Expect::that($assign->slice->entries[0]->definition->scheduling->resources)->toBe(['postgres']);
+        Expect::value($assign->slice->seed)->because('assign carries the plan intact')->toBe(42);
+        Expect::value($assign->artifactSession?->stagingDirectory)->toBe('/tmp/staging');
+        Expect::value($assign->artifactSession?->publicDirectory)->toBe('build/artifacts/run-1');
+        Expect::value($assign->artifactConfiguration?->maxRunAttachments)->toBe(123);
+        Expect::value($assign->stopAfterFailures)->toBe(2);
+        Expect::value($assign->slice->entries[0]->id->dataSetKey)->toBe('data set one');
+        Expect::value($assign->slice->entries[0]->definition->scheduling->isolated)->toBeTrue();
+        Expect::value($assign->slice->entries[0]->definition->scheduling->resources)->toBe(['postgres']);
     }
 
     #[Test]
@@ -142,7 +142,7 @@ final class ProtocolTest
         $payload['coverageInclude'] = ['', '0', '/app/src', ''];
         $assign = Assign::fromWire($payload);
 
-        Expect::that($assign->coverageInclude)
+        Expect::value($assign->coverageInclude)
             ->because('workers MUST retain each non-empty coverage include path')
             ->toBe(['0', '/app/src']);
     }
@@ -155,13 +155,13 @@ final class ProtocolTest
 
         $assign = Assign::fromWire($payload);
 
-        Expect::that($assign->artifactSession)
+        Expect::value($assign->artifactSession)
             ->because('legacy assignments have no artifact session')
             ->toBeNull();
-        Expect::that($assign->artifactConfiguration)
+        Expect::value($assign->artifactConfiguration)
             ->because('legacy assignments have no artifact configuration')
             ->toBeNull();
-        Expect::that($assign->stopAfterFailures)
+        Expect::value($assign->stopAfterFailures)
             ->because('legacy assignments have no local failed-or-errored test allowance')
             ->toBeNull();
     }
@@ -172,7 +172,7 @@ final class ProtocolTest
         $payload = new Bootstrap(1, null, new IntegrationResources())->toWire();
         unset($payload['policy']);
 
-        Expect::that(Bootstrap::fromWire($payload)->policy)
+        Expect::value(Bootstrap::fromWire($payload)->policy)
             ->because('legacy bootstrap payloads do not contain a result policy')
             ->toBeNull();
     }
@@ -182,13 +182,13 @@ final class ProtocolTest
     {
         $codec = new JsonFrameCodec(maxFrameBytes: 64);
 
-        Expect::that(static fn(): string => $codec->encode(['pad' => \str_repeat('x', 100)]))->because('oversized frames are rejected on both sides')
+        Expect::calling(static fn(): string => $codec->encode(['pad' => \str_repeat('x', 100)]))->because('oversized frames are rejected on both sides')
             ->toThrow(ProtocolError::class, matching: '/exceeds the 64 byte limit/');
 
         $buffer = new FrameBuffer(maxFrameBytes: 64);
         $buffer->feed(\pack('N', 1000));
 
-        Expect::that(static fn(): ?string => $buffer->next())->because('oversized frames are rejected on both sides')
+        Expect::calling(static fn(): ?string => $buffer->next())->because('oversized frames are rejected on both sides')
             ->toThrow(ProtocolError::class, matching: '/exceeds the 64 byte limit/');
     }
 
@@ -198,7 +198,7 @@ final class ProtocolTest
         $buffer = new FrameBuffer();
         $buffer->feed(\pack('N', 0));
 
-        Expect::that(static fn(): ?string => $buffer->next())
+        Expect::calling(static fn(): ?string => $buffer->next())
             ->because('zero-length frames are rejected')
             ->toThrow(ProtocolError::class, message: 'Malformed frame: zero-length frame.');
     }
@@ -212,7 +212,7 @@ final class ProtocolTest
             "stderr: extension failed\nstdout: booting",
         );
 
-        Expect::that($error->getMessage())
+        Expect::value($error->getMessage())
             ->because('a stalled worker error MUST preserve its captured output')
             ->toBe(
                 "Worker \"worker-7\" sent no message for 2.5 seconds after connection. No test was active. "
@@ -226,10 +226,10 @@ final class ProtocolTest
     #[Test]
     public function unknownTagsAndVersionsAreProtocolErrors(): void
     {
-        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 1, 't' => 'nonsense', 'p' => []]))->because('unknown tags and versions are protocol errors')
+        Expect::calling(static fn(): Message => MessageRegistry::open(['v' => 1, 't' => 'nonsense', 'p' => []]))->because('unknown tags and versions are protocol errors')
             ->toThrow(ProtocolError::class, matching: '/Unknown message type "nonsense"/');
 
-        Expect::that(static fn(): Message => MessageRegistry::open(['v' => 9, 't' => 'drain', 'p' => []]))->because('unknown tags and versions are protocol errors')
+        Expect::calling(static fn(): Message => MessageRegistry::open(['v' => 9, 't' => 'drain', 'p' => []]))->because('unknown tags and versions are protocol errors')
             ->toThrow(ProtocolError::class, matching: '/Unsupported protocol version 9/');
     }
 
@@ -241,11 +241,11 @@ final class ProtocolTest
         $buffer->feed($codec->encode(['message' => "bad \xB1\x31 bytes"]));
         $body = $buffer->next();
 
-        Expect::that($body)
+        Expect::value($body)
             ->because('FrameBuffer::next() MUST return the complete encoded frame.')
             ->not()
             ->toBeNull();
 
-        Expect::that($codec->decode($body)['message'])->because('binary bytes in messages survive encoding')->toContain('bad');
+        Expect::value($codec->decode($body)['message'])->because('binary bytes in messages survive encoding')->toContain('bad');
     }
 }

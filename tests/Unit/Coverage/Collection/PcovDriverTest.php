@@ -17,19 +17,19 @@ final class PcovDriverTest
     {
         $available = \extension_loaded('pcov') && \filter_var(\ini_get('pcov.enabled'), \FILTER_VALIDATE_BOOL);
 
-        Expect::that(PcovDriver::isAvailable())
+        Expect::value(PcovDriver::isAvailable())
             ->because('PCOV availability requires its execution hooks to be enabled')
             ->toBe($available);
 
         if ($available) {
-            Expect::that(new PcovDriver())
+            Expect::value(new PcovDriver())
                 ->because('an available PCOV extension permits driver construction')
                 ->toBeInstanceOf(PcovDriver::class);
 
             return;
         }
 
-        Expect::that(static fn(): PcovDriver => new PcovDriver())
+        Expect::calling(static fn(): PcovDriver => new PcovDriver())
             ->because('a missing PCOV extension gives exact installation guidance')
             ->toThrow(
                 CoverageError::class,
@@ -42,7 +42,7 @@ final class PcovDriverTest
     {
         $driver = new PcovDriver(new FakePcovDriverRuntime());
 
-        Expect::that(static fn(): mixed => $driver->stop())
+        Expect::calling(static fn(): mixed => $driver->stop())
             ->toThrow(
                 \LogicException::class,
                 message: 'The pcov collection window is not open. Call start() before stop().',
@@ -50,7 +50,7 @@ final class PcovDriverTest
 
         $driver->start();
 
-        Expect::that(static fn() => $driver->start())
+        Expect::calling(static fn() => $driver->start())
             ->toThrow(
                 \LogicException::class,
                 message: 'The pcov collection window is already open. Call stop() before start().',
@@ -66,7 +66,7 @@ final class PcovDriverTest
         $driver->start();
         $coverage = $driver->stop();
 
-        Expect::that($coverage->lines)
+        Expect::value($coverage->lines)
             ->because('PCOV collection returns the extension line statuses')
             ->toBe([
                 '/src/Example.php' => [
@@ -74,7 +74,7 @@ final class PcovDriverTest
                     11 => -1,
                 ],
             ]);
-        Expect::that($runtime->calls)
+        Expect::value($runtime->calls)
             ->because('PCOV collection MUST stop and clear extension state after reading it')
             ->toBe(['start', 'collect', 'stop', 'clear']);
     }

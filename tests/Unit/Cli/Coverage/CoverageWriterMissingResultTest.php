@@ -48,9 +48,9 @@ final readonly class CoverageWriterMissingResultTest
             new Style(false),
         );
 
-        Expect::that($result)->toBe($accepted);
-        Expect::that($out)->because('missing coverage MUST NOT write to standard output')->toBe('');
-        Expect::that($err)->toBe($diagnostic);
+        Expect::value($result)->toBe($accepted);
+        Expect::value($out)->because('missing coverage MUST NOT write to standard output')->toBe('');
+        Expect::value($err)->toBe($diagnostic);
     }
 
     /** @return iterable<string, array{CoverageConfiguration, bool, non-empty-string}> */

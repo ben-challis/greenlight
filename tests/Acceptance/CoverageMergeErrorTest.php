@@ -28,8 +28,8 @@ final readonly class CoverageMergeErrorTest
             '--input=one.json',
             '--export=json=merged.json',
         ]);
-        Expect::that($emptyInput->exitCode)->toBe(64);
-        Expect::that($emptyInput->output())
+        Expect::value($emptyInput->exitCode)->toBe(64);
+        Expect::value($emptyInput->output())
             ->toContain('--input requires a non-empty path.');
 
         $oneInput = GreenlightCli::run($directory, [
@@ -37,8 +37,8 @@ final readonly class CoverageMergeErrorTest
             '--input=one.json',
             '--export=json=merged.json',
         ]);
-        Expect::that($oneInput->exitCode)->toBe(64);
-        Expect::that($oneInput->output())
+        Expect::value($oneInput->exitCode)->toBe(64);
+        Expect::value($oneInput->output())
             ->toContain('coverage:merge requires at least two --input=<path> options.');
 
         $noOutput = GreenlightCli::run($directory, [
@@ -46,8 +46,8 @@ final readonly class CoverageMergeErrorTest
             '--input=one.json',
             '--input=one.json',
         ]);
-        Expect::that($noOutput->exitCode)->toBe(64);
-        Expect::that($noOutput->output())
+        Expect::value($noOutput->exitCode)->toBe(64);
+        Expect::value($noOutput->output())
             ->toContain('coverage:merge requires at least one --export=<format>=<path> option.');
     }
 
@@ -63,8 +63,8 @@ final readonly class CoverageMergeErrorTest
             '--input=one.json',
             '--export=json',
         ]);
-        Expect::that($malformed->exitCode)->toBe(64);
-        Expect::that($malformed->output())
+        Expect::value($malformed->exitCode)->toBe(64);
+        Expect::value($malformed->output())
             ->toContain('--export requires <format>=<path>');
 
         $unknown = GreenlightCli::run($directory, [
@@ -73,8 +73,8 @@ final readonly class CoverageMergeErrorTest
             '--input=one.json',
             '--export=unknown=merged.out',
         ]);
-        Expect::that($unknown->exitCode)->toBe(64);
-        Expect::that($unknown->output())
+        Expect::value($unknown->exitCode)->toBe(64);
+        Expect::value($unknown->output())
             ->toContain('Unknown coverage export format "unknown"');
 
         $duplicate = GreenlightCli::run($directory, [
@@ -84,8 +84,8 @@ final readonly class CoverageMergeErrorTest
             '--export=json=merged.out',
             '--export=lcov=merged.out',
         ]);
-        Expect::that($duplicate->exitCode)->toBe(64);
-        Expect::that($duplicate->output())
+        Expect::value($duplicate->exitCode)->toBe(64);
+        Expect::value($duplicate->output())
             ->toContain('Write coverage export target "merged.out" only once.');
     }
 
@@ -103,8 +103,8 @@ final readonly class CoverageMergeErrorTest
             '--input=valid.json',
             '--export=json=merged.json',
         ]);
-        Expect::that($missing->exitCode)->toBe(1);
-        Expect::that($missing->output())
+        Expect::value($missing->exitCode)->toBe(1);
+        Expect::value($missing->output())
             ->toContain('Greenlight could not read coverage input "missing.json"');
 
         $malformed = GreenlightCli::run($directory, [
@@ -113,8 +113,8 @@ final readonly class CoverageMergeErrorTest
             '--input=valid.json',
             '--export=json=merged.json',
         ]);
-        Expect::that($malformed->exitCode)->toBe(1);
-        Expect::that($malformed->output())
+        Expect::value($malformed->exitCode)->toBe(1);
+        Expect::value($malformed->output())
             ->toContain('Coverage input "malformed.json" is not compatible')
             ->toContain('Coverage JSON document is invalid');
 
@@ -124,8 +124,8 @@ final readonly class CoverageMergeErrorTest
             '--input=valid.json',
             '--export=json=merged.json',
         ]);
-        Expect::that($version->exitCode)->toBe(1);
-        Expect::that($version->output())
+        Expect::value($version->exitCode)->toBe(1);
+        Expect::value($version->output())
             ->toContain('Coverage input "version.json" is not compatible')
             ->toContain('unsupported or missing schema version');
     }
@@ -147,10 +147,10 @@ final readonly class CoverageMergeErrorTest
             '--export=json=merged.json',
         ]);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('coverage JSON MUST use absolute file paths')
             ->toBe(1);
-        Expect::that($result->output())
+        Expect::value($result->output())
             ->toContain('Coverage JSON requires an absolute file path. Received "src/A.php".');
     }
 
@@ -171,8 +171,8 @@ final readonly class CoverageMergeErrorTest
             '--project-root=/current',
             '--export=json=merged.json',
         ]);
-        Expect::that($missingInputRoots->exitCode)->toBe(64);
-        Expect::that($missingInputRoots->output())
+        Expect::value($missingInputRoots->exitCode)->toBe(64);
+        Expect::value($missingInputRoots->output())
             ->toContain('Use --input-root=<path> and --project-root=<path> together.');
 
         $missingProjectRoot = GreenlightCli::run($directory, [
@@ -183,8 +183,8 @@ final readonly class CoverageMergeErrorTest
             '--input-root=/old/two',
             '--export=json=merged.json',
         ]);
-        Expect::that($missingProjectRoot->exitCode)->toBe(64);
-        Expect::that($missingProjectRoot->output())
+        Expect::value($missingProjectRoot->exitCode)->toBe(64);
+        Expect::value($missingProjectRoot->output())
             ->toContain('Use --input-root=<path> and --project-root=<path> together.');
 
         $partial = GreenlightCli::run($directory, [
@@ -195,8 +195,8 @@ final readonly class CoverageMergeErrorTest
             '--project-root=/current',
             '--export=json=merged.json',
         ]);
-        Expect::that($partial->exitCode)->toBe(64);
-        Expect::that($partial->output())
+        Expect::value($partial->exitCode)->toBe(64);
+        Expect::value($partial->output())
             ->toContain('Repeat --input-root=<path> once for each --input=<path>.');
 
         $outside = GreenlightCli::run($directory, [
@@ -208,8 +208,8 @@ final readonly class CoverageMergeErrorTest
             '--project-root=/current',
             '--export=json=merged.json',
         ]);
-        Expect::that($outside->exitCode)->toBe(1);
-        Expect::that($outside->output())
+        Expect::value($outside->exitCode)->toBe(1);
+        Expect::value($outside->output())
             ->toContain('Coverage path "/old/one/A.php" is not below project root "/wrong".');
 
         $conflict = GreenlightCli::run($directory, [
@@ -221,8 +221,8 @@ final readonly class CoverageMergeErrorTest
             '--project-root=/current',
             '--export=json=merged.json',
         ]);
-        Expect::that($conflict->exitCode)->toBe(64);
-        Expect::that($conflict->output())
+        Expect::value($conflict->exitCode)->toBe(64);
+        Expect::value($conflict->output())
             ->toContain('Coverage input "one.json" cannot use more than one input root.');
     }
 
@@ -242,12 +242,12 @@ final readonly class CoverageMergeErrorTest
             '--no-ansi',
         ]);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('an invalid output destination MUST fail without replacing it')
             ->toBe(1);
-        Expect::that($result->output())
+        Expect::value($result->output())
             ->toContain('Greenlight could not write the coverage export');
-        Expect::that(\is_dir($directory . '/coverage.json'))->toBeTrue();
+        Expect::value(\is_dir($directory . '/coverage.json'))->toBeTrue();
     }
 
     #[Test]
@@ -268,10 +268,10 @@ final readonly class CoverageMergeErrorTest
             '--no-ansi',
         ]);
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->output())
+        Expect::value($result->exitCode)->toBe(1);
+        Expect::value($result->output())
             ->toContain('Greenlight could not create the "lcov" coverage export')
             ->toContain('LCOV file paths cannot contain line breaks.');
-        Expect::that(\file_exists($directory . '/coverage.lcov'))->toBeFalse();
+        Expect::value(\file_exists($directory . '/coverage.lcov'))->toBeFalse();
     }
 }

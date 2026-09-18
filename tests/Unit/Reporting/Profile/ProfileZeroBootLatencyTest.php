@@ -32,7 +32,7 @@ final readonly class ProfileZeroBootLatencyTest
             $aggregator->onEvent($event);
         }
 
-        Expect::that($aggregator->render(new Style(ansi: false)))
+        Expect::value($aggregator->render(new Style(ansi: false)))
             ->because('zero boot latency is measured and MUST NOT be treated as missing')
             ->toContain(
                 'Boot latency: 0.000s average (spawn to first class, 1 worker)',

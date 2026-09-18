@@ -36,8 +36,8 @@ final readonly class WorkflowShellCheckTest
 
         $result = $this->run($root);
 
-        Expect::that($result->exitCode)->because('accepts an explicit Bash shell')->toBe(0);
-        Expect::that($result->stdout)->toBe('Workflow shell contracts passed.');
+        Expect::value($result->exitCode)->because('accepts an explicit Bash shell')->toBe(0);
+        Expect::value($result->stdout)->toBe('Workflow shell contracts passed.');
     }
 
     #[Test]
@@ -61,8 +61,8 @@ final readonly class WorkflowShellCheckTest
 
         $result = $this->run($root);
 
-        Expect::that($result->exitCode)->because('rejects an implicit shell')->toBe(1);
-        Expect::that($result->stderr)->toContain('workflow.yml:8: Multiline run step "Run checks" does not set `shell: bash`.')
+        Expect::value($result->exitCode)->because('rejects an implicit shell')->toBe(1);
+        Expect::value($result->stderr)->toContain('workflow.yml:8: Multiline run step "Run checks" does not set `shell: bash`.')
             ->toContain('Set `shell: bash` on each multiline `run` step.');
     }
 
@@ -88,8 +88,8 @@ final readonly class WorkflowShellCheckTest
 
         $result = $this->run($root);
 
-        Expect::that($result->exitCode)->because('rejects a folded block with an implicit shell')->toBe(1);
-        Expect::that($result->stderr)->toContain('Multiline run step "Run folded checks" does not set `shell: bash`.');
+        Expect::value($result->exitCode)->because('rejects a folded block with an implicit shell')->toBe(1);
+        Expect::value($result->stderr)->toContain('Multiline run step "Run folded checks" does not set `shell: bash`.');
     }
 
     private function workspace(string $name): string

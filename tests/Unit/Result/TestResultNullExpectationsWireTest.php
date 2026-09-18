@@ -24,7 +24,7 @@ final readonly class TestResultNullExpectationsWireTest
         )->toWire();
         $payload['expectations'] = null;
 
-        Expect::that(static fn(): TestResult => TestResult::fromWire($payload))
+        Expect::calling(static fn(): TestResult => TestResult::fromWire($payload))
             ->because('an explicit null expectation count MUST NOT use the missing-field default')
             ->toThrow(
                 InvalidWirePayload::class,

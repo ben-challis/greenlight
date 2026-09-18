@@ -18,11 +18,11 @@ final readonly class CoverageRelayPathsTest
     {
         $encoded = CoverageRelayPaths::encode([$path]);
 
-        Expect::that($encoded)
+        Expect::value($encoded)
             ->because('the relay environment value MUST not contain reserved bytes')
             ->not()->toContain(\PATH_SEPARATOR)
             ->not()->toContain("\0");
-        Expect::that(CoverageRelayPaths::decode($encoded))
+        Expect::value(CoverageRelayPaths::decode($encoded))
             ->because('the child process MUST receive the exact include path')
             ->toBe([$path]);
     }
@@ -32,10 +32,10 @@ final readonly class CoverageRelayPathsTest
     {
         $encoded = '/project/src' . \PATH_SEPARATOR . '/project/lib';
 
-        Expect::that(CoverageRelayPaths::encode(['/project/src', '/project/lib']))
+        Expect::value(CoverageRelayPaths::encode(['/project/src', '/project/lib']))
             ->because('ordinary relay values remain compatible')
             ->toBe($encoded);
-        Expect::that(CoverageRelayPaths::decode($encoded))
+        Expect::value(CoverageRelayPaths::decode($encoded))
             ->toBe(['/project/src', '/project/lib']);
     }
 

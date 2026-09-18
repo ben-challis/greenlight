@@ -31,10 +31,10 @@ final readonly class DiscoveryCacheDirectoryOrderTest
             $cache = DiscoveryCache::forDirectories($directories);
             $cache->store($source, [$entry]);
 
-            Expect::that($cache->persist())
+            Expect::value($cache->persist())
                 ->because('the initial directory order MUST write the discovery cache')
                 ->toBeTrue();
-            Expect::that(DiscoveryCache::forDirectories(\array_reverse($directories))->lookup($source))
+            Expect::value(DiscoveryCache::forDirectories(\array_reverse($directories))->lookup($source))
                 ->because('directory order MUST NOT change the discovery-cache identity')
                 ->toEqual([$entry]);
         } finally {

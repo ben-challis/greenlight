@@ -21,7 +21,7 @@ final readonly class GeneratedCoveragePathTest
         $project = $this->writeProject();
         $generatedDirectory = $project->path('generated');
 
-        Expect::that(\is_dir($generatedDirectory))
+        Expect::value(\is_dir($generatedDirectory))
             ->because('the absolute coverage include path MUST be absent before the run')
             ->toBeFalse();
 
@@ -31,18 +31,18 @@ final readonly class GeneratedCoveragePathTest
             ['XDEBUG_MODE' => 'coverage'],
         );
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('coverage MUST collect source generated during the run')
             ->toBe(0);
 
         $generatedFile = CoverageJson::read($project->path('coverage.json'))
             ->files()[$generatedDirectory . '/RuntimeSource.php'] ?? null;
 
-        Expect::that($generatedFile)
+        Expect::value($generatedFile)
             ->because('The coverage export MUST contain generated/RuntimeSource.php.')
             ->not()
             ->toBeNull();
-        Expect::that($generatedFile->coveredLines)
+        Expect::value($generatedFile->coveredLines)
             ->because('the generated source MUST contain covered lines')
             ->not()
             ->toHaveCount(0);
@@ -83,7 +83,7 @@ final readonly class GeneratedCoveragePathTest
 
                     require $directory . '/RuntimeSource.php';
 
-                    Expect::that(generatedValue())->toBe(42);
+                    Expect::value(generatedValue())->toBe(42);
                 }
             }
             PHP);

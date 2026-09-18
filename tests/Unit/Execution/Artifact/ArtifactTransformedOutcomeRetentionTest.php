@@ -41,12 +41,12 @@ final readonly class ArtifactTransformedOutcomeRetentionTest
 
         $published = $store->publish($result);
 
-        Expect::that($published->attachments)
+        Expect::value($published->attachments)
             ->because('a passing transformation MUST retain evidence from its failed source')
             ->toHaveCount(1);
-        Expect::that($published->attachments[0]->name)
+        Expect::value($published->attachments[0]->name)
             ->toBe('failure.txt');
-        Expect::that((string) \file_get_contents($published->attachments[0]->path))
+        Expect::value((string) \file_get_contents($published->attachments[0]->path))
             ->toBe('original failure evidence');
     }
 
@@ -69,10 +69,10 @@ final readonly class ArtifactTransformedOutcomeRetentionTest
 
         $published = $store->publish($result);
 
-        Expect::that($published->attachments)
+        Expect::value($published->attachments)
             ->because('a transformation between successful outcomes MUST discard on-failure evidence')
             ->toBe([]);
-        Expect::that(\file_exists($store->publicDirectory()))
+        Expect::value(\file_exists($store->publicDirectory()))
             ->toBeFalse();
     }
 }

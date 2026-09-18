@@ -18,7 +18,7 @@ final class AttemptStartedTest
     {
         $id = new TestId('Example\RetryTest', 'retries');
 
-        Expect::that(static fn(): AttemptStarted => new AttemptStarted($id, $attempt))
+        Expect::calling(static fn(): AttemptStarted => new AttemptStarted($id, $attempt))
             ->because('attempt-started messages MUST identify a positive attempt number')
             ->toThrow(
                 \InvalidArgumentException::class,

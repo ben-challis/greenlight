@@ -19,7 +19,7 @@ final readonly class ClassFileParserDanglingTokenTest
         $file = $this->tempDirectory->path() . '/Dangling.php';
         \file_put_contents($file, '<?php class');
 
-        Expect::that(ClassFileParser::declarationsIn($file))
+        Expect::value(ClassFileParser::declarationsIn($file))
             ->because('a dangling class token does not declare a class')
             ->toBe([]);
     }

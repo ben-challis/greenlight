@@ -39,16 +39,16 @@ final readonly class AttachmentNameValidationTest
 
         $attachments->text($name, 'body');
 
-        Expect::that(\array_map(
+        Expect::value(\array_map(
             static fn(StagedAttachment $attachment): string => $attachment->name,
             $attachments->collected(),
         ))
             ->because('an attachment name MAY contain 120 bytes')
             ->toBe([$name]);
-        Expect::that($budget->attachments)
+        Expect::value($budget->attachments)
             ->because('a valid attachment MUST consume one shared attachment slot')
             ->toBe(1);
-        Expect::that($budget->bytes)
+        Expect::value($budget->bytes)
             ->because('a valid attachment MUST consume its bytes from the shared budget')
             ->toBe(4);
     }
@@ -67,7 +67,7 @@ final readonly class AttachmentNameValidationTest
             $budget,
         );
 
-        Expect::that(static fn() => $attachments->text($name, 'body'))
+        Expect::calling(static fn() => $attachments->text($name, 'body'))
             ->because('an unsafe attachment name MUST fail before staging')
             ->toThrow(
                 AttachmentError::class,
@@ -76,15 +76,15 @@ final readonly class AttachmentNameValidationTest
                     $name,
                 ),
             );
-        Expect::that($attachments->collected())
+        Expect::value($attachments->collected())
             ->toBe([]);
-        Expect::that($budget->attachments)
+        Expect::value($budget->attachments)
             ->because('an unsafe attachment name MUST NOT consume an attachment slot')
             ->toBe(0);
-        Expect::that($budget->bytes)
+        Expect::value($budget->bytes)
             ->because('an unsafe attachment name MUST NOT consume the byte budget')
             ->toBe(0);
-        Expect::that(\file_exists($store->session()->stagingDirectory))
+        Expect::value(\file_exists($store->session()->stagingDirectory))
             ->toBeFalse();
     }
 

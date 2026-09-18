@@ -25,7 +25,7 @@ final class RunEventWireBoundsTest
         ];
         $payload[$field] = $wireValue;
 
-        Expect::that(RunStarted::fromWire($payload)->toWire()[$field])
+        Expect::value(RunStarted::fromWire($payload)->toWire()[$field])
             ->because('run-started wire fields MUST normalize to safe bounds')
             ->toBe($expected);
     }
@@ -57,7 +57,7 @@ final class RunEventWireBoundsTest
         ];
         $payload[$field] = $wireValue;
 
-        Expect::that(RunFinished::fromWire($payload)->toWire()[$field])
+        Expect::value(RunFinished::fromWire($payload)->toWire()[$field])
             ->because('run-finished wire fields MUST normalize to safe bounds')
             ->toBe($expected);
     }

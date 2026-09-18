@@ -23,20 +23,20 @@ final readonly class PhpStanTemporalMatcherCaseTest
             <<<'PHP'
             <?php
             use Greenlight\Expect\Expect;
-            Expect::eventually(static fn(): float => 1.0)->within(1.0)->toBeWithin(of: 1.0, delta: 0.1);
+            Expect::calling(static fn(): float => 1.0)->returnValue()->eventually()->within(1.0)->toBeWithin(of: 1.0, delta: 0.1);
             PHP,
             <<<'PHP'
             <?php
             use Greenlight\Expect\Expect;
-            Expect::eventually(static fn(): float => 1.0)->within(1.0)->TOBEWITHIN(of: 1.0, delta: 'close');
-            Expect::eventually(static fn(): Closure => static function (): void {})->within(1.0)
+            Expect::calling(static fn(): float => 1.0)->returnValue()->eventually()->within(1.0)->TOBEWITHIN(of: 1.0, delta: 'close');
+            Expect::calling(static fn() => (static fn(): Closure => static function (): void {})()())->eventually()->within(1.0)
                 ->TOTHROW(RuntimeException::class, matching: '/x/', message: 'x');
             PHP,
         );
 
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that($probe->exitCode)->toBe(1);
-        Expect::that($probe->messages())->toContain('expects float, string given')
+        Expect::value($probe->goodPassed)->toBeTrue();
+        Expect::value($probe->exitCode)->toBe(1);
+        Expect::value($probe->messages())->toContain('expects float, string given')
             ->toContain('toThrow() accepts either matching: or message:, not both.')
             ->not()->toContain('undefined method');
     }

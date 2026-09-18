@@ -35,7 +35,7 @@ final readonly class ProfileZeroMakespanSpreadTest
             $aggregator->onEvent($event);
         }
 
-        Expect::that($aggregator->render(new Style(ansi: false)))
+        Expect::value($aggregator->render(new Style(ansi: false)))
             ->because('zero makespan spread is measured and MUST NOT be treated as missing')
             ->toContain(
                 'Makespan spread: 0.000s between first and last worker finish',

@@ -24,7 +24,7 @@ final class SuiteConfigurationTest
         array $tags,
         string $message,
     ): void {
-        Expect::that(static fn(): SuiteConfiguration => new SuiteConfiguration($name, $paths, $tags))
+        Expect::calling(static fn(): SuiteConfiguration => new SuiteConfiguration($name, $paths, $tags))
             ->because('a suite configuration MUST satisfy its documented value domains')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }
@@ -34,13 +34,13 @@ final class SuiteConfigurationTest
     {
         $suite = new SuiteConfiguration('0', ['0'], ['0']);
 
-        Expect::that($suite->name)
+        Expect::value($suite->name)
             ->because('a zero-string suite name is not empty')
             ->toBe('0');
-        Expect::that($suite->paths)
+        Expect::value($suite->paths)
             ->because('a zero-string suite path is not empty')
             ->toBe(['0']);
-        Expect::that($suite->tags)
+        Expect::value($suite->tags)
             ->because('a zero-string suite tag is not empty')
             ->toBe(['0']);
     }

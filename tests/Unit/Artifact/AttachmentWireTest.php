@@ -31,10 +31,10 @@ final class AttachmentWireTest
         $payload = $attachment->toWire();
         $decoded = Attachment::fromWire($payload);
 
-        Expect::that($payload['retention'])
+        Expect::value($payload['retention'])
             ->because('explicit attachment retention survives the wire round-trip')
             ->toBe(AttachmentRetention::Always->value);
-        Expect::that($decoded)
+        Expect::value($decoded)
             ->toEqual($attachment);
     }
 
@@ -53,7 +53,7 @@ final class AttachmentWireTest
             'storageKey' => 'attempt/response.json',
         ]);
 
-        Expect::that($staged->retention)
+        Expect::value($staged->retention)
             ->because('explicit staged attachment retention MUST survive wire decoding')
             ->toBe(AttachmentRetention::Always);
     }
@@ -77,10 +77,10 @@ final class AttachmentWireTest
             'storageKey' => 'attempt/response.json',
         ]);
 
-        Expect::that($attachment->retention)
+        Expect::value($attachment->retention)
             ->because('older attachment payloads use on-failure retention')
             ->toBe(AttachmentRetention::OnFailure);
-        Expect::that($staged->retention)
+        Expect::value($staged->retention)
             ->toBe(AttachmentRetention::OnFailure);
     }
 
@@ -99,10 +99,10 @@ final class AttachmentWireTest
             'retention' => AttachmentRetention::Always->value,
         ]);
 
-        Expect::that($attachment->sizeBytes)
+        Expect::value($attachment->sizeBytes)
             ->because('attachment wire decoding MUST normalize a negative size to zero')
             ->toBe(0);
-        Expect::that($attachment->attempt)
+        Expect::value($attachment->attempt)
             ->because('attachment wire decoding MUST normalize a nonpositive attempt to one')
             ->toBe(1);
     }

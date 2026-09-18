@@ -17,7 +17,7 @@ final class ParsedArgumentsEmptyValueTest
             'group' => ['first', '', null, 'last'],
         ]);
 
-        Expect::that($arguments->values('group'))
+        Expect::value($arguments->values('group'))
             ->because('empty option values MUST remain available for downstream validation')
             ->toBe(['first', '', 'last']);
     }

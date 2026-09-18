@@ -18,12 +18,12 @@ final class InternalWorkerArityTest
             ['__worker', 'tcp://127.0.0.1:1', 'worker-1', 'secret-token', 'surplus'],
         );
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('the internal worker entry MUST accept exactly three operands')
             ->toBe(64);
-        Expect::that($result->stderr)
+        Expect::value($result->stderr)
             ->toBe('__worker requires <address> <workerId> <token>.');
-        Expect::that($result->stdout)
+        Expect::value($result->stdout)
             ->toBe('');
     }
 }

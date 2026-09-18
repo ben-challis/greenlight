@@ -22,14 +22,14 @@ final readonly class ServerSocketFailureTest
     {
         $runtime = new ControlledServerSocketRuntime(tcpOpens: false);
 
-        Expect::that(static fn(): ServerSocket => ServerSocket::listen('/tmp', $runtime))
+        Expect::calling(static fn(): ServerSocket => ServerSocket::listen('/tmp', $runtime))
             ->because('failure of both listener transports MUST report the TCP failure')
             ->toThrow(
                 ProtocolError::class,
                 message: 'Malformed frame: Greenlight did not open an orchestrator socket: '
                     . 'the fixture rejected the TCP listener.',
             );
-        Expect::that($runtime->unixDirectoryExists())
+        Expect::value($runtime->unixDirectoryExists())
             ->because('a failed Unix listener MUST remove its generated directory')
             ->toBeFalse();
     }
@@ -54,13 +54,13 @@ final readonly class ServerSocketFailureTest
             }
         };
 
-        Expect::that(fn(): ServerSocket => ServerSocket::listen($this->tempDirectory->path(), $runtime))
+        Expect::calling(fn(): ServerSocket => ServerSocket::listen($this->tempDirectory->path(), $runtime))
             ->because('a listener throwable MUST not escape the worker protocol seam')
             ->toThrow(
                 static function (ProtocolError $error) use ($cause): void {
-                    Expect::that($error->getMessage())
+                    Expect::value($error->getMessage())
                         ->toBe('Greenlight could not open the orchestrator socket.');
-                    Expect::that($error->getPrevious())
+                    Expect::value($error->getPrevious())
                         ->because('the protocol error MUST preserve the listener error')
                         ->toBe($cause);
                 },
@@ -72,13 +72,13 @@ final readonly class ServerSocketFailureTest
     {
         $runtime = new ControlledServerSocketRuntime(tcpOpens: true);
 
-        Expect::that(static fn(): ServerSocket => ServerSocket::listen('/tmp', $runtime))
+        Expect::calling(static fn(): ServerSocket => ServerSocket::listen('/tmp', $runtime))
             ->because('an unresolved listener address MUST reject the listener')
             ->toThrow(
                 ProtocolError::class,
                 message: 'Malformed frame: Greenlight did not resolve the orchestrator socket address.',
             );
-        Expect::that($runtime->tcpServerIsOpen())
+        Expect::value($runtime->tcpServerIsOpen())
             ->because('an unresolved listener address MUST close its stream')
             ->toBeFalse();
     }
@@ -90,13 +90,13 @@ final readonly class ServerSocketFailureTest
         $socket = ServerSocket::listen($this->tempDirectory->path(), $runtime);
 
         try {
-            Expect::that($socket->address)
+            Expect::value($socket->address)
                 ->because('a truncated Unix address MUST use the TCP listener')
                 ->toStartWith('tcp://127.0.0.1:');
-            Expect::that($runtime->unixServerIsOpen())
+            Expect::value($runtime->unixServerIsOpen())
                 ->because('Greenlight MUST close a Unix listener that has a truncated address')
                 ->toBeFalse();
-            Expect::that($runtime->unixDirectoryExists())
+            Expect::value($runtime->unixDirectoryExists())
                 ->because('Greenlight MUST remove the rejected Unix listener directory')
                 ->toBeFalse();
         } finally {

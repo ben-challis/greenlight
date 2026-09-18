@@ -35,7 +35,7 @@ final readonly class IntegrationFixtureTransportLimitTest
             );
         }
 
-        Expect::that(static fn() => IntegrationFixtureManager::provision(
+        Expect::calling(static fn() => IntegrationFixtureManager::provision(
             $definitions,
             'aggregate-limit',
             1,
@@ -49,7 +49,7 @@ final readonly class IntegrationFixtureTransportLimitTest
                     . 'Integration resources for channel 1 exceed the 1 MiB transport limit.',
             );
 
-        Expect::that($trace)
+        Expect::value($trace)
             ->because('catalog rejection must release every acquired fixture in reverse order')
             ->toBe(['database:start', 'cache:start', 'cache:stop', 'database:stop']);
     }
@@ -72,7 +72,7 @@ final readonly class IntegrationFixtureTransportLimitTest
             },
         );
 
-        Expect::that(static fn() => IntegrationFixtureManager::provision(
+        Expect::calling(static fn() => IntegrationFixtureManager::provision(
             [$definition],
             'later-channel-limit',
             2,
@@ -86,7 +86,7 @@ final readonly class IntegrationFixtureTransportLimitTest
                     . 'Integration resources for channel 2 exceed the 1 MiB transport limit.',
             );
 
-        Expect::that($trace)
+        Expect::value($trace)
             ->because('a later channel failure must still release the acquired fixture')
             ->toBe(['start', 'stop']);
     }

@@ -74,7 +74,7 @@ final readonly class TemporalExpectationRunTest
                     \fclose($pipes[1]);
                     $released = false;
 
-                    Expect::eventually(
+                    Expect::calling(
                         static function () use ($marker, $pipes, &$released): string|false {
                             $state = \is_file($marker) ? \file_get_contents($marker) : false;
 
@@ -86,7 +86,7 @@ final readonly class TemporalExpectationRunTest
 
                             return $state;
                         },
-                    )
+                    )->returnValue()->eventually()
                         ->pollEvery(0.010)
                         ->within(1.0)
                         ->toBe('ready');
@@ -114,7 +114,7 @@ final readonly class TemporalExpectationRunTest
             '--reporter=plain',
         ]);
 
-        Expect::that($result->exitCode)->because('a worker polls real asynchronous external state')->toBe(0);
-        Expect::that($result->output())->toContain('1 test, 1 passed, 1 expectation');
+        Expect::value($result->exitCode)->because('a worker polls real asynchronous external state')->toBe(0);
+        Expect::value($result->output())->toContain('1 test, 1 passed, 1 expectation');
     }
 }

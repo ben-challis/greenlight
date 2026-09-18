@@ -16,7 +16,7 @@ final class CoverageExportTest
     #[DataSet('incompleteExports')]
     public function rejectsAnIncompleteExport(string $format, string $target): void
     {
-        Expect::that(static fn(): CoverageExport => new CoverageExport($format, $target))
+        Expect::calling(static fn(): CoverageExport => new CoverageExport($format, $target))
             ->because('a coverage export MUST identify its format and target')
             ->toThrow(
                 InvalidConfiguration::class,
@@ -37,7 +37,7 @@ final class CoverageExportTest
     #[DataSet('unknownFormats')]
     public function rejectsAnUnknownFormat(string $format): void
     {
-        Expect::that(static fn(): CoverageExport => new CoverageExport($format, 'coverage.out'))
+        Expect::calling(static fn(): CoverageExport => new CoverageExport($format, 'coverage.out'))
             ->because('coverage exports MUST use a format that Greenlight can write')
             ->toThrow(
                 InvalidConfiguration::class,
@@ -53,9 +53,9 @@ final class CoverageExportTest
     {
         $export = new CoverageExport('json', '0');
 
-        Expect::that($export->format)
+        Expect::value($export->format)
             ->toBe('json');
-        Expect::that($export->target)
+        Expect::value($export->target)
             ->because('a zero-string coverage export target is not empty')
             ->toBe('0');
     }

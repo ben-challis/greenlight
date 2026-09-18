@@ -18,7 +18,7 @@ final class CliErrorTest
     #[DataSet('errors')]
     public function errorsGiveExactGuidance(\Closure $create, string $message): void
     {
-        Expect::that($create()->getMessage())
+        Expect::value($create()->getMessage())
             ->because('each CLI error MUST give exact guidance')
             ->toBe($message);
     }

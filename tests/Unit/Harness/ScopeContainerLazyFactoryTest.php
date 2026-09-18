@@ -29,18 +29,18 @@ final class ScopeContainerLazyFactoryTest
             },
         ));
 
-        Expect::that($service)
+        Expect::value($service)
             ->because('ScopeContainer::get() MUST return LazyFactoryProbe.')
             ->toBeInstanceOf(LazyFactoryProbe::class);
 
-        Expect::that($factoryCalls)
+        Expect::value($factoryCalls)
             ->because('ScopeContainer::get() MUST NOT invoke a lazy factory')
             ->toBe(0);
 
-        Expect::that(static fn() => $service->value())
+        Expect::calling(static fn() => $service->value())
             ->because('the lazy factory failure MUST propagate from the first service use')
             ->toThrow($failure);
-        Expect::that($factoryCalls)
+        Expect::value($factoryCalls)
             ->toBe(1);
     }
 }

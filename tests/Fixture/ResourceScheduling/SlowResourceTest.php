@@ -14,6 +14,6 @@ final class SlowResourceTest
     {
         \usleep(750_000);
 
-        Expect::that(true)->toBeTrue();
+        Expect::value(true)->toBeTrue();
     }
 }

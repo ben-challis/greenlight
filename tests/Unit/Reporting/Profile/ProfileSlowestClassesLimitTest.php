@@ -43,7 +43,7 @@ final class ProfileSlowestClassesLimitTest
             "\n  Slowest classes:",
         );
 
-        Expect::that($slowest)
+        Expect::value($slowest)
             ->because('the profile MUST list exactly the ten slowest classes in descending order')
             ->toBe(
                 "\n  Slowest classes:\n"

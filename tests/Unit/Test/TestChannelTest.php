@@ -16,15 +16,15 @@ final readonly class TestChannelTest
     {
         $channel = new TestChannel(3);
 
-        Expect::that($channel->number)->because('exposes the slot number and a prefixed label')->toBe(3);
-        Expect::that($channel->label())->toBe('gl-3');
+        Expect::value($channel->number)->because('exposes the slot number and a prefixed label')->toBe(3);
+        Expect::value($channel->label())->toBe('gl-3');
     }
 
     #[Test]
     #[DataSet('nonPositiveNumbers')]
     public function rejectsNonPositiveNumbers(int $number): void
     {
-        Expect::that(static fn(): TestChannel => new TestChannel($number))
+        Expect::calling(static fn(): TestChannel => new TestChannel($number))
             ->because('a test channel MUST identify a positive worker slot')
             ->toThrow(
                 \InvalidArgumentException::class,

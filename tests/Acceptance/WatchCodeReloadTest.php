@@ -24,7 +24,7 @@ final readonly class WatchCodeReloadTest
         $project = AcceptanceProject::create($this->directory, 'watch-invalid-invocation');
         $result = GreenlightCli::run($project->directory, ['__watch-run', 'invalid-json']);
 
-        Expect::that($result->exitCode)->toBe(1);
+        Expect::value($result->exitCode)->toBe(1);
     }
 
     #[Test]
@@ -38,21 +38,21 @@ final readonly class WatchCodeReloadTest
             'run', '--watch', '--reporter=plain', '--reporter=jsonl=events.jsonl', '--workers=' . $workers,
         ]);
         $this->cleanup->defer($process->terminate(...));
-        Expect::that($process->readStdoutUntil('Waiting for changes', 20.0))->toContain('1 test, 1 passed');
+        Expect::value($process->readStdoutUntil('Waiting for changes', 20.0))->toContain('1 test, 1 passed');
         $project->writeFile('tests/ProbeTest.php', $this->source('throw new \\RuntimeException("changed body");', true));
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
         $process->write('q');
         $result = $process->wait(10.0);
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($output)->toContain('2 tests, 1 passed, 1 errored')->toContain('changed body');
+        Expect::value($result->exitCode)->toBe(0);
+        Expect::value($output)->toContain('2 tests, 1 passed, 1 errored')->toContain('changed body');
         if ($workers === 1) {
-            Expect::that($output)->toContain('uncaptured stdout');
-            Expect::that($result->stderr)->toContain('uncaptured stderr');
+            Expect::value($output)->toContain('uncaptured stdout');
+            Expect::value($result->stderr)->toContain('uncaptured stderr');
         }
         $report = \file_get_contents($project->path('events.jsonl'));
-        Expect::that($report === false ? '' : $report)->toContain('changed body');
-        Expect::that(\substr_count($report === false ? '' : $report, '"event":"run-finished"'))->toBe(2);
+        Expect::value($report === false ? '' : $report)->toContain('changed body');
+        Expect::value(\substr_count($report === false ? '' : $report, '"event":"run-finished"'))->toBe(2);
     }
 
     #[Test]
@@ -83,9 +83,9 @@ final readonly class WatchCodeReloadTest
         $process->signal(\SIGTERM);
         $result = $process->wait(10.0);
 
-        Expect::that($result->exitCode)->toBe(128 + \SIGTERM);
-        Expect::that(\file_get_contents($project->path('cleaned')))->toBe('yes');
-        Expect::that($result->stdout)->toContain('run-finished');
+        Expect::value($result->exitCode)->toBe(128 + \SIGTERM);
+        Expect::value(\file_get_contents($project->path('cleaned')))->toBe('yes');
+        Expect::value($result->stdout)->toContain('run-finished');
     }
 
     #[Test]
@@ -98,8 +98,8 @@ final readonly class WatchCodeReloadTest
         $this->cleanup->defer($process->terminate(...));
         $result = $process->wait(10.0);
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stderr)->toContain('The PHP process did not complete the watch iteration.');
+        Expect::value($result->exitCode)->toBe(1);
+        Expect::value($result->stderr)->toContain('The PHP process did not complete the watch iteration.');
     }
 
     #[Test]
@@ -118,9 +118,9 @@ final readonly class WatchCodeReloadTest
         $process->write('q');
         $result = $process->wait(10.0);
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($output)->toContain('1 test, 1 passed');
-        Expect::that($result->stderr)->toContain('ParseError');
+        Expect::value($result->exitCode)->toBe(0);
+        Expect::value($output)->toContain('1 test, 1 passed');
+        Expect::value($result->stderr)->toContain('ParseError');
     }
 
     #[Test]
@@ -167,10 +167,10 @@ final readonly class WatchCodeReloadTest
         $this->cleanup->defer($process->terminate(...));
         $result = $process->wait(10.0);
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stderr)->toContain('reporter stopped');
-        Expect::that(\file_get_contents($project->path('cleaned')))->toBe('yes');
-        Expect::that(\file_get_contents($project->path('provided')))->toBe("once\n");
+        Expect::value($result->exitCode)->toBe(1);
+        Expect::value($result->stderr)->toContain('reporter stopped');
+        Expect::value(\file_get_contents($project->path('cleaned')))->toBe('yes');
+        Expect::value(\file_get_contents($project->path('provided')))->toBe("once\n");
     }
 
     /** @return iterable<string, array{positive-int}> */

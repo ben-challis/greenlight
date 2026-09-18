@@ -43,14 +43,14 @@ final readonly class ApplicationReporterStreamTest
         $output = \stream_get_contents($stdout);
         $errors = \stream_get_contents($stderr);
 
-        Expect::that($exit)
+        Expect::value($exit)
             ->because('a run through configured streams MUST preserve the reporter exit code')
             ->toBe(0);
-        Expect::that($output)
+        Expect::value($output)
             ->because('the configured output stream MUST receive the complete run report')
             ->toContain('Greenlight ' . Application::VERSION)
             ->toContain('1 test, 1 passed');
-        Expect::that($errors)
+        Expect::value($errors)
             ->toBe('');
     }
 
@@ -78,14 +78,14 @@ final readonly class ApplicationReporterStreamTest
         $output = \stream_get_contents($stdout);
         $errors = \stream_get_contents($stderr);
 
-        Expect::that($exit)
+        Expect::value($exit)
             ->toBe(0);
-        Expect::that($output)
+        Expect::value($output)
             ->because('the ANSI flag uses color without cursor control')
             ->toContain("\x1b[32m")
             ->not()
             ->toContain("\x1b[0J");
-        Expect::that($errors)
+        Expect::value($errors)
             ->toBe('');
     }
 }

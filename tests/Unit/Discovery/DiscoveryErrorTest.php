@@ -32,7 +32,7 @@ final class DiscoveryErrorTest
             $attributeError->getMessage(),
         ];
 
-        Expect::that($actual)->toBe([
+        Expect::value($actual)->toBe([
             'Discovery directory "/project/tests" is missing or is not a directory.',
             'Greenlight cannot read test file "/project/tests/ExampleTest.php".',
             'Greenlight cannot read test file "/project/tests/ExampleTest.php": permission denied.',
@@ -43,13 +43,13 @@ final class DiscoveryErrorTest
             'Greenlight cannot run test method App\ExampleTest::checksValue() because it is static.',
             'Attribute on App\ExampleTest::checksValue() is invalid: bad value',
         ]);
-        Expect::that($attributeError->getPrevious())->toBe($cause);
+        Expect::value($attributeError->getPrevious())->toBe($cause);
     }
 
     #[Test]
     public function unreadableFilesPreserveAZeroStringReason(): void
     {
-        Expect::that(DiscoveryError::unreadableFile('/project/tests/ExampleTest.php', '0')->getMessage())
+        Expect::value(DiscoveryError::unreadableFile('/project/tests/ExampleTest.php', '0')->getMessage())
             ->because('an unreadable-file diagnostic MUST preserve a zero-string reason')
             ->toBe('Greenlight cannot read test file "/project/tests/ExampleTest.php": 0.');
     }

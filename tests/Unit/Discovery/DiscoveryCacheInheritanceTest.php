@@ -47,17 +47,17 @@ final readonly class DiscoveryCacheInheritanceTest
             PHP);
         $arguments = [$script, \dirname(__DIR__, 3) . "/vendor/autoload.php"];
         $cold = PhpSubprocess::run($directory, $arguments);
-        Expect::that($cold->exitCode)->toBe(0);
-        Expect::that($cold->stdout)->toBe($before);
+        Expect::value($cold->exitCode)->toBe(0);
+        Expect::value($cold->stdout)->toBe($before);
 
         $warm = PhpSubprocess::run($directory, $arguments);
-        Expect::that($warm->exitCode)->toBe(0);
-        Expect::that($warm->stdout)->toBe($before);
+        Expect::value($warm->exitCode)->toBe(0);
+        Expect::value($warm->stdout)->toBe($before);
 
         \file_put_contents($directory . "/" . $dependencyName . ".php", "<?php namespace CacheInheritance; " . $replacementSource);
         $changed = PhpSubprocess::run($directory, $arguments);
-        Expect::that($changed->exitCode)->toBe(0);
-        Expect::that($changed->stdout)->toBe($after);
+        Expect::value($changed->exitCode)->toBe(0);
+        Expect::value($changed->stdout)->toBe($after);
     }
 
     /** @return iterable<string, array{string, string, string, string, string, string}> */

@@ -26,8 +26,8 @@ final readonly class ReferenceValueIsolationTest
         $spy->byReference($items);
         $items = ['later'];
 
-        Expect::that($this->doubles->callsTo($spy, 'byReference'))->toBe([[['first']], [['second']]]);
-        Expect::that($items)->toBe(['later']);
+        Expect::value($this->doubles->callsTo($spy, 'byReference'))->toBe([[['first']], [['second']]]);
+        Expect::value($items)->toBe(['later']);
     }
 
     #[Test]
@@ -45,9 +45,9 @@ final readonly class ReferenceValueIsolationTest
 
         $mock->mutate($first, second: $second);
 
-        Expect::that($this->doubles->callsTo($mock, 'mutate'))->toBe([['first', 'second']]);
-        Expect::that($first)->toBe('first changed');
-        Expect::that($second)->toBe('second changed');
+        Expect::value($this->doubles->callsTo($mock, 'mutate'))->toBe([['first', 'second']]);
+        Expect::value($first)->toBe('first changed');
+        Expect::value($second)->toBe('second changed');
     }
 
     #[Test]
@@ -59,8 +59,8 @@ final readonly class ReferenceValueIsolationTest
         $spy->byReference($items);
         $items = [];
 
-        Expect::that($this->doubles->callsTo($spy, 'byReference'))->toBe([[[$object]]]);
-        Expect::that($items)->toBe([]);
+        Expect::value($this->doubles->callsTo($spy, 'byReference'))->toBe([[[$object]]]);
+        Expect::value($items)->toBe([]);
     }
 
     #[Test]
@@ -72,9 +72,9 @@ final readonly class ReferenceValueIsolationTest
         $first = 'first';
         $second = 'second';
 
-        Expect::that($mock->result($first, $second))->toBe(42);
-        Expect::that($first)->toBe('first');
-        Expect::that($second)->toBe('second');
+        Expect::value($mock->result($first, $second))->toBe(42);
+        Expect::value($first)->toBe('first');
+        Expect::value($second)->toBe('second');
     }
 
     #[Test]
@@ -87,7 +87,7 @@ final readonly class ReferenceValueIsolationTest
         $result = &$mock->reference($input);
         $result = 'changed result';
 
-        Expect::that($input)->toBe('input');
-        Expect::that($result)->toBe('changed result');
+        Expect::value($input)->toBe('input');
+        Expect::value($result)->toBe('changed result');
     }
 }

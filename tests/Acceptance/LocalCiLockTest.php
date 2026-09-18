@@ -50,14 +50,14 @@ final readonly class LocalCiLockTest
         $this->cleanup->defer($second->terminate(...));
 
         \usleep(250_000);
-        Expect::that(\file_exists($startedMarker))
+        Expect::value(\file_exists($startedMarker))
             ->because('the second command MUST wait while the only slot is in use')
             ->toBeFalse();
 
         $first->write("continue\n");
-        Expect::that($first->wait(2.0)->exitCode)->toBe(0);
-        Expect::that($second->wait(2.0)->exitCode)->toBe(0);
-        Expect::that(\file_get_contents($startedMarker))->toBe('started');
+        Expect::value($first->wait(2.0)->exitCode)->toBe(0);
+        Expect::value($second->wait(2.0)->exitCode)->toBe(0);
+        Expect::value(\file_get_contents($startedMarker))->toBe('started');
     }
 
     #[Test]
@@ -74,7 +74,7 @@ final readonly class LocalCiLockTest
             ],
         );
 
-        Expect::that($result->exitCode)->because('hosted CI bypasses the local lock')->toBe(7);
+        Expect::value($result->exitCode)->because('hosted CI bypasses the local lock')->toBe(7);
     }
 
     #[Test]
@@ -102,11 +102,11 @@ final readonly class LocalCiLockTest
             $environment,
         );
 
-        Expect::that($second->exitCode)
+        Expect::value($second->exitCode)
             ->because('the second command can use the configured second slot')
             ->toBe(9);
         $first->write("continue\n");
-        Expect::that($first->wait(2.0)->exitCode)->toBe(0);
+        Expect::value($first->wait(2.0)->exitCode)->toBe(0);
     }
 
     /**

@@ -41,10 +41,10 @@ final readonly class WatchJsonlOutputTest
             $events[] = $envelope['event'];
         }
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that(\array_count_values($events)['run-started'] ?? 0)->toBe(2);
-        Expect::that(\array_count_values($events)['run-finished'] ?? 0)->toBe(2);
-        Expect::that($fileOutput ? $result->stdout : $result->stderr)->toContain('Waiting for changes');
+        Expect::value($result->exitCode)->toBe(0);
+        Expect::value(\array_count_values($events)['run-started'] ?? 0)->toBe(2);
+        Expect::value(\array_count_values($events)['run-finished'] ?? 0)->toBe(2);
+        Expect::value($fileOutput ? $result->stdout : $result->stderr)->toContain('Waiting for changes');
     }
 
     /** @return iterable<string, array{bool}> */

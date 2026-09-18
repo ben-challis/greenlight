@@ -17,16 +17,16 @@ final readonly class MetadataFactoryResourceErrorTest
     {
         $class = $this->fixtureClass();
 
-        Expect::that(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
+        Expect::calling(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
             ->because('discovery MUST wrap an invalid resource attribute with its method location')
             ->toThrow(
                 static function (DiscoveryError $error) use ($class): void {
-                    Expect::that($error->getMessage())->toMatch(
+                    Expect::value($error->getMessage())->toMatch(
                         '/^Attribute on '
                         . \preg_quote($class . '::neverDiscovered()', '/')
                         . ' is invalid:/',
                     );
-                    Expect::that($error->getPrevious())
+                    Expect::value($error->getPrevious())
                         ->because('the discovery error MUST preserve the invalid resource attribute cause')
                         ->toBeInstanceOf(\TypeError::class);
                 },

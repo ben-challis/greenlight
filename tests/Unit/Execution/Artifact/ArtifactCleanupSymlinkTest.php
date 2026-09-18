@@ -49,13 +49,13 @@ final readonly class ArtifactCleanupSymlinkTest
         try {
             $store->cleanup();
 
-            Expect::that(\is_dir($staging))
+            Expect::value(\is_dir($staging))
                 ->because('cleanup MUST remove the artifact staging directory')
                 ->toBeFalse();
-            Expect::that(\is_link($link))
+            Expect::value(\is_link($link))
                 ->because('cleanup MUST remove symbolic links inside artifact staging')
                 ->toBeFalse();
-            Expect::that(\file_get_contents($sentinel))
+            Expect::value(\file_get_contents($sentinel))
                 ->because('cleanup MUST leave symbolic link targets unchanged')
                 ->toBe('keep');
         } finally {

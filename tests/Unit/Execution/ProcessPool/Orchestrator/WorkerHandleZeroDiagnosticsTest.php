@@ -24,7 +24,7 @@ final class WorkerHandleZeroDiagnosticsTest
 
         $handle->drainPipes();
 
-        Expect::that($handle->diagnostics)
+        Expect::value($handle->diagnostics)
             ->because('pipe draining MUST retain non-empty diagnostics')
             ->toBe('0');
     }

@@ -15,7 +15,7 @@ final readonly class CliOverridesSingleShardRangeTest
     #[Test]
     public function invalidSingleShardIndexNamesTheOnlyValidIndex(): void
     {
-        Expect::that(static fn(): CliOverrides => CliOverrides::fromArguments(
+        Expect::calling(static fn(): CliOverrides => CliOverrides::fromArguments(
             new ParsedArguments(null, ['shard' => ['2/1']]),
         ))
             ->because('single-shard guidance MUST name its only valid index')

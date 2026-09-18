@@ -26,7 +26,7 @@ final class ExactIdCaseTest
     ): void {
         $filter = new TestSelection(include: new TestInclusions(idPatterns: $patterns, exactIds: $exactIds));
 
-        Expect::that($filter->acceptsId($renderedId))
+        Expect::value($filter->acceptsId($renderedId))
             ->because('exact IDs MUST match verbatim, while ID patterns MUST ignore letter case')
             ->toBe($accepted);
     }

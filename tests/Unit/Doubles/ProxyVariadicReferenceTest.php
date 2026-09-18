@@ -33,10 +33,10 @@ final readonly class ProxyVariadicReferenceTest
         try {
             $double->mutate($first, $second);
 
-            Expect::that($first)
+            Expect::value($first)
                 ->because('a proxy callback MUST preserve the first variadic reference')
                 ->toBe('first changed');
-            Expect::that($second)
+            Expect::value($second)
                 ->because('a proxy callback MUST preserve the second variadic reference')
                 ->toBe('second changed');
         } finally {

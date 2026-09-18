@@ -17,7 +17,7 @@ final readonly class JsonExporterObjectShapeTest
     #[DataSet('invalidObjectShapes')]
     public function importRejectsInvalidObjectShapes(string $json, string $message): void
     {
-        Expect::that(
+        Expect::calling(
             static fn(): CoverageMap => JsonExporter::import($json),
         )
             ->because('the coverage JSON schema requires object-shaped file maps and entries')

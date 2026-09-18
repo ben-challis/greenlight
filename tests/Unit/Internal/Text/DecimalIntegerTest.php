@@ -15,7 +15,7 @@ final class DecimalIntegerTest
     #[DataSet('decimalText')]
     public function parsesOnlyRepresentableNonnegativeDecimalText(string $raw, ?int $expected): void
     {
-        Expect::that(DecimalInteger::parse($raw))
+        Expect::value(DecimalInteger::parse($raw))
             ->because('decimal integer parsing MUST accept every representable value without overflow')
             ->toBe($expected);
     }

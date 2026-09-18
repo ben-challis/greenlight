@@ -47,7 +47,7 @@ final readonly class ArtifactBestEffortCleanupDiagnosticTest
         $attachments->text('evidence.txt', 'evidence');
         $staged = $attachments->seal()[0];
 
-        Expect::that(static function () use ($store, $id, $staged, &$warning): TestResult {
+        Expect::calling(static function () use ($store, $id, $staged, &$warning): TestResult {
             return ErrorTrap::run(
                 static fn() => $store->publish(new TestResult(
                     $id,
@@ -65,7 +65,7 @@ final readonly class ArtifactBestEffortCleanupDiagnosticTest
                 message: 'The fake copier stopped after it created a directory.',
             );
 
-        Expect::that($warning)
+        Expect::value($warning)
             ->because('best-effort publication cleanup MUST not leak an engine diagnostic')
             ->toBeNull();
     }

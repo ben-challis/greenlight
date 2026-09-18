@@ -31,10 +31,10 @@ final class ScopeContainerFailureContinuationTest
             static fn(): FailingDisposable => new FailingDisposable(),
         ));
 
-        Expect::that($recording)
+        Expect::value($recording)
             ->because('ScopeContainer MUST resolve RecordingDisposable.')
             ->toBeInstanceOf(RecordingDisposable::class);
-        Expect::that($failing)
+        Expect::value($failing)
             ->because('ScopeContainer MUST resolve FailingDisposable.')
             ->toBeInstanceOf(FailingDisposable::class);
 
@@ -43,14 +43,14 @@ final class ScopeContainerFailureContinuationTest
 
         $failures = $container->dispose();
 
-        Expect::that($failures)
+        Expect::value($failures)
             ->because('a disposal failure MUST NOT prevent disposal of the remaining services')
             ->toHaveCount(1);
-        Expect::that($failures[0]->getMessage())
+        Expect::value($failures[0]->getMessage())
             ->toBe('disposal broke');
-        Expect::that(FailingDisposable::disposals())
+        Expect::value(FailingDisposable::disposals())
             ->toBe(1);
-        Expect::that(RecordingDisposable::disposals())
+        Expect::value(RecordingDisposable::disposals())
             ->toBe(1);
     }
 }

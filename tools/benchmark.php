@@ -791,11 +791,11 @@ function benchmarkWriteClasses(
                     $work .= "\$value += 1;\n        ";
                 }
 
-                $glExpectation = \sprintf('Expect::that($value)->toBe(%d);', $m + $statements);
+                $glExpectation = \sprintf('Expect::value($value)->toBe(%d);', $m + $statements);
                 $puExpectation = \sprintf('$this->assertSame(%d, $value);', $m + $statements);
                 $pestExpectation = \sprintf('expect($value)->toBe(%d);', $m + $statements);
             } else {
-                $glExpectation = \sprintf('Expect::that(%d + 1)->toBe(%d);', $m, $m + 1);
+                $glExpectation = \sprintf('Expect::value(%d + 1)->toBe(%d);', $m, $m + 1);
                 $puExpectation = \sprintf('$this->assertSame(%d, %d + 1);', $m + 1, $m);
                 $pestExpectation = \sprintf('expect(%d + 1)->toBe(%d);', $m, $m + 1);
             }
@@ -892,7 +892,7 @@ function benchmarkWriteGiantDataSet(string $project, int $rows): int
                     \touch($proof . '/giant-' . $value);
                 }
 
-                Expect::that($value)->toBeGreaterThan(-1);
+                Expect::value($value)->toBeGreaterThan(-1);
             }
 
             /** @return iterable<string, array{int}> */

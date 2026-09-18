@@ -19,7 +19,7 @@ final readonly class TestClassEventValidationTest
     #[DataSet('classEvents')]
     public function rejectsAnEmptyClassName(string $eventClass): void
     {
-        Expect::that(static fn(): TestClassStarted|TestClassFinished => new $eventClass('', 1.0))
+        Expect::calling(static fn(): TestClassStarted|TestClassFinished => new $eventClass('', 1.0))
             ->because('a test-class lifecycle event MUST identify its class')
             ->toThrow(
                 \InvalidArgumentException::class,

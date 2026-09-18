@@ -195,8 +195,8 @@ final readonly class RectorUnsupportedArgumentShapeTest
         $probes = RectorProbe::convertBatch($this->tempDirectory, $cases, name: 'unsupported-argument-shapes');
 
         foreach ($probes as $caseName => $probe) {
-            Expect::that($probe->changed)->because('unsupported argument shape: ' . $caseName)->toBeFalse();
-            Expect::that($probe->code)->because('unsupported argument shape: ' . $caseName)->toBe($cases[$caseName]);
+            Expect::value($probe->changed)->because('unsupported argument shape: ' . $caseName)->toBeFalse();
+            Expect::value($probe->code)->because('unsupported argument shape: ' . $caseName)->toBe($cases[$caseName]);
         }
     }
 }

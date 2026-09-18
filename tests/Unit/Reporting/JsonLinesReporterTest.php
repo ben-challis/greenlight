@@ -29,11 +29,11 @@ final class JsonLinesReporterTest
         $buffer = $output->buffer();
         $events = CannedStream::events();
 
-        Expect::that($buffer)->because('every event becomes one versioned line')->toEndWith("\n");
+        Expect::value($buffer)->because('every event becomes one versioned line')->toEndWith("\n");
 
         $lines = \explode("\n", \rtrim($buffer, "\n"));
 
-        Expect::that($lines)->because('every event becomes one versioned line')->toHaveCount(\count($events));
+        Expect::value($lines)->because('every event becomes one versioned line')->toHaveCount(\count($events));
 
         $tags = EventCodec::tags();
 
@@ -41,7 +41,7 @@ final class JsonLinesReporterTest
             $decoded = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
             $event = $events[$index];
 
-            Expect::that($decoded)->toHaveKey('v')
+            Expect::value($decoded)->toHaveKey('v')
                 ->toHaveKey('event')
                 ->toHaveKey('data');
 
@@ -51,9 +51,9 @@ final class JsonLinesReporterTest
 
             $expectedData = JsonWire::roundTrip($event->toWire());
 
-            Expect::that($decoded['v'])->toBe(1);
-            Expect::that($decoded['event'])->toBe(\array_search($event::class, $tags, true));
-            Expect::that($decoded['data'])->toEqual($expectedData);
+            Expect::value($decoded['v'])->toBe(1);
+            Expect::value($decoded['event'])->toBe(\array_search($event::class, $tags, true));
+            Expect::value($decoded['data'])->toEqual($expectedData);
         }
     }
 
@@ -68,8 +68,8 @@ final class JsonLinesReporterTest
         foreach (\explode("\n", \rtrim($output->buffer(), "\n")) as $index => $line) {
             $restored = EventCodec::decodeJsonLine($line);
 
-            Expect::that($restored::class)->toBe($events[$index]::class);
-            Expect::that($restored->occurredAt)->toBe($events[$index]->occurredAt);
+            Expect::value($restored::class)->toBe($events[$index]::class);
+            Expect::value($restored->occurredAt)->toBe($events[$index]->occurredAt);
         }
     }
 
@@ -81,7 +81,7 @@ final class JsonLinesReporterTest
 
         $lines = \explode("\n", $output->buffer());
 
-        Expect::that($lines[0])->because('first line matches the documented envelope shape')->toBe(
+        Expect::value($lines[0])->because('first line matches the documented envelope shape')->toBe(
             '{"v":1,"event":"run-started","data":{"runId":"run-1","plannedTests":6,"workers":2,"occurredAt":1750000000.5,"artifactsDirectory":null}}',
         );
     }
@@ -97,10 +97,10 @@ final class JsonLinesReporterTest
             static fn(string $line): bool => \str_contains($line, 'retriesFlakyEndpoint'),
         ));
 
-        Expect::that($retried)
+        Expect::value($retried)
             ->because('JSONL MUST retain retry evidence without a schema change')
             ->toHaveCount(2);
-        Expect::that($retried[1])
+        Expect::value($retried[1])
             ->toContain('"outcome":"passed"')
             ->toContain('"attempts":3');
     }
@@ -114,7 +114,7 @@ final class JsonLinesReporterTest
             public float $occurredAt = 1.0;
         };
 
-        Expect::that(static fn() => $reporter->onEvent($event))
+        Expect::calling(static fn() => $reporter->onEvent($event))
             ->because('a custom event only needs the public event interface and cannot enter JSONL')
             ->toThrow(
                 ReportGenerationFailed::class,
@@ -144,11 +144,11 @@ final class JsonLinesReporterTest
         $reporter = new JsonLinesReporter(new BufferOutput());
 
         try {
-            Expect::that(static fn() => $reporter->onEvent($event))
+            Expect::calling(static fn() => $reporter->onEvent($event))
                 ->toThrow(static function (ReportGenerationFailed $failure): void {
-                    Expect::that($failure->getMessage())
+                    Expect::value($failure->getMessage())
                         ->toBe('Greenlight could not encode the event as JSON.');
-                    Expect::that($failure->getPrevious())
+                    Expect::value($failure->getPrevious())
                         ->toBeInstanceOf(EventCodecFailed::class);
                 });
         } finally {

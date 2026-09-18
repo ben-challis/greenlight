@@ -19,15 +19,15 @@ final class HelpOutputTest
         $plain = GreenlightCli::run($root, [$helpOption], ['NO_COLOR' => '', 'CI' => 'false']);
         $colored = GreenlightCli::run($root, [$helpOption, '--ansi'], ['NO_COLOR' => '', 'CI' => 'true']);
 
-        Expect::that($plain->exitCode)->toBe(0);
-        Expect::that($plain->stdout)->toStartWith('Greenlight')->not()->toContain("\x1b[");
-        Expect::that($plain->stderr)->toBe('');
-        Expect::that($colored->exitCode)->toBe(0);
-        Expect::that($colored->stderr)->toBe('');
-        Expect::that(\preg_replace('/\x1b\[[0-9;]*m/', '', $colored->stdout))
+        Expect::value($plain->exitCode)->toBe(0);
+        Expect::value($plain->stdout)->toStartWith('Greenlight')->not()->toContain("\x1b[");
+        Expect::value($plain->stderr)->toBe('');
+        Expect::value($colored->exitCode)->toBe(0);
+        Expect::value($colored->stderr)->toBe('');
+        Expect::value(\preg_replace('/\x1b\[[0-9;]*m/', '', $colored->stdout))
             ->because('color preserves the help text and its spacing')
             ->toBe($plain->stdout);
-        Expect::that($colored->stdout)
+        Expect::value($colored->stdout)
             ->toMatch('/\x1b\[[0-9;]+mGreenlight\x1b\[[0-9;]+m/')
             ->toMatch('/\x1b\[[0-9;]+mUsage:\x1b\[[0-9;]+m/')
             ->toMatch('/\x1b\[[0-9;]+mCommands:\x1b\[[0-9;]+m/')
@@ -51,9 +51,9 @@ final class HelpOutputTest
         $plain = GreenlightCli::run($root, ['--help'], ['NO_COLOR' => '', 'CI' => 'false']);
         $result = GreenlightCli::run($root, $arguments, $environment);
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($result->stdout)->toBe($plain->stdout)->not()->toContain("\x1b[");
-        Expect::that($result->stderr)->toBe('');
+        Expect::value($result->exitCode)->toBe(0);
+        Expect::value($result->stdout)->toBe($plain->stdout)->not()->toContain("\x1b[");
+        Expect::value($result->stderr)->toBe('');
     }
 
     /** @return iterable<string, array{string}> */

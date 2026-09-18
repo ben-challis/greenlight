@@ -20,14 +20,14 @@ final readonly class TestSelectionTest
             exclude: new TestExclusions(['quarantined'], ['Legacy'], ['manual'], ['/vendor/tests']),
         );
 
-        Expect::that($selection->accepts('Acme\FastTest', 'works', ['fast'], '/project/tests/FastTest.php'))->toBeTrue();
-        Expect::that($selection->accepts('Acme\FastTest', 'works', ['slow'], '/project/tests/FastTest.php'))->toBeFalse();
-        Expect::that($selection->accepts('Acme\FastTest', 'works', ['fast', 'quarantined'], '/project/tests/FastTest.php'))->toBeFalse();
-        Expect::that($selection->accepts('Acme\LegacyTest', 'works', ['fast'], '/project/tests/LegacyTest.php'))->toBeFalse();
-        Expect::that($selection->accepts('Acme\FastTest', 'manualCheck', ['fast'], '/project/tests/FastTest.php'))->toBeFalse();
-        Expect::that($selection->accepts('Acme\FastTest', 'works', ['fast'], '/vendor/tests/FastTest.php'))->toBeFalse();
-        Expect::that($selection->acceptsId('Acme\FastTest::worksNow'))->toBeTrue();
-        Expect::that($selection->acceptsId('Acme\ExactTest::only'))->toBeTrue();
-        Expect::that($selection->acceptsId('Acme\FastTest::other'))->toBeFalse();
+        Expect::value($selection->accepts('Acme\FastTest', 'works', ['fast'], '/project/tests/FastTest.php'))->toBeTrue();
+        Expect::value($selection->accepts('Acme\FastTest', 'works', ['slow'], '/project/tests/FastTest.php'))->toBeFalse();
+        Expect::value($selection->accepts('Acme\FastTest', 'works', ['fast', 'quarantined'], '/project/tests/FastTest.php'))->toBeFalse();
+        Expect::value($selection->accepts('Acme\LegacyTest', 'works', ['fast'], '/project/tests/LegacyTest.php'))->toBeFalse();
+        Expect::value($selection->accepts('Acme\FastTest', 'manualCheck', ['fast'], '/project/tests/FastTest.php'))->toBeFalse();
+        Expect::value($selection->accepts('Acme\FastTest', 'works', ['fast'], '/vendor/tests/FastTest.php'))->toBeFalse();
+        Expect::value($selection->acceptsId('Acme\FastTest::worksNow'))->toBeTrue();
+        Expect::value($selection->acceptsId('Acme\ExactTest::only'))->toBeTrue();
+        Expect::value($selection->acceptsId('Acme\FastTest::other'))->toBeFalse();
     }
 }

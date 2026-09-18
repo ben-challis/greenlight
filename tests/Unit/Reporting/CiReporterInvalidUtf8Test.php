@@ -35,10 +35,10 @@ final class CiReporterInvalidUtf8Test
 
         $reporter->onEvent(new TestFinished($result, 1.0));
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('a CI command stream MUST replace invalid UTF-8')
             ->toContain("invalid \u{FFFD} byte");
-        Expect::that(\preg_match('//u', $output->buffer()))
+        Expect::value(\preg_match('//u', $output->buffer()))
             ->because('a CI command stream MUST contain only valid UTF-8')
             ->toBe(1);
     }

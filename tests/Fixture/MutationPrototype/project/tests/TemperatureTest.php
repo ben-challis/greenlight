@@ -15,13 +15,13 @@ final class TemperatureTest
     #[Test]
     public function zeroIsFreezing(): void
     {
-        Expect::that(new Temperature()->isFreezing(0.0))->toBeTrue();
+        Expect::value(new Temperature()->isFreezing(0.0))->toBeTrue();
     }
 
     /** @throws ExpectationFailed */
     #[Test]
     public function warmIsNotFreezing(): void
     {
-        Expect::that(new Temperature()->isFreezing(5.0))->toBeFalse();
+        Expect::value(new Temperature()->isFreezing(5.0))->toBeFalse();
     }
 }

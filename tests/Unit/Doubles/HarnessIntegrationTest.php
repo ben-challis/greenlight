@@ -30,7 +30,7 @@ final class HarnessIntegrationTest
 
         $doubles = $scopes->resolve(Doubles::class, self::class);
 
-        Expect::that($doubles)
+        Expect::value($doubles)
             ->because('HarnessScopes::resolve() MUST return Doubles.')
             ->toBeInstanceOf(Doubles::class);
 
@@ -40,11 +40,11 @@ final class HarnessIntegrationTest
 
         $failures = $scopes->closeTest();
 
-        Expect::that($failures)->because('registered as a per test service it verifies at scope close')->toHaveCount(1);
-        Expect::that($failures[0])->toBeInstanceOf(ExpectationFailed::class);
+        Expect::value($failures)->because('registered as a per test service it verifies at scope close')->toHaveCount(1);
+        Expect::value($failures[0])->toBeInstanceOf(ExpectationFailed::class);
 
         $failure = $failures[0];
-        Expect::that($failure->detail()->message)->toContain('add');
+        Expect::value($failure->detail()->message)->toContain('add');
     }
 
     #[Test]
@@ -57,10 +57,10 @@ final class HarnessIntegrationTest
         $extension = $doubles->stub(ExpectationExtension::class);
         $events = $doubles->spy(EventSink::class);
 
-        Expect::that($condition)->because('public harness interfaces can be doubled')->toBeInstanceOf(Condition::class);
-        Expect::that($disposable)->toBeInstanceOf(Disposable::class);
-        Expect::that($extension)->toBeInstanceOf(ExpectationExtension::class);
-        Expect::that($events)->toBeInstanceOf(EventSink::class);
+        Expect::value($condition)->because('public harness interfaces can be doubled')->toBeInstanceOf(Condition::class);
+        Expect::value($disposable)->toBeInstanceOf(Disposable::class);
+        Expect::value($extension)->toBeInstanceOf(ExpectationExtension::class);
+        Expect::value($events)->toBeInstanceOf(EventSink::class);
 
         $doubles->dispose();
     }

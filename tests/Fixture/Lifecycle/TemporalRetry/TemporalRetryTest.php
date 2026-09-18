@@ -20,7 +20,7 @@ final class TemporalRetryTest
     {
         ++self::$attempts;
 
-        Expect::eventually(static fn(): int => self::$attempts)
+        Expect::calling(static fn(): int => self::$attempts)->returnValue()->eventually()
             ->pollEvery(0.001)
             ->within(0.010)
             ->toBe(2);

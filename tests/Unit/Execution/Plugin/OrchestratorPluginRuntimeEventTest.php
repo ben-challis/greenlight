@@ -60,7 +60,7 @@ final class OrchestratorPluginRuntimeEventTest
 
         $sink->emit($event);
 
-        Expect::that($calls->getArrayCopy())
+        Expect::value($calls->getArrayCopy())
             ->because('run subscribers MUST receive the exact event in order before the inner sink')
             ->toBe([
                 ['first', $event],
@@ -89,13 +89,13 @@ final class OrchestratorPluginRuntimeEventTest
         );
         $event = new RunStarted('run-1', 1, 1, 1.0);
 
-        Expect::that(static function () use ($sink, $event): void {
+        Expect::calling(static function () use ($sink, $event): void {
             $sink->emit($event);
         })
             ->because('an orchestrator subscriber failure MUST fail event delivery')
             ->toThrow($failure);
 
-        Expect::that($inner->events)
+        Expect::value($inner->events)
             ->because('the inner sink MUST not observe an event rejected by a subscriber')
             ->toBe([]);
     }

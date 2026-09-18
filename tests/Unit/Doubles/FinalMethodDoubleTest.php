@@ -18,7 +18,7 @@ final readonly class FinalMethodDoubleTest
     {
         $double = $this->doubles->stub(PlanningBoundaries::class);
 
-        Expect::that(static function () use ($double): void {
+        Expect::calling(static function () use ($double): void {
             $double->finalMethod();
         })
             ->because('a class double MUST keep its original final methods')

@@ -17,15 +17,15 @@ final class UnavailableContainerTest
     {
         $container = new UnavailableContainer();
 
-        Expect::that($container->has('clock'))->toBeFalse();
-        Expect::that(static fn(): never => $container->get('clock'))->toThrow(
+        Expect::value($container->has('clock'))->toBeFalse();
+        Expect::calling(static fn(): never => $container->get('clock'))->toThrow(
             static function (UnavailableContainerError $error): void {
-                Expect::that($error)->toBeInstanceOf(ContainerExceptionInterface::class);
-                Expect::that($error->getMessage())->toBe(
+                Expect::value($error)->toBeInstanceOf(ContainerExceptionInterface::class);
+                Expect::value($error->getMessage())->toBe(
                     'The Hyperf container is not active. Resolve Hyperf services only during a Greenlight test attempt.',
                 );
-                Expect::that($error->getCode())->toBe(0);
-                Expect::that($error->getPrevious())->toBeNull();
+                Expect::value($error->getCode())->toBe(0);
+                Expect::value($error->getPrevious())->toBeNull();
             },
         );
     }

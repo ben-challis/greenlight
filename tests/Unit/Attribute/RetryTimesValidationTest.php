@@ -15,7 +15,7 @@ final class RetryTimesValidationTest
     #[DataSet('nonPositiveTimes')]
     public function rejectsNonPositiveTimes(int $times): void
     {
-        Expect::that(static fn(): Retry => new Retry($times))
+        Expect::calling(static fn(): Retry => new Retry($times))
             ->because('retry times MUST be positive')
             ->toThrow(
                 \InvalidArgumentException::class,

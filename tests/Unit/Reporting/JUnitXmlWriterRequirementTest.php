@@ -21,7 +21,7 @@ final readonly class JUnitXmlWriterRequirementTest
     {
         $reporter = new JUnitReporter(new BufferOutput(), new UnavailableXmlWriterRuntime());
 
-        Expect::that(static fn() => $reporter->finish())
+        Expect::calling(static fn() => $reporter->finish())
             ->because('finishing JUnit output MUST require XMLWriter')
             ->toThrow(
                 ReportGenerationFailed::class,
@@ -40,7 +40,7 @@ final readonly class JUnitXmlWriterRequirementTest
             0,
         );
 
-        Expect::that(static fn() => $reporter->onEvent(new TestFinished($result, 1.0)))
+        Expect::calling(static fn() => $reporter->onEvent(new TestFinished($result, 1.0)))
             ->because('rendering a JUnit test case MUST require XMLWriter')
             ->toThrow(
                 ReportGenerationFailed::class,

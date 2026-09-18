@@ -40,7 +40,7 @@ final class ProfileClassDurationAggregationTest
             "\n  Slowest classes:",
         );
 
-        Expect::that($slowest)
+        Expect::value($slowest)
             ->because('each completed span MUST contribute to the class profile total')
             ->toBe(
                 "\n  Slowest classes:\n"

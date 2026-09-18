@@ -21,10 +21,10 @@ final readonly class JsonFrameCodecEmptyEnvelopeTest
             Fail::because('Expected the encoded frame to contain a JSON body.');
         }
 
-        Expect::that($body)
+        Expect::value($body)
             ->because('an empty protocol envelope MUST remain a JSON map')
             ->toBe('{}');
-        Expect::that($codec->decode($body))
+        Expect::value($codec->decode($body))
             ->because('the frame codec MUST decode its empty encoded envelope')
             ->toBe([]);
     }

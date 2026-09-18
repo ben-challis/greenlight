@@ -16,8 +16,8 @@ final class TerminalCapabilitiesTest
     {
         $capabilities = TerminalCapabilities::detect(stdoutIsTty: true, env: [], noAnsiFlag: false);
 
-        Expect::that($capabilities->interactive)->because('a plain TTY is interactive with color')->toBeTrue();
-        Expect::that($capabilities->color)->toBeTrue();
+        Expect::value($capabilities->interactive)->because('a plain TTY is interactive with color')->toBeTrue();
+        Expect::value($capabilities->color)->toBeTrue();
     }
 
     #[Test]
@@ -25,8 +25,8 @@ final class TerminalCapabilitiesTest
     {
         $capabilities = TerminalCapabilities::detect(stdoutIsTty: false, env: [], noAnsiFlag: false);
 
-        Expect::that($capabilities->interactive)->because('non TTY is never interactive')->toBeFalse();
-        Expect::that($capabilities->color)->toBeFalse();
+        Expect::value($capabilities->interactive)->because('non TTY is never interactive')->toBeFalse();
+        Expect::value($capabilities->color)->toBeFalse();
     }
 
     #[Test]
@@ -39,10 +39,10 @@ final class TerminalCapabilitiesTest
             ansiFlag: true,
         );
 
-        Expect::that($capabilities->interactive)
+        Expect::value($capabilities->interactive)
             ->because('the ANSI flag MUST NOT enable cursor control')
             ->toBeFalse();
-        Expect::that($capabilities->color)
+        Expect::value($capabilities->color)
             ->because('the ANSI flag enables color output in CI')
             ->toBeTrue();
     }
@@ -57,8 +57,8 @@ final class TerminalCapabilitiesTest
             ansiFlag: true,
         );
 
-        Expect::that($capabilities->interactive)->because('the no ANSI flag forces non interactive')->toBeFalse();
-        Expect::that($capabilities->color)->toBeFalse();
+        Expect::value($capabilities->interactive)->because('the no ANSI flag forces non interactive')->toBeFalse();
+        Expect::value($capabilities->color)->toBeFalse();
     }
 
     #[Test]
@@ -67,8 +67,8 @@ final class TerminalCapabilitiesTest
     {
         $capabilities = TerminalCapabilities::detect(stdoutIsTty: true, env: ['CI' => $value], noAnsiFlag: false);
 
-        Expect::that($capabilities->interactive)->toBeFalse();
-        Expect::that($capabilities->color)->toBeFalse();
+        Expect::value($capabilities->interactive)->toBeFalse();
+        Expect::value($capabilities->color)->toBeFalse();
     }
 
     #[Test]
@@ -77,10 +77,10 @@ final class TerminalCapabilitiesTest
     {
         $capabilities = TerminalCapabilities::detect(stdoutIsTty: true, env: ['CI' => $value], noAnsiFlag: false);
 
-        Expect::that($capabilities->interactive)
+        Expect::value($capabilities->interactive)
             ->because('a falsey CI value MUST preserve terminal interactivity')
             ->toBeTrue();
-        Expect::that($capabilities->color)
+        Expect::value($capabilities->color)
             ->because('a falsey CI value MUST preserve terminal color')
             ->toBeTrue();
     }
@@ -95,8 +95,8 @@ final class TerminalCapabilitiesTest
             ansiFlag: true,
         );
 
-        Expect::that($capabilities->interactive)->because('no color strips color but keeps interactivity')->toBeTrue();
-        Expect::that($capabilities->color)->toBeFalse();
+        Expect::value($capabilities->interactive)->because('no color strips color but keeps interactivity')->toBeTrue();
+        Expect::value($capabilities->color)->toBeFalse();
     }
 
     #[Test]
@@ -108,10 +108,10 @@ final class TerminalCapabilitiesTest
             noAnsiFlag: false,
         );
 
-        Expect::that($capabilities->interactive)
+        Expect::value($capabilities->interactive)
             ->because('a zero NO_COLOR value keeps interactivity but disables color')
             ->toBeTrue();
-        Expect::that($capabilities->color)->toBeFalse();
+        Expect::value($capabilities->color)->toBeFalse();
     }
 
     #[Test]
@@ -119,7 +119,7 @@ final class TerminalCapabilitiesTest
     {
         $capabilities = TerminalCapabilities::detect(stdoutIsTty: true, env: ['NO_COLOR' => ''], noAnsiFlag: false);
 
-        Expect::that($capabilities->color)->because('an empty no color is ignored')->toBeTrue();
+        Expect::value($capabilities->color)->because('an empty no color is ignored')->toBeTrue();
     }
 
     /**

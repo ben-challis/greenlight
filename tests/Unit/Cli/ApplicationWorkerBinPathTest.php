@@ -53,12 +53,12 @@ final readonly class ApplicationWorkerBinPathTest
             MemoryStream::close($stdout, $stderr);
         }
 
-        Expect::that($exit)
+        Expect::value($exit)
             ->because('an inaccessible worker binary MUST use the in-process fallback')
             ->toBe(0);
-        Expect::that($warning)
+        Expect::value($warning)
             ->because('an inaccessible worker binary MUST not leak an engine diagnostic')
             ->toBeNull();
-        Expect::that($errors)->toBe('');
+        Expect::value($errors)->toBe('');
     }
 }

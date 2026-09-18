@@ -67,16 +67,16 @@ final readonly class PhpStanDoubleableTypeRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)
+        Expect::value($probe->exitCode)
             ->because('PHPStan rejects types that cannot have a proxy')
             ->toBe(1);
-        Expect::that($probe->goodPassed)
+        Expect::value($probe->goodPassed)
             ->because('PHPStan messages: ' . $probe->messages())
             ->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(4);
-        Expect::that($probe->messages())->toContain('Doubles::mock() cannot double FinalService because it is final');
-        Expect::that($probe->messages())->toContain('Doubles::stub() cannot double ReadonlyService because it is a readonly class');
-        Expect::that($probe->messages())->toContain('Doubles::spy() cannot double ServiceState because it is an enum');
-        Expect::that($probe->messages())->toContain('Doubles::mock() cannot double ServiceBehavior because it is a trait');
+        Expect::value(\count($probe->errors))->toBe(4);
+        Expect::value($probe->messages())->toContain('Doubles::mock() cannot double FinalService because it is final');
+        Expect::value($probe->messages())->toContain('Doubles::stub() cannot double ReadonlyService because it is a readonly class');
+        Expect::value($probe->messages())->toContain('Doubles::spy() cannot double ServiceState because it is an enum');
+        Expect::value($probe->messages())->toContain('Doubles::mock() cannot double ServiceBehavior because it is a trait');
     }
 }

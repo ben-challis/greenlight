@@ -42,14 +42,14 @@ final readonly class JsonExporterCompatibilityTest
             \JSON_THROW_ON_ERROR,
         );
 
-        Expect::that($map->toWire())
+        Expect::value($map->toWire())
             ->because('coverage JSON readers MUST ignore additive fields')
             ->toBe([
                 'files' => [
                     '/src/A.php' => [[3], [5]],
                 ],
             ]);
-        Expect::that($exported)
+        Expect::value($exported)
             ->because('coverage JSON readers MUST recalculate derived values')
             ->toBe([
                 'v' => 1,

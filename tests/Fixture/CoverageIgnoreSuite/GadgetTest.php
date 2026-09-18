@@ -13,6 +13,6 @@ final readonly class GadgetTest
     #[Test]
     public function doublesIntegers(): void
     {
-        Expect::that(Gadget::double(21))->toBe(42);
+        Expect::value(Gadget::double(21))->toBe(42);
     }
 }

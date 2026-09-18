@@ -34,7 +34,7 @@ final class ReporterSinkTest
 
         new ReporterSink($reporter)->emit($event);
 
-        Expect::that($reporter->received)
+        Expect::value($reporter->received)
             ->because('the reporter sink MUST preserve event identity')
             ->toBe($event);
     }
@@ -57,7 +57,7 @@ final class ReporterSinkTest
         };
         $sink = new ReporterSink($reporter);
 
-        Expect::that(static function () use ($sink): void {
+        Expect::calling(static function () use ($sink): void {
             $sink->emit(new RunStarted('run-1', 1, 1, 1.0));
         })
             ->because('a reporter failure MUST stop event delivery')

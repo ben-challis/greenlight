@@ -19,7 +19,7 @@ final readonly class StandardHarnessPluginTest
     #[Test]
     public function standardServicesStayBeforeUserPluginServices(): void
     {
-        Expect::that(new StandardHarnessPlugin()->priority())->toBe(\PHP_INT_MIN);
+        Expect::value(new StandardHarnessPlugin()->priority())->toBe(\PHP_INT_MIN);
     }
 
     #[Test]
@@ -37,7 +37,7 @@ final readonly class StandardHarnessPluginTest
         try {
             $channel = $scopes->resolve(TestChannel::class, self::class);
 
-            Expect::that($channel->number)
+            Expect::value($channel->number)
                 ->because('the standard channel service MUST always use a positive number')
                 ->toBe($expected);
         } finally {
@@ -54,7 +54,7 @@ final readonly class StandardHarnessPluginTest
         try {
             $channel = $scopes->resolve(TestChannel::class, self::class);
 
-            Expect::that($channel->number)->toBe(3);
+            Expect::value($channel->number)->toBe(3);
         } finally {
             $scopes->closeWorker();
         }

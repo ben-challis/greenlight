@@ -22,10 +22,10 @@ final readonly class OutputCaptureClosedBufferTest
 
         $captured = $capture->stop();
 
-        Expect::that($captured->stdout)
+        Expect::value($captured->stdout)
             ->because('stop MUST preserve output after user code closes the capture buffer')
             ->toBe('captured before close');
-        Expect::that(\ob_get_level())
+        Expect::value(\ob_get_level())
             ->because('stop MUST preserve the output-buffer baseline')
             ->toBe($baseline);
     }

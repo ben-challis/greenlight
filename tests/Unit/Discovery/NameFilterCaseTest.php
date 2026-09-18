@@ -21,10 +21,10 @@ final readonly class NameFilterCaseTest
         $class = 'Acme\\InvoiceTest';
         $method = 'calculatesTotal';
 
-        Expect::that($canonical->accepts($class, $method, [], '/tests/InvoiceTest.php'))
+        Expect::value($canonical->accepts($class, $method, [], '/tests/InvoiceTest.php'))
             ->because('a class or method filter MUST accept the canonical letter case')
             ->toBeTrue();
-        Expect::that($caseOnlyDifference->accepts($class, $method, [], '/tests/InvoiceTest.php'))
+        Expect::value($caseOnlyDifference->accepts($class, $method, [], '/tests/InvoiceTest.php'))
             ->because('class and method filters MUST use the same letter case')
             ->toBeFalse();
     }

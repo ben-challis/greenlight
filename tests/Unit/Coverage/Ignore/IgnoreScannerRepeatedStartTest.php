@@ -28,7 +28,7 @@ final readonly class IgnoreScannerRepeatedStartTest
             $after = 4;
             PHP);
 
-        Expect::that(\array_keys(new IgnoreScanner()->ignoredLines($path)))
+        Expect::value(\array_keys(new IgnoreScanner()->ignoredLines($path)))
             ->because('an additional start marker MUST keep the earliest active range boundary')
             ->toBe([3, 4, 5, 6, 7]);
     }

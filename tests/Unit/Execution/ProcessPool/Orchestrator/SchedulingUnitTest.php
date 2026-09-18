@@ -15,7 +15,7 @@ final class SchedulingUnitTest
     #[Test]
     public function itCannotBeEmpty(): void
     {
-        Expect::that(static fn(): SchedulingUnit => new SchedulingUnit(new ExecutionPlan([]), false))->because('a scheduling unit cannot be empty')
+        Expect::calling(static fn(): SchedulingUnit => new SchedulingUnit(new ExecutionPlan([]), false))->because('a scheduling unit cannot be empty')
             ->toThrow(\InvalidArgumentException::class, '/cannot be empty/');
     }
 
@@ -27,7 +27,7 @@ final class SchedulingUnitTest
             PlanEntryFixture::create('ExampleTest', 'second', resources: ['database']),
         ]), false);
 
-        Expect::that($unit->resources)
+        Expect::value($unit->resources)
             ->because('one class MUST acquire each required resource once')
             ->toBe(['database', 'cache']);
     }

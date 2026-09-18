@@ -62,12 +62,12 @@ final readonly class PhpStanDataSetTypeTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)
+        Expect::value($probe->exitCode)
             ->because('DataSet external provider types MUST preserve class-strings')
             ->toBe(1);
-        Expect::that($probe->goodPassed)->because('PHPStan messages: ' . $probe->messages())->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(2);
-        Expect::that($probe->messages())->toContain('expects class-string, string given');
-        Expect::that($probe->messages())->toContain('expects class-string|null, string given');
+        Expect::value($probe->goodPassed)->because('PHPStan messages: ' . $probe->messages())->toBeTrue();
+        Expect::value(\count($probe->errors))->toBe(2);
+        Expect::value($probe->messages())->toContain('expects class-string, string given');
+        Expect::value($probe->messages())->toContain('expects class-string|null, string given');
     }
 }

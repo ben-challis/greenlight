@@ -35,13 +35,13 @@ final class HarnessScopesCloseWorkerTest
         $scopes->resolve($workerService::class, 'test');
         $failures = $scopes->closeWorker();
 
-        Expect::that(\array_map(
+        Expect::value(\array_map(
             static fn(\Throwable $failure): string => $failure->getMessage(),
             $failures,
         ))
             ->because('worker cleanup MUST retain a disposal failure')
             ->toBe(['worker disposal failed']);
-        Expect::that($scopes->closeWorker())
+        Expect::value($scopes->closeWorker())
             ->because('failed cleanup MUST still empty the worker scope')
             ->toBe([]);
     }

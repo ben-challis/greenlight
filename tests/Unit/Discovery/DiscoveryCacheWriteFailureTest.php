@@ -28,15 +28,15 @@ final readonly class DiscoveryCacheWriteFailureTest
         $cache->store($source, []);
 
         try {
-            Expect::that($cache->persist())
+            Expect::value($cache->persist())
                 ->because('an advisory cache write failure MUST be reported to its caller')
                 ->toBeFalse();
-            Expect::that(\is_dir($cacheFile))
+            Expect::value(\is_dir($cacheFile))
                 ->because('the failed write MUST leave the target unchanged')
                 ->toBeTrue();
-            Expect::that((string) \file_get_contents($cacheFile . '/occupant.txt'))
+            Expect::value((string) \file_get_contents($cacheFile . '/occupant.txt'))
                 ->toBe('keep');
-            Expect::that(\glob($cacheFile . '.tmp-*'))
+            Expect::value(\glob($cacheFile . '.tmp-*'))
                 ->because('the failed write MUST remove its temporary file')
                 ->toBe([]);
         } finally {

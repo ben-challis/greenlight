@@ -15,7 +15,7 @@ final readonly class DebouncerValidationTest
     #[DataSet('nonFiniteQuietPeriods')]
     public function rejectsANonFiniteQuietPeriod(float $quietSeconds): void
     {
-        Expect::that(static fn(): Debouncer => new Debouncer($quietSeconds))
+        Expect::calling(static fn(): Debouncer => new Debouncer($quietSeconds))
             ->because('a non-finite quiet period MUST NOT disable future watch runs')
             ->toThrow(
                 \InvalidArgumentException::class,

@@ -38,8 +38,8 @@ final class HttpHarnessTest
 
         $result = new HttpHarness($handler)->send($request);
 
-        Expect::that($handler->received)->toBe($request);
-        Expect::that($result)->toBe($response);
+        Expect::value($handler->received)->toBe($request);
+        Expect::value($result)->toBe($response);
     }
 
     #[Test]
@@ -67,8 +67,8 @@ final class HttpHarnessTest
         $harness->send($request);
         $harness->send($request);
 
-        Expect::that($created)->toBe(1);
-        Expect::that($counter->handled)->toBe(2);
+        Expect::value($created)->toBe(1);
+        Expect::value($counter->handled)->toBe(2);
     }
 
     #[Test]
@@ -83,8 +83,8 @@ final class HttpHarnessTest
             new ServerRequest([], [], '/status', 'GET'),
         ));
 
-        Expect::that($error->getMessage())->toBe('The PSR-15 handler factory failed.');
-        Expect::that($error->getPrevious())->toBe($cause);
+        Expect::value($error->getMessage())->toBe('The PSR-15 handler factory failed.');
+        Expect::value($error->getPrevious())->toBe($cause);
     }
 
     #[Test]
@@ -94,7 +94,7 @@ final class HttpHarnessTest
             $this->invalidHandlerFactory(), // @phpstan-ignore argument.type (This test supplies an invalid handler factory.)
         );
 
-        Expect::that(static fn(): ResponseInterface => $harness->send(
+        Expect::calling(static fn(): ResponseInterface => $harness->send(
             new ServerRequest([], [], '/status', 'GET'),
         ))->toThrow(
             Psr15Error::class,
@@ -122,9 +122,9 @@ final class HttpHarnessTest
             new ServerRequest([], [], 'https://example.test/orders/42?token=private', 'PATCH'),
         ));
 
-        Expect::that($error->getMessage())->toMatch('/failed for request "PATCH \/orders\/42"\.$/');
-        Expect::that($error->getMessage())->not()->toContain('token');
-        Expect::that($error->getPrevious())->toBe($cause);
+        Expect::value($error->getMessage())->toMatch('/failed for request "PATCH \/orders\/42"\.$/');
+        Expect::value($error->getMessage())->not()->toContain('token');
+        Expect::value($error->getPrevious())->toBe($cause);
     }
 
     #[Test]
@@ -141,7 +141,7 @@ final class HttpHarnessTest
         $harness->dispose();
         $harness->dispose();
 
-        Expect::that($released)->toBe([$handler]);
+        Expect::value($released)->toBe([$handler]);
     }
 
     #[Test]
@@ -168,8 +168,8 @@ final class HttpHarnessTest
 
         $harness->dispose();
 
-        Expect::that($created)->toBeFalse();
-        Expect::that($released)->toBeFalse();
+        Expect::value($created)->toBeFalse();
+        Expect::value($released)->toBeFalse();
     }
 
     #[Test]
@@ -187,9 +187,9 @@ final class HttpHarnessTest
 
         $error = $this->errorFrom($harness->dispose(...));
 
-        Expect::that($error->getMessage())->toContain('The release callback failed for PSR-15 handler');
-        Expect::that($error->getPrevious())->toBe($cause);
-        Expect::that(static fn(): ResponseInterface => $harness->send($request))->toThrow(
+        Expect::value($error->getMessage())->toContain('The release callback failed for PSR-15 handler');
+        Expect::value($error->getPrevious())->toBe($cause);
+        Expect::calling(static fn(): ResponseInterface => $harness->send($request))->toThrow(
             Psr15Error::class,
             message: 'The PSR-15 HTTP harness is closed. Create a new harness for the next request.',
         );

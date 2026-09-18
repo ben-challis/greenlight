@@ -37,9 +37,9 @@ final readonly class EmptyHtmlCoverageExportTest
             "--no-ansi",
         ]);
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that(\is_dir($directory . "/html"))->toBeTrue();
-        Expect::that((string) \file_get_contents($directory . "/html/index.html"))
+        Expect::value($result->exitCode)->toBe(0);
+        Expect::value(\is_dir($directory . "/html"))->toBeTrue();
+        Expect::value((string) \file_get_contents($directory . "/html/index.html"))
             ->toContain("Greenlight Coverage")
             ->toContain("100.00%");
     }

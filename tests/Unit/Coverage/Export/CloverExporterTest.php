@@ -23,7 +23,7 @@ final class CloverExporterTest
 
         $xml = new \SimpleXMLElement(new CloverExporter(1234)->export($map)[CloverExporter::FILE_NAME]);
 
-        Expect::that($this->structure($xml))
+        Expect::value($this->structure($xml))
             ->because('document carries per file and project statement metrics')
             ->toBe([
                 'generated' => '1234',
@@ -95,7 +95,7 @@ final class CloverExporterTest
     {
         $xml = new \SimpleXMLElement(new CloverExporter()->export(CoverageMap::empty())[CloverExporter::FILE_NAME]);
 
-        Expect::that($this->structure($xml))
+        Expect::value($this->structure($xml))
             ->because('empty map still produces a parsable document')
             ->toBe([
                 'generated' => '0',

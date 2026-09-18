@@ -22,10 +22,10 @@ final readonly class TestClassEventZeroNameTest
         $event = new $eventClass('0', 1.25, 'worker-1');
         $restored = $eventClass::fromWire($event->toWire());
 
-        Expect::that($event->class)
+        Expect::value($event->class)
             ->because('class lifecycle events MUST retain non-empty zero-string class names')
             ->toBe('0');
-        Expect::that($restored->class)
+        Expect::value($restored->class)
             ->toBe('0');
     }
 

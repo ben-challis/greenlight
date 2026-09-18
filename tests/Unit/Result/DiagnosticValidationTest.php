@@ -16,7 +16,7 @@ final class DiagnosticValidationTest
     #[DataSet('nonPositiveLines')]
     public function directConstructionRejectsNonPositiveLines(int $line): void
     {
-        Expect::that(
+        Expect::calling(
             static fn(): Diagnostic => new Diagnostic(DiagnosticSeverity::Warning, 'Warning.', '/tests/ProbeTest.php', $line),
         )
             ->because('a diagnostic MUST identify a positive source line')
@@ -37,7 +37,7 @@ final class DiagnosticValidationTest
             'line' => $line,
         ]);
 
-        Expect::that($restored->line)
+        Expect::value($restored->line)
             ->because('wire diagnostics MUST identify at least the first source line')
             ->toBe(1);
     }

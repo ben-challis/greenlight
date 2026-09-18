@@ -16,7 +16,7 @@ final readonly class PrivateHandlerMethodTest
     #[Test]
     public function privateParentHandlerMethodsRemainValid(): void
     {
-        Expect::that($this->doubles->stub(PrivateHandlerMethod::class))
+        Expect::value($this->doubles->stub(PrivateHandlerMethod::class))
             ->because('a private parent method does not conflict with the proxy handler method')
             ->toBeInstanceOf(PrivateHandlerMethod::class);
     }

@@ -31,13 +31,13 @@ final class PlanOrderStalePriorityTest
             $ordered->entries,
         );
 
-        Expect::that($ids)
+        Expect::value($ids)
             ->because('stale priority data MUST NOT change the current plan entries')
             ->toBe(['Acme\\AlphaTest::probe', 'Acme\\BetaTest::probe']);
-        Expect::that($ordered->seed)
+        Expect::value($ordered->seed)
             ->because('stale priority data MUST NOT change the plan seed')
             ->toBe(4242);
-        Expect::that($warning)
+        Expect::value($warning)
             ->because('stale priority data MUST NOT cause a warning')
             ->toBeNull();
     }

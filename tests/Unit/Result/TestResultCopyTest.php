@@ -33,14 +33,14 @@ final class TestResultCopyTest
 
         $replacement = $mutate($original);
 
-        Expect::that($replacement)
+        Expect::value($replacement)
             ->because('a result mutation MUST produce a replacement result')
             ->not()
             ->toBe($original);
-        Expect::that($original->toWire())
+        Expect::value($original->toWire())
             ->because('a result mutation MUST NOT change the original result')
             ->toBe($originalWire);
-        Expect::that($replacement->toWire())
+        Expect::value($replacement->toWire())
             ->because('a result mutation MUST preserve all state that it does not replace')
             ->toBe($expected);
     }
@@ -80,14 +80,14 @@ final class TestResultCopyTest
 
         $recovered = $original->withAttempts(4);
 
-        Expect::that($recovered)
+        Expect::value($recovered)
             ->because('recovering an attempt count MUST produce a replacement result')
             ->not()
             ->toBe($original);
-        Expect::that($original->attempts)
+        Expect::value($original->attempts)
             ->because('recovering an attempt count MUST NOT change the original result')
             ->toBe(2);
-        Expect::that($recovered->toWire())
+        Expect::value($recovered->toWire())
             ->because('the replacement MUST preserve all result state except the recovered attempt count')
             ->toBe($expected);
     }

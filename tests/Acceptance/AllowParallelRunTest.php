@@ -40,7 +40,7 @@ final readonly class AllowParallelRunTest
                 public function handlesRow(int $row): void
                 {
                     \usleep(20_000);
-                    Expect::that($row)->toBeGreaterThanOrEqual(0);
+                    Expect::value($row)->toBeGreaterThanOrEqual(0);
                 }
 
                 /** @return iterable<string, array{int}> */
@@ -67,14 +67,14 @@ final readonly class AllowParallelRunTest
             $workerIds[$event->workerId] = true;
         }
 
-        Expect::that($result->exitCode)->because('the giant data-set run succeeds')->toBe(0);
-        Expect::that(JsonlEvents::finishedTestIds($result))
+        Expect::value($result->exitCode)->because('the giant data-set run succeeds')->toBe(0);
+        Expect::value(JsonlEvents::finishedTestIds($result))
             ->because('the split run MUST preserve every planned data set')
             ->toHaveCount(64);
-        Expect::that($classStarts)
+        Expect::value($classStarts)
             ->because('each split data set MUST have one class-event bracket')
             ->toBe(64);
-        Expect::that(\count($workerIds))
+        Expect::value(\count($workerIds))
             ->because('the opt-in MUST execute one class on more than one worker process')
             ->toBeGreaterThan(1);
     }

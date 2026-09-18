@@ -34,7 +34,7 @@ use PHPStan\Type\Type;
 /**
  * Narrows the subject after a synchronous type expectation passes.
  *
- * The call must contain `Expect::that()` in the same expression. This
+ * The call must contain `Expect::value()` in the same expression. This
  * constraint keeps the original subject expression available to PHPStan.
  *
  * @internal
@@ -111,7 +111,7 @@ final class ExpectationTypeSpecifyingExtension implements MethodTypeSpecifyingEx
             || !$receiver->class instanceof Name
             || !$receiver->name instanceof Identifier
             || $scope->resolveName($receiver->class) !== Expect::class
-            || $receiver->name->toString() !== 'that'
+            || $receiver->name->toString() !== 'value'
         ) {
             return null;
         }

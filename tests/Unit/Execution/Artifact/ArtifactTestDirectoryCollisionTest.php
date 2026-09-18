@@ -51,17 +51,17 @@ final readonly class ArtifactTestDirectoryCollisionTest
             attachments: $secondAttempt->seal(),
         ));
 
-        Expect::that($first->attachments)
+        Expect::value($first->attachments)
             ->because('test IDs with the same filesystem slug MUST keep distinct evidence')
             ->toHaveCount(1);
-        Expect::that($second->attachments)
+        Expect::value($second->attachments)
             ->toHaveCount(1);
-        Expect::that($first->attachments[0]->path)
+        Expect::value($first->attachments[0]->path)
             ->not()
             ->toBe($second->attachments[0]->path);
-        Expect::that((string) \file_get_contents($first->attachments[0]->path))
+        Expect::value((string) \file_get_contents($first->attachments[0]->path))
             ->toBe('spaced data-set key');
-        Expect::that((string) \file_get_contents($second->attachments[0]->path))
+        Expect::value((string) \file_get_contents($second->attachments[0]->path))
             ->toBe('hyphenated data-set key');
     }
 }

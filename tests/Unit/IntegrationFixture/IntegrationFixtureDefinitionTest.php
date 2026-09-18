@@ -21,7 +21,7 @@ final readonly class IntegrationFixtureDefinitionTest
         array $dependencies,
         string $message,
     ): void {
-        Expect::that(static fn(): IntegrationFixtureDefinition => new IntegrationFixtureDefinition(
+        Expect::calling(static fn(): IntegrationFixtureDefinition => new IntegrationFixtureDefinition(
             $id,
             static function (): void {},
             $dependencies,
@@ -84,7 +84,7 @@ final readonly class IntegrationFixtureDefinitionTest
     #[DataSet('invalidRuntimeDependencies')]
     public function invalidRuntimeDependencyTypesAreRejected(array $dependencies): void
     {
-        Expect::that(static fn(): IntegrationFixtureDefinition => new IntegrationFixtureDefinition(
+        Expect::calling(static fn(): IntegrationFixtureDefinition => new IntegrationFixtureDefinition(
             'database',
             static function (): void {},
             $dependencies,
@@ -117,7 +117,7 @@ final readonly class IntegrationFixtureDefinitionTest
             $ids,
         );
 
-        Expect::that(\array_map(
+        Expect::value(\array_map(
             static fn(IntegrationFixtureDefinition $definition): string => $definition->id,
             $definitions,
         ))->toBe($ids);

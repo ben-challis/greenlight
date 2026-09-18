@@ -29,7 +29,7 @@ final readonly class UntypedReturnTest
 
         $result = $action->perform('value');
 
-        Expect::that($result)
+        Expect::value($result)
             ->because('an untyped collaborator method can complete without a configured value')
             ->toBeNull();
     }

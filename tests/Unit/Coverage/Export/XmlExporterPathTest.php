@@ -21,16 +21,16 @@ final readonly class XmlExporterPathTest
         $path = '/src/A&B"\'<Coverage>.php';
         $export = $this->exportPath($path);
 
-        Expect::that($export['cloverDocument'])
+        Expect::value($export['cloverDocument'])
             ->because('Clover file paths MUST be escaped as XML attributes')
             ->toContain('A&amp;B&quot;&apos;&lt;Coverage&gt;.php');
-        Expect::that($export['cloverPath'])
+        Expect::value($export['cloverPath'])
             ->because('the parsed Clover path MUST equal the original path')
             ->toBe($path);
-        Expect::that($export['coberturaDocument'])
+        Expect::value($export['coberturaDocument'])
             ->because('Cobertura file paths MUST be escaped as XML attributes')
             ->toContain('A&amp;B&quot;&apos;&lt;Coverage&gt;.php');
-        Expect::that($export['coberturaPath'])
+        Expect::value($export['coberturaPath'])
             ->because('the parsed Cobertura path MUST equal its root-relative value')
             ->toBe(\ltrim($path, '/'));
     }
@@ -42,10 +42,10 @@ final readonly class XmlExporterPathTest
     {
         $export = $this->exportPath($path);
 
-        Expect::that($export['cloverPath'])
+        Expect::value($export['cloverPath'])
             ->because('Clover MUST preserve the normalized file-system path')
             ->toBe($expected);
-        Expect::that($export['coberturaPath'])
+        Expect::value($export['coberturaPath'])
             ->because('Cobertura MUST preserve the normalized file-system path')
             ->toBe(\ltrim($expected, '/'));
     }
@@ -88,14 +88,14 @@ final readonly class XmlExporterPathTest
         $cloverDocument = new CloverExporter()->export($map)[CloverExporter::FILE_NAME];
         $clover = new \SimpleXMLElement($cloverDocument);
         $cloverFiles = SimpleXml::xpath($clover, '/coverage/project/file');
-        Expect::that($cloverFiles)
+        Expect::value($cloverFiles)
             ->because('the Clover document MUST contain exactly one file')
             ->toHaveCount(1);
 
         $coberturaDocument = new CoberturaExporter()->export($map)[CoberturaExporter::FILE_NAME];
         $cobertura = new \SimpleXMLElement($coberturaDocument);
         $coberturaClasses = SimpleXml::xpath($cobertura, '/coverage/packages/package/classes/class');
-        Expect::that($coberturaClasses)
+        Expect::value($coberturaClasses)
             ->because('the Cobertura document MUST contain exactly one class')
             ->toHaveCount(1);
 

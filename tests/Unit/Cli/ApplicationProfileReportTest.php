@@ -42,13 +42,13 @@ final readonly class ApplicationProfileReportTest
         \rewind($stdout);
         \rewind($stderr);
 
-        Expect::that($exit)
+        Expect::value($exit)
             ->because('an invalid profile stream MUST fail cleanly')
             ->toBe(1);
-        Expect::that(\stream_get_contents($stdout))
+        Expect::value(\stream_get_contents($stdout))
             ->because('an invalid profile stream MUST NOT write to standard output')
             ->toBe('');
-        Expect::that(\stream_get_contents($stderr))
+        Expect::value(\stream_get_contents($stderr))
             ->because('an invalid profile stream MUST write its diagnostic to standard error')
             ->toBe($diagnostic);
     }

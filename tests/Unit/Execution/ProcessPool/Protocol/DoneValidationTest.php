@@ -16,7 +16,7 @@ final readonly class DoneValidationTest
     #[DataSet('negativeMemoryMeasurements')]
     public function directMessagesRejectNegativePeakMemory(int $peakMemoryBytes): void
     {
-        Expect::that(static fn(): Done => new Done(new ResultSummary(), $peakMemoryBytes))
+        Expect::calling(static fn(): Done => new Done(new ResultSummary(), $peakMemoryBytes))
             ->because('worker completion messages MUST NOT report negative peak memory')
             ->toThrow(
                 \InvalidArgumentException::class,

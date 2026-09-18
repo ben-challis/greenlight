@@ -20,7 +20,7 @@ final readonly class NamedVariadicArgumentTest
         $spy = $this->doubles->spy(NamedVariadicContract::class);
         $spy->record('one', second: 'two');
 
-        Expect::that($this->doubles->callsTo($spy, 'record'))->toBe([['one', 'two']]);
+        Expect::value($this->doubles->callsTo($spy, 'record'))->toBe([['one', 'two']]);
     }
 
     #[Test]
@@ -30,13 +30,13 @@ final readonly class NamedVariadicArgumentTest
         $double = $this->doubles->mock(NamedVariadicContract::class, static function (MockPlan $plan) use (&$captor): void {
             $captor = $plan->expects('record')->with('one', 'two')->once()
                 ->andReturnsUsing(static function (string ...$values): void {
-                    Expect::that($values)->toBe(['one', 'second' => 'two']);
+                    Expect::value($values)->toBe(['one', 'second' => 'two']);
                 })
                 ->captureArgument(1);
         });
         $double->record('one', second: 'two');
 
-        Expect::that($captor?->values())->toBe(['two']);
+        Expect::value($captor?->values())->toBe(['two']);
     }
 
     #[Test]
@@ -45,7 +45,7 @@ final readonly class NamedVariadicArgumentTest
         $double = $this->doubles->mock(NamedVariadicContract::class, static function (MockPlan $plan): void {
             $plan->expects('mutate')->once()->andReturnsUsing(static function (string &$prefix, string &...$values): void {
                 $prefix .= ' changed';
-                Expect::that(\array_keys($values))->toBe(['tail']);
+                Expect::value(\array_keys($values))->toBe(['tail']);
                 foreach ($values as &$value) {
                     $value .= ' changed';
                 }
@@ -55,8 +55,8 @@ final readonly class NamedVariadicArgumentTest
         $tail = 'tail';
         $double->mutate($prefix, tail: $tail);
 
-        Expect::that($prefix)->toBe('prefix changed');
-        Expect::that($tail)->toBe('tail changed');
+        Expect::value($prefix)->toBe('prefix changed');
+        Expect::value($tail)->toBe('tail changed');
     }
 
     #[Test]
@@ -64,13 +64,13 @@ final readonly class NamedVariadicArgumentTest
     {
         $double = $this->doubles->mock(NamedVariadicContract::class, static function (MockPlan $plan): void {
             $plan->expects('withPrefix')->once()->andReturnsUsing(static function (string $prefix = 'callback-default', string ...$values): void {
-                Expect::that($prefix)->toBe('callback-default');
-                Expect::that($values)->toBe(['tail' => 'one']);
-                Expect::that(\func_num_args())->toBe(0);
+                Expect::value($prefix)->toBe('callback-default');
+                Expect::value($values)->toBe(['tail' => 'one']);
+                Expect::value(\func_num_args())->toBe(0);
             });
         });
 
         $double->withPrefix(tail: 'one');
-        Expect::that($this->doubles->callsTo($double, 'withPrefix'))->toBe([['one']]);
+        Expect::value($this->doubles->callsTo($double, 'withPrefix'))->toBe([['one']]);
     }
 }

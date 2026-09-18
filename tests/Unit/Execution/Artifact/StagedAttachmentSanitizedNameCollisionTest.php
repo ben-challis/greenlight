@@ -48,7 +48,7 @@ final readonly class StagedAttachmentSanitizedNameCollisionTest
             $attachments->seal(),
         );
 
-        Expect::that($names)
+        Expect::value($names)
             ->because(
                 'distinct attachment names that sanitize to the same storage name '
                 . 'MUST remain distinct',

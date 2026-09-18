@@ -86,8 +86,8 @@ final readonly class RectorUnsupportedExceptionConstraintTest
         $probes = RectorProbe::convertBatch($this->tempDirectory, $cases, name: 'unsupported-exception-constraints');
 
         foreach ($probes as $caseName => $probe) {
-            Expect::that($probe->changed)->because('unsupported exception constraint: ' . $caseName)->toBeFalse();
-            Expect::that($probe->code)->because('unsupported exception constraint: ' . $caseName)->toBe($cases[$caseName]);
+            Expect::value($probe->changed)->because('unsupported exception constraint: ' . $caseName)->toBeFalse();
+            Expect::value($probe->code)->because('unsupported exception constraint: ' . $caseName)->toBe($cases[$caseName]);
         }
     }
 }

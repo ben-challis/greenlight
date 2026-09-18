@@ -30,10 +30,10 @@ final class StagedAttachmentPublicationTest
 
         $published = $staged->published();
 
-        Expect::that($published::class)
+        Expect::value($published::class)
             ->because('published metadata MUST remove the private staging coordinate')
             ->toBe(Attachment::class);
-        Expect::that($published)
+        Expect::value($published)
             ->because('published metadata MUST preserve every public attachment field')
             ->toEqual(new Attachment(
                 name: 'response.json',

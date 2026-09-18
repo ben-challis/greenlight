@@ -40,12 +40,12 @@ final class AttachmentFormatBoundaryTest
             attachments: $attachments,
         );
 
-        Expect::that(AttachmentFormat::render($result))
+        Expect::value(AttachmentFormat::render($result))
             ->because('the exact attachment display limit MUST NOT report an empty remainder')
             ->toContain('attachment-10.txt')
             ->not()
             ->toContain('and 0 more');
-        Expect::that(AttachmentFormat::paths($attachments))
+        Expect::value(AttachmentFormat::paths($attachments))
             ->because('the exact attachment path limit MUST NOT report an empty remainder')
             ->toContain('attachment-10.txt')
             ->not()

@@ -27,10 +27,10 @@ final readonly class AttachmentValidMediaTypeTest
         );
         $restored = Attachment::fromWire($attachment->toWire());
 
-        Expect::that($attachment->mediaType)
+        Expect::value($attachment->mediaType)
             ->because('attachment construction MUST preserve a valid media type')
             ->toBe($mediaType);
-        Expect::that($restored->mediaType)
+        Expect::value($restored->mediaType)
             ->because('attachment wire decoding MUST preserve a valid media type')
             ->toBe($mediaType);
     }

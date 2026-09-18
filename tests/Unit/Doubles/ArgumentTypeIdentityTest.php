@@ -43,7 +43,7 @@ final readonly class ArgumentTypeIdentityTest
         $value = new ArgumentTypeIdentityValue();
         $double->receive($value);
 
-        Expect::that($this->doubles->callsTo($double, 'receive'))->toBe([[$value]]);
+        Expect::value($this->doubles->callsTo($double, 'receive'))->toBe([[$value]]);
     }
 }
 

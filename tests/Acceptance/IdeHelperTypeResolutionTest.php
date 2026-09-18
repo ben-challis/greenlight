@@ -35,6 +35,6 @@ final readonly class IdeHelperTypeResolutionTest
             $project->path('helper.php'),
         ]);
 
-        Expect::that($result->exitCode)->because('PHPStan output: ' . $result->output())->toBe(0);
+        Expect::value($result->exitCode)->because('PHPStan output: ' . $result->output())->toBe(0);
     }
 }

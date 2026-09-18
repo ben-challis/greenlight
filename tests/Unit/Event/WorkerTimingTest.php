@@ -16,7 +16,7 @@ final readonly class WorkerTimingTest
     {
         $timing = new WorkerTiming('worker-2', 0.1, 0.2, 0.3, 2, 0.4, 0.5, 0.6, 0.7, 0.8);
 
-        Expect::that(WorkerTiming::fromWire(JsonWire::roundTrip($timing->toWire()))->toWire())
+        Expect::value(WorkerTiming::fromWire(JsonWire::roundTrip($timing->toWire()))->toWire())
             ->because('worker timing MUST preserve each lifecycle and idle duration')
             ->toBe($timing->toWire());
     }
@@ -24,7 +24,7 @@ final readonly class WorkerTimingTest
     #[Test]
     public function workerTimingRejectsNegativeDurations(): void
     {
-        Expect::that(static fn(): WorkerTiming => new WorkerTiming(
+        Expect::calling(static fn(): WorkerTiming => new WorkerTiming(
             'worker-2',
             -0.1,
             null,

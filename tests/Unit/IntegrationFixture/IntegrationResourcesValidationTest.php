@@ -16,7 +16,7 @@ final readonly class IntegrationResourcesValidationTest
     #[Test]
     public function wireInputRejectsNonUtf8FixtureIdsAtTheWireBoundary(): void
     {
-        Expect::that(static fn(): IntegrationResources => IntegrationResources::fromWire([
+        Expect::calling(static fn(): IntegrationResources => IntegrationResources::fromWire([
             'fixtures' => [
                 "\xB1\x31" => [
                     'values' => [],
@@ -36,7 +36,7 @@ final readonly class IntegrationResourcesValidationTest
     {
         $resources = IntegrationResources::empty();
 
-        Expect::that(static fn() => $resources->fixture('database'))
+        Expect::calling(static fn() => $resources->fixture('database'))
             ->because('a worker MUST identify a fixture that is not available to its channel')
             ->toThrow(
                 \OutOfBoundsException::class,
@@ -53,7 +53,7 @@ final readonly class IntegrationResourcesValidationTest
     {
         $resources = new \ReflectionClass(IntegrationResources::class);
 
-        Expect::that(static fn(): object => $resources->newInstance($fixtures))
+        Expect::calling(static fn(): object => $resources->newInstance($fixtures))
             ->because('integration resources MUST validate runtime fixture maps at their boundary')
             ->toThrow(
                 \InvalidArgumentException::class,

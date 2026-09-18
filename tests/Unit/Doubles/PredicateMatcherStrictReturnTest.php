@@ -15,7 +15,7 @@ final class PredicateMatcherStrictReturnTest
     {
         $matcher = Argument::predicate(static fn(): int => 1, 'truthy result');
 
-        Expect::that($matcher->matches('value'))
+        Expect::value($matcher->matches('value'))
             ->because('an argument predicate MUST return the boolean value true to match')
             ->toBeFalse();
     }

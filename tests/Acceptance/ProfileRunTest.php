@@ -28,8 +28,8 @@ final readonly class ProfileRunTest
         $output = $result->stdoutLines();
         $live = $result->stdout;
 
-        Expect::that($result->exitCode)->because('live profile and offline report agree')->toBe(0);
-        Expect::that($live)->toContain('Profile:')
+        Expect::value($result->exitCode)->because('live profile and offline report agree')->toBe(0);
+        Expect::value($live)->toContain('Profile:')
             ->toContain('spawned')
             ->toContain('Startup phases:')
             ->toContain('Spawn to hello:')
@@ -53,7 +53,7 @@ final readonly class ProfileRunTest
         // line.
         $liveBlock = \substr($live, (int) \strpos($live, 'Profile:'));
 
-        Expect::that($report->exitCode)->because('live profile and offline report agree')->toBe(0);
-        Expect::that($offline . "\n")->toBe($liveBlock . "\n");
+        Expect::value($report->exitCode)->because('live profile and offline report agree')->toBe(0);
+        Expect::value($offline . "\n")->toBe($liveBlock . "\n");
     }
 }

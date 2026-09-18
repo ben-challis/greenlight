@@ -27,10 +27,10 @@ final readonly class RunEventValidationTest
             RunFinished::class => RunFinished::fromWire(JsonWire::roundTrip($event->toWire())),
         };
 
-        Expect::that($event->runId)
+        Expect::value($event->runId)
             ->because('a run event MUST retain each non-empty run ID')
             ->toBe('0');
-        Expect::that($decoded->runId)
+        Expect::value($decoded->runId)
             ->because('the run ID MUST survive the wire')
             ->toBe('0');
     }
@@ -43,7 +43,7 @@ final readonly class RunEventValidationTest
         int $workers,
         string $message,
     ): void {
-        Expect::that(static fn(): RunStarted => new RunStarted(
+        Expect::calling(static fn(): RunStarted => new RunStarted(
             $runId,
             $plannedTests,
             $workers,
@@ -105,7 +105,7 @@ final readonly class RunEventValidationTest
         float $durationSeconds,
         string $message,
     ): void {
-        Expect::that(static fn(): RunFinished => new RunFinished(
+        Expect::calling(static fn(): RunFinished => new RunFinished(
             $runId,
             new ResultSummary(),
             $durationSeconds,

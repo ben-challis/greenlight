@@ -38,8 +38,8 @@ final readonly class ProfileReportWireValuesTest
             new RunFinished('run-1', new ResultSummary(passed: 1), 1.0, 2.0),
         ]);
 
-        Expect::that($report->exitCode)->because('Profile command output: ' . $report->output())->toBe(0);
-        Expect::that($report->stdout)
+        Expect::value($report->exitCode)->because('Profile command output: ' . $report->output())->toBe(0);
+        Expect::value($report->stdout)
             ->toContain('Workers: 1 requested, 1 spawned')
             ->toContain("\n  " . $workerId . ' ')
             ->toContain('1.000s  100%');
@@ -65,8 +65,8 @@ final readonly class ProfileReportWireValuesTest
             ]),
         ]);
 
-        Expect::that($report->exitCode)->because('Profile command output: ' . $report->output())->toBe(0);
-        Expect::that($report->stdout)->toContain(\sprintf(
+        Expect::value($report->exitCode)->because('Profile command output: ' . $report->output())->toBe(0);
+        Expect::value($report->stdout)->toContain(\sprintf(
             'Assignment gaps: 0.000s total (%d gaps)',
             \PHP_INT_MAX,
         ));

@@ -19,13 +19,13 @@ final class HelloTest
         $hello = new Hello($workerId, $token, 1);
         $decoded = Hello::fromWire(JsonWire::roundTrip($hello->toWire()));
 
-        Expect::that($hello->workerId)
+        Expect::value($hello->workerId)
             ->because('a worker introduction MUST retain each non-empty worker ID')
             ->toBe($workerId);
-        Expect::that($hello->token)
+        Expect::value($hello->token)
             ->because('a worker introduction MUST retain each non-empty authentication token')
             ->toBe($token);
-        Expect::that($decoded->toWire())
+        Expect::value($decoded->toWire())
             ->because('the worker introduction MUST survive the wire')
             ->toBe($hello->toWire());
     }
@@ -38,7 +38,7 @@ final class HelloTest
         int $pid,
         string $message,
     ): void {
-        Expect::that(static fn(): Hello => new Hello($workerId, $token, $pid))
+        Expect::calling(static fn(): Hello => new Hello($workerId, $token, $pid))
             ->because('worker introductions MUST identify an authenticated operating-system process')
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }

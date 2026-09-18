@@ -25,7 +25,7 @@ final readonly class ProxyStaticReturnTest
             });
         });
 
-        Expect::that($double->returnsStatic())
+        Expect::value($double->returnsStatic())
             ->because('a static return type MUST accept the generated proxy instance')
             ->toBe($double);
     }

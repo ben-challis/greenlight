@@ -19,7 +19,7 @@ final class ExecutionPolicyTest
         $policy = new ExecutionPolicy(5.5, capture: false, noExpectations: true);
         $restored = ExecutionPolicy::fromWire(JsonWire::roundTrip($policy->toWire()));
 
-        Expect::that($restored->toWire())
+        Expect::value($restored->toWire())
             ->because('the execution policy MUST survive the wire')
             ->toBe($policy->toWire());
     }
@@ -28,14 +28,14 @@ final class ExecutionPolicyTest
     #[DataSet('invalidTimeouts')]
     public function rejectsInvalidTimeoutsOnBothSides(float $seconds): void
     {
-        Expect::that(static fn(): ExecutionPolicy => new ExecutionPolicy($seconds))
+        Expect::calling(static fn(): ExecutionPolicy => new ExecutionPolicy($seconds))
             ->because('a direct execution policy MUST require a positive finite timeout')
             ->toThrow(\InvalidArgumentException::class);
 
         $payload = new ExecutionPolicy()->toWire();
         $payload['timeoutSeconds'] = $seconds;
 
-        Expect::that(static fn(): ExecutionPolicy => ExecutionPolicy::fromWire($payload))
+        Expect::calling(static fn(): ExecutionPolicy => ExecutionPolicy::fromWire($payload))
             ->because('a wire execution policy MUST require a positive finite timeout')
             ->toThrow(InvalidWirePayload::class);
     }

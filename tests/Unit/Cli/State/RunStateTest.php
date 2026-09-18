@@ -23,17 +23,17 @@ final readonly class RunStateTest
     {
         $state = RunState::forFile($this->stateFile());
 
-        Expect::that($state->failedTests())->toBeNull();
+        Expect::value($state->failedTests())->toBeNull();
 
-        Expect::that($state->record(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']))->toBeTrue();
-        Expect::that($state->failedTests())->toBe(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']);
-        Expect::that(RunState::forFile($this->stateFile())->failedTests())
+        Expect::value($state->record(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']))->toBeTrue();
+        Expect::value($state->failedTests())->toBe(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']);
+        Expect::value(RunState::forFile($this->stateFile())->failedTests())
             ->because('a later command MUST read the recorded failures from disk')
             ->toBe(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']);
 
-        Expect::that($state->record([]))->toBeTrue();
-        Expect::that($state->failedTests())->toBe([]);
-        Expect::that(RunState::forFile($this->stateFile())->failedTests())
+        Expect::value($state->record([]))->toBeTrue();
+        Expect::value($state->failedTests())->toBe([]);
+        Expect::value(RunState::forFile($this->stateFile())->failedTests())
             ->because('a later successful run MUST clear the persisted failures')
             ->toBe([]);
     }
@@ -43,11 +43,11 @@ final readonly class RunStateTest
     {
         $state = RunState::forFile($this->stateFile());
 
-        Expect::that($state->classSeconds())->toBe([]);
+        Expect::value($state->classSeconds())->toBe([]);
 
-        Expect::that($state->record([], ['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]))->toBeTrue();
-        Expect::that($state->classSeconds())->toBe(['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
-        Expect::that(RunState::forFile($this->stateFile())->classSeconds())
+        Expect::value($state->record([], ['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]))->toBeTrue();
+        Expect::value($state->classSeconds())->toBe(['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
+        Expect::value(RunState::forFile($this->stateFile())->classSeconds())
             ->because('a later command MUST read the recorded durations from disk')
             ->toBe(['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
     }
@@ -69,7 +69,7 @@ final readonly class RunStateTest
             }
             JSON);
 
-        Expect::that(RunState::forFile($file)->classSeconds())
+        Expect::value(RunState::forFile($file)->classSeconds())
             ->because('cached durations MUST be finite, non-negative numbers for named classes')
             ->toBe([
                 'Acme\ValidTest' => 1.25,
@@ -83,13 +83,13 @@ final readonly class RunStateTest
         $file = $this->stateFile();
         \file_put_contents($file, 'not json at all');
 
-        Expect::that(RunState::forFile($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
+        Expect::value(RunState::forFile($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
 
         \file_put_contents($file, '{"failed": "not a list"}');
-        Expect::that(RunState::forFile($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
+        Expect::value(RunState::forFile($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
 
         \file_put_contents($file, '{"failed": {"first": "Acme\\\\AlphaTest::one"}}');
-        Expect::that(RunState::forFile($file)->failedTests())->because('object-shaped state reads as absent')->toBeNull();
+        Expect::value(RunState::forFile($file)->failedTests())->because('object-shaped state reads as absent')->toBeNull();
     }
 
     #[Test]
@@ -109,11 +109,11 @@ final readonly class RunStateTest
             ],
         ], \JSON_THROW_ON_ERROR));
 
-        Expect::that($state->failedTests())
+        Expect::value($state->failedTests())
             ->because('invalid failed-test entries MUST NOT hide valid IDs')
             ->toBe(['Acme\AlphaTest::one']);
 
-        Expect::that($state->classSeconds())
+        Expect::value($state->classSeconds())
             ->because('invalid duration entries MUST NOT hide valid timings')
             ->toBe([
                 'Acme\AlphaTest' => 1.25,
@@ -132,14 +132,14 @@ final readonly class RunStateTest
 
         $state = RunState::forFile($file);
 
-        Expect::that($state->failedTests())->toBe(['Acme\AlphaTest::one']);
+        Expect::value($state->failedTests())->toBe(['Acme\AlphaTest::one']);
 
         \file_put_contents($file, \json_encode([
             'failed' => ['Acme\BetaTest::two'],
             'classSeconds' => ['Acme\BetaTest' => 2.5],
         ], \JSON_THROW_ON_ERROR));
 
-        Expect::that($state->classSeconds())
+        Expect::value($state->classSeconds())
             ->because('one command MUST use failures and durations from the same state snapshot')
             ->toBe(['Acme\AlphaTest' => 1.25]);
     }
@@ -156,7 +156,7 @@ final readonly class RunStateTest
             throw new SkipTest('The filesystem does not enforce unreadable file permissions.');
         }
 
-        Expect::that(RunState::forFile($file)->failedTests())
+        Expect::value(RunState::forFile($file)->failedTests())
             ->because('unreadable advisory state MUST behave as absent state')
             ->toBeNull();
     }
@@ -174,10 +174,10 @@ final readonly class RunStateTest
             $warning,
         );
 
-        Expect::that($failedTests)
+        Expect::value($failedTests)
             ->because('restricted advisory state MUST behave as absent state')
             ->toBeNull();
-        Expect::that($warning)
+        Expect::value($warning)
             ->because('a restricted advisory state path MUST not leak engine diagnostics')
             ->toBeNull();
     }
@@ -189,8 +189,8 @@ final readonly class RunStateTest
 
         RunState::forFile($file)->record(['Acme\AlphaTest::one']);
 
-        Expect::that(RunState::forFile($file)->failedTests())->toBe(['Acme\AlphaTest::one']);
-        Expect::that(\glob($file . '.tmp-*'))->toBe([]);
+        Expect::value(RunState::forFile($file)->failedTests())->toBe(['Acme\AlphaTest::one']);
+        Expect::value(\glob($file . '.tmp-*'))->toBe([]);
     }
 
     #[Test]
@@ -204,11 +204,11 @@ final readonly class RunStateTest
         \mkdir($file);
         \file_put_contents($file . '/occupant.txt', 'keep');
 
-        Expect::that(RunState::forFile($file)->record(['Acme\AlphaTest::one']))->toBeFalse();
+        Expect::value(RunState::forFile($file)->record(['Acme\AlphaTest::one']))->toBeFalse();
 
-        Expect::that(\is_dir($file))->toBeTrue();
-        Expect::that((string) \file_get_contents($file . '/occupant.txt'))->toBe('keep');
-        Expect::that(\glob($file . '.tmp-*'))->toBe([]);
+        Expect::value(\is_dir($file))->toBeTrue();
+        Expect::value((string) \file_get_contents($file . '/occupant.txt'))->toBe('keep');
+        Expect::value(\glob($file . '.tmp-*'))->toBe([]);
     }
 
     #[Test]
@@ -217,14 +217,14 @@ final readonly class RunStateTest
     {
         $state = RunState::forFile($this->stateFile());
 
-        Expect::that($state->record(['Acme\AlphaTest::one']))->toBeTrue();
-        Expect::that($state->record(['Acme\BetaTest::two'], ['Acme\BetaTest' => $duration]))
+        Expect::value($state->record(['Acme\AlphaTest::one']))->toBeTrue();
+        Expect::value($state->record(['Acme\BetaTest::two'], ['Acme\BetaTest' => $duration]))
             ->because('non-finite durations cannot be represented in the state JSON')
             ->toBeFalse();
-        Expect::that($state->failedTests())
+        Expect::value($state->failedTests())
             ->because('a failed encode does not replace the previous state')
             ->toBe(['Acme\AlphaTest::one']);
-        Expect::that(RunState::forFile($this->stateFile())->failedTests())
+        Expect::value(RunState::forFile($this->stateFile())->failedTests())
             ->because('a failed encode MUST preserve the previous file for later commands')
             ->toBe(['Acme\AlphaTest::one']);
     }

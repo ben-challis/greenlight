@@ -23,16 +23,16 @@ final class ExpectationFailedTest
 
         $failure = ExpectationFailed::fromDetails([$first, $second]);
 
-        Expect::that($failure->getMessage())
+        Expect::value($failure->getMessage())
             ->because('multiple details produce a numbered message with locations')
             ->toBe(
                 "2 expectations failed:\n"
                 . "1) Expected the value to be ready. (at /project/tests/ProbeTest.php:12)\n"
                 . '2) Expected the callback to run.',
             );
-        Expect::that($failure->details)
+        Expect::value($failure->details)
             ->toBe([$first, $second]);
-        Expect::that($failure->detail())
+        Expect::value($failure->detail())
             ->toBe($first);
     }
 }

@@ -15,7 +15,7 @@ final readonly class ResultSummaryTotalTest
     #[DataSet('outcomeCounts')]
     public function totalIncludesEveryOutcomeCount(ResultSummary $summary, int $expected): void
     {
-        Expect::that($summary->total())
+        Expect::value($summary->total())
             ->because('the run total MUST include every outcome count')
             ->toBe($expected);
     }

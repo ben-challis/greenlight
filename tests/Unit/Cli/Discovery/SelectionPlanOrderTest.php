@@ -38,7 +38,7 @@ final readonly class SelectionPlanOrderTest
         $resolved = ConfigurationResolver::resolve($configuration, $overrides);
         $loaded = new LoadedConfiguration($resolved, $workingDirectory . '/greenlight.php', $overrides, [$directory]);
         $layout = StorageLayout::resolve($resolved->storage, $workingDirectory);
-        Expect::that(RunState::forFile($layout->runStateFile)->record([
+        Expect::value(RunState::forFile($layout->runStateFile)->record([
             'not-a-test-id',
             CharlieTest::class . '::crawls',
             AlphaTest::class . '::two',
@@ -48,7 +48,7 @@ final readonly class SelectionPlanOrderTest
 
         $plan = SelectionPlan::resolve($loaded, $workingDirectory, false);
 
-        Expect::that($plan->classes())->toBe([CharlieTest::class, AlphaTest::class, BravoTest::class, DeltaTest::class]);
-        Expect::that($plan->count())->toBe(7);
+        Expect::value($plan->classes())->toBe([CharlieTest::class, AlphaTest::class, BravoTest::class, DeltaTest::class]);
+        Expect::value($plan->count())->toBe(7);
     }
 }

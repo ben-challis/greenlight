@@ -23,10 +23,10 @@ final readonly class ProxyProtectedPropertyTest
         try {
             $property = new \ReflectionProperty($double, 'status');
 
-            Expect::that($property->isProtected())
+            Expect::value($property->isProtected())
                 ->because('a proxy property MUST preserve protected visibility')
                 ->toBeTrue();
-            Expect::that((string) $property->getType())
+            Expect::value((string) $property->getType())
                 ->toBe('string');
         } finally {
             $doubles->dispose();

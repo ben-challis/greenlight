@@ -17,7 +17,7 @@ final readonly class PlanEntryTest
     {
         $entry = new PlanEntry(new TestDefinition('App\PaymentTest', 'chargesCard'), 'declined');
 
-        Expect::that((string) $entry->id)
+        Expect::value((string) $entry->id)
             ->because('the plan entry MUST derive the complete test ID')
             ->toBe('App\PaymentTest::chargesCard[declined]');
     }
@@ -28,17 +28,17 @@ final readonly class PlanEntryTest
         $entry = new PlanEntry(new TestDefinition('App\PaymentTest', 'chargesCard'), 'approved');
         $payload = JsonWire::roundTrip($entry->toWire());
 
-        Expect::that($payload)
+        Expect::value($payload)
             ->because('the plan wire payload MUST not repeat declaration identity')
             ->toHaveKey('definition');
-        Expect::that($payload)
+        Expect::value($payload)
             ->because('the plan wire payload MUST include data-set identity')
             ->toHaveKey('dataSetKey');
-        Expect::that($payload)
+        Expect::value($payload)
             ->because('the plan wire payload MUST not include a derived test ID')
             ->not()
             ->toHaveKey('id');
-        Expect::that(PlanEntry::fromWire($payload)->id->equals($entry->id))
+        Expect::value(PlanEntry::fromWire($payload)->id->equals($entry->id))
             ->because('the derived test ID MUST survive the plan wire')
             ->toBeTrue();
     }

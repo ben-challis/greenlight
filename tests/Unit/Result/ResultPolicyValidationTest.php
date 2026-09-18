@@ -18,7 +18,7 @@ final class ResultPolicyValidationTest
     #[DataSet('invalidPatterns')]
     public function invalidIgnorePatternsAreRejected(array $ignoreDeprecations): void
     {
-        Expect::that(static fn(): ResultPolicy => new ResultPolicy(
+        Expect::calling(static fn(): ResultPolicy => new ResultPolicy(
             ignoreDeprecations: $ignoreDeprecations,
         ))
             ->because('deprecation ignore patterns MUST be a list of non-empty strings')

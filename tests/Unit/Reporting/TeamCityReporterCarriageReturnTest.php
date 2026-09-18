@@ -30,7 +30,7 @@ final class TeamCityReporterCarriageReturnTest
 
         $reporter->onEvent(new TestFinished($result, 1.0));
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('TeamCity service messages MUST escape carriage returns as |r')
             ->toContain("message='before|rafter'");
     }

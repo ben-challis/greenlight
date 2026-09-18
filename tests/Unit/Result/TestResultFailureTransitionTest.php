@@ -38,19 +38,19 @@ final readonly class TestResultFailureTransitionTest
 
         $failed = $original->failedBy('result policy', [$policyFailure]);
 
-        Expect::that($original->toWire())
+        Expect::value($original->toWire())
             ->because('a failure transition MUST NOT change the original result')
             ->toBe($originalWire);
-        Expect::that($failed->outcome)
+        Expect::value($failed->outcome)
             ->because('a failure transition MUST use the failed outcome')
             ->toBe(Outcome::Failed);
-        Expect::that(\array_map(
+        Expect::value(\array_map(
             static fn(FailureDetail $failure): array => $failure->toWire(),
             $failed->failures,
         ))
             ->because('a failure transition MUST append failure evidence')
             ->toBe([$earlierFailure->toWire(), $policyFailure->toWire()]);
-        Expect::that(\array_map(
+        Expect::value(\array_map(
             static fn(OutcomeTransformation $transformation): array => $transformation->toWire(),
             $failed->transformations,
         ))
@@ -63,10 +63,10 @@ final readonly class TestResultFailureTransitionTest
                     Outcome::Failed,
                 )->toWire(),
             ]);
-        Expect::that($failed->attempts)
+        Expect::value($failed->attempts)
             ->because('a failure transition MUST preserve the attempt count')
             ->toBe(2);
-        Expect::that($failed->expectations)
+        Expect::value($failed->expectations)
             ->because('a failure transition MUST preserve the expectation count')
             ->toBe(3);
     }

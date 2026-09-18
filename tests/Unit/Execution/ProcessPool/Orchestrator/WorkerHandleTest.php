@@ -23,7 +23,7 @@ final class WorkerHandleTest
         $handle = $this->handle();
         $after = \hrtime(true) / 1_000_000_000;
 
-        Expect::that($handle->spawnedAt)
+        Expect::value($handle->spawnedAt)
             ->because('worker lifecycle deadlines MUST use the monotonic system clock')
             ->toBeGreaterThanOrEqual($before)
             ->toBeLessThanOrEqual($after);
@@ -42,7 +42,7 @@ final class WorkerHandleTest
             MemoryStream::open(),
         );
 
-        Expect::that($handle->isRunning())
+        Expect::value($handle->isRunning())
             ->because('a closed worker process handle cannot be running')
             ->toBeFalse();
     }
@@ -52,7 +52,7 @@ final class WorkerHandleTest
     {
         $handle = new WorkerState('worker-1', 1, 1.0);
 
-        Expect::that($handle->unfinished())
+        Expect::value($handle->unfinished())
             ->because('a worker without an assignment has no unfinished tests')
             ->toBe([]);
 
@@ -63,7 +63,7 @@ final class WorkerHandleTest
         $handle->finished[(string) $finished->id] = true;
         $handle->inFlight = $inFlight->id;
 
-        Expect::that($handle->unfinished())
+        Expect::value($handle->unfinished())
             ->because('crash reassignment excludes finished and active tests')
             ->toBe([$remaining->id]);
     }
@@ -86,10 +86,10 @@ final class WorkerHandleTest
 
         $handle->drainPipes();
 
-        Expect::that($handle->diagnostics)
+        Expect::value($handle->diagnostics)
             ->because('drained diagnostics MUST contain only complete Unicode characters within the byte limit')
             ->toBe(\str_repeat('y', 65_533) . 'z');
-        Expect::that(\strlen($handle->diagnostics))
+        Expect::value(\strlen($handle->diagnostics))
             ->because('drained diagnostics MUST stay within the byte limit')
             ->toBeLessThanOrEqual(65_536);
     }
@@ -115,7 +115,7 @@ final class WorkerHandleTest
         \fwrite($writer, $remainder);
         $handle->drainPipes();
 
-        Expect::that($handle->diagnostics)
+        Expect::value($handle->diagnostics)
             ->because('pipe reads MUST combine the bytes of one Unicode character')
             ->toBe($expected);
     }
@@ -136,7 +136,7 @@ final class WorkerHandleTest
         \fwrite($writer, $malformed);
         $handle->drainPipes();
 
-        Expect::that($handle->diagnostics)
+        Expect::value($handle->diagnostics)
             ->because('malformed trailing bytes MUST be scrubbed during the current pipe read')
             ->toBe("\u{FFFD}");
     }

@@ -29,7 +29,7 @@ final class PlanOrderClassIntegrityTest
             $ordered->entries,
         );
 
-        Expect::that($ids)
+        Expect::value($ids)
             ->because('class priority MUST preserve method order')
             ->toBe([
                 'Acme\\BetaTest::first',
@@ -37,7 +37,7 @@ final class PlanOrderClassIntegrityTest
                 'Acme\\AlphaTest::first',
                 'Acme\\AlphaTest::second',
             ]);
-        Expect::that($ordered->seed)
+        Expect::value($ordered->seed)
             ->because('class priority MUST preserve the reproducible plan seed')
             ->toBe(4242);
     }

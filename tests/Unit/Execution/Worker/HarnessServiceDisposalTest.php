@@ -42,10 +42,10 @@ final readonly class HarnessServiceDisposalTest
             new \LogicException('second disposal broke'),
         ]);
 
-        Expect::that($reported->error)
+        Expect::value($reported->error)
             ->because('the test error MUST remain primary')
             ->toBe($primary);
-        Expect::that(\array_map(
+        Expect::value(\array_map(
             static fn($failure): string => $failure->message,
             $reported->failures,
         ))
@@ -64,20 +64,20 @@ final readonly class HarnessServiceDisposalTest
         [$threw, $sink] = $this->run(Scope::PerTest, [$method]);
         $result = $sink->results()[0];
 
-        Expect::that($threw)
+        Expect::value($threw)
             ->because('per-test disposal MUST remain in the test result')
             ->toBeNull();
-        Expect::that($result->outcome)->toBe($outcome);
+        Expect::value($result->outcome)->toBe($outcome);
 
         if ($method === 'errorsBeforeDisposal') {
-            Expect::that($result->error?->message)
+            Expect::value($result->error?->message)
                 ->because('the test error MUST remain primary')
                 ->toBe('test broke first');
-            Expect::that($result->failures[0]->message)
+            Expect::value($result->failures[0]->message)
                 ->because('the disposal error MUST remain as secondary evidence')
                 ->toBe('Harness service disposal caused an error: harness service disposal broke');
         } else {
-            Expect::that($result->error?->message)
+            Expect::value($result->error?->message)
                 ->because('a passing test MUST become unsuccessful')
                 ->toBe('harness service disposal broke');
         }
@@ -98,13 +98,13 @@ final readonly class HarnessServiceDisposalTest
         [, $sink] = $this->run(Scope::PerClass, ['passesBeforeDisposal', 'errorsBeforeDisposal']);
         $results = $sink->results();
 
-        Expect::that($results[0]->outcome)
+        Expect::value($results[0]->outcome)
             ->because('class disposal MUST NOT change an earlier test')
             ->toBe(Outcome::Passed);
-        Expect::that($results[1]->error?->message)
+        Expect::value($results[1]->error?->message)
             ->because('the last test error MUST remain primary')
             ->toBe('test broke first');
-        Expect::that($results[1]->failures[0]->message)
+        Expect::value($results[1]->failures[0]->message)
             ->because('class disposal MUST remain as secondary evidence')
             ->toContain('harness service disposal broke');
     }
@@ -119,11 +119,11 @@ final readonly class HarnessServiceDisposalTest
         );
         $results = $sink->results();
 
-        Expect::that($results)->because('bail MUST stop after the first test')->toHaveCount(1);
-        Expect::that($results[0]->error?->message)
+        Expect::value($results)->because('bail MUST stop after the first test')->toHaveCount(1);
+        Expect::value($results[0]->error?->message)
             ->because('bail MUST keep the test error primary')
             ->toBe('test broke first');
-        Expect::that($results[0]->failures[0]->message)
+        Expect::value($results[0]->failures[0]->message)
             ->because('bail MUST retain class disposal evidence')
             ->toContain('harness service disposal broke');
     }
@@ -138,13 +138,13 @@ final readonly class HarnessServiceDisposalTest
         );
         $result = $sink->results()[0];
 
-        Expect::that($threw)->toBeNull();
-        Expect::that($result->outcome)
+        Expect::value($threw)->toBeNull();
+        Expect::value($result->outcome)
             ->because('an early class close MUST make a passing test unsuccessful')
             ->toBe(Outcome::Errored);
-        Expect::that($result->error?->message)->toBe('harness service disposal broke');
-        Expect::that($outcome?->remaining)->toHaveCount(1);
-        Expect::that($outcome?->drained)->toBeTrue();
+        Expect::value($result->error?->message)->toBe('harness service disposal broke');
+        Expect::value($outcome?->remaining)->toHaveCount(1);
+        Expect::value($outcome?->drained)->toBeTrue();
     }
 
     /** @param non-empty-string $method */
@@ -155,16 +155,16 @@ final readonly class HarnessServiceDisposalTest
         [$threw, $sink] = $this->run(Scope::PerWorker, [$method]);
         $result = $sink->results()[0];
 
-        Expect::that($threw)
+        Expect::value($threw)
             ->because('worker disposal MUST make the run unsuccessful')
             ->toBeInstanceOf(WorkerError::class);
-        Expect::that($threw->getMessage())
+        Expect::value($threw->getMessage())
             ->toContain('Worker harness service disposal failed.')
             ->toContain('harness service disposal broke');
         $reportedPrimary = $result->error instanceof ThrowableDetail
             ? $result->error->message
             : $result->outcome->value;
-        Expect::that($reportedPrimary)
+        Expect::value($reportedPrimary)
             ->because('worker disposal MUST NOT replace the completed test result')
             ->toBe($primary);
     }

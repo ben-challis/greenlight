@@ -14,7 +14,7 @@ final class ResultWireEnumContractTest
     #[Test]
     public function resultEnumsKeepTheirPublishedWireValues(): void
     {
-        Expect::that(\array_column(Outcome::cases(), 'value', 'name'))
+        Expect::value(\array_column(Outcome::cases(), 'value', 'name'))
             ->because('result outcomes MUST keep their published wire values')
             ->toBe([
                 'Passed' => 'passed',
@@ -22,7 +22,7 @@ final class ResultWireEnumContractTest
                 'Errored' => 'errored',
                 'Skipped' => 'skipped',
             ]);
-        Expect::that(\array_column(DiagnosticSeverity::cases(), 'value', 'name'))
+        Expect::value(\array_column(DiagnosticSeverity::cases(), 'value', 'name'))
             ->because('diagnostic severities MUST keep their published wire values')
             ->toBe([
                 'Notice' => 'notice',

@@ -19,9 +19,9 @@ final readonly class ApplicationVersionTest
             flags: \JSON_THROW_ON_ERROR,
         );
 
-        Expect::that($metadata)
+        Expect::value($metadata)
             ->toBeArray();
-        Expect::that($metadata['version'] ?? null)
+        Expect::value($metadata['version'] ?? null)
             ->toBe(Application::VERSION);
     }
 }

@@ -17,7 +17,7 @@ final readonly class CliOverridesResourceLimitShapeTest
     {
         $raw = 'postgres=1=surplus';
 
-        Expect::that(static fn(): CliOverrides => CliOverrides::fromArguments(
+        Expect::calling(static fn(): CliOverrides => CliOverrides::fromArguments(
             new ParsedArguments(null, ['resource-limit' => [$raw]]),
         ))
             ->because('a resource limit requires exactly one name-value delimiter')

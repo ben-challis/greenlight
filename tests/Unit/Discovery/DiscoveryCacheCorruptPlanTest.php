@@ -36,16 +36,16 @@ final readonly class DiscoveryCacheCorruptPlanTest
         $cache = DiscoveryCache::forDirectories([$directory]);
 
         try {
-            Expect::that($cache->lookup($source))
+            Expect::value($cache->lookup($source))
                 ->because('an undecodable plan entry MUST become a cache miss')
                 ->toBeNull();
 
             \unlink($cacheFile);
 
-            Expect::that($cache->persist())
+            Expect::value($cache->persist())
                 ->because('discarding a corrupt plan entry MUST leave no cache data to persist')
                 ->toBeTrue();
-            Expect::that(\is_file($cacheFile))
+            Expect::value(\is_file($cacheFile))
                 ->because('persistence MUST NOT recreate a discarded corrupt plan entry')
                 ->toBeFalse();
         } finally {

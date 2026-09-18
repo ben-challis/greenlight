@@ -22,7 +22,7 @@ final readonly class ProtectedMethodInterceptionTest
         $double = $doubles->stub(ProtectedMethodService::class);
 
         try {
-            Expect::that($double->message())
+            Expect::value($double->message())
                 ->because('a class double MUST preserve concrete protected implementation details')
                 ->toBe('original message');
         } finally {
@@ -36,7 +36,7 @@ final readonly class ProtectedMethodInterceptionTest
         $doubles = new Doubles($this->tempDirectory->subdirectory('abstract-proxies'));
 
         try {
-            Expect::that($doubles->stub(AbstractProtectedMethodService::class))
+            Expect::value($doubles->stub(AbstractProtectedMethodService::class))
                 ->because('a class double MUST implement an abstract protected method')
                 ->toBeInstanceOf(AbstractProtectedMethodService::class);
         } finally {

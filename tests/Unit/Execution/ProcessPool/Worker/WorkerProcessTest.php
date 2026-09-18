@@ -35,10 +35,10 @@ final readonly class WorkerProcessTest
 
         $result = GreenlightCli::run($root, ['__worker', $address, 'worker-under-test', 'token']);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('a worker connection failure MUST fail startup')
             ->toBe(1);
-        Expect::that($result->stderr)
+        Expect::value($result->stderr)
             ->toContain('The worker did not connect to ' . $address . ':');
     }
 
@@ -54,10 +54,10 @@ final readonly class WorkerProcessTest
 
             $address = 'unix://' . $this->tempDirectory->path() . '/missing-worker.sock';
 
-            Expect::that(new WorkerProcess()->run($address, 'worker-under-test', 'token'))
+            Expect::value(new WorkerProcess()->run($address, 'worker-under-test', 'token'))
                 ->because('a connection failure MUST return control to the calling process')
                 ->toEqual(CommandResult::failure());
-            Expect::that(\pcntl_signal_get_handler(\SIGINT))
+            Expect::value(\pcntl_signal_get_handler(\SIGINT))
                 ->because('an in-process worker run MUST restore the caller SIGINT handler')
                 ->toBe($callerHandler);
         } finally {
@@ -128,13 +128,13 @@ final readonly class WorkerProcessTest
         $workerResult = new WorkerProcess()->run($address, 'worker-under-test', 'token');
         $serverResult = $server->wait(2.0);
 
-        Expect::that($workerResult)
+        Expect::value($workerResult)
             ->because('an assignment setup failure MUST stop the worker abnormally')
             ->toEqual(CommandResult::failure());
-        Expect::that($serverResult->exitCode)
+        Expect::value($serverResult->exitCode)
             ->because('the orchestrator fixture MUST receive the worker fatal message')
             ->toBe(0);
-        Expect::that($serverResult->stdout)
+        Expect::value($serverResult->stdout)
             ->toContain("Greenlight\\Config\\ConfigFileError\n")
             ->toContain('Configuration file "' . $missingConfig . '" does not exist.');
     }
@@ -145,10 +145,10 @@ final readonly class WorkerProcessTest
     {
         [$workerResult, $serverExit] = $this->runScenario('bootstrap-channel-mismatch', '1worker');
 
-        Expect::that($workerResult)
+        Expect::value($workerResult)
             ->because('a malformed channel environment value MUST fail worker bootstrap')
             ->toEqual(CommandResult::failure());
-        Expect::that($serverExit)
+        Expect::value($serverExit)
             ->because('the protocol fixture MUST receive the channel mismatch diagnostic')
             ->toBe(0);
     }
@@ -159,8 +159,8 @@ final readonly class WorkerProcessTest
     {
         [$workerResult, $serverExit] = $this->runScenario('idle-then-drain');
 
-        Expect::that($workerResult)->toEqual(CommandResult::success());
-        Expect::that($serverExit)->toBe(0);
+        Expect::value($workerResult)->toEqual(CommandResult::success());
+        Expect::value($serverExit)->toBe(0);
     }
 
     #[Test]
@@ -169,10 +169,10 @@ final readonly class WorkerProcessTest
     {
         [$workerResult, $serverExit] = $this->runScenario('empty-assignment');
 
-        Expect::that($workerResult)
+        Expect::value($workerResult)
             ->because('an empty assignment MUST complete and leave the worker available to drain')
             ->toEqual(CommandResult::success());
-        Expect::that($serverExit)
+        Expect::value($serverExit)
             ->because('the protocol fixture MUST receive the empty completion before it drains the worker')
             ->toBe(0);
     }
@@ -184,10 +184,10 @@ final readonly class WorkerProcessTest
     {
         [$workerResult, $serverExit] = $this->runScenario($scenario);
 
-        Expect::that($workerResult)
+        Expect::value($workerResult)
             ->because('a control-channel ending MUST stop the worker cleanly')
             ->toEqual(CommandResult::success());
-        Expect::that($serverExit)
+        Expect::value($serverExit)
             ->toBe(0);
     }
 
@@ -210,10 +210,10 @@ final readonly class WorkerProcessTest
     {
         [$workerResult, $serverExit] = $this->runScenario($scenario);
 
-        Expect::that($workerResult)
+        Expect::value($workerResult)
             ->because('a worker protocol violation MUST stop the worker abnormally')
             ->toEqual(CommandResult::failure());
-        Expect::that($serverExit)
+        Expect::value($serverExit)
             ->because('the protocol fixture MUST receive the worker fatal message')
             ->toBe(0);
     }

@@ -22,12 +22,12 @@ final class ExpectationFailedSingleDetailTest
 
         $failure = ExpectationFailed::fromDetails([$detail]);
 
-        Expect::that($failure->getMessage())
+        Expect::value($failure->getMessage())
             ->because('one detail MUST use the singular diagnostic')
             ->toBe('Expected values to match. (at /tests/ExampleTest.php:12)');
-        Expect::that($failure->details)
+        Expect::value($failure->details)
             ->toBe([$detail]);
-        Expect::that($failure->detail())
+        Expect::value($failure->detail())
             ->toBe($detail);
     }
 }

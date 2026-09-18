@@ -44,10 +44,10 @@ final readonly class ArtifactRecoveryOrderTest
             attempts: 10,
         ));
 
-        Expect::that($recovered->attachments)
+        Expect::value($recovered->attachments)
             ->because('crash recovery orders evidence by numeric attempt')
             ->toHaveCount(2);
-        Expect::that(\array_map(
+        Expect::value(\array_map(
             static fn($attachment): array => [$attachment->attempt, $attachment->name],
             $recovered->attachments,
         ))

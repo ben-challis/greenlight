@@ -21,9 +21,9 @@ final readonly class PhpSubprocessTest
             'echo PHP_BINARY;',
         ]);
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($result->stdout)->toBe(\PHP_BINARY);
-        Expect::that($result->stderr)->toBe('');
+        Expect::value($result->exitCode)->toBe(0);
+        Expect::value($result->stdout)->toBe(\PHP_BINARY);
+        Expect::value($result->stderr)->toBe('');
     }
 
     #[Test]
@@ -34,14 +34,14 @@ final readonly class PhpSubprocessTest
             'fwrite(STDOUT, "stdout:exact"); fwrite(STDERR, "stderr:exact");',
         ]);
 
-        Expect::that($result->stdout)->toBe('stdout:exact');
-        Expect::that($result->stderr)->toBe('stderr:exact');
+        Expect::value($result->stdout)->toBe('stdout:exact');
+        Expect::value($result->stderr)->toBe('stderr:exact');
     }
 
     #[Test]
     public function commandPlacesPhpArgumentsBeforeTheProgram(): void
     {
-        Expect::that(PhpSubprocess::command(
+        Expect::value(PhpSubprocess::command(
             ['probe.php', 'program-argument'],
             ['-d', 'precision=3'],
         ))->toBe([
@@ -67,8 +67,8 @@ final readonly class PhpSubprocessTest
             ],
         );
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($result->stdout)->toBe('caller');
-        Expect::that($result->stderr)->toBe('');
+        Expect::value($result->exitCode)->toBe(0);
+        Expect::value($result->stdout)->toBe('caller');
+        Expect::value($result->stderr)->toBe('');
     }
 }

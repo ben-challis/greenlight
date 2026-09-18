@@ -18,7 +18,7 @@ final readonly class ToContainShortCircuitTest
             throw new \LogicException('The matcher consumed the iterable after it found the target.');
         };
 
-        Expect::that($values())
+        Expect::value($values())
             ->because('toContain() MUST stop consuming an iterable after it finds the target')
             ->toContain('target');
     }

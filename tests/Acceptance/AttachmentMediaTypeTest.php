@@ -47,7 +47,7 @@ final readonly class AttachmentMediaTypeTest
                         retention: AttachmentRetention::Always,
                     );
 
-                    Expect::that(true)->toBeTrue();
+                    Expect::value(true)->toBeTrue();
                 }
             }
             PHP);
@@ -81,15 +81,15 @@ final readonly class AttachmentMediaTypeTest
             }
         }
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('file attachments work without the optional fileinfo function')
             ->toBe(0);
-        Expect::that($finished)
+        Expect::value($finished)
             ->not()
             ->toBeNull();
-        Expect::that($finished->attachments)
+        Expect::value($finished->attachments)
             ->toHaveCount(1);
-        Expect::that($finished->attachments[0]->mediaType)
+        Expect::value($finished->attachments[0]->mediaType)
             ->toBe('application/octet-stream');
     }
 }

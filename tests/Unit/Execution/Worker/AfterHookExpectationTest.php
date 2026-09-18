@@ -20,12 +20,12 @@ final readonly class AfterHookExpectationTest
     {
         $result = $this->results()['passesUntilTeardown'];
 
-        Expect::that($result->outcome)->toBe(Outcome::Failed);
-        Expect::that($result->error)->toBeNull();
-        Expect::that($result->failures)->toHaveCount(1);
-        Expect::that($result->failures[0]->expected)->toBe("'expected'");
-        Expect::that($result->failures[0]->actual)->toBe("'actual'");
-        Expect::that($result->expectations)->toBe(1);
+        Expect::value($result->outcome)->toBe(Outcome::Failed);
+        Expect::value($result->error)->toBeNull();
+        Expect::value($result->failures)->toHaveCount(1);
+        Expect::value($result->failures[0]->expected)->toBe("'expected'");
+        Expect::value($result->failures[0]->actual)->toBe("'actual'");
+        Expect::value($result->expectations)->toBe(1);
     }
 
     #[Test]
@@ -33,11 +33,11 @@ final readonly class AfterHookExpectationTest
     {
         $result = $this->results()['skipsBeforeTeardown'];
 
-        Expect::that($result->outcome)->toBe(Outcome::Failed);
-        Expect::that($result->skipReason)->toBeNull();
-        Expect::that($result->error)->toBeNull();
-        Expect::that($result->failures[0]->expected)->toBe("'expected'");
-        Expect::that($result->failures[0]->actual)->toBe("'actual'");
+        Expect::value($result->outcome)->toBe(Outcome::Failed);
+        Expect::value($result->skipReason)->toBeNull();
+        Expect::value($result->error)->toBeNull();
+        Expect::value($result->failures[0]->expected)->toBe("'expected'");
+        Expect::value($result->failures[0]->actual)->toBe("'actual'");
     }
 
     #[Test]
@@ -45,11 +45,11 @@ final readonly class AfterHookExpectationTest
     {
         $result = $this->results()['failsBeforeTeardown'];
 
-        Expect::that($result->outcome)->toBe(Outcome::Failed);
-        Expect::that($result->error)->toBeNull();
-        Expect::that($result->failures)->toHaveCount(1);
-        Expect::that($result->failures[0]->expected)->toBe("'body expected'");
-        Expect::that($result->failures[0]->actual)->toBe("'body actual'");
+        Expect::value($result->outcome)->toBe(Outcome::Failed);
+        Expect::value($result->error)->toBeNull();
+        Expect::value($result->failures)->toHaveCount(1);
+        Expect::value($result->failures[0]->expected)->toBe("'body expected'");
+        Expect::value($result->failures[0]->actual)->toBe("'body actual'");
     }
 
     /** @return array<string, TestResult> */

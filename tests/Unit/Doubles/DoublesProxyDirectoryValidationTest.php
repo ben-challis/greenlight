@@ -13,7 +13,7 @@ final class DoublesProxyDirectoryValidationTest
     #[Test]
     public function emptyProxyDirectoryIsRejected(): void
     {
-        Expect::that(static fn(): Doubles => new Doubles(''))
+        Expect::calling(static fn(): Doubles => new Doubles(''))
             ->because('an empty proxy directory MUST NOT resolve generated files from the filesystem root')
             ->toThrow(
                 \InvalidArgumentException::class,

@@ -63,14 +63,14 @@ final readonly class PhpStanDoublesCallRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)
+        Expect::value($probe->exitCode)
             ->because('PHPStan rejects method names that the doubled type does not contain')
             ->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(2);
-        Expect::that($probe->messages())
+        Expect::value($probe->goodPassed)->toBeTrue();
+        Expect::value(\count($probe->errors))->toBe(2);
+        Expect::value($probe->messages())
             ->toContain('callsTo() cannot inspect "notifiy()" on doubled type "BadSpyNotifier"');
-        Expect::that($probe->messages())
+        Expect::value($probe->messages())
             ->toContain('callsTo() cannot inspect "flush()" on doubled type "BadSpyNotifier"');
     }
 }

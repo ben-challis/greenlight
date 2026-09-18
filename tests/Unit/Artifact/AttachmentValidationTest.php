@@ -22,7 +22,7 @@ final class AttachmentValidationTest
         int $attempt,
         string $path,
     ): void {
-        Expect::that(static function () use ($name, $mediaType, $sizeBytes, $sha256, $attempt, $path): void {
+        Expect::calling(static function () use ($name, $mediaType, $sizeBytes, $sha256, $attempt, $path): void {
             new Attachment(
                 $name,
                 AttachmentKind::Text,
