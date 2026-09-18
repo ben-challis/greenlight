@@ -258,7 +258,8 @@ PHPStan applies this refinement to these native matchers:
 * `toBeArray()`, `toBeString()`, `toBeInt()`, `toBeFloat()`, and `toBeBool()`
 * `toBeCallable()` and `toBeIterable()`
 
-The call must contain `Expect::value()` and the matcher in the same expression.
+The call must contain `Expect::value()` or `Greenlight\expect()` and the matcher
+in the same expression.
 PHPStan also follows `because()` and `not()` in that expression.
 
 A stored expectation does not narrow the original subject. A temporal
