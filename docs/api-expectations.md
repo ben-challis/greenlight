@@ -33,7 +33,7 @@ PHPDoc:
 
 - `@return self<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L36)
 
 ### `because()`
 
@@ -47,7 +47,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L50)
 
 ### `toReturn()`
 
@@ -62,7 +62,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L56)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L65)
 
 ### `returnValue()`
 
@@ -77,7 +77,7 @@ PHPDoc:
 - `@return ReturnValueExpectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L67)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L79)
 
 ### `toThrow()`
 
@@ -99,7 +99,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L89)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L109)
 
 ### `eventually()`
 
@@ -112,7 +112,7 @@ PHPDoc:
 - `@return PendingEventuallyCall<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L111)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L137)
 
 ### `consistently()`
 
@@ -125,7 +125,7 @@ PHPDoc:
 - `@return PendingConsistentlyCall<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L129)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L160)
 
 ## `ConsistentlyExpectation`
 
@@ -158,7 +158,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L23)
 
 ### `toEqual()`
 
@@ -174,7 +174,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L36)
 
 ### `toEqualCanonicalizing()`
 
@@ -192,7 +192,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L51)
 
 ### `toBeOneOf()`
 
@@ -207,7 +207,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L63)
 
 ### `toBeIn()`
 
@@ -225,7 +225,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L78)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L79)
 
 ### `toBeInstanceOf()`
 
@@ -239,7 +239,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L90)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L91)
 
 ### `toBeTrue()`
 
@@ -252,7 +252,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L100)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L101)
 
 ### `toBeFalse()`
 
@@ -265,7 +265,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L110)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L111)
 
 ### `toBeNull()`
 
@@ -278,7 +278,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L120)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L121)
 
 ### `toBeArray()`
 
@@ -291,7 +291,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L130)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L131)
 
 ### `toBeString()`
 
@@ -304,7 +304,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L140)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L141)
 
 ### `toBeInt()`
 
@@ -317,7 +317,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L150)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L151)
 
 ### `toBeFloat()`
 
@@ -330,7 +330,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L160)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L161)
 
 ### `toBeBool()`
 
@@ -343,7 +343,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L170)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L171)
 
 ### `toBeCallable()`
 
@@ -356,7 +356,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L180)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L181)
 
 ### `toBeIterable()`
 
@@ -369,7 +369,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L190)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L191)
 
 ### `toContain()`
 
@@ -386,7 +386,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L204)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L205)
 
 ### `toHaveCount()`
 
@@ -402,7 +402,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L217)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L218)
 
 ### `toBeEmpty()`
 
@@ -420,7 +420,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L232)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L233)
 
 ### `toHaveLength()`
 
@@ -437,7 +437,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L246)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L247)
 
 ### `toHaveKey()`
 
@@ -454,7 +454,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L260)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L261)
 
 ### `toContainSubset()`
 
@@ -473,7 +473,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L277)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L278)
 
 ### `toBeGreaterThan()`
 
@@ -486,7 +486,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L287)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L288)
 
 ### `toBeGreaterThanOrEqual()`
 
@@ -499,7 +499,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L297)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L298)
 
 ### `toBeLessThan()`
 
@@ -512,7 +512,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L307)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L308)
 
 ### `toBeLessThanOrEqual()`
 
@@ -525,7 +525,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L317)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L318)
 
 ### `toBeWithin()`
 
@@ -541,7 +541,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L330)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L331)
 
 ### `toMatch()`
 
@@ -555,7 +555,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException when the pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L341)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L342)
 
 ### `toStartWith()`
 
@@ -568,7 +568,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L351)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L352)
 
 ### `toEndWith()`
 
@@ -581,7 +581,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L361)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L362)
 
 ### `toBeJson()`
 
@@ -597,7 +597,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L374)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L375)
 
 ### `toMatchJson()`
 
@@ -615,7 +615,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L389)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L390)
 
 ### `not()`
 
@@ -694,7 +694,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L23)
 
 ### `toEqual()`
 
@@ -710,7 +710,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L36)
 
 ### `toEqualCanonicalizing()`
 
@@ -728,7 +728,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L51)
 
 ### `toBeOneOf()`
 
@@ -743,7 +743,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L63)
 
 ### `toBeIn()`
 
@@ -761,7 +761,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L78)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L79)
 
 ### `toBeInstanceOf()`
 
@@ -775,7 +775,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L90)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L91)
 
 ### `toBeTrue()`
 
@@ -788,7 +788,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L100)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L101)
 
 ### `toBeFalse()`
 
@@ -801,7 +801,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L110)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L111)
 
 ### `toBeNull()`
 
@@ -814,7 +814,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L120)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L121)
 
 ### `toBeArray()`
 
@@ -827,7 +827,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L130)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L131)
 
 ### `toBeString()`
 
@@ -840,7 +840,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L140)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L141)
 
 ### `toBeInt()`
 
@@ -853,7 +853,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L150)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L151)
 
 ### `toBeFloat()`
 
@@ -866,7 +866,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L160)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L161)
 
 ### `toBeBool()`
 
@@ -879,7 +879,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L170)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L171)
 
 ### `toBeCallable()`
 
@@ -892,7 +892,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L180)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L181)
 
 ### `toBeIterable()`
 
@@ -905,7 +905,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L190)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L191)
 
 ### `toContain()`
 
@@ -922,7 +922,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L204)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L205)
 
 ### `toHaveCount()`
 
@@ -938,7 +938,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L217)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L218)
 
 ### `toBeEmpty()`
 
@@ -956,7 +956,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L232)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L233)
 
 ### `toHaveLength()`
 
@@ -973,7 +973,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L246)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L247)
 
 ### `toHaveKey()`
 
@@ -990,7 +990,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L260)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L261)
 
 ### `toContainSubset()`
 
@@ -1009,7 +1009,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L277)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L278)
 
 ### `toBeGreaterThan()`
 
@@ -1022,7 +1022,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L287)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L288)
 
 ### `toBeGreaterThanOrEqual()`
 
@@ -1035,7 +1035,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L297)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L298)
 
 ### `toBeLessThan()`
 
@@ -1048,7 +1048,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L307)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L308)
 
 ### `toBeLessThanOrEqual()`
 
@@ -1061,7 +1061,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L317)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L318)
 
 ### `toBeWithin()`
 
@@ -1077,7 +1077,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L330)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L331)
 
 ### `toMatch()`
 
@@ -1091,7 +1091,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException when the pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L341)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L342)
 
 ### `toStartWith()`
 
@@ -1104,7 +1104,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L351)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L352)
 
 ### `toEndWith()`
 
@@ -1117,7 +1117,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L361)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L362)
 
 ### `toBeJson()`
 
@@ -1133,7 +1133,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L374)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L375)
 
 ### `toMatchJson()`
 
@@ -1151,7 +1151,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L389)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L390)
 
 ### `not()`
 
@@ -1242,7 +1242,7 @@ PHPDoc:
 - `@param callable(): T $call`
 - `@return CallExpectation<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expect.php#L44)
 
 ## `Expectation`
 
@@ -1294,7 +1294,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L23)
 
 ### `toEqual()`
 
@@ -1310,7 +1310,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L36)
 
 ### `toEqualCanonicalizing()`
 
@@ -1328,7 +1328,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L51)
 
 ### `toBeOneOf()`
 
@@ -1343,7 +1343,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L63)
 
 ### `toBeIn()`
 
@@ -1361,7 +1361,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L78)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L79)
 
 ### `toBeInstanceOf()`
 
@@ -1375,7 +1375,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L90)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L91)
 
 ### `toBeTrue()`
 
@@ -1388,7 +1388,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L100)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L101)
 
 ### `toBeFalse()`
 
@@ -1401,7 +1401,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L110)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L111)
 
 ### `toBeNull()`
 
@@ -1414,7 +1414,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L120)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L121)
 
 ### `toBeArray()`
 
@@ -1427,7 +1427,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L130)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L131)
 
 ### `toBeString()`
 
@@ -1440,7 +1440,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L140)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L141)
 
 ### `toBeInt()`
 
@@ -1453,7 +1453,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L150)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L151)
 
 ### `toBeFloat()`
 
@@ -1466,7 +1466,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L160)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L161)
 
 ### `toBeBool()`
 
@@ -1479,7 +1479,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L170)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L171)
 
 ### `toBeCallable()`
 
@@ -1492,7 +1492,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L180)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L181)
 
 ### `toBeIterable()`
 
@@ -1505,7 +1505,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L190)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L191)
 
 ### `toContain()`
 
@@ -1522,7 +1522,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L204)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L205)
 
 ### `toHaveCount()`
 
@@ -1538,7 +1538,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L217)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L218)
 
 ### `toBeEmpty()`
 
@@ -1556,7 +1556,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L232)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L233)
 
 ### `toHaveLength()`
 
@@ -1573,7 +1573,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L246)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L247)
 
 ### `toHaveKey()`
 
@@ -1590,7 +1590,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L260)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L261)
 
 ### `toContainSubset()`
 
@@ -1609,7 +1609,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L277)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L278)
 
 ### `toBeGreaterThan()`
 
@@ -1622,7 +1622,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L287)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L288)
 
 ### `toBeGreaterThanOrEqual()`
 
@@ -1635,7 +1635,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L297)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L298)
 
 ### `toBeLessThan()`
 
@@ -1648,7 +1648,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L307)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L308)
 
 ### `toBeLessThanOrEqual()`
 
@@ -1661,7 +1661,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L317)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L318)
 
 ### `toBeWithin()`
 
@@ -1677,7 +1677,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L330)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L331)
 
 ### `toMatch()`
 
@@ -1691,7 +1691,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException when the pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L341)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L342)
 
 ### `toStartWith()`
 
@@ -1704,7 +1704,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L351)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L352)
 
 ### `toEndWith()`
 
@@ -1717,7 +1717,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L361)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L362)
 
 ### `toBeJson()`
 
@@ -1733,7 +1733,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L374)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L375)
 
 ### `toMatchJson()`
 
@@ -1751,7 +1751,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L389)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L390)
 
 ### `not()`
 
@@ -1759,7 +1759,7 @@ PHPDoc:
 public function not(): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L56)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L58)
 
 ### `because()`
 
@@ -1772,7 +1772,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L66)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L70)
 
 ### `__call()`
 
@@ -1787,7 +1787,7 @@ PHPDoc:
 - `@throws \BadMethodCallException`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L80)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L87)
 
 ## `ExpectationExtension`
 
@@ -1928,7 +1928,7 @@ PHPDoc:
 
 - `@return self<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L21)
 
 ### `because()`
 
@@ -1942,7 +1942,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L35)
 
 ### `pollEvery()`
 
@@ -1955,7 +1955,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws \InvalidArgumentException if the interval is not finite or is less than 0.001 seconds`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L81)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L86)
 
 ### `for()`
 
@@ -1969,7 +1969,7 @@ PHPDoc:
 - `@return ConsistentlyExpectation<T>`
 - `@throws \InvalidArgumentException if the duration is not finite or is not positive`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L100)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L106)
 
 ## `PendingConsistentlyCall`
 
@@ -1981,7 +1981,7 @@ Collects time controls for a call expectation.
 final readonly class PendingConsistentlyCall
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L11)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L12)
 
 PHPDoc:
 
@@ -1997,7 +1997,7 @@ PHPDoc:
 
 - `@return self<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L38)
 
 ### `because()`
 
@@ -2011,7 +2011,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L52)
 
 ### `pollEvery()`
 
@@ -2023,7 +2023,7 @@ PHPDoc:
 
 - `@return self<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L51)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L60)
 
 ### `for()`
 
@@ -2036,7 +2036,7 @@ PHPDoc:
 - `@return TemporalCallExpectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L61)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistentlyCall.php#L72)
 
 ## `PendingEventually`
 
@@ -2065,7 +2065,7 @@ PHPDoc:
 
 - `@return self<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L21)
 
 ### `because()`
 
@@ -2079,7 +2079,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L35)
 
 ### `pollEvery()`
 
@@ -2092,7 +2092,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws \InvalidArgumentException if the interval is not finite or is less than 0.001 seconds`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L86)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L91)
 
 ### `retryOnException()`
 
@@ -2106,7 +2106,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws \InvalidArgumentException if a type does not extend Exception`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L107)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L112)
 
 ### `within()`
 
@@ -2120,7 +2120,7 @@ PHPDoc:
 - `@return EventuallyExpectation<T>`
 - `@throws \InvalidArgumentException if the duration is not finite or is not positive`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L125)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L131)
 
 ## `PendingEventuallyCall`
 
@@ -2132,7 +2132,7 @@ Collects time controls for a call expectation.
 final readonly class PendingEventuallyCall
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L11)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L12)
 
 PHPDoc:
 
@@ -2148,7 +2148,7 @@ PHPDoc:
 
 - `@return self<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L38)
 
 ### `because()`
 
@@ -2162,7 +2162,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L52)
 
 ### `pollEvery()`
 
@@ -2174,7 +2174,7 @@ PHPDoc:
 
 - `@return self<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L51)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L60)
 
 ### `within()`
 
@@ -2187,7 +2187,7 @@ PHPDoc:
 - `@return TemporalCallExpectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L61)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventuallyCall.php#L72)
 
 ## `ReturnValueExpectation`
 
@@ -2200,7 +2200,7 @@ A temporal matcher invokes the original call once per observation.
 final class ReturnValueExpectation extends Expectation
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ReturnValueExpectation.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ReturnValueExpectation.php#L15)
 
 PHPDoc:
 
@@ -2220,7 +2220,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L23)
 
 ### `toEqual()`
 
@@ -2236,7 +2236,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L36)
 
 ### `toEqualCanonicalizing()`
 
@@ -2254,7 +2254,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L51)
 
 ### `toBeOneOf()`
 
@@ -2269,7 +2269,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L63)
 
 ### `toBeIn()`
 
@@ -2287,7 +2287,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L78)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L79)
 
 ### `toBeInstanceOf()`
 
@@ -2301,7 +2301,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L90)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L91)
 
 ### `toBeTrue()`
 
@@ -2314,7 +2314,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L100)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L101)
 
 ### `toBeFalse()`
 
@@ -2327,7 +2327,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L110)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L111)
 
 ### `toBeNull()`
 
@@ -2340,7 +2340,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L120)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L121)
 
 ### `toBeArray()`
 
@@ -2353,7 +2353,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L130)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L131)
 
 ### `toBeString()`
 
@@ -2366,7 +2366,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L140)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L141)
 
 ### `toBeInt()`
 
@@ -2379,7 +2379,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L150)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L151)
 
 ### `toBeFloat()`
 
@@ -2392,7 +2392,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L160)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L161)
 
 ### `toBeBool()`
 
@@ -2405,7 +2405,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L170)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L171)
 
 ### `toBeCallable()`
 
@@ -2418,7 +2418,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L180)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L181)
 
 ### `toBeIterable()`
 
@@ -2431,7 +2431,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L190)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L191)
 
 ### `toContain()`
 
@@ -2448,7 +2448,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L204)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L205)
 
 ### `toHaveCount()`
 
@@ -2464,7 +2464,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L217)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L218)
 
 ### `toBeEmpty()`
 
@@ -2482,7 +2482,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L232)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L233)
 
 ### `toHaveLength()`
 
@@ -2499,7 +2499,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L246)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L247)
 
 ### `toHaveKey()`
 
@@ -2516,7 +2516,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L260)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L261)
 
 ### `toContainSubset()`
 
@@ -2535,7 +2535,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L277)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L278)
 
 ### `toBeGreaterThan()`
 
@@ -2548,7 +2548,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L287)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L288)
 
 ### `toBeGreaterThanOrEqual()`
 
@@ -2561,7 +2561,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L297)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L298)
 
 ### `toBeLessThan()`
 
@@ -2574,7 +2574,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L307)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L308)
 
 ### `toBeLessThanOrEqual()`
 
@@ -2587,7 +2587,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L317)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L318)
 
 ### `toBeWithin()`
 
@@ -2603,7 +2603,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L330)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L331)
 
 ### `toMatch()`
 
@@ -2617,7 +2617,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException when the pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L341)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L342)
 
 ### `toStartWith()`
 
@@ -2630,7 +2630,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L351)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L352)
 
 ### `toEndWith()`
 
@@ -2643,7 +2643,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L361)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L362)
 
 ### `toBeJson()`
 
@@ -2659,7 +2659,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L374)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L375)
 
 ### `toMatchJson()`
 
@@ -2677,7 +2677,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L389)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L390)
 
 ### `not()`
 
@@ -2685,7 +2685,7 @@ PHPDoc:
 public function not(): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L56)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L58)
 
 ### `because()`
 
@@ -2698,7 +2698,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L66)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L70)
 
 ### `__call()`
 
@@ -2713,7 +2713,7 @@ PHPDoc:
 - `@throws \BadMethodCallException`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L80)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L87)
 
 ### `eventually()`
 
@@ -2726,7 +2726,7 @@ PHPDoc:
 - `@return PendingEventually<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ReturnValueExpectation.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ReturnValueExpectation.php#L38)
 
 ### `consistently()`
 
@@ -2739,7 +2739,7 @@ PHPDoc:
 - `@return PendingConsistently<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ReturnValueExpectation.php#L53)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ReturnValueExpectation.php#L67)
 
 ## `TemporalCallExpectation`
 
@@ -2751,7 +2751,7 @@ Checks a call outcome on each poll and retains the last matched outcome.
 final readonly class TemporalCallExpectation
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L11)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L12)
 
 PHPDoc:
 
@@ -2767,7 +2767,7 @@ PHPDoc:
 
 - `@return self<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L27)
 
 ### `because()`
 
@@ -2781,7 +2781,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L36)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L41)
 
 ### `toReturn()`
 
@@ -2794,7 +2794,7 @@ PHPDoc:
 - `@return CallExpectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L46)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L53)
 
 ### `toThrow()`
 
@@ -2813,7 +2813,7 @@ PHPDoc:
 - `@return CallExpectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L58)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalCallExpectation.php#L69)
 
 ## `TemporalExpectation`
 
@@ -2845,7 +2845,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L23)
 
 ### `toEqual()`
 
@@ -2861,7 +2861,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L36)
 
 ### `toEqualCanonicalizing()`
 
@@ -2879,7 +2879,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L51)
 
 ### `toBeOneOf()`
 
@@ -2894,7 +2894,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L63)
 
 ### `toBeIn()`
 
@@ -2912,7 +2912,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L78)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L79)
 
 ### `toBeInstanceOf()`
 
@@ -2926,7 +2926,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L90)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L91)
 
 ### `toBeTrue()`
 
@@ -2939,7 +2939,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L100)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L101)
 
 ### `toBeFalse()`
 
@@ -2952,7 +2952,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L110)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L111)
 
 ### `toBeNull()`
 
@@ -2965,7 +2965,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L120)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L121)
 
 ### `toBeArray()`
 
@@ -2978,7 +2978,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L130)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L131)
 
 ### `toBeString()`
 
@@ -2991,7 +2991,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L140)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L141)
 
 ### `toBeInt()`
 
@@ -3004,7 +3004,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L150)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L151)
 
 ### `toBeFloat()`
 
@@ -3017,7 +3017,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L160)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L161)
 
 ### `toBeBool()`
 
@@ -3030,7 +3030,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L170)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L171)
 
 ### `toBeCallable()`
 
@@ -3043,7 +3043,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L180)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L181)
 
 ### `toBeIterable()`
 
@@ -3056,7 +3056,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L190)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L191)
 
 ### `toContain()`
 
@@ -3073,7 +3073,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L204)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L205)
 
 ### `toHaveCount()`
 
@@ -3089,7 +3089,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L217)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L218)
 
 ### `toBeEmpty()`
 
@@ -3107,7 +3107,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L232)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L233)
 
 ### `toHaveLength()`
 
@@ -3124,7 +3124,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L246)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L247)
 
 ### `toHaveKey()`
 
@@ -3141,7 +3141,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L260)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L261)
 
 ### `toContainSubset()`
 
@@ -3160,7 +3160,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L277)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L278)
 
 ### `toBeGreaterThan()`
 
@@ -3173,7 +3173,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L287)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L288)
 
 ### `toBeGreaterThanOrEqual()`
 
@@ -3186,7 +3186,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L297)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L298)
 
 ### `toBeLessThan()`
 
@@ -3199,7 +3199,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L307)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L308)
 
 ### `toBeLessThanOrEqual()`
 
@@ -3212,7 +3212,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L317)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L318)
 
 ### `toBeWithin()`
 
@@ -3228,7 +3228,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L330)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L331)
 
 ### `toMatch()`
 
@@ -3242,7 +3242,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException when the pattern is not a valid regular expression`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L341)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L342)
 
 ### `toStartWith()`
 
@@ -3255,7 +3255,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L351)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L352)
 
 ### `toEndWith()`
 
@@ -3268,7 +3268,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L361)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L362)
 
 ### `toBeJson()`
 
@@ -3284,7 +3284,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L374)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L375)
 
 ### `toMatchJson()`
 
@@ -3302,7 +3302,7 @@ PHPDoc:
 - `@return Expectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L389)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ValueMatchers.php#L390)
 
 ### `not()`
 

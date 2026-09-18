@@ -13,6 +13,7 @@ namespace Greenlight\Expect;
 final class PendingConsistently
 {
     private bool $negated = false;
+
     /** @var non-empty-string|null */
     private ?string $reason = null;
 
@@ -20,18 +21,22 @@ final class PendingConsistently
     public function not(): self
     {
         $this->negated = true;
+
         return $this;
     }
 
     /**
      * @param non-empty-string $reason
+     *
      * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function because(string $reason): self
     {
         new MatcherEvaluation(null, $this->renderer)->because($reason);
         $this->reason = $reason;
+
         return $this;
     }
 
@@ -93,6 +98,7 @@ final class PendingConsistently
 
     /**
      * @throws ExpectationFailed
+     *
      * @return ConsistentlyExpectation<T>
      *
      * @throws \InvalidArgumentException if the duration is not finite or is not positive
@@ -114,14 +120,18 @@ final class PendingConsistently
             $this->renderer,
             $this->extensions,
         );
+
         if ($this->negated) {
             $expectation->not();
         }
+
         if ($this->reason !== null) {
             $expectation->because($this->reason);
         }
+
         $this->negated = false;
         $this->reason = null;
+
         return $expectation;
     }
 }

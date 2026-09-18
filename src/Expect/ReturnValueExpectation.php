@@ -9,12 +9,14 @@ namespace Greenlight\Expect;
  * A temporal matcher invokes the original call once per observation.
  *
  * @template T
+ *
  * @extends Expectation<T>
  */
 final class ReturnValueExpectation extends Expectation
 {
     /**
      * @internal
+     *
      * @param \Closure(): T $read
      * @param \Closure(): T $probe
      * @param list<ExpectationExtension> $extensions
@@ -30,37 +32,59 @@ final class ReturnValueExpectation extends Expectation
 
     /**
      * @return PendingEventually<T>
+     *
      * @throws ExpectationFailed
      */
     public function eventually(): PendingEventually
     {
-        $pending = PendingEventually::create($this->probe, ExpectationRuntime::clock(), ExpectationRuntime::deadline(), $this->renderer, $this->extensions);
+        $pending = PendingEventually::create(
+            $this->probe,
+            ExpectationRuntime::clock(),
+            ExpectationRuntime::deadline(),
+            $this->renderer,
+            $this->extensions,
+        );
+
         if ($this->negated) {
             $pending->not();
         }
+
         if ($this->reason !== null) {
             $pending->because($this->reason);
         }
+
         $this->negated = false;
         $this->reason = null;
+
         return $pending;
     }
 
     /**
      * @return PendingConsistently<T>
+     *
      * @throws ExpectationFailed
      */
     public function consistently(): PendingConsistently
     {
-        $pending = PendingConsistently::create($this->probe, ExpectationRuntime::clock(), ExpectationRuntime::deadline(), $this->renderer, $this->extensions);
+        $pending = PendingConsistently::create(
+            $this->probe,
+            ExpectationRuntime::clock(),
+            ExpectationRuntime::deadline(),
+            $this->renderer,
+            $this->extensions,
+        );
+
         if ($this->negated) {
             $pending->not();
         }
+
         if ($this->reason !== null) {
             $pending->because($this->reason);
         }
+
         $this->negated = false;
         $this->reason = null;
+
         return $pending;
     }
 }

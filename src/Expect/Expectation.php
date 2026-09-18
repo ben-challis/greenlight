@@ -39,11 +39,13 @@ class Expectation
     private ?MatcherEvaluation $evaluation = null;
 
     protected bool $negated = false;
+
     /** @var non-empty-string|null */
     protected ?string $reason = null;
 
     /**
      * @internal
+     *
      * @param \Closure(): T $read
      * @param list<ExpectationExtension> $extensions
      */
@@ -56,11 +58,13 @@ class Expectation
     public function not(): static
     {
         $this->negated = true;
+
         return $this;
     }
 
     /**
      * @param non-empty-string $reason
+     *
      * @throws ExpectationFailed
      */
     public function because(string $reason): static
@@ -68,12 +72,15 @@ class Expectation
         // Validate the reason before a lazy value is read.
         new MatcherEvaluation(null, $this->renderer)->because($reason);
         $this->reason = $reason;
+
         return $this;
     }
 
     /**
      * @param array<array-key, mixed> $arguments
+     *
      * @return Expectation<T>
+     *
      * @throws \BadMethodCallException
      * @throws ExpectationFailed
      */
@@ -84,26 +91,34 @@ class Expectation
                 return $this->matchValue($name, $arguments);
             }
         }
+
         throw new \BadMethodCallException(\sprintf('Greenlight has no native or registered extension matcher named %s.', $name));
     }
 
     /**
      * @param array<array-key, mixed> $arguments
+     *
      * @return Expectation<T>
+     *
      * @throws ExpectationFailed
      */
     protected function matchValue(string $name, array $arguments): Expectation
     {
         $this->evaluation ??= new MatcherEvaluation(($this->read)(), $this->renderer, $this->extensions);
+
         if ($this->negated) {
             $this->evaluation->not();
         }
+
         if ($this->reason !== null) {
             $this->evaluation->because($this->reason);
         }
+
         $this->negated = false;
         $this->reason = null;
+
         ExpectationCall::forImmediate($name, $arguments)->invoke($this->evaluation);
+
         return $this;
     }
 }

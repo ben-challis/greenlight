@@ -8,6 +8,7 @@ namespace Greenlight\Expect;
  * Captures one invocation, including a null return or a thrown error.
  *
  * @internal
+ *
  * @template T
  */
 final readonly class CallOutcome
@@ -17,13 +18,16 @@ final readonly class CallOutcome
 
     /**
      * @template TResult
+     *
      * @param \Closure(): TResult $call
+     *
      * @return self<TResult>
      */
     public static function capture(\Closure $call): self
     {
         try {
             $value = $call();
+
             return new self(static fn() => $value);
         } catch (\Throwable $throwable) {
             return new self(static fn() => throw $throwable);
