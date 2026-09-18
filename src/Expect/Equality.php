@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
+use Greenlight\Internal\Php\ErrorTrap;
+
 /** @internal */
 final class Equality
 {
+    private const int ARRAY_CYCLE_CHECK_DEPTH = 64;
+
     /** @codeCoverageIgnore */
     private function __construct() {}
 
@@ -26,6 +30,8 @@ final class Equality
      */
     public static function equalsCanonicalizing(mixed $a, mixed $b): bool
     {
+        self::requireAcyclicArrays($a);
+        self::requireAcyclicArrays($b);
         $leftObjects = [];
         $rightObjects = [];
 
@@ -106,6 +112,7 @@ final class Equality
             $seen[] = $id;
             $parts = [];
             $properties = \get_mangled_object_vars($value);
+            self::requireAcyclicArrays($properties);
             \ksort($properties, \SORT_STRING);
 
             foreach ($properties as $name => $item) {
@@ -133,6 +140,7 @@ final class Equality
         mixed $b,
         array &$leftObjects,
         array &$rightObjects,
+        int $arrayDepth = 0,
     ): bool {
         if ((\is_int($a) || \is_float($a)) && (\is_int($b) || \is_float($b))) {
             if (\is_int($a) && \is_int($b)) {
@@ -153,11 +161,26 @@ final class Equality
             if (\count($a) !== \count($b)) {
                 return false;
             }
+
+            if ($arrayDepth === self::ARRAY_CYCLE_CHECK_DEPTH) {
+                self::requireAcyclicArrays($a);
+                self::requireAcyclicArrays($b);
+                $arrayDepth = -1;
+            }
+
+            $nextArrayDepth = $arrayDepth < 0 ? -1 : $arrayDepth + 1;
+
             return \array_all(
                 $a,
-                static function ($value, $key) use ($b, &$leftObjects, &$rightObjects): bool {
+                static function ($value, $key) use ($b, &$leftObjects, &$rightObjects, $nextArrayDepth): bool {
                     return \array_key_exists($key, $b)
-                        && self::compare($value, $b[$key], $leftObjects, $rightObjects);
+                        && self::compare(
+                            $value,
+                            $b[$key],
+                            $leftObjects,
+                            $rightObjects,
+                            $nextArrayDepth,
+                        );
                 },
             );
         }
@@ -203,5 +226,23 @@ final class Equality
         }
 
         return $a === $b;
+    }
+
+    private static function requireAcyclicArrays(mixed $value): void
+    {
+        if (!\is_array($value)) {
+            return;
+        }
+
+        // Native traversal sees cycles even after PHP unwraps their reference
+        // containers. Delay ordinary comparisons so early mismatches do not
+        // scan an otherwise unused array graph. A checked subtree stays checked.
+        ErrorTrap::run(static fn(): int => \count($value, \COUNT_RECURSIVE), $warning);
+
+        if ($warning !== null) {
+            throw new \InvalidArgumentException(
+                'Equality matchers do not support cyclic arrays. Compare selected acyclic values instead.',
+            );
+        }
     }
 }
