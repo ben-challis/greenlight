@@ -15,13 +15,13 @@ final readonly class ConnectedStreamPair
     {
         $pair = \stream_socket_pair(\STREAM_PF_UNIX, \STREAM_SOCK_STREAM, \STREAM_IPPROTO_IP);
 
-        Expect::that($pair)
+        Expect::value($pair)
             ->because('stream_socket_pair() MUST create an array.')
             ->toBeArray();
-        Expect::that($pair)
+        Expect::value($pair)
             ->because('stream_socket_pair() MUST create a pair.')
             ->toHaveCount(2);
-        Expect::that(isset($pair[0], $pair[1]))
+        Expect::value(isset($pair[0], $pair[1]))
             ->because('The connected stream pair MUST contain both streams.')
             ->toBeTrue();
 

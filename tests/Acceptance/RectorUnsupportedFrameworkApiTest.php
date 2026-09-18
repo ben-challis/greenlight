@@ -29,8 +29,8 @@ final readonly class RectorUnsupportedFrameworkApiTest
         $probes = RectorProbe::convertBatch($this->tempDirectory, $cases, name: 'unsupported-framework-apis');
 
         foreach ($probes as $caseName => $probe) {
-            Expect::that($probe->changed)->because('unsupported framework API case: ' . $caseName)->toBeFalse();
-            Expect::that($probe->code)->because('unsupported framework API case: ' . $caseName)->toBe($cases[$caseName]);
+            Expect::value($probe->changed)->because('unsupported framework API case: ' . $caseName)->toBeFalse();
+            Expect::value($probe->code)->because('unsupported framework API case: ' . $caseName)->toBe($cases[$caseName]);
         }
     }
 }

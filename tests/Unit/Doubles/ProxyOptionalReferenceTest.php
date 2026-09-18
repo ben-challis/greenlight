@@ -37,13 +37,13 @@ final readonly class ProxyOptionalReferenceTest
             $omitted = $double->supplied();
             $provided = $double->supplied($value);
 
-            Expect::that($omitted)
+            Expect::value($omitted)
                 ->because('a proxy callback MUST NOT receive an omitted optional argument')
                 ->toBe(0);
-            Expect::that($provided)
+            Expect::value($provided)
                 ->because('a proxy callback MUST receive a supplied optional argument')
                 ->toBe(1);
-            Expect::that($value)
+            Expect::value($value)
                 ->because('a proxy callback MUST preserve a supplied optional reference')
                 ->toBe('changed');
         } finally {

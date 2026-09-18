@@ -31,13 +31,13 @@ final readonly class TerminalRowsResolverUnavailableExecTest
             ['LINES' => ''],
         );
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('an unavailable terminal probe MUST not fail row resolution')
             ->toBe(0);
-        Expect::that($result->stdout)
+        Expect::value($result->stdout)
             ->because('an unavailable terminal probe MUST use the default row count')
             ->toBe('24');
-        Expect::that($result->stderr)
+        Expect::value($result->stderr)
             ->toBe('');
     }
 }

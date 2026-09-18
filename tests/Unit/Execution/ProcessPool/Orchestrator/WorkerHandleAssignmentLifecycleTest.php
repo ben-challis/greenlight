@@ -21,7 +21,7 @@ final readonly class WorkerHandleAssignmentLifecycleTest
     {
         $handle = new WorkerState('worker-1', 1, 1.0);
 
-        Expect::that($handle->isFresh())
+        Expect::value($handle->isFresh())
             ->because('a worker MUST be fresh before its first assignment completes')
             ->toBeTrue();
 
@@ -35,19 +35,19 @@ final readonly class WorkerHandleAssignmentLifecycleTest
         $lease = $this->lease();
         $handle->beginAssignment($lease);
 
-        Expect::that($handle->lease)
+        Expect::value($handle->lease)
             ->because('assignment start MUST transfer the resource lease')
             ->toBe($lease);
-        Expect::that($handle->assigned)
+        Expect::value($handle->assigned)
             ->because('assignment start MUST transfer the execution plan')
             ->toBe($lease->unit->plan);
-        Expect::that($handle->isolatedAssignment)
+        Expect::value($handle->isolatedAssignment)
             ->because('assignment start MUST transfer the isolation state')
             ->toBeTrue();
-        Expect::that($handle->tally)
+        Expect::value($handle->tally)
             ->because('assignment start MUST replace the result tally')
             ->not()->toBe($staleTally);
-        Expect::that($handle->tally->toWire())
+        Expect::value($handle->tally->toWire())
             ->because('assignment start MUST reset each result count')
             ->toBe([
                 'passed' => 0,
@@ -55,16 +55,16 @@ final readonly class WorkerHandleAssignmentLifecycleTest
                 'errored' => 0,
                 'skipped' => 0,
             ]);
-        Expect::that($handle->finished)
+        Expect::value($handle->finished)
             ->because('assignment start MUST clear the finished tests')
             ->toBeEmpty();
-        Expect::that($handle->inFlight)
+        Expect::value($handle->inFlight)
             ->because('assignment start MUST clear the active test ID')
             ->toBeNull();
-        Expect::that($handle->inFlightAttempt)
+        Expect::value($handle->inFlightAttempt)
             ->because('assignment start MUST reset the active attempt')
             ->toBe(0);
-        Expect::that($handle->isFresh())
+        Expect::value($handle->isFresh())
             ->because('a worker MUST stay fresh until its first assignment completes')
             ->toBeTrue();
 
@@ -72,22 +72,22 @@ final readonly class WorkerHandleAssignmentLifecycleTest
         $handle->inFlightAttempt = 3;
         $handle->finishAssignment();
 
-        Expect::that($handle->lease)
+        Expect::value($handle->lease)
             ->because('assignment finish MUST clear the resource lease')
             ->toBeNull();
-        Expect::that($handle->assigned)
+        Expect::value($handle->assigned)
             ->because('assignment finish MUST clear the execution plan')
             ->toBeNull();
-        Expect::that($handle->isolatedAssignment)
+        Expect::value($handle->isolatedAssignment)
             ->because('assignment finish MUST clear the isolation state')
             ->toBeFalse();
-        Expect::that($handle->inFlight)
+        Expect::value($handle->inFlight)
             ->because('assignment finish MUST clear the active test ID')
             ->toBeNull();
-        Expect::that($handle->inFlightAttempt)
+        Expect::value($handle->inFlightAttempt)
             ->because('assignment finish MUST reset the active attempt')
             ->toBe(0);
-        Expect::that($handle->isFresh())
+        Expect::value($handle->isFresh())
             ->because('assignment finish MUST mark the worker as used')
             ->toBeFalse();
     }

@@ -14,16 +14,16 @@ final class NonFiniteToleranceSubjectTest
     #[DataSet('nonFiniteSubjects')]
     public function aNonFiniteSubjectCannotBeWithinAFiniteTolerance(float $subject, float $delta, float $of): void
     {
-        Expect::that($subject)->not()->toBeWithin($delta, $of);
+        Expect::value($subject)->not()->toBeWithin($delta, $of);
     }
 
     #[Test]
     public function finiteSubjectsStillMatchWhenAToleranceBoundaryOverflows(): void
     {
-        Expect::that(\PHP_FLOAT_MAX)->toBeWithin(\PHP_FLOAT_MAX, \PHP_FLOAT_MAX);
-        Expect::that(-\PHP_FLOAT_MAX)->toBeWithin(\PHP_FLOAT_MAX, -\PHP_FLOAT_MAX);
-        Expect::that(0.0)->toBeWithin(\PHP_FLOAT_MAX, \PHP_FLOAT_MAX);
-        Expect::that(0.0)->toBeWithin(\PHP_FLOAT_MAX, -\PHP_FLOAT_MAX);
+        Expect::value(\PHP_FLOAT_MAX)->toBeWithin(\PHP_FLOAT_MAX, \PHP_FLOAT_MAX);
+        Expect::value(-\PHP_FLOAT_MAX)->toBeWithin(\PHP_FLOAT_MAX, -\PHP_FLOAT_MAX);
+        Expect::value(0.0)->toBeWithin(\PHP_FLOAT_MAX, \PHP_FLOAT_MAX);
+        Expect::value(0.0)->toBeWithin(\PHP_FLOAT_MAX, -\PHP_FLOAT_MAX);
     }
 
     /** @return iterable<string, array{float, float, float}> */

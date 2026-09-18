@@ -17,7 +17,7 @@ final class StagedAttachmentValidationTest
     #[Test]
     public function rejectsAnEmptyStorageKeyAtConstruction(): void
     {
-        Expect::that(static fn(): StagedAttachment => new StagedAttachment(
+        Expect::calling(static fn(): StagedAttachment => new StagedAttachment(
             'artifact',
             AttachmentKind::Text,
             'text/plain',
@@ -40,7 +40,7 @@ final class StagedAttachmentValidationTest
     #[DataSet('invalidStorageKeyPayloads')]
     public function wireDecodingRequiresAStorageKey(array $payload): void
     {
-        Expect::that(static fn(): StagedAttachment => StagedAttachment::fromWire($payload))
+        Expect::calling(static fn(): StagedAttachment => StagedAttachment::fromWire($payload))
             ->because('a staged attachment wire payload MUST contain its private storage coordinate')
             ->toThrow(InvalidWirePayload::class);
     }
@@ -68,13 +68,13 @@ final class StagedAttachmentValidationTest
             'attempt' => $attempt,
         ]);
 
-        Expect::that($staged->sizeBytes)
+        Expect::value($staged->sizeBytes)
             ->because('staged attachment wire decoding MUST normalize a negative size to zero')
             ->toBe(0);
-        Expect::that($staged->attempt)
+        Expect::value($staged->attempt)
             ->because('staged attachment wire decoding MUST normalize a nonpositive attempt to one')
             ->toBe(1);
-        Expect::that($staged->storageKey)
+        Expect::value($staged->storageKey)
             ->because('staged attachment wire decoding MUST preserve the storage key')
             ->toBe('test/attempt-1/01-artifact.txt');
     }

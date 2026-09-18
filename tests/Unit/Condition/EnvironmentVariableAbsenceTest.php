@@ -20,10 +20,10 @@ final readonly class EnvironmentVariableAbsenceTest
         $name = 'GREENLIGHT_CONDITION_ABSENT_EMPTY_VALUE';
         $this->environment->unset($name);
 
-        Expect::that(new EnvironmentVariableSet($name)->isSatisfied())
+        Expect::value(new EnvironmentVariableSet($name)->isSatisfied())
             ->because('an absent environment variable MUST remain absent')
             ->toBeFalse();
-        Expect::that(new EnvironmentVariableEquals($name, '')->isSatisfied())
+        Expect::value(new EnvironmentVariableEquals($name, '')->isSatisfied())
             ->because('absence MUST remain distinct from an empty environment variable value')
             ->toBeFalse();
     }

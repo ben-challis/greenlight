@@ -24,11 +24,11 @@ final class TypeRendererTest
             ? $reflection->getReturnType()
             : $reflection->getParameters()[$parameter]->getType();
 
-        Expect::that($type)
+        Expect::value($type)
             ->because(\sprintf('%s() MUST have the requested reflected type.', $method))
             ->toBeInstanceOf(\ReflectionType::class);
 
-        Expect::that(TypeRenderer::render($type, $reflection->getDeclaringClass()))
+        Expect::value(TypeRenderer::render($type, $reflection->getDeclaringClass()))
             ->because('the reflected type renders as valid PHP source')
             ->toBe($expected);
     }
@@ -44,25 +44,25 @@ final class TypeRendererTest
         $mixed = $nullableClassAndMixed->getReturnType();
         $null = $returnsNull->getReturnType();
 
-        Expect::that($nullableClass)
+        Expect::value($nullableClass)
             ->because('The nullable-class closure MUST expose its declared type.')
             ->toBeInstanceOf(\ReflectionType::class);
-        Expect::that($mixed)
+        Expect::value($mixed)
             ->because('The mixed closure MUST expose its declared type.')
             ->toBeInstanceOf(\ReflectionType::class);
-        Expect::that($null)
+        Expect::value($null)
             ->because('The null closure MUST expose its declared type.')
             ->toBeInstanceOf(\ReflectionType::class);
 
         $context = new \ReflectionMethod(TypeRenderingChild::class, 'nullable')->getDeclaringClass();
 
-        Expect::that(TypeRenderer::render($nullableClass, $context))
+        Expect::value(TypeRenderer::render($nullableClass, $context))
             ->because('nullable class names MUST retain valid PHP syntax')
             ->toBe('?\ArrayObject');
-        Expect::that(TypeRenderer::render($mixed, $context))
+        Expect::value(TypeRenderer::render($mixed, $context))
             ->because('mixed MUST NOT gain a nullable prefix')
             ->toBe('mixed');
-        Expect::that(TypeRenderer::render($null, $context))
+        Expect::value(TypeRenderer::render($null, $context))
             ->because('null MUST NOT gain a nullable prefix')
             ->toBe('null');
     }

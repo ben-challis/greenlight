@@ -34,10 +34,10 @@ final readonly class TempestFrameworkUnavailableTest
             PHP,
         ));
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('the public framework probe MUST reject an installation without Tempest')
             ->toBe(0);
-        Expect::that($result->stdout)
+        Expect::value($result->stdout)
             ->because('the error MUST explain how to install the required Tempest framework')
             ->toBe(
                 'The Tempest framework is not available. TempestPlugin requires '

@@ -30,7 +30,7 @@ final readonly class JUnitLocaleTest
                 throw new SkipTest("No decimal-comma locale is available.");
             }
 
-            Expect::that(\localeconv()["decimal_point"])->toBe(",");
+            Expect::value(\localeconv()["decimal_point"])->toBe(",");
             $output = new BufferOutput();
             $reporter = new JUnitReporter($output);
             $reporter->onEvent(new TestFinished(new TestResult(
@@ -42,10 +42,10 @@ final readonly class JUnitLocaleTest
             $reporter->onEvent(new RunFinished("locale-run", new ResultSummary(passed: 1), 0.5, 1.5));
             $reporter->finish();
             $document = \simplexml_load_string($output->buffer());
-            Expect::that($document)->toBeInstanceOf(\SimpleXMLElement::class);
-            Expect::that((string) $document["time"])->toBe("0.500000");
-            Expect::that((string) SimpleXml::xpath($document, "/testsuites/testsuite")[0]["time"])->toBe("0.125000");
-            Expect::that((string) SimpleXml::xpath($document, "/testsuites/testsuite/testcase")[0]["time"])->toBe("0.125000");
+            Expect::value($document)->toBeInstanceOf(\SimpleXMLElement::class);
+            Expect::value((string) $document["time"])->toBe("0.500000");
+            Expect::value((string) SimpleXml::xpath($document, "/testsuites/testsuite")[0]["time"])->toBe("0.125000");
+            Expect::value((string) SimpleXml::xpath($document, "/testsuites/testsuite/testcase")[0]["time"])->toBe("0.125000");
         } finally {
             if ($previous !== false) {
                 \setlocale(\LC_NUMERIC, $previous);

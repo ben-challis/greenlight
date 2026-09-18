@@ -18,7 +18,7 @@ final class JUnitEmptyStreamTest
 
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('an empty test run remains a complete JUnit document')
             ->toBe(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"

@@ -19,7 +19,7 @@ final class ResultSummaryWireTest
         $payload = $this->payload();
         $payload[$field] = -1;
 
-        Expect::that(ResultSummary::fromWire($payload)->toWire()[$field])
+        Expect::value(ResultSummary::fromWire($payload)->toWire()[$field])
             ->because('negative wire counts normalize to zero')
             ->toBe(0);
     }
@@ -31,7 +31,7 @@ final class ResultSummaryWireTest
         $payload = $this->payload();
         $payload[$field] = 'one';
 
-        Expect::that(static fn(): ResultSummary => ResultSummary::fromWire($payload))
+        Expect::calling(static fn(): ResultSummary => ResultSummary::fromWire($payload))
             ->because('non-integer wire counts name their field')
             ->toThrow(
                 InvalidWirePayload::class,

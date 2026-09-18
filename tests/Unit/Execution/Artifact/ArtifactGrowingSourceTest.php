@@ -38,15 +38,15 @@ final readonly class ArtifactGrowingSourceTest
         GrowingFileStream::$maximumStagedBytes = 0;
         $attachments = $store->forAttempt(new TestId(self::class, __FUNCTION__), 1, new TestArtifactBudget());
 
-        Expect::that(static fn() => $attachments->file('growing.txt', 'growingattachment://source'))
+        Expect::calling(static fn() => $attachments->file('growing.txt', 'growingattachment://source'))
             ->toThrow(AttachmentError::class, message: 'Attachment source "growingattachment://source" changed while it was being copied.');
-        Expect::that(GrowingFileStream::$maximumStagedBytes)->toBeLessThanOrEqual($initialSize);
-        Expect::that(\glob($store->session()->stagingDirectory . '/*/attempt-*/*.part'))->toBe([]);
-        Expect::that($attachments->collected())->toBe([]);
+        Expect::value(GrowingFileStream::$maximumStagedBytes)->toBeLessThanOrEqual($initialSize);
+        Expect::value(\glob($store->session()->stagingDirectory . '/*/attempt-*/*.part'))->toBe([]);
+        Expect::value($attachments->collected())->toBe([]);
 
         $attachments->bytes('valid.bin', \str_repeat('v', 8192));
 
-        Expect::that($attachments->collected()[0]->sizeBytes)->toBe(8192);
+        Expect::value($attachments->collected()[0]->sizeBytes)->toBe(8192);
     }
 
     /** @return iterable<string, array{int}> */

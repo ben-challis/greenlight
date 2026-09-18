@@ -30,10 +30,10 @@ final readonly class ArtifactStreamPartialWriteTest
         try {
             StreamWriter::writeFully($stream, 'evidence');
 
-            Expect::that(PartialWriteStream::$written)
+            Expect::value(PartialWriteStream::$written)
                 ->because('a partial write MUST continue from the first unwritten byte')
                 ->toBe('evidence');
-            Expect::that(PartialWriteStream::$writes)
+            Expect::value(PartialWriteStream::$writes)
                 ->because('the fixture accepts at most two bytes from each write')
                 ->toBe(4);
         } finally {

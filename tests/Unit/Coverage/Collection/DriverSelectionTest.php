@@ -13,7 +13,7 @@ final readonly class DriverSelectionTest
     #[Test]
     public function unavailableSelectionsRequireAReason(): void
     {
-        Expect::that(static fn(): DriverSelection => DriverSelection::unavailable(''))
+        Expect::calling(static fn(): DriverSelection => DriverSelection::unavailable(''))
             ->because('coverage unavailability MUST explain why no driver was selected')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -26,7 +26,7 @@ final readonly class DriverSelectionTest
     {
         $selection = DriverSelection::unavailable('0');
 
-        Expect::that($selection->reason)
+        Expect::value($selection->reason)
             ->because('coverage unavailability MUST preserve a zero-string reason')
             ->toBe('0');
     }

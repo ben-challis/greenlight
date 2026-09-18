@@ -29,9 +29,9 @@ final readonly class WorkspaceSymbolicLinkTest
 
         new Workspace()->publish($root, []);
 
-        Expect::that(\file_get_contents($target . '/sentinel.txt'))->toBe('keep');
-        Expect::that(\is_link($path))->toBeFalse();
-        Expect::that(\is_file($root . '/build/docs-php/manifest.json'))->toBeTrue();
+        Expect::value(\file_get_contents($target . '/sentinel.txt'))->toBe('keep');
+        Expect::value(\is_link($path))->toBeFalse();
+        Expect::value(\is_file($root . '/build/docs-php/manifest.json'))->toBeTrue();
     }
 
     #[Test]
@@ -43,7 +43,7 @@ final readonly class WorkspaceSymbolicLinkTest
 
         new Workspace()->publish($root, []);
 
-        Expect::that(\is_link($root . '/build/docs-php'))->toBeFalse();
-        Expect::that(\is_file($root . '/build/docs-php/manifest.json'))->toBeTrue();
+        Expect::value(\is_link($root . '/build/docs-php'))->toBeFalse();
+        Expect::value(\is_file($root . '/build/docs-php/manifest.json'))->toBeTrue();
     }
 }

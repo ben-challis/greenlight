@@ -16,7 +16,7 @@ final readonly class TemporaryDirectoryRelativeRootTest
     public function disposalFindsANewRelativeRootAfterTheWorkingDirectoryChanges(): void
     {
         $originalDirectory = \getcwd();
-        Expect::that($originalDirectory)->toBeString();
+        Expect::value($originalDirectory)->toBeString();
         $firstDirectory = $this->workspace->subdirectory('first');
         $secondDirectory = $this->workspace->subdirectory('second');
 
@@ -25,14 +25,14 @@ final readonly class TemporaryDirectoryRelativeRootTest
             $directory = new TemporaryDirectory('new-root');
             $path = $directory->path();
             $absolutePath = \realpath($path);
-            Expect::that($absolutePath)->toBeString();
+            Expect::value($absolutePath)->toBeString();
             \file_put_contents($path . '/sentinel.txt', 'temporary data');
 
             \chdir($secondDirectory);
             $directory->dispose();
 
-            Expect::that(\file_exists($absolutePath))->toBeFalse();
-            Expect::that($path)->toBe($absolutePath);
+            Expect::value(\file_exists($absolutePath))->toBeFalse();
+            Expect::value($path)->toBe($absolutePath);
         } finally {
             \chdir($originalDirectory);
         }

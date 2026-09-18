@@ -20,7 +20,7 @@ final readonly class TempestFrameworkRequirementTest
     {
         TempestFrameworkRequirement::check();
 
-        Expect::that(Kernel::VERSION)
+        Expect::value(Kernel::VERSION)
             ->because('the installed Tempest framework MUST satisfy the bridge requirement')
             ->toMatch('/^3\.(?:1[89]|[2-9][0-9]|[1-9][0-9]{2,})(?:\.|$)/D');
     }

@@ -22,19 +22,19 @@ final readonly class LaravelProcessEnvironmentValidationTest
     {
         $this->environment->set('APP_ENV', 'before-laravel');
 
-        Expect::that(static fn(): LaravelProcessState => LaravelProcessState::setEnvironment("testing\0truncated"))
+        Expect::calling(static fn(): LaravelProcessState => LaravelProcessState::setEnvironment("testing\0truncated"))
             ->because('a NUL environment MUST be rejected before putenv truncates it')
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Laravel environment cannot contain a null byte.',
             );
-        Expect::that(\getenv('APP_ENV'))
+        Expect::value(\getenv('APP_ENV'))
             ->because('a rejected Laravel environment MUST NOT change the process environment')
             ->toBe('before-laravel');
-        Expect::that($_ENV['APP_ENV'] ?? null)
+        Expect::value($_ENV['APP_ENV'] ?? null)
             ->because('a rejected Laravel environment MUST NOT change the ENV superglobal')
             ->toBe('before-laravel');
-        Expect::that($_SERVER['APP_ENV'] ?? null)
+        Expect::value($_SERVER['APP_ENV'] ?? null)
             ->because('a rejected Laravel environment MUST NOT change the SERVER superglobal')
             ->toBe('before-laravel');
     }

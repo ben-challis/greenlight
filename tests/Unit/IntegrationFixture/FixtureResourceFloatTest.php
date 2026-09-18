@@ -15,7 +15,7 @@ final readonly class FixtureResourceFloatTest
     {
         $resource = FixtureResource::from(['ratio' => 42]);
 
-        Expect::that($resource->float('ratio'))
+        Expect::value($resource->float('ratio'))
             ->because('float fixture access MUST normalize integer values')
             ->toBe(42.0);
     }

@@ -29,7 +29,7 @@ final readonly class ExecutionPlanGroupingTest
             $plan->entriesByClass(),
         );
 
-        Expect::that($idsByClass)
+        Expect::value($idsByClass)
             ->because('grouping MUST preserve class, method, and data-set order')
             ->toBe([
                 'Acme\\AlphaTest' => [

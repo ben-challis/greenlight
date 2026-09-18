@@ -50,10 +50,10 @@ final readonly class TemporaryDirectoryRestrictedDisposalTest
             $root,
         ]);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('restricted root disposal MUST produce a typed fixture error')
             ->toBe(23);
-        Expect::that($result->stdout)
+        Expect::value($result->stdout)
             ->because('restricted root disposal MUST contain diagnostics and identify the failed cleanup')
             ->toStartWith("clean\nFailed to remove temp directory \"")
             ->toContain('open_basedir restriction in effect');

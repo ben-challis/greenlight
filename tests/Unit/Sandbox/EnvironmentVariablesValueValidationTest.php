@@ -18,19 +18,19 @@ final readonly class EnvironmentVariablesValueValidationTest
         $name = 'GREENLIGHT_SANDBOX_NULL_VALUE';
         $this->environment->unset($name);
 
-        Expect::that(fn() => $this->environment->set($name, "before\0after"))
+        Expect::calling(fn() => $this->environment->set($name, "before\0after"))
             ->because('a null byte value MUST be rejected before putenv truncates it')
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Environment variable values cannot contain a null byte.',
             );
-        Expect::that(\getenv($name))
+        Expect::value(\getenv($name))
             ->because('a rejected value MUST NOT change the process environment')
             ->toBeFalse();
-        Expect::that(\array_key_exists($name, $_ENV))
+        Expect::value(\array_key_exists($name, $_ENV))
             ->because('a rejected value MUST NOT change the ENV superglobal')
             ->toBeFalse();
-        Expect::that(\array_key_exists($name, $_SERVER))
+        Expect::value(\array_key_exists($name, $_SERVER))
             ->because('a rejected value MUST NOT change the SERVER superglobal')
             ->toBeFalse();
     }

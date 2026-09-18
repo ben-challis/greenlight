@@ -47,7 +47,7 @@ final readonly class ArtifactQuotaPermissionTest
         );
 
         try {
-            Expect::that(static fn() => $attachments->text('evidence.txt', 'body'))
+            Expect::calling(static fn() => $attachments->text('evidence.txt', 'body'))
                 ->because('an unreadable quota file MUST reject attachment staging')
                 ->toThrow(
                     AttachmentError::class,
@@ -57,7 +57,7 @@ final readonly class ArtifactQuotaPermissionTest
             \chmod($quota, 0o600);
             $attachments->text('evidence.txt', 'body');
 
-            Expect::that($attachments->collected())
+            Expect::value($attachments->collected())
                 ->because('attachment staging MUST recover after quota access returns')
                 ->toHaveCount(1);
         } finally {

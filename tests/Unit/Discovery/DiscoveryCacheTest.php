@@ -37,7 +37,7 @@ final readonly class DiscoveryCacheTest
 
         try {
             $cold = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
-            Expect::that($cold->count())->toBe(2);
+            Expect::value($cold->count())->toBe(2);
 
             // Add an entry to the cached payload without a file change. The entry
             // shows that the second discovery reads the discovery cache.
@@ -45,7 +45,7 @@ final readonly class DiscoveryCacheTest
             $this->plantCachedTest($cacheFile, 'CachedProbeTest.php');
 
             $warm = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
-            Expect::that($warm->count())->toBe(3);
+            Expect::value($warm->count())->toBe(3);
 
             // Change the file content and size. Discovery MUST parse the file again
             // and remove the added entry.
@@ -56,12 +56,12 @@ final readonly class DiscoveryCacheTest
             ));
 
             $reparsed = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
-            Expect::that($reparsed->count())->toBe(2);
+            Expect::value($reparsed->count())->toBe(2);
 
             // A corrupt discovery cache causes discovery to parse the file.
             \file_put_contents($cacheFile, 'not json');
             $recovered = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
-            Expect::that($recovered->count())->toBe(2);
+            Expect::value($recovered->count())->toBe(2);
         } finally {
             @\unlink(DiscoveryCachePath::forDirectories([$directory]));
             @\unlink($directory . '/CachedProbeTest.php');
@@ -91,10 +91,10 @@ final readonly class DiscoveryCacheTest
             );
             $rewritten = (string) \file_get_contents($cacheFile);
 
-            Expect::that($plan->count())
+            Expect::value($plan->count())
                 ->because('an invalid cache document becomes a cache miss')
                 ->toBe(2);
-            Expect::that($rewritten)
+            Expect::value($rewritten)
                 ->toContain('"version":2')
                 ->toContain($className . '.php');
         } finally {
@@ -123,7 +123,7 @@ final readonly class DiscoveryCacheTest
         $directory = $this->writeFixture($className);
         $source = \realpath($directory . '/' . $className . '.php');
 
-        Expect::that($source)
+        Expect::value($source)
             ->because('The discovery fixture MUST have a canonical path.')
             ->toBeString();
 
@@ -139,10 +139,10 @@ final readonly class DiscoveryCacheTest
             $mtime = \filemtime($source);
             $size = \filesize($source);
 
-            Expect::that($mtime)
+            Expect::value($mtime)
                 ->because('The discovery fixture MUST have a modification time.')
                 ->toBeInt();
-            Expect::that($size)
+            Expect::value($size)
                 ->because('The discovery fixture MUST have a file size.')
                 ->toBeInt();
 
@@ -164,10 +164,10 @@ final readonly class DiscoveryCacheTest
             );
             $rewritten = (string) \file_get_contents($cacheFile);
 
-            Expect::that($plan->count())
+            Expect::value($plan->count())
                 ->because('a corrupt cached plan entry becomes a cache miss')
                 ->toBe(2);
-            Expect::that($rewritten)
+            Expect::value($rewritten)
                 ->because('discovery replaces the corrupt plan entry')
                 ->not()
                 ->toContain('"entries":[[]]');
@@ -235,7 +235,7 @@ final readonly class DiscoveryCacheTest
         try {
             $cache = DiscoveryCache::forDirectories([$directory]);
             $cold = new TestDiscoverer()->discover([$directory], cache: $cache);
-            Expect::that($cold->count())->toBe(1);
+            Expect::value($cold->count())->toBe(1);
 
             $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
             $this->plantCachedTest($cacheFile, 'ExternalCachedProbeTest.php');
@@ -244,7 +244,7 @@ final readonly class DiscoveryCacheTest
                 [$directory],
                 cache: DiscoveryCache::forDirectories([$directory]),
             );
-            Expect::that($warm->count())->toBe(2);
+            Expect::value($warm->count())->toBe(2);
 
             \file_put_contents($providerFile, \file_get_contents($providerFile) . "\n// changed");
 
@@ -252,7 +252,7 @@ final readonly class DiscoveryCacheTest
                 [$directory],
                 cache: DiscoveryCache::forDirectories([$directory]),
             );
-            Expect::that($reparsed->count())->toBe(1);
+            Expect::value($reparsed->count())->toBe(1);
         } finally {
             @\unlink(DiscoveryCachePath::forDirectories([$directory]));
             @\unlink($testFile);
@@ -280,8 +280,8 @@ final readonly class DiscoveryCacheTest
         try {
             new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
 
-            Expect::that(\is_file($cacheFile))->toBeTrue();
-            Expect::that(\glob($cacheFile . '.tmp-*'))->toBe([]);
+            Expect::value(\is_file($cacheFile))->toBeTrue();
+            Expect::value(\glob($cacheFile . '.tmp-*'))->toBe([]);
         } finally {
             @\unlink($cacheFile);
             @\unlink($directory . '/' . $className . '.php');
@@ -311,9 +311,9 @@ final readonly class DiscoveryCacheTest
         try {
             new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
 
-            Expect::that(\is_dir($cacheFile))->toBeTrue();
-            Expect::that((string) \file_get_contents($cacheFile . '/occupant.txt'))->toBe('keep');
-            Expect::that(\glob($cacheFile . '.tmp-*'))->toBe([]);
+            Expect::value(\is_dir($cacheFile))->toBeTrue();
+            Expect::value((string) \file_get_contents($cacheFile . '/occupant.txt'))->toBe('keep');
+            Expect::value(\glob($cacheFile . '.tmp-*'))->toBe([]);
         } finally {
             @\unlink($cacheFile . '/occupant.txt');
             @\rmdir($cacheFile);
@@ -342,14 +342,14 @@ final readonly class DiscoveryCacheTest
                 cache: DiscoveryCache::forDirectories([$directory], $missingDirectory),
             );
 
-            Expect::that(\is_file($cacheFile))->toBeTrue();
+            Expect::value(\is_file($cacheFile))->toBeTrue();
             $source = \realpath($directory . '/' . $className . '.php');
 
             if ($source === false) {
                 Fail::because('The discovery source fixture is unavailable.');
             }
 
-            Expect::that(DiscoveryCache::forDirectories([$directory], $missingDirectory)
+            Expect::value(DiscoveryCache::forDirectories([$directory], $missingDirectory)
                 ->lookup($source))
                 ->toHaveCount(2);
         } finally {
@@ -370,10 +370,10 @@ final readonly class DiscoveryCacheTest
         try {
             $cache->store($directory . '/GoneTest.php', []);
 
-            Expect::that($cache->persist())
+            Expect::value($cache->persist())
                 ->because('a vanished discovery source MUST not make cache persistence fail')
                 ->toBeTrue();
-            Expect::that(\is_file($cacheFile))
+            Expect::value(\is_file($cacheFile))
                 ->because('a vanished source MUST not create an empty cache document')
                 ->toBeFalse();
         } finally {
@@ -394,10 +394,10 @@ final readonly class DiscoveryCacheTest
         try {
             $cache->store($source, []);
 
-            Expect::that($cache->persist())
+            Expect::value($cache->persist())
                 ->because('an unencodable source path MUST disable advisory cache persistence cleanly')
                 ->toBeFalse();
-            Expect::that(\is_file($cacheFile))
+            Expect::value(\is_file($cacheFile))
                 ->because('failed cache encoding MUST not leave a cache document')
                 ->toBeFalse();
         } finally {

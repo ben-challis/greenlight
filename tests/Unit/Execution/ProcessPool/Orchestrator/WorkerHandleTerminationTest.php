@@ -47,7 +47,7 @@ final readonly class WorkerHandleTerminationTest
 
             \stream_set_timeout($pipes[1], 2);
 
-            Expect::that(\fgets($pipes[1]))
+            Expect::value(\fgets($pipes[1]))
                 ->because('the worker process fixture MUST signal that it is ready')
                 ->toBe("ready\n");
 
@@ -62,10 +62,10 @@ final readonly class WorkerHandleTerminationTest
             $handle->channel = $channel;
             $handle->terminate();
 
-            Expect::that($channel->isEof())
+            Expect::value($channel->isEof())
                 ->because('worker termination MUST close its protocol channel')
                 ->toBeTrue();
-            Expect::that(\is_resource($process))
+            Expect::value(\is_resource($process))
                 ->because('worker termination MUST close its process handle')
                 ->toBeFalse();
         } finally {

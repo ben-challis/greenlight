@@ -28,14 +28,14 @@ final readonly class WorkerHandlePipeLifecycleTest
         $handle->drainPipes();
         $handle->drainPipes();
 
-        Expect::that($handle->diagnostics)
+        Expect::value($handle->diagnostics)
             ->because('repeated pipe draining MUST retain each diagnostic byte once')
             ->toBe("standard error\n");
 
         \fclose($stderr);
         $handle->drainPipes();
 
-        Expect::that($handle->diagnostics)
+        Expect::value($handle->diagnostics)
             ->because('pipe draining MUST skip closed output pipes')
             ->toBe("standard error\n");
     }

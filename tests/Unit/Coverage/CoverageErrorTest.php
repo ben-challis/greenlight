@@ -19,7 +19,7 @@ final readonly class CoverageErrorTest
     ): void {
         $error = CoverageError::sharedDirectoryCreationFailed('/tmp/coverage', $cause);
 
-        Expect::that($error->getMessage())
+        Expect::value($error->getMessage())
             ->because('shared coverage creation diagnostics MUST retain each available cause')
             ->toBe($expected);
     }

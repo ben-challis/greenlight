@@ -9,7 +9,9 @@ use Greenlight\Expect\ConsistentlyExpectation;
 use Greenlight\Expect\EventuallyExpectation;
 use Greenlight\Expect\Expectation;
 use Greenlight\Expect\PendingConsistently;
+use Greenlight\Expect\PendingConsistentlyCall;
 use Greenlight\Expect\PendingEventually;
+use Greenlight\Expect\PendingEventuallyCall;
 use Greenlight\Expect\TemporalExpectation;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
@@ -83,7 +85,7 @@ final class FloatArgumentRule implements Rule
             'precisionIdentifier' => null,
         ],
         [
-            'receivers' => [PendingEventually::class, PendingConsistently::class],
+            'receivers' => [PendingEventuallyCall::class, PendingConsistentlyCall::class, PendingEventually::class, PendingConsistently::class],
             'method' => 'pollEvery',
             'argument' => 'seconds',
             'position' => 0,
@@ -99,7 +101,7 @@ final class FloatArgumentRule implements Rule
             'precisionIdentifier' => null,
         ],
         [
-            'receivers' => [PendingEventually::class],
+            'receivers' => [PendingEventually::class, PendingEventuallyCall::class],
             'method' => 'within',
             'argument' => 'seconds',
             'position' => 0,
@@ -115,7 +117,7 @@ final class FloatArgumentRule implements Rule
             'precisionIdentifier' => null,
         ],
         [
-            'receivers' => [PendingConsistently::class],
+            'receivers' => [PendingConsistently::class, PendingConsistentlyCall::class],
             'method' => 'for',
             'argument' => 'seconds',
             'position' => 0,

@@ -19,7 +19,7 @@ final readonly class ArgumentParserDefinitionTest
     #[DataSet('conflictingDefinitions')]
     public function conflictingOptionDefinitionsAreRejected(array $specs, string $message): void
     {
-        Expect::that(static fn(): ArgumentParser => new ArgumentParser($specs))
+        Expect::calling(static fn(): ArgumentParser => new ArgumentParser($specs))
             ->because('option maps MUST NOT silently replace conflicting definitions')
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }

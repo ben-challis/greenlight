@@ -49,10 +49,10 @@ final readonly class DiscoveryCacheInternalProviderTest
             $cache = DiscoveryCache::forDirectories([$directory]);
             $cache->store($source, [$entry]);
 
-            Expect::that(new \ReflectionMethod($providerClass, 'listAbbreviations')->getFileName())
+            Expect::value(new \ReflectionMethod($providerClass, 'listAbbreviations')->getFileName())
                 ->because('the inherited provider method belongs to the PHP runtime')
                 ->toBeFalse();
-            Expect::that($cache->persist())
+            Expect::value($cache->persist())
                 ->because('an internal provider method MUST NOT block cache persistence')
                 ->toBeTrue();
 
@@ -62,13 +62,13 @@ final readonly class DiscoveryCacheInternalProviderTest
                 $cached ?? [],
             );
 
-            Expect::that($cachedWire)
+            Expect::value($cachedWire)
                 ->because('the cache MUST retain an entry whose provider inherits an internal method')
                 ->toBe([$entry->toWire()]);
 
             \file_put_contents($providerSource, "\n// changed\n", \FILE_APPEND);
 
-            Expect::that(DiscoveryCache::forDirectories([$directory])->lookup($source))
+            Expect::value(DiscoveryCache::forDirectories([$directory])->lookup($source))
                 ->because('the cache MUST still track the user provider class source')
                 ->toBeNull();
         } finally {

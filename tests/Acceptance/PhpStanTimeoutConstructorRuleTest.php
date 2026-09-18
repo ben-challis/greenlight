@@ -45,10 +45,10 @@ final readonly class PhpStanTimeoutConstructorRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('timeout construction requires valid seconds')->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that($probe->errors)->toHaveCount(5);
-        Expect::that($probe->messages())
+        Expect::value($probe->exitCode)->because('timeout construction requires valid seconds')->toBe(1);
+        Expect::value($probe->goodPassed)->toBeTrue();
+        Expect::value($probe->errors)->toHaveCount(5);
+        Expect::value($probe->messages())
             ->because('each invalid timeout value has the same actionable diagnostic')
             ->toBe(\implode("\n", \array_fill(0, 5, 'Timeout seconds must be finite and greater than zero.')));
     }

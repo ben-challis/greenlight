@@ -26,7 +26,7 @@ final readonly class ClassLifecycleNullWorkerWireTest
             'workerId' => null,
         ];
 
-        Expect::that(static fn(): TestClassStarted|TestClassFinished => $eventClass::fromWire($payload))
+        Expect::calling(static fn(): TestClassStarted|TestClassFinished => $eventClass::fromWire($payload))
             ->because('class lifecycle worker IDs MUST distinguish explicit null from a missing legacy field')
             ->toThrow(
                 InvalidWirePayload::class,

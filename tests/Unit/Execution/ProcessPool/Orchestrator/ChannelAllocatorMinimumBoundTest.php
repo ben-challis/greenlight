@@ -15,10 +15,10 @@ final readonly class ChannelAllocatorMinimumBoundTest
     {
         $allocator = new ChannelAllocator(1);
 
-        Expect::that($allocator->allocate())
+        Expect::value($allocator->allocate())
             ->because('a single worker channel MUST be a valid allocation bound')
             ->toBe(1);
-        Expect::that(static fn(): int => $allocator->allocate())
+        Expect::calling(static fn(): int => $allocator->allocate())
             ->toThrow(
                 \LogicException::class,
                 message: 'All 1 worker channels are in use. A worker finished without releasing its channel.',

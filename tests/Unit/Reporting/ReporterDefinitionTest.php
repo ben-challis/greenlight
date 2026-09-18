@@ -19,8 +19,8 @@ final readonly class ReporterDefinitionTest
         $factory = static fn(Output $output): Reporter => new RecordingReporter();
         $definition = new ReporterDefinition('company-json', $factory);
 
-        Expect::that($definition->name)->toBe('company-json');
-        Expect::that($definition->factory)->toBe($factory);
+        Expect::value($definition->name)->toBe('company-json');
+        Expect::value($definition->factory)->toBe($factory);
     }
 
     /** @param non-empty-string $name */
@@ -28,7 +28,7 @@ final readonly class ReporterDefinitionTest
     #[DataSet('invalidNames')]
     public function rejectsNamesThatAreNotCommandLineTokens(string $name): void
     {
-        Expect::that(static fn() => new ReporterDefinition(
+        Expect::calling(static fn() => new ReporterDefinition(
             $name,
             static fn(Output $output): Reporter => new RecordingReporter(),
         ))->toThrow(\InvalidArgumentException::class);
@@ -39,7 +39,7 @@ final readonly class ReporterDefinitionTest
     {
         $factory = static fn(Output $output): Reporter => new RecordingReporter();
 
-        Expect::that(static fn(): object => new \ReflectionClass(ReporterDefinition::class)->newInstance('', $factory))
+        Expect::calling(static fn(): object => new \ReflectionClass(ReporterDefinition::class)->newInstance('', $factory))
             ->toThrow(\InvalidArgumentException::class);
     }
 

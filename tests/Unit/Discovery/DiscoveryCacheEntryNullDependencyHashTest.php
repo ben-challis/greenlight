@@ -26,7 +26,7 @@ final class DiscoveryCacheEntryNullDependencyHashTest
             ],
         ];
 
-        Expect::that(DiscoveryCacheEntry::fromDecoded($decoded))
+        Expect::value(DiscoveryCacheEntry::fromDecoded($decoded))
             ->because('an explicit null dependency content hash is malformed')
             ->toBeNull();
     }

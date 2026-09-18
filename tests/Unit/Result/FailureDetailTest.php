@@ -14,7 +14,7 @@ final readonly class FailureDetailTest
     #[Test]
     public function rejectsAnEmptyMessage(): void
     {
-        Expect::that(static fn(): FailureDetail => new FailureDetail(''))
+        Expect::calling(static fn(): FailureDetail => new FailureDetail(''))
             ->because('a failure detail MUST explain the failure')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -28,7 +28,7 @@ final readonly class FailureDetailTest
         $detail = new FailureDetail('0');
         $restored = FailureDetail::fromWire(JsonWire::roundTrip($detail->toWire()));
 
-        Expect::that($restored->message)
+        Expect::value($restored->message)
             ->because('a zero-string failure message is not empty')
             ->toBe('0');
     }

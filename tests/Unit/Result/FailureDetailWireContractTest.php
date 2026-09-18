@@ -21,7 +21,7 @@ final readonly class FailureDetailWireContractTest
             new SourceLocation('/project/tests/ExampleTest.php', 42),
         );
 
-        Expect::that($detail->toWire())
+        Expect::value($detail->toWire())
             ->because('a failure detail MUST keep its message, diff, and source location')
             ->toBe([
                 'message' => 'Values are not identical.',

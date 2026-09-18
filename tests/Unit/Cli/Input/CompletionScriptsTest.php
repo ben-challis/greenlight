@@ -22,7 +22,7 @@ final class CompletionScriptsTest
         foreach (['run', 'list-tests', 'coverage:merge', 'coverage:diff', 'profile:report', 'artifacts:prune', 'ide-helper', 'completion'] as $command) {
             // The zsh _describe entries use an escape before the colon in a
             // command name.
-            Expect::that($script)->toContain($shell === 'zsh' ? \str_replace(':', '\:', $command) : $command);
+            Expect::value($script)->toContain($shell === 'zsh' ? \str_replace(':', '\:', $command) : $command);
         }
     }
 
@@ -32,7 +32,7 @@ final class CompletionScriptsTest
     {
         $script = (string) $this->scripts()->render($shell);
 
-        Expect::that($script)
+        Expect::value($script)
             ->toContain('Find and run tests (default)')
             ->toContain('List selected test IDs and the total test count')
             ->toContain('Merge coverage JSON exports')
@@ -50,14 +50,14 @@ final class CompletionScriptsTest
         $script = (string) $this->scripts()->render($shell);
 
         if ($shell === 'fish') {
-            Expect::that($script)->because('generates flag candidates from the option spec list')
+            Expect::value($script)->because('generates flag candidates from the option spec list')
                 ->toContain('-l only-in-the-spec-table -r')
                 ->toContain('-l watch');
 
             return;
         }
 
-        Expect::that($script)
+        Expect::value($script)
             ->toContain('--only-in-the-spec-table=')
             ->toContain('--watch');
     }
@@ -69,10 +69,10 @@ final class CompletionScriptsTest
         $script = (string) $this->scripts()->render($shell);
 
         foreach (['tty', 'plain', 'junit', 'jsonl', 'github', 'teamcity'] as $reporter) {
-            Expect::that($script)->toContain($reporter);
+            Expect::value($script)->toContain($reporter);
         }
 
-        Expect::that($script)
+        Expect::value($script)
             ->because('completion MUST explain that custom reporter names remain valid')
             ->toContain('Configured names remain valid')
             ->toContain('bash zsh fish');
@@ -83,19 +83,19 @@ final class CompletionScriptsTest
     {
         $scripts = $this->scripts();
 
-        Expect::that($scripts->render('bash'))
+        Expect::value($scripts->render('bash'))
             ->because('Bash MUST complete the automatic worker count for the workers flag')
             ->toContain('--workers=*)');
-        Expect::that($scripts->render('bash'))
+        Expect::value($scripts->render('bash'))
             ->toContain('compgen -W "auto" -P "--workers="');
 
-        Expect::that($scripts->render('zsh'))
+        Expect::value($scripts->render('zsh'))
             ->because('Zsh MUST complete the automatic worker count for the workers flag')
             ->toContain("compset -P '--workers='");
-        Expect::that($scripts->render('zsh'))
+        Expect::value($scripts->render('zsh'))
             ->toContain('compadd -- auto');
 
-        Expect::that($scripts->render('fish'))
+        Expect::value($scripts->render('fish'))
             ->because('Fish MUST complete the automatic worker count for the workers flag')
             ->toContain("complete -c greenlight -l workers -x -a 'auto'");
     }
@@ -109,7 +109,7 @@ final class CompletionScriptsTest
         ]);
 
         if ($shell === 'fish') {
-            Expect::that($scripts->render($shell))
+            Expect::value($scripts->render($shell))
                 ->because('fish MUST register an optional-value flag without requiring its argument')
                 ->toContain("complete -c greenlight -l bail\n")
                 ->not()
@@ -118,7 +118,7 @@ final class CompletionScriptsTest
             return;
         }
 
-        Expect::that($scripts->render($shell))
+        Expect::value($scripts->render($shell))
             ->because('shells with equals-form completion MUST offer the optional value')
             ->toContain('--bail=');
     }
@@ -126,7 +126,7 @@ final class CompletionScriptsTest
     #[Test]
     public function fishPreservesShortAliasesFromTheOptionSpecifications(): void
     {
-        Expect::that($this->scripts()->render('fish'))
+        Expect::value($this->scripts()->render('fish'))
             ->because('fish completion MUST include each configured short option alias')
             ->toContain('complete -c greenlight -l help -s h');
     }
@@ -134,7 +134,7 @@ final class CompletionScriptsTest
     #[Test]
     public function returnsNullForAnUnknownShell(): void
     {
-        Expect::that($this->scripts()->render('powershell'))->because('returns null for an unknown shell')->toBeNull();
+        Expect::value($this->scripts()->render('powershell'))->because('returns null for an unknown shell')->toBeNull();
     }
 
     /**

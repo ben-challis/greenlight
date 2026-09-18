@@ -46,7 +46,7 @@ final readonly class ArtifactSourceValidationTest
         );
 
         $warning = null;
-        Expect::that(static function () use ($attachments, $source, &$warning): void {
+        Expect::calling(static function () use ($attachments, $source, &$warning): void {
             ErrorTrap::run(
                 static fn() => $attachments->file('evidence.txt', $source),
                 $warning,
@@ -57,10 +57,10 @@ final readonly class ArtifactSourceValidationTest
                 AttachmentError::class,
                 message: \sprintf('Attachment source "%s" %s.', $source, $reason),
             );
-        Expect::that($warning)
+        Expect::value($warning)
             ->because('an invalid attachment source MUST not leak an engine diagnostic')
             ->toBeNull();
-        Expect::that($attachments->collected())
+        Expect::value($attachments->collected())
             ->because('an invalid source does not create an attachment')
             ->toBe([]);
     }

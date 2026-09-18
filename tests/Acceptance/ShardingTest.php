@@ -30,8 +30,8 @@ final readonly class ShardingTest
         }
         \sort($all);
         \sort($union);
-        Expect::that($all)->because('shards reconstitute the full list exactly once')->not()->toHaveCount(0);
-        Expect::that($union)->because('shards reconstitute the full list exactly once')->toBe($all);
+        Expect::value($all)->because('shards reconstitute the full list exactly once')->not()->toHaveCount(0);
+        Expect::value($union)->because('shards reconstitute the full list exactly once')->toBe($all);
     }
 
     #[Test]
@@ -41,8 +41,8 @@ final readonly class ShardingTest
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'sharding');
         $result = GreenlightCli::run($project->directory, ['list-tests', $flag]);
 
-        Expect::that($result->exitCode)->because('malformed shard specs are usage errors')->toBe(64);
-        Expect::that($result->output())->because('malformed shard specs are usage errors')->toBe($diagnostic);
+        Expect::value($result->exitCode)->because('malformed shard specs are usage errors')->toBe(64);
+        Expect::value($result->output())->because('malformed shard specs are usage errors')->toBe($diagnostic);
     }
 
     /**

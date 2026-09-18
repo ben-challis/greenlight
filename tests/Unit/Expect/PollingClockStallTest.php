@@ -14,10 +14,10 @@ final class PollingClockStallTest
     #[Test]
     public function aStalledClockCannotCauseAnUnlimitedWait(): void
     {
-        Expect::that(static function (): void {
+        Expect::calling(static function (): void {
             ExpectationRuntime::withClock(
                 new StalledPollingClock(),
-                static fn() => Expect::eventually(static fn(): string => 'pending')
+                static fn() => Expect::calling(static fn(): string => 'pending')->returnValue()->eventually()
                     ->pollEvery(0.010)
                     ->within(0.100)
                     ->toBe('ready'),

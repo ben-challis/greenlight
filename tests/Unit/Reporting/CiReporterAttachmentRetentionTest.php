@@ -25,14 +25,14 @@ final class CiReporterAttachmentRetentionTest
         $githubOutput = new BufferOutput();
         $this->feed(new GithubReporter($githubOutput));
 
-        Expect::that($githubOutput->buffer())
+        Expect::value($githubOutput->buffer())
             ->because('GitHub output MUST retain the publication notice for an earlier attachment')
             ->toContain('::notice::Greenlight attachments: build/greenlight-artifacts/run-1');
 
         $teamCityOutput = new BufferOutput();
         $this->feed(new TeamCityReporter($teamCityOutput));
 
-        Expect::that($teamCityOutput->buffer())
+        Expect::value($teamCityOutput->buffer())
             ->because('TeamCity output MUST retain the publication command for an earlier attachment')
             ->toContain("##teamcity[publishArtifacts 'build/greenlight-artifacts/run-1']");
     }

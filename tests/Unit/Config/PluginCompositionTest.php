@@ -25,11 +25,11 @@ final readonly class PluginCompositionTest
             ->execution
             ->plugins;
 
-        Expect::that($plugins)
+        Expect::value($plugins)
             ->because('repeated plugin calls MUST retain every configured plugin in order')
             ->toHaveCount(2);
-        Expect::that($plugins[0]->pluginClass)->toBe(NamedFakePlugin::class);
-        Expect::that($plugins[1]->pluginClass)->toBe(NamedFakePlugin::class);
+        Expect::value($plugins[0]->pluginClass)->toBe(NamedFakePlugin::class);
+        Expect::value($plugins[1]->pluginClass)->toBe(NamedFakePlugin::class);
     }
 
     #[Test]
@@ -47,10 +47,10 @@ final readonly class PluginCompositionTest
             ->execution
             ->plugins;
 
-        Expect::that($plugins[0]->pluginClass)
+        Expect::value($plugins[0]->pluginClass)
             ->because('Greenlight MUST get the plugin class without calling its factory')
             ->toBe(NamedFakePlugin::class);
-        Expect::that($constructions)->toBe(0);
+        Expect::value($constructions)->toBe(0);
     }
 
     #[Test]
@@ -59,7 +59,7 @@ final readonly class PluginCompositionTest
         $builder = GreenlightConfig::create()
             ->plugins(static fn(): NamedFakePlugin => new NamedFakePlugin());
 
-        Expect::that(static fn(): GreenlightConfig => $builder->plugins(
+        Expect::calling(static fn(): GreenlightConfig => $builder->plugins(
             static fn(): NamedFakePlugin => new NamedFakePlugin(),
             static fn() => new NamedFakePlugin(),
         ))
@@ -69,7 +69,7 @@ final readonly class PluginCompositionTest
                 message: 'A plugin factory must declare one non-null concrete plugin class return type.',
             );
 
-        Expect::that($builder->build()->execution->plugins)
+        Expect::value($builder->build()->execution->plugins)
             ->because('a rejected plugin call MUST not append its earlier valid factories')
             ->toHaveCount(1);
     }

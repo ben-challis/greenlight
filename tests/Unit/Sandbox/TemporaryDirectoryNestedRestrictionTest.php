@@ -35,7 +35,7 @@ final readonly class TemporaryDirectoryNestedRestrictionTest
             }
 
             $warning = null;
-            Expect::that(static function () use ($directory, &$warning): void {
+            Expect::calling(static function () use ($directory, &$warning): void {
                 ErrorTrap::run(static fn() => $directory->dispose(), $warning);
             })
                 ->because('fixture cleanup MUST translate directory traversal failures')
@@ -47,7 +47,7 @@ final readonly class TemporaryDirectoryNestedRestrictionTest
                         \preg_quote($nested, '/'),
                     ),
                 );
-            Expect::that($warning)
+            Expect::value($warning)
                 ->because('a nested traversal failure MUST not leak an engine diagnostic')
                 ->toBeNull();
         } finally {

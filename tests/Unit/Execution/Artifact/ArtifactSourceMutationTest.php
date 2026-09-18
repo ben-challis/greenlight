@@ -48,7 +48,7 @@ final readonly class ArtifactSourceMutationTest
         );
         $source = self::SCHEME . '://evidence';
 
-        Expect::that(static fn() => $attachments->file('evidence.txt', $source))
+        Expect::calling(static fn() => $attachments->file('evidence.txt', $source))
             ->because('a file attachment source must stay unchanged while Greenlight copies it')
             ->toThrow(
                 AttachmentError::class,
@@ -60,10 +60,10 @@ final readonly class ArtifactSourceMutationTest
 
         $attachments->text('replacement.txt', 'replacement');
 
-        Expect::that($attachments->collected())
+        Expect::value($attachments->collected())
             ->because('a rejected source releases its run quota')
             ->toHaveCount(1);
-        Expect::that($attachments->collected()[0]->name)
+        Expect::value($attachments->collected()[0]->name)
             ->toBe('replacement.txt');
     }
 
@@ -87,7 +87,7 @@ final readonly class ArtifactSourceMutationTest
         );
         $source = self::FAILING_READ_SCHEME . '://evidence';
 
-        Expect::that(static fn() => $attachments->file('evidence.txt', $source))
+        Expect::calling(static fn() => $attachments->file('evidence.txt', $source))
             ->because('a file attachment read failure MUST reject the incomplete copy')
             ->toThrow(
                 AttachmentError::class,
@@ -98,22 +98,22 @@ final readonly class ArtifactSourceMutationTest
             . '/' . ArtifactStore::testDirectory($id)
             . '/attempt-1/01-evidence.txt';
 
-        Expect::that(\file_exists($failedPath))
+        Expect::value(\file_exists($failedPath))
             ->because('a failed source read MUST remove the incomplete staging file')
             ->toBeFalse();
-        Expect::that(\file_exists($failedPath . '.part'))
+        Expect::value(\file_exists($failedPath . '.part'))
             ->because('a failed source read MUST remove the partial staging file')
             ->toBeFalse();
-        Expect::that(\file_exists($failedPath . '.meta.json'))
+        Expect::value(\file_exists($failedPath . '.meta.json'))
             ->because('a failed source read MUST not leave recovery metadata')
             ->toBeFalse();
 
         $attachments->text('replacement.txt', 'replacement');
 
-        Expect::that($attachments->collected())
+        Expect::value($attachments->collected())
             ->because('a failed source read MUST release its run quota')
             ->toHaveCount(1);
-        Expect::that($attachments->collected()[0]->name)
+        Expect::value($attachments->collected()[0]->name)
             ->toBe('replacement.txt');
     }
 }

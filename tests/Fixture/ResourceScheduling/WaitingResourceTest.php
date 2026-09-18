@@ -12,6 +12,6 @@ final class WaitingResourceTest
     #[Test]
     public function runsAfterTheWait(): void
     {
-        Expect::that(true)->toBeTrue();
+        Expect::value(true)->toBeTrue();
     }
 }

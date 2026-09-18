@@ -27,11 +27,11 @@ final readonly class StorageBuilderTest
             ->build()
             ->storage;
 
-        Expect::that($configuration->rootDirectory)->toBe('build/greenlight');
-        Expect::that($configuration->stateDirectory)->toBe('/shared/state');
-        Expect::that($configuration->cacheDirectory)->toBe('/local/cache');
-        Expect::that($configuration->generatedCodeDirectory)->toBe('/local/code');
-        Expect::that($configuration->temporaryDirectory)->toBe('/local/tmp');
+        Expect::value($configuration->rootDirectory)->toBe('build/greenlight');
+        Expect::value($configuration->stateDirectory)->toBe('/shared/state');
+        Expect::value($configuration->cacheDirectory)->toBe('/local/cache');
+        Expect::value($configuration->generatedCodeDirectory)->toBe('/local/code');
+        Expect::value($configuration->temporaryDirectory)->toBe('/local/tmp');
     }
 
     /** @param \Closure(StorageBuilder): mixed $configure */
@@ -41,7 +41,7 @@ final readonly class StorageBuilderTest
         \Closure $configure,
         string $message,
     ): void {
-        Expect::that(static fn(): mixed => $configure(new StorageBuilder()))
+        Expect::calling(static fn(): mixed => $configure(new StorageBuilder()))
             ->toThrow(InvalidConfiguration::class, message: $message);
     }
 

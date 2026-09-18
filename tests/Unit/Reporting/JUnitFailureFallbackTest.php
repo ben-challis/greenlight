@@ -28,7 +28,7 @@ final class JUnitFailureFallbackTest
 
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('the failure count and testcase element MUST remain consistent without details')
             ->toBe(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"

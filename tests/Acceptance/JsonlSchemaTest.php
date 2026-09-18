@@ -30,12 +30,12 @@ final readonly class JsonlSchemaTest
     {
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
-        Expect::that($result->exitCode)->because('every emitted line validates against the shipped schema')->toBe(1);
+        Expect::value($result->exitCode)->because('every emitted line validates against the shipped schema')->toBe(1);
         $lines = $result->stdoutLines();
         $schema = (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/jsonl-v1.schema.json'];
         $seenTags = [];
         $violations = [];
-        Expect::that($lines)->because('every emitted line validates against the shipped schema')->not()->toBeEmpty();
+        Expect::value($lines)->because('every emitted line validates against the shipped schema')->not()->toBeEmpty();
         foreach ($lines as $line) {
             $decoded = \json_decode($line, flags: \JSON_THROW_ON_ERROR);
             $validator = new Validator();
@@ -68,9 +68,9 @@ final readonly class JsonlSchemaTest
                 $seenTags[$assoc['event']] = true;
             }
         }
-        Expect::that($violations)->because('every emitted line validates against the shipped schema')->toBe([]);
+        Expect::value($violations)->because('every emitted line validates against the shipped schema')->toBe([]);
         foreach (self::PRODUCIBLE_TAGS as $tag) {
-            Expect::that($seenTags)->toHaveKey($tag);
+            Expect::value($seenTags)->toHaveKey($tag);
         }
     }
 
@@ -95,13 +95,13 @@ final readonly class JsonlSchemaTest
                 #[Test]
                 public function passes(): void
                 {
-                    Expect::that(true)->toBeTrue();
+                    Expect::value(true)->toBeTrue();
                 }
 
                 #[Test]
                 public function failsAnExpectation(): void
                 {
-                    Expect::that(1 + 1)->toBe(3);
+                    Expect::value(1 + 1)->toBe(3);
                 }
 
                 #[Test]
@@ -121,7 +121,7 @@ final readonly class JsonlSchemaTest
                 #[DataRow(['two'])]
                 public function acceptsRows(string $row): void
                 {
-                    Expect::that($row)->toBeString();
+                    Expect::value($row)->toBeString();
                 }
             }
             PHP);

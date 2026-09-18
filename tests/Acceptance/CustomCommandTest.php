@@ -43,11 +43,11 @@ final readonly class CustomCommandTest
 
         $result = GreenlightCli::run($project->directory, ['company:hello', 'Ben', '--mode=brief']);
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stdout)
+        Expect::value($result->exitCode)->toBe(1);
+        Expect::value($result->stdout)
             ->toContain('cwd=' . $project->directory)
             ->toContain('args=Ben|--mode=brief');
-        Expect::that($result->stderr)->toBe('company diagnostic');
+        Expect::value($result->stderr)->toBe('company diagnostic');
     }
 
     #[Test]
@@ -72,9 +72,9 @@ final readonly class CustomCommandTest
 
         $result = GreenlightCli::run($project->directory, ['company:probe', '--no-ansi']);
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stdout)->toBe('');
-        Expect::that($result->stderr)->toBe('greenlight: Command name "run" is registered more than once.');
+        Expect::value($result->exitCode)->toBe(1);
+        Expect::value($result->stdout)->toBe('');
+        Expect::value($result->stderr)->toBe('greenlight: Command name "run" is registered more than once.');
     }
 
     #[Test]
@@ -101,8 +101,8 @@ final readonly class CustomCommandTest
             PHP);
 
         $threw = GreenlightCli::run($project->directory, ['company:throws', '--no-ansi']);
-        Expect::that($threw->exitCode)->toBe(1);
-        Expect::that($threw->stderr)
+        Expect::value($threw->exitCode)->toBe(1);
+        Expect::value($threw->stderr)
             ->toBe('greenlight: Command "company:throws" caused an error: Command exploded');
     }
 

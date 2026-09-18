@@ -24,13 +24,13 @@ final readonly class ResourceSchedulerQueuePriorityTest
         $staleWorkerDecision = $scheduler->dispatch(false);
         $isolatedLease = SchedulingFixture::assignedLease($scheduler, freshWorker: true);
 
-        Expect::that($pooledLease->unit->plan->classes())
+        Expect::value($pooledLease->unit->plan->classes())
             ->because('pooled work MUST run before isolated work')
             ->toBe(['Acme\\PooledTest']);
-        Expect::that($staleWorkerDecision->kind)
+        Expect::value($staleWorkerDecision->kind)
             ->because('isolated work MUST wait for a fresh worker')
             ->toBe(DispatchKind::Drain);
-        Expect::that($isolatedLease->unit->plan->classes())
+        Expect::value($isolatedLease->unit->plan->classes())
             ->because('a fresh worker MUST receive the isolated work')
             ->toBe(['Acme\\IsolatedTest']);
     }

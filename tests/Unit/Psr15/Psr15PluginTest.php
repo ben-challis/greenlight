@@ -24,8 +24,8 @@ final class Psr15PluginTest
     {
         $definition = new Psr15Plugin($this->handler())->services()[0];
 
-        Expect::that($definition->type)->toBe(HttpHarness::class);
-        Expect::that($definition->scope)->toBe(Scope::PerTest);
+        Expect::value($definition->type)->toBe(HttpHarness::class);
+        Expect::value($definition->scope)->toBe(Scope::PerTest);
     }
 
     #[Test]
@@ -52,7 +52,7 @@ final class Psr15PluginTest
         $scopes->resolve(HttpHarness::class, self::class)->send(new ServerRequest([], [], '/second', 'GET'));
         $scopes->closeTest();
 
-        Expect::that($created)->toBe(2);
+        Expect::value($created)->toBe(2);
     }
 
     #[Test]
@@ -84,9 +84,9 @@ final class Psr15PluginTest
         $second->send(new ServerRequest([], [], '/second', 'GET'));
         $scopes->closeTest();
 
-        Expect::that($second)->toBe($first);
-        Expect::that($created)->toBe(1);
-        Expect::that($scopes->closeWorker())->toBe([]);
+        Expect::value($second)->toBe($first);
+        Expect::value($created)->toBe(1);
+        Expect::value($scopes->closeWorker())->toBe([]);
     }
 
     #[Test]
@@ -104,8 +104,8 @@ final class Psr15PluginTest
         $scopes->openTest();
         $scopes->resolve(HttpHarness::class, self::class)->send(new ServerRequest([], [], '/status', 'GET'));
 
-        Expect::that($scopes->closeTest())->toBe([]);
-        Expect::that($released)->toBe($handler);
+        Expect::value($scopes->closeTest())->toBe([]);
+        Expect::value($released)->toBe($handler);
     }
 
     #[Test]
@@ -124,9 +124,9 @@ final class Psr15PluginTest
 
         $failures = $scopes->closeTest();
 
-        Expect::that($failures)->toHaveCount(1);
-        Expect::that($failures[0])->toBeInstanceOf(Psr15Error::class);
-        Expect::that($failures[0]->getPrevious())->toBe($cause);
+        Expect::value($failures)->toHaveCount(1);
+        Expect::value($failures[0])->toBeInstanceOf(Psr15Error::class);
+        Expect::value($failures[0]->getPrevious())->toBe($cause);
     }
 
     private function handler(): RequestHandlerInterface

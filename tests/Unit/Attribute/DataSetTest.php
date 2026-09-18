@@ -17,7 +17,7 @@ final class DataSetTest
         ?string $method,
         string $message,
     ): void {
-        Expect::that(
+        Expect::calling(
             static fn(): object => new \ReflectionClass(DataSet::class)->newInstance($provider, $method),
         )
             ->because('data set provider identifiers MUST be non-empty')

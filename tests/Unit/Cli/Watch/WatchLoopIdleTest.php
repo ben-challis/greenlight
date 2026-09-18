@@ -49,10 +49,10 @@ final class WatchLoopIdleTest
             return [];
         });
 
-        Expect::that($clock->sleeps)
+        Expect::value($clock->sleeps)
             ->because('an idle watch loop MUST sleep between polls')
             ->toBe([0.1]);
-        Expect::that($runs)
+        Expect::value($runs)
             ->because('idle polling MUST NOT start another test run')
             ->toBe(1);
     }

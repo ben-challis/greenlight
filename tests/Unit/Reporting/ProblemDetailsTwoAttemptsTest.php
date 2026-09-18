@@ -24,7 +24,7 @@ final readonly class ProblemDetailsTwoAttemptsTest
             attempts: 2,
         );
 
-        Expect::that(ProblemDetails::render($result))
+        Expect::value(ProblemDetails::render($result))
             ->because('a retried result MUST report its total attempt count')
             ->toBe("  after 2 attempts\n");
     }

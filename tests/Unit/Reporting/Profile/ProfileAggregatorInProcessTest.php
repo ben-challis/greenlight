@@ -31,7 +31,7 @@ final class ProfileAggregatorInProcessTest
             $aggregator->onEvent($event);
         }
 
-        Expect::that($aggregator->render(new Style(ansi: false)))
+        Expect::value($aggregator->render(new Style(ansi: false)))
             ->because('in-process class events MUST NOT invent a worker profile')
             ->toBe(
                 "\nProfile:\n"

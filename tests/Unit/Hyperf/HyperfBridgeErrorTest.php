@@ -16,7 +16,7 @@ final readonly class HyperfBridgeErrorTest
     #[DataSet('diagnostics')]
     public function factoriesPreserveActionableDiagnostics(\Closure $factory, string $message): void
     {
-        Expect::that($factory()->getMessage())->toBe($message);
+        Expect::value($factory()->getMessage())->toBe($message);
     }
 
     /** @return iterable<string, array{\Closure(): HyperfBridgeError, string}> */

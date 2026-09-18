@@ -25,7 +25,7 @@ final class OptionalStringWireTest
 
         $assign = Assign::fromWire($payload);
 
-        Expect::that($assign->coverageDriver)
+        Expect::value($assign->coverageDriver)
             ->because('optional assignment coverage drivers MUST be null or non-empty')
             ->toBe($expected);
     }
@@ -41,7 +41,7 @@ final class OptionalStringWireTest
 
         $bootstrap = Bootstrap::fromWire($payload);
 
-        Expect::that($bootstrap->configFile)
+        Expect::value($bootstrap->configFile)
             ->because('optional bootstrap configuration files MUST be null or non-empty')
             ->toBe($expected);
     }

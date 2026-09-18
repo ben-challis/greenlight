@@ -47,7 +47,7 @@ final class ProblemDetailsTest
                 (truncated)
             TXT;
 
-        Expect::that(ProblemDetails::render($result))
+        Expect::value(ProblemDetails::render($result))
             ->because('problem context renders in diagnostic order')
             ->toBe($expected . "\n");
     }
@@ -97,7 +97,7 @@ final class ProblemDetailsTest
                 log (text/plain, 3 bytes): run/log.txt
             TXT;
 
-        Expect::that(ProblemDetails::render($result))
+        Expect::value(ProblemDetails::render($result))
             ->because('shared problem details MUST retain every failure diagnostic')
             ->toBe($expected . "\n");
     }
@@ -119,7 +119,7 @@ final class ProblemDetailsTest
             ),
         );
 
-        Expect::that(ProblemDetails::render($result))
+        Expect::value(ProblemDetails::render($result))
             ->because('bounded diagnostics MUST report omitted entries')
             ->toBe(
                 "  warning: first warning at FailureTest.php:13\n"
@@ -144,7 +144,7 @@ final class ProblemDetailsTest
             ],
         );
 
-        Expect::that(ProblemDetails::render($result))
+        Expect::value(ProblemDetails::render($result))
             ->because('shared problem details MUST retain each present diff value independently')
             ->toBe("  values differ\n  {$detail}\n");
     }
@@ -174,7 +174,7 @@ final class ProblemDetailsTest
               at FailureTest.php:24
             TXT;
 
-        Expect::that(ProblemDetails::render($result))
+        Expect::value(ProblemDetails::render($result))
             ->because('shared problem details MUST retain multiple failures in encounter order')
             ->toBe($expected . "\n");
     }
@@ -202,7 +202,7 @@ final class ProblemDetailsTest
               at ErrorTest.php:9
             TXT;
 
-        Expect::that(ProblemDetails::render($result))
+        Expect::value(ProblemDetails::render($result))
             ->because('shared problem details MUST retain throwable context')
             ->toBe($expected . "\n");
     }
@@ -217,7 +217,7 @@ final class ProblemDetailsTest
             0,
         );
 
-        Expect::that(ProblemDetails::render($result))
+        Expect::value(ProblemDetails::render($result))
             ->because('a result without problem details MUST render an empty string')
             ->toBe('');
     }
@@ -233,7 +233,7 @@ final class ProblemDetailsTest
             0,
         );
 
-        Expect::that(ProblemDetails::outcomeLabel($result))
+        Expect::value(ProblemDetails::outcomeLabel($result))
             ->because('reporters MUST use the stable outcome label')
             ->toBe($label);
     }

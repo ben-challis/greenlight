@@ -21,8 +21,8 @@ final readonly class TestPlanTest
 
         $replacement = $plan->withTests([$betaFirst, $betaSecond]);
 
-        Expect::that($replacement->tests)->toBe([$betaFirst, $betaSecond]);
-        Expect::that($plan->tests)->toBe([$alpha, $betaFirst, $betaSecond]);
+        Expect::value($replacement->tests)->toBe([$betaFirst, $betaSecond]);
+        Expect::value($plan->tests)->toBe([$alpha, $betaFirst, $betaSecond]);
     }
 
     #[Test]
@@ -31,7 +31,7 @@ final readonly class TestPlanTest
         $test = new TestId('Acme\\ProbeTest', 'passes');
         $plan = TestPlan::create([$test]);
 
-        Expect::that(static fn(): TestPlan => $plan->withTests([$test, $test]))
+        Expect::calling(static fn(): TestPlan => $plan->withTests([$test, $test]))
             ->toThrow(\InvalidArgumentException::class, message: 'Test plan ID "Acme\\ProbeTest::passes" occurs more than once.');
     }
 
@@ -44,7 +44,7 @@ final readonly class TestPlanTest
             new TestId('Acme\\BetaTest', 'passes'),
         ]);
 
-        Expect::that(static fn(): TestPlan => $plan->withTests([
+        Expect::calling(static fn(): TestPlan => $plan->withTests([
             $plan->tests[0],
             $plan->tests[2],
             $plan->tests[1],

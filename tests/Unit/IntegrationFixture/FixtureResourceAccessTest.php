@@ -19,13 +19,13 @@ final readonly class FixtureResourceAccessTest
             ['password' => 'secret'],
         );
 
-        Expect::that($resource->has('host'))
+        Expect::value($resource->has('host'))
             ->because('ordinary fixture values MUST be discoverable')
             ->toBeTrue();
-        Expect::that($resource->has('password'))
+        Expect::value($resource->has('password'))
             ->because('fixture secrets MUST be discoverable without revealing them')
             ->toBeTrue();
-        Expect::that($resource->has('missing'))
+        Expect::value($resource->has('missing'))
             ->because('unknown fixture keys MUST remain absent')
             ->toBeFalse();
     }
@@ -35,13 +35,13 @@ final readonly class FixtureResourceAccessTest
     {
         $resource = FixtureResource::empty();
 
-        Expect::that(static fn(): mixed => $resource->value('host'))
+        Expect::calling(static fn(): mixed => $resource->value('host'))
             ->because('missing ordinary values MUST identify their key')
             ->toThrow(
                 \OutOfBoundsException::class,
                 message: 'Fixture resource has no ordinary value named "host".',
             );
-        Expect::that(static fn() => $resource->secret('password'))
+        Expect::calling(static fn() => $resource->secret('password'))
             ->because('missing secrets MUST identify their key')
             ->toThrow(
                 \OutOfBoundsException::class,
@@ -57,10 +57,10 @@ final readonly class FixtureResourceAccessTest
             'map' => [],
         ])->toWire());
 
-        Expect::that($resource->list('list'))
+        Expect::value($resource->list('list'))
             ->because('an empty transported collection MUST remain usable as a list')
             ->toBe([]);
-        Expect::that($resource->map('map'))
+        Expect::value($resource->map('map'))
             ->because('an empty transported collection MUST remain usable as a map')
             ->toBe([]);
     }
@@ -81,7 +81,7 @@ final readonly class FixtureResourceAccessTest
             'asMap' => ['value'],
         ]);
 
-        Expect::that(static fn(): mixed => match ($accessor) {
+        Expect::calling(static fn(): mixed => match ($accessor) {
             'string' => $resource->string($key),
             'int' => $resource->int($key),
             'float' => $resource->float($key),

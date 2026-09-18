@@ -18,8 +18,8 @@ final readonly class PhpStanNativeMatcherSubjectRuleTest
     #[Test]
     public function nativeMatcherSubjectTypesFollowExpectationChains(): void
     {
-        Expect::that('greenlight')->toContain(...['light']);
-        Expect::that('greenlight')->toContain(...['needle' => 'light']);
+        Expect::value('greenlight')->toContain(...['light']);
+        Expect::value('greenlight')->toContain(...['needle' => 'light']);
 
         $probe = PhpStanProbe::analyze(
             $this->tempDirectory,
@@ -32,21 +32,21 @@ final readonly class PhpStanNativeMatcherSubjectRuleTest
 
             function greenlightGoodNativeMatcherSubjectProbe(mixed $subject): void
             {
-                Expect::that('greenlight')->toContain('light');
-                Expect::that('greenlight')->toContain(...['light']);
-                Expect::that('greenlight')->toContain(...['needle' => 'light']);
-                Expect::that([1, 2])->toHaveCount(2);
-                Expect::that(new ArrayIterator())->toBeEmpty();
-                Expect::that('greenlight')->toHaveLength(10);
-                Expect::that(['status' => 'green'])->toHaveKey('status');
-                Expect::that(['status' => 'green'])->toContainSubset(['status' => 'green']);
-                Expect::that(2)->toBeGreaterThan(1);
-                Expect::that('greenlight')->toStartWith('green');
-                Expect::that($subject)->toEndWith('light');
-                Expect::eventually(static fn(): string => 'greenlight')
+                Expect::value('greenlight')->toContain('light');
+                Expect::value('greenlight')->toContain(...['light']);
+                Expect::value('greenlight')->toContain(...['needle' => 'light']);
+                Expect::value([1, 2])->toHaveCount(2);
+                Expect::value(new ArrayIterator())->toBeEmpty();
+                Expect::value('greenlight')->toHaveLength(10);
+                Expect::value(['status' => 'green'])->toHaveKey('status');
+                Expect::value(['status' => 'green'])->toContainSubset(['status' => 'green']);
+                Expect::value(2)->toBeGreaterThan(1);
+                Expect::value('greenlight')->toStartWith('green');
+                Expect::value($subject)->toEndWith('light');
+                Expect::calling(static fn(): string => 'greenlight')->returnValue()->eventually()
                     ->within(1.0)
                     ->toMatch('/green/');
-                Expect::consistently(static fn(): int => 2)
+                Expect::calling(static fn(): int => 2)->returnValue()->consistently()
                     ->for(0.1)
                     ->toBeWithin(1.0, 2.0);
             }
@@ -60,38 +60,38 @@ final readonly class PhpStanNativeMatcherSubjectRuleTest
 
             function greenlightBadNativeMatcherSubjectProbe(): void
             {
-                Expect::that(1)->toContain('1');
-                Expect::that('greenlight')->toContain(1);
-                Expect::that('greenlight')->toContain(...[1]);
-                Expect::that('greenlight')->toContain(...['needle' => []]);
-                Expect::that('greenlight')->toHaveCount(10);
-                Expect::that(1)->toBeEmpty();
-                Expect::that(1)->toHaveLength(1);
-                Expect::that('greenlight')->toHaveKey(0);
-                Expect::that('greenlight')->toContainSubset([]);
-                Expect::that('1')->toBeGreaterThan(0);
-                Expect::that('1')->toBeGreaterThanOrEqual(0);
-                Expect::that('1')->toBeLessThan(2);
-                Expect::that('1')->toBeLessThanOrEqual(2);
-                Expect::that('1')->toBeWithin(1.0, 1.0);
-                Expect::eventually(static fn(): int => 1)
+                Expect::value(1)->toContain('1');
+                Expect::value('greenlight')->toContain(1);
+                Expect::value('greenlight')->toContain(...[1]);
+                Expect::value('greenlight')->toContain(...['needle' => []]);
+                Expect::value('greenlight')->toHaveCount(10);
+                Expect::value(1)->toBeEmpty();
+                Expect::value(1)->toHaveLength(1);
+                Expect::value('greenlight')->toHaveKey(0);
+                Expect::value('greenlight')->toContainSubset([]);
+                Expect::value('1')->toBeGreaterThan(0);
+                Expect::value('1')->toBeGreaterThanOrEqual(0);
+                Expect::value('1')->toBeLessThan(2);
+                Expect::value('1')->toBeLessThanOrEqual(2);
+                Expect::value('1')->toBeWithin(1.0, 1.0);
+                Expect::calling(static fn(): int => 1)->returnValue()->eventually()
                     ->within(1.0)
                     ->toMatch('/1/');
-                Expect::that(1)->toStartWith('1');
-                Expect::that(1)->toEndWith('1');
-                Expect::that([])->toBeJson();
-                Expect::consistently(static fn(): array => [])
+                Expect::value(1)->toStartWith('1');
+                Expect::value(1)->toEndWith('1');
+                Expect::value([])->toBeJson();
+                Expect::calling(static fn(): array => [])->returnValue()->consistently()
                     ->for(0.1)
                     ->toMatchJson('{}');
             }
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('native matchers require compatible subject types')->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(19);
-        Expect::that($probe->messages())->toContain('toContain() requires a string or iterable subject');
-        Expect::that($probe->messages())->toContain('toContain() requires a string needle for a string subject');
-        Expect::that($probe->messages())->toContain('toMatchJson() requires a string subject');
+        Expect::value($probe->exitCode)->because('native matchers require compatible subject types')->toBe(1);
+        Expect::value($probe->goodPassed)->toBeTrue();
+        Expect::value(\count($probe->errors))->toBe(19);
+        Expect::value($probe->messages())->toContain('toContain() requires a string or iterable subject');
+        Expect::value($probe->messages())->toContain('toContain() requires a string needle for a string subject');
+        Expect::value($probe->messages())->toContain('toMatchJson() requires a string subject');
     }
 }

@@ -19,7 +19,7 @@ final readonly class LaravelFrameworkRequirementTest
     {
         LaravelFrameworkRequirement::check();
 
-        Expect::that(Application::VERSION)
+        Expect::value(Application::VERSION)
             ->because('the installed Laravel framework MUST satisfy the bridge requirement')
             ->toMatch('/^13(?:\\.|$)/D');
     }

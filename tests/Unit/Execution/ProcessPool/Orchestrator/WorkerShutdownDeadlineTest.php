@@ -57,8 +57,8 @@ final readonly class WorkerShutdownDeadlineTest
         $sink = new CollectingEventSink();
         $plan = new ExecutionPlan([PlanEntryFixture::create('Example\\ShutdownTest', 'passes')]);
 
-        Expect::that(static fn() => $orchestrator->run($plan, $sink, 1))
+        Expect::calling(static fn() => $orchestrator->run($plan, $sink, 1))
             ->toThrow(ProtocolError::class, '/sent no message for 0\.5 seconds/');
-        Expect::that($sink->results())->toHaveCount(1);
+        Expect::value($sink->results())->toHaveCount(1);
     }
 }

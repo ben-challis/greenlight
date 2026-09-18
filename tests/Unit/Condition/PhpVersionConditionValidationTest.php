@@ -20,7 +20,7 @@ final readonly class PhpVersionConditionValidationTest
     #[DataSet('emptyVersionConditions')]
     public function rejectsAnEmptyPhpVersion(\Closure $create): void
     {
-        Expect::that($create)
+        Expect::calling($create)
             ->because('a PHP version condition MUST identify its comparison version')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -44,7 +44,7 @@ final readonly class PhpVersionConditionValidationTest
     #[DataSet('zeroVersionConditions')]
     public function acceptsZeroAsAPhpVersion(\Closure $create, bool $expected): void
     {
-        Expect::that($create()->isSatisfied())
+        Expect::value($create()->isSatisfied())
             ->because('the non-empty version "0" MUST retain PHP version comparison semantics')
             ->toBe($expected);
     }

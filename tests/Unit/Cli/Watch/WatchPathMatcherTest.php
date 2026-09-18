@@ -19,10 +19,10 @@ final class WatchPathMatcherTest
             ['templates/cache/**'],
         );
 
-        Expect::that($matcher->includesAdditionalFile('/project/templates/page.twig', false))->toBeTrue();
-        Expect::that($matcher->includesAdditionalFile('/project/config/a.yaml', false))->toBeTrue();
-        Expect::that($matcher->includesAdditionalFile('/project/config/app.yaml', false))->toBeFalse();
-        Expect::that($matcher->includesAdditionalFile('/project/templates/cache/page.twig', false))
+        Expect::value($matcher->includesAdditionalFile('/project/templates/page.twig', false))->toBeTrue();
+        Expect::value($matcher->includesAdditionalFile('/project/config/a.yaml', false))->toBeTrue();
+        Expect::value($matcher->includesAdditionalFile('/project/config/app.yaml', false))->toBeFalse();
+        Expect::value($matcher->includesAdditionalFile('/project/templates/cache/page.twig', false))
             ->because('an exclude pattern MUST have precedence over an include pattern')
             ->toBeFalse();
     }
@@ -32,8 +32,8 @@ final class WatchPathMatcherTest
     {
         $matcher = new WatchPathMatcher('/project', ['**/*.yaml'], ['secrets/**']);
 
-        Expect::that($matcher->includesAdditionalFile('/project/config/settings.json', true))->toBeTrue();
-        Expect::that($matcher->includesAdditionalFile('/project/secrets/settings.json', true))->toBeFalse();
+        Expect::value($matcher->includesAdditionalFile('/project/config/settings.json', true))->toBeTrue();
+        Expect::value($matcher->includesAdditionalFile('/project/secrets/settings.json', true))->toBeFalse();
     }
 
     #[Test]
@@ -41,8 +41,8 @@ final class WatchPathMatcherTest
     {
         $matcher = new WatchPathMatcher('/project', ['/shared/**/*.sql'], []);
 
-        Expect::that($matcher->includesAdditionalFile('/shared/migrations/one.sql', false))->toBeTrue();
-        Expect::that($matcher->includesAdditionalFile('/other/migrations/one.sql', false))->toBeFalse();
+        Expect::value($matcher->includesAdditionalFile('/shared/migrations/one.sql', false))->toBeTrue();
+        Expect::value($matcher->includesAdditionalFile('/other/migrations/one.sql', false))->toBeFalse();
     }
 
     #[Test]
@@ -50,9 +50,9 @@ final class WatchPathMatcherTest
     {
         $matcher = new WatchPathMatcher('/project', [], ['build/**']);
 
-        Expect::that($matcher->includesDefaultPhpFile('/project/src/Example.php'))->toBeTrue();
-        Expect::that($matcher->includesDefaultPhpFile('/project/src/template.twig'))->toBeFalse();
-        Expect::that($matcher->includesDefaultPhpFile('/project/build/Example.php'))->toBeFalse();
+        Expect::value($matcher->includesDefaultPhpFile('/project/src/Example.php'))->toBeTrue();
+        Expect::value($matcher->includesDefaultPhpFile('/project/src/template.twig'))->toBeFalse();
+        Expect::value($matcher->includesDefaultPhpFile('/project/build/Example.php'))->toBeFalse();
     }
 
     #[Test]
@@ -60,10 +60,10 @@ final class WatchPathMatcherTest
     {
         $matcher = new WatchPathMatcher('/project', [], ['templates/*', '**/cache/**']);
 
-        Expect::that($matcher->excludesDirectory('/project/templates'))
+        Expect::value($matcher->excludesDirectory('/project/templates'))
             ->because('a single-star file pattern MUST not prune nested files')
             ->toBeFalse();
-        Expect::that($matcher->excludesDirectory('/project/templates/cache'))
+        Expect::value($matcher->excludesDirectory('/project/templates/cache'))
             ->because('a double-star directory suffix excludes the complete tree')
             ->toBeTrue();
     }

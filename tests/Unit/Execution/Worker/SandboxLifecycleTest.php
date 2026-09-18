@@ -46,12 +46,12 @@ final readonly class SandboxLifecycleTest
             }
         }
 
-        Expect::that($outcome->summary->passed)->toBe(1);
-        Expect::that($tempPath)->not()->toBeNull();
-        Expect::that(\file_exists($tempPath))->toBeFalse();
-        Expect::that(\getenv('GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue ?? false);
-        Expect::that($this->superglobalValue($_ENV, 'GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue);
-        Expect::that($this->superglobalValue($_SERVER, 'GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue);
+        Expect::value($outcome->summary->passed)->toBe(1);
+        Expect::value($tempPath)->not()->toBeNull();
+        Expect::value(\file_exists($tempPath))->toBeFalse();
+        Expect::value(\getenv('GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue ?? false);
+        Expect::value($this->superglobalValue($_ENV, 'GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue);
+        Expect::value($this->superglobalValue($_SERVER, 'GREENLIGHT_SANDBOX_E2E'))->toBe($initialValue);
     }
 
     /**

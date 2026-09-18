@@ -30,18 +30,18 @@ final readonly class TempestProcessStateTest
 
             $state = TempestProcessState::activate('testing', $replacementContainer);
 
-            Expect::that(\getenv('ENVIRONMENT'))->toBe('testing');
-            Expect::that($_ENV['ENVIRONMENT'])->toBe('testing');
-            Expect::that($_SERVER['ENVIRONMENT'])->toBe('testing');
-            Expect::that(GenericContainer::instance())->toBe($replacementContainer);
+            Expect::value(\getenv('ENVIRONMENT'))->toBe('testing');
+            Expect::value($_ENV['ENVIRONMENT'])->toBe('testing');
+            Expect::value($_SERVER['ENVIRONMENT'])->toBe('testing');
+            Expect::value(GenericContainer::instance())->toBe($replacementContainer);
 
             $state->restore();
 
-            Expect::that(\getenv('ENVIRONMENT'))->toBe('process-original');
-            Expect::that(\array_key_exists('ENVIRONMENT', $_ENV))->toBeTrue();
-            Expect::that($_ENV['ENVIRONMENT'])->toBeNull();
-            Expect::that($_SERVER['ENVIRONMENT'])->toBe('server-original');
-            Expect::that(GenericContainer::instance())->toBe($originalContainer);
+            Expect::value(\getenv('ENVIRONMENT'))->toBe('process-original');
+            Expect::value(\array_key_exists('ENVIRONMENT', $_ENV))->toBeTrue();
+            Expect::value($_ENV['ENVIRONMENT'])->toBeNull();
+            Expect::value($_SERVER['ENVIRONMENT'])->toBe('server-original');
+            Expect::value(GenericContainer::instance())->toBe($originalContainer);
         } finally {
             $state?->restore();
             $backup->restore();
@@ -63,10 +63,10 @@ final readonly class TempestProcessStateTest
             $state = TempestProcessState::activate('testing');
             $state->restore();
 
-            Expect::that(\getenv('ENVIRONMENT'))->toBeFalse();
-            Expect::that(\array_key_exists('ENVIRONMENT', $_ENV))->toBeFalse();
-            Expect::that(\array_key_exists('ENVIRONMENT', $_SERVER))->toBeFalse();
-            Expect::that(GenericContainer::instance())->toBe($originalContainer);
+            Expect::value(\getenv('ENVIRONMENT'))->toBeFalse();
+            Expect::value(\array_key_exists('ENVIRONMENT', $_ENV))->toBeFalse();
+            Expect::value(\array_key_exists('ENVIRONMENT', $_SERVER))->toBeFalse();
+            Expect::value(GenericContainer::instance())->toBe($originalContainer);
         } finally {
             $state?->restore();
             $backup->restore();

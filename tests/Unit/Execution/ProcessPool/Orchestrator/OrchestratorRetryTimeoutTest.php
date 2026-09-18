@@ -47,10 +47,10 @@ final readonly class OrchestratorRetryTimeoutTest
 
         $summary = new Orchestrator($transport)->run($this->plan($id), $sink, 1);
 
-        Expect::that($summary->passed)->toBe(1);
-        Expect::that($summary->failed)->toBe(0);
-        Expect::that($sink->results()[0]->attempts)->toBe(40);
-        Expect::that($transport->started)->toHaveCount(1);
+        Expect::value($summary->passed)->toBe(1);
+        Expect::value($summary->failed)->toBe(0);
+        Expect::value($sink->results()[0]->attempts)->toBe(40);
+        Expect::value($transport->started)->toHaveCount(1);
     }
 
     #[Test]
@@ -67,11 +67,11 @@ final readonly class OrchestratorRetryTimeoutTest
 
         $summary = new Orchestrator($transport)->run($this->plan($id), $sink, 1);
 
-        Expect::that($summary->failed)->toBe(1);
-        Expect::that($sink->results()[0]->attempts)->toBe(2);
-        Expect::that($sink->results()[0]->failures[0]->message)->toContain('exceeded its 0.100-second time limit');
-        Expect::that($sink->results()[0]->durationSeconds)->toBeGreaterThan(2.3);
-        Expect::that($sink->results()[0]->failures[0]->message)->toContain('after 2.400 seconds');
+        Expect::value($summary->failed)->toBe(1);
+        Expect::value($sink->results()[0]->attempts)->toBe(2);
+        Expect::value($sink->results()[0]->failures[0]->message)->toContain('exceeded its 0.100-second time limit');
+        Expect::value($sink->results()[0]->durationSeconds)->toBeGreaterThan(2.3);
+        Expect::value($sink->results()[0]->failures[0]->message)->toContain('after 2.400 seconds');
     }
 
     private function plan(TestId $id): ExecutionPlan

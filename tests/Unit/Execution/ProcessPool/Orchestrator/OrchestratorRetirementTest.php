@@ -71,13 +71,13 @@ final readonly class OrchestratorRetirementTest
             static fn(float $tick): bool => $tick > \max($starts) && $tick < \min($ends),
         );
 
-        Expect::that($summary->passed)
+        Expect::value($summary->passed)
             ->because('both workers MUST complete their assignments before simultaneous retirement')
             ->toBe(2);
-        Expect::that(\max($starts))
+        Expect::value(\max($starts))
             ->because('both workers MUST be in retirement at the same time')
             ->toBeLessThan(\min($ends));
-        Expect::that($ticksDuringExit)
+        Expect::value($ticksDuringExit)
             ->because('reporter ticks MUST continue while workers exit')
             ->not()->toBe([]);
     }
@@ -106,24 +106,24 @@ final readonly class OrchestratorRetirementTest
         $starts = \array_values(\array_filter($records, static fn(array $record): bool => $record['phase'] === 'start'));
         $ends = \array_values(\array_filter($records, static fn(array $record): bool => $record['phase'] === 'exit-end'));
 
-        Expect::that($summary->errored)
+        Expect::value($summary->errored)
             ->because('each isolated fixture MUST complete through a fresh worker')
             ->toBe(12);
-        Expect::that($starts)
+        Expect::value($starts)
             ->because('isolated churn MUST start one worker for each scheduling unit')
             ->toHaveCount(12);
-        Expect::that(\array_column($starts, 'channel'))
+        Expect::value(\array_column($starts, 'channel'))
             ->because('a single-worker run MUST reuse its only channel')
             ->toBe(\array_fill(0, 12, '1'));
         $startCount = \count($starts);
 
         for ($index = 1; $index < $startCount; ++$index) {
-            Expect::that($starts[$index]['at'])
+            Expect::value($starts[$index]['at'])
                 ->because('a channel MUST stay unavailable until its old process exits')
                 ->toBeGreaterThanOrEqual($ends[$index - 1]['at']);
         }
 
-        Expect::that($orchestrator->workerTimings())
+        Expect::value($orchestrator->workerTimings())
             ->because('the orchestrator MUST retain one timing record for each reaped worker')
             ->toHaveCount(12);
     }

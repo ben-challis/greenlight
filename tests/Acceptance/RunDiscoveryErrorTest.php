@@ -38,10 +38,10 @@ final readonly class RunDiscoveryErrorTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--no-ansi']);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('a discovery failure MUST stop the run cleanly')
             ->toBe(1);
-        Expect::that($result->stderr)
+        Expect::value($result->stderr)
             ->toContain('MissingProviderTest::needsData() references data-set provider')
             ->toContain('MissingProviderTest::doesNotExist(), but the provider does not exist.');
     }

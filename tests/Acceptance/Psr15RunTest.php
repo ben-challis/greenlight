@@ -21,10 +21,10 @@ final readonly class Psr15RunTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--workers=1']);
 
         $output = $result->output();
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because($output === '' ? 'the PSR-15 acceptance run has no output' : $output)
             ->toBe(0);
-        Expect::that($result->output())->toContain('2 tests, 2 passed');
+        Expect::value($result->output())->toContain('2 tests, 2 passed');
     }
 
     private function writeProject(): AcceptanceProject
@@ -155,9 +155,9 @@ final readonly class Psr15RunTest
 
                 private function expectResponse(ResponseInterface $response, string $body): void
                 {
-                    Expect::that($response->getStatusCode())->toBe(200);
-                    Expect::that($response->getHeaderLine('Content-Type'))->toBe('application/json');
-                    Expect::that((string) $response->getBody())->toBe($body);
+                    Expect::value($response->getStatusCode())->toBe(200);
+                    Expect::value($response->getHeaderLine('Content-Type'))->toBe('application/json');
+                    Expect::value((string) $response->getBody())->toBe($body);
                 }
             }
 

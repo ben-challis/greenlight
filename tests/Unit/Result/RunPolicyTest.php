@@ -22,7 +22,7 @@ final readonly class RunPolicyTest
         [$failOnSkipped, $failOnRetriedPass, $failed, $errored, $skipped, $retriedPasses] = $case;
         $summary = new ResultSummary(failed: $failed, errored: $errored, skipped: $skipped);
 
-        Expect::that(new RunPolicy($failOnSkipped, $failOnRetriedPass)->accepts($summary, $retriedPasses))
+        Expect::value(new RunPolicy($failOnSkipped, $failOnRetriedPass)->accepts($summary, $retriedPasses))
             ->because('the run policy MUST evaluate the final summary without changing test outcomes')
             ->toBe($expected);
     }

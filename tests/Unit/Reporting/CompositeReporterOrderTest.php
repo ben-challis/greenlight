@@ -56,7 +56,7 @@ final class CompositeReporterOrderTest
         $composite->tick(1.5);
         $composite->finish();
 
-        Expect::that($calls->getArrayCopy())
+        Expect::value($calls->getArrayCopy())
             ->because('composite operations MUST use reporter construction order')
             ->toBe([
                 'first:event:' . RunStarted::class,

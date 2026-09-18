@@ -18,7 +18,7 @@ final class AttributeContractTest
     #[Test]
     public function skipRejectsAnEmptyReason(): void
     {
-        Expect::that(static fn(): object => new \ReflectionClass(Skip::class)->newInstance(''))
+        Expect::calling(static fn(): object => new \ReflectionClass(Skip::class)->newInstance(''))
             ->because('skip reasons cannot be empty')
             ->toThrow(\InvalidArgumentException::class, message: 'Skip reasons cannot be empty.');
     }
@@ -26,7 +26,7 @@ final class AttributeContractTest
     #[Test]
     public function skipPreservesAZeroStringReason(): void
     {
-        Expect::that(new Skip('0')->reason)
+        Expect::value(new Skip('0')->reason)
             ->because('the skip attribute MUST preserve a zero-string reason')
             ->toBe('0');
     }
@@ -37,16 +37,16 @@ final class AttributeContractTest
         $local = new DataSet('rows');
         $external = new DataSet(self::class, 'rows');
 
-        Expect::that($local->provider)->because('data set accepts local and external providers')->toBe('rows');
-        Expect::that($local->providerClass)->toBeNull();
-        Expect::that($external->provider)->toBe('rows');
-        Expect::that($external->providerClass)->toBe(self::class);
+        Expect::value($local->provider)->because('data set accepts local and external providers')->toBe('rows');
+        Expect::value($local->providerClass)->toBeNull();
+        Expect::value($external->provider)->toBe('rows');
+        Expect::value($external->providerClass)->toBe(self::class);
     }
 
     #[Test]
     public function groupRejectsAnEmptyName(): void
     {
-        Expect::that(static fn(): object => new \ReflectionClass(Group::class)->newInstance(''))
+        Expect::calling(static fn(): object => new \ReflectionClass(Group::class)->newInstance(''))
             ->because('group names cannot be empty')
             ->toThrow(\InvalidArgumentException::class, message: 'Group names cannot be empty.');
     }
@@ -54,7 +54,7 @@ final class AttributeContractTest
     #[Test]
     public function groupPreservesAZeroStringName(): void
     {
-        Expect::that(new Group('0')->name)
+        Expect::value(new Group('0')->name)
             ->because('the group attribute MUST preserve a zero-string name')
             ->toBe('0');
     }
@@ -63,7 +63,7 @@ final class AttributeContractTest
     public function resourceRequirementsRejectNonCanonicalNames(): void
     {
         foreach (['', 'Postgres', 'postgres primary', '-postgres'] as $name) {
-            Expect::that(static fn(): object => new \ReflectionClass(RequiresResource::class)->newInstance($name))
+            Expect::calling(static fn(): object => new \ReflectionClass(RequiresResource::class)->newInstance($name))
                 ->toThrow(\InvalidArgumentException::class);
         }
     }
@@ -71,20 +71,20 @@ final class AttributeContractTest
     #[Test]
     public function retryRejectsZeroTimes(): void
     {
-        Expect::that(static fn(): Retry => new Retry(0))->because('retry rejects zero times')->toThrow(\InvalidArgumentException::class);
+        Expect::calling(static fn(): Retry => new Retry(0))->because('retry rejects zero times')->toThrow(\InvalidArgumentException::class);
     }
 
     #[Test]
     public function timeoutRejectsNonPositiveSeconds(): void
     {
-        Expect::that(static fn(): Timeout => new Timeout(0.0))->because('timeout rejects nonpositive seconds')->toThrow(\InvalidArgumentException::class); // @phpstan-ignore greenlight.timeoutConstructor.seconds (deliberately invalid: tests runtime validation)
-        Expect::that(static fn(): Timeout => new Timeout(-1.5))->because('timeout rejects nonpositive seconds')->toThrow(\InvalidArgumentException::class); // @phpstan-ignore greenlight.timeoutConstructor.seconds (deliberately invalid: tests runtime validation)
+        Expect::calling(static fn(): Timeout => new Timeout(0.0))->because('timeout rejects nonpositive seconds')->toThrow(\InvalidArgumentException::class); // @phpstan-ignore greenlight.timeoutConstructor.seconds (deliberately invalid: tests runtime validation)
+        Expect::calling(static fn(): Timeout => new Timeout(-1.5))->because('timeout rejects nonpositive seconds')->toThrow(\InvalidArgumentException::class); // @phpstan-ignore greenlight.timeoutConstructor.seconds (deliberately invalid: tests runtime validation)
     }
 
     #[Test]
     public function timeoutRejectsNonfiniteSeconds(): void
     {
-        Expect::that(static fn(): Timeout => new Timeout(\NAN))->because('timeout rejects nonfinite seconds')->toThrow(\InvalidArgumentException::class); // @phpstan-ignore greenlight.timeoutConstructor.seconds (deliberately invalid: tests runtime validation)
-        Expect::that(static fn(): Timeout => new Timeout(\INF))->because('timeout rejects nonfinite seconds')->toThrow(\InvalidArgumentException::class); // @phpstan-ignore greenlight.timeoutConstructor.seconds (deliberately invalid: tests runtime validation)
+        Expect::calling(static fn(): Timeout => new Timeout(\NAN))->because('timeout rejects nonfinite seconds')->toThrow(\InvalidArgumentException::class); // @phpstan-ignore greenlight.timeoutConstructor.seconds (deliberately invalid: tests runtime validation)
+        Expect::calling(static fn(): Timeout => new Timeout(\INF))->because('timeout rejects nonfinite seconds')->toThrow(\InvalidArgumentException::class); // @phpstan-ignore greenlight.timeoutConstructor.seconds (deliberately invalid: tests runtime validation)
     }
 }

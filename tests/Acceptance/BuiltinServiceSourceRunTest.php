@@ -51,7 +51,7 @@ final readonly class BuiltinServiceSourceRunTest
                 #[Test]
                 public function receivesTheRequestedService(): void
                 {
-                    Expect::that(\is_object($this->service))->toBeTrue();
+                    Expect::value(\is_object($this->service))->toBeTrue();
                 }
             }
 
@@ -63,10 +63,10 @@ final readonly class BuiltinServiceSourceRunTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--workers=1']);
         $output = $result->output();
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because($output === '' ? 'The built-in source run returned no output.' : $output)
             ->toBe(1);
-        Expect::that($output)->toContain('1 test, 0 passed, 1 errored');
-        Expect::that($output)->toContain('source "' . $source . '"');
+        Expect::value($output)->toContain('1 test, 0 passed, 1 errored');
+        Expect::value($output)->toContain('source "' . $source . '"');
     }
 }

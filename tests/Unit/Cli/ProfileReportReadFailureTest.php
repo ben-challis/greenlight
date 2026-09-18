@@ -31,10 +31,10 @@ final readonly class ProfileReportReadFailureTest
         \rewind($stdout);
         \rewind($stderr);
 
-        Expect::that($exit)->toBe(1);
-        Expect::that(\stream_get_contents($stdout))->toBe('');
-        Expect::that((string) \stream_get_contents($stderr))->toContain('Greenlight could not read');
-        Expect::that(FailedReadStream::$closed)->toBeTrue();
+        Expect::value($exit)->toBe(1);
+        Expect::value(\stream_get_contents($stdout))->toBe('');
+        Expect::value((string) \stream_get_contents($stderr))->toContain('Greenlight could not read');
+        Expect::value(FailedReadStream::$closed)->toBeTrue();
     }
 
     #[Test]
@@ -51,9 +51,9 @@ final readonly class ProfileReportReadFailureTest
         \rewind($stdout);
         \rewind($stderr);
 
-        Expect::that($exit)->toBe(1);
-        Expect::that(\stream_get_contents($stdout))->toBe('');
-        Expect::that((string) \stream_get_contents($stderr))->toContain('The profile input read failed.');
-        Expect::that(EofReadFailureStream::$closed)->toBeTrue();
+        Expect::value($exit)->toBe(1);
+        Expect::value(\stream_get_contents($stdout))->toBe('');
+        Expect::value((string) \stream_get_contents($stderr))->toContain('The profile input read failed.');
+        Expect::value(EofReadFailureStream::$closed)->toBeTrue();
     }
 }

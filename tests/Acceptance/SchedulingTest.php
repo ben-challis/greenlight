@@ -23,7 +23,7 @@ final readonly class SchedulingTest
     public function workersAreReusedAndTheCachedSlowClassLeads(): void
     {
         $project = $this->writeProject();
-        Expect::that(RunState::forWorkingDirectory($project->directory)->record(
+        Expect::value(RunState::forWorkingDirectory($project->directory)->record(
             [],
             ['SchedulingProbe\SlowTest' => 1.0],
         ))->because('the timing cache is available to the acceptance run')->toBeTrue();
@@ -35,15 +35,15 @@ final readonly class SchedulingTest
         $startedClasses = $this->startedClasses($events);
         \sort($startedClasses);
 
-        Expect::that($result->exitCode)->because('the scheduled run succeeds')->toBe(0);
-        Expect::that($spawnedWorkers)->because('the run starts two workers')->toHaveCount(2);
-        Expect::that($startedClasses)->because('the workers execute all four classes')->toBe([
+        Expect::value($result->exitCode)->because('the scheduled run succeeds')->toBe(0);
+        Expect::value($spawnedWorkers)->because('the run starts two workers')->toHaveCount(2);
+        Expect::value($startedClasses)->because('the workers execute all four classes')->toBe([
             'SchedulingProbe\AlphaTest',
             'SchedulingProbe\BravoTest',
             'SchedulingProbe\CharlieTest',
             'SchedulingProbe\SlowTest',
         ]);
-        Expect::that(\array_values($firstStarts))
+        Expect::value(\array_values($firstStarts))
             ->because('the cached slow class is one of the first assignments')
             ->toContain('SchedulingProbe\SlowTest');
     }
@@ -61,22 +61,22 @@ final readonly class SchedulingTest
         $firstOutput = $first->output();
         $secondOutput = $second->output();
 
-        Expect::that($first->exitCode)
+        Expect::value($first->exitCode)
             ->because($firstOutput === '' ? 'The first scheduling run returned no output.' : $firstOutput)
             ->toBe(0);
-        Expect::that($firstClasses)
+        Expect::value($firstClasses)
             ->because('the first run MUST use discovery order without timing data')
             ->toBe([
                 'SchedulingOverheadProbe\AlphaTest',
                 'SchedulingOverheadProbe\SlowTest',
             ]);
-        Expect::that($cached['SchedulingOverheadProbe\SlowTest'] ?? 0.0)
+        Expect::value($cached['SchedulingOverheadProbe\SlowTest'] ?? 0.0)
             ->because('the timing cache MUST include plugin overhead after the test result duration')
             ->toBeGreaterThan($cached['SchedulingOverheadProbe\AlphaTest'] ?? \PHP_FLOAT_MAX);
-        Expect::that($second->exitCode)
+        Expect::value($second->exitCode)
             ->because($secondOutput === '' ? 'The second scheduling run returned no output.' : $secondOutput)
             ->toBe(0);
-        Expect::that($secondClasses)
+        Expect::value($secondClasses)
             ->because('the next run MUST schedule the overhead-heavy class first')
             ->toBe([
                 'SchedulingOverheadProbe\SlowTest',

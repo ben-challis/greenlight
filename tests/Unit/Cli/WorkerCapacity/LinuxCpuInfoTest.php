@@ -17,7 +17,7 @@ final class LinuxCpuInfoTest
     {
         $count = LinuxCpuInfo::processorCount($cpuinfo);
 
-        Expect::that($count)
+        Expect::value($count)
             ->because('the Linux probe MUST count only processor records')
             ->toBe($expected);
     }

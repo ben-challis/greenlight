@@ -34,33 +34,33 @@ final readonly class TestManifestTest
         $first = GreenlightCli::run($project->directory, $arguments);
         $second = GreenlightCli::run($project->directory, $arguments);
 
-        Expect::that($first->exitCode)->toBe(0);
-        Expect::that($second->stdout)
+        Expect::value($first->exitCode)->toBe(0);
+        Expect::value($second->stdout)
             ->because('the same selected plan MUST produce the same manifest')
             ->toBe($first->stdout);
-        Expect::that($first->stderr)
+        Expect::value($first->stderr)
             ->because('configuration and provider output MUST stay off standard output')
             ->toContain('configuration diagnostic')
             ->toContain('provider diagnostic');
-        Expect::that(\is_file($project->path('executed')))
+        Expect::value(\is_file($project->path('executed')))
             ->because('manifest discovery MUST NOT execute a test')
             ->toBeFalse();
 
         $decoded = $this->decode($first->stdout);
-        Expect::that($decoded['version'] ?? null)->toBe(1);
-        Expect::that($decoded['order'] ?? null)->toBe([
+        Expect::value($decoded['version'] ?? null)->toBe(1);
+        Expect::value($decoded['order'] ?? null)->toBe([
             'tests' => 'plan',
             'completion' => 'not-applicable',
             'seed' => 7,
         ]);
-        Expect::that($decoded['shard'] ?? null)->toBe(['index' => 1, 'count' => 1]);
+        Expect::value($decoded['shard'] ?? null)->toBe(['index' => 1, 'count' => 1]);
         $tests = $decoded['tests'] ?? null;
 
         if (!\is_array($tests)) {
             throw new \RuntimeException('Manifest tests must be an array.');
         }
 
-        Expect::that($tests)->toHaveCount(2);
+        Expect::value($tests)->toHaveCount(2);
         $byId = $this->testsById($tests);
 
         $rich = $byId['ManifestProbe\\RichTest::describes[card]'] ?? null;
@@ -75,33 +75,33 @@ final readonly class TestManifestTest
             throw new \RuntimeException('The rich manifest source is missing.');
         }
 
-        Expect::that($rich['dataSetKey'] ?? null)->toBe('card');
-        Expect::that($source['file'] ?? null)->toBe($project->path('tests/Unit/RichTest.php'));
-        Expect::that($source['line'] ?? null)->toBeInt()->toBeGreaterThan(0);
-        Expect::that($rich['groups'] ?? null)->toBe(['manifest']);
-        Expect::that($rich['suites'] ?? null)->toBe(['all', 'unit']);
-        Expect::that($rich['skip'] ?? null)->toBe([
+        Expect::value($rich['dataSetKey'] ?? null)->toBe('card');
+        Expect::value($source['file'] ?? null)->toBe($project->path('tests/Unit/RichTest.php'));
+        Expect::value($source['line'] ?? null)->toBeInt()->toBeGreaterThan(0);
+        Expect::value($rich['groups'] ?? null)->toBe(['manifest']);
+        Expect::value($rich['suites'] ?? null)->toBe(['all', 'unit']);
+        Expect::value($rich['skip'] ?? null)->toBe([
             'present' => true,
             'condition' => EnvironmentVariableEquals::class,
         ]);
-        Expect::that($rich['retry'] ?? null)->toBe([
+        Expect::value($rich['retry'] ?? null)->toBe([
             'additionalAttempts' => 2,
             'onlyOn' => 'RuntimeException',
         ]);
-        Expect::that($rich['timeoutSeconds'] ?? null)->toBe(1.5);
-        Expect::that($rich['captureOutput'] ?? null)->toBeFalse();
-        Expect::that($rich['noExpectations'] ?? null)->toBeTrue();
-        Expect::that($rich['resources'] ?? null)->toBe(['database']);
-        Expect::that($rich['isolated'] ?? null)->toBeTrue();
-        Expect::that($rich['allowParallel'] ?? null)->toBeFalse();
+        Expect::value($rich['timeoutSeconds'] ?? null)->toBe(1.5);
+        Expect::value($rich['captureOutput'] ?? null)->toBeFalse();
+        Expect::value($rich['noExpectations'] ?? null)->toBeTrue();
+        Expect::value($rich['resources'] ?? null)->toBe(['database']);
+        Expect::value($rich['isolated'] ?? null)->toBeTrue();
+        Expect::value($rich['allowParallel'] ?? null)->toBeFalse();
         $parallel = $byId['ManifestProbe\\ParallelTest::describes'] ?? null;
 
         if (!\is_array($parallel)) {
             throw new \RuntimeException('The parallel manifest test is missing.');
         }
 
-        Expect::that($parallel['allowParallel'] ?? null)->toBeTrue();
-        Expect::that($first->stdout)
+        Expect::value($parallel['allowParallel'] ?? null)->toBeTrue();
+        Expect::value($first->stdout)
             ->because('the manifest MUST omit private skip metadata')
             ->not()
             ->toContain('skip-secret')
@@ -114,7 +114,7 @@ final readonly class TestManifestTest
             $schemaDocument,
             (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/test-manifest-v1.schema.json'],
         );
-        Expect::that($validator->isValid())
+        Expect::value($validator->isValid())
             ->because('the emitted manifest MUST match the shipped schema')
             ->toBeTrue();
     }
@@ -130,10 +130,10 @@ final readonly class TestManifestTest
         ]);
         $decoded = $this->decode($result->stdout);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('an empty manifest MUST be a successful discovery result')
             ->toBe(0);
-        Expect::that($decoded['tests'] ?? null)->toBe([]);
+        Expect::value($decoded['tests'] ?? null)->toBe([]);
     }
 
     #[Test]
@@ -178,7 +178,7 @@ final readonly class TestManifestTest
                 (object) ['$ref' => 'file://' . \dirname(__DIR__, 2) . '/resources/schema/test-manifest-v1.schema.json'],
             );
 
-            Expect::that($validator->isValid())
+            Expect::value($validator->isValid())
                 ->because(\sprintf('the manifest schema MUST reject an empty %s value', $field))
                 ->toBeFalse();
         }
@@ -204,11 +204,11 @@ final readonly class TestManifestTest
             '--no-ansi',
         ]);
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stdout)
+        Expect::value($result->exitCode)->toBe(1);
+        Expect::value($result->stdout)
             ->because('a discovery error MUST NOT write a partial JSON document')
             ->toBe('');
-        Expect::that($result->stderr)
+        Expect::value($result->stderr)
             ->toContain('does not declare a class, interface, trait, or enum.');
     }
 

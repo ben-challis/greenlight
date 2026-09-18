@@ -53,9 +53,9 @@ final readonly class ProfileReportMemoryTest
             \fclose($stream);
         }
 
-        Expect::that(\filesize($path))->toBeGreaterThan(32 * 1024 * 1024);
+        Expect::value(\filesize($path))->toBeGreaterThan(32 * 1024 * 1024);
         $result = GreenlightCli::run($directory, ['profile:report', '--input=profile.jsonl', '--no-ansi'], phpArguments: ['-d', 'memory_limit=32M']);
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($result->stdout)->toBe("Profile:\n  Workers: 1 requested, 0 spawned");
+        Expect::value($result->exitCode)->toBe(0);
+        Expect::value($result->stdout)->toBe("Profile:\n  Workers: 1 requested, 0 spawned");
     }
 }

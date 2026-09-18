@@ -18,22 +18,22 @@ final class WorkerCountTest
         $auto = WorkerCount::auto();
         $fixed = WorkerCount::exactly(3);
 
-        Expect::that($auto->fixed)
+        Expect::value($auto->fixed)
             ->because('the automatic worker count has no fixed value')
             ->toBeNull();
-        Expect::that($auto->isAuto())
+        Expect::value($auto->isAuto())
             ->because('the automatic worker count identifies its state')
             ->toBeTrue();
-        Expect::that($auto->describe())
+        Expect::value($auto->describe())
             ->because('the automatic worker count has a stable description')
             ->toBe('auto');
-        Expect::that($fixed->fixed)
+        Expect::value($fixed->fixed)
             ->because('the fixed worker count exposes its value')
             ->toBe(3);
-        Expect::that($fixed->isAuto())
+        Expect::value($fixed->isAuto())
             ->because('the fixed worker count identifies its state')
             ->toBeFalse();
-        Expect::that($fixed->describe())
+        Expect::value($fixed->describe())
             ->because('the fixed worker count renders its value')
             ->toBe('3');
     }
@@ -42,7 +42,7 @@ final class WorkerCountTest
     #[DataSet('nonpositiveCounts')]
     public function nonpositiveCountsGiveExactGuidance(int $count, string $message): void
     {
-        Expect::that(static fn(): WorkerCount => WorkerCount::exactly($count)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        Expect::calling(static fn(): WorkerCount => WorkerCount::exactly($count)) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a worker count must be positive')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }

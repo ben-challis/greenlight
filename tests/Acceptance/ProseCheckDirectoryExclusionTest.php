@@ -38,7 +38,7 @@ final readonly class ProseCheckDirectoryExclusionTest
                 '--root=' . $project->directory,
             ]);
 
-            Expect::that($result->exitCode)->because('excluded directories do not need read access')->toBe(0);
+            Expect::value($result->exitCode)->because('excluded directories do not need read access')->toBe(0);
         } finally {
             foreach ($directories as $directory) {
                 \chmod($project->path($directory), 0o755);

@@ -13,7 +13,7 @@ final readonly class ServiceAttributeTest
     #[Test]
     public function rejectsAnEmptyServiceIdentifier(): void
     {
-        Expect::that(static fn(): Service => new Service(''))
+        Expect::calling(static fn(): Service => new Service(''))
             ->because('a service attribute MUST identify a container service')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -24,7 +24,7 @@ final readonly class ServiceAttributeTest
     #[Test]
     public function preservesAZeroStringServiceIdentifier(): void
     {
-        Expect::that((new Service('0'))->id)
+        Expect::value((new Service('0'))->id)
             ->because('a zero-string service identifier is not empty')
             ->toBe('0');
     }
@@ -34,20 +34,20 @@ final readonly class ServiceAttributeTest
     {
         $service = new Service(source: 'billing');
 
-        Expect::that($service->id)->toBeNull();
-        Expect::that($service->source)->toBe('billing');
+        Expect::value($service->id)->toBeNull();
+        Expect::value($service->source)->toBe('billing');
     }
 
     #[Test]
     public function rejectsAnEmptySourceName(): void
     {
-        Expect::that(static fn(): Service => new Service(source: ''))
+        Expect::calling(static fn(): Service => new Service(source: ''))
             ->toThrow(\InvalidArgumentException::class, message: 'Service source must not be empty.');
     }
 
     #[Test]
     public function preservesAZeroStringSourceName(): void
     {
-        Expect::that((new Service(source: '0'))->source)->toBe('0');
+        Expect::value((new Service(source: '0'))->source)->toBe('0');
     }
 }

@@ -18,10 +18,10 @@ final class ArtifactBuilderMinimumCountsTest
             ->maxRunAttachments(1)
             ->toConfiguration();
 
-        Expect::that($configuration->maxAttachmentsPerTest)
+        Expect::value($configuration->maxAttachmentsPerTest)
             ->because('the per-test artifact limit MUST accept its documented minimum')
             ->toBe(1);
-        Expect::that($configuration->maxRunAttachments)
+        Expect::value($configuration->maxRunAttachments)
             ->because('the per-run artifact limit MUST accept its documented minimum')
             ->toBe(1);
     }

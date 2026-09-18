@@ -21,7 +21,7 @@ final class TestResultWireTest
         $payload = $this->payload();
         $payload[$field] = $wireValue;
 
-        Expect::that(TestResult::fromWire($payload)->toWire()[$field])
+        Expect::value(TestResult::fromWire($payload)->toWire()[$field])
             ->because('out of range wire values normalize to safe bounds')
             ->toBe($expected);
     }
@@ -32,7 +32,7 @@ final class TestResultWireTest
         $payload = $this->payload();
         unset($payload['risky']);
 
-        Expect::that(TestResult::fromWire($payload)->risky)
+        Expect::value(TestResult::fromWire($payload)->risky)
             ->because('a missing risky flag uses the backward compatible default')
             ->toBeFalse();
     }
@@ -43,7 +43,7 @@ final class TestResultWireTest
         $payload = $this->payload();
         $payload['outcome'] = 'unknown';
 
-        Expect::that(static fn(): TestResult => TestResult::fromWire($payload))
+        Expect::calling(static fn(): TestResult => TestResult::fromWire($payload))
             ->because('an invalid outcome names the wire field')
             ->toThrow(
                 InvalidWirePayload::class,

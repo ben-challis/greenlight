@@ -26,10 +26,10 @@ final readonly class HtmlExporterEmptySourceTest
 
         $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($path)];
 
-        Expect::that(\is_readable($path))
+        Expect::value(\is_readable($path))
             ->because('the empty source MUST be readable')
             ->toBeTrue();
-        Expect::that($page)
+        Expect::value($page)
             ->because('an empty source MUST retain a valid empty source block')
             ->toContain("<pre>\n</pre>")
             ->not()

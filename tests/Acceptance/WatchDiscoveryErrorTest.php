@@ -46,7 +46,7 @@ final readonly class WatchDiscoveryErrorTest
 
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-        Expect::that($output)
+        Expect::value($output)
             ->because('watch mode MUST complete its initial valid run')
             ->toContain('1 test, 1 passed');
 
@@ -61,17 +61,17 @@ final readonly class WatchDiscoveryErrorTest
             PHP);
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-        Expect::that($output)
+        Expect::value($output)
             ->because('watch mode MUST continue after a discovery error')
             ->toContain('Detected changes');
 
         $process->write('q');
         $result = $process->wait(10.0);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('watch mode MUST remain available after a discovery error')
             ->toBe(0);
-        Expect::that($result->stderr)
+        Expect::value($result->stderr)
             ->because('watch mode MUST report the discovery error')
             ->toContain('BrokenTest.php')
             ->toContain('WrongName');

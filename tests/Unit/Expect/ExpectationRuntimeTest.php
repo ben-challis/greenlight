@@ -22,19 +22,19 @@ final class ExpectationRuntimeTest
         ExpectationRuntime::withClock(
             $outer,
             static function () use ($inner, $outer, $expected): void {
-                Expect::that(static fn(): mixed => ExpectationRuntime::withClock(
+                Expect::calling(static fn(): mixed => ExpectationRuntime::withClock(
                     $inner,
                     static fn(): never => throw $expected,
                 ))
                     ->because('withClock propagates the operation exception')
                     ->toThrow($expected);
 
-                Expect::that(ExpectationRuntime::clock())
+                Expect::value(ExpectationRuntime::clock())
                     ->toBe($outer);
             },
         );
 
-        Expect::that(ExpectationRuntime::clock())
+        Expect::value(ExpectationRuntime::clock())
             ->toBe($baseline);
     }
 }

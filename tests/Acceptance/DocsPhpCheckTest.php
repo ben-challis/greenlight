@@ -33,8 +33,8 @@ final readonly class DocsPhpCheckTest
         );
 
         $result = $this->run($project, 'extract');
-        Expect::that($result->exitCode)->because('extracts the selected PHP fence')->toBe(0);
-        Expect::that($this->read($project, 'build/docs-php/configuration/config/example.php'))
+        Expect::value($result->exitCode)->because('extracts the selected PHP fence')->toBe(0);
+        Expect::value($this->read($project, 'build/docs-php/configuration/config/example.php'))
             ->toBe("<?php\nreturn Configuration::create();\n");
 
         /** @var array{version: int, snippets: list<array<string, mixed>>} $manifest */
@@ -44,19 +44,19 @@ final readonly class DocsPhpCheckTest
             flags: \JSON_THROW_ON_ERROR,
         );
 
-        Expect::that($manifest['version'])->toBe(1);
-        Expect::that($manifest['snippets'])->toHaveCount(1);
-        Expect::that($manifest['snippets'][0]['example'])->toBe('configuration');
-        Expect::that($manifest['snippets'][0]['virtualFile'])->toBe('config/example.php');
-        Expect::that($manifest['snippets'][0]['generatedPath'])
+        Expect::value($manifest['version'])->toBe(1);
+        Expect::value($manifest['snippets'])->toHaveCount(1);
+        Expect::value($manifest['snippets'][0]['example'])->toBe('configuration');
+        Expect::value($manifest['snippets'][0]['virtualFile'])->toBe('config/example.php');
+        Expect::value($manifest['snippets'][0]['generatedPath'])
             ->toBe('build/docs-php/configuration/config/example.php');
-        Expect::that($manifest['snippets'][0]['source'])->toContainSubset([
+        Expect::value($manifest['snippets'][0]['source'])->toContainSubset([
             'path' => 'docs/example.md',
             'fenceLine' => 4,
             'startLine' => 5,
             'endLine' => 5,
         ]);
-        Expect::that($manifest['snippets'][0]['mappings'])->toBe([[
+        Expect::value($manifest['snippets'][0]['mappings'])->toBe([[
             'generatedStartLine' => 2,
             'generatedEndLine' => 2,
             'sourceStartLine' => 5,
@@ -88,8 +88,8 @@ final readonly class DocsPhpCheckTest
             '--rector-bin=' . $project->path('rector.php'),
         );
 
-        Expect::that($result->exitCode)->because('reports translated tool findings')->toBe(1);
-        Expect::that($result->stdout)
+        Expect::value($result->exitCode)->because('reports translated tool findings')->toBe(1);
+        Expect::value($result->stdout)
             ->toContain('docs/example.md:3: PHPStan [function.notFound]: Function unknown not found.')
             ->toContain('docs/example.md:4: Rector: Rector would change this example. Applied rules: ExampleRector.');
     }
@@ -116,8 +116,8 @@ final readonly class DocsPhpCheckTest
             '--phpstan-bin=' . $project->path('phpstan.php'),
         );
 
-        Expect::that($result->exitCode)->because('maps a statement wrapper line')->toBe(1);
-        Expect::that($result->stdout)
+        Expect::value($result->exitCode)->because('maps a statement wrapper line')->toBe(1);
+        Expect::value($result->stdout)
             ->toContain('docs/example.md:3: PHPStan [function.notFound]: Function unknown not found.');
     }
 
@@ -145,11 +145,11 @@ final readonly class DocsPhpCheckTest
         );
 
         $result = $this->run($project, 'extract');
-        Expect::that($result->exitCode)->because('wraps common documentation fragments')->toBe(0);
-        Expect::that($this->read($project, 'build/docs-php/chain/chain.php'))->toBe(
+        Expect::value($result->exitCode)->because('wraps common documentation fragments')->toBe(0);
+        Expect::value($this->read($project, 'build/docs-php/chain/chain.php'))->toBe(
             "<?php\n\n(static function () {\n    \$value\n    ->first()\n        ->second();\n})();\n",
         );
-        Expect::that($this->read($project, 'build/docs-php/member/member.php'))->toContain(
+        Expect::value($this->read($project, 'build/docs-php/member/member.php'))->toContain(
             "use Example\\Dependency;\nfinal class DocsExample_",
         )->toContain(
             "    public function __construct(private Dependency \$dependency) {}\n}\n",
@@ -193,8 +193,8 @@ final readonly class DocsPhpCheckTest
             '--phpstan-bin=' . $project->path('phpstan.php'),
         );
 
-        Expect::that($result->exitCode)->because('checks the selected PHP fence')->toBe(0);
-        Expect::that($this->read($project, 'phpstan-arguments.txt'))->toContain(
+        Expect::value($result->exitCode)->because('checks the selected PHP fence')->toBe(0);
+        Expect::value($this->read($project, 'phpstan-arguments.txt'))->toContain(
             $project->path('src/PhpStan') . "\n" . $project->path('build/docs-php/example'),
         );
     }
@@ -222,8 +222,8 @@ final readonly class DocsPhpCheckTest
             '--phpstan-bin=' . $project->path('phpstan.php'),
         );
 
-        Expect::that($result->exitCode)->because('reports the workflow annotation')->toBe(1);
-        Expect::that($result->stdout)->toContain(
+        Expect::value($result->exitCode)->because('reports the workflow annotation')->toBe(1);
+        Expect::value($result->stdout)->toContain(
             '::error file=docs/example.md,line=3::PHPStan [function.notFound]%3A Function unknown not found.',
         );
     }
@@ -249,8 +249,8 @@ final readonly class DocsPhpCheckTest
         );
 
         $result = $this->run($project, 'extract');
-        Expect::that($result->exitCode)->because('rejects a duplicate virtual file')->toBe(1);
-        Expect::that($result->stderr)->toContain(
+        Expect::value($result->exitCode)->because('rejects a duplicate virtual file')->toBe(1);
+        Expect::value($result->stderr)->toContain(
             'docs/example.md:6: Generated file "duplicate/example.php" is already selected by docs/example.md:1.',
         );
     }
@@ -281,8 +281,8 @@ final readonly class DocsPhpCheckTest
         );
 
         $result = $this->run($project, 'check');
-        Expect::that($result->exitCode)->because('requires a decision for each manual PHP fence')->toBe(1);
-        Expect::that($result->stderr)->toContain(
+        Expect::value($result->exitCode)->because('requires a decision for each manual PHP fence')->toBe(1);
+        Expect::value($result->stderr)->toContain(
             'docs/manual.md:1: PHP fence requires php-example metadata.',
         );
     }
@@ -300,12 +300,12 @@ final readonly class DocsPhpCheckTest
 
         $result = $this->run($project, 'extract');
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('example names must reject characters outside the documented slug alphabet')
             ->toBe(1);
-        Expect::that($result->stderr)
+        Expect::value($result->stderr)
             ->toContain('must contain lowercase letters, digits, dots, underscores, or hyphens.');
-        Expect::that(\file_exists($project->path("build/docs-php/example\n/example.php")))
+        Expect::value(\file_exists($project->path("build/docs-php/example\n/example.php")))
             ->because('invalid metadata must not create a generated example file')
             ->toBeFalse();
     }

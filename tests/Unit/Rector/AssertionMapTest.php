@@ -28,20 +28,20 @@ final class AssertionMapTest
         $conversion = AssertionMap::lookup($method);
 
         if ($expected === null) {
-            Expect::that($conversion)->because('unknown assertions have no conversion')->toBeNull();
+            Expect::value($conversion)->because('unknown assertions have no conversion')->toBeNull();
 
             return;
         }
 
-        Expect::that($conversion)
+        Expect::value($conversion)
             ->because(\sprintf('Expected a conversion for PHPUnit assertion "%s".', $method))
             ->toBeInstanceOf(AssertionConversion::class);
 
-        Expect::that($conversion->matcher)->because('lookup preserves conversion metadata')->toBe($expected['matcher']);
-        Expect::that($conversion->subject)->toBe($expected['subject']);
-        Expect::that($conversion->matcherArguments)->toBe($expected['matcherArguments']);
-        Expect::that($conversion->arity)->toBe($expected['arity']);
-        Expect::that($conversion->negated)->toBe($expected['negated']);
+        Expect::value($conversion->matcher)->because('lookup preserves conversion metadata')->toBe($expected['matcher']);
+        Expect::value($conversion->subject)->toBe($expected['subject']);
+        Expect::value($conversion->matcherArguments)->toBe($expected['matcherArguments']);
+        Expect::value($conversion->arity)->toBe($expected['arity']);
+        Expect::value($conversion->negated)->toBe($expected['negated']);
     }
 
     /**

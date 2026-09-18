@@ -26,7 +26,7 @@ final readonly class WorkerHandleLargeDiagnosticsTest
             \fwrite($writer, "\x82\xAC");
             $handle->drainPipes();
 
-            Expect::that($handle->diagnostics)
+            Expect::value($handle->diagnostics)
                 ->because('malformed bytes MUST NOT replace a later complete Unicode character')
                 ->toBe("\u{FFFD}\u{20AC}");
         } finally {
@@ -46,13 +46,13 @@ final readonly class WorkerHandleLargeDiagnosticsTest
             $handle = new WorkerHandle('worker-1', 1, $process, $stdout, $stderr);
             $handle->drainPipes();
 
-            Expect::that($handle->diagnostics)
+            Expect::value($handle->diagnostics)
                 ->because('a large pipe read MUST preserve the complete final Unicode tail')
                 ->toBe($tail);
 
             $handle->drainPipes();
 
-            Expect::that($handle->diagnostics)
+            Expect::value($handle->diagnostics)
                 ->because('another drain at EOF MUST NOT duplicate diagnostic bytes')
                 ->toBe($tail);
         } finally {

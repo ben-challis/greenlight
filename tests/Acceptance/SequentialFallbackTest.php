@@ -26,10 +26,10 @@ final readonly class SequentialFallbackTest
             phpArguments: ['-d', 'disable_functions=' . $function],
         );
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because(\sprintf('the runner uses in-process execution when PHP disables %s', $function))
             ->toBe(0);
-        Expect::that($result->output())->toContain('1 test, 1 passed')
+        Expect::value($result->output())->toContain('1 test, 1 passed')
             ->not()->toContain($function);
     }
 

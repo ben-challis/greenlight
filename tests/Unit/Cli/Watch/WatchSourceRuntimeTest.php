@@ -28,13 +28,13 @@ final readonly class WatchSourceRuntimeTest
 
         $changes = $runtime->poll();
 
-        Expect::that($events->getArrayCopy())->toBe([
+        Expect::value($events->getArrayCopy())->toBe([
             'early',
             'default',
             'same-priority',
             'late',
         ]);
-        Expect::that($changes)->toBe(['early', 'default', 'shared', 'late']);
+        Expect::value($changes)->toBe(['early', 'default', 'shared', 'late']);
     }
 
     #[Test]
@@ -45,12 +45,12 @@ final readonly class WatchSourceRuntimeTest
             new FailingWatchSource($failure),
         ]);
 
-        Expect::that($runtime->poll(...))
+        Expect::calling($runtime->poll(...))
             ->toThrow(static function (WatchSourceFailed $error) use ($failure): void {
-                Expect::that($error->getMessage())->toBe(
+                Expect::value($error->getMessage())->toBe(
                     'Watch source plugin "Greenlight\\Tests\\Unit\\Cli\\Watch\\FailingWatchSource" caused an error during poll(): Watch poll exploded',
                 );
-                Expect::that($error->getPrevious())->toBe($failure);
+                Expect::value($error->getPrevious())->toBe($failure);
             });
     }
 }

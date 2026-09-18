@@ -16,10 +16,10 @@ final class MatcherMapProviderTest
         $provider = new MatcherMapProvider([]);
         $first = $provider->get();
 
-        Expect::that($provider->get())
+        Expect::value($provider->get())
             ->because('PHPStan extensions MUST share one lazily loaded matcher map')
             ->toBe($first);
-        Expect::that($first->names())
+        Expect::value($first->names())
             ->toBe([]);
     }
 }

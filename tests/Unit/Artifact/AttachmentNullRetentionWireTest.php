@@ -27,11 +27,11 @@ final readonly class AttachmentNullRetentionWireTest
         ];
         $message = 'Wire payload key "retention" must be a string, got null.';
 
-        Expect::that(static fn(): Attachment => Attachment::fromWire($payload))
+        Expect::calling(static fn(): Attachment => Attachment::fromWire($payload))
             ->because('an explicit null retention MUST NOT use the missing-field default')
             ->toThrow(InvalidWirePayload::class, message: $message);
 
-        Expect::that(static fn(): StagedAttachment => StagedAttachment::fromWire([
+        Expect::calling(static fn(): StagedAttachment => StagedAttachment::fromWire([
             ...$payload,
             'storageKey' => 'attempt/response.json',
         ]))

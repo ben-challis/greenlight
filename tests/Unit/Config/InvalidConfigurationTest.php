@@ -19,9 +19,9 @@ final class InvalidConfigurationTest
         $previous = new \InvalidArgumentException('The supplied value is invalid.', 17);
         $error = $wrap($previous);
 
-        Expect::that($error->getMessage())->toBe($previous->getMessage());
-        Expect::that($error->getCode())->toBe(17);
-        Expect::that($error->getPrevious())->toBe($previous);
+        Expect::value($error->getMessage())->toBe($previous->getMessage());
+        Expect::value($error->getCode())->toBe(17);
+        Expect::value($error->getPrevious())->toBe($previous);
     }
 
     /** @return iterable<string, array{\Closure(\InvalidArgumentException): InvalidConfiguration}> */

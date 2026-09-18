@@ -20,13 +20,13 @@ final readonly class TerminalTest
         $stream = MemoryStream::open('sentinel');
         $this->cleanup->defer(static fn() => MemoryStream::close($stream));
 
-        Expect::that(Terminal::isTty($stream))
+        Expect::value(Terminal::isTty($stream))
             ->because('an in-memory stream is not a TTY')
             ->toBeFalse();
-        Expect::that(\stream_get_contents($stream))
+        Expect::value(\stream_get_contents($stream))
             ->because('the terminal probe MUST leave stream content unchanged')
             ->toBe('sentinel');
-        Expect::that(\is_resource($stream))
+        Expect::value(\is_resource($stream))
             ->because('the terminal probe MUST leave the stream open')
             ->toBeTrue();
     }

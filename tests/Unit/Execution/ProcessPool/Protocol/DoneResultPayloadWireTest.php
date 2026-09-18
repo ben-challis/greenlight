@@ -31,7 +31,7 @@ final readonly class DoneResultPayloadWireTest
 
         $done = Done::fromWire($payload);
 
-        Expect::that($done->toWire())
+        Expect::value($done->toWire())
             ->because('a completed assignment MUST preserve its coverage and leaked test IDs')
             ->toBe($payload);
     }

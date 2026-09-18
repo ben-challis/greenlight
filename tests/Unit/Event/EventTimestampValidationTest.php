@@ -29,7 +29,7 @@ final readonly class EventTimestampValidationTest
     #[DataSet('eventFactories')]
     public function directConstructionRejectsNonfiniteTimestamps(\Closure $create): void
     {
-        Expect::that(static fn(): Event => $create(\INF))
+        Expect::calling(static fn(): Event => $create(\INF))
             ->because('direct and wire event construction MUST enforce the same timestamp invariant')
             ->toThrow(
                 \InvalidArgumentException::class,

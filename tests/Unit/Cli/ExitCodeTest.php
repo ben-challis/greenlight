@@ -16,7 +16,7 @@ final readonly class ExitCodeTest
     #[DataSet('results')]
     public function convertsACommandResult(CommandResult $result, int $value): void
     {
-        Expect::that(ExitCode::fromCommandResult($result)->value())->toBe($value);
+        Expect::value(ExitCode::fromCommandResult($result)->value())->toBe($value);
     }
 
     /** @return iterable<string, array{CommandResult, int}> */

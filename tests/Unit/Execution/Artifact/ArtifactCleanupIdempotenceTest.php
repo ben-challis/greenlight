@@ -36,7 +36,7 @@ final readonly class ArtifactCleanupIdempotenceTest
 
         $store->cleanup();
 
-        Expect::that(\is_dir($staging))
+        Expect::value(\is_dir($staging))
             ->because('the owning store MUST remove its original staging directory')
             ->toBeFalse();
 
@@ -45,11 +45,11 @@ final readonly class ArtifactCleanupIdempotenceTest
 
         $store->cleanup();
 
-        Expect::that(\is_file($replacement))
+        Expect::value(\is_file($replacement))
             ->because('a spent store MUST NOT delete replacement state at the same path')
             ->toBeTrue();
 
-        Expect::that((string) \file_get_contents($replacement))
+        Expect::value((string) \file_get_contents($replacement))
             ->because('replacement staging content MUST remain intact')
             ->toBe('replacement state');
     }

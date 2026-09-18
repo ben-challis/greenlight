@@ -26,13 +26,13 @@ final readonly class CoverageRunTest
         $outDir = $project->path('coverage-out');
         $result = $this->runIn($project, ['run', '--workers=2', '--reporter=plain'], 'coverage');
 
-        Expect::that($result->exitCode)->because('collects and exports coverage through the process pool')->toBe(0);
-        Expect::that($result->output())->toContain('Coverage: 60.00% (3 of 5 lines)')
+        Expect::value($result->exitCode)->because('collects and exports coverage through the process pool')->toBe(0);
+        Expect::value($result->output())->toContain('Coverage: 60.00% (3 of 5 lines)')
             ->toContain('  json → coverage-out/coverage.json');
 
         $json = \file_get_contents($outDir . '/coverage.json');
 
-        Expect::that($json)
+        Expect::value($json)
             ->because(\sprintf(
                 'The coverage JSON export at "%s" MUST be readable.',
                 $outDir . '/coverage.json',
@@ -49,13 +49,13 @@ final readonly class CoverageRunTest
             }
         }
 
-        Expect::that($mathFile)->because('collects and exports coverage through the process pool')->not()->toBeNull();
-        Expect::that($mathFile['covered'])->not()->toHaveCount(0);
-        Expect::that($mathFile['uncovered'])->not()->toHaveCount(0);
+        Expect::value($mathFile)->because('collects and exports coverage through the process pool')->not()->toBeNull();
+        Expect::value($mathFile['covered'])->not()->toHaveCount(0);
+        Expect::value($mathFile['uncovered'])->not()->toHaveCount(0);
 
         $lcov = \file_get_contents($outDir . '/lcov.info');
 
-        Expect::that($lcov)->because('collects and exports coverage through the process pool')->toContain('SF:')
+        Expect::value($lcov)->because('collects and exports coverage through the process pool')->toContain('SF:')
             ->toContain('end_of_record');
     }
 
@@ -65,9 +65,9 @@ final readonly class CoverageRunTest
         $project = $this->writeProject();
         $result = $this->runIn($project, ['run', '--reporter=plain'], 'off');
 
-        Expect::that($result->exitCode)->because('missing driver warns without failing the run')->toBe(0);
-        Expect::that($result->output())->toContain('No worker collected the requested coverage');
-        Expect::that(\is_dir($project->path('coverage-out')))->toBeFalse();
+        Expect::value($result->exitCode)->because('missing driver warns without failing the run')->toBe(0);
+        Expect::value($result->output())->toContain('No worker collected the requested coverage');
+        Expect::value(\is_dir($project->path('coverage-out')))->toBeFalse();
     }
 
     #[Test]
@@ -81,10 +81,10 @@ final readonly class CoverageRunTest
             '--maximum-uncovered-lines=2',
         ], 'coverage');
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('values equal to both coverage limits MUST pass')
             ->toBe(0);
-        Expect::that($result->output())
+        Expect::value($result->output())
             ->toContain('Coverage: 60.00% (3 of 5 lines)')
             ->not()->toContain('Coverage gate failed');
     }
@@ -100,14 +100,14 @@ final readonly class CoverageRunTest
             '--maximum-uncovered-lines=1',
         ], 'coverage');
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('each failed coverage gate MUST fail the run')
             ->toBe(1);
-        Expect::that($result->output())
+        Expect::value($result->output())
             ->toContain('Coverage gate failed: 60.00% is less than the minimum 60.01%.')
             ->toContain('Coverage gate failed: 2 uncovered lines exceed the maximum 1.')
             ->toContain('json → coverage-out/coverage.json');
-        Expect::that(\is_file($project->path('coverage-out/coverage.json')))
+        Expect::value(\is_file($project->path('coverage-out/coverage.json')))
             ->because('a gate failure MUST keep the coverage evidence')
             ->toBeTrue();
     }
@@ -122,10 +122,10 @@ final readonly class CoverageRunTest
             '--require-coverage-driver',
         ], 'off');
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('a required coverage driver MUST fail when no worker can collect coverage')
             ->toBe(1);
-        Expect::that($result->output())
+        Expect::value($result->output())
             ->toContain('Coverage is required, but no worker collected it.');
     }
 
@@ -139,14 +139,14 @@ final readonly class CoverageRunTest
             '--minimum-coverage=60.01',
         ], 'coverage');
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('a machine-readable run MUST keep the coverage-gate exit status')
             ->toBe(1);
-        Expect::that($result->stdout)
+        Expect::value($result->stdout)
             ->because('human coverage output MUST NOT change JSONL on standard output')
             ->not()->toContain('Coverage:')
             ->not()->toContain('Coverage gate failed');
-        Expect::that($result->stderr)
+        Expect::value($result->stderr)
             ->because('human coverage details move to standard error for JSONL')
             ->toContain('Coverage: 60.00% (3 of 5 lines)')
             ->toContain('Coverage gate failed: 60.00% is less than the minimum 60.01%.');
@@ -158,12 +158,12 @@ final readonly class CoverageRunTest
         $project = $this->writeProject(exportFormat: 'sarif');
         $result = $this->runIn($project, ['run', '--reporter=plain'], 'coverage');
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('an unknown coverage export format MUST fail the run')
             ->toBe(1);
-        Expect::that($result->output())
+        Expect::value($result->output())
             ->toContain('Unknown coverage export format "sarif".');
-        Expect::that(\is_dir($project->path('coverage-out')))
+        Expect::value(\is_dir($project->path('coverage-out')))
             ->toBeFalse();
     }
 
@@ -176,25 +176,25 @@ final readonly class CoverageRunTest
         $project = $this->writeProject(exportFormat: $format);
         $result = $this->runIn($project, ['run', '--reporter=plain'], 'coverage');
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('a configured XML coverage export MUST complete')
             ->toBe(0);
-        Expect::that($result->output())
+        Expect::value($result->output())
             ->toContain(\sprintf('  %s → coverage-out/coverage.unknown', $format));
 
         $document = \file_get_contents($project->path('coverage-out/coverage.unknown'));
 
-        Expect::that($document)
+        Expect::value($document)
             ->because(\sprintf('The %s coverage export MUST be readable.', $format))
             ->toBeString();
 
         $xml = new \SimpleXMLElement($document);
         $children = SimpleXml::xpath($xml, '/coverage/' . $expectedChild);
 
-        Expect::that($xml->getName())
+        Expect::value($xml->getName())
             ->because('the configured XML exporter MUST write a coverage document')
             ->toBe('coverage');
-        Expect::that($children)
+        Expect::value($children)
             ->not()
             ->toBe([]);
     }
@@ -215,10 +215,10 @@ final readonly class CoverageRunTest
         $project->writeFile('coverage-out', 'not a directory');
         $result = $this->runIn($project, ['run', '--reporter=plain'], 'coverage');
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('a failed coverage export MUST fail the run')
             ->toBe(1);
-        Expect::that($result->output())
+        Expect::value($result->output())
             ->toContain('Greenlight could not write the coverage export to')
             ->toContain('coverage-out/coverage.json')
             ->not()
@@ -238,12 +238,12 @@ final readonly class CoverageRunTest
             SubprocessCoverage::INCLUDE_ENV => '',
         ]);
 
-        Expect::that($result->exitCode)->because('orchestrator process coverage is merged into the export')->toBe(0);
-        Expect::that($result->output())->toContain('  json → coverage-out/coverage.json');
+        Expect::value($result->exitCode)->because('orchestrator process coverage is merged into the export')->toBe(0);
+        Expect::value($result->output())->toContain('  json → coverage-out/coverage.json');
 
         $json = \file_get_contents($outDir . '/coverage.json');
 
-        Expect::that($json)
+        Expect::value($json)
             ->because(\sprintf(
                 'The coverage JSON export at "%s" MUST be readable.',
                 $outDir . '/coverage.json',
@@ -262,8 +262,8 @@ final readonly class CoverageRunTest
 
         // Only the orchestrator process loads Orchestrator.php. Thus, covered
         // lines in that file show orchestrator coverage collection.
-        Expect::that($orchestratorFile)->because('orchestrator process coverage is merged into the export')->not()->toBeNull();
-        Expect::that($orchestratorFile['covered'])->not()->toHaveCount(0);
+        Expect::value($orchestratorFile)->because('orchestrator process coverage is merged into the export')->not()->toBeNull();
+        Expect::value($orchestratorFile['covered'])->not()->toHaveCount(0);
     }
 
     #[Test]
@@ -278,16 +278,16 @@ final readonly class CoverageRunTest
             SubprocessCoverage::INCLUDE_ENV => $root . '/src/Cli',
         ]);
 
-        Expect::that($result->exitCode)->because('spawned CLI processes dump coverage into the shared directory')->toBe(0);
+        Expect::value($result->exitCode)->because('spawned CLI processes dump coverage into the shared directory')->toBe(0);
 
         $dumps = \glob($shared . '/*.json');
         $dumps = $dumps === false ? [] : $dumps;
 
-        Expect::that($dumps)->because('spawned CLI processes dump coverage into the shared directory')->not()->toHaveCount(0);
+        Expect::value($dumps)->because('spawned CLI processes dump coverage into the shared directory')->not()->toHaveCount(0);
 
         $contents = $dumps === [] ? '' : (string) \file_get_contents($dumps[0]);
 
-        Expect::that($contents)->because('spawned CLI processes dump coverage into the shared directory')->toContain('src/Cli/Application.php');
+        Expect::value($contents)->because('spawned CLI processes dump coverage into the shared directory')->toContain('src/Cli/Application.php');
     }
 
     #[Test]
@@ -297,10 +297,10 @@ final readonly class CoverageRunTest
         $project->writeFile('coverage-out/coverage.unknown', 'not a directory');
         $result = $this->runIn($project, ['run', '--reporter=plain'], 'coverage');
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('a failed multi-file coverage export MUST fail the run')
             ->toBe(1);
-        Expect::that($result->output())
+        Expect::value($result->output())
             ->toContain('Greenlight could not write the coverage export to')
             ->toContain('coverage-out/coverage.unknown/index.html')
             ->not()
@@ -314,7 +314,7 @@ final readonly class CoverageRunTest
         $outDir = $project->path('coverage-out');
 
         $result = $this->runIn($project, ['run', '--reporter=plain'], 'coverage');
-        Expect::that($result->exitCode)->because('coverage diff fails on regressions and passes when equal')->toBe(0);
+        Expect::value($result->exitCode)->because('coverage diff fails on regressions and passes when equal')->toBe(0);
 
         $baseline = $outDir . '/coverage.json';
 
@@ -323,12 +323,12 @@ final readonly class CoverageRunTest
             ['coverage:diff', '--baseline=coverage-out/coverage.json', '--current=coverage-out/coverage.json'],
         );
 
-        Expect::that($sameResult->exitCode)->because('coverage diff fails on regressions and passes when equal')->toBe(0);
-        Expect::that($sameResult->output())->toContain('(+0.00)');
+        Expect::value($sameResult->exitCode)->because('coverage diff fails on regressions and passes when equal')->toBe(0);
+        Expect::value($sameResult->output())->toContain('(+0.00)');
 
         $json = \file_get_contents($baseline);
 
-        Expect::that($json)
+        Expect::value($json)
             ->because(\sprintf(
                 'The baseline coverage export at "%s" MUST be readable.',
                 $baseline,
@@ -345,7 +345,7 @@ final readonly class CoverageRunTest
             }
         }
 
-        Expect::that($mathFile)
+        Expect::value($mathFile)
             ->because('Baseline export has no entry for CoverageLib/Math.php.')
             ->not()
             ->toBeNull();
@@ -357,7 +357,7 @@ final readonly class CoverageRunTest
         $decoded['files'][$mathFile]['covered'] = \array_values(\array_diff($before['covered'], [$movedLine]));
         $decoded['files'][$mathFile]['uncovered'] = [...$before['uncovered'], $movedLine];
 
-        Expect::that($decoded['files'][$mathFile])->because('coverage diff fails on regressions and passes when equal')->not()->toBe($before);
+        Expect::value($decoded['files'][$mathFile])->because('coverage diff fails on regressions and passes when equal')->not()->toBe($before);
 
         $regressed = \json_encode($decoded, \JSON_THROW_ON_ERROR);
         $regressedPath = $outDir . '/regressed.json';
@@ -368,8 +368,8 @@ final readonly class CoverageRunTest
             ['coverage:diff', '--baseline=coverage-out/coverage.json', '--current=coverage-out/regressed.json'],
         );
 
-        Expect::that($regressedResult->exitCode)->because('coverage diff fails on regressions and passes when equal')->toBe(1);
-        Expect::that($regressedResult->output())->toContain('Coverage regressed against the baseline.')
+        Expect::value($regressedResult->exitCode)->because('coverage diff fails on regressions and passes when equal')->toBe(1);
+        Expect::value($regressedResult->output())->toContain('Coverage regressed against the baseline.')
             ->toContain('newly uncovered lines: ' . $movedLine);
     }
 

@@ -20,7 +20,7 @@ final class ProtocolErrorWorkerFatalTest
             17,
         );
 
-        Expect::that($error->getMessage())
+        Expect::value($error->getMessage())
             ->because(
                 'a fatal worker error MUST identify its worker, message, and source location',
             )

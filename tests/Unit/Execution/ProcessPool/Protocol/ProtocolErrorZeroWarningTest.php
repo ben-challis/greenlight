@@ -13,7 +13,7 @@ final readonly class ProtocolErrorZeroWarningTest
     #[Test]
     public function malformedFramePreservesAZeroWarning(): void
     {
-        Expect::that(ProtocolError::malformedFrame('read failed', '0')->getMessage())
+        Expect::value(ProtocolError::malformedFrame('read failed', '0')->getMessage())
             ->because('the warning string "0" MUST remain distinct from no warning')
             ->toBe('Malformed frame: read failed: 0.');
     }

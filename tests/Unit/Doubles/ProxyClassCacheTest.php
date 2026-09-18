@@ -30,8 +30,8 @@ final class ProxyClassCacheTest
             $factory = new Doubles();
             $double = $factory->stub($type);
 
-            Expect::that($double)->toBeInstanceOf(ProxyCacheContract::class);
-            Expect::that($double::class)->toBe($first::class);
+            Expect::value($double)->toBeInstanceOf(ProxyCacheContract::class);
+            Expect::value($double::class)->toBe($first::class);
             $factory->dispose();
         }
     }
@@ -43,7 +43,7 @@ final class ProxyClassCacheTest
         $doubles->stub(ProxyCacheContract::class);
         $stub = new \ReflectionMethod(Doubles::class, 'stub');
 
-        Expect::that(static fn(): mixed => $stub->invoke($doubles, '\\\\' . ProxyCacheContract::class))
+        Expect::calling(static fn(): mixed => $stub->invoke($doubles, '\\\\' . ProxyCacheContract::class))
             ->because('extra namespace separators must remain invalid after the valid type is cached')
             ->toThrow(InvalidDoubleUsage::class);
         $doubles->dispose();
@@ -56,11 +56,11 @@ final class ProxyClassCacheTest
         $doubles = new Doubles();
         $stub = new \ReflectionMethod(Doubles::class, 'stub');
 
-        Expect::that(static fn(): mixed => $stub->invoke($doubles, $type))
+        Expect::calling(static fn(): mixed => $stub->invoke($doubles, $type))
             ->toThrow(InvalidDoubleUsage::class);
         \class_alias(ProxyCacheContract::class, $type);
 
-        Expect::that($stub->invoke($doubles, $type))->toBeInstanceOf(ProxyCacheContract::class);
+        Expect::value($stub->invoke($doubles, $type))->toBeInstanceOf(ProxyCacheContract::class);
         $doubles->dispose();
     }
 }

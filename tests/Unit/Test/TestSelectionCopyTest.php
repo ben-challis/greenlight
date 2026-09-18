@@ -24,18 +24,18 @@ final class TestSelectionCopyTest
         $selectedIds = $selection->withExactIds(['App\ExampleTest::runs']);
         $excludedPaths = $selectedIds->withExcludedPaths(['/project/generated']);
 
-        Expect::that($excludedPaths->include->exactIds)
+        Expect::value($excludedPaths->include->exactIds)
             ->because('an exact-ID copy MUST remain after a path copy')
             ->toBe(['App\ExampleTest::runs']);
-        Expect::that($excludedPaths->exclude->paths)
+        Expect::value($excludedPaths->exclude->paths)
             ->because('a path copy MUST replace only excluded paths')
             ->toBe(['/project/generated']);
-        Expect::that($excludedPaths->include->groups)->toBe(['fast']);
-        Expect::that($excludedPaths->include->idPatterns)->toBe(['*Invoice*']);
-        Expect::that($excludedPaths->exclude->groups)->toBe(['slow']);
-        Expect::that($excludedPaths->exclude->classes)->toBe(['Legacy*']);
-        Expect::that($excludedPaths->shard)->toBe([2, 3]);
-        Expect::that($selection->include->exactIds)
+        Expect::value($excludedPaths->include->groups)->toBe(['fast']);
+        Expect::value($excludedPaths->include->idPatterns)->toBe(['*Invoice*']);
+        Expect::value($excludedPaths->exclude->groups)->toBe(['slow']);
+        Expect::value($excludedPaths->exclude->classes)->toBe(['Legacy*']);
+        Expect::value($excludedPaths->shard)->toBe([2, 3]);
+        Expect::value($selection->include->exactIds)
             ->because('a focused copy MUST leave its source unchanged')
             ->toBe([]);
     }

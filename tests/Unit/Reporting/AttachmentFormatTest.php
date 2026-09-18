@@ -18,7 +18,7 @@ final class AttachmentFormatTest
     #[Test]
     public function aResultWithoutAttachmentsRendersNothing(): void
     {
-        Expect::that(AttachmentFormat::render($this->result([])))
+        Expect::value(AttachmentFormat::render($this->result([])))
             ->because('a result without attachments renders nothing')
             ->toBe('');
     }
@@ -28,7 +28,7 @@ final class AttachmentFormatTest
     {
         $attachments = $this->attachments(1);
 
-        Expect::that(AttachmentFormat::render($this->result($attachments), '    '))
+        Expect::value(AttachmentFormat::render($this->result($attachments), '    '))
             ->because(
                 'human-readable attachment metadata includes its type, size, and path',
             )
@@ -38,7 +38,7 @@ final class AttachmentFormatTest
                 . "build/attachments/attachment-1.txt\n",
             );
 
-        Expect::that(AttachmentFormat::paths($attachments))
+        Expect::value(AttachmentFormat::paths($attachments))
             ->because(
                 'machine-readable attachment metadata includes its name and path',
             )
@@ -52,7 +52,7 @@ final class AttachmentFormatTest
         $rendered = AttachmentFormat::render($this->result($attachments));
         $paths = AttachmentFormat::paths($attachments);
 
-        Expect::that($rendered)
+        Expect::value($rendered)
             ->because(
                 'the human-readable attachment list is bounded and reports the remainder',
             )
@@ -61,7 +61,7 @@ final class AttachmentFormatTest
             ->toContain('and 2 more')
             ->not()->toContain('attachment-11.txt');
 
-        Expect::that($paths)
+        Expect::value($paths)
             ->because(
                 'the machine-readable attachment path list is bounded and reports the remainder',
             )

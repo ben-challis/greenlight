@@ -65,7 +65,7 @@ final readonly class StorageDirectoriesRunTest
                     $double = $this->doubles->spy(Collaborator::class);
                     file_put_contents(dirname(__DIR__) . '/observed-temporary-path.txt', $this->temporaryDirectory->path());
 
-                    Expect::that($double)->toBeInstanceOf(Collaborator::class);
+                    Expect::value($double)->toBeInstanceOf(Collaborator::class);
                 }
             }
 
@@ -76,22 +76,22 @@ final readonly class StorageDirectoriesRunTest
         $proxyFiles = \glob($project->path('storage/generated-code/*.php'));
         $temporaryPath = (string) \file_get_contents($project->path('observed-temporary-path.txt'));
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because($result->output() === '' ? 'The configured storage run returned no output.' : $result->output())
             ->toBe(0);
-        Expect::that(\is_file($project->path('storage/state/run-state.json')))
+        Expect::value(\is_file($project->path('storage/state/run-state.json')))
             ->because('run state MUST use its configured persistent directory')
             ->toBeTrue();
-        Expect::that($discoveryFiles === false ? [] : $discoveryFiles)
+        Expect::value($discoveryFiles === false ? [] : $discoveryFiles)
             ->because('discovery metadata MUST use its configured data-cache directory')
             ->toHaveCount(1);
-        Expect::that($proxyFiles === false ? [] : $proxyFiles)
+        Expect::value($proxyFiles === false ? [] : $proxyFiles)
             ->because('worker proxy PHP MUST use its configured generated-code directory')
             ->toHaveCount(1);
-        Expect::that($temporaryPath)
+        Expect::value($temporaryPath)
             ->because('the worker temporary directory MUST use the configured runtime root')
             ->toStartWith($project->path('storage/temporary/greenlight-'));
-        Expect::that(\is_dir($temporaryPath))
+        Expect::value(\is_dir($temporaryPath))
             ->because('test disposal MUST remove the owned temporary child')
             ->toBeFalse();
     }

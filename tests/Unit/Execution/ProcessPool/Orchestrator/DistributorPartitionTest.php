@@ -27,7 +27,7 @@ final readonly class DistributorPartitionTest
 
         [$pooled, $isolated] = new Distributor()->units($plan);
 
-        Expect::that(\array_map($this->unitShape(...), $pooled))
+        Expect::value(\array_map($this->unitShape(...), $pooled))
             ->because('pooled distribution MUST preserve every entry, its order, and the plan seed')
             ->toBe([
                 [
@@ -41,7 +41,7 @@ final readonly class DistributorPartitionTest
                     'isolated' => false,
                 ],
             ]);
-        Expect::that(\array_map($this->unitShape(...), $isolated))
+        Expect::value(\array_map($this->unitShape(...), $isolated))
             ->because('isolated distribution MUST preserve every entry, its order, and the plan seed')
             ->toBe([
                 [

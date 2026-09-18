@@ -68,10 +68,10 @@ final readonly class CustomRunPolicyTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('the configured run policy MUST reject an otherwise successful run')
             ->toBe(1);
-        Expect::that($result->output())
+        Expect::value($result->output())
             ->toContain('1 test, 1 passed')
             ->toContain('Project policy rejected 1 passed test and 0 retried passes.');
     }

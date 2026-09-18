@@ -46,7 +46,7 @@ final class TeamCityReporterArtifactPublishTest
         ));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('the TeamCity artifact command MUST escape its user-controlled directory')
             ->toBe(
                 "##teamcity[testMetadata testName='Example\\AttachmentTest::passes' "

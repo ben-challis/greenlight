@@ -68,17 +68,17 @@ final readonly class ApplicationCoverageCleanupTest
         $stderr = MemoryStream::open();
         $this->cleanup->defer(static fn() => MemoryStream::close($stderr));
 
-        Expect::that(fn() => Application::forStreams($stdout, $stderr)->run(
+        Expect::calling(fn() => Application::forStreams($stdout, $stderr)->run(
             ['run', '--reporter=plain', '--no-ansi'],
             $project->directory,
         ))
             ->because('a run event failure MUST propagate after coverage cleanup')
             ->toThrow(ReportGenerationFailed::class);
 
-        Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))
+        Expect::value(\getenv(SubprocessCoverage::DIRECTORY_ENV))
             ->because('a failed run MUST restore an absent coverage relay directory')
             ->toBeFalse();
-        Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))
+        Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))
             ->because('a failed run MUST restore absent coverage include paths')
             ->toBeFalse();
     }

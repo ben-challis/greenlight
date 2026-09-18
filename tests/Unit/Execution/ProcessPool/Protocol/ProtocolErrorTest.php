@@ -20,7 +20,7 @@ final readonly class ProtocolErrorTest
             "PHP Fatal error: boot failed\n",
         );
 
-        Expect::that($error->getMessage())
+        Expect::value($error->getMessage())
             ->because('worker startup failures MUST preserve captured output')
             ->toBe(
                 'Worker "worker-2" did not connect within 0.5 seconds. '
@@ -39,10 +39,10 @@ final readonly class ProtocolErrorTest
     {
         $error = $factory();
 
-        Expect::that($error)
+        Expect::value($error)
             ->because('invalid worker message order MUST produce a protocol error')
             ->toBeInstanceOf(ProtocolError::class);
-        Expect::that($error->getMessage())->toBe($message);
+        Expect::value($error->getMessage())->toBe($message);
     }
 
     /**
@@ -75,7 +75,7 @@ final readonly class ProtocolErrorTest
     ): void {
         $error = $factory('worker-0', 1.5, '0');
 
-        Expect::that($error->getMessage())
+        Expect::value($error->getMessage())
             ->because('worker timeout errors MUST retain non-empty diagnostics')
             ->toBe($expectedMessage . "\nWorker output:\n0");
     }

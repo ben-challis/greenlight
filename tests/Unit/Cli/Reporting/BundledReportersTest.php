@@ -36,7 +36,7 @@ final readonly class BundledReportersTest
             $reporters[$definition->name] = ($definition->factory)($output)::class;
         }
 
-        Expect::that($reporters)->toBe([
+        Expect::value($reporters)->toBe([
             'tty' => TtyReporter::class,
             'plain' => PlainReporter::class,
             'junit' => JUnitReporter::class,

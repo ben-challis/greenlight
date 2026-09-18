@@ -35,7 +35,7 @@ final class ArtifactDirectoryOverrideTest
             new CliOverrides(execution: new ExecutionOverrides(artifactsDirectory: 'build/cli-evidence')),
         );
 
-        Expect::that($resolved->execution->artifacts->toWire())
+        Expect::value($resolved->execution->artifacts->toWire())
             ->because('the CLI directory override MUST preserve configured artifact safety limits')
             ->toBe([
                 'directory' => 'build/cli-evidence',

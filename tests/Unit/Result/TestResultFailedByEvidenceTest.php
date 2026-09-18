@@ -30,12 +30,12 @@ final readonly class TestResultFailedByEvidenceTest
 
         $result = $passed->failedBy('result-policy', [$later]);
 
-        Expect::that($result->outcome)
+        Expect::value($result->outcome)
             ->because('a later failure transition MUST retain earlier failure evidence')
             ->toBe(Outcome::Failed);
-        Expect::that($result->failures)
+        Expect::value($result->failures)
             ->toBe([$earlier, $later]);
-        Expect::that(\array_map(
+        Expect::value(\array_map(
             static fn(OutcomeTransformation $transformation): array => [
                 $transformation->transformedBy,
                 $transformation->from,

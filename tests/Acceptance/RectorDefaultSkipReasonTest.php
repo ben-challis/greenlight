@@ -41,10 +41,10 @@ final readonly class RectorDefaultSkipReasonTest
             name: 'default-skip-reason',
         );
 
-        Expect::that($probe->changed)
+        Expect::value($probe->changed)
             ->because('a PHPUnit skip without a reason MUST be convertible')
             ->toBeTrue();
-        Expect::that($probe->code)
+        Expect::value($probe->code)
             ->because('Greenlight skips MUST have a non-empty reason')
             ->toContain("throw new \Greenlight\Test\SkipTest('Skipped.');");
     }

@@ -25,7 +25,7 @@ final class AutoloadersOwnershipTest
             $sandbox->dispose();
             \class_exists('GreenlightExistingAutoloaderProbe');
 
-            Expect::that($calls)->toBe(['GreenlightExistingAutoloaderProbe']);
+            Expect::value($calls)->toBe(['GreenlightExistingAutoloaderProbe']);
         } finally {
             $sandbox->dispose();
             \spl_autoload_unregister($loader);
@@ -47,12 +47,12 @@ final class AutoloadersOwnershipTest
             $inner->register($loader);
             $inner->dispose();
             \class_exists('GreenlightOuterAutoloaderProbe');
-            Expect::that($calls)->toBe(['GreenlightOuterAutoloaderProbe']);
+            Expect::value($calls)->toBe(['GreenlightOuterAutoloaderProbe']);
 
             $outer->dispose();
             $calls = [];
             \class_exists('GreenlightClosedAutoloaderProbe');
-            Expect::that($calls)->toBe([]);
+            Expect::value($calls)->toBe([]);
         } finally {
             $inner->dispose();
             $outer->dispose();

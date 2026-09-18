@@ -16,14 +16,14 @@ final readonly class FrameLimitTest
     #[DataSet('invalidLimits')]
     public function frameLimitsMustBePositive(int $limit): void
     {
-        Expect::that(static fn(): JsonFrameCodec => new JsonFrameCodec($limit))
+        Expect::calling(static fn(): JsonFrameCodec => new JsonFrameCodec($limit))
             ->because('the encoder MUST reject a frame limit that cannot contain a frame')
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Maximum frame size must be greater than zero.',
             );
 
-        Expect::that(static fn(): FrameBuffer => new FrameBuffer($limit))
+        Expect::calling(static fn(): FrameBuffer => new FrameBuffer($limit))
             ->because('the decoder MUST reject a frame limit that cannot contain a frame')
             ->toThrow(
                 \InvalidArgumentException::class,

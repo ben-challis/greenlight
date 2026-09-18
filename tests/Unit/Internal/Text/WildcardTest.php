@@ -19,7 +19,7 @@ final class WildcardTest
         bool $caseInsensitive,
         bool $expected,
     ): void {
-        Expect::that(Wildcard::matches($subject, $pattern, $caseInsensitive))
+        Expect::value(Wildcard::matches($subject, $pattern, $caseInsensitive))
             ->because('wildcard matching MUST follow the documented substring and shell-pattern contract')
             ->toBe($expected);
     }

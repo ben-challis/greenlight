@@ -25,9 +25,9 @@ final readonly class ExtensionMatcherDispatchTest
         $restoreExtensions = Expect::install([new DigestExtension()]);
         $this->cleanup->defer($restoreExtensions);
 
-        Expect::that('c0ffee')->toBeHexadecimal()
+        Expect::value('c0ffee')->toBeHexadecimal()
             ->toHaveDigestLength(6);
-        Expect::that('not hex!')->not()->toBeHexadecimal();
+        Expect::value('not hex!')->not()->toBeHexadecimal();
     }
 
     #[Test]
@@ -38,15 +38,15 @@ final readonly class ExtensionMatcherDispatchTest
         $this->cleanup->defer($restoreExtensions);
 
         ExpectationRuntime::withClock($clock, static function (): void {
-            Expect::eventually(static fn(): string => 'c0ffee')
+            Expect::calling(static fn(): string => 'c0ffee')->returnValue()->eventually()
                 ->within(0.100)
                 ->toHaveDigestLength(length: 6);
-            Expect::consistently(static fn(): string => 'c0ffee')
+            Expect::calling(static fn(): string => 'c0ffee')->returnValue()->consistently()
                 ->for(0.001)
                 ->toHaveDigestLength(length: 6);
         });
 
-        Expect::that($clock->sleeps)
+        Expect::value($clock->sleeps)
             ->because('extension matcher dispatch MUST preserve named arguments')
             ->toBe([0.001]);
     }

@@ -50,7 +50,7 @@ final readonly class CleanupFailuresTest
     public function passesBeforeCleanupExpectationFails(): void
     {
         $this->cleanup->defer(static function (): void {
-            Expect::that('actual')->toBe('expected');
+            Expect::value('actual')->toBe('expected');
         });
     }
 }

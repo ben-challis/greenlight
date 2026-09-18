@@ -32,11 +32,11 @@ final readonly class RectorEmptySkipReasonTest
         }
         PHP_WRAP);
 
-        Expect::that($probe->changed)->toBeTrue();
+        Expect::value($probe->changed)->toBeTrue();
         $run = $probe->runConvertedTests();
 
-        Expect::that($run->exitCode)->because('The converted test must remain skipped.')->toBe(0);
-        Expect::that($run->stdout)->toContain('1 skipped');
+        Expect::value($run->exitCode)->because('The converted test must remain skipped.')->toBe(0);
+        Expect::value($run->stdout)->toContain('1 skipped');
     }
 
     #[Test]
@@ -62,7 +62,7 @@ final readonly class RectorEmptySkipReasonTest
         PHP_WRAP;
         $probe = RectorProbe::convert($this->tempDirectory, $source);
 
-        Expect::that($probe->code)->toBe($source);
+        Expect::value($probe->code)->toBe($source);
     }
 
     #[Test]
@@ -83,10 +83,10 @@ final readonly class RectorEmptySkipReasonTest
         }
         PHP_WRAP);
 
-        Expect::that($probe->changed)->toBeTrue();
+        Expect::value($probe->changed)->toBeTrue();
         $run = $probe->runConvertedTests();
 
-        Expect::that($run->exitCode)->because('The converted test must remain skipped.')->toBe(0);
-        Expect::that($run->stdout)->toContain('1 skipped')->toContain('Skipped dynamically.');
+        Expect::value($run->exitCode)->because('The converted test must remain skipped.')->toBe(0);
+        Expect::value($run->stdout)->toContain('1 skipped')->toContain('Skipped dynamically.');
     }
 }

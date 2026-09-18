@@ -16,7 +16,7 @@ final class EventEnvelopeTest
     #[Test]
     public function anUnknownEventTagIsAProtocolError(): void
     {
-        Expect::that(static fn(): EventEnvelope => EventEnvelope::fromWire([
+        Expect::calling(static fn(): EventEnvelope => EventEnvelope::fromWire([
             'event' => 'future-event',
             'data' => [],
         ]))->toThrow(
@@ -32,7 +32,7 @@ final class EventEnvelopeTest
             public float $occurredAt = 1.0;
         };
 
-        Expect::that(static fn(): array => new EventEnvelope($event)->toWire())
+        Expect::calling(static fn(): array => new EventEnvelope($event)->toWire())
             ->toThrow(
                 ProtocolError::class,
                 message: \sprintf('Unknown event type "%s".', $event::class),
@@ -42,7 +42,7 @@ final class EventEnvelopeTest
     #[Test]
     public function aMalformedEventPayloadIsAProtocolError(): void
     {
-        Expect::that(static fn(): EventEnvelope => EventEnvelope::fromWire([
+        Expect::calling(static fn(): EventEnvelope => EventEnvelope::fromWire([
             'event' => 'run-started',
             'data' => [],
         ]))->toThrow(

@@ -15,7 +15,7 @@ final class SimpleXmlTest
     {
         $element = \simplexml_load_string('<element/>');
 
-        Expect::that($element)->toBeInstanceOf(\SimpleXMLElement::class);
-        Expect::that(SimpleXml::attributes($element))->toBe([]);
+        Expect::value($element)->toBeInstanceOf(\SimpleXMLElement::class);
+        Expect::value(SimpleXml::attributes($element))->toBe([]);
     }
 }

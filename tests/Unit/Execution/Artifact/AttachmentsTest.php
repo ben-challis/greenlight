@@ -56,24 +56,24 @@ final readonly class AttachmentsTest
             attachments: $retained,
         ));
 
-        Expect::that($published->attachments)->because('stages publishes and hashes every attachment kind')->toHaveCount(5);
-        Expect::that($published->attachments[1]->name)->because('stages publishes and hashes every attachment kind')->toBe('response.txt');
-        Expect::that($published->attachments[3]->name)->because('stages publishes and hashes every attachment kind')->toBe('response.txt');
-        Expect::that($published->attachments[3]->path)->because('stages publishes and hashes every attachment kind')->toContain('response-2.txt');
+        Expect::value($published->attachments)->because('stages publishes and hashes every attachment kind')->toHaveCount(5);
+        Expect::value($published->attachments[1]->name)->because('stages publishes and hashes every attachment kind')->toBe('response.txt');
+        Expect::value($published->attachments[3]->name)->because('stages publishes and hashes every attachment kind')->toBe('response.txt');
+        Expect::value($published->attachments[3]->path)->because('stages publishes and hashes every attachment kind')->toContain('response-2.txt');
 
         foreach ($published->attachments as $attachment) {
             $path = $this->absolute($root, $attachment->path);
-            Expect::that(\is_file($path))
+            Expect::value(\is_file($path))
                 ->because(\sprintf('published attachment "%s" exists as a file', $attachment->path))
                 ->toBeTrue();
-            Expect::that(\hash_file('sha256', $path))
+            Expect::value(\hash_file('sha256', $path))
                 ->because(\sprintf('published attachment "%s" has its recorded SHA-256 digest', $attachment->path))
                 ->toBe($attachment->sha256);
         }
 
-        Expect::that((string) \file_get_contents($this->absolute($root, $published->attachments[0]->path)))->because('stages publishes and hashes every attachment kind')
+        Expect::value((string) \file_get_contents($this->absolute($root, $published->attachments[0]->path)))->because('stages publishes and hashes every attachment kind')
             ->toBe("{\"ok\":true}\n");
-        Expect::that((string) \file_get_contents($this->absolute($root, $published->attachments[4]->path)))->because('stages publishes and hashes every attachment kind')
+        Expect::value((string) \file_get_contents($this->absolute($root, $published->attachments[4]->path)))->because('stages publishes and hashes every attachment kind')
             ->toBe("\x00file");
 
     }
@@ -96,8 +96,8 @@ final readonly class AttachmentsTest
             attachments: $attachments->seal(),
         ));
 
-        Expect::that($published->attachments)->because('passing attempts discard on failure attachments but keep always')->toHaveCount(1);
-        Expect::that($published->attachments[0]->name)->because('passing attempts discard on failure attachments but keep always')->toBe('kept.txt');
+        Expect::value($published->attachments)->because('passing attempts discard on failure attachments but keep always')->toHaveCount(1);
+        Expect::value($published->attachments[0]->name)->because('passing attempts discard on failure attachments but keep always')->toBe('kept.txt');
 
     }
 
@@ -109,12 +109,12 @@ final readonly class AttachmentsTest
         $this->cleanup->defer($store->cleanup(...));
         $output = $store->publicDirectory();
 
-        Expect::that(\file_exists($output))->because('output directory is created only when evidence is published')->toBeFalse();
+        Expect::value(\file_exists($output))->because('output directory is created only when evidence is published')->toBeFalse();
 
         $id = new TestId('Example\EvidenceTest', 'passes');
         $attachments = $store->forAttempt($id, 1, new TestArtifactBudget());
 
-        Expect::that(\file_exists($output))->because('output directory is created only when evidence is published')->toBeFalse();
+        Expect::value(\file_exists($output))->because('output directory is created only when evidence is published')->toBeFalse();
 
         $attachments->text('discarded.txt', 'discard me');
         $published = $store->publish(new TestResult(
@@ -125,8 +125,8 @@ final readonly class AttachmentsTest
             attachments: $attachments->seal(),
         ));
 
-        Expect::that($published->attachments)->because('output directory is created only when evidence is published')->toBe([]);
-        Expect::that(\file_exists($output))->toBeFalse();
+        Expect::value($published->attachments)->because('output directory is created only when evidence is published')->toBe([]);
+        Expect::value(\file_exists($output))->toBeFalse();
 
     }
 
@@ -146,7 +146,7 @@ final readonly class AttachmentsTest
             new TestArtifactBudget(),
         );
 
-        Expect::that(static fn() => $write($attachments))
+        Expect::calling(static fn() => $write($attachments))
             ->because('an invalid attachment write gives exact guidance')
             ->toThrow(AttachmentError::class, message: $message);
     }
@@ -213,9 +213,9 @@ final readonly class AttachmentsTest
         $budget = new TestArtifactBudget();
         $attachments = $store->forAttempt($id, 1, $budget);
 
-        Expect::that(static fn() => $attachments->text('../secret', 'x'))->because('invalid names, symbolic links, and exceeded limits cause errors')
+        Expect::calling(static fn() => $attachments->text('../secret', 'x'))->because('invalid names, symbolic links, and exceeded limits cause errors')
             ->toThrow(AttachmentError::class);
-        Expect::that(static fn() => $attachments->bytes('large.bin', '12345'))->because('invalid names, symbolic links, and exceeded limits cause errors')
+        Expect::calling(static fn() => $attachments->bytes('large.bin', '12345'))->because('invalid names, symbolic links, and exceeded limits cause errors')
             ->toThrow(
                 AttachmentError::class,
                 message: 'Attachment size 5 exceeds the limit of 4 bytes.',
@@ -223,19 +223,19 @@ final readonly class AttachmentsTest
 
         $attachments->text('one.txt', '1234');
 
-        Expect::that(static fn() => $attachments->text('two.txt', 'x'))->because('invalid names, symbolic links, and exceeded limits cause errors')
+        Expect::calling(static fn() => $attachments->text('two.txt', 'x'))->because('invalid names, symbolic links, and exceeded limits cause errors')
             ->toThrow(
                 AttachmentError::class,
                 message: 'This test has reached the limit of 1 attachments.',
             );
         $retry = $store->forAttempt($id, 2, $budget);
-        Expect::that(static fn() => $retry->text('retry.txt', 'x'))->because('invalid names, symbolic links, and exceeded limits cause errors')
+        Expect::calling(static fn() => $retry->text('retry.txt', 'x'))->because('invalid names, symbolic links, and exceeded limits cause errors')
             ->toThrow(
                 AttachmentError::class,
                 message: 'This test has reached the limit of 1 attachments.',
             );
         $runLimited = $store->forAttempt(new TestId('Example\EvidenceTest', 'run-limit'), 1, new TestArtifactBudget());
-        Expect::that(static fn() => $runLimited->text('other.txt', 'x'))->because('invalid names, symbolic links, and exceeded limits cause errors')
+        Expect::calling(static fn() => $runLimited->text('other.txt', 'x'))->because('invalid names, symbolic links, and exceeded limits cause errors')
             ->toThrow(
                 AttachmentError::class,
                 message: 'This run has reached the limit of 1 attachments.',
@@ -247,7 +247,7 @@ final readonly class AttachmentsTest
         \symlink($source, $link);
         $other = $store->forAttempt(new TestId('Example\EvidenceTest', 'symlink'), 1, new TestArtifactBudget());
 
-        Expect::that(static fn() => $other->file('link.txt', $link))->because('invalid names, symbolic links, and exceeded limits cause errors')
+        Expect::calling(static fn() => $other->file('link.txt', $link))->because('invalid names, symbolic links, and exceeded limits cause errors')
             ->toThrow(
                 AttachmentError::class,
                 message: \sprintf(
@@ -279,7 +279,7 @@ final readonly class AttachmentsTest
         );
         $testAttachments->text('one.txt', '1234');
 
-        Expect::that(static fn() => $testAttachments->text('two.txt', 'x'))
+        Expect::calling(static fn() => $testAttachments->text('two.txt', 'x'))
             ->toThrow(
                 AttachmentError::class,
                 message: 'Attachments for this test exceed the limit of 4 bytes.',
@@ -309,7 +309,7 @@ final readonly class AttachmentsTest
             new TestArtifactBudget(),
         );
 
-        Expect::that(static fn() => $runAttachments->text('two.txt', 'x'))
+        Expect::calling(static fn() => $runAttachments->text('two.txt', 'x'))
             ->toThrow(
                 AttachmentError::class,
                 message: 'Attachments for this run exceed the limit of 4 bytes.',
@@ -323,7 +323,7 @@ final readonly class AttachmentsTest
     {
         $workingDirectory = $this->tempDirectory->subdirectory('relative-output');
 
-        Expect::that(static fn(): ArtifactStore => ArtifactStore::open(
+        Expect::calling(static fn(): ArtifactStore => ArtifactStore::open(
             new ArtifactConfiguration('../outside'),
             $workingDirectory,
             'run-relative',
@@ -346,7 +346,7 @@ final readonly class AttachmentsTest
             new ArtifactConfiguration($root . '/published'),
         );
 
-        Expect::that(static fn() => $store->recordAttempt(
+        Expect::calling(static fn() => $store->recordAttempt(
             new TestId('Example\EvidenceTest', 'symlinkedStaging'),
             1,
         ))->toThrow(
@@ -370,7 +370,7 @@ final readonly class AttachmentsTest
             $configuration,
         );
 
-        Expect::that(static fn() => $store->stageBytes(
+        Expect::calling(static fn() => $store->stageBytes(
             'evidence',
             'evidence.txt',
             $storageKey,
@@ -397,7 +397,7 @@ final readonly class AttachmentsTest
             $configuration,
         );
 
-        Expect::that(static fn() => $store->stageBytes(
+        Expect::calling(static fn() => $store->stageBytes(
             'evidence',
             'evidence.txt',
             \str_repeat('a', 250),
@@ -416,7 +416,7 @@ final readonly class AttachmentsTest
         \mkdir($testDirectory, 0o777, true);
         \mkdir($testDirectory . '/.attempt');
 
-        Expect::that(static fn() => $store->recordAttempt($id, 2))
+        Expect::calling(static fn() => $store->recordAttempt($id, 2))
             ->toThrow(
                 AttachmentError::class,
                 message: 'Greenlight did not finalize the current test attempt record.',
@@ -446,7 +446,7 @@ final readonly class AttachmentsTest
             $storageKey,
         );
 
-        Expect::that(static fn() => $store->discard($attachment))
+        Expect::calling(static fn() => $store->discard($attachment))
             ->toThrow(
                 AttachmentError::class,
                 message: 'Greenlight did not remove attachment recovery metadata.',
@@ -467,7 +467,7 @@ final readonly class AttachmentsTest
         \mkdir(\dirname($destination), 0o777, true);
         \file_put_contents($destination, 'occupied');
 
-        Expect::that(static fn(): TestResult => $store->publish(new TestResult(
+        Expect::calling(static fn(): TestResult => $store->publish(new TestResult(
             $id,
             Outcome::Failed,
             0.1,
@@ -495,7 +495,7 @@ final readonly class AttachmentsTest
             'tampered',
         );
 
-        Expect::that(static fn(): TestResult => $store->publish(new TestResult(
+        Expect::calling(static fn(): TestResult => $store->publish(new TestResult(
             $id,
             Outcome::Failed,
             0.1,
@@ -520,9 +520,9 @@ final readonly class AttachmentsTest
 
         $recovered = $store->recover(new TestResult($id, Outcome::Errored, 0.0, 0));
 
-        Expect::that($recovered->attachments)->because('completed evidence can be recovered after a worker crash')->toHaveCount(1);
-        Expect::that($recovered->attachments[0]->name)->toBe('last-response.txt');
-        Expect::that(\is_file($recovered->attachments[0]->path))->toBeTrue();
+        Expect::value($recovered->attachments)->because('completed evidence can be recovered after a worker crash')->toHaveCount(1);
+        Expect::value($recovered->attachments[0]->name)->toBe('last-response.txt');
+        Expect::value(\is_file($recovered->attachments[0]->path))->toBeTrue();
 
     }
 
@@ -540,12 +540,12 @@ final readonly class AttachmentsTest
 
         $recovered = $store->recover(new TestResult($id, Outcome::Errored, 0.0, 0));
 
-        Expect::that($recovered->attachments)
+        Expect::value($recovered->attachments)
             ->because('corrupt recovery metadata MUST NOT hide completed evidence')
             ->toHaveCount(1);
-        Expect::that($recovered->attachments[0]->name)
+        Expect::value($recovered->attachments[0]->name)
             ->toBe('completed.txt');
-        Expect::that(\is_file($recovered->attachments[0]->path))
+        Expect::value(\is_file($recovered->attachments[0]->path))
             ->toBeTrue();
 
     }
@@ -565,9 +565,9 @@ final readonly class AttachmentsTest
 
         $recovered = $store->recover(new TestResult($id, Outcome::Errored, 0.0, 0));
 
-        Expect::that($recovered->attempts)->because('crash recovery restores the latest attempt without an attachment')->toBe(2);
-        Expect::that($recovered->attachments)->toHaveCount(1);
-        Expect::that($recovered->attachments[0]->attempt)->toBe(1);
+        Expect::value($recovered->attempts)->because('crash recovery restores the latest attempt without an attachment')->toBe(2);
+        Expect::value($recovered->attachments)->toHaveCount(1);
+        Expect::value($recovered->attachments[0]->attempt)->toBe(1);
 
     }
 

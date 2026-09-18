@@ -32,7 +32,7 @@ final class GithubReporterTest
             ::warning title=Passed after retry::Acme\NetworkTest::retriesFlakyEndpoint passed after 3 attempts. This result is evidence of instability.
             TXT;
 
-        Expect::that($output->buffer())->because('canned stream renders problems and retried-pass warnings')->toBe($expected . "\n");
+        Expect::value($output->buffer())->because('canned stream renders problems and retried-pass warnings')->toBe($expected . "\n");
     }
 
     #[Test]
@@ -59,7 +59,7 @@ final class GithubReporterTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::that($output->buffer())->because('message and property values are escaped per workflow command rules')->toBe(
+        Expect::value($output->buffer())->because('message and property values are escaped per workflow command rules')->toBe(
             '::error file=/project/tests/a%3Ab%2Cc.php,line=3'
             . '::Acme\EscapeTest::escapes: 50%25 done%0Asecond line'
             . "\n",
@@ -95,7 +95,7 @@ final class GithubReporterTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('each failure detail MUST retain its location, diff, and workflow-command escaping')
             ->toBe(
                 '::error file=/project/tests/First%3ACase.php,line=11'
@@ -129,7 +129,7 @@ final class GithubReporterTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('a GitHub annotation MUST retain each available diff side independently')
             ->toBe('::error::Acme\PartialDiffTest::reports: Values differ.' . $diff . "\n");
     }
@@ -161,7 +161,7 @@ final class GithubReporterTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('an outcome without structured details still produces an annotation')
             ->toBe(
                 '::error::Acme\FallbackTest::reports: ' . $summary
@@ -202,7 +202,7 @@ final class GithubReporterTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('structured error annotations retain attachment paths')
             ->toBe(
                 '::error file=/project/tests/NetworkTest.php,line=17'

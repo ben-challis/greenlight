@@ -25,7 +25,7 @@ final class ProblemDetailsZeroOutputTest
             output: new CapturedOutput('0'),
         );
 
-        Expect::that(ProblemDetails::render($result))
+        Expect::value(ProblemDetails::render($result))
             ->because('captured output MUST preserve the string "0"')
             ->toBe("  captured output:\n    0\n");
     }

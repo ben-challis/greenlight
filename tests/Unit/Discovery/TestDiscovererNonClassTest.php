@@ -26,10 +26,10 @@ final readonly class TestDiscovererNonClassTest
         ));
         $discoverer = new TestDiscoverer();
 
-        Expect::that($discoverer->testFiles([$directory]))
+        Expect::value($discoverer->testFiles([$directory]))
             ->because('a matching non-class declaration is a test-file candidate')
             ->toBe([$file]);
-        Expect::that($discoverer->discover([$directory])->count())
+        Expect::value($discoverer->discover([$directory])->count())
             ->because('a matching non-class declaration MUST be ignored')
             ->toBe(0);
     }

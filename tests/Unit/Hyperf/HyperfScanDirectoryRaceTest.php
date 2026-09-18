@@ -70,8 +70,8 @@ final readonly class HyperfScanDirectoryRaceTest
         }
         PHP, $created ? 'created' : 'missing']);
 
-        Expect::that($result->exitCode)->toBe($exitCode);
-        Expect::that($result->stdout)->toContain($output);
-        Expect::that($result->stderr)->toBe('');
+        Expect::value($result->exitCode)->toBe($exitCode);
+        Expect::value($result->stdout)->toContain($output);
+        Expect::value($result->stderr)->toBe('');
     }
 }

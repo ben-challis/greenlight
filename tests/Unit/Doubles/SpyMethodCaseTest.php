@@ -21,7 +21,7 @@ final readonly class SpyMethodCaseTest
         $notifier = $this->doubles->spy(Notifier::class);
         $notifier->notify('ops', 'deployed');
 
-        Expect::that($this->doubles->callsTo($notifier, $method))
+        Expect::value($this->doubles->callsTo($notifier, $method))
             ->because('recorded method names MUST follow PHP case-insensitive dispatch')
             ->toBe([['ops', 'deployed']]);
     }

@@ -24,7 +24,7 @@ final readonly class RawCoverageTest
             '/invalid.php' => 'not line coverage',
         ]);
 
-        Expect::that($coverage->lines)
+        Expect::value($coverage->lines)
             ->because('raw coverage MUST keep only integer statuses keyed by integer lines')
             ->toBe([
                 '/valid.php' => [

@@ -19,7 +19,7 @@ final readonly class ClassFileParserDanglingNamespaceTest
         $file = $this->tempDirectory->path() . '/DanglingNamespace.php';
         \file_put_contents($file, '<?php namespace');
 
-        Expect::that(ClassFileParser::declarationsIn($file))
+        Expect::value(ClassFileParser::declarationsIn($file))
             ->because('a dangling namespace token does not declare a namespace or class')
             ->toBe([]);
     }

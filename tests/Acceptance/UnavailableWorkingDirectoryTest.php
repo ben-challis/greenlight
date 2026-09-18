@@ -30,8 +30,8 @@ final readonly class UnavailableWorkingDirectoryTest
             $root . '/bin/greenlight',
         ]);
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stderr)->toBe('Could not determine the current working directory.');
-        Expect::that($result->stdout)->toBe('');
+        Expect::value($result->exitCode)->toBe(1);
+        Expect::value($result->stderr)->toBe('Could not determine the current working directory.');
+        Expect::value($result->stdout)->toBe('');
     }
 }

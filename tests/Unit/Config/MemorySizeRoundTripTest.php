@@ -15,7 +15,7 @@ final readonly class MemorySizeRoundTripTest
     {
         $bytes = 1000;
 
-        Expect::that(MemorySize::parseToBytes(MemorySize::format($bytes)))
+        Expect::value(MemorySize::parseToBytes(MemorySize::format($bytes)))
             ->because('a formatted plain-byte size MUST parse to its original value')
             ->toBe($bytes);
     }

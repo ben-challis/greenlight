@@ -43,22 +43,22 @@ final readonly class OrchestratorTransportTest
 
         $summary = $orchestrator->run($this->plan($id), new CollectingEventSink(), 1);
 
-        Expect::that($summary->passed)
+        Expect::value($summary->passed)
             ->because('the scripted worker MUST complete its assignment')
             ->toBe(1);
-        Expect::that($transport->started)
+        Expect::value($transport->started)
             ->because('the orchestrator MUST allocate one transport worker and one channel')
             ->toBe([['workerId' => 'w-1', 'channel' => 1]]);
-        Expect::that(\array_map(
+        Expect::value(\array_map(
             static fn(array $sent): string => $sent['message']::tag(),
             $transport->sent,
         ))
             ->because('the transport MUST observe orchestration protocol decisions in order')
             ->toBe(['bootstrap', 'assign', 'drain']);
-        Expect::that($orchestrator->workerTimings())
+        Expect::value($orchestrator->workerTimings())
             ->because('transport retirement MUST produce one completed worker timing record')
             ->toHaveCount(1);
-        Expect::that($transport->isClosed())
+        Expect::value($transport->isClosed())
             ->because('the orchestrator MUST close its transport after the run')
             ->toBeTrue();
     }
@@ -77,14 +77,14 @@ final readonly class OrchestratorTransportTest
         $summary = $orchestrator->run($this->plan($id, timeoutSeconds: 0.1), $sink, 1);
         $results = $sink->results();
 
-        Expect::that($summary->failed)
+        Expect::value($summary->failed)
             ->because('orchestration policy MUST contain the timed-out test')
             ->toBe(1);
-        Expect::that($results)->toHaveCount(1);
-        Expect::that($results[0]->failures[0]->message ?? '')
+        Expect::value($results)->toHaveCount(1);
+        Expect::value($results[0]->failures[0]->message ?? '')
             ->because('the synthetic result MUST identify the configured time limit')
             ->toContain('exceeded its 0.100-second time limit');
-        Expect::that($orchestrator->workerTimings())
+        Expect::value($orchestrator->workerTimings())
             ->because('forced transport retirement MUST complete before the run returns')
             ->toHaveCount(1);
     }
@@ -105,9 +105,9 @@ final readonly class OrchestratorTransportTest
 
         $summary = $orchestrator->run($plan, new CollectingEventSink(), 1);
 
-        Expect::that($summary->failed)->toBe(1);
-        Expect::that($summary->total())->toBe(1);
-        Expect::that($transport->started)->toHaveCount(1);
+        Expect::value($summary->failed)->toBe(1);
+        Expect::value($summary->total())->toBe(1);
+        Expect::value($transport->started)->toHaveCount(1);
     }
 
     private function plan(TestId $id, ?float $timeoutSeconds = null): ExecutionPlan

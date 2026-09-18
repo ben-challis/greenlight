@@ -36,37 +36,37 @@ final readonly class WorkerHandleRetirementTest
 
         try {
             \stream_set_timeout($pipes[1], 2);
-            Expect::that(\fgets($pipes[1]))
+            Expect::value(\fgets($pipes[1]))
                 ->because('the process fixture MUST start before retirement')
                 ->toBe("ready\n");
             $handle->retire(100.0, 1.0);
 
-            Expect::that($handle->isRunning())
+            Expect::value($handle->isRunning())
                 ->because('retirement MUST return while the worker still waits for input')
                 ->toBeTrue();
-            Expect::that($handle->lifecycle)
+            Expect::value($handle->lifecycle)
                 ->toBe(WorkerLifecycle::Retiring);
-            Expect::that($handle->channel?->isEof())
+            Expect::value($handle->channel?->isEof())
                 ->because('retirement MUST close the protocol channel immediately')
                 ->toBeTrue();
 
-            Expect::that(\fwrite($pipes[0], "continue\n"))->toBe(9);
+            Expect::value(\fwrite($pipes[0], "continue\n"))->toBe(9);
             \fflush($pipes[0]);
             \stream_set_blocking($pipes[1], true);
-            Expect::that(\fgets($pipes[1]))
+            Expect::value(\fgets($pipes[1]))
                 ->because('the worker MUST confirm its diagnostic write before the reaper advances')
                 ->toBe("written\n");
 
-            Expect::that($handle->reap(100.999))->toBeFalse();
-            Expect::that($handle->lifecycle)
+            Expect::value($handle->reap(100.999))->toBeFalse();
+            Expect::value($handle->lifecycle)
                 ->because('the reaper MUST preserve a worker before its graceful deadline')
                 ->toBe(WorkerLifecycle::Retiring);
-            Expect::that($handle->diagnostics)
+            Expect::value($handle->diagnostics)
                 ->because('retirement MUST continue to drain diagnostics before the deadline')
                 ->toBe("after\n");
 
-            Expect::that($handle->reap(101.0))->toBeFalse();
-            Expect::that($handle->lifecycle)
+            Expect::value($handle->reap(101.0))->toBeFalse();
+            Expect::value($handle->lifecycle)
                 ->because('the reaper MUST kill the worker at the exact graceful deadline')
                 ->toBe(WorkerLifecycle::Killing);
 
@@ -79,13 +79,13 @@ final readonly class WorkerHandleRetirementTest
                 \stream_select($read, $write, $except, 0, 100_000);
             }
 
-            Expect::that($handle->lifecycle)
+            Expect::value($handle->lifecycle)
                 ->because('the reaper MUST kill and collect a worker after its graceful deadline')
                 ->toBe(WorkerLifecycle::Reaped);
-            Expect::that($handle->diagnostics)
+            Expect::value($handle->diagnostics)
                 ->because('retirement MUST continue to drain standard output and standard error')
                 ->toBe("after\n");
-            Expect::that(\is_resource($process))
+            Expect::value(\is_resource($process))
                 ->because('a reaped worker MUST not retain its process handle')
                 ->toBeFalse();
         } finally {

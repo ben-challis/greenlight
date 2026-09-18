@@ -26,7 +26,7 @@ final readonly class CleanupTest
         $cleanup->close();
         $cleanup->close();
 
-        Expect::that($trace)
+        Expect::value($trace)
             ->because('cleanup callbacks run once in reverse registration order')
             ->toBe(['second', 'first']);
     }
@@ -55,13 +55,13 @@ final readonly class CleanupTest
             $trace[] = 'first';
         });
 
-        Expect::that(static fn() => $cleanup->close())
+        Expect::calling(static fn() => $cleanup->close())
             ->because('callback failures MUST NOT prevent later cleanup')
             ->toThrow(
                 static function (CleanupFailed $cleanupFailed) use ($firstFailure, $secondFailure, &$trace): void {
-                    Expect::that($trace)->toBe(['first', 'first failure', 'second failure', 'last']);
-                    Expect::that($cleanupFailed->failures)->toBe([$firstFailure, $secondFailure]);
-                    Expect::that($cleanupFailed->getPrevious())->toBeNull();
+                    Expect::value($trace)->toBe(['first', 'first failure', 'second failure', 'last']);
+                    Expect::value($cleanupFailed->failures)->toBe([$firstFailure, $secondFailure]);
+                    Expect::value($cleanupFailed->getPrevious())->toBeNull();
                 },
             );
     }
@@ -82,7 +82,7 @@ final readonly class CleanupTest
 
         $cleanup->close();
 
-        Expect::that($trace)->toBe(['value', 'void']);
+        Expect::value($trace)->toBe(['value', 'void']);
     }
 
     #[Test]
@@ -91,7 +91,7 @@ final readonly class CleanupTest
         $cleanup = new Cleanup();
         $cleanup->close();
 
-        Expect::that(static fn() => $cleanup->defer(static function (): void {}))
+        Expect::calling(static fn() => $cleanup->defer(static function (): void {}))
             ->because('a closed cleanup stack cannot accept callbacks')
             ->toThrow(
                 \LogicException::class,

@@ -48,8 +48,8 @@ final readonly class WorkerEventFailureCleanupTest
             $caught = $error;
         }
 
-        Expect::that($caught)->toBe($failure);
-        Expect::that(TraceLog::drain())->toBe(['probe1:created', 'probe1:touched', 'probe1:disposed']);
+        Expect::value($caught)->toBe($failure);
+        Expect::value(TraceLog::drain())->toBe(['probe1:created', 'probe1:touched', 'probe1:disposed']);
     }
 
     #[Test]
@@ -61,10 +61,10 @@ final readonly class WorkerEventFailureCleanupTest
             new ServiceDefinition(FailingHarnessService::class, Scope::PerClass, static fn(): FailingHarnessService => new FailingHarnessService()),
         ]);
 
-        Expect::that(fn() => $worker->run($plan, $this->failingSink($failure)))->toThrow(
+        Expect::calling(fn() => $worker->run($plan, $this->failingSink($failure)))->toThrow(
             static function (WorkerError $error) use ($failure): void {
-                Expect::that($error->getPrevious())->toBe($failure);
-                Expect::that($error->getMessage())
+                Expect::value($error->getPrevious())->toBe($failure);
+                Expect::value($error->getMessage())
                     ->toContain('Event delivery failed.')
                     ->toContain('harness service disposal broke');
             },

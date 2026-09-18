@@ -24,7 +24,7 @@ final class NativeMatcherNameTest
         $restore = Expect::install([new EvenNumbersExtension()]);
 
         try {
-            Expect::that(static fn() => Expect::install([new NativeMatcherOverrideExtension($name)]))
+            Expect::calling(static fn() => Expect::install([new NativeMatcherOverrideExtension($name)]))
                 ->toThrow(
                     ExpectationExtensionError::class,
                     message: \sprintf(
@@ -32,7 +32,7 @@ final class NativeMatcherNameTest
                         $name,
                     ),
                 );
-            Expect::that(4)->toBeEven();
+            Expect::value(4)->toBeEven();
         } finally {
             $restore();
         }

@@ -19,7 +19,7 @@ final class ArtifactBuilderTest
             ->directory('0')
             ->toConfiguration();
 
-        Expect::that($configuration->directory)
+        Expect::value($configuration->directory)
             ->because('the artifact builder MUST retain each non-empty directory')
             ->toBe('0');
     }
@@ -29,10 +29,10 @@ final class ArtifactBuilderTest
     {
         $configuration = new ArtifactBuilder()->toConfiguration();
 
-        Expect::that($configuration->maxCompletedRuns)->toBe(null);
-        Expect::that($configuration->maxCompletedRunAgeSeconds)->toBe(null);
-        Expect::that($configuration->maxRetainedBytes)->toBe(null);
-        Expect::that($configuration->hasRetentionPolicy())->toBeFalse();
+        Expect::value($configuration->maxCompletedRuns)->toBe(null);
+        Expect::value($configuration->maxCompletedRunAgeSeconds)->toBe(null);
+        Expect::value($configuration->maxRetainedBytes)->toBe(null);
+        Expect::value($configuration->hasRetentionPolicy())->toBeFalse();
     }
 
     #[Test]
@@ -44,10 +44,10 @@ final class ArtifactBuilderTest
             ->maxRetainedSize('2M')
             ->toConfiguration();
 
-        Expect::that($configuration->maxCompletedRuns)->toBe(4);
-        Expect::that($configuration->maxCompletedRunAgeSeconds)->toBe(3_600);
-        Expect::that($configuration->maxRetainedBytes)->toBe(2 * 1024 * 1024);
-        Expect::that($configuration->hasRetentionPolicy())->toBeTrue();
+        Expect::value($configuration->maxCompletedRuns)->toBe(4);
+        Expect::value($configuration->maxCompletedRunAgeSeconds)->toBe(3_600);
+        Expect::value($configuration->maxRetainedBytes)->toBe(2 * 1024 * 1024);
+        Expect::value($configuration->hasRetentionPolicy())->toBeTrue();
     }
 
     /**
@@ -59,7 +59,7 @@ final class ArtifactBuilderTest
         \Closure $configure,
         string $message,
     ): void {
-        Expect::that(static fn() => $configure(new ArtifactBuilder()))
+        Expect::calling(static fn() => $configure(new ArtifactBuilder()))
             ->because('attachment count safety limits MUST be positive')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }

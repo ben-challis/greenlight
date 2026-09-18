@@ -16,7 +16,7 @@ final readonly class WorkerSpawnBudgetTest
     {
         $budget = new WorkerSpawnBudget(plannedTests: 1, workerCount: 1);
 
-        Expect::that($budget->nextWorkerId())
+        Expect::value($budget->nextWorkerId())
             ->because('worker IDs start at one')
             ->toBe('w-1');
 
@@ -26,10 +26,10 @@ final readonly class WorkerSpawnBudgetTest
             $last = $budget->nextWorkerId();
         }
 
-        Expect::that($last)
+        Expect::value($last)
             ->because('the replacement budget permits the final bounded worker')
             ->toBe('w-25');
-        Expect::that($budget->nextWorkerId(...))
+        Expect::calling($budget->nextWorkerId(...))
             ->because('the replacement budget MUST stop a worker loop')
             ->toThrow(
                 ProtocolError::class,
@@ -43,7 +43,7 @@ final readonly class WorkerSpawnBudgetTest
     {
         $budget = new WorkerSpawnBudget(plannedTests: 1, workerCount: \PHP_INT_MAX);
 
-        Expect::that($budget->nextWorkerId())
+        Expect::value($budget->nextWorkerId())
             ->because('the replacement budget MUST remain usable for every accepted worker count')
             ->toBe('w-1');
     }

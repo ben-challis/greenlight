@@ -8,6 +8,46 @@ import test from 'node:test';
 
 const script = resolve(dirname(fileURLToPath(import.meta.url)), 'generate-api-reference.mjs');
 
+test('public classes expose native methods from internal traits', async () => {
+  const sourceRoot = await mkdtemp(resolve(tmpdir(), 'greenlight-api-reference-source-'));
+  const documentationRoot = await mkdtemp(resolve(tmpdir(), 'greenlight-api-reference-docs-'));
+
+  try {
+    await writeFile(resolve(sourceRoot, 'Expectations.php'), `<?php
+namespace Greenlight\\Expect;
+
+/** @internal */
+trait ValueMatchers
+{
+    public function toBe(mixed $expected): Expectation {}
+}
+
+class Expectation
+{
+    use ValueMatchers;
+}
+
+final class CallExpectation
+{
+    public function toThrow(): self {}
+}
+`);
+    const result = spawnSync(process.execPath, [script,
+      `--source-root=${sourceRoot}`,
+      `--documentation-root=${documentationRoot}`,
+    ], { encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+    const reference = await readFile(resolve(documentationRoot, 'api-expectations.md'), 'utf8');
+    assert.match(reference, /## `Expectation`[\s\S]*?public function toBe\(mixed \$expected\): Expectation/);
+    assert.doesNotMatch(reference, /## `ValueMatchers`/);
+    const values = reference.split('## `Expectation`')[1];
+    assert.doesNotMatch(values, /public function toThrow/);
+  } finally {
+    await rm(sourceRoot, { recursive: true, force: true });
+    await rm(documentationRoot, { recursive: true, force: true });
+  }
+});
+
 test('each public top-level declaration appears in the reference', async () => {
   const sourceRoot = await mkdtemp(resolve(tmpdir(), 'greenlight-api-reference-source-'));
   const documentationRoot = await mkdtemp(resolve(tmpdir(), 'greenlight-api-reference-docs-'));

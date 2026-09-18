@@ -26,7 +26,7 @@ final readonly class IgnoreScannerSameCommentRangeTest
             $kept = 1;
             PHP);
 
-        Expect::that(\array_keys(new IgnoreScanner()->ignoredLines($path)))
+        Expect::value(\array_keys(new IgnoreScanner()->ignoredLines($path)))
             ->because('range markers in one comment MUST close before later source lines')
             ->toBe([2, 3, 4, 5]);
     }

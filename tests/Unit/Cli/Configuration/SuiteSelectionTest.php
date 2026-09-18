@@ -20,10 +20,10 @@ final readonly class SuiteSelectionTest
         $configuration = $this->configuration();
         $selection = SuiteSelectionResolver::resolve($configuration, [], []);
 
-        Expect::that($selection->paths($configuration))
+        Expect::value($selection->paths($configuration))
             ->because('the compatibility selection MUST include base paths and all suite paths')
             ->toBe(['tests', 'tests/Unit', 'tests/Integration', 'tests/Api']);
-        Expect::that($selection->stateIdentity())
+        Expect::value($selection->stateIdentity())
             ->because('the compatibility selection MUST keep the existing run-state identity')
             ->toBeNull();
     }
@@ -34,13 +34,13 @@ final readonly class SuiteSelectionTest
         $configuration = $this->configuration();
         $selection = SuiteSelectionResolver::resolve($configuration, ['unit'], ['io']);
 
-        Expect::that(\array_map(static fn(SuiteConfiguration $suite): string => $suite->name, $selection->suites))
+        Expect::value(\array_map(static fn(SuiteConfiguration $suite): string => $suite->name, $selection->suites))
             ->because('suite names and tags MUST form one union in configuration order')
             ->toBe(['unit', 'integration', 'api']);
-        Expect::that($selection->paths($configuration))
+        Expect::value($selection->paths($configuration))
             ->because('an explicit suite selection MUST exclude unrelated base paths')
             ->toBe(['tests/Unit', 'tests/Integration', 'tests/Api']);
-        Expect::that($selection->stateIdentity())
+        Expect::value($selection->stateIdentity())
             ->because('an explicit suite selection MUST have a separate run-state identity')
             ->toStartWith('suites-');
     }
@@ -52,7 +52,7 @@ final readonly class SuiteSelectionTest
         $byNames = SuiteSelectionResolver::resolve($configuration, ['api', 'integration'], []);
         $byTag = SuiteSelectionResolver::resolve($configuration, [], ['io']);
 
-        Expect::that($byNames->stateIdentity())
+        Expect::value($byNames->stateIdentity())
             ->because('equivalent suite unions MUST share run state and timing data')
             ->toBe($byTag->stateIdentity());
     }
@@ -62,10 +62,10 @@ final readonly class SuiteSelectionTest
     {
         $configuration = $this->configuration();
 
-        Expect::that(static fn(): SuiteSelection => SuiteSelectionResolver::resolve($configuration, ['missing'], []))
+        Expect::calling(static fn(): SuiteSelection => SuiteSelectionResolver::resolve($configuration, ['missing'], []))
             ->because('an unknown suite name MUST identify the selector and the listing command')
             ->toThrow(CliError::class, message: 'Unknown suite "missing". Use --list-suites to list configured suites.');
-        Expect::that(static fn(): SuiteSelection => SuiteSelectionResolver::resolve($configuration, [], ['missing']))
+        Expect::calling(static fn(): SuiteSelection => SuiteSelectionResolver::resolve($configuration, [], ['missing']))
             ->because('an unknown suite tag MUST identify the selector and the listing command')
             ->toThrow(CliError::class, message: 'Unknown suite tag "missing". Use --list-suites to list configured suite tags.');
     }

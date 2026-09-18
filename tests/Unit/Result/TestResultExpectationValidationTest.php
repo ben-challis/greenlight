@@ -17,10 +17,10 @@ final class TestResultExpectationValidationTest
     {
         $id = new TestId('Example\\ExpectationTest', 'counts');
 
-        Expect::that(new TestResult($id, Outcome::Passed, 0.1, 0, expectations: 0)->expectations)
+        Expect::value(new TestResult($id, Outcome::Passed, 0.1, 0, expectations: 0)->expectations)
             ->because('a result MAY contain no verified expectations')
             ->toBe(0);
-        Expect::that(static fn(): TestResult => new TestResult(
+        Expect::calling(static fn(): TestResult => new TestResult(
             $id,
             Outcome::Passed,
             0.1,

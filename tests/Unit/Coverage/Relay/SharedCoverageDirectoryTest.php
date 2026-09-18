@@ -49,24 +49,24 @@ final readonly class SharedCoverageDirectoryTest
         );
 
         try {
-            Expect::that($innerDirectory)->not()->toBe($outerDirectory);
-            Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/inner/src');
-            Expect::that($inner->drain()?->toWire())->toBe([
+            Expect::value($innerDirectory)->not()->toBe($outerDirectory);
+            Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/inner/src');
+            Expect::value($inner->drain()?->toWire())->toBe([
                 'files' => ['/inner/src/B.php' => [[3], [4]]],
             ]);
-            Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe($outerDirectory);
-            Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/outer/src');
-            Expect::that(\is_dir($innerDirectory))->toBeFalse();
-            Expect::that(\is_file($outerDirectory . '/outer.json'))
+            Expect::value(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe($outerDirectory);
+            Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/outer/src');
+            Expect::value(\is_dir($innerDirectory))->toBeFalse();
+            Expect::value(\is_file($outerDirectory . '/outer.json'))
                 ->because('the inner session must preserve its parent coverage dump')
                 ->toBeTrue();
 
-            Expect::that($outer->drain()?->toWire())->toBe([
+            Expect::value($outer->drain()?->toWire())->toBe([
                 'files' => ['/outer/src/A.php' => [[1], [2]]],
             ]);
-            Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe('/original/relay');
-            Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/original/src');
-            Expect::that(\is_dir($outerDirectory))->toBeFalse();
+            Expect::value(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe('/original/relay');
+            Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/original/src');
+            Expect::value(\is_dir($outerDirectory))->toBeFalse();
         } finally {
             $inner->drain();
             $outer->drain();
@@ -87,18 +87,18 @@ final readonly class SharedCoverageDirectoryTest
         CoverageJson::write($dump, new CoverageMap([new FileCoverage('/outer/src/A.php', [1], [2])]));
 
         try {
-            Expect::that(static fn() => SharedCoverageDirectory::open(
+            Expect::calling(static fn() => SharedCoverageDirectory::open(
                 new CoverageSettings(['/inner/src']),
                 $dump,
             ))->toThrow(CoverageError::class, matching: '/Failed to create shared coverage directory/');
 
-            Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe($outerDirectory);
-            Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/outer/src');
-            Expect::that($outer->drain()?->toWire())->toBe([
+            Expect::value(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBe($outerDirectory);
+            Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBe('/outer/src');
+            Expect::value($outer->drain()?->toWire())->toBe([
                 'files' => ['/outer/src/A.php' => [[1], [2]]],
             ]);
-            Expect::that(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBeFalse();
-            Expect::that(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBeFalse();
+            Expect::value(\getenv(SubprocessCoverage::DIRECTORY_ENV))->toBeFalse();
+            Expect::value(\getenv(SubprocessCoverage::INCLUDE_ENV))->toBeFalse();
         } finally {
             $outer->drain();
         }
@@ -107,7 +107,7 @@ final readonly class SharedCoverageDirectoryTest
     private function relayDirectory(): string
     {
         $directory = \getenv(SubprocessCoverage::DIRECTORY_ENV);
-        Expect::that($directory)->toBeString();
+        Expect::value($directory)->toBeString();
 
         return $directory;
     }

@@ -137,10 +137,10 @@ final readonly class WorkerArtifactSessionTest
         $workerResult = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
         $serverExit = $server->wait(2.0)->exitCode;
 
-        Expect::that($workerResult)
+        Expect::value($workerResult)
             ->because('a worker with artifact settings MUST complete its assignment')
             ->toEqual(CommandResult::success());
-        Expect::that($serverExit)
+        Expect::value($serverExit)
             ->because('the worker MUST stage evidence in the assigned artifact session')
             ->toBe(0);
     }

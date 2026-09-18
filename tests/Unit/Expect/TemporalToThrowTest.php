@@ -23,13 +23,12 @@ final class TemporalToThrowTest
         $calls = 0;
 
         ExpectationRuntime::withClock($clock, static function () use ($constraint, &$calls): void {
-            $eventually = Expect::eventually(static function () use (&$calls): \Closure {
+            $eventually = Expect::calling(static function () use (&$calls) {
                 ++$calls;
-
-                return $calls === 1
-                    ? static function (): void {}
-                : static fn(): never => throw new \RuntimeException('ready 42');
-            })
+                if ($calls !== 1) {
+                    throw new \RuntimeException('ready 42');
+                }
+            })->eventually()
                 ->pollEvery(0.010)
                 ->within(0.100);
 
@@ -40,10 +39,10 @@ final class TemporalToThrowTest
             };
         });
 
-        Expect::that($calls)
+        Expect::value($calls)
             ->because('eventually() MUST retry until the returned callable satisfies toThrow()')
             ->toBe(2);
-        Expect::that($clock->sleeps)
+        Expect::value($clock->sleeps)
             ->toBe([0.010]);
     }
 
@@ -65,31 +64,27 @@ final class TemporalToThrowTest
         $failure = new \RuntimeException('ready');
 
         ExpectationRuntime::withClock($clock, static function () use (&$calls, $failure): void {
-            Expect::eventually(static function () use (&$calls, $failure): \Closure {
+            Expect::calling(static function () use (&$calls, $failure) {
                 ++$calls;
-
-                return $calls === 1
-                    ? static fn() => throw new \RuntimeException('ready')
-                    : static fn() => throw $failure;
-            })
+                throw $calls === 1 ? new \RuntimeException('ready') : $failure;
+            })->eventually()
                 ->pollEvery(0.010)
                 ->within(0.100)
                 ->toThrow($failure);
         });
 
-        Expect::that($calls)->toBe(2);
-        Expect::that($clock->sleeps)->toBe([0.010]);
+        Expect::value($calls)->toBe(2);
+        Expect::value($clock->sleeps)->toBe([0.010]);
     }
 
     #[Test]
     public function temporalToThrowRejectsAConstraintWithAThrowableCallbackBeforePolling(): void
     {
         $calls = 0;
-        $eventually = Expect::eventually(static function () use (&$calls): \Closure {
+        $eventually = Expect::calling(static function () use (&$calls) {
             ++$calls;
-
-            return static fn() => throw new \RuntimeException('boom');
-        })->within(0.100);
+            throw new \RuntimeException('boom');
+        })->eventually()->within(0.100);
 
         $detail = FailureProbe::detailOf(
             static fn() => $eventually->toThrow( // @phpstan-ignore greenlight.toThrow.callbackConstraint (deliberately invalid: tests runtime validation)
@@ -98,10 +93,10 @@ final class TemporalToThrowTest
             ),
         );
 
-        Expect::that($detail->message)->toBe(
+        Expect::value($detail->message)->toBe(
             'Do not specify matching: or message: when the throwable is a callback.',
         );
-        Expect::that($calls)->toBe(0);
+        Expect::value($calls)->toBe(0);
     }
 
     #[Test]
@@ -109,11 +104,10 @@ final class TemporalToThrowTest
     {
         $calls = 0;
         $failure = new \RuntimeException('boom');
-        $eventually = Expect::eventually(static function () use (&$calls, $failure): \Closure {
+        $eventually = Expect::calling(static function () use (&$calls, $failure) {
             ++$calls;
-
-            return static fn() => throw $failure;
-        })->within(0.100);
+            throw $failure;
+        })->eventually()->within(0.100);
 
         $detail = FailureProbe::detailOf(
             static fn() => $eventually->toThrow( // @phpstan-ignore greenlight.toThrow.instanceConstraint (deliberately invalid: tests runtime validation)
@@ -122,10 +116,10 @@ final class TemporalToThrowTest
             ),
         );
 
-        Expect::that($detail->message)->toBe(
+        Expect::value($detail->message)->toBe(
             'Do not specify matching: or message: when the throwable argument is a Throwable instance.',
         );
-        Expect::that($calls)->toBe(0);
+        Expect::value($calls)->toBe(0);
     }
 
     #[Test]
@@ -135,20 +129,20 @@ final class TemporalToThrowTest
         $calls = 0;
 
         ExpectationRuntime::withClock($clock, static function () use (&$calls): void {
-            Expect::eventually(static fn(): \Closure => static fn() => throw new \RuntimeException('ready'))
+            Expect::calling(static fn() => (static fn() => throw new \RuntimeException('ready'))())->eventually()
                 ->pollEvery(0.010)
                 ->within(0.100)
                 ->toThrow(
                     static function (\RuntimeException $error) use (&$calls): void {
                         ++$calls;
-                        Expect::that($calls)->toBe(2);
-                        Expect::that($error->getMessage())->toBe('ready');
+                        Expect::value($calls)->toBe(2);
+                        Expect::value($error->getMessage())->toBe('ready');
                     },
                 );
         });
 
-        Expect::that($calls)->toBe(2);
-        Expect::that($clock->sleeps)->toBe([0.010]);
+        Expect::value($calls)->toBe(2);
+        Expect::value($clock->sleeps)->toBe([0.010]);
     }
 
     #[Test]
@@ -158,23 +152,21 @@ final class TemporalToThrowTest
 
         $detail = FailureProbe::detailOf(static fn() => ExpectationRuntime::withClock(
             $clock,
-            static fn() => Expect::eventually(
-                static fn(): \Closure => static fn() => throw new \RuntimeException('not ready'),
-            )
+            static fn() => Expect::calling(static fn() => (static fn() => throw new \RuntimeException('not ready'))())->eventually()
                 ->pollEvery(0.010)
                 ->within(0.020)
                 ->toThrow(
                     static function (\RuntimeException $error): void {
-                        Expect::that($error->getMessage())->toBe('ready');
+                        Expect::value($error->getMessage())->toBe('ready');
                     },
                 ),
         ));
 
-        Expect::that($detail->message)->toContain(
+        Expect::value($detail->message)->toContain(
             "Last failure: Expected 'not ready' to be 'ready'.",
         );
-        Expect::that($detail->expected)->toBe("'ready'");
-        Expect::that($detail->actual)->toBe("'not ready'");
-        Expect::that($clock->sleeps)->toBe([0.010, 0.010]);
+        Expect::value($detail->expected)->toBe("'ready'");
+        Expect::value($detail->actual)->toBe("'not ready'");
+        Expect::value($clock->sleeps)->toBe([0.010, 0.010]);
     }
 }

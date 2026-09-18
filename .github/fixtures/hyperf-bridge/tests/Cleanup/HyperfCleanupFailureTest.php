@@ -58,11 +58,11 @@ final readonly class HyperfCleanupFailureTest
             $caught = $failure;
         }
 
-        Expect::that($disposedContainer)->toBeInstanceOf(ContainerInterface::class);
-        Expect::that($disposedContainer)->toBe($resetContainer);
-        Expect::that($disposedInCoroutine)->toBeTrue();
-        Expect::that($caught)->toBe($attemptFails ? $attemptFailure : $resetFailure);
-        Expect::that(ApplicationContext::getContainer()->has(Greeter::class))->toBeFalse();
+        Expect::value($disposedContainer)->toBeInstanceOf(ContainerInterface::class);
+        Expect::value($disposedContainer)->toBe($resetContainer);
+        Expect::value($disposedInCoroutine)->toBeTrue();
+        Expect::value($caught)->toBe($attemptFails ? $attemptFailure : $resetFailure);
+        Expect::value(ApplicationContext::getContainer()->has(Greeter::class))->toBeFalse();
     }
 
     /** @return iterable<string, array{bool, bool}> */

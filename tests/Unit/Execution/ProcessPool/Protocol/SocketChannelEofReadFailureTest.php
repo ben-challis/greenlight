@@ -35,9 +35,9 @@ final readonly class SocketChannelEofReadFailureTest
         $channel = new SocketChannel($stream);
         $this->cleanup->defer($channel->close(...));
 
-        Expect::that($channel->poll())
+        Expect::value($channel->poll())
             ->because('a failed read that reaches peer EOF MUST end polling cleanly')
             ->toBeNull();
-        Expect::that($channel->isEof())->toBeTrue();
+        Expect::value($channel->isEof())->toBeTrue();
     }
 }

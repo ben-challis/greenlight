@@ -23,18 +23,18 @@ final readonly class EnvironmentBackupTest
         try {
             $backup->set('changed');
 
-            Expect::that(\getenv($name))->toBe('changed');
-            Expect::that($_ENV[$name])->toBe('changed');
-            Expect::that($_SERVER[$name])->toBe('changed');
+            Expect::value(\getenv($name))->toBe('changed');
+            Expect::value($_ENV[$name])->toBe('changed');
+            Expect::value($_SERVER[$name])->toBe('changed');
 
             $backup->restore();
 
-            Expect::that(\getenv($name))->toBe('process-original');
-            Expect::that(\array_key_exists($name, $_ENV))->toBeFalse();
-            Expect::that(\array_key_exists($name, $_SERVER))
+            Expect::value(\getenv($name))->toBe('process-original');
+            Expect::value(\array_key_exists($name, $_ENV))->toBeFalse();
+            Expect::value(\array_key_exists($name, $_SERVER))
                 ->because('restore MUST preserve an explicit null server value')
                 ->toBeTrue();
-            Expect::that($_SERVER[$name])->toBeNull();
+            Expect::value($_SERVER[$name])->toBeNull();
         } finally {
             \putenv($name);
             unset($_ENV[$name], $_SERVER[$name]);
@@ -53,17 +53,17 @@ final readonly class EnvironmentBackupTest
         try {
             $backup->unset();
 
-            Expect::that(\getenv($name))->toBeFalse();
-            Expect::that(\array_key_exists($name, $_ENV))->toBeFalse();
-            Expect::that(\array_key_exists($name, $_SERVER))->toBeFalse();
+            Expect::value(\getenv($name))->toBeFalse();
+            Expect::value(\array_key_exists($name, $_ENV))->toBeFalse();
+            Expect::value(\array_key_exists($name, $_SERVER))->toBeFalse();
 
             $backup->restore();
 
-            Expect::that(\getenv($name))->toBeFalse();
-            Expect::that(\array_key_exists($name, $_ENV))->toBeTrue();
-            Expect::that($_ENV[$name])->toBeNull();
-            Expect::that(\array_key_exists($name, $_SERVER))->toBeTrue();
-            Expect::that($_SERVER[$name])->toBeFalse();
+            Expect::value(\getenv($name))->toBeFalse();
+            Expect::value(\array_key_exists($name, $_ENV))->toBeTrue();
+            Expect::value($_ENV[$name])->toBeNull();
+            Expect::value(\array_key_exists($name, $_SERVER))->toBeTrue();
+            Expect::value($_SERVER[$name])->toBeFalse();
         } finally {
             \putenv($name);
             unset($_ENV[$name], $_SERVER[$name]);
@@ -74,7 +74,7 @@ final readonly class EnvironmentBackupTest
     #[DataSet('invalidNames')]
     public function captureRejectsAnInvalidNameBeforeEnvironmentAccess(string $name): void
     {
-        Expect::that(static fn() => EnvironmentBackup::capture($name))
+        Expect::calling(static fn() => EnvironmentBackup::capture($name))
             ->toThrow(
                 \InvalidArgumentException::class,
                 message: 'Environment variable names cannot be empty or contain "=" or a null byte.',
@@ -88,15 +88,15 @@ final readonly class EnvironmentBackupTest
         $backup = EnvironmentBackup::capture($name);
 
         try {
-            Expect::that(static fn() => $backup->set("before\0after"))
+            Expect::calling(static fn() => $backup->set("before\0after"))
                 ->toThrow(
                     \InvalidArgumentException::class,
                     message: 'Environment variable values cannot contain a null byte.',
                 );
 
-            Expect::that(\getenv($name))->toBeFalse();
-            Expect::that(\array_key_exists($name, $_ENV))->toBeFalse();
-            Expect::that(\array_key_exists($name, $_SERVER))->toBeFalse();
+            Expect::value(\getenv($name))->toBeFalse();
+            Expect::value(\array_key_exists($name, $_ENV))->toBeFalse();
+            Expect::value(\array_key_exists($name, $_SERVER))->toBeFalse();
         } finally {
             $backup->restore();
         }

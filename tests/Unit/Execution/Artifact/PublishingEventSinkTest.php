@@ -49,34 +49,34 @@ final readonly class PublishingEventSinkTest
         $sink->emit($started);
         $sink->emit(new TestFinished($result, 11.0));
 
-        Expect::that($inner->sequence())
+        Expect::value($inner->sequence())
             ->because('the publishing sink MUST preserve event order')
             ->toBe(['RunStarted', 'TestFinished']);
-        Expect::that($inner->events[0])
+        Expect::value($inner->events[0])
             ->because('events without test results MUST pass through unchanged')
             ->toBe($started);
 
         $finished = $inner->events[1];
 
-        Expect::that($finished)
+        Expect::value($finished)
             ->because('The second event MUST be TestFinished.')
             ->toBeInstanceOf(TestFinished::class);
 
         $publishedPath = $finished->result->attachments[0]->path;
 
-        Expect::that($finished->result)
+        Expect::value($finished->result)
             ->because('a completed event MUST replace its staged result with the published result')
             ->not()
             ->toBe($result);
-        Expect::that($finished->occurredAt)
+        Expect::value($finished->occurredAt)
             ->because('publishing MUST preserve the event timestamp')
             ->toBe(11.0);
-        Expect::that($finished->result->attachments)
+        Expect::value($finished->result->attachments)
             ->because('the inner sink MUST receive published attachment metadata')
             ->toHaveCount(1);
-        Expect::that($finished->result->attachments[0]->path)
+        Expect::value($finished->result->attachments[0]->path)
             ->toContain('run-publishing-sink');
-        Expect::that((string) \file_get_contents(
+        Expect::value((string) \file_get_contents(
             \str_starts_with($publishedPath, '/') ? $publishedPath : $root . '/' . $publishedPath,
         ))
             ->toBe('published evidence');

@@ -17,7 +17,7 @@ final class UnknownDoubleTypeTest
         $doubles = new Doubles();
         $mock = new \ReflectionMethod(Doubles::class, 'mock');
 
-        Expect::that(static fn(): mixed => $mock->invoke($doubles, 'Example\MissingContract'))
+        Expect::calling(static fn(): mixed => $mock->invoke($doubles, 'Example\MissingContract'))
             ->because('a double needs a loadable class or interface')
             ->toThrow(
                 InvalidDoubleUsage::class,

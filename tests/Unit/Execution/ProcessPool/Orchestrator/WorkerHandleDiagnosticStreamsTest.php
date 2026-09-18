@@ -24,7 +24,7 @@ final readonly class WorkerHandleDiagnosticStreamsTest
 
         $handle->drainPipes();
 
-        Expect::that($handle->diagnostics)
+        Expect::value($handle->diagnostics)
             ->because('worker diagnostics MUST contain standard output followed by standard error')
             ->toBe("standard output\nstandard error\n");
     }
@@ -43,7 +43,7 @@ final readonly class WorkerHandleDiagnosticStreamsTest
 
         $handle->drainPipes();
 
-        Expect::that($handle->diagnostics)
+        Expect::value($handle->diagnostics)
             ->because('one pipe drain MUST retain the bounded tail of all available output')
             ->toBe($tail);
     }

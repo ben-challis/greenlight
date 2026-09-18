@@ -15,7 +15,7 @@ final class PhpUnitToGreenlightRectorConfigurationTest
     {
         $rector = new PhpUnitToGreenlightRector();
 
-        Expect::that(static fn() => $rector->configure(['unknown' => true]))
+        Expect::calling(static fn() => $rector->configure(['unknown' => true]))
             ->because('the Rector configuration MUST reject unknown keys')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -28,7 +28,7 @@ final class PhpUnitToGreenlightRectorConfigurationTest
     {
         $rector = new PhpUnitToGreenlightRector();
 
-        Expect::that(static fn() => $rector->configure([
+        Expect::calling(static fn() => $rector->configure([
             PhpUnitToGreenlightRector::DROP_ASSERTION_MESSAGES => 'yes',
         ]))
             ->because('the Rector configuration MUST reject a non-boolean option value')

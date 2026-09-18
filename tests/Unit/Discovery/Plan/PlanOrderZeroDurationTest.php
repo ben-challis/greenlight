@@ -24,7 +24,7 @@ final readonly class PlanOrderZeroDurationTest
             'Acme\\InstantTest' => 0.0,
         ]);
 
-        Expect::that($ordered->classes())
+        Expect::value($ordered->classes())
             ->because('a zero duration MUST remain known and precede classes without timing data')
             ->toBe([
                 'Acme\\InstantTest',

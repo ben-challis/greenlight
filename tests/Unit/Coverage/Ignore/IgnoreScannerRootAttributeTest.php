@@ -26,7 +26,7 @@ final readonly class IgnoreScannerRootAttributeTest
             }
             PHP);
 
-        Expect::that(\array_keys(new IgnoreScanner()->ignoredLines($path)))
+        Expect::value(\array_keys(new IgnoreScanner()->ignoredLines($path)))
             ->because('a root-qualified CoverageIgnore attribute MUST ignore its declaration')
             ->toBe([3, 4, 5, 6]);
     }

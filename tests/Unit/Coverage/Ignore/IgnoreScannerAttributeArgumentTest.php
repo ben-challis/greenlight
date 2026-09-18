@@ -30,7 +30,7 @@ final readonly class IgnoreScannerAttributeArgumentTest
         $file = $this->tempDirectory->path() . '/Example.php';
         \file_put_contents($file, $source);
 
-        Expect::that(new IgnoreScanner()->ignoredLines($file))
+        Expect::value(new IgnoreScanner()->ignoredLines($file))
             ->because('attribute arguments MUST NOT be interpreted as coverage attributes')
             ->toBe([]);
     }

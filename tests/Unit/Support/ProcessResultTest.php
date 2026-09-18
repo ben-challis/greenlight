@@ -19,10 +19,10 @@ final class ProcessResultTest
             stderr: "warning\nerror",
         );
 
-        Expect::that($result->exitCode)->because('exposes individual and combined output lines')->toBe(17);
-        Expect::that($result->stdoutLines())->toBe(['first', 'second']);
-        Expect::that($result->output())->toBe("first\nsecond\nwarning\nerror");
-        Expect::that($result->outputLines())->toBe(['first', 'second', 'warning', 'error']);
+        Expect::value($result->exitCode)->because('exposes individual and combined output lines')->toBe(17);
+        Expect::value($result->stdoutLines())->toBe(['first', 'second']);
+        Expect::value($result->output())->toBe("first\nsecond\nwarning\nerror");
+        Expect::value($result->outputLines())->toBe(['first', 'second', 'warning', 'error']);
     }
 
     #[Test]
@@ -32,10 +32,10 @@ final class ProcessResultTest
         $stderrOnly = new ProcessResult(1, '', 'error');
         $empty = new ProcessResult(0, '', '');
 
-        Expect::that($stdoutOnly->output())->because('combines empty streams without adding separators')->toBe('output');
-        Expect::that($stderrOnly->output())->toBe('error');
-        Expect::that($empty->output())->toBe('');
-        Expect::that($empty->outputLines())->toBe([]);
+        Expect::value($stdoutOnly->output())->because('combines empty streams without adding separators')->toBe('output');
+        Expect::value($stderrOnly->output())->toBe('error');
+        Expect::value($empty->output())->toBe('');
+        Expect::value($empty->outputLines())->toBe([]);
     }
 
     #[Test]
@@ -44,12 +44,12 @@ final class ProcessResultTest
         $terminated = new ProcessResult(0, "first\nsecond\n", "warning\n");
         $blankFinalLine = new ProcessResult(0, "first\n\n", '');
 
-        Expect::that($terminated->stdoutLines())
+        Expect::value($terminated->stdoutLines())
             ->because('a final line terminator MUST NOT create a phantom output line')
             ->toBe(['first', 'second']);
-        Expect::that($terminated->outputLines())
+        Expect::value($terminated->outputLines())
             ->toBe(['first', 'second', 'warning']);
-        Expect::that($blankFinalLine->stdoutLines())
+        Expect::value($blankFinalLine->stdoutLines())
             ->because('line normalization MUST preserve intentional blank content')
             ->toBe(['first', '']);
     }

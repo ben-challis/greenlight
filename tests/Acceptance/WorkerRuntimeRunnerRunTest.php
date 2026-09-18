@@ -56,13 +56,13 @@ final readonly class WorkerRuntimeRunnerRunTest
                 #[Test]
                 public function firstAssignmentRunsInsideTheBoundary(): void
                 {
-                    Expect::that(Boundary::$active)->toBeTrue();
+                    Expect::value(Boundary::$active)->toBeTrue();
                 }
 
                 #[Test]
                 public function nextAssignmentUsesTheSameBoundary(): void
                 {
-                    Expect::that(Boundary::$active)->toBeTrue();
+                    Expect::value(Boundary::$active)->toBeTrue();
                 }
             }
             PHP);
@@ -86,10 +86,10 @@ final readonly class WorkerRuntimeRunnerRunTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('worker runtime boundary run failed: ' . $result->output())
             ->toBe(0);
-        Expect::that($result->output())->toContain('2 tests, 2 passed');
-        Expect::that(\file_get_contents($project->directory . '/worker-runtime.marker'))->toBe('closed');
+        Expect::value($result->output())->toContain('2 tests, 2 passed');
+        Expect::value(\file_get_contents($project->directory . '/worker-runtime.marker'))->toBe('closed');
     }
 }

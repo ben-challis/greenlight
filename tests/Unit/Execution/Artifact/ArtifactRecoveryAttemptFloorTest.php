@@ -44,14 +44,14 @@ final readonly class ArtifactRecoveryAttemptFloorTest
             attempts: 10,
         ));
 
-        Expect::that($recovered->attempts)
+        Expect::value($recovered->attempts)
             ->because('stale recovery metadata MUST NOT reduce a reported attempt count')
             ->toBe(10);
-        Expect::that($recovered->attachments)
+        Expect::value($recovered->attachments)
             ->toHaveCount(1);
-        Expect::that($recovered->attachments[0]->name)
+        Expect::value($recovered->attachments[0]->name)
             ->toBe('evidence.txt');
-        Expect::that((string) \file_get_contents($recovered->attachments[0]->path))
+        Expect::value((string) \file_get_contents($recovered->attachments[0]->path))
             ->toBe('completed evidence');
     }
 
@@ -78,7 +78,7 @@ final readonly class ArtifactRecoveryAttemptFloorTest
             attempts: 3,
         ));
 
-        Expect::that($recovered->attempts)
+        Expect::value($recovered->attempts)
             ->because('corrupt recovery metadata MUST NOT inflate a reported attempt count')
             ->toBe(3);
     }
@@ -107,10 +107,10 @@ final readonly class ArtifactRecoveryAttemptFloorTest
             $warning,
         );
 
-        Expect::that($recovered->attempts)
+        Expect::value($recovered->attempts)
             ->because('a missing recovery marker MUST preserve the reported attempt count')
             ->toBe(3);
-        Expect::that($warning)
+        Expect::value($warning)
             ->because('a missing recovery marker MUST not leak an engine diagnostic')
             ->toBeNull();
     }

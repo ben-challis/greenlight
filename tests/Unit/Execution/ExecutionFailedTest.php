@@ -17,7 +17,7 @@ final readonly class ExecutionFailedTest
         $protocol = ProtocolError::malformedFrame('probe');
         $execution = ExecutionFailed::processPool($protocol);
 
-        Expect::that($execution->getMessage())->toBe($protocol->getMessage());
-        Expect::that($execution->getPrevious())->toBe($protocol);
+        Expect::value($execution->getMessage())->toBe($protocol->getMessage());
+        Expect::value($execution->getPrevious())->toBe($protocol);
     }
 }

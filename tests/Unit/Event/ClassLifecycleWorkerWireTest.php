@@ -27,10 +27,10 @@ final readonly class ClassLifecycleWorkerWireTest
 
         $event = $eventClass::fromWire($payload);
 
-        Expect::that($event->workerId)
+        Expect::value($event->workerId)
             ->because('class lifecycle events MUST preserve their worker attribution')
             ->toBe('worker-2');
-        Expect::that($event->toWire())
+        Expect::value($event->toWire())
             ->toBe($payload);
     }
 

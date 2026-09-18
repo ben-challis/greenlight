@@ -28,7 +28,7 @@ final class ResultPolicyTest
     #[DataSet('policyActivity')]
     public function onlyBehaviorChangingFlagsMakeThePolicyActive(ResultPolicy $policy, bool $noOp): void
     {
-        Expect::that($policy->isNoOp())
+        Expect::value($policy->isNoOp())
             ->because('worker dispatch MUST omit only behaviorally inactive result policies')
             ->toBe($noOp);
     }
@@ -115,10 +115,10 @@ final class ResultPolicyTest
         $policy = new ResultPolicy(failOnDeprecation: true);
         $result = $policy->apply($original);
 
-        Expect::that($original->toWire())
+        Expect::value($original->toWire())
             ->because('a policy flip MUST NOT change the original result')
             ->toBe($originalWire);
-        Expect::that($result->toWire())
+        Expect::value($result->toWire())
             ->because('a policy flip MUST preserve all result state that the policy does not change')
             ->toBe($expected);
     }
@@ -129,7 +129,7 @@ final class ResultPolicyTest
         $policy = new ResultPolicy(failOnDeprecation: true, ignoreDeprecations: ['rusty']);
         $before = $this->passedWithDeprecation();
 
-        Expect::that($policy->apply($before))->because('an ignored deprecation leaves the result untouched')->toBe($before);
+        Expect::value($policy->apply($before))->because('an ignored deprecation leaves the result untouched')->toBe($before);
     }
 
     #[Test]
@@ -152,19 +152,19 @@ final class ResultPolicyTest
 
         $result = $policy->apply($before);
 
-        Expect::that($result->outcome)
+        Expect::value($result->outcome)
             ->because('each deprecation MUST be evaluated independently')
             ->toBe(Outcome::Failed);
-        Expect::that($result->failures)
+        Expect::value($result->failures)
             ->toHaveCount(1);
-        Expect::that($result->failures[0]->message)
+        Expect::value($result->failures[0]->message)
             ->toBe(
                 'The deprecation policy changed this test from passed to failed: '
                 . 'old api is deprecated at /src/api.php:7',
             );
-        Expect::that($result->transformations)
+        Expect::value($result->transformations)
             ->toHaveCount(1);
-        Expect::that($result->transformations[0]->transformedBy)
+        Expect::value($result->transformations[0]->transformedBy)
             ->toBe('fail-on-diagnostic policy');
     }
 
@@ -175,10 +175,10 @@ final class ResultPolicyTest
         $matching = $this->passedWithDeprecation('legacy api');
         $prefixed = $this->passedWithDeprecation('prefix legacy api');
 
-        Expect::that($policy->apply($matching))
+        Expect::value($policy->apply($matching))
             ->because('a wildcard ignore MUST match without case sensitivity')
             ->toBe($matching);
-        Expect::that($policy->apply($prefixed)->outcome)
+        Expect::value($policy->apply($prefixed)->outcome)
             ->because('a wildcard ignore MUST match the complete deprecation message')
             ->toBe(Outcome::Failed);
     }
@@ -198,7 +198,7 @@ final class ResultPolicyTest
         );
         $policy = new ResultPolicy(failOnDeprecation: true, failOnNotice: true, failOnRisky: true);
 
-        Expect::that($policy->apply($before))
+        Expect::value($policy->apply($before))
             ->because('a result policy changes only passed tests')
             ->toBe($before);
     }
@@ -219,12 +219,12 @@ final class ResultPolicyTest
 
         $result = new ResultPolicy(failOnNotice: true)->apply($before);
 
-        Expect::that($result->outcome)
+        Expect::value($result->outcome)
             ->because('the notice policy does not make warnings fatal')
             ->toBe(Outcome::Failed);
-        Expect::that($result->failures)
+        Expect::value($result->failures)
             ->toHaveCount(1);
-        Expect::that($result->failures[0]->message)
+        Expect::value($result->failures[0]->message)
             ->toBe('The notice policy changed this test from passed to failed: a notice at /src/a.php:3');
     }
 
@@ -243,10 +243,10 @@ final class ResultPolicyTest
 
         $result = new ResultPolicy(failOnWarning: true)->apply($before);
 
-        Expect::that($result->outcome)
+        Expect::value($result->outcome)
             ->because('the warning policy fails a passed test that captures a warning')
             ->toBe(Outcome::Failed);
-        Expect::that($result->failures[0]->message)
+        Expect::value($result->failures[0]->message)
             ->toBe('The warning policy changed this test from passed to failed: a warning at /src/a.php:2');
     }
 
@@ -275,28 +275,28 @@ final class ResultPolicyTest
 
         $result = $policy->apply($before);
 
-        Expect::that($result->outcome)
+        Expect::value($result->outcome)
             ->because('diagnostic failures aggregate before the risky policy')
             ->toBe(Outcome::Failed);
-        Expect::that($result->failures)
+        Expect::value($result->failures)
             ->toHaveCount(2);
-        Expect::that($result->failures[0]->message)
+        Expect::value($result->failures[0]->message)
             ->toBe(
                 'The deprecation policy changed this test from passed to failed: old api at /src/old.php:4',
             );
-        Expect::that($result->failures[1]->message)
+        Expect::value($result->failures[1]->message)
             ->toBe(
                 'The notice policy changed this test from passed to failed: notice too at /src/notice.php:6',
             );
-        Expect::that($result->transformations)
+        Expect::value($result->transformations)
             ->toHaveCount(1);
-        Expect::that($result->transformations[0]->transformedBy)
+        Expect::value($result->transformations[0]->transformedBy)
             ->toBe('fail-on-diagnostic policy');
-        Expect::that($result->expectations)
+        Expect::value($result->expectations)
             ->toBe(5);
-        Expect::that($result->attempts)
+        Expect::value($result->attempts)
             ->toBe(2);
-        Expect::that($result->durationSeconds)
+        Expect::value($result->durationSeconds)
             ->toBe(0.25);
     }
 
@@ -313,12 +313,12 @@ final class ResultPolicyTest
 
         $result = new ResultPolicy(failOnRisky: true)->apply($before);
 
-        Expect::that($result->outcome)
+        Expect::value($result->outcome)
             ->because('the risky policy fails a passed result without expectations')
             ->toBe(Outcome::Failed);
-        Expect::that($result->transformations[0]->transformedBy)
+        Expect::value($result->transformations[0]->transformedBy)
             ->toBe('fail-on-risky policy');
-        Expect::that($result->failures[0]->message)
+        Expect::value($result->failures[0]->message)
             ->toBe('The fail-on-risky policy changed this test from passed to failed because it verified no expectations.');
     }
 
@@ -333,7 +333,7 @@ final class ResultPolicyTest
             'failOnRisky' => true,
         ]);
 
-        Expect::that($restored->toWire())
+        Expect::value($restored->toWire())
             ->because('the wire payload preserves policy settings and drops empty ignore patterns')
             ->toBe([
                 'failOnDeprecation' => true,
@@ -354,7 +354,7 @@ final class ResultPolicyTest
             'failOnRisky' => false,
         ]);
 
-        Expect::that($restored->failOnWarning)
+        Expect::value($restored->failOnWarning)
             ->because('a compatible worker payload MUST disable the new warning policy')
             ->toBeFalse();
     }

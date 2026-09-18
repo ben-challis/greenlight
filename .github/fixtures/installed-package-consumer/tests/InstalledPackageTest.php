@@ -13,6 +13,6 @@ final class InstalledPackageTest
     #[Test]
     public function installedPackageAutoloadsPublicClasses(): void
     {
-        Expect::that(class_exists(GreenlightConfig::class))->toBeTrue();
+        Expect::value(class_exists(GreenlightConfig::class))->toBeTrue();
     }
 }

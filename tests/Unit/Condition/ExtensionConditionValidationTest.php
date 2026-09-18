@@ -17,7 +17,7 @@ final readonly class ExtensionConditionValidationTest
     #[DataSet('extensionConditions')]
     public function rejectsAnEmptyExtensionName(\Closure $create): void
     {
-        Expect::that($create)
+        Expect::calling($create)
             ->because('an extension availability condition MUST identify the extension')
             ->toThrow(
                 \InvalidArgumentException::class,

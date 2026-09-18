@@ -76,13 +76,13 @@ final readonly class PhpStanDoublesCallsToReturnTypeExtensionTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)
+        Expect::value($probe->exitCode)
             ->because('PHPStan rejects an incompatible asserted callsTo() result type')
             ->toBe(1);
-        Expect::that($probe->goodPassed)
+        Expect::value($probe->goodPassed)
             ->because('PHPStan messages: ' . $probe->messages())
             ->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(1);
-        Expect::that($probe->messages())->toContain('expects list<array{int}>, list<array{string}> given');
+        Expect::value(\count($probe->errors))->toBe(1);
+        Expect::value($probe->messages())->toContain('expects list<array{int}>, list<array{string}> given');
     }
 }

@@ -47,12 +47,12 @@ final readonly class DisabledPcovTest
 
         $evidence = \sprintf('stdout: %s\nstderr: %s', \substr($result->stdout, 0, 2_000), \substr($result->stderr, 0, 2_000));
 
-        Expect::that($result->exitCode)->because($evidence)->toBe($required ? 1 : 0);
-        Expect::that($result->stdout)->because($evidence)->toContain('PASS ');
-        Expect::that($result->output())->not()->toContain('NativePcovRuntime::collect()');
+        Expect::value($result->exitCode)->because($evidence)->toBe($required ? 1 : 0);
+        Expect::value($result->stdout)->because($evidence)->toContain('PASS ');
+        Expect::value($result->output())->not()->toContain('NativePcovRuntime::collect()');
 
         if ($required) {
-            Expect::that($result->stderr)->because($evidence)->toContain('Coverage is required, but no worker collected it.');
+            Expect::value($result->stderr)->because($evidence)->toContain('Coverage is required, but no worker collected it.');
         }
     }
 

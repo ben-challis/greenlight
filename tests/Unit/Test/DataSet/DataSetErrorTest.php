@@ -28,7 +28,7 @@ final class DataSetErrorTest
             DataSetError::duplicateDataSetKey('App\ExampleTest', 'checksValue', 'same')->getMessage(),
         ];
 
-        Expect::that($actual)->toBe([
+        Expect::value($actual)->toBe([
             'Test method App\ExampleTest::checksValue() references missing data-set provider class "App\Rows".',
             'Test method App\ExampleTest::checksValue() references data-set provider App\Rows::values(), but the provider does not exist.',
             'Test method App\ExampleTest::checksValue() references data-set provider App\Rows::values(). Declare the provider as public and static.',
@@ -39,6 +39,6 @@ final class DataSetErrorTest
             'Data-set provider App\Rows::values() produced a key of type float. Use string or integer keys.',
             'Data sets for App\ExampleTest::checksValue() contain key "same" more than once. Use each key only once for the test method.',
         ]);
-        Expect::that($providerError->getPrevious())->toBe($cause);
+        Expect::value($providerError->getPrevious())->toBe($cause);
     }
 }

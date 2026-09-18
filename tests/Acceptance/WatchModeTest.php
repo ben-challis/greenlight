@@ -33,14 +33,14 @@ final readonly class WatchModeTest
         $this->cleanup->defer($process->terminate(...));
 
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
-        Expect::that($output)->toContain('1 test, 1 passed');
+        Expect::value($output)->toContain('1 test, 1 passed');
 
         // Append a comment to make a synthetic change. The size changes, but
         // the modification time can remain equal.
         $project->writeFile('tests/WatchProbeTest.php', $original . "// touched\n");
 
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
-        Expect::that($output)->toContain('Detected changes')
+        Expect::value($output)->toContain('Detected changes')
             ->toContain('1 test, 1 passed');
 
         $process->write('q');
@@ -49,10 +49,10 @@ final readonly class WatchModeTest
         $cleaned = \file($project->path('markers/cleaned.log'), \FILE_IGNORE_NEW_LINES);
         $constructed = \file($project->path('markers/constructed.log'), \FILE_IGNORE_NEW_LINES);
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that(\is_array($provisioned) ? $provisioned : [])->toHaveCount(2);
-        Expect::that(\is_array($cleaned) ? $cleaned : [])->toBe(['cleaned', 'cleaned']);
-        Expect::that(\is_array($constructed) ? $constructed : [])
+        Expect::value($result->exitCode)->toBe(0);
+        Expect::value(\is_array($provisioned) ? $provisioned : [])->toHaveCount(2);
+        Expect::value(\is_array($cleaned) ? $cleaned : [])->toBe(['cleaned', 'cleaned']);
+        Expect::value(\is_array($constructed) ? $constructed : [])
             ->because('each watch run MUST construct a new orchestrator instance and worker instance')
             ->toHaveCount(4);
     }
@@ -70,14 +70,14 @@ final readonly class WatchModeTest
 
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-        Expect::that($output)
+        Expect::value($output)
             ->because('watch mode starts when PHP disables shell_exec')
             ->toContain('1 test, 1 passed');
 
         $process->write('q');
         $result = $process->wait(10.0);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('watch mode exits cleanly when PHP disables shell_exec')
             ->toBe(0);
     }
@@ -97,14 +97,14 @@ final readonly class WatchModeTest
         $process->write('q');
         $result = $process->wait(10.0);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('watch mode MUST remain interactive after a fixture cleanup failure')
             ->toBe(0);
-        Expect::that($result->output())
+        Expect::value($result->output())
             ->because('watch mode MUST report integration fixture cleanup failures')
             ->toContain('Integration fixture teardown failed.')
             ->toContain('intentional fixture cleanup failure');
-        Expect::that($this->matches($project->path('markers/resource-*')))
+        Expect::value($this->matches($project->path('markers/resource-*')))
             ->because('watch mode MUST remove orchestrator-owned resources after cleanup failures')
             ->toBe([]);
     }
@@ -122,14 +122,14 @@ final readonly class WatchModeTest
 
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-        Expect::that($output)
+        Expect::value($output)
             ->because('watch mode MUST complete its initial coverage run')
             ->toContain('1 test, 1 passed');
 
         $project->writeFile('source/Observed.php', "<?php\n// changed\n");
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-        Expect::that($output)
+        Expect::value($output)
             ->because('watch mode MUST observe configured coverage include paths')
             ->toContain('Detected changes')
             ->toContain('1 test, 1 passed');
@@ -137,7 +137,7 @@ final readonly class WatchModeTest
         $process->write('q');
         $result = $process->wait(10.0);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('watch mode exits cleanly after a coverage source change')
             ->toBe(0);
     }
@@ -156,7 +156,7 @@ final readonly class WatchModeTest
         $project->writeFile('templates/page.twig', 'changed template');
         $templateOutput = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-        Expect::that($templateOutput)
+        Expect::value($templateOutput)
             ->because('a configured template input MUST trigger a watch run')
             ->toContain('Detected changes in 1 file.')
             ->toContain('1 test, 1 passed');
@@ -166,15 +166,15 @@ final readonly class WatchModeTest
         $project->writeFile('config/settings.yaml', 'changed: true');
         $configurationOutput = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-        Expect::that($configurationOutput)
+        Expect::value($configurationOutput)
             ->because('an excluded artifact MUST not enter the next change batch')
             ->toContain('Detected changes in 1 file.')
             ->toContain('1 test, 1 passed');
 
         $process->write('q');
-        Expect::that($process->wait(10.0)->exitCode)->toBe(0);
+        Expect::value($process->wait(10.0)->exitCode)->toBe(0);
         $provisioned = \file($project->path('markers/provisioned.log'), \FILE_IGNORE_NEW_LINES);
-        Expect::that(\is_array($provisioned) ? $provisioned : [])
+        Expect::value(\is_array($provisioned) ? $provisioned : [])
             ->because('the excluded artifact MUST not start a watch run')
             ->toHaveCount(3);
     }

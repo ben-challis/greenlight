@@ -19,7 +19,7 @@ final class PlanShardSeedTest
             PlanEntryFixture::create('Acme\\PaymentTest', 'charges'),
         ], seed: 86420);
 
-        Expect::that(PlanShard::select($plan, index: 1, count: 2)->seed)
+        Expect::value(PlanShard::select($plan, index: 1, count: 2)->seed)
             ->because('each shard MUST preserve the seed that defines its plan order')
             ->toBe(86420);
     }

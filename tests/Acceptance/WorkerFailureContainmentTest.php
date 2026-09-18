@@ -27,9 +27,9 @@ final readonly class WorkerFailureContainmentTest
     {
         $result = $this->runIn('CrashConfig', ['run', '--workers=2']);
 
-        Expect::that($result->exitCode)->because('crashed workers are contained and the run completes')->toBe(1);
-        Expect::that($this->summaryLine($result->output()))->toBe('3 tests, 2 passed, 1 errored, 0 expectations');
-        Expect::that($result->output())->toContain('crashed during this test');
+        Expect::value($result->exitCode)->because('crashed workers are contained and the run completes')->toBe(1);
+        Expect::value($this->summaryLine($result->output()))->toBe('3 tests, 2 passed, 1 errored, 0 expectations');
+        Expect::value($result->output())->toContain('crashed during this test');
     }
 
     #[Test]
@@ -71,13 +71,13 @@ final readonly class WorkerFailureContainmentTest
             static fn($event): bool => $event instanceof TestFinished,
         );
 
-        Expect::that($finished)
+        Expect::value($finished)
             ->because('The crashed retry did not emit TestFinished.')
             ->toBeInstanceOf(TestFinished::class);
 
-        Expect::that($result->exitCode)->because('a crash on a retry preserves the attempt count')->toBe(1);
-        Expect::that($finished->result->outcome)->toBe(Outcome::Errored);
-        Expect::that($finished->result->attempts)->toBe(2);
+        Expect::value($result->exitCode)->because('a crash on a retry preserves the attempt count')->toBe(1);
+        Expect::value($finished->result->outcome)->toBe(Outcome::Errored);
+        Expect::value($finished->result->attempts)->toBe(2);
     }
 
     #[Test]
@@ -89,17 +89,17 @@ final readonly class WorkerFailureContainmentTest
         $events = JsonlEvents::from($result);
         $finished = \array_find($events, static fn($event): bool => $event instanceof TestFinished);
 
-        Expect::that($finished)
+        Expect::value($finished)
             ->because('The hard timeout did not emit TestFinished.')
             ->toBeInstanceOf(TestFinished::class);
 
-        Expect::that($result->exitCode)->because('hanging tests are hard killed by the orchestrator')->toBe(1);
-        Expect::that($result->output())->toContain('time limit');
-        Expect::that($durationSeconds)->toBeLessThan(20.0);
-        Expect::that($finished->result->outcome)->toBe(Outcome::Failed);
-        Expect::that($finished->result->durationSeconds)->toBeGreaterThan(0.1);
-        Expect::that($finished->result->failures)->toHaveCount(1);
-        Expect::that($finished->result->error)->toBeNull();
+        Expect::value($result->exitCode)->because('hanging tests are hard killed by the orchestrator')->toBe(1);
+        Expect::value($result->output())->toContain('time limit');
+        Expect::value($durationSeconds)->toBeLessThan(20.0);
+        Expect::value($finished->result->outcome)->toBe(Outcome::Failed);
+        Expect::value($finished->result->durationSeconds)->toBeGreaterThan(0.1);
+        Expect::value($finished->result->failures)->toHaveCount(1);
+        Expect::value($finished->result->error)->toBeNull();
     }
 
     #[Test]
@@ -135,20 +135,20 @@ final readonly class WorkerFailureContainmentTest
             static fn($event): bool => $event instanceof TestFinished,
         );
 
-        Expect::that($finished)
+        Expect::value($finished)
             ->because('The diagnostic hard timeout did not emit TestFinished.')
             ->toBeInstanceOf(TestFinished::class);
 
         $failure = $finished->result->failures[0] ?? null;
 
-        Expect::that($failure)
+        Expect::value($failure)
             ->because('The diagnostic hard timeout did not report a failure.')
             ->toBeInstanceOf(FailureDetail::class);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('a hard timeout MUST fail the run')
             ->toBe(1);
-        Expect::that($failure->message)
+        Expect::value($failure->message)
             ->because('a hard timeout MUST preserve the worker diagnostic output')
             ->toContain("Worker output:\nThe timed-out worker emitted diagnostics.");
     }

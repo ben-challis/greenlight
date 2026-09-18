@@ -21,7 +21,7 @@ final class UnavailableAttachmentsTest
     {
         $attachments = new UnavailableAttachments();
 
-        Expect::that(static fn() => $call($attachments))
+        Expect::calling(static fn() => $call($attachments))
             ->because('attachments are unavailable outside an active attempt')
             ->toThrow(
                 AttachmentError::class,

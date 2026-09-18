@@ -14,7 +14,7 @@ final class CanonicalFloatBoundaryTest
     #[DataSet('exactFloatIntegerBoundaries')]
     public function canonicalEqualityAlignsExactFloatIntegerBoundaries(int $integer, float $middle): void
     {
-        Expect::that([$integer, $middle])
+        Expect::value([$integer, $middle])
             ->because('canonical equality MUST align an exactly representable boundary integer with its float')
             ->toEqualCanonicalizing([$middle, (float) $integer]);
     }

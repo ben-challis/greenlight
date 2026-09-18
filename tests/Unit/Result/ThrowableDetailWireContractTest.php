@@ -24,7 +24,7 @@ final class ThrowableDetailWireContractTest
             ],
         );
 
-        Expect::that($detail->toWire())
+        Expect::value($detail->toWire())
             ->because('the wire payload MUST preserve each throwable diagnostic field')
             ->toBe([
                 'class' => \RuntimeException::class,

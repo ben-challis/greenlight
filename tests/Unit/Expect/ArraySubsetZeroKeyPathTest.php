@@ -13,11 +13,11 @@ final readonly class ArraySubsetZeroKeyPathTest
     public function nestedDifferencePathsRetainANumericZeroParentKey(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that([0 => ['actual' => true]])
+            static fn() => Expect::value([0 => ['actual' => true]])
                 ->toContainSubset([0 => ['missing' => true]]),
         );
 
-        Expect::that($detail->message)
+        Expect::value($detail->message)
             ->because('nested subset diagnostics MUST retain a numeric zero parent key')
             ->toContain("(missing key '0.missing').");
     }

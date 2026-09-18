@@ -30,23 +30,23 @@ final class ScopeContainerFailedLazyFactoryDisposalTest
             },
         ));
 
-        Expect::that($service)
+        Expect::value($service)
             ->because('ScopeContainer::get() MUST return LazyDisposableFactoryProbe.')
             ->toBeInstanceOf(LazyDisposableFactoryProbe::class);
 
-        Expect::that(static fn(): string => $service->value())
+        Expect::calling(static fn(): string => $service->value())
             ->because('the lazy factory failure MUST propagate from service use')
             ->toThrow($failure);
 
         $failures = $container->dispose();
 
-        Expect::that($factoryCalls)
+        Expect::value($factoryCalls)
             ->because('scope disposal MUST NOT retry a failed lazy factory')
             ->toBe(1);
-        Expect::that($failures)
+        Expect::value($failures)
             ->because('an uninitialized service has nothing to dispose')
             ->toBe([]);
-        Expect::that(LazyDisposableFactoryProbe::disposals())
+        Expect::value(LazyDisposableFactoryProbe::disposals())
             ->toBe(0);
     }
 }

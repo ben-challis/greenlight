@@ -24,11 +24,11 @@ final class CoverageMissingIncludePathTest
         $configuration = new CoverageConfiguration(['future/src'], null, []);
         $settings = CoverageSettingsResolver::resolve($configuration, '/project');
 
-        Expect::that($settings)
+        Expect::value($settings)
             ->because('The coverage configuration MUST create coverage settings.')
             ->toBeInstanceOf(CoverageSettings::class);
 
-        Expect::that($settings->includePaths)
+        Expect::value($settings->includePaths)
             ->because('an unresolved non-empty include path MUST remain absolute')
             ->toBe(['/project/future/src']);
 
@@ -37,13 +37,13 @@ final class CoverageMissingIncludePathTest
             selector: new DriverSelector([RecordingFakeDriver::class]),
         );
 
-        Expect::that($collector)
+        Expect::value($collector)
             ->because('The available driver MUST create a coverage collector.')
             ->toBeInstanceOf(CoverageCollector::class);
 
         $collector->start();
 
-        Expect::that($collector->stop()->files())
+        Expect::value($collector->stop()->files())
             ->because('an unresolved include path MUST NOT broaden coverage to all files')
             ->toBe([]);
     }
@@ -55,7 +55,7 @@ final class CoverageMissingIncludePathTest
         $root = \dirname(__DIR__, 4);
         $outside = \realpath(\dirname($root));
 
-        Expect::that($outside)
+        Expect::value($outside)
             ->because('The test MUST resolve its restricted include path.')
             ->toBeString();
 
@@ -67,14 +67,14 @@ final class CoverageMissingIncludePathTest
             $warning,
         );
 
-        Expect::that($settings)
+        Expect::value($settings)
             ->because('The coverage configuration MUST create coverage settings.')
             ->toBeInstanceOf(CoverageSettings::class);
 
-        Expect::that($settings->includePaths)
+        Expect::value($settings->includePaths)
             ->because('a restricted include path MUST remain restrictive')
             ->toBe([$outside]);
-        Expect::that($warning)
+        Expect::value($warning)
             ->because('a restricted include path MUST not leak an engine diagnostic')
             ->toBeNull();
     }

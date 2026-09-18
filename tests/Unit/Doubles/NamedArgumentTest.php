@@ -32,9 +32,9 @@ final readonly class NamedArgumentTest
 
         $arguments = ['b' => 2, 'a' => 1];
 
-        Expect::that($calculator->add(...$arguments))
+        Expect::value($calculator->add(...$arguments))
             ->because('named double arguments follow their declared parameter order')
             ->toBe(3);
-        Expect::that($received)->toBe([1, 2]);
+        Expect::value($received)->toBe([1, 2]);
     }
 }

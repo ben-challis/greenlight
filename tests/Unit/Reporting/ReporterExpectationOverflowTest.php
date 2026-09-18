@@ -28,7 +28,7 @@ final readonly class ReporterExpectationOverflowTest
         $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 2), 0.0, 1.2));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('the plain summary MUST keep an overflowing expectation total representable')
             ->toContain(\sprintf('%d expectations', \PHP_INT_MAX));
     }
@@ -42,7 +42,7 @@ final readonly class ReporterExpectationOverflowTest
         $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 2), 0.0, 1.2));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('the TTY summary MUST keep an overflowing expectation total representable')
             ->toContain(\sprintf('%d expectations', \PHP_INT_MAX));
     }
@@ -55,7 +55,7 @@ final readonly class ReporterExpectationOverflowTest
         $this->recordOverflowingExpectations($reporter);
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('the JUnit summary MUST keep an overflowing assertion total representable')
             ->toContain(\sprintf('assertions="%d"', \PHP_INT_MAX));
     }

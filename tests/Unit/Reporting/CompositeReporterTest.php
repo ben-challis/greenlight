@@ -22,10 +22,10 @@ final class CompositeReporterTest
 
         $expected = \count(CannedStream::events());
 
-        Expect::that($first->eventCount)->because('every reporter sees every event and finish')->toBe($expected);
-        Expect::that($second->eventCount)->toBe($expected);
-        Expect::that($first->finished)->toBeTrue();
-        Expect::that($second->finished)->toBeTrue();
+        Expect::value($first->eventCount)->because('every reporter sees every event and finish')->toBe($expected);
+        Expect::value($second->eventCount)->toBe($expected);
+        Expect::value($first->finished)->toBeTrue();
+        Expect::value($second->finished)->toBeTrue();
     }
 
     #[Test]
@@ -44,8 +44,8 @@ final class CompositeReporterTest
             new GithubReporter($compositeGithub),
         ]));
 
-        Expect::that($compositePlain->buffer())->because('fan out matches running each reporter alone')->toBe($alonePlain->buffer());
-        Expect::that($compositeGithub->buffer())->toBe($aloneGithub->buffer());
+        Expect::value($compositePlain->buffer())->because('fan out matches running each reporter alone')->toBe($alonePlain->buffer());
+        Expect::value($compositeGithub->buffer())->toBe($aloneGithub->buffer());
     }
 
     #[Test]
@@ -56,7 +56,7 @@ final class CompositeReporterTest
 
         new CompositeReporter([$plain, $live])->tick(1.5);
 
-        Expect::that($live->ticks)->because('ticks reach only ticking reporters')->toBe([1.5]);
-        Expect::that($plain->eventCount)->toBe(0);
+        Expect::value($live->ticks)->because('ticks reach only ticking reporters')->toBe([1.5]);
+        Expect::value($plain->eventCount)->toBe(0);
     }
 }

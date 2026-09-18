@@ -15,7 +15,7 @@ final readonly class TestResultAttemptDiagnosticTest
     #[Test]
     public function invalidAttemptCountNamesTheMinimum(): void
     {
-        Expect::that(static fn(): TestResult => new TestResult(
+        Expect::calling(static fn(): TestResult => new TestResult(
             new TestId('App\PaymentTest', 'chargesCard'),
             Outcome::Passed,
             0.1,

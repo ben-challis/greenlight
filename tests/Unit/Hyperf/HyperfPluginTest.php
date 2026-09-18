@@ -16,14 +16,14 @@ final readonly class HyperfPluginTest
     #[Test]
     public function exposesTheConfiguredSource(): void
     {
-        Expect::that(new HyperfPlugin('/project')->source())->toBeNull();
-        Expect::that(new HyperfPlugin('/project', source: 'application')->source())->toBe('application');
+        Expect::value(new HyperfPlugin('/project')->source())->toBeNull();
+        Expect::value(new HyperfPlugin('/project', source: 'application')->source())->toBe('application');
     }
 
     #[Test]
     public function rejectsAnEmptySource(): void
     {
-        Expect::that(static fn(): HyperfPlugin => new HyperfPlugin('/project', source: ''))
+        Expect::calling(static fn(): HyperfPlugin => new HyperfPlugin('/project', source: ''))
             ->toThrow(\InvalidArgumentException::class, message: 'Service source must not be empty.');
     }
 
@@ -33,7 +33,7 @@ final readonly class HyperfPluginTest
         $service = new \ArrayObject();
         $plugin = $this->plugin([\ArrayObject::class => $service]);
 
-        Expect::that($plugin->resolve(\ArrayObject::class, [new Service()]))->toBe($service);
+        Expect::value($plugin->resolve(\ArrayObject::class, [new Service()]))->toBe($service);
     }
 
     #[Test]
@@ -41,7 +41,7 @@ final readonly class HyperfPluginTest
     {
         $plugin = $this->plugin([]);
 
-        Expect::that(static fn(): ?object => $plugin->resolve(\ArrayObject::class, [new Service(\ArrayObject::class)]))
+        Expect::calling(static fn(): ?object => $plugin->resolve(\ArrayObject::class, [new Service(\ArrayObject::class)]))
             ->toThrow(HyperfBridgeError::class, matching: '/no service "ArrayObject"/');
     }
 
@@ -50,14 +50,14 @@ final readonly class HyperfPluginTest
     {
         $plugin = $this->plugin([]);
 
-        Expect::that(static fn(): ?object => $plugin->resolve(\ArrayObject::class, [new Service()]))
+        Expect::calling(static fn(): ?object => $plugin->resolve(\ArrayObject::class, [new Service()]))
             ->toThrow(HyperfBridgeError::class, matching: '/no service "ArrayObject"/');
     }
 
     #[Test]
     public function anUnknownTypeWithoutAnAttributeReturnsNull(): void
     {
-        Expect::that($this->plugin([])->resolve(\ArrayObject::class, []))->toBeNull();
+        Expect::value($this->plugin([])->resolve(\ArrayObject::class, []))->toBeNull();
     }
 
     /** @param array<string, mixed> $services */

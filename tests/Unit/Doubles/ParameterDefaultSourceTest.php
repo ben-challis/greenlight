@@ -23,22 +23,22 @@ final class ParameterDefaultSourceTest
 
         $source = ParameterDefaultSource::read(new \ReflectionMethod(First\Nested::class, 'run')->getParameters()[1]);
 
-        Expect::that($source)->toBeArray();
-        Expect::that(\implode('', \array_map(static fn(\PhpToken $token): string => $token->text, $source['tokens'])))
+        Expect::value($source)->toBeArray();
+        Expect::value(\implode('', \array_map(static fn(\PhpToken $token): string => $token->text, $source['tokens'])))
             ->toBe("new Value(items: ['brace' => '}', 'nested' => [new Other()]])");
-        Expect::that($source['namespace'])->toBe('Greenlight\\Tests\\Fixture\\ParameterDefaultSource\\First');
-        Expect::that($source['imports'])->toBe([
+        Expect::value($source['namespace'])->toBe('Greenlight\\Tests\\Fixture\\ParameterDefaultSource\\First');
+        Expect::value($source['imports'])->toBe([
             'value' => Payload::class,
             'other' => Other::class,
             'probeattribute' => ProbeAttribute::class,
             'clock' => 'DateTimeImmutable',
         ]);
-        Expect::that($source['constants'])->toBe([
+        Expect::value($source['constants'])->toBe([
             'ALIAS' => 'Greenlight\\Tests\\Fixture\\ParameterDefaultSource\\Values\\OPTION',
             'MAXIMUM' => 'PHP_INT_MAX',
             'PHP_INT_MIN' => 'PHP_INT_MIN',
         ]);
-        Expect::that($source['trait'])->toBe('');
+        Expect::value($source['trait'])->toBe('');
     }
 
     #[Test]
@@ -48,10 +48,10 @@ final class ParameterDefaultSourceTest
 
         $source = ParameterDefaultSource::read(new \ReflectionMethod(First\Child::class, 'alias')->getParameters()[0]);
 
-        Expect::that($source)->toBeArray();
-        Expect::that($source['method'])->toBe('original');
-        Expect::that($source['trait'])->toBe(First\Original::class);
-        Expect::that(\implode('', \array_map(static fn(\PhpToken $token): string => $token->text, $source['tokens'])))
+        Expect::value($source)->toBeArray();
+        Expect::value($source['method'])->toBe('original');
+        Expect::value($source['trait'])->toBe(First\Original::class);
+        Expect::value(\implode('', \array_map(static fn(\PhpToken $token): string => $token->text, $source['tokens'])))
             ->toBe('new Value()');
     }
 
@@ -62,8 +62,8 @@ final class ParameterDefaultSourceTest
 
         $source = ParameterDefaultSource::read(new \ReflectionMethod(First\OwnerB::class, 'run')->getParameters()[0]);
 
-        Expect::that($source)->toBeArray();
-        Expect::that(\implode('', \array_map(static fn(\PhpToken $token): string => $token->text, $source['tokens'])))
+        Expect::value($source)->toBeArray();
+        Expect::value(\implode('', \array_map(static fn(\PhpToken $token): string => $token->text, $source['tokens'])))
             ->toBe('new Other()');
     }
 
@@ -74,10 +74,10 @@ final class ParameterDefaultSourceTest
 
         $source = ParameterDefaultSource::read(new \ReflectionMethod(Second\Nested::class, 'run')->getParameters()[0]);
 
-        Expect::that($source)->toBeArray();
-        Expect::that($source['namespace'])->toBe('Greenlight\\Tests\\Fixture\\ParameterDefaultSource\\Second');
-        Expect::that($source['imports'])->toBe(['value' => 'stdClass']);
-        Expect::that($source['constants'])->toBe([]);
+        Expect::value($source)->toBeArray();
+        Expect::value($source['namespace'])->toBe('Greenlight\\Tests\\Fixture\\ParameterDefaultSource\\Second');
+        Expect::value($source['imports'])->toBe(['value' => 'stdClass']);
+        Expect::value($source['constants'])->toBe([]);
     }
 
     #[Test]
@@ -85,7 +85,7 @@ final class ParameterDefaultSourceTest
     {
         $parameter = new \ReflectionMethod(\DateTimeImmutable::class, '__construct')->getParameters()[0];
 
-        Expect::that(ParameterDefaultSource::read($parameter))->toBeNull();
+        Expect::value(ParameterDefaultSource::read($parameter))->toBeNull();
     }
 
     #[Test]
@@ -95,8 +95,8 @@ final class ParameterDefaultSourceTest
 
         $parameter = new \ReflectionMethod(Ambiguous\Selected::class, 'run')->getParameters()[0];
 
-        Expect::that($parameter->getDefaultValue())->toBeInstanceOf(\stdClass::class);
-        Expect::that(ParameterDefaultSource::read($parameter))->toBeNull();
+        Expect::value($parameter->getDefaultValue())->toBeInstanceOf(\stdClass::class);
+        Expect::value(ParameterDefaultSource::read($parameter))->toBeNull();
     }
 
     #[Test]
@@ -106,8 +106,8 @@ final class ParameterDefaultSourceTest
 
         $source = ParameterDefaultSource::read(new \ReflectionMethod(Ambiguous\OwnMethod::class, 'run')->getParameters()[0]);
 
-        Expect::that($source)->toBeArray();
-        Expect::that(\implode('', \array_map(static fn(\PhpToken $token): string => $token->text, $source['tokens'])))
+        Expect::value($source)->toBeArray();
+        Expect::value(\implode('', \array_map(static fn(\PhpToken $token): string => $token->text, $source['tokens'])))
             ->toBe('new \\DateTimeImmutable()');
     }
 
@@ -119,6 +119,6 @@ final class ParameterDefaultSourceTest
         $pair = Ambiguous\anonymousPair();
         $parameter = new \ReflectionMethod($pair[0], 'run')->getParameters()[0];
 
-        Expect::that(ParameterDefaultSource::read($parameter))->toBeNull();
+        Expect::value(ParameterDefaultSource::read($parameter))->toBeNull();
     }
 }

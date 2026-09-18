@@ -12,7 +12,7 @@ final class AssertionFailureTest
     #[Test]
     public function fails(): void
     {
-        Expect::that(false)
+        Expect::value(false)
             ->because('intentional assertion failure')
             ->toBeTrue();
     }

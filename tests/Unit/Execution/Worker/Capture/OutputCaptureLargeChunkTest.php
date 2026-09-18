@@ -21,8 +21,8 @@ final readonly class OutputCaptureLargeChunkTest
         echo $chunk . \str_repeat('x', 65_536);
         $output = $capture->stop();
 
-        Expect::that($output->stdout)->toBe($expected);
-        Expect::that($output->stdoutTruncated)->toBeTrue();
+        Expect::value($output->stdout)->toBe($expected);
+        Expect::value($output->stdoutTruncated)->toBeTrue();
     }
 
     /** @return iterable<string, array{string, string, string}> */

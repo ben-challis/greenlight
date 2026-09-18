@@ -45,10 +45,10 @@ final readonly class RectorVersionedExtensionRequirementTest
             name: 'versioned-extension-requirement',
         );
 
-        Expect::that($probe->changed)
+        Expect::value($probe->changed)
             ->because('Greenlight cannot preserve an extension version constraint')
             ->toBeFalse();
-        Expect::that($probe->code)
+        Expect::value($probe->code)
             ->toBe($source)
             ->toContain("#[RequiresPhpExtension('json', '>=99')]");
     }

@@ -77,10 +77,10 @@ final readonly class WorkerCaptureCleanupTest
         try {
             $result = $process->wait(2.0);
 
-            Expect::that($result->exitCode)
+            Expect::value($result->exitCode)
                 ->because('capture cleanup MUST complete without terminating the worker')
                 ->toBe(0);
-            Expect::that($result->stderr)
+            Expect::value($result->stderr)
                 ->because('capture failure MUST run callbacks, close the test scope, and clear the temporal deadline')
                 ->toBe('1:1:clear');
         } finally {

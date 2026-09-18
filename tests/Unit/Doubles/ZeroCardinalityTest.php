@@ -15,7 +15,7 @@ final class ZeroCardinalityTest
     #[Test]
     public function anUncalledZeroCardinalityExpectationPassesVerification(): void
     {
-        Expect::that(static function (): void {
+        Expect::calling(static function (): void {
             $doubles = new Doubles();
             $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
                 $plan->expects('add')->times(0);

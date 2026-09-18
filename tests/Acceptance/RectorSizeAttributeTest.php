@@ -57,10 +57,10 @@ final readonly class RectorSizeAttributeTest
             $attribute = $groups[$caseName]['attribute'];
             $group = $groups[$caseName]['group'];
 
-            Expect::that($probe->changed)
+            Expect::value($probe->changed)
                 ->because('PHPUnit size attribute case: ' . $caseName)
                 ->toBeTrue();
-            Expect::that($probe->code)
+            Expect::value($probe->code)
                 ->because('converted size group case: ' . $caseName)
                 ->toContain(\sprintf("#[\\Greenlight\\Attribute\\Group('%s')]", $group))
                 ->not()

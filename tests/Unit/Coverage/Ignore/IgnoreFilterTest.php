@@ -35,8 +35,8 @@ final readonly class IgnoreFilterTest
         $filtered = new IgnoreFilter()->apply($map);
         $file = $filtered->files()[$path];
 
-        Expect::that($file->coveredLines)->toBe([2]);
-        Expect::that($file->uncoveredLines)->toBe([7]);
+        Expect::value($file->coveredLines)->toBe([2]);
+        Expect::value($file->uncoveredLines)->toBe([7]);
     }
 
     #[Test]
@@ -53,7 +53,7 @@ final readonly class IgnoreFilterTest
 
         $map = new CoverageMap([new FileCoverage($path, [3], [4])]);
 
-        Expect::that(new IgnoreFilter()->apply($map)->isEmpty())->toBeTrue();
+        Expect::value(new IgnoreFilter()->apply($map)->isEmpty())->toBeTrue();
     }
 
     #[Test]
@@ -64,13 +64,13 @@ final readonly class IgnoreFilterTest
         $filtered = new IgnoreFilter()->apply($map);
         $file = $filtered->files()['/nonexistent/plain.php'];
 
-        Expect::that($file->coveredLines)->because('files without markers remain unchanged')->toBe([1, 2]);
-        Expect::that($file->uncoveredLines)->toBe([3]);
+        Expect::value($file->coveredLines)->because('files without markers remain unchanged')->toBe([1, 2]);
+        Expect::value($file->uncoveredLines)->toBe([3]);
     }
 
     #[Test]
     public function emptyMapStaysEmpty(): void
     {
-        Expect::that(new IgnoreFilter()->apply(CoverageMap::empty())->isEmpty())->because('empty map stays empty')->toBeTrue();
+        Expect::value(new IgnoreFilter()->apply(CoverageMap::empty())->isEmpty())->because('empty map stays empty')->toBeTrue();
     }
 }

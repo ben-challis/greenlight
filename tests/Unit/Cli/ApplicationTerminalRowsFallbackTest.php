@@ -28,7 +28,7 @@ final readonly class ApplicationTerminalRowsFallbackTest
 
         $rows = TerminalRowsResolver::resolve();
 
-        Expect::that($rows)
+        Expect::value($rows)
             ->because('the terminal probe MUST set the reporter height when LINES is unavailable')
             ->toBe(31);
     }
@@ -41,7 +41,7 @@ final readonly class ApplicationTerminalRowsFallbackTest
 
         $rows = TerminalRowsResolver::resolve();
 
-        Expect::that($rows)
+        Expect::value($rows)
             ->because('the reporter MUST use 24 rows when terminal height detection fails')
             ->toBe(24);
     }
@@ -62,7 +62,7 @@ final readonly class ApplicationTerminalRowsFallbackTest
             $this->installTput($probeOutput);
         }
 
-        Expect::that(TerminalRowsResolver::resolve())
+        Expect::value(TerminalRowsResolver::resolve())
             ->because('malformed terminal row text MUST NOT set the reporter height')
             ->toBe(24);
     }

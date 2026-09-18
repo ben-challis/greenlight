@@ -43,10 +43,10 @@ final readonly class RectorExceptionMessageDelimiterTest
             name: 'exception-message-delimiter',
         );
 
-        Expect::that($probe->changed)
+        Expect::value($probe->changed)
             ->because('the exception expectation MUST be convertible')
             ->toBeTrue();
-        Expect::that($probe->code)
+        Expect::value($probe->code)
             ->because('the generated matcher MUST escape its slash delimiter')
             ->toContain(
                 "->toThrow(\\RuntimeException::class, matching: '/path \\/tmp/');",

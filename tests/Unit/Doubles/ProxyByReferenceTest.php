@@ -27,7 +27,7 @@ final readonly class ProxyByReferenceTest
 
         $wide->byReference($items);
 
-        Expect::that($items)
+        Expect::value($items)
             ->because('a doubled method MUST preserve by-reference argument changes')
             ->toBe(['original', 'changed']);
     }

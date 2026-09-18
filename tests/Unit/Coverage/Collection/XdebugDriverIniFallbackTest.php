@@ -33,11 +33,11 @@ final class XdebugDriverIniFallbackTest
                 PHP,
         ]);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('the isolated Xdebug availability probe MUST exit successfully')
             ->toBe(0);
 
-        Expect::that($result->stdout)
+        Expect::value($result->stdout)
             ->because('Xdebug availability MUST fall back to the configured INI mode')
             ->toBe("disabled\navailable");
     }

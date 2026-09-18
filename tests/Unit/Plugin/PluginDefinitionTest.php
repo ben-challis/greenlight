@@ -23,8 +23,8 @@ final readonly class PluginDefinitionTest
         $first = $definition->create();
         $second = $definition->create();
 
-        Expect::that($first)->toBeInstanceOf(NamedFakePlugin::class);
-        Expect::that($second)
+        Expect::value($first)->toBeInstanceOf(NamedFakePlugin::class);
+        Expect::value($second)
             ->because('a plugin definition factory MUST create a fresh instance on each call')
             ->not()
             ->toBe($first);
@@ -33,7 +33,7 @@ final readonly class PluginDefinitionTest
     #[Test]
     public function factoryRequiresAPluginReturnType(): void
     {
-        Expect::that(static fn(): PluginDefinition => PluginDefinition::fromFactory(
+        Expect::calling(static fn(): PluginDefinition => PluginDefinition::fromFactory(
             static fn(): \stdClass => new \stdClass(), // @phpstan-ignore argument.type (This test supplies an invalid plugin factory.)
         ))
             ->because('a plugin factory return type MUST name a plugin class')
@@ -46,7 +46,7 @@ final readonly class PluginDefinitionTest
     #[Test]
     public function factoryRequiresADeclaredReturnType(): void
     {
-        Expect::that(static fn(): PluginDefinition => PluginDefinition::fromFactory(
+        Expect::calling(static fn(): PluginDefinition => PluginDefinition::fromFactory(
             static fn() => new QuarantinePlugin(),
         ))
             ->because('a plugin factory MUST declare its plugin class')
@@ -59,7 +59,7 @@ final readonly class PluginDefinitionTest
     #[Test]
     public function factoryRequiresAConcreteReturnType(): void
     {
-        Expect::that(static fn(): PluginDefinition => PluginDefinition::fromFactory(
+        Expect::calling(static fn(): PluginDefinition => PluginDefinition::fromFactory(
             static fn(): AbstractPlugin => throw new \LogicException('The factory must not run.'),
         ))
             ->because('a plugin factory MUST declare a concrete plugin class')
@@ -76,7 +76,7 @@ final readonly class PluginDefinitionTest
             static fn(): BasePlugin => new ChildPlugin(),
         );
 
-        Expect::that($definition->create(...))
+        Expect::calling($definition->create(...))
             ->because('the declared class MUST describe all capabilities of the returned plugin')
             ->toThrow(
                 \InvalidArgumentException::class,

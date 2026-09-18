@@ -31,11 +31,11 @@ final readonly class SocketEventSinkTest
         $sink->emit($event);
         $message = $receiver->poll();
 
-        Expect::that($message)
+        Expect::value($message)
             ->because('SocketEventSink MUST send EventEnvelope.')
             ->toBeInstanceOf(EventEnvelope::class);
 
-        Expect::that($message->event)
+        Expect::value($message->event)
             ->because('the worker event sink MUST transport the emitted event')
             ->toEqual($event);
     }

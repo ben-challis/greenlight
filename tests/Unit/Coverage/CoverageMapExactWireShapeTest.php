@@ -14,7 +14,7 @@ final readonly class CoverageMapExactWireShapeTest
     #[Test]
     public function rejectsASurplusLineSet(): void
     {
-        Expect::that(static fn(): CoverageMap => CoverageMap::fromWire([
+        Expect::calling(static fn(): CoverageMap => CoverageMap::fromWire([
             'files' => [
                 '/src/A.php' => [[1], [2], [3]],
             ],

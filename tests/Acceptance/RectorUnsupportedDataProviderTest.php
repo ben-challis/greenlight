@@ -141,8 +141,8 @@ final readonly class RectorUnsupportedDataProviderTest
         $probes = RectorProbe::convertBatch($this->tempDirectory, $cases, name: 'unsupported-data-providers');
 
         foreach ($probes as $caseName => $probe) {
-            Expect::that($probe->changed)->because('unsupported data provider case: ' . $caseName)->toBeFalse();
-            Expect::that($probe->code)->because('unsupported data provider case: ' . $caseName)->toBe($cases[$caseName]);
+            Expect::value($probe->changed)->because('unsupported data provider case: ' . $caseName)->toBeFalse();
+            Expect::value($probe->code)->because('unsupported data provider case: ' . $caseName)->toBe($cases[$caseName]);
         }
     }
 }

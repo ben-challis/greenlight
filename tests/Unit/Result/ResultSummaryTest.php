@@ -23,7 +23,7 @@ final class ResultSummaryTest
         ];
         $counts[$field] = -1;
 
-        Expect::that(
+        Expect::calling(
             static fn(): ResultSummary => new ResultSummary(
                 $counts['passed'],
                 $counts['failed'],

@@ -16,7 +16,7 @@ final readonly class DataSetProviderErrorTest
     {
         $testMethod = __FUNCTION__;
 
-        Expect::that(static fn(): array => new DataSetExpander()->rowsFor(
+        Expect::calling(static fn(): array => new DataSetExpander()->rowsFor(
             new \ReflectionClass(self::class),
             $testMethod,
             'rowsThatThrowDataSetError',
@@ -26,15 +26,15 @@ final readonly class DataSetProviderErrorTest
             ->toThrow(static function (DataSetError $error): void {
                 $cause = $error->getPrevious();
 
-                Expect::that($error->getMessage())->toBe(
+                Expect::value($error->getMessage())->toBe(
                     'Data-set provider ' . self::class . '::rowsThatThrowDataSetError() threw '
                     . DataSetError::class . ': Data-set provider MisleadingProvider::rows() produced no data sets. '
                     . 'Produce at least one data set.',
                 );
-                Expect::that($cause)
+                Expect::value($cause)
                     ->because('the provider wrapper MUST retain the exception from user code')
                     ->toBeInstanceOf(DataSetError::class);
-                Expect::that($cause->getMessage())->toBe(
+                Expect::value($cause->getMessage())->toBe(
                     'Data-set provider MisleadingProvider::rows() produced no data sets. Produce at least one data set.',
                 );
             });

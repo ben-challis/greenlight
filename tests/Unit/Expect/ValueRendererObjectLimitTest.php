@@ -14,7 +14,7 @@ final readonly class ValueRendererObjectLimitTest
     #[Test]
     public function objectRenderingStopsAfterTenProperties(): void
     {
-        Expect::that(new ValueRenderer()->render(new WideObject()))
+        Expect::value(new ValueRenderer()->render(new WideObject()))
             ->because('object diagnostics MUST stay within the property limit')
             ->toBe(
                 WideObject::class

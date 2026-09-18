@@ -36,7 +36,7 @@ final readonly class ClassFileParserAnonymousClassTest
             ClassFileParser::declarationsIn($file),
         );
 
-        Expect::that($declarations)
+        Expect::value($declarations)
             ->because('anonymous classes MUST NOT become named discovery declarations')
             ->toBe([
                 ['Example\Tests\NamedTest', 'class'],

@@ -25,7 +25,7 @@ final class DoublesDisposalIsolationTest
         });
 
         if ($verificationFails) {
-            Expect::that(static fn() => $doubles->dispose())
+            Expect::calling(static fn() => $doubles->dispose())
                 ->because('the selected disposal outcome MUST fail verification')
                 ->toThrow(ExpectationFailed::class);
         } else {
@@ -33,7 +33,7 @@ final class DoublesDisposalIsolationTest
             $doubles->dispose();
         }
 
-        Expect::that(static fn(): array => $doubles->callsTo($calculator, 'add'))
+        Expect::calling(static fn(): array => $doubles->callsTo($calculator, 'add'))
             ->because('disposal MUST revoke access to recordings from the closed verification scope')
             ->toThrow(
                 InvalidDoubleUsage::class,

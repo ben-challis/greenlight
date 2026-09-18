@@ -17,14 +17,14 @@ final class MatcherMapPluginFilteringTest
     {
         $map = MatcherMap::fromConfigFiles([self::CONFIG]);
 
-        Expect::that($map->names())
+        Expect::value($map->names())
             ->because('matcher discovery MUST ignore plugins that do not provide expectation matchers')
             ->toBe([
                 'toBeHexadecimal',
                 'toHaveDigestLength',
                 'toBePositive',
             ]);
-        Expect::that($map->has('toHaveDigestLength'))
+        Expect::value($map->has('toHaveDigestLength'))
             ->because('matcher discovery MUST retain expectation extensions from a mixed plugin configuration')
             ->toBeTrue();
     }

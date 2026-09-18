@@ -22,10 +22,10 @@ final class ArraySubsetShapeTest
         string $message,
     ): void {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that($subject)->toContainSubset($subset),
+            static fn() => Expect::value($subject)->toContainSubset($subset),
         );
 
-        Expect::that($detail->message)
+        Expect::value($detail->message)
             ->because('a nested array and scalar MUST produce a matcher failure, not an internal type error')
             ->toBe($message);
     }

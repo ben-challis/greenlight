@@ -19,13 +19,13 @@ final readonly class TemporalRetryInheritanceTest
         ExpectationRuntime::withClock(
             new FakePollingClock(),
             static function () use (&$calls): void {
-                Expect::eventually(static function () use (&$calls): string {
+                Expect::calling(static function () use (&$calls): string {
                     if (++$calls === 1) {
                         throw new \RuntimeException('not ready');
                     }
 
                     return 'ready';
-                })
+                })->returnValue()->eventually()
                     ->retryOnException(\Exception::class)
                     ->pollEvery(0.010)
                     ->within(0.100)
@@ -33,7 +33,7 @@ final readonly class TemporalRetryInheritanceTest
             },
         );
 
-        Expect::that($calls)
+        Expect::value($calls)
             ->because('a retryable parent exception MUST include each subclass')
             ->toBe(2);
     }

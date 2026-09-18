@@ -26,14 +26,14 @@ final class MatcherMapTest
         $lengthType = $lengthParameters[0]->getType();
         $subjectType = $map->subjectParameter('toHaveDigestLength')?->getType();
 
-        Expect::that($map->has('toBeHexadecimal'))->because('collects matchers with subject stripped')->toBeTrue();
-        Expect::that($map->has('toHaveDigestLength'))->toBeTrue();
-        Expect::that($map->has('toBeSomethingElse'))->toBeFalse();
-        Expect::that($map->parameters('toBeHexadecimal'))->toBe([]);
-        Expect::that(\count($lengthParameters))->toBe(1);
-        Expect::that($lengthParameters[0]->getName())->toBe('length');
-        Expect::that($lengthType instanceof \ReflectionNamedType ? $lengthType->getName() : null)->toBe('int');
-        Expect::that($subjectType instanceof \ReflectionNamedType ? $subjectType->getName() : null)->toBe('string');
+        Expect::value($map->has('toBeHexadecimal'))->because('collects matchers with subject stripped')->toBeTrue();
+        Expect::value($map->has('toHaveDigestLength'))->toBeTrue();
+        Expect::value($map->has('toBeSomethingElse'))->toBeFalse();
+        Expect::value($map->parameters('toBeHexadecimal'))->toBe([]);
+        Expect::value(\count($lengthParameters))->toBe(1);
+        Expect::value($lengthParameters[0]->getName())->toBe('length');
+        Expect::value($lengthType instanceof \ReflectionNamedType ? $lengthType->getName() : null)->toBe('int');
+        Expect::value($subjectType instanceof \ReflectionNamedType ? $subjectType->getName() : null)->toBe('string');
     }
 
     #[Test]
@@ -41,7 +41,7 @@ final class MatcherMapTest
     {
         $map = MatcherMap::fromConfigFiles([self::CONFIG, self::CONFIG]);
 
-        Expect::that($map->has('toHaveDigestLength'))->because('identical declarations from multiple files merge without an error')->toBeTrue();
+        Expect::value($map->has('toHaveDigestLength'))->because('identical declarations from multiple files merge without an error')->toBeTrue();
     }
 
     #[Test]
@@ -49,17 +49,17 @@ final class MatcherMapTest
     {
         $workingDirectory = \getcwd();
 
-        Expect::that($workingDirectory)
+        Expect::value($workingDirectory)
             ->because('The matcher configuration fixture MUST have a working directory.')
             ->toBeString();
-        Expect::that(\str_starts_with(self::CONFIG, $workingDirectory . '/'))
+        Expect::value(\str_starts_with(self::CONFIG, $workingDirectory . '/'))
             ->because('The matcher configuration fixture MUST be below the current working directory.')
             ->toBeTrue();
 
         $relativeConfig = \substr(self::CONFIG, \strlen($workingDirectory) + 1);
         $map = MatcherMap::fromConfigFiles([$relativeConfig]);
 
-        Expect::that($map->has('toHaveDigestLength'))
+        Expect::value($map->has('toHaveDigestLength'))
             ->because('relative matcher configuration paths resolve from the working directory')
             ->toBeTrue();
     }
@@ -69,7 +69,7 @@ final class MatcherMapTest
     {
         $map = MatcherMap::fromConfigFiles([self::NON_EXPECTATION_CONFIG]);
 
-        Expect::that($map->names())
+        Expect::value($map->names())
             ->because('plugins without expectation matchers do not add static methods')
             ->toBe([]);
     }
@@ -77,7 +77,7 @@ final class MatcherMapTest
     #[Test]
     public function conflictingSignaturesAreRefused(): void
     {
-        Expect::that(
+        Expect::calling(
             static fn(): MatcherMap => MatcherMap::fromConfigFiles([self::CONFIG, self::CONFLICTING_CONFIG]),
         )->because('conflicting signatures are refused')->toThrow(MatcherMapError::class);
     }
@@ -87,7 +87,7 @@ final class MatcherMapTest
     {
         $map = MatcherMap::fromConfigFiles([]);
 
-        Expect::that(static fn(): array => $map->parameters('toBeMissing'))
+        Expect::calling(static fn(): array => $map->parameters('toBeMissing'))
             ->because('an unknown matcher name fails loudly')
             ->toThrow(
                 \LogicException::class,
@@ -101,7 +101,7 @@ final class MatcherMapTest
     {
         $parameter = new \ReflectionMethod(MatcherTypeShapes::class, $method)->getParameters()[0];
 
-        Expect::that(MatcherMap::typeName($parameter->getType()))
+        Expect::value(MatcherMap::typeName($parameter->getType()))
             ->because('matcher types render for generated signatures')
             ->toBe($expected);
     }

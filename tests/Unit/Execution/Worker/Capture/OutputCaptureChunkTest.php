@@ -22,8 +22,8 @@ final readonly class OutputCaptureChunkTest
 
         $output = $capture->stop();
 
-        Expect::that($output->stdout)->toBe(\str_repeat('abcd', 16_384));
-        Expect::that($output->stdoutTruncated)->toBeFalse();
+        Expect::value($output->stdout)->toBe(\str_repeat('abcd', 16_384));
+        Expect::value($output->stdoutTruncated)->toBeFalse();
     }
 
     #[Test]
@@ -36,7 +36,7 @@ final readonly class OutputCaptureChunkTest
         echo "\xACtail";
         $output = $capture->stop();
 
-        Expect::that($output->stdout)->toBe('ab€');
-        Expect::that($output->stdoutTruncated)->toBeTrue();
+        Expect::value($output->stdout)->toBe('ab€');
+        Expect::value($output->stdoutTruncated)->toBeTrue();
     }
 }

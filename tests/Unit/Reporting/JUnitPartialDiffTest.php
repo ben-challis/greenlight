@@ -48,7 +48,7 @@ final class JUnitPartialDiffTest
             </testsuites>
             XML;
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('JUnit failure elements MUST retain each available partial diff side')
             ->toBe($expected . "\n");
     }

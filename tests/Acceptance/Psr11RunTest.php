@@ -21,10 +21,10 @@ final readonly class Psr11RunTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--workers=1']);
 
         $output = $result->output();
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because($output === '' ? 'The PSR-11 acceptance run returned no output.' : $output)
             ->toBe(0);
-        Expect::that($output)->toContain('2 tests, 2 passed');
+        Expect::value($output)->toContain('2 tests, 2 passed');
     }
 
     private function writeProject(): AcceptanceProject
@@ -89,9 +89,9 @@ final readonly class Psr11RunTest
                 {
                     $this->counter->record();
 
-                    Expect::that($this->greeter->greet('Ada'))->toBe('Hello, Ada!');
-                    Expect::that($this->namedGreeter->greet('Grace'))->toBe('Welcome, Grace!');
-                    Expect::that($this->counter->count())->toBe(1);
+                    Expect::value($this->greeter->greet('Ada'))->toBe('Hello, Ada!');
+                    Expect::value($this->namedGreeter->greet('Grace'))->toBe('Welcome, Grace!');
+                    Expect::value($this->counter->count())->toBe(1);
                 }
 
                 #[Test]
@@ -99,7 +99,7 @@ final readonly class Psr11RunTest
                 {
                     $this->counter->record();
 
-                    Expect::that($this->counter->count())->toBe(1);
+                    Expect::value($this->counter->count())->toBe(1);
                 }
             }
 

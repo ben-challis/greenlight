@@ -22,8 +22,8 @@ final readonly class SelectionTest
         $project = $this->writeProject();
         $result = $this->run($project, '--filter=alwaysPasses');
 
-        Expect::that($result->exitCode)->because('filter selects by method')->toBe(0);
-        Expect::that($this->sortedFinishedTestIds($result))->because('filter selects by method')->toBe([
+        Expect::value($result->exitCode)->because('filter selects by method')->toBe(0);
+        Expect::value($this->sortedFinishedTestIds($result))->because('filter selects by method')->toBe([
             'SelectionProbe\SelectionProbeTest::alwaysPasses',
         ]);
     }
@@ -34,8 +34,8 @@ final readonly class SelectionTest
         $project = $this->writeProject();
         $result = $this->run($project, '--filter=SelectionProbeTest');
 
-        Expect::that($result->exitCode)->because('filter selects by class')->toBe(1);
-        Expect::that($this->sortedFinishedTestIds($result))->because('filter selects by class')->toBe([
+        Expect::value($result->exitCode)->because('filter selects by class')->toBe(1);
+        Expect::value($this->sortedFinishedTestIds($result))->because('filter selects by class')->toBe([
             'SelectionProbe\SelectionProbeTest::alsoPasses',
             'SelectionProbe\SelectionProbeTest::alwaysPasses',
             'SelectionProbe\SelectionProbeTest::breaksSometimes',
@@ -48,8 +48,8 @@ final readonly class SelectionTest
         $project = $this->writeProject();
         $result = $this->run($project, '--filter=*::breaks?ometimes');
 
-        Expect::that($result->exitCode)->because('filter selects with a wildcard')->toBe(1);
-        Expect::that($this->sortedFinishedTestIds($result))->because('filter selects with a wildcard')->toBe([
+        Expect::value($result->exitCode)->because('filter selects with a wildcard')->toBe(1);
+        Expect::value($this->sortedFinishedTestIds($result))->because('filter selects with a wildcard')->toBe([
             'SelectionProbe\SelectionProbeTest::breaksSometimes',
         ]);
     }
@@ -60,8 +60,8 @@ final readonly class SelectionTest
         $project = $this->writeProject();
         $result = $this->run($project, '--filter=nothingMatchesThis');
 
-        Expect::that($result->exitCode)->because('filter reports no tests when nothing matches')->toBe(1);
-        Expect::that($result->output())->because('filter reports no tests when nothing matches')->toContain('Greenlight found no tests');
+        Expect::value($result->exitCode)->because('filter reports no tests when nothing matches')->toBe(1);
+        Expect::value($result->output())->because('filter reports no tests when nothing matches')->toContain('Greenlight found no tests');
     }
 
     #[Test]
@@ -73,8 +73,8 @@ final readonly class SelectionTest
             '--test-id=SelectionProbe\SelectionProbeTest::alsoPasses',
         );
 
-        Expect::that($result->exitCode)->because('test ID selects only an exact ID')->toBe(0);
-        Expect::that($this->sortedFinishedTestIds($result))->because('test ID selects only an exact ID')->toBe([
+        Expect::value($result->exitCode)->because('test ID selects only an exact ID')->toBe(0);
+        Expect::value($this->sortedFinishedTestIds($result))->because('test ID selects only an exact ID')->toBe([
             'SelectionProbe\SelectionProbeTest::alsoPasses',
         ]);
 
@@ -83,8 +83,8 @@ final readonly class SelectionTest
             '--test-id=SelectionProbe\SelectionProbeTest::also',
         );
 
-        Expect::that($result->exitCode)->because('test ID selects only an exact ID')->toBe(1);
-        Expect::that($result->output())->because('test ID selects only an exact ID')->toContain('Greenlight found no tests');
+        Expect::value($result->exitCode)->because('test ID selects only an exact ID')->toBe(1);
+        Expect::value($result->output())->because('test ID selects only an exact ID')->toContain('Greenlight found no tests');
     }
 
     #[Test]
@@ -93,8 +93,8 @@ final readonly class SelectionTest
         $project = $this->writeProject();
         $result = $this->run($project, '--group=fast');
 
-        Expect::that($result->exitCode)->because('group selects matching tests')->toBe(0);
-        Expect::that($this->sortedFinishedTestIds($result))->because('group selects matching tests')->toBe([
+        Expect::value($result->exitCode)->because('group selects matching tests')->toBe(0);
+        Expect::value($this->sortedFinishedTestIds($result))->because('group selects matching tests')->toBe([
             'SelectionProbe\GroupedProbeTest::fastOne',
         ]);
     }
@@ -105,8 +105,8 @@ final readonly class SelectionTest
         $project = $this->writeProject();
         $result = $this->run($project, '--exclude-group=slow');
 
-        Expect::that($result->exitCode)->because('exclude group removes grouped tests from a run')->toBe(1);
-        Expect::that($this->sortedFinishedTestIds($result))->because('exclude group removes grouped tests from a run')->toBe([
+        Expect::value($result->exitCode)->because('exclude group removes grouped tests from a run')->toBe(1);
+        Expect::value($this->sortedFinishedTestIds($result))->because('exclude group removes grouped tests from a run')->toBe([
             'SelectionProbe\GroupedProbeTest::fastOne',
             'SelectionProbe\SelectionProbeTest::alsoPasses',
             'SelectionProbe\SelectionProbeTest::alwaysPasses',
@@ -120,8 +120,8 @@ final readonly class SelectionTest
         $project = $this->writeProject();
         $result = $this->run($project, '--exclude-method=*Passes');
 
-        Expect::that($result->exitCode)->because('exclude method with a wildcard removes matching methods')->toBe(1);
-        Expect::that($this->sortedFinishedTestIds($result))->because('exclude method with a wildcard removes matching methods')->toBe([
+        Expect::value($result->exitCode)->because('exclude method with a wildcard removes matching methods')->toBe(1);
+        Expect::value($this->sortedFinishedTestIds($result))->because('exclude method with a wildcard removes matching methods')->toBe([
             'SelectionProbe\GroupedProbeTest::fastOne',
             'SelectionProbe\GroupedProbeTest::slowOne',
             'SelectionProbe\SelectionProbeTest::breaksSometimes',
@@ -134,8 +134,8 @@ final readonly class SelectionTest
         $project = $this->writeProject();
         $result = $this->run($project, '--filter=alwaysPasses', '--exclude-method=alwaysPasses');
 
-        Expect::that($result->exitCode)->because('exclude wins over an include filter')->toBe(1);
-        Expect::that($result->output())->because('exclude wins over an include filter')->toContain('Greenlight found no tests');
+        Expect::value($result->exitCode)->because('exclude wins over an include filter')->toBe(1);
+        Expect::value($result->output())->because('exclude wins over an include filter')->toContain('Greenlight found no tests');
     }
 
     #[Test]
@@ -144,8 +144,8 @@ final readonly class SelectionTest
         $project = $this->writeProject();
         $result = $this->run($project, '--group=fast', '--group=slow', '--exclude-group=slow');
 
-        Expect::that($result->exitCode)->because('excluded group wins over included groups')->toBe(0);
-        Expect::that($this->sortedFinishedTestIds($result))->because('excluded group wins over included groups')->toBe([
+        Expect::value($result->exitCode)->because('excluded group wins over included groups')->toBe(0);
+        Expect::value($this->sortedFinishedTestIds($result))->because('excluded group wins over included groups')->toBe([
             'SelectionProbe\GroupedProbeTest::fastOne',
         ]);
     }
@@ -155,12 +155,12 @@ final readonly class SelectionTest
     {
         $project = $this->writeProject();
         $result = $this->run($project, '--failed');
-        Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(64);
-        Expect::that($result->output())->because('failed reruns exactly the previous failures')->toContain('previous run');
+        Expect::value($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(64);
+        Expect::value($result->output())->because('failed reruns exactly the previous failures')->toContain('previous run');
 
         $result = $this->run($project);
-        Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(1);
-        Expect::that($this->sortedFinishedTestIds($result))->because('failed reruns exactly the previous failures')->toBe([
+        Expect::value($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(1);
+        Expect::value($this->sortedFinishedTestIds($result))->because('failed reruns exactly the previous failures')->toBe([
             'SelectionProbe\GroupedProbeTest::fastOne',
             'SelectionProbe\GroupedProbeTest::slowOne',
             'SelectionProbe\SelectionProbeTest::alsoPasses',
@@ -169,22 +169,22 @@ final readonly class SelectionTest
         ]);
 
         $result = $this->run($project, '--failed');
-        Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(1);
-        Expect::that($this->sortedFinishedTestIds($result))->because('failed reruns exactly the previous failures')->toBe([
+        Expect::value($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(1);
+        Expect::value($this->sortedFinishedTestIds($result))->because('failed reruns exactly the previous failures')->toBe([
             'SelectionProbe\SelectionProbeTest::breaksSometimes',
         ]);
 
         $result = $this->run($project, '--filter=alwaysPasses');
-        Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(0);
-        Expect::that($this->sortedFinishedTestIds($result))->because('failed reruns exactly the previous failures')->toBe([
+        Expect::value($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(0);
+        Expect::value($this->sortedFinishedTestIds($result))->because('failed reruns exactly the previous failures')->toBe([
             'SelectionProbe\SelectionProbeTest::alwaysPasses',
         ]);
 
         $result = $this->run($project, '--failed');
-        Expect::that($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(0);
-        Expect::that($result->output())->because('failed reruns exactly the previous failures')->toContain('No tests failed');
-        Expect::that($result->stdout)->toBe('');
-        Expect::that($result->stderr)->toContain('No tests failed');
+        Expect::value($result->exitCode)->because('failed reruns exactly the previous failures')->toBe(0);
+        Expect::value($result->output())->because('failed reruns exactly the previous failures')->toContain('No tests failed');
+        Expect::value($result->stdout)->toBe('');
+        Expect::value($result->stderr)->toContain('No tests failed');
     }
 
     #[Test]
@@ -195,9 +195,9 @@ final readonly class SelectionTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--failed']);
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($result->stdout)->toContain('No tests failed');
-        Expect::that($result->stderr)->toBe('');
+        Expect::value($result->exitCode)->toBe(0);
+        Expect::value($result->stdout)->toContain('No tests failed');
+        Expect::value($result->stderr)->toBe('');
     }
 
     #[Test]
@@ -208,10 +208,10 @@ final readonly class SelectionTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl=events.jsonl', '--failed']);
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($result->stdout)->toContain('No tests failed');
-        Expect::that($result->stderr)->toBe('');
-        Expect::that(\file_get_contents($project->directory . '/events.jsonl'))->toBe('');
+        Expect::value($result->exitCode)->toBe(0);
+        Expect::value($result->stdout)->toContain('No tests failed');
+        Expect::value($result->stderr)->toBe('');
+        Expect::value(\file_get_contents($project->directory . '/events.jsonl'))->toBe('');
     }
 
     #[Test]
@@ -229,11 +229,11 @@ final readonly class SelectionTest
             ['run', '--reporter=jsonl', '--filter=alwaysPasses'],
             ['TMPDIR' => $project->directory . '/not-a-directory'],
         );
-        Expect::that($result->exitCode)->because('unpersistable run state warns without failing the run')->toBe(0);
-        Expect::that($this->sortedFinishedTestIds($result))->because('unpersistable run state warns without failing the run')->toBe([
+        Expect::value($result->exitCode)->because('unpersistable run state warns without failing the run')->toBe(0);
+        Expect::value($this->sortedFinishedTestIds($result))->because('unpersistable run state warns without failing the run')->toBe([
             'SelectionProbe\SelectionProbeTest::alwaysPasses',
         ]);
-        Expect::that($result->output())->because('unpersistable run state warns without failing the run')->toContain('Greenlight did not save run state');
+        Expect::value($result->output())->because('unpersistable run state warns without failing the run')->toContain('Greenlight did not save run state');
     }
 
     private function run(AcceptanceProject $project, string ...$flags): ProcessResult

@@ -18,7 +18,7 @@ final readonly class LaravelFrameworkVersionBoundaryTest
     {
         LaravelFrameworkRequirement::checkVersion($version);
 
-        Expect::that($version)
+        Expect::value($version)
             ->because('the supported Laravel version MUST use major version 13')
             ->toMatch('/^13(?:\\.|$)/D');
     }
@@ -37,7 +37,7 @@ final readonly class LaravelFrameworkVersionBoundaryTest
     #[DataSet('unsupportedVersions')]
     public function rejectsVersionsOutsideMajorVersionThirteen(string $version): void
     {
-        Expect::that(static function () use ($version): void {
+        Expect::calling(static function () use ($version): void {
             LaravelFrameworkRequirement::checkVersion($version);
         })
             ->because('the Laravel bridge MUST reject versions outside major version 13')

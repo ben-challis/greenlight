@@ -33,10 +33,10 @@ final class TestContextTest
 
         $service = $context->service(\ArrayObject::class);
 
-        Expect::that($service)
+        Expect::value($service)
             ->because('the plugin context resolves a registered harness service')
             ->toBeInstanceOf(\ArrayObject::class);
-        Expect::that($service->getArrayCopy())->toBe(['ready']);
+        Expect::value($service->getArrayCopy())->toBe(['ready']);
     }
 
     #[Test]
@@ -44,7 +44,7 @@ final class TestContextTest
     {
         $context = $this->context(new HarnessScopes());
 
-        Expect::that(static fn(): object => $context->service(\ArrayObject::class))
+        Expect::calling(static fn(): object => $context->service(\ArrayObject::class))
             ->because('a missing service identifies the plugin context')
             ->toThrow(
                 UnresolvableService::class,
@@ -65,7 +65,7 @@ final class TestContextTest
         };
         $context = $this->context(new HarnessScopes(resolvers: [$resolver]));
 
-        Expect::that(static fn(): object => $context->service(\ArrayObject::class))
+        Expect::calling(static fn(): object => $context->service(\ArrayObject::class))
             ->toThrow(
                 UnresolvableService::class,
                 message: UnresolvableService::resolverTypeMismatch(
@@ -91,13 +91,13 @@ final class TestContextTest
         $scopes->openTest();
         $context = $this->context($scopes);
 
-        Expect::that($context->service(\ArrayObject::class))
+        Expect::value($context->service(\ArrayObject::class))
             ->because('the plugin context can resolve a service while the test scope is open')
             ->toBeInstanceOf(\ArrayObject::class);
 
         $scopes->closeTest();
 
-        Expect::that(static fn(): object => $context->service(\ArrayObject::class))
+        Expect::calling(static fn(): object => $context->service(\ArrayObject::class))
             ->because('the plugin context MUST NOT expose a service after the test scope closes')
             ->toThrow(\LogicException::class, message: 'No test scope is open.');
     }
@@ -107,7 +107,7 @@ final class TestContextTest
     {
         $context = $this->context(new HarnessScopes());
 
-        Expect::that(static function () use ($context): void {
+        Expect::calling(static function () use ($context): void {
             $context->attachments->text('note.txt', 'body');
         })
             ->because('a plugin context without an active attempt MUST reject attachments')
@@ -122,7 +122,7 @@ final class TestContextTest
     {
         $context = $this->context(new HarnessScopes());
 
-        Expect::that(static fn(): never => $context->skip('dependency is unavailable'))
+        Expect::calling(static fn(): never => $context->skip('dependency is unavailable'))
             ->because('a plugin skip MUST preserve its reason for the test result')
             ->toThrow(SkipTest::class, message: 'dependency is unavailable');
     }

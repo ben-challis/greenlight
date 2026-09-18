@@ -29,7 +29,7 @@ final class JUnitZeroDataSetKeyTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('JUnit MUST preserve the data-set key "0" in the testcase name')
             ->toContain('<testcase name="checksValue[0]"');
     }

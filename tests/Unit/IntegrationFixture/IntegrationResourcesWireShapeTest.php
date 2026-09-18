@@ -19,7 +19,7 @@ final readonly class IntegrationResourcesWireShapeTest
     #[DataSet('invalidFixtureEntries')]
     public function invalidFixtureEntriesRemainWireCommunicationFaileds(array $fixtures, string $message): void
     {
-        Expect::that(static fn(): IntegrationResources => IntegrationResources::fromWire([
+        Expect::calling(static fn(): IntegrationResources => IntegrationResources::fromWire([
             'fixtures' => $fixtures,
         ]))
             ->because('invalid integration resource entries MUST remain protocol errors')

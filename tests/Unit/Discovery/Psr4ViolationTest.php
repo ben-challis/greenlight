@@ -31,34 +31,34 @@ final readonly class Psr4ViolationTest
     #[Test]
     public function wrongNamespaceProducesATypedErrorNamingFileAndClass(): void
     {
-        Expect::that($this->discoverFixture('DiscoveryPsr4Violation'))
+        Expect::calling($this->discoverFixture('DiscoveryPsr4Violation'))
             ->because('wrong namespace produces a typed error naming file and class')
             ->toThrow(static function (DiscoveryError $error): void {
-                Expect::that($error->getMessage())->toContain('The autoloader cannot load class');
-                Expect::that($error->getMessage())->toContain(MismatchTest::class);
-                Expect::that($error->getMessage())->toContain('MismatchTest.php');
+                Expect::value($error->getMessage())->toContain('The autoloader cannot load class');
+                Expect::value($error->getMessage())->toContain(MismatchTest::class);
+                Expect::value($error->getMessage())->toContain('MismatchTest.php');
             });
     }
 
     #[Test]
     public function classNameNotMatchingFileNameProducesATypedError(): void
     {
-        Expect::that($this->discoverFixture('DiscoveryClassNameMismatch'))
+        Expect::calling($this->discoverFixture('DiscoveryClassNameMismatch'))
             ->because('class name not matching file name produces a typed error')
             ->toThrow(static function (DiscoveryError $error): void {
-                Expect::that($error->getMessage())->toContain('SomethingElseTest');
-                Expect::that($error->getMessage())->toContain('WrongNameTest');
+                Expect::value($error->getMessage())->toContain('SomethingElseTest');
+                Expect::value($error->getMessage())->toContain('WrongNameTest');
             });
     }
 
     #[Test]
     public function fileWithoutAnyDeclarationProducesATypedError(): void
     {
-        Expect::that($this->discoverFixture('DiscoveryNoClass'))
+        Expect::calling($this->discoverFixture('DiscoveryNoClass'))
             ->because('a file without a declaration produces a typed error')
             ->toThrow(static function (DiscoveryError $error): void {
-                Expect::that($error->getMessage())->toContain('does not declare a class');
-                Expect::that($error->getMessage())->toContain('NothingHereTest.php');
+                Expect::value($error->getMessage())->toContain('does not declare a class');
+                Expect::value($error->getMessage())->toContain('NothingHereTest.php');
             });
     }
 
@@ -67,7 +67,7 @@ final readonly class Psr4ViolationTest
     {
         $missing = FixturePath::get('MissingTest.php');
 
-        Expect::that(static fn(): array => ClassFileParser::declarationsIn($missing))
+        Expect::calling(static fn(): array => ClassFileParser::declarationsIn($missing))
             ->because('an unreadable class file produces a typed error naming the file')
             ->toThrow(
                 DiscoveryError::class,
@@ -84,11 +84,11 @@ final readonly class Psr4ViolationTest
         \file_put_contents($file, "<?php\n\nclass");
         $resolvedFile = \realpath($file);
 
-        Expect::that($resolvedFile)
+        Expect::value($resolvedFile)
             ->because('The incomplete class fixture MUST have a canonical path.')
             ->toBeString();
 
-        Expect::that(
+        Expect::calling(
             static fn(): ExecutionPlan => new TestDiscoverer()->discover([$directory]),
         )
             ->because('an incomplete class declaration is not mistaken for a test class')

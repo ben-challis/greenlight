@@ -21,16 +21,16 @@ final readonly class ArtifactSessionTest
         $session = new ArtifactSession($stagingDirectory, $publicDirectory);
         $decoded = ArtifactSession::fromWire($session->toWire());
 
-        Expect::that($session->stagingDirectory)
+        Expect::value($session->stagingDirectory)
             ->because('an artifact session MUST retain its staging directory')
             ->toBe($stagingDirectory);
-        Expect::that($session->publicDirectory)
+        Expect::value($session->publicDirectory)
             ->because('an artifact session MUST retain its public directory')
             ->toBe($publicDirectory);
-        Expect::that($decoded->stagingDirectory)
+        Expect::value($decoded->stagingDirectory)
             ->because('the artifact staging directory MUST survive the wire')
             ->toBe($stagingDirectory);
-        Expect::that($decoded->publicDirectory)
+        Expect::value($decoded->publicDirectory)
             ->because('the artifact public directory MUST survive the wire')
             ->toBe($publicDirectory);
     }
@@ -42,7 +42,7 @@ final readonly class ArtifactSessionTest
         string $publicDirectory,
         string $message,
     ): void {
-        Expect::that(static fn(): ArtifactSession => new ArtifactSession(
+        Expect::calling(static fn(): ArtifactSession => new ArtifactSession(
             $stagingDirectory,
             $publicDirectory,
         ))
@@ -56,7 +56,7 @@ final readonly class ArtifactSessionTest
         string $field,
         string $value,
     ): void {
-        Expect::that(static fn(): ArtifactSession => new ArtifactSession(
+        Expect::calling(static fn(): ArtifactSession => new ArtifactSession(
             $field === 'stagingDirectory' ? $value : '/project/.greenlight/staging/run-1',
             $field === 'publicDirectory' ? $value : '/project/build/artifacts/run-1',
         ))
@@ -80,7 +80,7 @@ final readonly class ArtifactSessionTest
             ->toWire();
         $payload[$field] = $value;
 
-        Expect::that(static fn(): ArtifactSession => ArtifactSession::fromWire($payload))
+        Expect::calling(static fn(): ArtifactSession => ArtifactSession::fromWire($payload))
             ->because('artifact session directories MUST remain valid file-system paths across the worker wire')
             ->toThrow(
                 InvalidWirePayload::class,

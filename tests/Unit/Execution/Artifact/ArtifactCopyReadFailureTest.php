@@ -28,7 +28,7 @@ final readonly class ArtifactCopyReadFailureTest
         UnreadableCopySourceStream::reset();
         $destination = $this->tempDirectory->path() . '/destination.txt';
 
-        Expect::that(static fn() => new NativeFileCopier()->copy(
+        Expect::calling(static fn() => new NativeFileCopier()->copy(
             self::SCHEME . '://source',
             $destination,
         ))
@@ -37,7 +37,7 @@ final readonly class ArtifactCopyReadFailureTest
                 AttachmentError::class,
                 message: 'Failed to read attachment staging content.',
             );
-        Expect::that(UnreadableCopySourceStream::closedStreams())
+        Expect::value(UnreadableCopySourceStream::closedStreams())
             ->because('a read failure MUST close the source stream')
             ->toBe(1);
     }

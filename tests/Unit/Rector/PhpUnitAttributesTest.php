@@ -19,7 +19,7 @@ final class PhpUnitAttributesTest
     #[Test]
     public function conversionTablesDescribeTheSupportedPhpUnitAttributesExactly(): void
     {
-        Expect::that(PhpUnitAttributes::RENAMES)
+        Expect::value(PhpUnitAttributes::RENAMES)
             ->because('the Rector MUST preserve the supported PHPUnit attribute semantics')
             ->toBe([
                 'DataProvider' => DataSet::class,
@@ -29,27 +29,27 @@ final class PhpUnitAttributesTest
                 'RunTestsInSeparateProcesses' => Isolated::class,
                 'DoesNotPerformAssertions' => NoExpectations::class,
             ]);
-        Expect::that(PhpUnitAttributes::SIZE_GROUPS)
+        Expect::value(PhpUnitAttributes::SIZE_GROUPS)
             ->toBe([
                 'Small' => 'small',
                 'Medium' => 'medium',
                 'Large' => 'large',
             ]);
-        Expect::that(PhpUnitAttributes::SKIP_UNLESS_CONDITIONS)
+        Expect::value(PhpUnitAttributes::SKIP_UNLESS_CONDITIONS)
             ->toBe([
                 'RequiresPhpExtension' => ExtensionLoaded::class,
                 'RequiresOperatingSystemFamily' => OperatingSystemFamily::class,
             ]);
-        Expect::that(PhpUnitAttributes::STRUCTURAL)
+        Expect::value(PhpUnitAttributes::STRUCTURAL)
             ->toBe(['Test', 'Before', 'After']);
-        Expect::that(PhpUnitAttributes::TEST_WITH)
+        Expect::value(PhpUnitAttributes::TEST_WITH)
             ->toBe('TestWith');
     }
 
     #[Test]
     public function onlyInertPhpUnitAttributesAreDropped(): void
     {
-        Expect::that(PhpUnitAttributes::DROPS)
+        Expect::value(PhpUnitAttributes::DROPS)
             ->because('the Rector MUST drop only PHPUnit metadata without Greenlight runtime behavior')
             ->toBe([
                 'CoversClass',

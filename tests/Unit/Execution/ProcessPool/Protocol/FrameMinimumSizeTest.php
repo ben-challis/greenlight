@@ -18,10 +18,10 @@ final readonly class FrameMinimumSizeTest
         $buffer = new FrameBuffer(1);
         $buffer->feed(\pack('N', 1) . 'x');
 
-        Expect::that($codec->maxFrameBytes)
+        Expect::value($codec->maxFrameBytes)
             ->because('the protocol MUST support the smallest valid frame')
             ->toBe(1);
-        Expect::that($buffer->next())
+        Expect::value($buffer->next())
             ->toBe('x');
     }
 }

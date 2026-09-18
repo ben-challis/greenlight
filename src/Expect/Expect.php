@@ -27,53 +27,24 @@ final class Expect
      *
      * @return Expectation<T>
      */
-    public static function that(mixed $value): Expectation
+    public static function value(mixed $value): Expectation
     {
-        return new Expectation($value, new ValueRenderer(), self::$extensions);
+        return new Expectation(static fn() => $value, new ValueRenderer(), self::$extensions);
     }
 
     /**
-     * Polls the probe until its matcher passes or the deadline expires.
-     *
+     * Selects a call without executing it.
      * @template T
-     *
-     * @param callable(): T $probe
-     *
-     * @return PendingEventually<T>
+     * @param callable(): T $call
+     * @return CallExpectation<T>
      */
-    public static function eventually(callable $probe): PendingEventually
+    public static function calling(callable $call): CallExpectation
     {
-        return PendingEventually::create(
-            \Closure::fromCallable($probe),
-            ExpectationRuntime::clock(),
-            ExpectationRuntime::deadline(),
-            new ValueRenderer(),
-            self::$extensions,
-        );
+        return new CallExpectation(\Closure::fromCallable($call), new ValueRenderer(), self::$extensions);
     }
 
     /**
-     * Polls the probe for a fixed period and fails on the first mismatch.
-     *
-     * @template T
-     *
-     * @param callable(): T $probe
-     *
-     * @return PendingConsistently<T>
-     */
-    public static function consistently(callable $probe): PendingConsistently
-    {
-        return PendingConsistently::create(
-            \Closure::fromCallable($probe),
-            ExpectationRuntime::clock(),
-            ExpectationRuntime::deadline(),
-            new ValueRenderer(),
-            self::$extensions,
-        );
-    }
-
-    /**
-     * Replaces the worker-local extension list for subsequent `that()` chains.
+     * Replaces the worker-local extension list for subsequent value and call chains.
      * The runner calls this method when the worker starts. A test that installs
      * extensions must restore the previous list.
      *
@@ -86,7 +57,7 @@ final class Expect
      */
     public static function install(array $extensions): \Closure
     {
-        $nativeMethods = \array_fill_keys(\array_map(\strtolower(...), \get_class_methods(Expectation::class)), true);
+        $nativeMethods = \array_fill_keys(\array_map(\strtolower(...), [...\get_class_methods(Expectation::class), ...\get_class_methods(CallExpectation::class)]), true);
 
         foreach ($extensions as $extension) {
             foreach (\array_keys($extension->matchers()) as $name) {

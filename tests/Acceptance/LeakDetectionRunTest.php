@@ -18,13 +18,13 @@ final readonly class LeakDetectionRunTest
     {
         $withFlag = $this->run(['run', '--detect-leaks', '--workers=2']);
 
-        Expect::that($withFlag->exitCode)->because('leak detection names the leak and fails the run')->toBe(1);
-        Expect::that($withFlag->output())->toContain('Test instance leaks:')
+        Expect::value($withFlag->exitCode)->because('leak detection names the leak and fails the run')->toBe(1);
+        Expect::value($withFlag->output())->toContain('Test instance leaks:')
             ->toContain('  Greenlight\Tests\Fixture\LeakSuite\LeakyTest::passesButLeaksItself');
 
         $withoutFlag = $this->run(['run', '--workers=2']);
 
-        Expect::that($withoutFlag->exitCode)->because('leak detection names the leak and fails the run')->toBe(0);
+        Expect::value($withoutFlag->exitCode)->because('leak detection names the leak and fails the run')->toBe(0);
     }
 
     #[Test]
@@ -38,11 +38,11 @@ final readonly class LeakDetectionRunTest
 
         $develop = $this->run(['run', '--detect-leaks', '--workers=2'], ['XDEBUG_MODE' => 'develop']);
 
-        Expect::that($develop->output())->because('leak detection warns when Xdebug develop mode is active')->toContain('Xdebug develop mode');
+        Expect::value($develop->output())->because('leak detection warns when Xdebug develop mode is active')->toContain('Xdebug develop mode');
 
         $off = $this->run(['run', '--detect-leaks', '--workers=2'], ['XDEBUG_MODE' => 'off']);
 
-        Expect::that($off->output())->because('leak detection warns when Xdebug develop mode is active')->not()->toContain('Xdebug develop mode');
+        Expect::value($off->output())->because('leak detection warns when Xdebug develop mode is active')->not()->toContain('Xdebug develop mode');
     }
 
     /**

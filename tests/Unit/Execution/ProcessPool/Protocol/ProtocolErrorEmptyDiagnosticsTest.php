@@ -18,7 +18,7 @@ final class ProtocolErrorEmptyDiagnosticsTest
     #[DataSet('errorsWithoutDiagnostics')]
     public function emptyDiagnosticsDoNotAddAWorkerOutputSection(\Closure $error): void
     {
-        Expect::that($error()->getMessage())
+        Expect::value($error()->getMessage())
             ->because('an empty diagnostic stream MUST NOT add a misleading worker output section')
             ->not()
             ->toContain("\nWorker output:\n");

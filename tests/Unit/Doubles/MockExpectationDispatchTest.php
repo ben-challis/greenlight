@@ -25,10 +25,10 @@ final readonly class MockExpectationDispatchTest
         $firstAnswer = $calculator->add(1, 2);
         $secondAnswer = $calculator->add(1, 2);
 
-        Expect::that($firstAnswer)
+        Expect::value($firstAnswer)
             ->because('the first expectation answers the first matching call')
             ->toBe(3);
-        Expect::that($secondAnswer)
+        Expect::value($secondAnswer)
             ->because('a saturated expectation MUST yield to the next matching plan')
             ->toBe(4);
     }

@@ -37,7 +37,7 @@ final readonly class ApplicationStreamOutputTest
         $this->streamWrappers->register(self::SCHEME, PartialWriteStream::class);
 
         $partial = ErrorTrap::run(static fn() => \fopen(self::SCHEME . '://partial', 'wb'));
-        Expect::that($partial)
+        Expect::value($partial)
             ->because('Greenlight MUST open the partial-write CLI test stream.')
             ->not()
             ->toBeFalse();
@@ -50,10 +50,10 @@ final readonly class ApplicationStreamOutputTest
             ? Application::forStreams($other, $partial)
             : Application::forStreams($partial, $other);
 
-        Expect::that($application->run($arguments, __DIR__))
+        Expect::value($application->run($arguments, __DIR__))
             ->because('a CLI write through a partial stream MUST preserve the exit code')
             ->toBe($expectedExit);
-        Expect::that(PartialWriteStream::contents())
+        Expect::value(PartialWriteStream::contents())
             ->because('a short CLI stream write MUST NOT truncate output')
             ->toBe($expectedOutput);
     }

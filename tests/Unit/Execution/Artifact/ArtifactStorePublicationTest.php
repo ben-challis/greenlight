@@ -42,7 +42,7 @@ final readonly class ArtifactStorePublicationTest
             attachments: [$attachment],
         );
 
-        Expect::that(static fn(): TestResult => $store->publish($result))
+        Expect::calling(static fn(): TestResult => $store->publish($result))
             ->because('published attachment metadata has no staging coordinate')
             ->toThrow(
                 AttachmentError::class,
@@ -69,7 +69,7 @@ final readonly class ArtifactStorePublicationTest
             attachments: $attempt->seal(),
         );
 
-        Expect::that(static fn(): TestResult => $worker->publish($result))
+        Expect::calling(static fn(): TestResult => $worker->publish($result))
             ->because('only the coordinator can publish attachment evidence')
             ->toThrow(
                 AttachmentError::class,
@@ -78,7 +78,7 @@ final readonly class ArtifactStorePublicationTest
 
         $published = $coordinator->publish($result);
 
-        Expect::that($published->attachments)
+        Expect::value($published->attachments)
             ->because('a rejected worker publication leaves the evidence intact')
             ->toHaveCount(1);
     }
@@ -107,8 +107,8 @@ final readonly class ArtifactStorePublicationTest
 
         $published = $store->publish($result);
 
-        Expect::that($published->attachments)->toBe([]);
-        Expect::that(\file_exists($store->publicDirectory()))->toBeFalse();
+        Expect::value($published->attachments)->toBe([]);
+        Expect::value(\file_exists($store->publicDirectory()))->toBeFalse();
     }
 
     #[Test]
@@ -134,12 +134,12 @@ final readonly class ArtifactStorePublicationTest
             attachments: $attempt->seal(),
         );
 
-        Expect::that(static fn(): TestResult => $store->publish($result))
+        Expect::calling(static fn(): TestResult => $store->publish($result))
             ->because('attachment publication MUST contain a retention callback failure')
             ->toThrow(
                 static function (AttachmentError $error) use ($failure): void {
-                    Expect::that($error->getMessage())->toBe('Retention decision failed');
-                    Expect::that($error->getPrevious())->toBe($failure);
+                    Expect::value($error->getMessage())->toBe('Retention decision failed');
+                    Expect::value($error->getPrevious())->toBe($failure);
                 },
             );
     }

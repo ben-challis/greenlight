@@ -18,7 +18,7 @@ final readonly class SchedulingPolicyTest
         $policy = new SchedulingPolicy(true, ['postgres', 'redis', 'postgres'], true);
         $restored = SchedulingPolicy::fromWire(JsonWire::roundTrip($policy->toWire()));
 
-        Expect::that($restored->toWire())
+        Expect::value($restored->toWire())
             ->because('the scheduling policy MUST survive the wire')
             ->toBe([
                 'isolated' => true,
@@ -30,14 +30,14 @@ final readonly class SchedulingPolicyTest
     #[Test]
     public function rejectsInvalidResourceNamesOnBothSides(): void
     {
-        Expect::that(static fn(): SchedulingPolicy => new SchedulingPolicy(resources: ['Postgres']))
+        Expect::calling(static fn(): SchedulingPolicy => new SchedulingPolicy(resources: ['Postgres']))
             ->because('a direct scheduling policy MUST require canonical resource names')
             ->toThrow(\InvalidArgumentException::class);
 
         $payload = new SchedulingPolicy()->toWire();
         $payload['resources'] = ['Postgres'];
 
-        Expect::that(static fn(): SchedulingPolicy => SchedulingPolicy::fromWire($payload))
+        Expect::calling(static fn(): SchedulingPolicy => SchedulingPolicy::fromWire($payload))
             ->because('a wire scheduling policy MUST require canonical resource names')
             ->toThrow(InvalidWirePayload::class);
     }

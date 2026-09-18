@@ -41,7 +41,7 @@ final readonly class ArtifactUnknownSizeTest
             new TestArtifactBudget(),
         );
 
-        Expect::that(static fn() => $attachments->file(
+        Expect::calling(static fn() => $attachments->file(
             'evidence.txt',
             self::SCHEME . '://evidence',
         ))

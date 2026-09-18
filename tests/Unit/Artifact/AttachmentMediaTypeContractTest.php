@@ -16,7 +16,7 @@ final class AttachmentMediaTypeContractTest
     #[DataSet('invalidMediaTypes')]
     public function constructionAndWireDecodingRejectInvalidMediaTypes(string $mediaType): void
     {
-        Expect::that(static fn(): Attachment => new Attachment(
+        Expect::calling(static fn(): Attachment => new Attachment(
             'attachment',
             AttachmentKind::Text,
             $mediaType,
@@ -31,7 +31,7 @@ final class AttachmentMediaTypeContractTest
                 message: 'Attachment metadata is invalid.',
             );
 
-        Expect::that(static fn(): Attachment => Attachment::fromWire([
+        Expect::calling(static fn(): Attachment => Attachment::fromWire([
             'name' => 'attachment',
             'kind' => AttachmentKind::Text->value,
             'mediaType' => $mediaType,

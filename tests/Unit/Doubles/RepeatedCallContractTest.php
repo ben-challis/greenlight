@@ -22,13 +22,13 @@ final readonly class RepeatedCallContractTest
         $spy->many('first', 'second');
         $spy->many();
 
-        Expect::that(static fn(): mixed => new \ReflectionMethod($spy, 'record')->invokeArgs($spy, ['first', 'second']))
+        Expect::calling(static fn(): mixed => new \ReflectionMethod($spy, 'record')->invokeArgs($spy, ['first', 'second']))
             ->toThrow(InvalidDoubleUsage::class, '/accepts at most 1 argument/');
 
         $spy->record('last');
 
-        Expect::that($this->doubles->callsTo($spy, 'record'))->toBe([[], ['first'], ['last']]);
-        Expect::that($this->doubles->callsTo($spy, 'many'))->toBe([['first', 'second'], []]);
+        Expect::value($this->doubles->callsTo($spy, 'record'))->toBe([[], ['first'], ['last']]);
+        Expect::value($this->doubles->callsTo($spy, 'many'))->toBe([['first', 'second'], []]);
     }
 
     #[Test]
@@ -39,13 +39,13 @@ final readonly class RepeatedCallContractTest
         $first->record('first');
         $second->record();
 
-        Expect::that(static fn(): mixed => new \ReflectionMethod($second, 'record')->invokeArgs($second, ['unexpected']))
+        Expect::calling(static fn(): mixed => new \ReflectionMethod($second, 'record')->invokeArgs($second, ['unexpected']))
             ->toThrow(InvalidDoubleUsage::class, '/accepts at most 0 arguments/');
 
         $first->record('last');
 
-        Expect::that($this->doubles->callsTo($first, 'record'))->toBe([['first'], ['last']]);
-        Expect::that($this->doubles->callsTo($second, 'record'))->toBe([[]]);
+        Expect::value($this->doubles->callsTo($first, 'record'))->toBe([['first'], ['last']]);
+        Expect::value($this->doubles->callsTo($second, 'record'))->toBe([[]]);
     }
 }
 

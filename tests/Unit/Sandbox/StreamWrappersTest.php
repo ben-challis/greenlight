@@ -16,7 +16,7 @@ final readonly class StreamWrappersTest
     #[Test]
     public function registrationRejectsAnEmptyScheme(): void
     {
-        Expect::that(static function (): void {
+        Expect::calling(static function (): void {
             new StreamWrappers()->register('', UnselectableStream::class); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         })->toThrow(
             \InvalidArgumentException::class,
@@ -31,13 +31,13 @@ final readonly class StreamWrappersTest
         $sandbox->register('greenlight-sandbox-one', UnselectableStream::class);
         $sandbox->register('greenlight-sandbox-two', UnselectableStream::class);
 
-        Expect::that(\stream_get_wrappers())
+        Expect::value(\stream_get_wrappers())
             ->toContain('greenlight-sandbox-one')
             ->toContain('greenlight-sandbox-two');
 
         $sandbox->dispose();
 
-        Expect::that(\stream_get_wrappers())
+        Expect::value(\stream_get_wrappers())
             ->not()->toContain('greenlight-sandbox-one')
             ->not()->toContain('greenlight-sandbox-two');
     }
@@ -51,7 +51,7 @@ final readonly class StreamWrappersTest
         $owner->register($scheme, UnselectableStream::class);
 
         try {
-            Expect::that(static function () use ($duplicate, $scheme): void {
+            Expect::calling(static function () use ($duplicate, $scheme): void {
                 $duplicate->register($scheme, UnselectableStream::class);
             })->because('a duplicate wrapper registration MUST identify the scheme and cause')->toThrow(
                 StreamWrapperError::class,
@@ -74,7 +74,7 @@ final readonly class StreamWrappersTest
         \spl_autoload_register($loader, prepend: true);
 
         try {
-            Expect::that(static function (): void {
+            Expect::calling(static function (): void {
                 new StreamWrappers()->register(
                     'greenlight-sandbox-autoload',
                     AutoloadableStream::class,
@@ -83,7 +83,7 @@ final readonly class StreamWrappersTest
                 ->because('an autoload throwable MUST not escape the stream-wrapper seam')
                 ->toThrow(
                     static function (StreamWrapperError $error) use ($cause): void {
-                        Expect::that($error->getPrevious())
+                        Expect::value($error->getPrevious())
                             ->because('the stream-wrapper error MUST preserve the autoload error')
                             ->toBe($cause);
                     },
@@ -102,17 +102,17 @@ final readonly class StreamWrappersTest
         $sandbox->register($first, UnselectableStream::class);
         $sandbox->register($second, UnselectableStream::class);
 
-        Expect::that(\stream_wrapper_unregister($second))
+        Expect::value(\stream_wrapper_unregister($second))
             ->because('the external cleanup MUST remove the second wrapper')
             ->toBeTrue();
 
-        Expect::that(static function () use ($sandbox): void {
+        Expect::calling(static function () use ($sandbox): void {
             $sandbox->dispose();
         })->because('one failed cleanup MUST not stop the remaining wrapper cleanup')->toThrow(
             StreamWrapperError::class,
             '/Failed to unregister stream wrapper "greenlight-sandbox-second": .+/',
         );
-        Expect::that(\stream_get_wrappers())
+        Expect::value(\stream_get_wrappers())
             ->because('the sandbox MUST unregister wrappers after an earlier cleanup failure')
             ->not()->toContain($first);
     }

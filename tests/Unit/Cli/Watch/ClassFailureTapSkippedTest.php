@@ -32,10 +32,10 @@ final class ClassFailureTapSkippedTest
 
         $tap->emit($event);
 
-        Expect::that($tap->failedClasses())
+        Expect::value($tap->failedClasses())
             ->because('a skipped test MUST NOT select its class for a failed watch rerun')
             ->toBe([]);
-        Expect::that($inner->events)
+        Expect::value($inner->events)
             ->because('the skipped result MUST still reach the configured event sink')
             ->toBe([$event]);
     }

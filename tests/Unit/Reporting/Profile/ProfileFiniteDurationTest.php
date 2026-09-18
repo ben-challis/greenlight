@@ -39,7 +39,7 @@ final readonly class ProfileFiniteDurationTest
             $aggregator->onEvent($event);
         }
 
-        Expect::that($aggregator->render(new Style(ansi: false)))
+        Expect::value($aggregator->render(new Style(ansi: false)))
             ->because('finite event timestamps MUST produce only finite profile metrics')
             ->not()
             ->toContain('INF')

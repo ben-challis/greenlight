@@ -54,10 +54,10 @@ final class WorkerTest
             static fn(object $event): bool => $event instanceof TestClassStarted,
         ));
 
-        Expect::that($classEvents)
+        Expect::value($classEvents)
             ->because('an isolated plan entry MUST mark its class event')
             ->toHaveCount(1);
-        Expect::that($classEvents[0]->isolated)
+        Expect::value($classEvents[0]->isolated)
             ->toBeTrue();
     }
 
@@ -67,9 +67,9 @@ final class WorkerTest
         TraceLog::drain();
         [, $results] = $this->runFixture('Order');
 
-        Expect::that(TraceLog::drain())->because('lifecycle runs in the frozen order')
+        Expect::value(TraceLog::drain())->because('lifecycle runs in the frozen order')
             ->toBe(['construct', 'before1', 'before2', 'test', 'after2', 'after1']);
-        Expect::that($results[0]->outcome)->toBe(Outcome::Passed);
+        Expect::value($results[0]->outcome)->toBe(Outcome::Passed);
     }
 
     #[Test]
@@ -78,9 +78,9 @@ final class WorkerTest
         TraceLog::drain();
         [, $results] = $this->runFixture('BeforeFails');
 
-        Expect::that(TraceLog::drain())->because('failing before hook skips the method but runs after hooks')->toBe(['before', 'after']);
-        Expect::that($results[0]->outcome)->toBe(Outcome::Errored);
-        Expect::that($results[0]->error?->message)->toBe('before broke');
+        Expect::value(TraceLog::drain())->because('failing before hook skips the method but runs after hooks')->toBe(['before', 'after']);
+        Expect::value($results[0]->outcome)->toBe(Outcome::Errored);
+        Expect::value($results[0]->error?->message)->toBe('before broke');
     }
 
     #[Test]
@@ -88,8 +88,8 @@ final class WorkerTest
     {
         [, $results] = $this->runFixture('AfterFails');
 
-        Expect::that($results[0]->outcome)->because('throwing after hook errors a passing test')->toBe(Outcome::Errored);
-        Expect::that($results[0]->error?->message)->toBe('after broke');
+        Expect::value($results[0]->outcome)->because('throwing after hook errors a passing test')->toBe(Outcome::Errored);
+        Expect::value($results[0]->error?->message)->toBe('after broke');
     }
 
     #[Test]
@@ -98,12 +98,12 @@ final class WorkerTest
         TraceLog::drain();
         [, $results] = $this->runFixture('AfterFailureContinues');
 
-        Expect::that(TraceLog::drain())
+        Expect::value(TraceLog::drain())
             ->because('later cleanup MUST run after an earlier after-hook throws')
             ->toBe(['test', 'failing cleanup', 'final cleanup']);
-        Expect::that($results[0]->outcome)
+        Expect::value($results[0]->outcome)
             ->toBe(Outcome::Errored);
-        Expect::that($results[0]->error?->message)
+        Expect::value($results[0]->error?->message)
             ->because('the first teardown error MUST remain primary')
             ->toBe('after broke');
     }
@@ -121,10 +121,10 @@ final class WorkerTest
 
         [, $results] = $this->runFixture('CleanupCallbacks', $definitions);
 
-        Expect::that(TraceLog::drain())
+        Expect::value(TraceLog::drain())
             ->because('deferred cleanup runs after hooks and before fixture disposal')
             ->toBe(['test', 'after', 'second cleanup', 'first cleanup', 'fixture disposal']);
-        Expect::that($results[0]->outcome)->toBe(Outcome::Passed);
+        Expect::value($results[0]->outcome)->toBe(Outcome::Passed);
     }
 
     #[Test]
@@ -138,35 +138,35 @@ final class WorkerTest
             $byMethod[$result->id->method] = $result;
         }
 
-        Expect::that($byMethod['passesBeforeCleanupFails']->outcome)
+        Expect::value($byMethod['passesBeforeCleanupFails']->outcome)
             ->because('a cleanup failure errors a passing test')
             ->toBe(Outcome::Errored);
-        Expect::that($byMethod['passesBeforeCleanupFails']->error?->message)
+        Expect::value($byMethod['passesBeforeCleanupFails']->error?->message)
             ->toBe('cleanup broke after pass');
-        Expect::that($byMethod['passesBeforeCleanupExpectationFails']->outcome)
+        Expect::value($byMethod['passesBeforeCleanupExpectationFails']->outcome)
             ->because('an expectation failure during cleanup fails the test')
             ->toBe(Outcome::Failed);
-        Expect::that($byMethod['passesBeforeCleanupExpectationFails']->error)
+        Expect::value($byMethod['passesBeforeCleanupExpectationFails']->error)
             ->toBeNull();
-        Expect::that($byMethod['passesBeforeCleanupExpectationFails']->failures[0]->expected)
+        Expect::value($byMethod['passesBeforeCleanupExpectationFails']->failures[0]->expected)
             ->toBe("'expected'");
-        Expect::that($byMethod['passesBeforeCleanupExpectationFails']->failures[0]->actual)
+        Expect::value($byMethod['passesBeforeCleanupExpectationFails']->failures[0]->actual)
             ->toBe("'actual'");
-        Expect::that($byMethod['errorsBeforeCleanupFails']->outcome)
+        Expect::value($byMethod['errorsBeforeCleanupFails']->outcome)
             ->because('the test error remains primary when cleanup also fails')
             ->toBe(Outcome::Errored);
-        Expect::that($byMethod['errorsBeforeCleanupFails']->error?->message)
+        Expect::value($byMethod['errorsBeforeCleanupFails']->error?->message)
             ->toBe('test broke');
-        Expect::that($byMethod['errorsBeforeCleanupFails']->failures[0]->message)
+        Expect::value($byMethod['errorsBeforeCleanupFails']->failures[0]->message)
             ->toBe('Cleanup callback caused an error: cleanup broke after error');
-        Expect::that($byMethod['skipsBeforeCleanupFails']->outcome)
+        Expect::value($byMethod['skipsBeforeCleanupFails']->outcome)
             ->because('a cleanup failure overrides a skip')
             ->toBe(Outcome::Errored);
-        Expect::that($byMethod['skipsBeforeCleanupFails']->skipReason)
+        Expect::value($byMethod['skipsBeforeCleanupFails']->skipReason)
             ->toBeNull();
-        Expect::that($byMethod['skipsBeforeCleanupFails']->error?->message)
+        Expect::value($byMethod['skipsBeforeCleanupFails']->error?->message)
             ->toBe('cleanup broke after skip');
-        Expect::that(TraceLog::drain())
+        Expect::value(TraceLog::drain())
             ->because('a cleanup failure MUST NOT prevent later callbacks')
             ->toBe(['first cleanup', 'failing cleanup', 'last cleanup']);
     }
@@ -179,12 +179,12 @@ final class WorkerTest
 
         [, $results] = $this->runFixture('CleanupRetries');
 
-        Expect::that($results[0]->outcome)
+        Expect::value($results[0]->outcome)
             ->because('each retry receives a fresh cleanup stack')
             ->toBe(Outcome::Passed);
-        Expect::that($results[0]->attempts)
+        Expect::value($results[0]->attempts)
             ->toBe(2);
-        Expect::that(TraceLog::drain())
+        Expect::value(TraceLog::drain())
             ->toBe(['test 1', 'cleanup 1', 'test 2', 'cleanup 2']);
     }
 
@@ -194,8 +194,8 @@ final class WorkerTest
         RetriesTest::$attempts = 0;
         [, $results] = $this->runFixture('Retries');
 
-        Expect::that($results[0]->outcome)->because('retries until passing and records attempts')->toBe(Outcome::Passed);
-        Expect::that($results[0]->attempts)->toBe(3);
+        Expect::value($results[0]->outcome)->because('retries until passing and records attempts')->toBe(Outcome::Passed);
+        Expect::value($results[0]->attempts)->toBe(3);
     }
 
     #[Test]
@@ -204,9 +204,9 @@ final class WorkerTest
         RetryFilterTest::$attempts = 0;
         [, $results] = $this->runFixture('RetryFilter');
 
-        Expect::that($results[0]->outcome)->because('retry only on does not retry other throwables')->toBe(Outcome::Errored);
-        Expect::that($results[0]->attempts)->toBe(1);
-        Expect::that(RetryFilterTest::$attempts)->toBe(1);
+        Expect::value($results[0]->outcome)->because('retry only on does not retry other throwables')->toBe(Outcome::Errored);
+        Expect::value($results[0]->attempts)->toBe(1);
+        Expect::value(RetryFilterTest::$attempts)->toBe(1);
     }
 
     #[Test]
@@ -215,9 +215,9 @@ final class WorkerTest
         TemporalRetryTest::$attempts = 0;
         [, $results] = $this->runFixture('TemporalRetry');
 
-        Expect::that($results[0]->outcome)->because('temporal expectations receive a fresh deadline on retry')->toBe(Outcome::Passed);
-        Expect::that($results[0]->attempts)->toBe(2);
-        Expect::that($results[0]->expectations)->toBe(1);
+        Expect::value($results[0]->outcome)->because('temporal expectations receive a fresh deadline on retry')->toBe(Outcome::Passed);
+        Expect::value($results[0]->attempts)->toBe(2);
+        Expect::value($results[0]->expectations)->toBe(1);
     }
 
     #[Test]
@@ -225,8 +225,8 @@ final class WorkerTest
     {
         [, $results] = $this->runFixture('SlowTimeout');
 
-        Expect::that($results[0]->outcome)->because('timeout fails a slow test after the fact')->toBe(Outcome::Failed);
-        Expect::that($results[0]->failures[0]->message)->toContain('configured time limit');
+        Expect::value($results[0]->outcome)->because('timeout fails a slow test after the fact')->toBe(Outcome::Failed);
+        Expect::value($results[0]->failures[0]->message)->toContain('configured time limit');
     }
 
     #[Test]
@@ -234,8 +234,8 @@ final class WorkerTest
     {
         [$summary, $results] = $this->runFixture('RuntimeSkip');
 
-        Expect::that($summary->skipped)->because('runtime skip signal reports skipped with the reason')->toBe(1);
-        Expect::that($results[0]->skipReason)->toBe('the fixture backend is unreachable');
+        Expect::value($summary->skipped)->because('runtime skip signal reports skipped with the reason')->toBe(1);
+        Expect::value($results[0]->skipReason)->toBe('the fixture backend is unreachable');
     }
 
     #[Test]
@@ -250,11 +250,11 @@ final class WorkerTest
             $byMethod[$result->id->method] = $result;
         }
 
-        Expect::that($summary->skipped)->because('skips run nothing and conditions are evaluated')->toBe(2);
-        Expect::that($summary->passed)->toBe(1);
-        Expect::that($byMethod['skippedUnconditionally']->skipReason)->toBe('not today');
-        Expect::that($byMethod['skippedByCondition']->skipReason)->toContain('NeverCondition');
-        Expect::that(TraceLog::drain())->toBe(['construct', 'satisfied']);
+        Expect::value($summary->skipped)->because('skips run nothing and conditions are evaluated')->toBe(2);
+        Expect::value($summary->passed)->toBe(1);
+        Expect::value($byMethod['skippedUnconditionally']->skipReason)->toBe('not today');
+        Expect::value($byMethod['skippedByCondition']->skipReason)->toContain('NeverCondition');
+        Expect::value(TraceLog::drain())->toBe(['construct', 'satisfied']);
     }
 
     #[Test]
@@ -262,7 +262,7 @@ final class WorkerTest
     {
         [$summary] = $this->runFixture('Injection');
 
-        Expect::that($summary->passed)->because('constructor injection resolves registered services')->toBe(1);
+        Expect::value($summary->passed)->because('constructor injection resolves registered services')->toBe(1);
     }
 
     #[Test]
@@ -270,8 +270,8 @@ final class WorkerTest
     {
         [, $results] = $this->runFixture('UnknownDep');
 
-        Expect::that($results[0]->outcome)->because('unknown constructor dependencies error the test naming the type')->toBe(Outcome::Errored);
-        Expect::that($results[0]->error?->message)->toContain('SplStack');
+        Expect::value($results[0]->outcome)->because('unknown constructor dependencies error the test naming the type')->toBe(Outcome::Errored);
+        Expect::value($results[0]->error?->message)->toContain('SplStack');
     }
 
     #[Test]
@@ -287,10 +287,10 @@ final class WorkerTest
 
         $result = $sink->results()[0];
 
-        Expect::that($result->outcome)
+        Expect::value($result->outcome)
             ->because('optional built-in constructor parameters use their defaults')
             ->toBe(Outcome::Passed);
-        Expect::that($result->expectations)
+        Expect::value($result->expectations)
             ->toBe(1);
     }
 
@@ -307,10 +307,10 @@ final class WorkerTest
 
         $result = $sink->results()[0];
 
-        Expect::that($result->outcome)
+        Expect::value($result->outcome)
             ->because('unsupported constructor parameters error the test with guidance')
             ->toBe(Outcome::Errored);
-        Expect::that($result->error?->message)
+        Expect::value($result->error?->message)
             ->toBe(\sprintf(
                 'Constructor parameter $value of "%s" has no resolvable type. '
                 . 'Use one class or interface type, or give the parameter a default value.',
@@ -330,14 +330,14 @@ final class WorkerTest
         $outcome = new Worker($this->definitions())->run($plan, $sink);
         $result = $sink->results()[0];
 
-        Expect::that($outcome->summary->errored)
+        Expect::value($outcome->summary->errored)
             ->because('an unloadable plan class MUST become a contained test error')
             ->toBe(1);
-        Expect::that($result->outcome)
+        Expect::value($result->outcome)
             ->toBe(Outcome::Errored);
-        Expect::that($result->error?->message)
+        Expect::value($result->error?->message)
             ->toBe('This process cannot load test class "Missing\ExampleTest" from the execution plan.');
-        Expect::that($sink->sequence())
+        Expect::value($sink->sequence())
             ->toBe([
                 'TestClassStarted',
                 'TestStarted',
@@ -356,10 +356,10 @@ final class WorkerTest
             static fn(TestResult $result): bool => $result->outcome === Outcome::Errored,
         ));
 
-        Expect::that($summary->total())->because('data set arguments reach the method per key')->toBe(3);
-        Expect::that($summary->passed)->toBe(2);
-        Expect::that(\count($failed))->toBe(1);
-        Expect::that($failed[0]->id->dataSetKey)->toBe('broken row');
+        Expect::value($summary->total())->because('data set arguments reach the method per key')->toBe(3);
+        Expect::value($summary->passed)->toBe(2);
+        Expect::value(\count($failed))->toBe(1);
+        Expect::value($failed[0]->id->dataSetKey)->toBe('broken row');
     }
 
     #[Test]
@@ -367,8 +367,8 @@ final class WorkerTest
     {
         [$summary] = $this->runFixture('ExternalDataSets');
 
-        Expect::that($summary->total())->because('data set providers can be declared on another class')->toBe(2);
-        Expect::that($summary->passed)->toBe(2);
+        Expect::value($summary->total())->because('data set providers can be declared on another class')->toBe(2);
+        Expect::value($summary->passed)->toBe(2);
     }
 
     #[Test]
@@ -382,7 +382,7 @@ final class WorkerTest
 
         $this->runFixture('Services', $definitions);
 
-        Expect::that(TraceLog::drain())->because('per class services are shared and disposed at class close')->toBe([
+        Expect::value(TraceLog::drain())->because('per class services are shared and disposed at class close')->toBe([
             'probe1:created',
             'probe1:touched',
             'probe1:touched',
@@ -408,10 +408,10 @@ final class WorkerTest
         new Worker($definitions)->run($plan, $sink);
 
         $result = $sink->results()[0];
-        Expect::that($result->outcome)
+        Expect::value($result->outcome)
             ->because('a parallel class MUST NOT silently receive one class scope for each split entry')
             ->toBe(Outcome::Errored);
-        Expect::that($result->error?->message)->toBe(\sprintf(
+        Expect::value($result->error?->message)->toBe(\sprintf(
             'Per-class harness service "%s", required by "%s", cannot be used by a class with #[AllowParallel]. '
             . 'Use a per-test service or remove #[AllowParallel].',
             ServiceProbe::class,
@@ -430,7 +430,7 @@ final class WorkerTest
 
         $this->runFixture('Services', $definitions);
 
-        Expect::that(TraceLog::drain())->because('per test services are fresh per test')->toBe([
+        Expect::value(TraceLog::drain())->because('per test services are fresh per test')->toBe([
             'probe1:created',
             'probe1:touched',
             'probe1:disposed',
@@ -448,9 +448,9 @@ final class WorkerTest
 
         [, $results] = $this->runFixture('DisposeFails', $definitions);
 
-        Expect::that($results[0]->outcome)->because('class scope teardown failure is attributed to the last test')->toBe(Outcome::Passed);
-        Expect::that($results[1]->outcome)->toBe(Outcome::Errored);
-        Expect::that($results[1]->error?->message)->toBe('disposal broke');
+        Expect::value($results[0]->outcome)->because('class scope teardown failure is attributed to the last test')->toBe(Outcome::Passed);
+        Expect::value($results[1]->outcome)->toBe(Outcome::Errored);
+        Expect::value($results[1]->error?->message)->toBe('disposal broke');
     }
 
     #[Test]
@@ -465,10 +465,10 @@ final class WorkerTest
 
         [, $results] = $this->runFixture('PerTestDisposeFails', $definitions);
 
-        Expect::that($results[0]->outcome)
+        Expect::value($results[0]->outcome)
             ->because('a per-test teardown failure is attributed to the current test')
             ->toBe(Outcome::Errored);
-        Expect::that($results[0]->error?->message)
+        Expect::value($results[0]->error?->message)
             ->toBe('per-test disposal broke');
     }
 
@@ -484,9 +484,9 @@ final class WorkerTest
 
         [, $results] = $this->runFixture('VerifyOnDispose', $definitions);
 
-        Expect::that($results[0]->outcome)->because('disposal expectation failures fail the test with diffs')->toBe(Outcome::Failed);
-        Expect::that($results[0]->error)->toBeNull();
-        Expect::that($results[0]->failures[0]->message)->toContain('2');
+        Expect::value($results[0]->outcome)->because('disposal expectation failures fail the test with diffs')->toBe(Outcome::Failed);
+        Expect::value($results[0]->error)->toBeNull();
+        Expect::value($results[0]->failures[0]->message)->toContain('2');
     }
 
     #[Test]
@@ -494,8 +494,8 @@ final class WorkerTest
     {
         [$summary] = $this->runFixture('Bail', stopAfterFailures: 1);
 
-        Expect::that($summary->total())->because('bail stops the run after the threshold')->toBe(1);
-        Expect::that($summary->errored)->toBe(1);
+        Expect::value($summary->total())->because('bail stops the run after the threshold')->toBe(1);
+        Expect::value($summary->errored)->toBe(1);
     }
 
     #[Test]
@@ -512,10 +512,10 @@ final class WorkerTest
         $noisy = $byMethod['echoesAndFails'];
         $optedOut = $byMethod['optsOutOfCapture'];
 
-        Expect::that($noisy->outcome)->because('output is captured per test and attached to the result')->toBe(Outcome::Errored);
-        Expect::that($noisy->output?->stdout)->toContain('noisy diagnostic output');
-        Expect::that($noisy->output?->diagnostics[0]->message)->toContain('old api');
-        Expect::that($optedOut->output)->toBeNull();
+        Expect::value($noisy->outcome)->because('output is captured per test and attached to the result')->toBe(Outcome::Errored);
+        Expect::value($noisy->output?->stdout)->toContain('noisy diagnostic output');
+        Expect::value($noisy->output?->diagnostics[0]->message)->toContain('old api');
+        Expect::value($optedOut->output)->toBeNull();
     }
 
     #[Test]
@@ -531,8 +531,8 @@ final class WorkerTest
             drainRequested: static fn(): bool => true,
         );
 
-        Expect::that($outcome->drained)->because('drain request stops between tests')->toBeTrue();
-        Expect::that($outcome->summary->total())->toBe(1);
+        Expect::value($outcome->drained)->because('drain request stops between tests')->toBeTrue();
+        Expect::value($outcome->summary->total())->toBe(1);
     }
 
     #[Test]
@@ -549,8 +549,8 @@ final class WorkerTest
 
         $leakedIds = \array_map(static fn($id): string => (string) $id, $outcome->leaks);
 
-        Expect::that($outcome->leaks)->because('leak detection names the test that retained its instance')->toHaveCount(1);
-        Expect::that($leakedIds[0])->toContain('LeakyTest::passesButLeaksItself');
+        Expect::value($outcome->leaks)->because('leak detection names the test that retained its instance')->toHaveCount(1);
+        Expect::value($leakedIds[0])->toContain('LeakyTest::passesButLeaksItself');
 
         LeakyTest::$retained = [];
     }
@@ -561,7 +561,7 @@ final class WorkerTest
         $sink = new CollectingEventSink();
         $this->runFixture('Order', sink: $sink);
 
-        Expect::that($sink->sequence())->because('events bracket classes and tests')->toBe([
+        Expect::value($sink->sequence())->because('events bracket classes and tests')->toBe([
             'TestClassStarted',
             'TestStarted',
             'TestFinished',

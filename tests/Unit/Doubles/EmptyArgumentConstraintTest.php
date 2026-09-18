@@ -26,11 +26,11 @@ final readonly class EmptyArgumentConstraintTest
                 ->andReturns('default');
         });
 
-        Expect::that(static fn(): string => $wide->withDefaults(11))
+        Expect::calling(static fn(): string => $wide->withDefaults(11))
             ->because('an explicit empty argument constraint MUST reject supplied optional arguments')
             ->toThrow(ExpectationFailed::class, '/unexpected call/');
 
-        Expect::that(static fn() => $doubles->dispose())
+        Expect::calling(static fn() => $doubles->dispose())
             ->because('verification MUST report the unexpected call')
             ->toThrow(ExpectationFailed::class, '/unexpected call/');
     }
@@ -45,6 +45,6 @@ final readonly class EmptyArgumentConstraintTest
                 ->andReturns('default');
         });
 
-        Expect::that($wide->withDefaults())->toBe('default');
+        Expect::value($wide->withDefaults())->toBe('default');
     }
 }

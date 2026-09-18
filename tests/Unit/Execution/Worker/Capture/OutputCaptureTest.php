@@ -33,9 +33,9 @@ final readonly class OutputCaptureTest
             \ob_end_clean();
         }
 
-        Expect::that($captured->stdout)->because('echo inside the window is captured and does not reach the outer stream')->toBe('hello from the test');
-        Expect::that($captured->stdoutTruncated)->toBeFalse();
-        Expect::that($leaked)->toBe('');
+        Expect::value($captured->stdout)->because('echo inside the window is captured and does not reach the outer stream')->toBe('hello from the test');
+        Expect::value($captured->stdoutTruncated)->toBeFalse();
+        Expect::value($leaked)->toBe('');
     }
 
     #[Test]
@@ -48,7 +48,7 @@ final readonly class OutputCaptureTest
         echo 'x';
         $capture->stop();
 
-        Expect::that(\ob_get_level())->because('stop restores the buffer stack to its baseline')->toBe($baseline);
+        Expect::value(\ob_get_level())->because('stop restores the buffer stack to its baseline')->toBe($baseline);
     }
 
     #[Test]
@@ -65,8 +65,8 @@ final readonly class OutputCaptureTest
 
         $captured = $capture->stop();
 
-        Expect::that($inner)->because('user code nesting its own output buffers keeps working')->toBe('inner');
-        Expect::that($captured->stdout)->toBe('ab');
+        Expect::value($inner)->because('user code nesting its own output buffers keeps working')->toBe('inner');
+        Expect::value($captured->stdout)->toBe('ab');
     }
 
     #[Test]
@@ -83,8 +83,8 @@ final readonly class OutputCaptureTest
 
         $captured = $capture->stop();
 
-        Expect::that($captured->stdout)->because('a user buffer left open is flushed into the capture')->toBe('head leftover');
-        Expect::that(\ob_get_level())->toBe($baseline);
+        Expect::value($captured->stdout)->because('a user buffer left open is flushed into the capture')->toBe('head leftover');
+        Expect::value(\ob_get_level())->toBe($baseline);
     }
 
     #[Test]
@@ -99,17 +99,17 @@ final readonly class OutputCaptureTest
 
         $captured = $capture->stop();
 
-        Expect::that($captured->diagnostics)->because('notices warnings and deprecations are recorded with file and line')->toHaveCount(3);
-        Expect::that($captured->stdout)->toBe('');
+        Expect::value($captured->diagnostics)->because('notices warnings and deprecations are recorded with file and line')->toHaveCount(3);
+        Expect::value($captured->stdout)->toBe('');
 
         [$notice, $warning, $deprecation] = $captured->diagnostics;
 
-        Expect::that($notice->severity)->because('notices warnings and deprecations are recorded with file and line')->toBe(DiagnosticSeverity::Notice);
-        Expect::that($notice->message)->toBe('a notice');
-        Expect::that($notice->file)->toBe(__FILE__);
-        Expect::that($notice->line)->toBeGreaterThan(0);
-        Expect::that($warning->severity)->toBe(DiagnosticSeverity::Warning);
-        Expect::that($deprecation->severity)->toBe(DiagnosticSeverity::Deprecation);
+        Expect::value($notice->severity)->because('notices warnings and deprecations are recorded with file and line')->toBe(DiagnosticSeverity::Notice);
+        Expect::value($notice->message)->toBe('a notice');
+        Expect::value($notice->file)->toBe(__FILE__);
+        Expect::value($notice->line)->toBeGreaterThan(0);
+        Expect::value($warning->severity)->toBe(DiagnosticSeverity::Warning);
+        Expect::value($deprecation->severity)->toBe(DiagnosticSeverity::Deprecation);
     }
 
     #[Test]
@@ -122,7 +122,7 @@ final readonly class OutputCaptureTest
 
         $captured = $capture->stop();
 
-        Expect::that($captured->diagnostics)->because('diagnostics masked by the suppression operator are not recorded')->toBe([]);
+        Expect::value($captured->diagnostics)->because('diagnostics masked by the suppression operator are not recorded')->toBe([]);
     }
 
     #[Test]
@@ -143,10 +143,10 @@ final readonly class OutputCaptureTest
             $captured = $capture->stop();
         }
 
-        Expect::that($handled)
+        Expect::value($handled)
             ->because('PHP MUST handle diagnostic levels that Greenlight does not capture')
             ->toBeFalse();
-        Expect::that($captured->diagnostics)
+        Expect::value($captured->diagnostics)
             ->because('unsupported diagnostic levels MUST NOT become test diagnostics')
             ->toBe([]);
     }
@@ -183,13 +183,13 @@ final readonly class OutputCaptureTest
             \restore_error_handler();
             $restored = $this->activeErrorHandler();
 
-            Expect::that($upperMessages)
+            Expect::value($upperMessages)
                 ->because('stop preserves the newest error handler installed during capture')
                 ->toBe([[\E_USER_NOTICE, 'upper handler']]);
-            Expect::that($lowerMessages)
+            Expect::value($lowerMessages)
                 ->because('stop preserves the complete user error-handler stack')
                 ->toBe([[\E_USER_NOTICE, 'lower handler']]);
-            Expect::that($restored)
+            Expect::value($restored)
                 ->because('restoring the user handlers MUST reveal the pre-capture handler')
                 ->toBe($baselineHandler);
         } finally {
@@ -208,8 +208,8 @@ final readonly class OutputCaptureTest
 
         $captured = $capture->stop();
 
-        Expect::that($captured->stdout)->because('truncation keeps the head and sets the flag')->toBe('01234567');
-        Expect::that($captured->stdoutTruncated)->toBeTrue();
+        Expect::value($captured->stdout)->because('truncation keeps the head and sets the flag')->toBe('01234567');
+        Expect::value($captured->stdoutTruncated)->toBeTrue();
     }
 
     #[Test]
@@ -222,8 +222,8 @@ final readonly class OutputCaptureTest
 
         $captured = $capture->stop();
 
-        Expect::that($captured->stdout)->because('output exactly at the bound is not flagged as truncated')->toBe('full');
-        Expect::that($captured->stdoutTruncated)->toBeFalse();
+        Expect::value($captured->stdout)->because('output exactly at the bound is not flagged as truncated')->toBe('full');
+        Expect::value($captured->stdoutTruncated)->toBeFalse();
     }
 
     #[Test]
@@ -236,13 +236,13 @@ final readonly class OutputCaptureTest
 
         $captured = $capture->stop();
 
-        Expect::that($captured->stdout)
+        Expect::value($captured->stdout)
             ->because('captured output MUST contain only complete Unicode characters within its byte limit')
             ->toBe('ab');
-        Expect::that(\strlen($captured->stdout))
+        Expect::value(\strlen($captured->stdout))
             ->because('captured output MUST stay within its byte limit')
             ->toBeLessThanOrEqual(4);
-        Expect::that($captured->stdoutTruncated)
+        Expect::value($captured->stdoutTruncated)
             ->because('captured output beyond the byte limit MUST be marked as truncated')
             ->toBeTrue();
     }
@@ -259,9 +259,9 @@ final readonly class OutputCaptureTest
 
         $captured = $capture->stop();
 
-        Expect::that($captured->diagnostics)->because('diagnostics beyond the bound are dropped and flagged')->toHaveCount(2);
-        Expect::that($captured->diagnostics[0]->message)->toBe('one');
-        Expect::that($captured->diagnosticsTruncated)->toBeTrue();
+        Expect::value($captured->diagnostics)->because('diagnostics beyond the bound are dropped and flagged')->toHaveCount(2);
+        Expect::value($captured->diagnostics[0]->message)->toBe('one');
+        Expect::value($captured->diagnosticsTruncated)->toBeTrue();
     }
 
     #[Test]
@@ -275,10 +275,10 @@ final readonly class OutputCaptureTest
 
         $captured = $capture->stop();
 
-        Expect::that($captured->diagnostics)
+        Expect::value($captured->diagnostics)
             ->because('diagnostics at the retention bound MUST remain complete')
             ->toHaveCount(2);
-        Expect::that($captured->diagnosticsTruncated)
+        Expect::value($captured->diagnosticsTruncated)
             ->toBeFalse();
     }
 
@@ -292,7 +292,7 @@ final readonly class OutputCaptureTest
 
         $captured = $capture->stop();
 
-        Expect::that($captured->stdout)->because('binary bytes in captured stdout are scrubbed')->toMatch('//u')
+        Expect::value($captured->stdout)->because('binary bytes in captured stdout are scrubbed')->toMatch('//u')
             ->toContain('binary')
             ->toContain('1 output');
     }
@@ -307,7 +307,7 @@ final readonly class OutputCaptureTest
 
         $capture->start();
 
-        Expect::that(static function () use ($capture, $failure, &$captured): never {
+        Expect::calling(static function () use ($capture, $failure, &$captured): never {
             try {
                 echo 'before the throw';
 
@@ -319,8 +319,8 @@ final readonly class OutputCaptureTest
             ->because('stop in a finally block restores everything when user code throws')
             ->toThrow($failure);
 
-        Expect::that($captured?->stdout)->toBe('before the throw');
-        Expect::that(\ob_get_level())->toBe($baseline);
+        Expect::value($captured?->stdout)->toBe('before the throw');
+        Expect::value(\ob_get_level())->toBe($baseline);
     }
 
     #[Test]
@@ -337,16 +337,16 @@ final readonly class OutputCaptureTest
         \trigger_error('only in the second window', \E_USER_NOTICE);
         $second = $capture->stop();
 
-        Expect::that($first->stdout)->because('the capture is reusable across windows')->toBe('first');
-        Expect::that($first->diagnostics)->toBe([]);
-        Expect::that($second->stdout)->toBe('second');
-        Expect::that($second->diagnostics)->toHaveCount(1);
+        Expect::value($first->stdout)->because('the capture is reusable across windows')->toBe('first');
+        Expect::value($first->diagnostics)->toBe([]);
+        Expect::value($second->stdout)->toBe('second');
+        Expect::value($second->diagnostics)->toHaveCount(1);
     }
 
     #[Test]
     public function stoppingWithoutStartingThrows(): void
     {
-        Expect::that(static fn(): mixed => new OutputCapture()->stop())->because('stop() without start() throws')
+        Expect::calling(static fn(): mixed => new OutputCapture()->stop())->because('stop() without start() throws')
             ->toThrow(CaptureError::class, '/not active.*start\(\)/');
     }
 
@@ -357,7 +357,7 @@ final readonly class OutputCaptureTest
         $capture->start();
 
         try {
-            Expect::that(static fn() => $capture->start())
+            Expect::calling(static fn() => $capture->start())
                 ->toThrow(CaptureError::class, '/already active.*stop\(\)/');
         } finally {
             $capture->stop();
@@ -390,10 +390,10 @@ final readonly class OutputCaptureTest
 
         $result = $process->wait(2.0);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('a blocked nested output buffer MUST fail without hanging the worker')
             ->toBe(23);
-        Expect::that($result->stderr)
+        Expect::value($result->stderr)
             ->toBe('Output capture cannot stop because a nested output buffer cannot be removed.');
     }
 
@@ -404,7 +404,7 @@ final readonly class OutputCaptureTest
         int $maxDiagnostics,
         string $message,
     ): void {
-        Expect::that(static fn(): OutputCapture => new OutputCapture($maxStdoutBytes, $maxDiagnostics))
+        Expect::calling(static fn(): OutputCapture => new OutputCapture($maxStdoutBytes, $maxDiagnostics))
             ->because('output capture bounds MUST be positive')
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }

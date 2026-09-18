@@ -44,13 +44,13 @@ final readonly class JUnitReporterAutoloadTest
 
         $reporter->finish();
 
-        Expect::that($autoloadCalls)
+        Expect::value($autoloadCalls)
             ->because('a failed source lookup MUST not rerun the autoloader for the same method')
             ->toBe(1);
-        Expect::that(\simplexml_load_string($output->buffer()))
+        Expect::value(\simplexml_load_string($output->buffer()))
             ->because('an autoloader failure MUST preserve valid JUnit XML')
             ->toBeInstanceOf(\SimpleXMLElement::class);
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('an autoloader failure MUST omit the optional source file')
             ->not()
             ->toContain(' file=');

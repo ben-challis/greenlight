@@ -26,8 +26,8 @@ final readonly class ObjectDefaultTest
 
         $double->run();
 
-        Expect::that($this->doubles->callsTo($double, 'run'))->toBe([[]]);
-        Expect::that(new \ReflectionMethod($double, 'run')->getParameters()[0]->getDefaultValue())
+        Expect::value($this->doubles->callsTo($double, 'run'))->toBe([[]]);
+        Expect::value(new \ReflectionMethod($double, 'run')->getParameters()[0]->getDefaultValue())
             ->toBeInstanceOf(\stdClass::class);
     }
 
@@ -38,12 +38,12 @@ final readonly class ObjectDefaultTest
 
         $double = $this->doubles->spy(TrackedDefaults::class);
 
-        Expect::that(TrackedValue::$constructions)->toBe(0);
+        Expect::value(TrackedValue::$constructions)->toBe(0);
 
         $double->run();
 
-        Expect::that(TrackedValue::$constructions)->toBe(1);
-        Expect::that($this->doubles->callsTo($double, 'run'))->toBe([[]]);
+        Expect::value(TrackedValue::$constructions)->toBe(1);
+        Expect::value($this->doubles->callsTo($double, 'run'))->toBe([[]]);
     }
 
     #[Test]
@@ -58,11 +58,11 @@ final readonly class ObjectDefaultTest
         $calls = $this->doubles->callsTo($double, 'run');
         $first = $calls[0][0] ?? null;
         $second = $calls[1][0] ?? null;
-        Expect::that($calls)->toHaveCount(2);
-        Expect::that($first)->toBeInstanceOf(TrackedValue::class);
-        Expect::that($second)->toBeInstanceOf(TrackedValue::class);
-        Expect::that($first)->not()->toBe($second);
-        Expect::that(TrackedValue::$constructions)->toBe(2);
+        Expect::value($calls)->toHaveCount(2);
+        Expect::value($first)->toBeInstanceOf(TrackedValue::class);
+        Expect::value($second)->toBeInstanceOf(TrackedValue::class);
+        Expect::value($first)->not()->toBe($second);
+        Expect::value(TrackedValue::$constructions)->toBe(2);
     }
 
     #[Test]
@@ -74,8 +74,8 @@ final readonly class ObjectDefaultTest
 
         $double->run($value);
 
-        Expect::that(TrackedValue::$constructions)->toBe(1);
-        Expect::that($this->doubles->callsTo($double, 'run'))->toBe([[$value]]);
+        Expect::value(TrackedValue::$constructions)->toBe(1);
+        Expect::value($this->doubles->callsTo($double, 'run'))->toBe([[$value]]);
     }
 
     #[Test]
@@ -87,8 +87,8 @@ final readonly class ObjectDefaultTest
 
         $double->run(marker: 'named');
 
-        Expect::that($generated)->toEqual($original);
-        Expect::that($this->doubles->callsTo($double, 'run'))->toEqual([[$original, 'named']]);
+        Expect::value($generated)->toEqual($original);
+        Expect::value($this->doubles->callsTo($double, 'run'))->toEqual([[$original, 'named']]);
     }
 
     #[Test]
@@ -100,8 +100,8 @@ final readonly class ObjectDefaultTest
 
         $double->nested(marker: 'nested');
 
-        Expect::that($generated)->toEqual($original);
-        Expect::that($this->doubles->callsTo($double, 'nested'))->toEqual([[$original, 'nested']]);
+        Expect::value($generated)->toEqual($original);
+        Expect::value($this->doubles->callsTo($double, 'nested'))->toEqual([[$original, 'nested']]);
     }
 
     #[Test]
@@ -113,8 +113,8 @@ final readonly class ObjectDefaultTest
 
         $double->run(marker: 'class');
 
-        Expect::that($generated)->toEqual($original);
-        Expect::that($this->doubles->callsTo($double, 'run'))->toEqual([[$original, 'class']]);
+        Expect::value($generated)->toEqual($original);
+        Expect::value($this->doubles->callsTo($double, 'run'))->toEqual([[$original, 'class']]);
     }
 
     #[Test]
@@ -126,8 +126,8 @@ final readonly class ObjectDefaultTest
 
         $double->inherited(marker: 'parent');
 
-        Expect::that($generated)->toEqual($original);
-        Expect::that($this->doubles->callsTo($double, 'inherited'))->toEqual([[$original, 'parent']]);
+        Expect::value($generated)->toEqual($original);
+        Expect::value($this->doubles->callsTo($double, 'inherited'))->toEqual([[$original, 'parent']]);
     }
 
     #[Test]
@@ -139,8 +139,8 @@ final readonly class ObjectDefaultTest
 
         $double->aliasDefault(marker: 'trait');
 
-        Expect::that($generated)->toEqual($original);
-        Expect::that($this->doubles->callsTo($double, 'aliasDefault'))->toEqual([[$original, 'trait']]);
+        Expect::value($generated)->toEqual($original);
+        Expect::value($this->doubles->callsTo($double, 'aliasDefault'))->toEqual([[$original, 'trait']]);
     }
 
     #[Test]
@@ -152,8 +152,8 @@ final readonly class ObjectDefaultTest
 
         $double->nested(marker: 'shared');
 
-        Expect::that($generated)->toBe($original);
-        Expect::that($this->doubles->callsTo($double, 'nested'))->toBe([[$original, 'shared']]);
+        Expect::value($generated)->toBe($original);
+        Expect::value($this->doubles->callsTo($double, 'nested'))->toBe([[$original, 'shared']]);
     }
 
     #[Test]
@@ -165,8 +165,8 @@ final readonly class ObjectDefaultTest
 
         $double->globalConstant(marker: 'global');
 
-        Expect::that($generated)->toBe($original);
-        Expect::that($this->doubles->callsTo($double, 'globalConstant'))->toBe([[$original, 'global']]);
+        Expect::value($generated)->toBe($original);
+        Expect::value($this->doubles->callsTo($double, 'globalConstant'))->toBe([[$original, 'global']]);
     }
 
     #[Test]
@@ -178,7 +178,7 @@ final readonly class ObjectDefaultTest
 
         $double->publicConstant(marker: 'public');
 
-        Expect::that($generated)->toBe($original);
-        Expect::that($this->doubles->callsTo($double, 'publicConstant'))->toBe([[$original, 'public']]);
+        Expect::value($generated)->toBe($original);
+        Expect::value($this->doubles->callsTo($double, 'publicConstant'))->toBe([[$original, 'public']]);
     }
 }

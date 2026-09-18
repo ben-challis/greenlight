@@ -18,10 +18,10 @@ final readonly class WorkerEventValidationTest
         $event = new WorkerSpawned('0', 1, 1.0);
         $decoded = WorkerSpawned::fromWire(JsonWire::roundTrip($event->toWire()));
 
-        Expect::that($event->workerId)
+        Expect::value($event->workerId)
             ->because('a worker event MUST retain each non-empty worker ID')
             ->toBe('0');
-        Expect::that($decoded->workerId)
+        Expect::value($decoded->workerId)
             ->because('the worker ID MUST survive the wire')
             ->toBe('0');
     }
@@ -29,7 +29,7 @@ final readonly class WorkerEventValidationTest
     #[Test]
     public function workerEventsRejectAnEmptyWorkerId(): void
     {
-        Expect::that(static fn(): WorkerSpawned => new WorkerSpawned('', 1, 1.0))
+        Expect::calling(static fn(): WorkerSpawned => new WorkerSpawned('', 1, 1.0))
             ->because('a spawned-worker event MUST identify its worker')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -41,7 +41,7 @@ final readonly class WorkerEventValidationTest
     #[DataSet('nonPositivePids')]
     public function aSpawnedWorkerRejectsANonPositivePid(int $pid): void
     {
-        Expect::that(static fn(): WorkerSpawned => new WorkerSpawned('worker-1', $pid, 1.0))
+        Expect::calling(static fn(): WorkerSpawned => new WorkerSpawned('worker-1', $pid, 1.0))
             ->because('a spawned-worker event MUST identify a positive process ID')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -53,7 +53,7 @@ final readonly class WorkerEventValidationTest
     #[DataSet('nonPositivePids')]
     public function aSpawnedWorkerRejectsANonPositiveWirePid(int $pid): void
     {
-        Expect::that(static fn(): WorkerSpawned => WorkerSpawned::fromWire([
+        Expect::calling(static fn(): WorkerSpawned => WorkerSpawned::fromWire([
             'workerId' => 'worker-1',
             'pid' => $pid,
             'occurredAt' => 1.0,

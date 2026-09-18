@@ -16,10 +16,10 @@ final class ClassDeclarationTest
         $global = new ClassDeclaration('', 'GlobalTest', 'class');
         $namespaced = new ClassDeclaration('Example\Tests', 'NamespacedTest', 'class');
 
-        Expect::that($global->fqcn())
+        Expect::value($global->fqcn())
             ->because('the fully qualified name handles global and named namespaces')
             ->toBe('GlobalTest');
-        Expect::that($namespaced->fqcn())
+        Expect::value($namespaced->fqcn())
             ->toBe('Example\Tests\NamespacedTest');
     }
 }

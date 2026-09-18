@@ -19,10 +19,10 @@ final readonly class ClassFileParserEmptyFileTest
         $file = $this->tempDirectory->path() . '/EmptyTest.php';
         \file_put_contents($file, '');
 
-        Expect::that(\is_readable($file))
+        Expect::value(\is_readable($file))
             ->because('the empty test file MUST be readable')
             ->toBeTrue();
-        Expect::that(ClassFileParser::declarationsIn($file))
+        Expect::value(ClassFileParser::declarationsIn($file))
             ->because('an empty test file MUST contain no declarations')
             ->toBe([]);
     }

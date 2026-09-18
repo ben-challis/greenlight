@@ -7,6 +7,7 @@ namespace Greenlight\PhpStan;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\InvalidConfiguration;
+use Greenlight\Expect\CallExpectation;
 use Greenlight\Expect\Expectation;
 use Greenlight\Expect\ExpectationExtension;
 use Greenlight\Expect\ExpectationExtensionError;
@@ -45,7 +46,7 @@ final readonly class MatcherMap
         $loader = new ConfigLoader();
         $matchers = [];
         $declaredIn = [];
-        $nativeMethods = \array_fill_keys(\array_map(\strtolower(...), \get_class_methods(Expectation::class)), true);
+        $nativeMethods = \array_fill_keys(\array_map(\strtolower(...), [...\get_class_methods(Expectation::class), ...\get_class_methods(CallExpectation::class)]), true);
 
         foreach ($configFiles as $file) {
             if (!\str_starts_with($file, '/')) {

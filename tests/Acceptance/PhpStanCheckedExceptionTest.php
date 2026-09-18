@@ -111,41 +111,41 @@ final readonly class PhpStanCheckedExceptionTest
             \dirname(__DIR__, 2) . '/phpstan.dist.neon',
         );
 
-        Expect::that($probe->exitCode)
+        Expect::value($probe->exitCode)
             ->because('PHPStan MUST reject an undocumented production control signal')
             ->toBe(1);
-        Expect::that($probe->goodPassed)
+        Expect::value($probe->goodPassed)
             ->because('PHPStan MUST not require throws tags in test code')
             ->toBeTrue();
-        Expect::that($probe->errors)->toHaveCount(10);
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->errors)->toHaveCount(10);
+        Expect::value($probe->messages())->toContain(
             'throws checked exception Greenlight\\Expect\\ExpectationFailed but it\'s missing from the PHPDoc @throws tag.',
         );
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->messages())->toContain(
             'throws checked exception Greenlight\\Coverage\\CoverageError but it\'s missing from the PHPDoc @throws tag.',
         );
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->messages())->toContain(
             'throws checked exception Greenlight\\Doubles\\InvalidDoubleUsage but it\'s missing from the PHPDoc @throws tag.',
         );
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->messages())->toContain(
             'throws checked exception Greenlight\\Harness\\UnresolvableService but it\'s missing from the PHPDoc @throws tag.',
         );
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->messages())->toContain(
             'throws checked exception Greenlight\\Reporting\\ReportGenerationFailed but it\'s missing from the PHPDoc @throws tag.',
         );
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->messages())->toContain(
             'throws checked exception Greenlight\\IntegrationFixture\\IntegrationFixtureError but it\'s missing from the PHPDoc @throws tag.',
         );
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->messages())->toContain(
             'throws checked exception Greenlight\\Sandbox\\TemporaryDirectoryError but it\'s missing from the PHPDoc @throws tag.',
         );
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->messages())->toContain(
             'throws checked exception Greenlight\\Execution\\ProcessPool\\Protocol\\ProtocolError but it\'s missing from the PHPDoc @throws tag.',
         );
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->messages())->toContain(
             'throws checked exception Greenlight\\Probe\\ProbeServiceResolutionFailed but it\'s missing from the PHPDoc @throws tag.',
         );
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->messages())->toContain(
             'throws checked exception Greenlight\\Execution\\Worker\\WorkerError but it\'s missing from the PHPDoc @throws tag.',
         );
     }
@@ -208,14 +208,14 @@ final readonly class PhpStanCheckedExceptionTest
             \dirname(__DIR__, 2) . '/phpstan.dist.neon',
         );
 
-        Expect::that($probe->exitCode)
+        Expect::value($probe->exitCode)
             ->because('PHPStan MUST reject a wider implementation throws contract')
             ->toBe(1);
-        Expect::that($probe->goodPassed)
+        Expect::value($probe->goodPassed)
             ->because('PHPStan MUST accept a covariant implementation throws contract')
             ->toBeTrue();
-        Expect::that($probe->errors)->toHaveCount(1);
-        Expect::that($probe->messages())->toContain('should be covariant with PHPDoc @throws type');
+        Expect::value($probe->errors)->toHaveCount(1);
+        Expect::value($probe->messages())->toContain('should be covariant with PHPDoc @throws type');
     }
 
     #[Test]
@@ -253,14 +253,14 @@ final readonly class PhpStanCheckedExceptionTest
             \dirname(__DIR__, 2) . '/phpstan.dist.neon',
         );
 
-        Expect::that($probe->exitCode)
+        Expect::value($probe->exitCode)
             ->because('PHPStan MUST reject a throws type that the implementation does not throw')
             ->toBe(1);
-        Expect::that($probe->goodPassed)
+        Expect::value($probe->goodPassed)
             ->because('PHPStan MUST accept an exact throws contract')
             ->toBeTrue();
-        Expect::that($probe->errors)->toHaveCount(1);
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->errors)->toHaveCount(1);
+        Expect::value($probe->messages())->toContain(
             'has Greenlight\\Coverage\\CoverageError in PHPDoc @throws tag but it\'s not thrown.',
         );
     }

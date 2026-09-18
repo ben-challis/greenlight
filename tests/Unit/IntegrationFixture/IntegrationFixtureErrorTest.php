@@ -20,14 +20,14 @@ final readonly class IntegrationFixtureErrorTest
         $cause = new \RuntimeException($failureMessage);
         $error = IntegrationFixtureError::provider(self::class, $cause);
 
-        Expect::that($error->getMessage())
+        Expect::value($error->getMessage())
             ->because('integration fixture provider failures MUST use complete diagnostic sentences')
             ->toBe(\sprintf(
                 'Integration fixture provider "%s" failed: %s',
                 self::class,
                 $reportedMessage,
             ));
-        Expect::that($error->getPrevious())
+        Expect::value($error->getPrevious())
             ->because('the provider failure MUST remain available as the previous exception')
             ->toBe($cause);
     }
@@ -58,14 +58,14 @@ final readonly class IntegrationFixtureErrorTest
             ],
         );
 
-        Expect::that($error->getMessage())
+        Expect::value($error->getMessage())
             ->because('provisioning diagnostics MUST retain the primary and cleanup failures')
             ->toBe(
                 "Integration fixture \"database\" failed to provision: database did not start.\n"
                 . "Additionally, cleanup for integration fixture \"database\" failed: socket close failed.\n"
                 . 'Additionally, cleanup for integration fixture "network" failed: already closed?',
             );
-        Expect::that($error->getPrevious())
+        Expect::value($error->getPrevious())
             ->because('the provisioning failure MUST remain available as the previous exception')
             ->toBe($cause);
     }
@@ -77,7 +77,7 @@ final readonly class IntegrationFixtureErrorTest
             ['database', new \RuntimeException('socket close failed')],
         ]);
 
-        Expect::that($error->getMessage())
+        Expect::value($error->getMessage())
             ->because('teardown diagnostics MUST identify the fixture and cleanup failure')
             ->toBe(
                 "Integration fixture teardown failed.\n"
@@ -94,13 +94,13 @@ final readonly class IntegrationFixtureErrorTest
             [['database', new \RuntimeException('socket close failed')]],
         );
 
-        Expect::that($error->getMessage())
+        Expect::value($error->getMessage())
             ->because('run failure diagnostics MUST retain additional fixture cleanup failures')
             ->toBe(
                 "The run failed with LogicException: run aborted.\n"
                 . 'Additionally, cleanup for integration fixture "database" failed: socket close failed.',
             );
-        Expect::that($error->getPrevious())
+        Expect::value($error->getPrevious())
             ->because('the run failure MUST remain available as the previous exception')
             ->toBe($cause);
     }

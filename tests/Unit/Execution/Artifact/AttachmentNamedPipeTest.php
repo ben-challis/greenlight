@@ -42,7 +42,7 @@ final readonly class AttachmentNamedPipeTest
         $this->cleanup->defer($store->cleanup(...));
         $attachments = $store->forAttempt(new TestId(self::class, __FUNCTION__), 1, new TestArtifactBudget());
 
-        Expect::that(static fn() => $attachments->file('evidence.bin', $path))
+        Expect::calling(static fn() => $attachments->file('evidence.bin', $path))
             ->toThrow(AttachmentError::class, message: \sprintf('Attachment source "%s" is not a regular file.', $path));
     }
 }

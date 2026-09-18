@@ -34,7 +34,7 @@ final readonly class AttachmentSourcePathValidationTest
             new TestArtifactBudget(),
         );
 
-        Expect::that(static fn() => $attachments->file('copy.bin', "source\0hidden.txt"))
+        Expect::calling(static fn() => $attachments->file('copy.bin', "source\0hidden.txt"))
             ->because('attachment source paths MUST be valid file-system paths')
             ->toThrow(
                 AttachmentError::class,

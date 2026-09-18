@@ -20,13 +20,13 @@ final class LaravelLotteryStateResetTest
         Lottery::alwaysWin();
 
         try {
-            Expect::that(Lottery::odds(0, 1)->choose())
+            Expect::value(Lottery::odds(0, 1)->choose())
                 ->because('a forced Laravel lottery MUST win before the reset')
                 ->toBeTrue();
 
             LaravelStateResetter::reset();
 
-            Expect::that(Lottery::odds(0, 1)->choose())
+            Expect::value(Lottery::odds(0, 1)->choose())
                 ->because('a reset MUST restore normal Laravel lottery results')
                 ->toBeFalse();
         } finally {

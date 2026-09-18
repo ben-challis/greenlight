@@ -13,7 +13,7 @@ final readonly class TempestProcessEnvironmentValidationTest
     #[Test]
     public function rejectsAnEnvironmentWithANullByteBeforeFrameworkAccess(): void
     {
-        Expect::that(static fn(): TempestProcessState => TempestProcessState::activate("test\0ing"))
+        Expect::calling(static fn(): TempestProcessState => TempestProcessState::activate("test\0ing"))
             ->because('environment validation MUST run before Tempest framework access')
             ->toThrow(
                 \InvalidArgumentException::class,

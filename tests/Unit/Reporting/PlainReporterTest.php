@@ -54,7 +54,7 @@ final class PlainReporterTest
             These results are evidence of instability.
             TXT;
 
-        Expect::that($output->buffer())->because('canned stream renders the golden output')->toBe($expected . "\n");
+        Expect::value($output->buffer())->because('canned stream renders the golden output')->toBe($expected . "\n");
     }
 
     #[Test]
@@ -63,7 +63,7 @@ final class PlainReporterTest
         $output = new BufferOutput();
         CannedStream::feed(new PlainReporter($output, new RunHeader('0.4.0', 'greenlight.php', 7, phpVersion: '8.3.1')));
 
-        Expect::that($output->buffer())->because('header line precedes the run line when provided')
+        Expect::value($output->buffer())->because('header line precedes the run line when provided')
             ->toStartWith("Greenlight 0.4.0\nPHP 8.3.1 | configuration: greenlight.php | workers: 2 | seed: 7\nRun run-1: 6 tests, 2 workers\n");
     }
 
@@ -76,7 +76,7 @@ final class PlainReporterTest
         $second = new BufferOutput();
         CannedStream::feed(new PlainReporter($second));
 
-        Expect::that($first->buffer())->because('identical streams produce byte identical output')->toBe($second->buffer());
+        Expect::value($first->buffer())->because('identical streams produce byte identical output')->toBe($second->buffer());
     }
 
     #[Test]
@@ -85,7 +85,7 @@ final class PlainReporterTest
         $output = new BufferOutput();
         CannedStream::feed(new PlainReporter($output));
 
-        Expect::that($output->buffer())->because('output contains no ANSI escapes')->not()->toContain("\e");
+        Expect::value($output->buffer())->because('output contains no ANSI escapes')->not()->toContain("\e");
     }
 
     #[Test]
@@ -114,7 +114,7 @@ final class PlainReporterTest
               Acme\RiskyTest::passesWithoutExpectations
             TXT;
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('successful risky tests MUST render exact actionable guidance')
             ->toBe($expected . "\n");
     }
@@ -136,7 +136,7 @@ final class PlainReporterTest
         ));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('a failed test MUST NOT also appear in successful risky-test guidance')
             ->toContain('FAIL Acme\\RiskyTest::failsWithoutExpectations')
             ->not()

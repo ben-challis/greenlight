@@ -57,12 +57,12 @@ final readonly class PhpStanMissingDataProviderClassTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)
+        Expect::value($probe->exitCode)
             ->because('PHPStan rejects a data set that references a missing provider class')
             ->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(2);
-        Expect::that($probe->messages())->toContain(
+        Expect::value($probe->goodPassed)->toBeTrue();
+        Expect::value(\count($probe->errors))->toBe(2);
+        Expect::value($probe->messages())->toContain(
             'Data provider class GreenlightMissingProviderClassProbe\MissingProviders referenced by testValue() does not exist.',
         );
     }

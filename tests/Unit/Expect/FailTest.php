@@ -15,7 +15,7 @@ final class FailTest
     #[Test]
     public function throwsWithTheGivenReason(): void
     {
-        Expect::that(static fn() => Fail::because('The required value was not found.'))
+        Expect::calling(static fn() => Fail::because('The required value was not found.'))
             ->because('an explicit failure MUST throw with its reason and call site')
             ->toThrow(
                 ExpectationFailed::class,
@@ -30,9 +30,9 @@ final class FailTest
             static fn() => Fail::because('The result was unusable.'),
         );
 
-        Expect::that($detail->message)->because('carries structured failure detail')->toBe('The result was unusable.');
-        Expect::that($detail->expected)->because('carries structured failure detail')->toBeNull();
-        Expect::that($detail->actual)->because('carries structured failure detail')->toBeNull();
+        Expect::value($detail->message)->because('carries structured failure detail')->toBe('The result was unusable.');
+        Expect::value($detail->expected)->because('carries structured failure detail')->toBeNull();
+        Expect::value($detail->actual)->because('carries structured failure detail')->toBeNull();
     }
 
     #[Test]
@@ -42,7 +42,7 @@ final class FailTest
             static fn() => Fail::because(''),
         );
 
-        Expect::that($detail->message)
+        Expect::value($detail->message)
             ->because('an explicit failure always has a reason')
             ->toBe('The test failed without a reason.');
     }
@@ -54,7 +54,7 @@ final class FailTest
             static fn() => Fail::because('0'),
         );
 
-        Expect::that($detail->message)
+        Expect::value($detail->message)
             ->because('an explicit failure MUST preserve a zero-string reason')
             ->toBe('0');
     }
@@ -65,8 +65,8 @@ final class FailTest
         $line = __LINE__ + 1;
         $detail = FailureProbe::detailOf(static fn() => Fail::because('Stopped here.'));
 
-        Expect::that($detail->location?->file)->because('failure location points at the call site')->toBe(__FILE__);
-        Expect::that($detail->location?->line)->because('failure location points at the call site')->toBe($line);
+        Expect::value($detail->location?->file)->because('failure location points at the call site')->toBe(__FILE__);
+        Expect::value($detail->location?->line)->because('failure location points at the call site')->toBe($line);
     }
 
     #[Test]
@@ -81,6 +81,6 @@ final class FailTest
 
         $count = ExpectationCounter::count();
 
-        Expect::that($count)->because('counts as an expectation')->toBe(1);
+        Expect::value($count)->because('counts as an expectation')->toBe(1);
     }
 }

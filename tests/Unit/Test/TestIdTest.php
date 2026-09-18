@@ -16,8 +16,8 @@ final class TestIdTest
     #[Test]
     public function rendersWithAndWithoutDataSetKey(): void
     {
-        Expect::that((string) new TestId('App\FooTest', 'bar'))->because('renders with and without data set key')->toBe('App\FooTest::bar');
-        Expect::that((string) new TestId('App\FooTest', 'bar', 'JPY has no minor unit'))->because('renders with and without data set key')
+        Expect::value((string) new TestId('App\FooTest', 'bar'))->because('renders with and without data set key')->toBe('App\FooTest::bar');
+        Expect::value((string) new TestId('App\FooTest', 'bar', 'JPY has no minor unit'))->because('renders with and without data set key')
             ->toBe('App\FooTest::bar[JPY has no minor unit]');
     }
 
@@ -26,10 +26,10 @@ final class TestIdTest
     {
         $id = new TestId('App\FooTest', 'bar', 'k');
 
-        Expect::that($id->equals(new TestId('App\FooTest', 'bar', 'k')))->because('equality covers all components')->toBeTrue();
-        Expect::that($id->equals(new TestId('App\FooTest', 'bar')))->because('equality covers all components')->toBeFalse();
-        Expect::that($id->equals(new TestId('App\FooTest', 'baz', 'k')))->because('equality covers all components')->toBeFalse();
-        Expect::that($id->equals(new TestId('App\OtherTest', 'bar', 'k')))->because('equality covers all components')->toBeFalse();
+        Expect::value($id->equals(new TestId('App\FooTest', 'bar', 'k')))->because('equality covers all components')->toBeTrue();
+        Expect::value($id->equals(new TestId('App\FooTest', 'bar')))->because('equality covers all components')->toBeFalse();
+        Expect::value($id->equals(new TestId('App\FooTest', 'baz', 'k')))->because('equality covers all components')->toBeFalse();
+        Expect::value($id->equals(new TestId('App\OtherTest', 'bar', 'k')))->because('equality covers all components')->toBeFalse();
     }
 
     #[Test]
@@ -38,19 +38,19 @@ final class TestIdTest
         $id = new TestId('App\FooTest', 'bar', 'key');
         $restored = TestId::fromWire(JsonWire::roundTrip($id->toWire()));
 
-        Expect::that($id->equals($restored))->because('survives the wire')->toBeTrue();
+        Expect::value($id->equals($restored))->because('survives the wire')->toBeTrue();
     }
 
     #[Test]
     public function rejectsInvalidWirePayloads(): void
     {
-        Expect::that(
+        Expect::calling(
             static fn(): TestId => TestId::fromWire(['class' => 'App\FooTest']),
         )->because('rejects invalid wire payloads')->toThrow(InvalidWirePayload::class);
-        Expect::that(
+        Expect::calling(
             static fn(): TestId => TestId::fromWire(['class' => '', 'method' => 'bar', 'dataSetKey' => null]),
         )->because('rejects invalid wire payloads')->toThrow(InvalidWirePayload::class);
-        Expect::that(
+        Expect::calling(
             static fn(): TestId => TestId::fromWire(['class' => 'App\FooTest', 'method' => 'bar', 'dataSetKey' => 42]),
         )->because('rejects invalid wire payloads')->toThrow(InvalidWirePayload::class);
     }
@@ -59,7 +59,7 @@ final class TestIdTest
     #[DataSet('invalidIdentifiers')]
     public function rejectsInvalidConstruction(string $class, string $method, string $message): void
     {
-        Expect::that(static fn(): TestId => new TestId($class, $method))
+        Expect::calling(static fn(): TestId => new TestId($class, $method))
             ->because('a test ID MUST identify a class and method')
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }

@@ -15,7 +15,7 @@ final class CoverageBuilderTest
     #[Test]
     public function anEmptyIncludePathIsRejected(): void
     {
-        Expect::that(static function (): void {
+        Expect::calling(static function (): void {
             new CoverageBuilder()->include(''); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         })
             ->because('a coverage include path identifies source to instrument')
@@ -30,11 +30,11 @@ final class CoverageBuilderTest
     {
         $builder = new CoverageBuilder()->include('src');
 
-        Expect::that(static fn(): CoverageBuilder => $builder->include('app', '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        Expect::calling(static fn(): CoverageBuilder => $builder->include('app', '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a rejected include call does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
 
-        Expect::that($builder->toConfiguration()->includePaths)
+        Expect::value($builder->toConfiguration()->includePaths)
             ->because('a rejected include call retains the prior paths')
             ->toBe(['src']);
     }
@@ -42,7 +42,7 @@ final class CoverageBuilderTest
     #[Test]
     public function aNullByteIncludePathIsRejected(): void
     {
-        Expect::that(static fn(): CoverageBuilder => new CoverageBuilder()->include("src\0hidden"))
+        Expect::calling(static fn(): CoverageBuilder => new CoverageBuilder()->include("src\0hidden"))
             ->because('coverage include paths MUST be valid filesystem inputs')
             ->toThrow(
                 InvalidConfiguration::class,
@@ -53,7 +53,7 @@ final class CoverageBuilderTest
     #[Test]
     public function anEmptyDriverNameIsRejected(): void
     {
-        Expect::that(static function (): void {
+        Expect::calling(static function (): void {
             new CoverageBuilder()->driver(''); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         })
             ->because('a coverage driver needs a selectable name')
@@ -67,7 +67,7 @@ final class CoverageBuilderTest
     #[DataSet('invalidExports')]
     public function aCoverageExportNeedsAFormatAndTarget(string $format, string $target): void
     {
-        Expect::that(static function () use ($format, $target): void {
+        Expect::calling(static function () use ($format, $target): void {
             // Reflection bypasses the static non-empty-string types and
             // exercises the runtime guard.
             new \ReflectionMethod(CoverageBuilder::class, 'export')
@@ -89,15 +89,15 @@ final class CoverageBuilderTest
             ->export('json', '0')
             ->toConfiguration();
 
-        Expect::that($configuration->includePaths)
+        Expect::value($configuration->includePaths)
             ->because('a zero-string coverage include path is not empty')
             ->toBe(['0']);
-        Expect::that($configuration->driver)
+        Expect::value($configuration->driver)
             ->because('a zero-string coverage driver is not empty')
             ->toBe('0');
-        Expect::that($configuration->exports[0]->format)
+        Expect::value($configuration->exports[0]->format)
             ->toBe('json');
-        Expect::that($configuration->exports[0]->target)
+        Expect::value($configuration->exports[0]->target)
             ->because('a zero-string coverage export target is not empty')
             ->toBe('0');
     }
@@ -111,13 +111,13 @@ final class CoverageBuilderTest
             ->requireDriver()
             ->toConfiguration();
 
-        Expect::that($configuration->minimumPercentage)
+        Expect::value($configuration->minimumPercentage)
             ->because('the minimum percentage MUST remain available to the run')
             ->toBe(95.25);
-        Expect::that($configuration->maximumUncoveredLines)
+        Expect::value($configuration->maximumUncoveredLines)
             ->because('zero is a valid maximum uncovered-line count')
             ->toBe(0);
-        Expect::that($configuration->requireDriver)
+        Expect::value($configuration->requireDriver)
             ->because('the run MUST retain the coverage-driver requirement')
             ->toBeTrue();
     }
@@ -126,7 +126,7 @@ final class CoverageBuilderTest
     #[DataSet('invalidMinimumPercentages')]
     public function rejectsInvalidMinimumPercentages(float $percentage, string $message): void
     {
-        Expect::that(static fn(): CoverageBuilder => new CoverageBuilder()->minimumPercentage($percentage))
+        Expect::calling(static fn(): CoverageBuilder => new CoverageBuilder()->minimumPercentage($percentage))
             ->because('a coverage percentage gate MUST have an exact supported boundary')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }
@@ -134,7 +134,7 @@ final class CoverageBuilderTest
     #[Test]
     public function rejectsANegativeMaximumUncoveredLineCount(): void
     {
-        Expect::that(static function (): void {
+        Expect::calling(static function (): void {
             new CoverageBuilder()->maximumUncoveredLines(-1); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         })
             ->because('an uncovered-line maximum cannot be negative')

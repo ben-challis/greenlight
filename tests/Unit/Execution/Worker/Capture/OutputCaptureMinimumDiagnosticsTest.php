@@ -23,12 +23,12 @@ final class OutputCaptureMinimumDiagnosticsTest
             $captured = $capture->stop();
         }
 
-        Expect::that($captured->diagnostics)
+        Expect::value($captured->diagnostics)
             ->because('the minimum diagnostic bound MUST retain only the first entry')
             ->toHaveCount(1);
-        Expect::that($captured->diagnostics[0]->message)
+        Expect::value($captured->diagnostics[0]->message)
             ->toBe('first diagnostic');
-        Expect::that($captured->diagnosticsTruncated)
+        Expect::value($captured->diagnosticsTruncated)
             ->toBeTrue();
     }
 }

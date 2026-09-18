@@ -19,9 +19,9 @@ final class DocumentationExampleErrorTest
     {
         $error = $createError();
 
-        Expect::that($error->getMessage())->toBe($expected);
-        Expect::that($error->getCode())->toBe(0);
-        Expect::that($error->getPrevious())->toBeNull();
+        Expect::value($error->getMessage())->toBe($expected);
+        Expect::value($error->getCode())->toBe(0);
+        Expect::value($error->getPrevious())->toBeNull();
     }
 
     /** @return iterable<string, array{\Closure(): DocumentationExampleError, string}> */
@@ -219,11 +219,11 @@ final class DocumentationExampleErrorTest
         $previous = new \JsonException('Syntax error', \JSON_ERROR_SYNTAX);
         $error = DocumentationExampleError::invalidMetadataJson('docs/example.md', 12, $previous);
 
-        Expect::that($error->getMessage())->toBe(
+        Expect::value($error->getMessage())->toBe(
             'docs/example.md:12: PHP example metadata is not valid JSON: Syntax error.',
         );
-        Expect::that($error->getCode())->toBe(\JSON_ERROR_SYNTAX);
-        Expect::that($error->getPrevious())->toBe($previous);
+        Expect::value($error->getCode())->toBe(\JSON_ERROR_SYNTAX);
+        Expect::value($error->getPrevious())->toBe($previous);
     }
 
     #[Test]
@@ -234,8 +234,8 @@ final class DocumentationExampleErrorTest
         $previous = new \JsonException('Syntax error', \JSON_ERROR_SYNTAX);
         $error = DocumentationExampleError::invalidToolJson('PHPStan', 'configuration', $previous, $stderr);
 
-        Expect::that($error->getMessage())->toBe($expected);
-        Expect::that($error->getCode())->toBe(\JSON_ERROR_SYNTAX);
-        Expect::that($error->getPrevious())->toBe($previous);
+        Expect::value($error->getMessage())->toBe($expected);
+        Expect::value($error->getCode())->toBe(\JSON_ERROR_SYNTAX);
+        Expect::value($error->getPrevious())->toBe($previous);
     }
 }

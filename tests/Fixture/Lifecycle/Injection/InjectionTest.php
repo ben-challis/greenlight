@@ -14,6 +14,6 @@ final readonly class InjectionTest
     #[Test]
     public function usesTheInjectedService(): void
     {
-        Expect::that($this->probe->ping())->toBe('pong');
+        Expect::value($this->probe->ping())->toBe('pong');
     }
 }

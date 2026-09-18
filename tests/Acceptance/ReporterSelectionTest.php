@@ -20,15 +20,15 @@ final readonly class ReporterSelectionTest
         $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'unknown-reporter');
         $result = GreenlightCli::run($project->directory, ['run', '--no-ansi', '--reporter=unknown']);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('an unknown reporter is a usage error')
             ->toBe(64);
-        Expect::that($result->stderr)
+        Expect::value($result->stderr)
             ->because('the error identifies every supported reporter')
             ->toBe(
                 'greenlight: Unknown reporter "unknown". Select one of: tty, plain, junit, jsonl, github, teamcity.',
             );
-        Expect::that($result->stdout)
+        Expect::value($result->stdout)
             ->because('the test run does not start')
             ->toBe('');
     }
@@ -42,14 +42,14 @@ final readonly class ReporterSelectionTest
             ['run', '--workers=1', '--no-ansi', '--reporter=tty'],
         );
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because('an explicitly selected TTY reporter MUST run without a terminal')
             ->toBe(0);
-        Expect::that($result->stdout)
+        Expect::value($result->stdout)
             ->toContain('1 test, 1 passed')
             ->not()
             ->toContain("\x1b[");
-        Expect::that($result->stderr)
+        Expect::value($result->stderr)
             ->toBe('');
     }
 
@@ -63,17 +63,17 @@ final readonly class ReporterSelectionTest
             ['run', '--workers=1', '--no-ansi', '--reporter=plain', '--reporter=junit=reports/junit.xml'],
         );
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($result->stdout)
+        Expect::value($result->exitCode)->toBe(0);
+        Expect::value($result->stdout)
             ->because('the reporter without a file MUST continue to use standard output')
             ->toContain('1 test, 1 passed')
             ->not()
             ->toContain('<?xml');
-        Expect::that((string) \file_get_contents($junit))
+        Expect::value((string) \file_get_contents($junit))
             ->because('the reporter file path MUST resolve from the command working directory')
             ->toStartWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
             ->toContain('<testsuites name="greenlight" tests="1"');
-        Expect::that($result->stderr)->toBe('');
+        Expect::value($result->stderr)->toBe('');
     }
 
     #[Test]
@@ -86,14 +86,14 @@ final readonly class ReporterSelectionTest
             ['run', '--workers=1', '--reporter=tty=reports/tty.txt'],
         );
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($result->stdout)->toBe('');
-        Expect::that((string) \file_get_contents($report))
+        Expect::value($result->exitCode)->toBe(0);
+        Expect::value($result->stdout)->toBe('');
+        Expect::value((string) \file_get_contents($report))
             ->because('a file is not an interactive terminal')
             ->toContain('1 test, 1 passed')
             ->not()
             ->toContain("\x1b[");
-        Expect::that($result->stderr)->toBe('');
+        Expect::value($result->stderr)->toBe('');
     }
 
     #[Test]
@@ -102,9 +102,9 @@ final readonly class ReporterSelectionTest
         $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'empty-reporter-file');
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=junit=']);
 
-        Expect::that($result->exitCode)->toBe(64);
-        Expect::that($result->stdout)->toBe('');
-        Expect::that($result->stderr)
+        Expect::value($result->exitCode)->toBe(64);
+        Expect::value($result->stdout)->toBe('');
+        Expect::value($result->stderr)
             ->toBe('greenlight: --reporter requires <name> or <name>=<path>. Received "junit=".');
     }
 
@@ -115,11 +115,11 @@ final readonly class ReporterSelectionTest
         $directory = $project->path('reports');
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=unknown=reports/output.txt']);
 
-        Expect::that($result->exitCode)->toBe(64);
-        Expect::that($result->stdout)->toBe('');
-        Expect::that($result->stderr)
+        Expect::value($result->exitCode)->toBe(64);
+        Expect::value($result->stdout)->toBe('');
+        Expect::value($result->stderr)
             ->toContain('greenlight: Unknown reporter "unknown".');
-        Expect::that(\is_dir($directory))
+        Expect::value(\is_dir($directory))
             ->because('Greenlight MUST validate reporter names before it changes the file system')
             ->toBeFalse();
     }
@@ -134,11 +134,11 @@ final readonly class ReporterSelectionTest
             '--reporter=junit=report.txt',
         ]);
 
-        Expect::that($result->exitCode)->toBe(64);
-        Expect::that($result->stdout)->toBe('');
-        Expect::that($result->stderr)
+        Expect::value($result->exitCode)->toBe(64);
+        Expect::value($result->stdout)->toBe('');
+        Expect::value($result->stderr)
             ->toBe('greenlight: Write reporter output to file "report.txt" only once.');
-        Expect::that(\file_exists($project->path('report.txt')))
+        Expect::value(\file_exists($project->path('report.txt')))
             ->because('Greenlight MUST validate reporter targets before it creates them')
             ->toBeFalse();
     }
@@ -150,9 +150,9 @@ final readonly class ReporterSelectionTest
         $project->writeFile('blocked', 'not a directory');
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=junit=blocked/junit.xml']);
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stdout)->toBe('');
-        Expect::that($result->stderr)
+        Expect::value($result->exitCode)->toBe(1);
+        Expect::value($result->stdout)->toBe('');
+        Expect::value($result->stderr)
             ->toContain('greenlight: Greenlight could not create reporter output directory "')
             ->toContain('/blocked":');
     }

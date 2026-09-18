@@ -22,6 +22,12 @@ final readonly class ExpectationCall
         private array $arguments,
     ) {}
 
+    /** @param array<array-key, mixed> $arguments */
+    public static function forImmediate(string $name, array $arguments): self
+    {
+        return new self($name, $arguments);
+    }
+
     /**
      * @param array<array-key, mixed> $arguments
      *
@@ -76,15 +82,15 @@ final readonly class ExpectationCall
     }
 
     /**
-     * @return Expectation<T>
+     * @return MatcherEvaluation<T>
      *
      * @template T
      *
-     * @param Expectation<T> $expectation
+     * @param MatcherEvaluation<T> $expectation
      *
      * @throws \BadMethodCallException if no native or registered extension matcher has the requested name
      */
-    public function invoke(Expectation $expectation): Expectation
+    public function invoke(MatcherEvaluation $expectation): MatcherEvaluation
     {
         $matcher = [$expectation, $this->name];
 
@@ -97,9 +103,9 @@ final readonly class ExpectationCall
 
         $result = \call_user_func_array($matcher, $this->arguments);
 
-        if (!$result instanceof Expectation) {
+        if (!$result instanceof MatcherEvaluation) {
             throw new \LogicException(\sprintf(
-                'Matcher "%s" did not return an Expectation.',
+                'Matcher "%s" did not return an MatcherEvaluation.',
                 $this->name,
             ));
         }

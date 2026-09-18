@@ -21,7 +21,7 @@ final readonly class SystemSignalOperationsTest
         $operations = new SystemSignalOperations();
         $available = \function_exists('pcntl_signal') && \function_exists('pcntl_async_signals');
 
-        Expect::that($operations->available())
+        Expect::value($operations->available())
             ->because('native signal availability MUST match the required pcntl functions')
             ->toBe($available);
 
@@ -38,10 +38,10 @@ final readonly class SystemSignalOperationsTest
         $operations->enableAsync();
         $operations->register(\SIGUSR1, $handler);
 
-        Expect::that(\pcntl_async_signals())
+        Expect::value(\pcntl_async_signals())
             ->because('native signal operations MUST enable asynchronous delivery')
             ->toBeTrue();
-        Expect::that(\pcntl_signal_get_handler(\SIGUSR1))
+        Expect::value(\pcntl_signal_get_handler(\SIGUSR1))
             ->because('native signal operations MUST register the exact handler')
             ->toBe($handler);
     }
@@ -65,13 +65,13 @@ final readonly class SystemSignalOperationsTest
             $root . '/vendor/autoload.php',
         ]);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because(\sprintf('the capability check runs with %s disabled', $function))
             ->toBe(0);
-        Expect::that($result->stdout)
+        Expect::value($result->stdout)
             ->because(\sprintf('native signal handling requires %s', $function))
             ->toBe('unavailable');
-        Expect::that($result->stderr)
+        Expect::value($result->stderr)
             ->toBe('');
     }
 

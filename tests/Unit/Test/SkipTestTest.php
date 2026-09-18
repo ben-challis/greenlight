@@ -13,7 +13,7 @@ final class SkipTestTest
     #[Test]
     public function anEmptyReasonIsRejected(): void
     {
-        Expect::that(static fn(): SkipTest => new SkipTest(''))
+        Expect::calling(static fn(): SkipTest => new SkipTest(''))
             ->because('skip reasons cannot be empty')
             ->toThrow(\InvalidArgumentException::class, message: 'Skip reasons cannot be empty.');
     }
@@ -23,10 +23,10 @@ final class SkipTestTest
     {
         $skip = new SkipTest('0');
 
-        Expect::that($skip->reason)
+        Expect::value($skip->reason)
             ->because('a skip signal MUST preserve a zero-string reason')
             ->toBe('0');
-        Expect::that($skip->getMessage())
+        Expect::value($skip->getMessage())
             ->toBe('0');
     }
 }

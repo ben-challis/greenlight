@@ -25,7 +25,7 @@ final class MatcherMapReturnConflictTest
         string $firstReturn,
         string $secondReturn,
     ): void {
-        Expect::that(
+        Expect::calling(
             static fn(): MatcherMap => MatcherMap::fromConfigFiles([$firstConfig, $secondConfig]),
         )
             ->because('return types are part of the normalized matcher signature')
@@ -52,7 +52,7 @@ final class MatcherMapReturnConflictTest
     ): void {
         $map = MatcherMap::fromConfigFiles([$firstConfig, $secondConfig]);
 
-        Expect::that($map->has('toBeAvailable'))
+        Expect::value($map->has('toBeAvailable'))
             ->because('equivalent normalized matcher signatures do not conflict')
             ->toBeTrue();
     }

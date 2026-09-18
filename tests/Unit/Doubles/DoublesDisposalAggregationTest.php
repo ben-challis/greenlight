@@ -26,14 +26,14 @@ final class DoublesDisposalAggregationTest
             $plan->expects('record')->once();
         });
 
-        Expect::that(static function () use ($doubles): void {
+        Expect::calling(static function () use ($doubles): void {
             $doubles->dispose();
         })
             ->because(
                 'disposal MUST report unmet expectations from every mock in creation order',
             )
             ->toThrow(static function (ExpectationFailed $failure): void {
-                Expect::that($failure->getMessage())->toBe(
+                Expect::value($failure->getMessage())->toBe(
                     "2 expectations failed:\n"
                     . '1) Calls to ' . Calculator::class . '::add(): 0 times. '
                     . "The expectation requires exactly 1 time.\n"
@@ -41,7 +41,7 @@ final class DoublesDisposalAggregationTest
                     . 'The expectation requires exactly 1 time.',
                 );
 
-                Expect::that($failure->details)->toEqual([
+                Expect::value($failure->details)->toEqual([
                     new FailureDetail(
                         'Calls to ' . Calculator::class . '::add(): 0 times. '
                             . 'The expectation requires exactly 1 time.',

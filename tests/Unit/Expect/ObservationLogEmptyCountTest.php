@@ -15,7 +15,7 @@ final class ObservationLogEmptyCountTest
     {
         $log = new ObservationLog(0.0);
 
-        Expect::that($log->count())
+        Expect::value($log->count())
             ->because('an observation log MUST report at least one observation')
             ->toBe(1);
     }

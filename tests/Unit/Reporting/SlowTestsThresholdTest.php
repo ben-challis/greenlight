@@ -22,7 +22,7 @@ final class SlowTestsThresholdTest
         $slow->record($this->finished('exactlyAtThreshold', 0.500));
         $slow->record($this->finished('aboveThreshold', 0.501));
 
-        Expect::that($slow->render(new Style(ansi: false)))
+        Expect::value($slow->render(new Style(ansi: false)))
             ->because('the slow-test block MUST contain only tests above the half-second threshold')
             ->toBe("\nSlowest tests:\n  0.501s Acme\\SlowTest::aboveThreshold\n");
     }

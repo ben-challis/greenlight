@@ -52,7 +52,7 @@ final readonly class TeamCityReporterTest
             ##teamcity[testSuiteFinished name='Acme\NetworkTest' flowId='Acme\NetworkTest']
             TXT;
 
-        Expect::that($output->buffer())->because('canned stream renders the golden service messages')->toBe($expected . "\n");
+        Expect::value($output->buffer())->because('canned stream renders the golden service messages')->toBe($expected . "\n");
     }
 
     #[Test]
@@ -72,7 +72,7 @@ final readonly class TeamCityReporterTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::that($output->buffer())->because('values are escaped per service message rules')->toBe(
+        Expect::value($output->buffer())->because('values are escaped per service message rules')->toBe(
             "##teamcity[testFailed name='Acme\EscapeTest::escapes' message='pipe || quote |' bracket |[x|]|nnext' flowId='Acme\EscapeTest']\n"
             . "##teamcity[testFinished name='Acme\EscapeTest::escapes' duration='1' flowId='Acme\EscapeTest']\n",
         );
@@ -92,7 +92,7 @@ final readonly class TeamCityReporterTest
             0,
         ), 1.0));
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('an unrepresentable TeamCity duration MUST NOT collapse to zero')
             ->toBe(\sprintf(
                 "##teamcity[testFinished name='Acme\\DurationTest::reports' duration='%d' flowId='Acme\\DurationTest']\n",
@@ -115,7 +115,7 @@ final readonly class TeamCityReporterTest
 
         $reporter->onEvent(new TestFinished($result, 1.0));
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('a zero-string failure message MUST remain distinct from missing failure details')
             ->toBe(
                 "##teamcity[testFailed name='Acme\FailureTest::fails' message='0' flowId='Acme\FailureTest']\n"
@@ -149,7 +149,7 @@ final readonly class TeamCityReporterTest
             0,
         ), 1.1));
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('incomplete and multiple failure details remain reportable')
             ->toBe(
                 "##teamcity[testFailed name='{$class}::multipleFailures' message='primary failure' details='secondary failure' flowId='{$class}']\n"
@@ -172,7 +172,7 @@ final readonly class TeamCityReporterTest
         $reporter->onEvent(new TestStarted(new TestId($class, 'one'), 1.1));
         $reporter->onEvent(new TestStarted(new TestId($class, 'two', 'large input'), 1.2));
 
-        Expect::that($output->buffer())->because('loadable classes get php_qn location hints')->toBe(
+        Expect::value($output->buffer())->because('loadable classes get php_qn location hints')->toBe(
             "##teamcity[testSuiteStarted name='{$class}' locationHint='php_qn://{$file}::\\{$class}' flowId='{$class}']\n"
             . "##teamcity[testStarted name='{$class}::one' locationHint='php_qn://{$file}::\\{$class}::one' flowId='{$class}']\n"
             . "##teamcity[testStarted name='{$class}::two|[large input|]' locationHint='php_qn://{$file}::\\{$class}::two' flowId='{$class}']\n",
@@ -190,7 +190,7 @@ final readonly class TeamCityReporterTest
         $reporter->onEvent(new TestClassStarted($class, 1.0, 'w-1'));
         $reporter->onEvent(new TestStarted(new TestId($class, 'haunts'), 1.1));
 
-        Expect::that($output->buffer())->because('unloadable classes omit the location hint')->toBe(
+        Expect::value($output->buffer())->because('unloadable classes omit the location hint')->toBe(
             "##teamcity[testSuiteStarted name='{$class}' flowId='{$class}']\n"
             . "##teamcity[testStarted name='{$class}::haunts' flowId='{$class}']\n",
         );
@@ -211,7 +211,7 @@ final readonly class TeamCityReporterTest
 
         $reporter->onEvent(new TestClassStarted($class, 1.0, 'w-1'));
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('an autoloader error omits the optional navigation hint')
             ->toBe("##teamcity[testSuiteStarted name='{$class}' flowId='{$class}']\n");
     }
@@ -237,7 +237,7 @@ final readonly class TeamCityReporterTest
         $reporter->onEvent(new TestClassFinished($alpha, 1.07, 'w-1'));
         $reporter->finish();
 
-        Expect::that($output->buffer())->because('interleaved classes keep distinct flows')->toBe(
+        Expect::value($output->buffer())->because('interleaved classes keep distinct flows')->toBe(
             "##teamcity[testSuiteStarted name='{$alpha}' flowId='{$alpha}']\n"
             . "##teamcity[testSuiteStarted name='{$beta}' flowId='{$beta}']\n"
             . "##teamcity[testStarted name='{$alpha}::first' flowId='{$alpha}']\n"
@@ -262,7 +262,7 @@ final readonly class TeamCityReporterTest
         $reporter->onEvent(new TestClassFinished($class, 1.03, 'w-2'));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('concurrent split assignments MUST share one TeamCity suite flow')
             ->toBe(
                 "##teamcity[testSuiteStarted name='{$class}' flowId='{$class}']\n"

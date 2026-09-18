@@ -28,16 +28,16 @@ final class IncrementalConfiguratorTest
             ->build();
         $coverage = $configuration->coverage;
 
-        Expect::that($coverage)
+        Expect::value($coverage)
             ->because('Repeated coverage blocks MUST enable coverage.')
             ->toBeInstanceOf(CoverageConfiguration::class);
 
-        Expect::that($coverage->includePaths)
+        Expect::value($coverage->includePaths)
             ->because('repeated coverage blocks MUST retain earlier settings')
             ->toBe(['src', 'packages']);
-        Expect::that($coverage->driver)
+        Expect::value($coverage->driver)
             ->toBe('pcov');
-        Expect::that(\array_map(
+        Expect::value(\array_map(
             static fn(CoverageExport $export): array => [$export->format, $export->target],
             $coverage->exports,
         ))
@@ -61,16 +61,16 @@ final class IncrementalConfiguratorTest
             ->execution
             ->artifacts;
 
-        Expect::that($artifacts->directory)
+        Expect::value($artifacts->directory)
             ->because('repeated artifact blocks MUST retain the earlier directory')
             ->toBe('build/evidence');
-        Expect::that($artifacts->maxAttachmentsPerTest)
+        Expect::value($artifacts->maxAttachmentsPerTest)
             ->because('repeated artifact blocks MUST retain the earlier per-test limit')
             ->toBe(12);
-        Expect::that($artifacts->maxAttachmentBytes)
+        Expect::value($artifacts->maxAttachmentBytes)
             ->because('repeated artifact blocks MUST apply the attachment size limit')
             ->toBe(2 * 1024 * 1024);
-        Expect::that($artifacts->maxRunAttachments)
+        Expect::value($artifacts->maxRunAttachments)
             ->because('repeated artifact blocks MUST apply the per-run limit')
             ->toBe(200);
     }

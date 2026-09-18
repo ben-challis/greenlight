@@ -27,7 +27,7 @@ final readonly class HarnessSandboxesTest
 
         TraceLog::add('temp:' . $path);
 
-        Expect::that(\is_file($path . '/probe.txt'))->toBeTrue();
-        Expect::that(\getenv('GREENLIGHT_SANDBOX_E2E'))->toBe('inside');
+        Expect::value(\is_file($path . '/probe.txt'))->toBeTrue();
+        Expect::value(\getenv('GREENLIGHT_SANDBOX_E2E'))->toBe('inside');
     }
 }

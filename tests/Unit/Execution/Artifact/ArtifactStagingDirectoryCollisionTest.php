@@ -37,7 +37,7 @@ final readonly class ArtifactStagingDirectoryCollisionTest
             $configuration,
         );
 
-        Expect::that(static fn() => $store->stageBytes(
+        Expect::calling(static fn() => $store->stageBytes(
             'evidence',
             'evidence.txt',
             $storageKey,
@@ -52,7 +52,7 @@ final readonly class ArtifactStagingDirectoryCollisionTest
                 AttachmentError::class,
                 matching: '/^Failed to create attachment staging subdirectory/',
             );
-        Expect::that((string) \file_get_contents($blocker))
+        Expect::value((string) \file_get_contents($blocker))
             ->because('a rejected attachment MUST preserve the existing entry')
             ->toBe('occupied');
 
@@ -68,7 +68,7 @@ final readonly class ArtifactStagingDirectoryCollisionTest
             $configuration,
         );
 
-        Expect::that($staged->name)
+        Expect::value($staged->name)
             ->because('a rejected attachment MUST release its run quota')
             ->toBe('evidence.txt');
     }

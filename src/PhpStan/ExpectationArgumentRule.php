@@ -4,9 +4,15 @@ declare(strict_types=1);
 
 namespace Greenlight\PhpStan;
 
+use Greenlight\Expect\CallExpectation;
 use Greenlight\Expect\ConsistentlyExpectation;
 use Greenlight\Expect\EventuallyExpectation;
 use Greenlight\Expect\Expectation;
+use Greenlight\Expect\PendingConsistently;
+use Greenlight\Expect\PendingConsistentlyCall;
+use Greenlight\Expect\PendingEventually;
+use Greenlight\Expect\PendingEventuallyCall;
+use Greenlight\Expect\TemporalCallExpectation;
 use Greenlight\Expect\TemporalExpectation;
 use Greenlight\Internal\Php\ErrorTrap;
 use PhpParser\Node;
@@ -148,7 +154,7 @@ final class ExpectationArgumentRule implements Rule
     private function isExpectation(Type $receiver): bool
     {
         return \array_any(
-            [Expectation::class, TemporalExpectation::class, EventuallyExpectation::class, ConsistentlyExpectation::class],
+            [CallExpectation::class, TemporalCallExpectation::class, Expectation::class, TemporalExpectation::class, EventuallyExpectation::class, ConsistentlyExpectation::class, PendingEventually::class, PendingConsistently::class, PendingEventuallyCall::class, PendingConsistentlyCall::class],
             static fn(string $class): bool => new ObjectType($class)->isSuperTypeOf($receiver)->yes(),
         );
     }

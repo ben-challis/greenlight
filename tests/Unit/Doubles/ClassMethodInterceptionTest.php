@@ -21,7 +21,7 @@ final readonly class ClassMethodInterceptionTest
             $plan->expects('now')->once()->andReturns('fixed-time');
         });
 
-        Expect::that($clock->now())
+        Expect::value($clock->now())
             ->because('a class double MUST use its configured answer for a concrete method')
             ->toBe('fixed-time');
     }

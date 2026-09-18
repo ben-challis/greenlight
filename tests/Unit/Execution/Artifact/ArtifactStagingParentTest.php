@@ -35,7 +35,7 @@ final readonly class ArtifactStagingParentTest
             $configuration,
         );
 
-        Expect::that(static fn() => $store->stageBytes(
+        Expect::calling(static fn() => $store->stageBytes(
             'evidence',
             'evidence.txt',
             'blocked/01-evidence.txt',
@@ -50,7 +50,7 @@ final readonly class ArtifactStagingParentTest
                 AttachmentError::class,
                 message: 'Failed to create attachment staging subdirectory: mkdir(): File exists.',
             );
-        Expect::that((string) \file_get_contents($blocker))
+        Expect::value((string) \file_get_contents($blocker))
             ->because('a rejected attachment MUST NOT replace the blocking entry')
             ->toBe('keep');
 
@@ -65,7 +65,7 @@ final readonly class ArtifactStagingParentTest
             $configuration,
         );
 
-        Expect::that($staged->name)
+        Expect::value($staged->name)
             ->because('a rejected attachment MUST release its run quota')
             ->toBe('evidence.txt');
     }

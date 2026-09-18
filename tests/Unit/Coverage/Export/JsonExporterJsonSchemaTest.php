@@ -29,7 +29,7 @@ final readonly class JsonExporterJsonSchemaTest
         ];
 
         foreach ($documents as $case => $json) {
-            Expect::that($this->isValid($json))
+            Expect::value($this->isValid($json))
                 ->because($case . ' MUST match the shipped coverage schema')
                 ->toBeTrue();
         }
@@ -39,7 +39,7 @@ final readonly class JsonExporterJsonSchemaTest
     #[DataSet('invalidDocuments')]
     public function invalidProducerDocumentsDoNotMatchTheSchema(string $json): void
     {
-        Expect::that($this->isValid($json))
+        Expect::value($this->isValid($json))
             ->because('an invalid producer document MUST NOT match the coverage schema')
             ->toBeFalse();
     }
@@ -69,7 +69,7 @@ final readonly class JsonExporterJsonSchemaTest
             }
             JSON;
 
-        Expect::that($this->isValid($json))
+        Expect::value($this->isValid($json))
             ->because('version 1 MUST permit additive fields')
             ->toBeTrue();
     }

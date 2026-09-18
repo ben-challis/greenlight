@@ -17,7 +17,7 @@ final class JsonExporterSchemaDiagnosticTest
     #[DataSet('invalidSchemaVersions')]
     public function invalidSchemaVersionsIdentifyTheSupportedVersion(string $document): void
     {
-        Expect::that(static fn(): CoverageMap => JsonExporter::import($document))
+        Expect::calling(static fn(): CoverageMap => JsonExporter::import($document))
             ->because('an invalid coverage schema MUST identify the supported version')
             ->toThrow(
                 CoverageError::class,

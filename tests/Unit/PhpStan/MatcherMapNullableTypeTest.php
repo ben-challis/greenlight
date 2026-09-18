@@ -17,7 +17,7 @@ final class MatcherMapNullableTypeTest
     {
         $parameter = new \ReflectionMethod(self::class, $method)->getParameters()[0];
 
-        Expect::that(MatcherMap::typeName($parameter->getType()))
+        Expect::value(MatcherMap::typeName($parameter->getType()))
             ->because('nullable named types MUST render valid generated signatures')
             ->toBe($expected);
     }

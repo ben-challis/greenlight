@@ -34,13 +34,13 @@ final class ProfileReporterTest
             $reporter->onEvent($event);
         }
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('profile events MUST remain buffered until reporter completion')
             ->toBe('');
 
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('reporter completion MUST write the aggregated run profile')
             ->toBe(
                 "\nProfile:\n"

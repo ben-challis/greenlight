@@ -19,8 +19,8 @@ final class DriverSelectorTest
     {
         $selection = new DriverSelector([])->select();
 
-        Expect::that($selection->driver)->because('empty candidate list yields no driver and a reason')->toBeNull();
-        Expect::that($selection->reason)->toBe('No coverage driver is configured.');
+        Expect::value($selection->driver)->because('empty candidate list yields no driver and a reason')->toBeNull();
+        Expect::value($selection->reason)->toBe('No coverage driver is configured.');
     }
 
     #[Test]
@@ -28,8 +28,8 @@ final class DriverSelectorTest
     {
         $selection = new DriverSelector([UnavailableFakeDriver::class, AvailableFakeDriver::class])->select();
 
-        Expect::that($selection->driver)->because('an available candidate is selected with no reason')->toBeInstanceOf(AvailableFakeDriver::class);
-        Expect::that($selection->reason)->toBeNull();
+        Expect::value($selection->driver)->because('an available candidate is selected with no reason')->toBeInstanceOf(AvailableFakeDriver::class);
+        Expect::value($selection->reason)->toBeNull();
     }
 
     #[Test]
@@ -37,10 +37,10 @@ final class DriverSelectorTest
     {
         $selection = new DriverSelector([RecordingFakeDriver::class, AvailableFakeDriver::class])->select();
 
-        Expect::that($selection->driver)
+        Expect::value($selection->driver)
             ->because('candidate order determines coverage-driver preference')
             ->toBeInstanceOf(RecordingFakeDriver::class);
-        Expect::that($selection->reason)
+        Expect::value($selection->reason)
             ->toBeNull();
     }
 
@@ -49,8 +49,8 @@ final class DriverSelectorTest
     {
         $selection = new DriverSelector([UnavailableFakeDriver::class])->select();
 
-        Expect::that($selection->driver)->because('no available candidate yields no driver and a named reason')->toBeNull();
-        Expect::that($selection->reason)->toBe(
+        Expect::value($selection->driver)->because('no available candidate yields no driver and a named reason')->toBeNull();
+        Expect::value($selection->reason)->toBe(
             'No coverage driver is available. Greenlight tried UnavailableFakeDriver. Install pcov or enable Xdebug coverage mode. '
                 . 'Set xdebug.mode to "coverage", or set the XDEBUG_MODE environment variable.',
         );
@@ -64,9 +64,9 @@ final class DriverSelectorTest
         $selection = new DriverSelector()->select();
 
         if ($selection->driver instanceof CoverageDriver) {
-            Expect::that($selection->reason)->toBeNull();
+            Expect::value($selection->reason)->toBeNull();
         } else {
-            Expect::that($selection->reason)->not()->toBeNull();
+            Expect::value($selection->reason)->not()->toBeNull();
         }
     }
 }

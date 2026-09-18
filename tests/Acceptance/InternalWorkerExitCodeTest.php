@@ -46,7 +46,7 @@ final readonly class InternalWorkerExitCodeTest
             $channel = new SocketChannel($connection);
 
             try {
-                Expect::that($channel->receive(5.0))->toBeInstanceOf(Hello::class);
+                Expect::value($channel->receive(5.0))->toBeInstanceOf(Hello::class);
 
                 if ($drain) {
                     $channel->send(new Drain());
@@ -57,8 +57,8 @@ final readonly class InternalWorkerExitCodeTest
 
             $result = $process->wait(5.0);
 
-            Expect::that($result->exitCode)->toBe(0);
-            Expect::that($result->stderr)->toBe('');
+            Expect::value($result->exitCode)->toBe(0);
+            Expect::value($result->stderr)->toBe('');
         } finally {
             \fclose($server);
         }

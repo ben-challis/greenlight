@@ -24,7 +24,7 @@ final readonly class ConfigLoaderOpenFailureTest
         $this->streamWrappers->register(self::SCHEME, StatableFileStream::class);
         $file = self::SCHEME . '://greenlight.php';
 
-        Expect::that(
+        Expect::calling(
             static function () use ($file, &$warning): void {
                 ErrorTrap::run(
                     static fn() => new ConfigLoader()->loadFile($file),
@@ -35,13 +35,13 @@ final readonly class ConfigLoaderOpenFailureTest
             ->because('a configuration open failure MUST become only a configuration error')
             ->toThrow(
                 static function (ConfigFileError $error) use ($file): void {
-                    Expect::that($error->getMessage())
+                    Expect::value($error->getMessage())
                         ->toContain(\sprintf('Configuration file "%s" threw Error:', $file));
-                    Expect::that($error->getPrevious())
+                    Expect::value($error->getPrevious())
                         ->toBeInstanceOf(\Error::class);
                 },
             );
-        Expect::that($warning)
+        Expect::value($warning)
             ->because('a configuration open failure MUST not leak an engine diagnostic')
             ->toBeNull();
     }

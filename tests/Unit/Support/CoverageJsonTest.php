@@ -26,7 +26,7 @@ final readonly class CoverageJsonTest
 
         CoverageJson::write($path, $map);
 
-        Expect::that(CoverageJson::read($path)->toWire())
+        Expect::value(CoverageJson::read($path)->toWire())
             ->because('the shared coverage JSON fixture MUST preserve the coverage map')
             ->toBe($map->toWire());
     }
@@ -36,7 +36,7 @@ final readonly class CoverageJsonTest
     {
         $path = $this->workspace->path() . '/missing/coverage.json';
 
-        Expect::that(static fn(): CoverageMap => CoverageJson::read($path))
+        Expect::calling(static fn(): CoverageMap => CoverageJson::read($path))
             ->because('a coverage JSON read failure MUST identify its source')
             ->toThrow(
                 ExpectationFailed::class,
@@ -51,7 +51,7 @@ final readonly class CoverageJsonTest
     {
         $path = $this->workspace->path() . '/missing/coverage.json';
 
-        Expect::that(static function () use ($path): void {
+        Expect::calling(static function () use ($path): void {
             CoverageJson::write($path, CoverageMap::empty());
         })
             ->because('a coverage fixture write failure MUST identify its target')

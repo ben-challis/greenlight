@@ -56,13 +56,13 @@ final class PriceTest
     {
         $total = Price::fromString($unit)->times($quantity);
 
-        Expect::that($total->format())->toBe($expected);
+        Expect::value($total->format())->toBe($expected);
     }
 
     #[Test]
     public function rejectsNegativeQuantities(): void
     {
-        Expect::that(static function (): void {
+        Expect::calling(static function (): void {
             Price::fromString('9.99')->times(-1);
         })->toThrow(\InvalidArgumentException::class, matching: '/quantity/');
     }

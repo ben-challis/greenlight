@@ -25,7 +25,7 @@ final readonly class TestDiscovererNonFileEntryTest
             Fail::because('Expected to create the directory link fixture.');
         }
 
-        Expect::that(new TestDiscoverer()->testFiles([$scanned]))
+        Expect::value(new TestDiscoverer()->testFiles([$scanned]))
             ->because('test discovery MUST ignore directory links that resemble test files')
             ->toBe([]);
     }

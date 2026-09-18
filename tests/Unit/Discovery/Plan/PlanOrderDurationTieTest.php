@@ -27,7 +27,7 @@ final readonly class PlanOrderDurationTieTest
             'Acme\\GammaTest' => 1.0,
         ]);
 
-        Expect::that($ordered->classes())
+        Expect::value($ordered->classes())
             ->because('equal recorded durations MUST preserve discovery order')
             ->toBe([
                 'Acme\\GammaTest',

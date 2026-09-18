@@ -15,7 +15,7 @@ final readonly class ValueRendererStringBoundaryTest
     {
         $value = \str_repeat('x', 120);
 
-        Expect::that(new ValueRenderer()->render($value))
+        Expect::value(new ValueRenderer()->render($value))
             ->because('a diagnostic string at the limit MUST remain complete')
             ->toBe("'" . $value . "'");
     }

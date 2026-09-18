@@ -41,7 +41,7 @@ final class JUnitReporterIncompleteRunTest
 
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('incomplete JUnit streams MUST report the summed test duration')
             ->toContain(
                 '<testsuites name="greenlight" tests="2" failures="0" errors="0" '
@@ -70,17 +70,17 @@ final class JUnitReporterIncompleteRunTest
         $reporter->finish();
         $document = \simplexml_load_string($output->buffer());
 
-        Expect::that($document)
+        Expect::value($document)
             ->because('overflow protection MUST preserve a valid JUnit document')
             ->toBeInstanceOf(\SimpleXMLElement::class);
 
         $suites = SimpleXml::xpath($document, '//testsuite');
         $maximum = \sprintf('%.6f', \PHP_FLOAT_MAX);
 
-        Expect::that((string) $document['time'])
+        Expect::value((string) $document['time'])
             ->because('the fallback run duration MUST remain a finite decimal')
             ->toBe($maximum);
-        Expect::that($suites)
+        Expect::value($suites)
             ->because('the report contains the overflowing class suite')
             ->toHaveCount(1);
 
@@ -88,7 +88,7 @@ final class JUnitReporterIncompleteRunTest
             return;
         }
 
-        Expect::that((string) $suites[0]['time'])
+        Expect::value((string) $suites[0]['time'])
             ->because('the class duration MUST remain a finite decimal')
             ->toBe($maximum);
     }

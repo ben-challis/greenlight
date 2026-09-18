@@ -20,7 +20,7 @@ final class CapturedOutputValidationTest
     #[DataSet('invalidDiagnostics')]
     public function invalidDiagnosticsAreRejected(array $diagnostics): void
     {
-        Expect::that(static fn(): CapturedOutput => new CapturedOutput('', $diagnostics))
+        Expect::calling(static fn(): CapturedOutput => new CapturedOutput('', $diagnostics))
             ->because('captured output diagnostics MUST be a list of Diagnostic instances')
             ->toThrow(
                 \InvalidArgumentException::class,

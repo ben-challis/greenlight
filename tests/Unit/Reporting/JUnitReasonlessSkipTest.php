@@ -31,7 +31,7 @@ final class JUnitReasonlessSkipTest
 
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        Expect::value($output->buffer())
             ->because('a reasonless skip remains a valid JUnit skipped element without invented detail')
             ->toContain('<skipped/>')
             ->not()

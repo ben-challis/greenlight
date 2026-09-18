@@ -24,18 +24,18 @@ final class ExtensionMatcherParameterTest
         $reflection = new \ReflectionMethod(self::class, $method)->getParameters()[0];
         $parameter = new ExtensionMatcherParameter($reflection);
 
-        Expect::that($parameter->getName())
+        Expect::value($parameter->getName())
             ->because('extension matcher parameters MUST preserve their reflected signature')
             ->toBe($name);
-        Expect::that($parameter->isOptional())
+        Expect::value($parameter->isOptional())
             ->toBe($optional);
-        Expect::that($parameter->isVariadic())
+        Expect::value($parameter->isVariadic())
             ->toBe($variadic);
-        Expect::that($parameter->getType()->describe(VerbosityLevel::typeOnly()))
+        Expect::value($parameter->getType()->describe(VerbosityLevel::typeOnly()))
             ->toBe($type);
-        Expect::that($parameter->passedByReference()->no())
+        Expect::value($parameter->passedByReference()->no())
             ->toBeTrue();
-        Expect::that($parameter->getDefaultValue())
+        Expect::value($parameter->getDefaultValue())
             ->toBeNull();
     }
 

@@ -19,7 +19,7 @@ final class GreenlightConfigWorkerValidationTest
     #[DataSet('invalidWorkerConfigurations')]
     public function invalidWorkerConfigurationsGiveExactGuidance(\Closure $configure, string $message): void
     {
-        Expect::that($configure)
+        Expect::calling($configure)
             ->because('each invalid worker option MUST identify the required fix')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }

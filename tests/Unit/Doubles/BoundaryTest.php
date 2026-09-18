@@ -28,21 +28,21 @@ final readonly class BoundaryTest
     #[Test]
     public function finalClassesCannotBeDoubled(): void
     {
-        Expect::that(fn(): object => $this->doubles->mock(FinalService::class))->because('final classes cannot be doubled') // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
+        Expect::calling(fn(): object => $this->doubles->mock(FinalService::class))->because('final classes cannot be doubled') // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
             ->toThrow(InvalidDoubleUsage::class, '/is final.*proxy subclass.*interface/');
     }
 
     #[Test]
     public function readonlyClassesCannotBeDoubled(): void
     {
-        Expect::that(fn(): object => $this->doubles->mock(ReadonlyService::class))->because('readonly classes cannot be doubled') // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
+        Expect::calling(fn(): object => $this->doubles->mock(ReadonlyService::class))->because('readonly classes cannot be doubled') // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
             ->toThrow(InvalidDoubleUsage::class, '/readonly class.*interface/');
     }
 
     #[Test]
     public function enumsCannotBeDoubled(): void
     {
-        Expect::that(fn(): object => $this->doubles->mock(Suit::class))->because('enums cannot be doubled') // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
+        Expect::calling(fn(): object => $this->doubles->mock(Suit::class))->because('enums cannot be doubled') // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'Greenlight\Tests\Fixture\Doubles\Suit is an enum. '
@@ -53,7 +53,7 @@ final readonly class BoundaryTest
     #[Test]
     public function traitsCannotBeDoubled(): void
     {
-        Expect::that(fn(): object => $this->doubles->mock(ReusableBehavior::class)) // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
+        Expect::calling(fn(): object => $this->doubles->mock(ReusableBehavior::class)) // @phpstan-ignore greenlight.doubles.doubleableType (deliberately invalid: tests runtime validation)
             ->because('a trait cannot supply an object type for a generated proxy')
             ->toThrow(
                 InvalidDoubleUsage::class,
@@ -70,7 +70,7 @@ final readonly class BoundaryTest
     #[DataSet('handlerCollisions')]
     public function theProxyHandlerMethodCannotBeDeclaredByTheDoubledType(string $type): void
     {
-        Expect::that(fn(): object => $this->doubles->mock($type))
+        Expect::calling(fn(): object => $this->doubles->mock($type))
             ->because('the proxy handler method cannot be declared by the doubled type')
             ->toThrow(
                 InvalidDoubleUsage::class,
@@ -96,16 +96,16 @@ final readonly class BoundaryTest
         $constructor = $reflection->getMethod('__construct');
         $clone = $reflection->getMethod('__clone');
 
-        Expect::that($constructor->getDeclaringClass()->name)
+        Expect::value($constructor->getDeclaringClass()->name)
             ->because('PHP magic method names MUST remain case-insensitive in generated proxies')
             ->toBe(MixedCaseMagicMethods::class);
-        Expect::that($clone->getDeclaringClass()->name)->toBe($double::class);
+        Expect::value($clone->getDeclaringClass()->name)->toBe($double::class);
     }
 
     #[Test]
     public function aMixedCaseDestructorDoesNotCreateADuplicateProxyMethod(): void
     {
-        Expect::that($this->doubles->stub(MixedCaseDestructor::class))
+        Expect::value($this->doubles->stub(MixedCaseDestructor::class))
             ->because('a mixed-case destructor MUST produce a valid proxy class')
             ->toBeInstanceOf(MixedCaseDestructor::class);
     }
@@ -113,7 +113,7 @@ final readonly class BoundaryTest
     #[Test]
     public function planningAMissingMethodIsAnAuthoringError(): void
     {
-        Expect::that(fn(): object => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+        Expect::calling(fn(): object => $this->doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects(self::missingMethod());
         }))->because('planning a missing method is an authoring error')->toThrow(InvalidDoubleUsage::class, '/has no method subtract\(\)/');
     }
@@ -131,7 +131,7 @@ final readonly class BoundaryTest
     #[DataSet('unplannableMethods')]
     public function planningAnUnplannableMethodIsAnAuthoringError(string $method, string $message): void
     {
-        Expect::that(fn(): object => $this->doubles->mock(
+        Expect::calling(fn(): object => $this->doubles->mock(
             PlanningBoundaries::class,
             static function (MockPlan $plan) use ($method): void {
                 $plan->expects($method);

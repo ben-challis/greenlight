@@ -19,9 +19,9 @@ final class BaselineDiffTest
 
         $report = BaselineDiff::between($map, $map);
 
-        Expect::that($report->fileDeltas)->because('comparing a map against itself reports no changes')->toBe([]);
-        Expect::that($report->totalDelta())->toBe(0.0);
-        Expect::that($report->hasRegressions())->toBeFalse();
+        Expect::value($report->fileDeltas)->because('comparing a map against itself reports no changes')->toBe([]);
+        Expect::value($report->totalDelta())->toBe(0.0);
+        Expect::value($report->hasRegressions())->toBeFalse();
     }
 
     #[Test]
@@ -33,13 +33,13 @@ final class BaselineDiffTest
         $report = BaselineDiff::between($baseline, $current);
         $delta = $report->fileDeltas['/src/A.php'];
 
-        Expect::that($delta->baselinePercentage)->because('reports per file and total percentage deltas')->toBe(100.0);
-        Expect::that($delta->currentPercentage)->toBe(50.0);
-        Expect::that($delta->delta())->toBeWithin(0.001, -50.0);
-        Expect::that($report->baselinePercentage)->toBe(100.0);
-        Expect::that($report->currentPercentage)->toBe(50.0);
-        Expect::that($report->totalDelta())->toBeWithin(0.001, -50.0);
-        Expect::that($report->hasRegressions())->toBeTrue();
+        Expect::value($delta->baselinePercentage)->because('reports per file and total percentage deltas')->toBe(100.0);
+        Expect::value($delta->currentPercentage)->toBe(50.0);
+        Expect::value($delta->delta())->toBeWithin(0.001, -50.0);
+        Expect::value($report->baselinePercentage)->toBe(100.0);
+        Expect::value($report->currentPercentage)->toBe(50.0);
+        Expect::value($report->totalDelta())->toBeWithin(0.001, -50.0);
+        Expect::value($report->hasRegressions())->toBeTrue();
     }
 
     #[Test]
@@ -50,7 +50,7 @@ final class BaselineDiffTest
 
         $report = BaselineDiff::between($baseline, $current);
 
-        Expect::that($report->fileDeltas['/src/A.php']->newlyUncoveredLines)->because('newly uncovered lines are lines uncovered now but not before')->toBe([2, 5]);
+        Expect::value($report->fileDeltas['/src/A.php']->newlyUncoveredLines)->because('newly uncovered lines are lines uncovered now but not before')->toBe([2, 5]);
     }
 
     #[Test]
@@ -61,10 +61,10 @@ final class BaselineDiffTest
 
         $report = BaselineDiff::between($baseline, $current);
 
-        Expect::that(\array_keys($report->fileDeltas))->because('files only in one map appear with a null side')->toBe(['/src/Gone.php', '/src/New.php']);
-        Expect::that($report->fileDeltas['/src/Gone.php']->currentPercentage)->toBeNull();
-        Expect::that($report->fileDeltas['/src/New.php']->baselinePercentage)->toBeNull();
-        Expect::that($report->fileDeltas['/src/New.php']->newlyUncoveredLines)->toBe([2]);
+        Expect::value(\array_keys($report->fileDeltas))->because('files only in one map appear with a null side')->toBe(['/src/Gone.php', '/src/New.php']);
+        Expect::value($report->fileDeltas['/src/Gone.php']->currentPercentage)->toBeNull();
+        Expect::value($report->fileDeltas['/src/New.php']->baselinePercentage)->toBeNull();
+        Expect::value($report->fileDeltas['/src/New.php']->newlyUncoveredLines)->toBe([2]);
     }
 
     #[Test]
@@ -75,8 +75,8 @@ final class BaselineDiffTest
 
         $report = BaselineDiff::between($baseline, $current);
 
-        Expect::that($report->totalDelta())->because('improved coverage is not a regression')->toBeWithin(0.001, 50.0);
-        Expect::that($report->hasRegressions())->toBeFalse();
+        Expect::value($report->totalDelta())->because('improved coverage is not a regression')->toBeWithin(0.001, 50.0);
+        Expect::value($report->hasRegressions())->toBeFalse();
     }
 
     #[Test]
@@ -92,13 +92,13 @@ final class BaselineDiffTest
 
         $report = BaselineDiff::between($baseline, $current);
 
-        Expect::that($report->totalDelta())
+        Expect::value($report->totalDelta())
             ->because('the added covered file MUST produce an overall coverage gain')
             ->toBeGreaterThan(0.0);
-        Expect::that($report->fileDeltas['/src/A.php']->newlyUncoveredLines)
+        Expect::value($report->fileDeltas['/src/A.php']->newlyUncoveredLines)
             ->because('the diff MUST preserve the line-level regression')
             ->toBe([1]);
-        Expect::that($report->hasRegressions())
+        Expect::value($report->hasRegressions())
             ->because('an overall gain MUST NOT hide a newly uncovered line')
             ->toBeTrue();
     }
@@ -115,10 +115,10 @@ final class BaselineDiffTest
 
         $report = BaselineDiff::between($baseline, $current);
 
-        Expect::that($report->fileDeltas['/src/A.php']->newlyUncoveredLines)
+        Expect::value($report->fileDeltas['/src/A.php']->newlyUncoveredLines)
             ->because('the retained file has no newly uncovered line')
             ->toBe([]);
-        Expect::that($report->hasRegressions())
+        Expect::value($report->hasRegressions())
             ->because('a total coverage decrease in retained files MUST remain a regression')
             ->toBeTrue();
     }

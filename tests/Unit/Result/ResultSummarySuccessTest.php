@@ -17,7 +17,7 @@ final readonly class ResultSummarySuccessTest
         ResultSummary $summary,
         bool $expected,
     ): void {
-        Expect::that($summary->isSuccessful())
+        Expect::value($summary->isSuccessful())
             ->because('run success MUST depend on failed and errored counts only')
             ->toBe($expected);
     }

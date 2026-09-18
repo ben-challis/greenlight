@@ -32,7 +32,7 @@ final readonly class SocketChannelInterruptedReceiveTest
         \pcntl_signal(\SIGUSR1, static function (): void {}, false);
         $parentPid = \getmypid();
 
-        Expect::that($parentPid)
+        Expect::value($parentPid)
             ->because('The test worker MUST have a process ID.')
             ->toBeInt();
 
@@ -64,26 +64,26 @@ final readonly class SocketChannelInterruptedReceiveTest
             \fclose($pair[1]);
         }
 
-        Expect::that($status)
+        Expect::value($status)
             ->because('The signal helper MUST provide a process status.')
             ->toBeInt();
 
-        Expect::that($received)
+        Expect::value($received)
             ->because('a signal-interrupted select MUST end the receive attempt')
             ->toBeNull();
-        Expect::that($eof)
+        Expect::value($eof)
             ->because('an interrupted select MUST not claim that the peer closed')
             ->toBeFalse();
-        Expect::that($waited)
+        Expect::value($waited)
             ->because('the signal helper MUST finish before the test exits')
             ->toBe($childPid);
-        Expect::that($stopped)
+        Expect::value($stopped)
             ->because('the signal helper MUST remain active until the receive attempt ends')
             ->toBeTrue();
-        Expect::that(\pcntl_wifsignaled($status))
+        Expect::value(\pcntl_wifsignaled($status))
             ->because('the test MUST stop the signal helper after the receive attempt ends')
             ->toBeTrue();
-        Expect::that(\pcntl_wtermsig($status))
+        Expect::value(\pcntl_wtermsig($status))
             ->toBe(\SIGTERM);
     }
 }

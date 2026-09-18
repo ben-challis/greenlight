@@ -19,7 +19,7 @@ final class MatcherParameterSignatureTest
     {
         $parameter = new \ReflectionMethod(self::class, $method)->getParameters()[0];
 
-        Expect::that(MatcherMap::parameterSignature($parameter, 'null'))
+        Expect::value(MatcherMap::parameterSignature($parameter, 'null'))
             ->because('generated matcher signatures MUST distinguish optional and variadic parameters')
             ->toBe($expected);
     }
@@ -31,12 +31,12 @@ final class MatcherParameterSignatureTest
         $selfParameter = $map->parameters('toAcceptSelfArgument')[0];
         $parentParameter = $map->parameters('toAcceptParentArgument')[0];
 
-        Expect::that(MatcherMap::parameterSignature($selfParameter, 'null'))
+        Expect::value(MatcherMap::parameterSignature($selfParameter, 'null'))
             ->because('self uses the matcher closure scope')
             ->toBe(
                 '\\Greenlight\\Tests\\Fixture\\PhpStanScopedMatcher\\ScopedMatcherExtension $other',
             );
-        Expect::that(MatcherMap::parameterSignature($parentParameter, 'null'))
+        Expect::value(MatcherMap::parameterSignature($parentParameter, 'null'))
             ->because('parent uses the matcher closure parent scope')
             ->toBe(
                 '\\Greenlight\\Tests\\Fixture\\PhpStanScopedMatcher\\MatcherSubject $other',

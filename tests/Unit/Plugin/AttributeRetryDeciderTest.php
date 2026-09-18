@@ -38,7 +38,7 @@ final class AttributeRetryDeciderTest
         );
         $policy = new RetryPolicy($times, $onlyOn);
 
-        Expect::that($plugin->shouldRetry(
+        Expect::value($plugin->shouldRetry(
             $policy,
             $result,
             $attempt,

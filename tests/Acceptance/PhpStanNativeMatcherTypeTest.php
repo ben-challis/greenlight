@@ -31,11 +31,11 @@ final readonly class PhpStanNativeMatcherTypeTest
 
             function greenlightGoodNativeTypeProbe(): void
             {
-                Expect::that(null)->toAcceptNullableDateTime();
-                Expect::that(new DateTimeImmutable())->toAcceptNullableDateTime();
-                Expect::that(1)->toAcceptIntegerOrString();
-                Expect::that('one')->toAcceptIntegerOrString();
-                Expect::that(new SerializableString())->toAcceptSerializableString();
+                Expect::value(null)->toAcceptNullableDateTime();
+                Expect::value(new DateTimeImmutable())->toAcceptNullableDateTime();
+                Expect::value(1)->toAcceptIntegerOrString();
+                Expect::value('one')->toAcceptIntegerOrString();
+                Expect::value(new SerializableString())->toAcceptSerializableString();
             }
             PHP,
             <<<'PHP'
@@ -47,19 +47,19 @@ final readonly class PhpStanNativeMatcherTypeTest
 
             function greenlightBadNativeTypeProbe(): void
             {
-                Expect::that(1)->toAcceptNullableDateTime();
-                Expect::that([])->toAcceptIntegerOrString();
-                Expect::that(new stdClass())->toAcceptSerializableString();
+                Expect::value(1)->toAcceptNullableDateTime();
+                Expect::value([])->toAcceptIntegerOrString();
+                Expect::value(new stdClass())->toAcceptSerializableString();
             }
             PHP,
             FixturePath::get('PhpStanNativeType/probe.neon'),
         );
 
-        Expect::that($probe->exitCode)
+        Expect::value($probe->exitCode)
             ->because('native matcher types keep nullable union and intersection shapes')
             ->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that($probe->errors)->toBe([
+        Expect::value($probe->goodPassed)->toBeTrue();
+        Expect::value($probe->errors)->toBe([
             'Extension matcher toAcceptNullableDateTime() requires subject type DateTimeInterface|null, but the subject has type int.',
             'Extension matcher toAcceptIntegerOrString() requires subject type int|string, but the subject has type array.',
             'Extension matcher toAcceptSerializableString() requires subject type JsonSerializable&Stringable, but the subject has type stdClass.',

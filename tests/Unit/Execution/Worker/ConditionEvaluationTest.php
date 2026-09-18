@@ -41,14 +41,14 @@ final readonly class ConditionEvaluationTest
             $byMethod[$result->id->method] = $result;
         }
 
-        Expect::that($summary->skipped)
+        Expect::value($summary->skipped)
             ->because('parameterized conditions skip with rendered arguments and run when satisfied')
             ->toBe(1);
-        Expect::that($summary->passed)->toBe(1);
-        Expect::that($byMethod['skipsWhenTheVariableDiffers']->outcome)->toBe(Outcome::Skipped);
-        Expect::that($byMethod['skipsWhenTheVariableDiffers']->skipReason)
+        Expect::value($summary->passed)->toBe(1);
+        Expect::value($byMethod['skipsWhenTheVariableDiffers']->outcome)->toBe(Outcome::Skipped);
+        Expect::value($byMethod['skipsWhenTheVariableDiffers']->skipReason)
             ->toBe('Condition EnvironmentVariableEquals("GREENLIGHT_STDLIB_NOPE", "yes") is not satisfied');
-        Expect::that($byMethod['runsWhenTheVersionIsSatisfied']->outcome)->toBe(Outcome::Passed);
+        Expect::value($byMethod['runsWhenTheVersionIsSatisfied']->outcome)->toBe(Outcome::Passed);
     }
 
     /**
@@ -80,11 +80,11 @@ final readonly class ConditionEvaluationTest
 
         $result = $sink->results()[0];
 
-        Expect::that($result->outcome)
+        Expect::value($result->outcome)
             ->because('invalid runtime condition metadata errors the test')
             ->toBe(Outcome::Errored);
-        Expect::that($result->error?->message)->toBe($message);
-        Expect::that($result->error?->class)->toBe($errorClass);
+        Expect::value($result->error?->message)->toBe($message);
+        Expect::value($result->error?->class)->toBe($errorClass);
     }
 
     /**

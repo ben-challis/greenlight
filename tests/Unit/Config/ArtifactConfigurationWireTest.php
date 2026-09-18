@@ -32,7 +32,7 @@ final class ArtifactConfigurationWireTest
             JsonWire::roundTrip($configuration->toWire()),
         );
 
-        Expect::that($restored)
+        Expect::value($restored)
             ->because('workers MUST receive every configured artifact safety limit')
             ->toEqual($configuration);
     }
@@ -43,7 +43,7 @@ final class ArtifactConfigurationWireTest
         $payload = new ArtifactConfiguration()->toWire();
         $payload['directory'] = "artifacts\0hidden";
 
-        Expect::that(static fn(): ArtifactConfiguration => ArtifactConfiguration::fromWire($payload))
+        Expect::calling(static fn(): ArtifactConfiguration => ArtifactConfiguration::fromWire($payload))
             ->because('artifact directories MUST remain valid file-system paths across the worker wire')
             ->toThrow(
                 InvalidWirePayload::class,
@@ -60,7 +60,7 @@ final class ArtifactConfigurationWireTest
 
         $restored = ArtifactConfiguration::fromWire(JsonWire::roundTrip($payload));
 
-        Expect::that($restored->toWire()[$field])
+        Expect::value($restored->toWire()[$field])
             ->because('artifact safety limits MUST remain positive across the worker wire')
             ->toBe(1);
     }

@@ -24,13 +24,13 @@ final readonly class TempestRunTest
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::that($result->exitCode)
+        Expect::value($result->exitCode)
             ->because(\sprintf(
                 "the Tempest acceptance project MUST complete. Output:\n%s",
                 $result->output(),
             ))
             ->toBe(0);
-        Expect::that($result->output())->toContain('2 tests, 2 passed');
+        Expect::value($result->output())->toContain('2 tests, 2 passed');
     }
 
     private function writeProject(): AcceptanceProject
@@ -208,23 +208,23 @@ final readonly class TempestRunTest
                 {
                     $this->counter->record();
 
-                    Expect::that($this->greeter->greet('Ada'))->toBe('Hello from testing, Ada!');
-                    Expect::that($this->environment)->toBe(Environment::TESTING);
-                    Expect::that($this->container->get(Greeter::class))->toBe($this->greeter);
-                    Expect::that($this->kernel->internalStorage)->toContain('/.tempest/greenlight/1');
-                    Expect::that($this->request->method)->toBe(Method::GET);
-                    Expect::that($this->request->uri)->toBe('/');
-                    Expect::that($this->counter->count())->toBe(1);
-                    Expect::that($this->defaultGreeting->prefix)->toBe('Hello from testing');
-                    Expect::that($this->serviceGreeting->prefix)->toBe('Hello from archive');
+                    Expect::value($this->greeter->greet('Ada'))->toBe('Hello from testing, Ada!');
+                    Expect::value($this->environment)->toBe(Environment::TESTING);
+                    Expect::value($this->container->get(Greeter::class))->toBe($this->greeter);
+                    Expect::value($this->kernel->internalStorage)->toContain('/.tempest/greenlight/1');
+                    Expect::value($this->request->method)->toBe(Method::GET);
+                    Expect::value($this->request->uri)->toBe('/');
+                    Expect::value($this->counter->count())->toBe(1);
+                    Expect::value($this->defaultGreeting->prefix)->toBe('Hello from testing');
+                    Expect::value($this->serviceGreeting->prefix)->toBe('Hello from archive');
                 }
 
                 #[Test]
                 public function shutdownAndContainerResetIsolateTheNextTest(): void
                 {
-                    Expect::that($this->counter->count())->toBe(0);
-                    Expect::that(VisitCounter::$resets)->toBe(1);
-                    Expect::that(LifecycleObserver::$shutdowns)->toBe(1);
+                    Expect::value($this->counter->count())->toBe(0);
+                    Expect::value(VisitCounter::$resets)->toBe(1);
+                    Expect::value(LifecycleObserver::$shutdowns)->toBe(1);
                 }
             }
             PHP);

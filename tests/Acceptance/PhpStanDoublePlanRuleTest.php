@@ -72,19 +72,19 @@ final readonly class PhpStanDoublePlanRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('mock plans must satisfy their doubled methods')->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(8);
-        Expect::that($probe->messages())
+        Expect::value($probe->exitCode)->because('mock plans must satisfy their doubled methods')->toBe(1);
+        Expect::value($probe->goodPassed)->toBeTrue();
+        Expect::value(\count($probe->errors))->toBe(8);
+        Expect::value($probe->messages())
             ->toContain('Mock plan method Greenlight\\Tests\\Fixture\\Doubles\\Wide::missing() does not exist');
-        Expect::that($probe->messages())->toContain('withNoArguments() supplies 0 arguments');
-        Expect::that($probe->messages())->toContain('with() supplies 1 argument');
-        Expect::that($probe->messages())->toContain('parameter $limit has type string, but the parameter requires int');
-        Expect::that($probe->messages())->toContain('parameter $rest has type string, but the parameter requires int');
-        Expect::that($probe->messages())
+        Expect::value($probe->messages())->toContain('withNoArguments() supplies 0 arguments');
+        Expect::value($probe->messages())->toContain('with() supplies 1 argument');
+        Expect::value($probe->messages())->toContain('parameter $limit has type string, but the parameter requires int');
+        Expect::value($probe->messages())->toContain('parameter $rest has type string, but the parameter requires int');
+        Expect::value($probe->messages())
             ->toContain('matcher for Greenlight\\Tests\\Fixture\\Doubles\\Wide::unionType() accepts '
                 . 'Countable&Greenlight\\Tests\\Fixture\\Doubles\\Marker, but parameter $value requires int|string');
-        Expect::that($probe->messages())
+        Expect::value($probe->messages())
             ->toContain('matcher for Greenlight\\Tests\\Fixture\\Doubles\\Wide::intersectionType() accepts int|string, '
                 . 'but parameter $value requires Countable&Greenlight\\Tests\\Fixture\\Doubles\\Marker');
     }

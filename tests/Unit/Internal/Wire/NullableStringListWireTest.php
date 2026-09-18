@@ -14,7 +14,7 @@ final readonly class NullableStringListWireTest
     #[Test]
     public function nonNullListsValidateTheirElementTypes(): void
     {
-        Expect::that(
+        Expect::calling(
             static fn(): ?array => Wire::nullableListOfStrings(
                 ['field' => ['valid', 42]],
                 'field',

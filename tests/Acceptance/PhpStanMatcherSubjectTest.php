@@ -34,10 +34,10 @@ final readonly class PhpStanMatcherSubjectTest
 
                         function greenlightGoodSubjectProbe(): void
                         {
-                            Expect::that('c0ffee')
+                            Expect::value('c0ffee')
                                 ->toBeHexadecimal()
                                 ->toHaveDigestLength(6);
-                            Expect::that(1)
+                            Expect::value(1)
                                 ->toBePositive()
                                 ->toBe(1);
                         }
@@ -51,9 +51,9 @@ final readonly class PhpStanMatcherSubjectTest
 
                         function greenlightBadSubjectProbe(): void
                         {
-                            Expect::that(1)->toBePositive()
+                            Expect::value(1)->toBePositive()
                                 ->toBeHexadecimal();
-                            Expect::that('c0ffee')->toHaveDigestLength(6)
+                            Expect::value('c0ffee')->toHaveDigestLength(6)
                                 ->toBePositive();
                         }
                         PHP,
@@ -68,10 +68,10 @@ final readonly class PhpStanMatcherSubjectTest
 
                         function greenlightGoodTemporalSubjectProbe(): void
                         {
-                            Expect::eventually(static fn(): string => 'c0ffee')
+                            Expect::calling(static fn(): string => 'c0ffee')->returnValue()->eventually()
                                 ->within(1.0)
                                 ->toBeHexadecimal();
-                            Expect::consistently(static fn(): int => 1)
+                            Expect::calling(static fn(): int => 1)->returnValue()->consistently()
                                 ->for(0.1)
                                 ->toBePositive();
                         }
@@ -85,14 +85,14 @@ final readonly class PhpStanMatcherSubjectTest
 
                         function greenlightBadTemporalSubjectProbe(): void
                         {
-                            Expect::eventually(static fn(): int => 1)
+                            Expect::calling(static fn(): int => 1)->returnValue()->eventually()
                                 ->within(1.0)
                                 ->toBeHexadecimal();
-                            Expect::eventually(static fn(): int => 1)
+                            Expect::calling(static fn(): int => 1)->returnValue()->eventually()
                                 ->within(1.0)
                                 ->toBePositive()
                                 ->toBeHexadecimal();
-                            Expect::consistently(static fn(): int => 1)
+                            Expect::calling(static fn(): int => 1)->returnValue()->consistently()
                                 ->for(0.1)
                                 ->toBe(1)
                                 ->toBeHexadecimal();
@@ -103,16 +103,16 @@ final readonly class PhpStanMatcherSubjectTest
         );
 
         $probe = $probes['fluent chains'];
-        Expect::that($probe->exitCode)->because('fluent chains preserve matcher subject types')->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(2);
-        Expect::that($probe->messages())->toContain('requires subject type string, but the subject has type int');
+        Expect::value($probe->exitCode)->because('fluent chains preserve matcher subject types')->toBe(1);
+        Expect::value($probe->goodPassed)->toBeTrue();
+        Expect::value(\count($probe->errors))->toBe(2);
+        Expect::value($probe->messages())->toContain('requires subject type string, but the subject has type int');
 
         $probe = $probes['temporal chains'];
-        Expect::that($probe->exitCode)->because('temporal chains preserve matcher subject types')->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(3);
-        Expect::that($probe->messages())->toContain('requires subject type string, but the subject has type int');
+        Expect::value($probe->exitCode)->because('temporal chains preserve matcher subject types')->toBe(1);
+        Expect::value($probe->goodPassed)->toBeTrue();
+        Expect::value(\count($probe->errors))->toBe(3);
+        Expect::value($probe->messages())->toContain('requires subject type string, but the subject has type int');
     }
 
     #[Test]
@@ -132,10 +132,10 @@ final readonly class PhpStanMatcherSubjectTest
             function greenlightGoodScopedMatcherProbe(): void
             {
                 $extension = new ScopedMatcherExtension();
-                Expect::that($extension)->toAcceptSelf();
-                Expect::that($extension)->toAcceptParent();
-                Expect::that('value')->toAcceptSelfArgument($extension);
-                Expect::that('value')->toAcceptParentArgument(new MatcherSubject());
+                Expect::value($extension)->toAcceptSelf();
+                Expect::value($extension)->toAcceptParent();
+                Expect::value('value')->toAcceptSelfArgument($extension);
+                Expect::value('value')->toAcceptParentArgument(new MatcherSubject());
             }
             PHP,
             <<<'PHP'
@@ -148,19 +148,19 @@ final readonly class PhpStanMatcherSubjectTest
 
             function greenlightBadScopedMatcherProbe(): void
             {
-                Expect::that(new MatcherSubject())->toAcceptSelf();
-                Expect::that('value')->toAcceptParent();
-                Expect::that('value')->toAcceptSelfArgument(new MatcherSubject());
-                Expect::that('value')->toAcceptParentArgument(new \stdClass());
+                Expect::value(new MatcherSubject())->toAcceptSelf();
+                Expect::value('value')->toAcceptParent();
+                Expect::value('value')->toAcceptSelfArgument(new MatcherSubject());
+                Expect::value('value')->toAcceptParentArgument(new \stdClass());
             }
             PHP,
             FixturePath::get('PhpStanScopedMatcher/probe.neon'),
         );
 
-        Expect::that($probe->exitCode)->because('relative matcher types use the closure scope')->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(4);
-        Expect::that($probe->messages())
+        Expect::value($probe->exitCode)->because('relative matcher types use the closure scope')->toBe(1);
+        Expect::value($probe->goodPassed)->toBeTrue();
+        Expect::value(\count($probe->errors))->toBe(4);
+        Expect::value($probe->messages())
             ->toContain('requires subject type Greenlight\\Tests\\Fixture\\PhpStanScopedMatcher\\ScopedMatcherExtension')
             ->toContain('expects Greenlight\\Tests\\Fixture\\PhpStanScopedMatcher\\MatcherSubject');
     }

@@ -16,13 +16,13 @@ final readonly class OutputCaptureClosedBufferReuseTest
     {
         [$first, $second, $levelAfterSecondStop, $baseline] = $this->captureTwice();
 
-        Expect::that($first->stdout)
+        Expect::value($first->stdout)
             ->because('closing the first capture buffer MUST preserve its output')
             ->toBe('first');
-        Expect::that($second->stdout)
+        Expect::value($second->stdout)
             ->because('a reused capture MUST collect output in its second window')
             ->toBe('second');
-        Expect::that($levelAfterSecondStop)
+        Expect::value($levelAfterSecondStop)
             ->because('the second stop MUST restore the original output-buffer level')
             ->toBe($baseline);
     }

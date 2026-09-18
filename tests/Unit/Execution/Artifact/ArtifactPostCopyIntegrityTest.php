@@ -47,16 +47,16 @@ final readonly class ArtifactPostCopyIntegrityTest
             attachments: [$staged],
         );
 
-        Expect::that(static fn(): TestResult => $store->publish($result))
+        Expect::calling(static fn(): TestResult => $store->publish($result))
             ->because('post-copy corruption MUST reject attachment publication')
             ->toThrow(
                 AttachmentError::class,
                 message: 'Published attachment content does not match its metadata.',
             );
-        Expect::that(\is_file($staged->path))
+        Expect::value(\is_file($staged->path))
             ->because('a rejected publication MUST NOT leave the final attachment')
             ->toBeFalse();
-        Expect::that(\glob($staged->path . '.part-*'))
+        Expect::value(\glob($staged->path . '.part-*'))
             ->because('a rejected publication MUST remove its partial attachment')
             ->toBe([]);
     }
