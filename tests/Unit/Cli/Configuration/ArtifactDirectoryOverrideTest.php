@@ -10,7 +10,8 @@ use Greenlight\Cli\Configuration\ConfigurationResolver;
 use Greenlight\Cli\Configuration\ExecutionOverrides;
 use Greenlight\Config\ArtifactBuilder;
 use Greenlight\Config\GreenlightConfig;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ArtifactDirectoryOverrideTest
 {
@@ -35,7 +36,7 @@ final class ArtifactDirectoryOverrideTest
             new CliOverrides(execution: new ExecutionOverrides(artifactsDirectory: 'build/cli-evidence')),
         );
 
-        Expect::that($resolved->execution->artifacts->toWire())
+        expect($resolved->execution->artifacts->toWire())
             ->because('the CLI directory override MUST preserve configured artifact safety limits')
             ->toBe([
                 'directory' => 'build/cli-evidence',

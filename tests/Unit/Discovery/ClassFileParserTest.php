@@ -8,8 +8,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\ClassDeclaration;
 use Greenlight\Discovery\ClassFileParser;
 use Greenlight\Discovery\DiscoveryError;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class ClassFileParserTest
 {
@@ -40,7 +41,7 @@ final readonly class ClassFileParserTest
             ClassFileParser::declarationsIn($file),
         );
 
-        Expect::that($declarations)
+        expect($declarations)
             ->because('discovery MUST return only named class-like declarations')
             ->toBe([
                 ['Example\Contract', 'interface'],
@@ -74,7 +75,7 @@ final readonly class ClassFileParserTest
             ClassFileParser::declarationsIn($file),
         );
 
-        Expect::that($declarations)
+        expect($declarations)
             ->because('a global bracketed namespace clears the previous namespace')
             ->toBe([
                 ['Example\Named\NamedTest', 'class'],
@@ -85,11 +86,11 @@ final readonly class ClassFileParserTest
     #[Test]
     public function aNativeReadThrowableBecomesADiscoveryError(): void
     {
-        Expect::that(static fn(): array => ClassFileParser::declarationsIn("invalid\0Test.php"))
+        expect()->calling(static fn(): array => ClassFileParser::declarationsIn("invalid\0Test.php"))
             ->because('a native file-read throwable MUST not escape the discovery seam')
             ->toThrow(
                 static function (DiscoveryError $error): void {
-                    Expect::that($error->getPrevious())
+                    expect($error->getPrevious())
                         ->because('the discovery error MUST preserve the native file-read error')
                         ->toBeInstanceOf(\ValueError::class);
                 },

@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Test;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\TestChannel;
+
+use function Greenlight\expect;
 
 final readonly class TestChannelMinimumNumberTest
 {
@@ -15,10 +16,10 @@ final readonly class TestChannelMinimumNumberTest
     {
         $channel = new TestChannel(1);
 
-        Expect::that($channel->number)
+        expect($channel->number)
             ->because('in-process runs MUST use the first valid test channel')
             ->toBe(1);
-        Expect::that($channel->label())
+        expect($channel->label())
             ->toBe('gl-1');
     }
 }

@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Support;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\SimpleXml;
+
+use function Greenlight\expect;
 
 final class SimpleXmlTest
 {
@@ -15,7 +16,7 @@ final class SimpleXmlTest
     {
         $element = \simplexml_load_string('<element/>');
 
-        Expect::that($element)->toBeInstanceOf(\SimpleXMLElement::class);
-        Expect::that(SimpleXml::attributes($element))->toBe([]);
+        expect($element)->toBeInstanceOf(\SimpleXMLElement::class);
+        expect(SimpleXml::attributes($element))->toBe([]);
     }
 }

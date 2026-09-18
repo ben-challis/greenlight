@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestClassStarted;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
+
+use function Greenlight\expect;
 
 final readonly class AllowParallelRunTest
 {
@@ -30,7 +31,8 @@ final readonly class AllowParallelRunTest
             use Greenlight\Attribute\AllowParallel;
             use Greenlight\Attribute\DataSet;
             use Greenlight\Attribute\Test;
-            use Greenlight\Expect\Expect;
+
+            use function Greenlight\expect;
 
             #[AllowParallel]
             final readonly class GiantDataSetTest
@@ -40,7 +42,7 @@ final readonly class AllowParallelRunTest
                 public function handlesRow(int $row): void
                 {
                     \usleep(20_000);
-                    Expect::that($row)->toBeGreaterThanOrEqual(0);
+                    expect($row)->toBeGreaterThanOrEqual(0);
                 }
 
                 /** @return iterable<string, array{int}> */
@@ -67,14 +69,14 @@ final readonly class AllowParallelRunTest
             $workerIds[$event->workerId] = true;
         }
 
-        Expect::that($result->exitCode)->because('the giant data-set run succeeds')->toBe(0);
-        Expect::that(JsonlEvents::finishedTestIds($result))
+        expect($result->exitCode)->because('the giant data-set run succeeds')->toBe(0);
+        expect(JsonlEvents::finishedTestIds($result))
             ->because('the split run MUST preserve every planned data set')
             ->toHaveCount(64);
-        Expect::that($classStarts)
+        expect($classStarts)
             ->because('each split data set MUST have one class-event bracket')
             ->toBe(64);
-        Expect::that(\count($workerIds))
+        expect(\count($workerIds))
             ->because('the opt-in MUST execute one class on more than one worker process')
             ->toBeGreaterThan(1);
     }

@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
+
+use function Greenlight\expect;
 
 final class JUnitEmptyStreamTest
 {
@@ -18,7 +19,7 @@ final class JUnitEmptyStreamTest
 
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('an empty test run remains a complete JUnit document')
             ->toBe(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"

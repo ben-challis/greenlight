@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class Psr11RunTest
 {
@@ -21,10 +22,10 @@ final readonly class Psr11RunTest
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain', '--workers=1']);
 
         $output = $result->output();
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because($output === '' ? 'The PSR-11 acceptance run returned no output.' : $output)
             ->toBe(0);
-        Expect::that($output)->toContain('2 tests, 2 passed');
+        expect($output)->toContain('2 tests, 2 passed');
     }
 
     private function writeProject(): AcceptanceProject
@@ -73,8 +74,9 @@ final readonly class Psr11RunTest
             namespace Psr11Probe;
 
             use Greenlight\Attribute\Test;
-            use Greenlight\Expect\Expect;
             use Greenlight\Harness\Service;
+
+            use function Greenlight\expect;
 
             final readonly class ContainerServicesTest
             {
@@ -89,9 +91,9 @@ final readonly class Psr11RunTest
                 {
                     $this->counter->record();
 
-                    Expect::that($this->greeter->greet('Ada'))->toBe('Hello, Ada!');
-                    Expect::that($this->namedGreeter->greet('Grace'))->toBe('Welcome, Grace!');
-                    Expect::that($this->counter->count())->toBe(1);
+                    expect($this->greeter->greet('Ada'))->toBe('Hello, Ada!');
+                    expect($this->namedGreeter->greet('Grace'))->toBe('Welcome, Grace!');
+                    expect($this->counter->count())->toBe(1);
                 }
 
                 #[Test]
@@ -99,7 +101,7 @@ final readonly class Psr11RunTest
                 {
                     $this->counter->record();
 
-                    Expect::that($this->counter->count())->toBe(1);
+                    expect($this->counter->count())->toBe(1);
                 }
             }
 

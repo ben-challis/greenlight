@@ -30,6 +30,9 @@ final class CoverageBuilder
     private array $exports = [];
 
     /**
+     * Adds source paths to the coverage filter. Multiple calls add paths.
+     * Relative paths use the command working directory. An empty filter accepts all files that the driver reports.
+     *
      * @param non-empty-string ...$paths
      *
      * @throws InvalidConfiguration
@@ -56,6 +59,9 @@ final class CoverageBuilder
     }
 
     /**
+     * Selects `pcov` or `xdebug` without fallback to the other driver.
+     * Omit this call for automatic selection, which tries pcov before Xdebug.
+     *
      * @param non-empty-string $driver
      *
      * @throws InvalidConfiguration
@@ -119,6 +125,10 @@ final class CoverageBuilder
     }
 
     /**
+     * Adds a coverage export. Multiple calls add exports.
+     * The target is a directory for `html` and a file for other formats.
+     * Relative targets use the command working directory.
+     *
      * @param 'json'|'lcov'|'clover'|'cobertura'|'html' $format
      * @param non-empty-string $target
      *

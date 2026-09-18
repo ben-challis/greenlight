@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\SourceLocation;
+
+use function Greenlight\expect;
 
 final class ExpectationFailedTest
 {
@@ -23,16 +24,16 @@ final class ExpectationFailedTest
 
         $failure = ExpectationFailed::fromDetails([$first, $second]);
 
-        Expect::that($failure->getMessage())
+        expect($failure->getMessage())
             ->because('multiple details produce a numbered message with locations')
             ->toBe(
                 "2 expectations failed:\n"
                 . "1) Expected the value to be ready. (at /project/tests/ProbeTest.php:12)\n"
                 . '2) Expected the callback to run.',
             );
-        Expect::that($failure->details)
+        expect($failure->details)
             ->toBe([$first, $second]);
-        Expect::that($failure->detail())
+        expect($failure->detail())
             ->toBe($first);
     }
 }

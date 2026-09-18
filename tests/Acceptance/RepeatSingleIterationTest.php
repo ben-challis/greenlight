@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class RepeatSingleIterationTest
 {
@@ -17,23 +18,7 @@ final readonly class RepeatSingleIterationTest
     #[Test]
     public function oneIterationUsesTheStandardRunOutput(): void
     {
-        $project = AcceptanceProject::create($this->tempDirectory, 'repeat-single-iteration');
-        $project->writeFile('tests/ProbeTest.php', <<<'PHP'
-            <?php
-
-            declare(strict_types=1);
-
-            namespace RepeatSingleIterationProbe;
-
-            use Greenlight\Attribute\Test;
-
-            final class ProbeTest
-            {
-                #[Test]
-                public function passes(): void {}
-            }
-            PHP);
-        $project->configureWithTestFiles(['tests/ProbeTest.php']);
+        $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'repeat-single-iteration');
 
         $result = GreenlightCli::run($project->directory, [
             'run',
@@ -43,10 +28,10 @@ final readonly class RepeatSingleIterationTest
             '--repeat=1',
         ]);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('one requested iteration MUST complete as a standard run')
             ->toBe(0);
-        Expect::that($result->output())
+        expect($result->output())
             ->because('one requested iteration MUST omit repeat-loop output')
             ->toContain('1 test, 1 passed')
             ->not()

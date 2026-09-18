@@ -46,9 +46,9 @@ explains the metadata required for PHP code fences in `README.md` and `docs/`.
 ## Technical prose
 
 Use the [technical writing standard](docs/architecture/technical-writing.md)
-for all repository-owned technical prose. The policy uses Simplified Technical English principles
-for documentation, PHPDoc, comments, contributor material, accessibility text,
-diagnostics, CLI help, and human-readable output.
+for all repository-owned technical prose. The policy uses Simplified Technical
+English principles for documentation, PHPDoc, comments, contributor material,
+accessibility text, diagnostics, CLI help, and human-readable output.
 
 Write direct instructions for requirements. Identify recommendations and options
 clearly. Preserve normative terms in formal specifications and protocol rules.
@@ -65,7 +65,9 @@ Before you push prose changes, review the prose:
 ## Tests
 
 Add focused unit or acceptance tests for behavior changes.
-Use `Greenlight\Expect\Expect` for assertions.
+Use `Greenlight\expect()` for assertions. Import it with a `use function`
+declaration. Use `expect($value)` for values and `expect()->calling($callback)`
+for calls. Keep direct class calls when a test verifies the class API itself.
 Use the [test conventions](docs/architecture/conventions.md#tests) for test
 names, assertion exceptions, and shared fixture changes.
 
@@ -81,18 +83,21 @@ Replace `<test-id>` with the test ID to run.
 
 Run:
 
-```bash
+```sh
 composer static-analysis
 composer tests
 make docs-check
 ```
 
-All three commands must pass before you push. CI also runs these checks across
-its supported environments.
+All three commands must pass before you push. The
+[CI workflow](.github/workflows/ci.yml) defines the PHP and documentation jobs.
 
 The Composer CI commands use one shared local slot by default. The slot applies
-across Git worktrees. Set `GREENLIGHT_LOCAL_CI_MAX_PARALLELISM` to a positive
-integer to permit more concurrent commands. Hosted CI does not use this limit.
+across Git worktrees. Set `GREENLIGHT_LOCAL_CI_MAX_PARALLELISM` to an integer
+from `1` to `64` to select the maximum number of concurrent commands. The lock
+does not apply when the `CI` environment variable is truthy. An unset or empty
+value, `0`, `false`, `no`, or `off` is false. Comparisons ignore case and
+surrounding whitespace.
 
 ## Commits and pull requests
 
@@ -163,7 +168,7 @@ this directory. Greenlight does not execute its contents.
 
 If completion for `PHPStan\` symbols is absent, run:
 
-```bash
+```sh
 composer phpstan:stubs
 ```
 

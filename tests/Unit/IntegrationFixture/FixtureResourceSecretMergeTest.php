@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\IntegrationFixture;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\FixtureResource;
+
+use function Greenlight\expect;
 
 final readonly class FixtureResourceSecretMergeTest
 {
@@ -24,13 +25,13 @@ final readonly class FixtureResourceSecretMergeTest
 
         $merged = $shared->mergedWith($channel);
 
-        Expect::that($merged->secret('token')->reveal())
+        expect($merged->secret('token')->reveal())
             ->because('channel resources MUST preserve unrelated shared secrets')
             ->toBe('shared-token');
-        Expect::that($merged->secret('password')->reveal())
+        expect($merged->secret('password')->reveal())
             ->because('channel secrets MUST override shared secrets with the same key')
             ->toBe('channel-password');
-        Expect::that($merged->secret('certificate')->reveal())
+        expect($merged->secret('certificate')->reveal())
             ->because('channel resources MUST add channel-only secrets')
             ->toBe('channel-certificate');
     }

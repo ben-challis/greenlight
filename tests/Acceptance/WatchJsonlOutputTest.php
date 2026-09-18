@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class WatchJsonlOutputTest
 {
@@ -20,21 +21,7 @@ final readonly class WatchJsonlOutputTest
     #[DataSet('outputTargets')]
     public function watchKeepsStatusOutsideTheJsonlEventStream(bool $fileOutput): void
     {
-        $project = AcceptanceProject::create($this->directory, 'watch-jsonl');
-        $project->writeFile('tests/ProbeTest.php', <<<'PHP'
-            <?php
-
-            namespace WatchJsonlProbe;
-
-            use Greenlight\Attribute\Test;
-
-            final class ProbeTest
-            {
-                #[Test]
-                public function passes(): void {}
-            }
-            PHP);
-        $project->configureWithTestFiles(['tests/ProbeTest.php']);
+        $project = AcceptanceProject::createWithOnePassingTest($this->directory, 'watch-jsonl');
         $reporter = $fileOutput ? '--reporter=jsonl=events.jsonl' : '--reporter=jsonl';
         $ready = $fileOutput ? 'Waiting for changes' : 'run-finished';
         $process = GreenlightCli::start($project->directory, ['run', '--watch', $reporter, '--workers=1']);
@@ -55,10 +42,10 @@ final readonly class WatchJsonlOutputTest
             $events[] = $envelope['event'];
         }
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that(\array_count_values($events)['run-started'] ?? 0)->toBe(2);
-        Expect::that(\array_count_values($events)['run-finished'] ?? 0)->toBe(2);
-        Expect::that($fileOutput ? $result->stdout : $result->stderr)->toContain('Waiting for changes');
+        expect($result->exitCode)->toBe(0);
+        expect(\array_count_values($events)['run-started'] ?? 0)->toBe(2);
+        expect(\array_count_values($events)['run-finished'] ?? 0)->toBe(2);
+        expect($fileOutput ? $result->stdout : $result->stderr)->toContain('Waiting for changes');
     }
 
     /** @return iterable<string, array{bool}> */

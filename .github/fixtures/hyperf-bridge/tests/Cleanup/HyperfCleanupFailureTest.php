@@ -7,7 +7,6 @@ namespace HyperfBridgeAcceptance\Cleanup;
 use App\Greeter;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Hyperf\ContainerLifetime;
 use Greenlight\Hyperf\HyperfPlugin;
 use Greenlight\IntegrationFixture\IntegrationResources;
@@ -16,6 +15,8 @@ use Greenlight\Test\TestChannel;
 use Hyperf\Context\ApplicationContext;
 use Hyperf\Coroutine\Coroutine;
 use Psr\Container\ContainerInterface;
+
+use function Greenlight\expect;
 
 final readonly class HyperfCleanupFailureTest
 {
@@ -58,11 +59,11 @@ final readonly class HyperfCleanupFailureTest
             $caught = $failure;
         }
 
-        Expect::that($disposedContainer)->toBeInstanceOf(ContainerInterface::class);
-        Expect::that($disposedContainer)->toBe($resetContainer);
-        Expect::that($disposedInCoroutine)->toBeTrue();
-        Expect::that($caught)->toBe($attemptFails ? $attemptFailure : $resetFailure);
-        Expect::that(ApplicationContext::getContainer()->has(Greeter::class))->toBeFalse();
+        expect($disposedContainer)->toBeInstanceOf(ContainerInterface::class);
+        expect($disposedContainer)->toBe($resetContainer);
+        expect($disposedInCoroutine)->toBeTrue();
+        expect($caught)->toBe($attemptFails ? $attemptFailure : $resetFailure);
+        expect(ApplicationContext::getContainer()->has(Greeter::class))->toBeFalse();
     }
 
     /** @return iterable<string, array{bool, bool}> */

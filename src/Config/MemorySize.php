@@ -61,7 +61,7 @@ final class MemorySize
     /**
      * Converts a byte count to the shortest exact form with a suffix. If no
      * binary suffix divides the value evenly, the method returns a byte count
-     * without a suffix.
+     * with a B suffix.
      *
      * @param positive-int $bytes
      */

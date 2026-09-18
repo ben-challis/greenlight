@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\SystemPollingClock;
+
+use function Greenlight\expect;
 
 final class SystemPollingClockTest
 {
@@ -22,7 +23,7 @@ final class SystemPollingClockTest
 
         $clock->sleep($seconds);
 
-        Expect::that($microseconds)
+        expect($microseconds)
             ->because('a nonpositive delay MUST return before calling the native sleeper')
             ->toBe([]);
     }
@@ -45,7 +46,7 @@ final class SystemPollingClockTest
 
         $clock->sleep($seconds);
 
-        Expect::that($microseconds)
+        expect($microseconds)
             ->because('one native sleep call MUST be between one microsecond and one second')
             ->toBe([$expectedMicroseconds]);
     }

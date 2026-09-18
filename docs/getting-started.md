@@ -94,7 +94,7 @@ For example, `tests/GreeterTest.php` must declare the class
 `App\Tests\GreeterTest` with the mappings in this guide.
 
 Greenlight does not require a `TestCase` base class or a test method name
-pattern. Start each expectation with `Expect::that()`.
+pattern. Start each expectation with `Expect::value()`.
 
 Constructor injection supplies stateful test services when a test requests
 them.
@@ -147,7 +147,7 @@ final class GreeterTest
     {
         $greeter = new Greeter();
 
-        Expect::that($greeter->greet('Ada'))->toBe('Hello, Ada!');
+        Expect::value($greeter->greet('Ada'))->toBe('Hello, Ada!');
     }
 
     #[Test]
@@ -155,7 +155,7 @@ final class GreeterTest
     {
         $greeter = new Greeter();
 
-        Expect::that(
+        Expect::calling(
             static fn (): string => $greeter->greet(''),
         )->toThrow(\InvalidArgumentException::class, matching: '/empty/');
     }
@@ -164,7 +164,7 @@ final class GreeterTest
 
 Save the file as `tests/GreeterTest.php`.
 
-`Expect::that()` starts a matcher chain for a value. A failed matcher throws
+`Expect::value()` starts a matcher chain for a value. A failed matcher throws
 immediately and includes a clear difference when applicable.
 
 The [expectations reference](expectations.md) describes each matcher, negation,
@@ -422,7 +422,7 @@ final class ExporterTest
 
         new Exporter()->run();
 
-        Expect::that(\file_exists($this->tmp->path() . '/export.csv'))->toBeTrue();
+        Expect::value(\file_exists($this->tmp->path() . '/export.csv'))->toBeTrue();
     }
 }
 ```

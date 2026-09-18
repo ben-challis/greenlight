@@ -8,10 +8,11 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Protocol\JsonFrameCodec;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final readonly class JsonFrameCodecTest
 {
@@ -32,21 +33,21 @@ final readonly class JsonFrameCodecTest
         $decoded = $codec->decode($body);
         $message = $decoded['message'] ?? null;
 
-        Expect::that($message)
+        expect($message)
             ->because('The decoded frame MUST contain a string message.')
             ->toBeString();
 
-        Expect::that($length)
+        expect($length)
             ->because('the frame prefix MUST contain the substituted JSON body length')
             ->toBe(\strlen($body));
-        Expect::that($message)
+        expect($message)
             ->because('the substituted protocol value remains a string')
             ->toBeString();
 
-        Expect::that(\preg_match('//u', $message))
+        expect(\preg_match('//u', $message))
             ->because('the protocol value MUST contain valid UTF-8')
             ->toBe(1);
-        Expect::that($message)
+        expect($message)
             ->because('UTF-8 substitution preserves readable surrounding text')
             ->toStartWith('query failed: ')
             ->toEndWith(' row 1');
@@ -58,7 +59,7 @@ final readonly class JsonFrameCodecTest
         $stream = MemoryStream::open();
         $this->cleanup->defer(static fn() => MemoryStream::close($stream));
 
-        Expect::that(static fn(): string => new JsonFrameCodec()->encode(['stream' => $stream]))
+        expect()->calling(static fn(): string => new JsonFrameCodec()->encode(['stream' => $stream]))
             ->because('unsupported JSON values produce a protocol error')
             ->toThrow(
                 ProtocolError::class,
@@ -71,7 +72,7 @@ final readonly class JsonFrameCodecTest
     {
         $codec = new JsonFrameCodec();
 
-        Expect::that(static fn(): array => $codec->decode('{]'))
+        expect()->calling(static fn(): array => $codec->decode('{]'))
             ->because('malformed JSON produces a protocol error')
             ->toThrow(
                 ProtocolError::class,
@@ -84,7 +85,7 @@ final readonly class JsonFrameCodecTest
     {
         $codec = new JsonFrameCodec();
 
-        Expect::that(static fn(): array => $codec->decode('null'))
+        expect()->calling(static fn(): array => $codec->decode('null'))
             ->because('a JSON scalar is not a protocol envelope')
             ->toThrow(
                 ProtocolError::class,
@@ -101,7 +102,7 @@ final readonly class JsonFrameCodecTest
     {
         $codec = new JsonFrameCodec();
 
-        Expect::that(static fn(): array => $codec->decode($body))
+        expect()->calling(static fn(): array => $codec->decode($body))
             ->because('a JSON list is not a protocol envelope map')
             ->toThrow(
                 ProtocolError::class,
@@ -121,7 +122,7 @@ final readonly class JsonFrameCodecTest
     #[Test]
     public function whitespaceWrappedEmptyJsonObjectRemainsAValidMap(): void
     {
-        Expect::that(new JsonFrameCodec()->decode("\n \t{}\r\n"))
+        expect(new JsonFrameCodec()->decode("\n \t{}\r\n"))
             ->because('JSON whitespace MUST NOT make an empty object look like a list')
             ->toBe([]);
     }

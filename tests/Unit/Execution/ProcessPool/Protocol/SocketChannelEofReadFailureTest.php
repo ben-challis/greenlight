@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Protocol;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Execution\ProcessPool\Protocol\EofReadFailureStream;
+
+use function Greenlight\expect;
 
 final readonly class SocketChannelEofReadFailureTest
 {
@@ -35,9 +36,9 @@ final readonly class SocketChannelEofReadFailureTest
         $channel = new SocketChannel($stream);
         $this->cleanup->defer($channel->close(...));
 
-        Expect::that($channel->poll())
+        expect($channel->poll())
             ->because('a failed read that reaches peer EOF MUST end polling cleanly')
             ->toBeNull();
-        Expect::that($channel->isEof())->toBeTrue();
+        expect($channel->isEof())->toBeTrue();
     }
 }

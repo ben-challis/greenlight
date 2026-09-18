@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
+
+use function Greenlight\expect;
 
 final readonly class MockMethodCaseTest
 {
@@ -21,7 +22,7 @@ final readonly class MockMethodCaseTest
             $plan->expects('ADD')->with(1, 2)->once()->andReturns(3);
         });
 
-        Expect::that($calculator->add(1, 2))
+        expect($calculator->add(1, 2))
             ->because('mock method names MUST follow PHP case-insensitive dispatch')
             ->toBe(3);
     }

@@ -41,7 +41,7 @@ for ($classIndex = 0; $classIndex < CLASS_COUNT; ++$classIndex) {
             public function t{$testIndex}(int \$row): void
             {
                 \$payload = str_repeat('x', 1024 + \$row);
-                Expect::that(strlen(\$payload))->toBe(1024 + \$row);
+                Expect::value(strlen(\$payload))->toBe(1024 + \$row);
             }
 
         PHP;

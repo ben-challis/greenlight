@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Cli\Watch;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\ClassFailureTap;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\CollectingEventSink;
+
+use function Greenlight\expect;
 
 final class ClassFailureTapSkippedTest
 {
@@ -32,10 +33,10 @@ final class ClassFailureTapSkippedTest
 
         $tap->emit($event);
 
-        Expect::that($tap->failedClasses())
+        expect($tap->failedClasses())
             ->because('a skipped test MUST NOT select its class for a failed watch rerun')
             ->toBe([]);
-        Expect::that($inner->events)
+        expect($inner->events)
             ->because('the skipped result MUST still reach the configured event sink')
             ->toBe([$event]);
     }

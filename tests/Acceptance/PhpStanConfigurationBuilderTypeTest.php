@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanConfigurationBuilderTypeTest
@@ -111,16 +112,16 @@ final readonly class PhpStanConfigurationBuilderTypeTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)
+        expect($probe->exitCode)
             ->because('PHPStan rejects configuration values that cannot pass runtime validation')
             ->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(29);
-        Expect::that($probe->messages())->toContain('Minimum coverage percentage must be from 0 through 100.');
-        Expect::that($probe->messages())->toContain('Minimum coverage percentage can have at most two decimal places.');
-        Expect::that($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::workers() expects');
-        Expect::that($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::randomizeOrder() expects');
-        Expect::that($probe->messages())->toContain('Greenlight\Config\ArtifactBuilder::maxRunAttachments() expects');
-        Expect::that($probe->messages())->toContain('Greenlight\Config\StorageBuilder::temporaryDirectory() expects');
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(29);
+        expect($probe->messages())->toContain('Minimum coverage percentage must be from 0 through 100.');
+        expect($probe->messages())->toContain('Minimum coverage percentage can have at most two decimal places.');
+        expect($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::workers() expects');
+        expect($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::randomizeOrder() expects');
+        expect($probe->messages())->toContain('Greenlight\Config\ArtifactBuilder::maxRunAttachments() expects');
+        expect($probe->messages())->toContain('Greenlight\Config\StorageBuilder::temporaryDirectory() expects');
     }
 }

@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ExtensionLoaded;
 use Greenlight\Condition\ExtensionMissing;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class ExtensionConditionValidationTest
 {
@@ -17,7 +18,7 @@ final readonly class ExtensionConditionValidationTest
     #[DataSet('extensionConditions')]
     public function rejectsAnEmptyExtensionName(\Closure $create): void
     {
-        Expect::that($create)
+        expect()->calling($create)
             ->because('an extension availability condition MUST identify the extension')
             ->toThrow(
                 \InvalidArgumentException::class,

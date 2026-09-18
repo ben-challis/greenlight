@@ -5,16 +5,17 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Expectation;
+
+use function Greenlight\expect;
 
 final class UnknownMatcherDiagnosticTest
 {
     #[Test]
     public function unknownMatchersIdentifyTheMissingRegistration(): void
     {
-        Expect::that(
-            static fn(): Expectation => Expect::that(4)->__call('toBeUnavailableMatcher', []),
+        expect()->calling(
+            static fn(): Expectation => expect(4)->__call('toBeUnavailableMatcher', []),
         )
             ->because('an unknown matcher MUST identify the missing native or extension registration')
             ->toThrow(
@@ -22,8 +23,8 @@ final class UnknownMatcherDiagnosticTest
                 message: 'Greenlight has no native or registered extension matcher named toBeUnavailableMatcher.',
             );
 
-        Expect::that(
-            static fn(): Expectation => Expect::eventually(static fn(): int => 4)
+        expect()->calling(
+            static fn(): Expectation => expect()->calling(static fn(): int => 4)->returnValue()->eventually()
                 ->within(0.001)
                 ->__call('toBeUnavailableMatcher', []),
         )

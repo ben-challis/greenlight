@@ -295,7 +295,7 @@ final readonly class Extractor
 
     private function validateExample(string $example, string $path, int $openingIndex): void
     {
-        if (\preg_match('/^[a-z0-9][a-z0-9._-]*$/', $example) !== 1) {
+        if (\preg_match('/^[a-z0-9][a-z0-9._-]*$/D', $example) !== 1) {
             throw DocumentationExampleError::invalidExampleName($path, $openingIndex, $example);
         }
     }

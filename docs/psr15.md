@@ -108,8 +108,8 @@ final readonly class StatusTest
 
         $response = $this->http->send($request);
 
-        Expect::that($response->getStatusCode())->toBe(200);
-        Expect::that((string) $response->getBody())->toBe('{"status":"ready"}');
+        Expect::value($response->getStatusCode())->toBe(200);
+        Expect::value((string) $response->getBody())->toBe('{"status":"ready"}');
     }
 }
 ```

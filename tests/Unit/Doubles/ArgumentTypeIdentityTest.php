@@ -8,7 +8,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Argument;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class ArgumentTypeIdentityTest
 {
@@ -43,7 +44,7 @@ final readonly class ArgumentTypeIdentityTest
         $value = new ArgumentTypeIdentityValue();
         $double->receive($value);
 
-        Expect::that($this->doubles->callsTo($double, 'receive'))->toBe([[$value]]);
+        expect($this->doubles->callsTo($double, 'receive'))->toBe([[$value]]);
     }
 }
 

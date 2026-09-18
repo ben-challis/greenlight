@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Hyperf;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Hyperf\HyperfBridgeError;
+
+use function Greenlight\expect;
 
 final readonly class HyperfBridgeErrorTest
 {
@@ -16,7 +17,7 @@ final readonly class HyperfBridgeErrorTest
     #[DataSet('diagnostics')]
     public function factoriesPreserveActionableDiagnostics(\Closure $factory, string $message): void
     {
-        Expect::that($factory()->getMessage())->toBe($message);
+        expect($factory()->getMessage())->toBe($message);
     }
 
     /** @return iterable<string, array{\Closure(): HyperfBridgeError, string}> */

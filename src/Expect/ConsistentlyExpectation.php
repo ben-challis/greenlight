@@ -9,7 +9,7 @@ use Greenlight\Test\ExpectationCounter;
 
 /**
  * Checks each probe value for a fixed period and fails on the first mismatch.
- * Use `Expect::consistently()` and `for()` to create this object.
+ * Use `Expect::calling(...)->returnValue()->consistently()` and `for()` to create this object.
  *
  * @template T
  *
@@ -43,7 +43,7 @@ final class ConsistentlyExpectation extends TemporalExpectation
     }
 
     /**
-     * @internal Use Expect::consistently() and for() instead.
+     * @internal Use Expect::calling(...)->returnValue()->consistently() and for() instead.
      *
      * @template TProbe
      *
@@ -73,10 +73,10 @@ final class ConsistentlyExpectation extends TemporalExpectation
     }
 
     /**
-     * @param \Closure(Expectation<T>): Expectation<T> $matcher
+     * @param \Closure(MatcherEvaluation<T>): MatcherEvaluation<T> $matcher
      * @param non-empty-string|null $reason
      *
-     * @return Expectation<T>
+     * @return MatcherEvaluation<T>
      *
      * @throws ExpectationFailed
      */
@@ -86,7 +86,7 @@ final class ConsistentlyExpectation extends TemporalExpectation
         bool $negated,
         ?string $reason,
         ?SourceLocation $location,
-    ): Expectation {
+    ): MatcherEvaluation {
         $startedAt = $this->clock->now();
         $observations = new ObservationLog($startedAt);
         $last = $this->observe($matcher, $negated, $reason);

@@ -9,8 +9,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Coverage\Ignore\IgnoreFilter;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class IgnoreScannerStringBraceTest
 {
@@ -39,8 +40,8 @@ final readonly class IgnoreScannerStringBraceTest
         $map = new CoverageMap([new FileCoverage($path, [], [5, 6, 10])]);
         $filtered = new IgnoreFilter()->apply($map);
 
-        Expect::that($filtered->files()[$path] ?? null)->toBeInstanceOf(FileCoverage::class);
-        Expect::that($filtered->files()[$path]->uncoveredLines)->toBe([10]);
+        expect($filtered->files()[$path] ?? null)->toBeInstanceOf(FileCoverage::class);
+        expect($filtered->files()[$path]->uncoveredLines)->toBe([10]);
     }
 
     /** @return iterable<string, array{string}> */

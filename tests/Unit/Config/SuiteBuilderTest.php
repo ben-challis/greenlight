@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\SuiteBuilder;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class SuiteBuilderTest
 {
@@ -22,10 +23,10 @@ final class SuiteBuilderTest
             ->tag('slow', 'external')
             ->toConfiguration();
 
-        Expect::that($suite->paths)
+        expect($suite->paths)
             ->because('repeated in() calls append each path')
             ->toBe(['tests/Integration', 'tests/Browser', 'tests/Smoke']);
-        Expect::that($suite->tags)
+        expect($suite->tags)
             ->because('repeated tag() calls append each tag')
             ->toBe(['io', 'slow', 'external']);
     }
@@ -37,20 +38,20 @@ final class SuiteBuilderTest
             ->in('tests/Existing')
             ->tag('existing');
 
-        Expect::that(static fn(): SuiteBuilder => $builder->in('tests/Added', '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        expect()->calling(static fn(): SuiteBuilder => $builder->in('tests/Added', '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a rejected path call does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
 
-        Expect::that(static fn(): SuiteBuilder => $builder->tag('added', '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        expect()->calling(static fn(): SuiteBuilder => $builder->tag('added', '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a rejected tag call does not partially change the builder')
             ->toThrow(InvalidConfiguration::class);
 
         $configuration = $builder->toConfiguration();
 
-        Expect::that($configuration->paths)
+        expect($configuration->paths)
             ->because('a rejected path call retains the prior paths')
             ->toBe(['tests/Existing']);
-        Expect::that($configuration->tags)
+        expect($configuration->tags)
             ->because('a rejected tag call retains the prior tags')
             ->toBe(['existing']);
     }
@@ -60,7 +61,7 @@ final class SuiteBuilderTest
     {
         $builder = new SuiteBuilder('integration');
 
-        Expect::that(static fn(): SuiteBuilder => $builder->in("tests/Integration\0nested"))
+        expect()->calling(static fn(): SuiteBuilder => $builder->in("tests/Integration\0nested"))
             ->because('suite paths MUST be valid filesystem inputs')
             ->toThrow(
                 InvalidConfiguration::class,
@@ -81,10 +82,10 @@ final class SuiteBuilderTest
             ->tag(...$tags)
             ->toConfiguration();
 
-        Expect::that($suite->paths)
+        expect($suite->paths)
             ->because('a zero-string suite path is not empty')
             ->toBe($paths);
-        Expect::that($suite->tags)
+        expect($suite->tags)
             ->because('a zero-string suite tag is not empty')
             ->toBe($tags);
     }

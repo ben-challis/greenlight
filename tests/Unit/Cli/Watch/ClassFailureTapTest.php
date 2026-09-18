@@ -8,11 +8,12 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\ClassFailureTap;
 use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\CollectingEventSink;
+
+use function Greenlight\expect;
 
 final class ClassFailureTapTest
 {
@@ -25,10 +26,10 @@ final class ClassFailureTapTest
 
         $tap->emit($event);
 
-        Expect::that($inner->events)
+        expect($inner->events)
             ->because('the watch tap MUST forward lifecycle events unchanged')
             ->toBe([$event]);
-        Expect::that($tap->failedClasses())
+        expect($tap->failedClasses())
             ->toBe([]);
     }
 
@@ -43,10 +44,10 @@ final class ClassFailureTapTest
         $tap->emit($this->finished('App\AlphaTest', 'alsoFails', Outcome::Failed));
         $tap->emit($this->finished('App\BetaTest', 'errors', Outcome::Errored));
 
-        Expect::that($tap->failedClasses())
+        expect($tap->failedClasses())
             ->because('failed classes are deduplicated while every result is forwarded')
             ->toBe(['App\AlphaTest', 'App\BetaTest']);
-        Expect::that($inner->results())
+        expect($inner->results())
             ->toHaveCount(4);
     }
 

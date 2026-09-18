@@ -9,8 +9,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\HtmlExporter;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class HtmlExporterSparseSourceTest
 {
@@ -24,10 +25,10 @@ final readonly class HtmlExporterSparseSourceTest
         $map = new CoverageMap([new FileCoverage($path, [2], [$lastLine])]);
         $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($path)];
 
-        Expect::that($page)
+        expect($page)
             ->toContain('<span class="cov"><span class="num">2</span></span>')
             ->toContain(\sprintf('<span class="unc"><span class="num">%d</span></span>', $lastLine));
-        Expect::that(\substr_count($page, '<span class="num">'))->toBe(2);
+        expect(\substr_count($page, '<span class="num">'))->toBe(2);
     }
 
     /** @return iterable<string, array{positive-int}> */

@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Execution\Worker;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Execution\Worker\Worker;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\FixturePath;
+
+use function Greenlight\expect;
 
 final readonly class AfterHookExpectationTest
 {
@@ -20,12 +21,12 @@ final readonly class AfterHookExpectationTest
     {
         $result = $this->results()['passesUntilTeardown'];
 
-        Expect::that($result->outcome)->toBe(Outcome::Failed);
-        Expect::that($result->error)->toBeNull();
-        Expect::that($result->failures)->toHaveCount(1);
-        Expect::that($result->failures[0]->expected)->toBe("'expected'");
-        Expect::that($result->failures[0]->actual)->toBe("'actual'");
-        Expect::that($result->expectations)->toBe(1);
+        expect($result->outcome)->toBe(Outcome::Failed);
+        expect($result->error)->toBeNull();
+        expect($result->failures)->toHaveCount(1);
+        expect($result->failures[0]->expected)->toBe("'expected'");
+        expect($result->failures[0]->actual)->toBe("'actual'");
+        expect($result->expectations)->toBe(1);
     }
 
     #[Test]
@@ -33,11 +34,11 @@ final readonly class AfterHookExpectationTest
     {
         $result = $this->results()['skipsBeforeTeardown'];
 
-        Expect::that($result->outcome)->toBe(Outcome::Failed);
-        Expect::that($result->skipReason)->toBeNull();
-        Expect::that($result->error)->toBeNull();
-        Expect::that($result->failures[0]->expected)->toBe("'expected'");
-        Expect::that($result->failures[0]->actual)->toBe("'actual'");
+        expect($result->outcome)->toBe(Outcome::Failed);
+        expect($result->skipReason)->toBeNull();
+        expect($result->error)->toBeNull();
+        expect($result->failures[0]->expected)->toBe("'expected'");
+        expect($result->failures[0]->actual)->toBe("'actual'");
     }
 
     #[Test]
@@ -45,11 +46,11 @@ final readonly class AfterHookExpectationTest
     {
         $result = $this->results()['failsBeforeTeardown'];
 
-        Expect::that($result->outcome)->toBe(Outcome::Failed);
-        Expect::that($result->error)->toBeNull();
-        Expect::that($result->failures)->toHaveCount(1);
-        Expect::that($result->failures[0]->expected)->toBe("'body expected'");
-        Expect::that($result->failures[0]->actual)->toBe("'body actual'");
+        expect($result->outcome)->toBe(Outcome::Failed);
+        expect($result->error)->toBeNull();
+        expect($result->failures)->toHaveCount(1);
+        expect($result->failures[0]->expected)->toBe("'body expected'");
+        expect($result->failures[0]->actual)->toBe("'body actual'");
     }
 
     /** @return array<string, TestResult> */

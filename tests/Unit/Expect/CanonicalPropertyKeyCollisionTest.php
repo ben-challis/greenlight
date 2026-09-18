@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class CanonicalPropertyKeyCollisionTest
 {
@@ -15,8 +16,8 @@ final class CanonicalPropertyKeyCollisionTest
         $first = (object) ['a' => null, 'b' => null];
         $second = (object) ['a=>null:NULL,b' => null];
 
-        Expect::that([$first, $second])->toEqualCanonicalizing([$second, $first]);
-        Expect::that([$first, $first])->not()->toEqualCanonicalizing([$first, $second]);
+        expect([$first, $second])->toEqualCanonicalizing([$second, $first]);
+        expect([$first, $first])->not()->toEqualCanonicalizing([$first, $second]);
     }
 
     #[Test]
@@ -25,6 +26,6 @@ final class CanonicalPropertyKeyCollisionTest
         $first = (object) ["a'" => null, 'b\\' => null];
         $second = (object) ["a'=>null:NULL,b\\" => null];
 
-        Expect::that([$first, $second])->toEqualCanonicalizing([$second, $first]);
+        expect([$first, $second])->toEqualCanonicalizing([$second, $first]);
     }
 }

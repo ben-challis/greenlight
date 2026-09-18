@@ -67,7 +67,7 @@ jobs:
           node-version: "24"
 
       - name: "Validate Renovate configuration"
-        run: "npx --yes --package renovate@44.65.5 -- renovate-config-validator --strict"
+        run: "npx --yes --package renovate@44.103.0 -- renovate-config-validator --strict"
 
   zizmor:
     name: "GitHub Actions security"
@@ -83,7 +83,7 @@ jobs:
           persist-credentials: false
 
       - name: "Run zizmor"
-        uses: "zizmorcore/zizmor-action@70fb788f84895a7701f5643d103d587e460b5c99" # v0.6.3
+        uses: "zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482" # v0.6.4
 
   actionlint:
     name: "GitHub Actions workflows"
@@ -407,10 +407,19 @@ jobs:
           path: "build/greenlight-state/run-state.json"
           key: "greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-${{ github.run_id }}-${{ github.run_attempt }}"
 
+      - name: "Save test results"
+        if: "${{ !cancelled() && matrix.analytics == true && steps.tests_analytics.outcome != 'skipped' }}"
+        uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # v7.0.1
+        with:
+          name: "test-results-php-${{ matrix.php-version }}-${{ matrix.dependencies }}"
+          path: "build/test-results/greenlight.junit.xml"
+          if-no-files-found: "error"
+          retention-days: 30
+
       - name: "Upload test results to Codecov"
         if: "${{ !cancelled() && matrix.analytics == true }}"
         continue-on-error: true
-        uses: "codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f" # v7.0.0
+        uses: "codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5" # v7.1.1
         with:
           disable_search: true
           fail_ci_if_error: false
@@ -641,8 +650,8 @@ jobs:
         with:
           persist-credentials: false
 
-      # Require both artifacts before the single Codecov upload. A canceled run
-      # MUST NOT publish a report that contains only the Tempest bridge.
+      # Require both artifacts before the single Codecov upload. Do not publish
+      # a report that contains only the Tempest bridge after a canceled run.
       - name: "Download full-suite coverage"
         uses: "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c" # v8.0.1
         with:
@@ -657,7 +666,7 @@ jobs:
 
       - name: "Upload coverage to Codecov"
         continue-on-error: true
-        uses: "codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f" # v7.0.0
+        uses: "codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5" # v7.1.1
         with:
           disable_search: true
           fail_ci_if_error: false

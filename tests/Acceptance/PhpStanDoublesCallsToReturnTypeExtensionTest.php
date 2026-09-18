@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanDoublesCallsToReturnTypeExtensionTest
@@ -76,13 +77,13 @@ final readonly class PhpStanDoublesCallsToReturnTypeExtensionTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)
+        expect($probe->exitCode)
             ->because('PHPStan rejects an incompatible asserted callsTo() result type')
             ->toBe(1);
-        Expect::that($probe->goodPassed)
+        expect($probe->goodPassed)
             ->because('PHPStan messages: ' . $probe->messages())
             ->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(1);
-        Expect::that($probe->messages())->toContain('expects list<array{int}>, list<array{string}> given');
+        expect(\count($probe->errors))->toBe(1);
+        expect($probe->messages())->toContain('expects list<array{int}>, list<array{string}> given');
     }
 }

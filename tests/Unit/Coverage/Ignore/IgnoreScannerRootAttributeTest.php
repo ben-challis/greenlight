@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Coverage\Ignore;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Ignore\IgnoreScanner;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class IgnoreScannerRootAttributeTest
 {
@@ -26,7 +27,7 @@ final readonly class IgnoreScannerRootAttributeTest
             }
             PHP);
 
-        Expect::that(\array_keys(new IgnoreScanner()->ignoredLines($path)))
+        expect(\array_keys(new IgnoreScanner()->ignoredLines($path)))
             ->because('a root-qualified CoverageIgnore attribute MUST ignore its declaration')
             ->toBe([3, 4, 5, 6]);
     }

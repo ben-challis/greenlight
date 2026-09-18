@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Fixture\PhpStanNativeMatcherOverride;
 
-use Greenlight\Expect\Expect;
+
+
+use function Greenlight\expect;
 
 function nativeMatcherOverrideProbe(): void
 {
-    Expect::that(1)->toBeInt();
+    expect(1)->toBeInt();
 }

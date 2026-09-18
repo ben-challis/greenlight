@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class TeamCityRunTest
 {
@@ -22,8 +23,8 @@ final readonly class TeamCityRunTest
         $output = $result->output();
         $class = $project->testClasses()[0];
         $file = $project->path('tests/FirstPassingTest.php');
-        Expect::that($result->exitCode)->because('parallel run emits location hints and flow IDs')->toBe(0);
-        Expect::that($output)->toContain(
+        expect($result->exitCode)->because('parallel run emits location hints and flow IDs')->toBe(0);
+        expect($output)->toContain(
             "##teamcity[testSuiteStarted name='{$class}' locationHint='php_qn://{$file}::\\{$class}' flowId='{$class}']",
         )
             ->toContain(
@@ -35,7 +36,7 @@ final readonly class TeamCityRunTest
                 continue;
             }
 
-            Expect::that($line)->toContain(" flowId='");
+            expect($line)->toContain(" flowId='");
         }
     }
 }

@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Input\ArgumentParser;
 use Greenlight\Cli\Input\OptionSpec;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class OptionSpecTest
 {
@@ -17,7 +18,7 @@ final readonly class OptionSpecTest
     {
         $arguments = new ArgumentParser([new OptionSpec('0')])->parse(['--0']);
 
-        Expect::that($arguments->has('0'))
+        expect($arguments->has('0'))
             ->because('a zero-string long option name is not empty')
             ->toBeTrue();
     }
@@ -29,7 +30,7 @@ final readonly class OptionSpecTest
         ?string $short,
         string $message,
     ): void {
-        Expect::that(static fn(): OptionSpec => new OptionSpec($name, short: $short))
+        expect()->calling(static fn(): OptionSpec => new OptionSpec($name, short: $short))
             ->because('the argument parser MUST receive unambiguous option definitions')
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }

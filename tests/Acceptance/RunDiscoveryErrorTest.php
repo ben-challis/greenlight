@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class RunDiscoveryErrorTest
 {
@@ -38,10 +39,10 @@ final readonly class RunDiscoveryErrorTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--no-ansi']);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('a discovery failure MUST stop the run cleanly')
             ->toBe(1);
-        Expect::that($result->stderr)
+        expect($result->stderr)
             ->toContain('MissingProviderTest::needsData() references data-set provider')
             ->toContain('MissingProviderTest::doesNotExist(), but the provider does not exist.');
     }

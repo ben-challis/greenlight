@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Test;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\SkipTest;
+
+use function Greenlight\expect;
 
 final class SkipTestTest
 {
     #[Test]
     public function anEmptyReasonIsRejected(): void
     {
-        Expect::that(static fn(): SkipTest => new SkipTest(''))
+        expect()->calling(static fn(): SkipTest => new SkipTest(''))
             ->because('skip reasons cannot be empty')
             ->toThrow(\InvalidArgumentException::class, message: 'Skip reasons cannot be empty.');
     }
@@ -23,10 +24,10 @@ final class SkipTestTest
     {
         $skip = new SkipTest('0');
 
-        Expect::that($skip->reason)
+        expect($skip->reason)
             ->because('a skip signal MUST preserve a zero-string reason')
             ->toBe('0');
-        Expect::that($skip->getMessage())
+        expect($skip->getMessage())
             ->toBe('0');
     }
 }

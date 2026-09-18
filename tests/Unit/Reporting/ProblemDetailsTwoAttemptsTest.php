@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\ProblemDetails;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class ProblemDetailsTwoAttemptsTest
 {
@@ -24,7 +25,7 @@ final readonly class ProblemDetailsTwoAttemptsTest
             attempts: 2,
         );
 
-        Expect::that(ProblemDetails::render($result))
+        expect(ProblemDetails::render($result))
             ->because('a retried result MUST report its total attempt count')
             ->toBe("  after 2 attempts\n");
     }

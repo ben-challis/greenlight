@@ -6,13 +6,14 @@ namespace Greenlight\Tests\Unit\Execution\Plugin;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Plugin\OrchestratorPluginRuntime;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\IntegrationFixtureDefinition;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\IntegrationFixture\IntegrationFixtureManager;
 use Greenlight\Plugin\IntegrationFixtureProvider;
 use Greenlight\Tests\Fixture\Plugins\FakeIntegrationFixtureProvider;
 use Greenlight\Tests\Support\CollectingEventSink;
+
+use function Greenlight\expect;
 
 final readonly class OrchestratorPluginRuntimeFixtureTest
 {
@@ -26,7 +27,7 @@ final readonly class OrchestratorPluginRuntimeFixtureTest
             new FakeIntegrationFixtureProvider([$second]),
         ], new CollectingEventSink());
 
-        Expect::that([...$runtime->fixtureDefinitions()])
+        expect([...$runtime->fixtureDefinitions()])
             ->because('the runtime MUST retain integration fixture provider order')
             ->toBe([$first, $second]);
     }
@@ -47,13 +48,13 @@ final readonly class OrchestratorPluginRuntimeFixtureTest
 
         $runtime = OrchestratorPluginRuntime::fromPlugins([$provider], new CollectingEventSink());
 
-        Expect::that(fn(): array => [...$runtime->fixtureDefinitions()])
+        expect()->calling(fn(): array => [...$runtime->fixtureDefinitions()])
             ->toThrow(static function (IntegrationFixtureError $error) use ($failure, $provider): void {
-                Expect::that($error->getMessage())->toBe(\sprintf(
+                expect($error->getMessage())->toBe(\sprintf(
                     'Integration fixture provider "%s" failed: provider exploded.',
                     $provider::class,
                 ));
-                Expect::that($error->getPrevious())->toBe($failure);
+                expect($error->getPrevious())->toBe($failure);
             });
     }
 
@@ -65,7 +66,7 @@ final readonly class OrchestratorPluginRuntimeFixtureTest
 
         $runtime = OrchestratorPluginRuntime::fromPlugins([$provider], new CollectingEventSink());
 
-        Expect::that(fn(): array => [...$runtime->fixtureDefinitions()])
+        expect()->calling(fn(): array => [...$runtime->fixtureDefinitions()])
             ->because('integration fixture providers MUST return fixture definitions')
             ->toThrow(
                 IntegrationFixtureError::class,
@@ -98,7 +99,7 @@ final readonly class OrchestratorPluginRuntimeFixtureTest
             $laterProvider,
         ], new CollectingEventSink());
 
-        Expect::that(fn() => IntegrationFixtureManager::provision(
+        expect()->calling(fn() => IntegrationFixtureManager::provision(
             $runtime->fixtureDefinitions(),
             'run-duplicate',
             1,

@@ -1,37 +1,37 @@
 # Temporal expectations
 
-`Expect::eventually()` and `Expect::consistently()` apply an ordinary matcher to
-values that a probe returns. Only the fluent API is public. Its poll support is
-internal.
-
-These `Expect` methods are the public construction interface. The constructors
-and dependency-based creation methods are internal.
+`Expect::calling()` creates a lazy call expectation. `returnValue()` selects
+its return value. `eventually()` and `consistently()` select a poll operation.
+Only the fluent interface is public. Constructors and poll support are internal.
 
 ## Matcher operation
 
-`TemporalExpectation::__call()` sends each native or extension matcher to an
-ordinary `Expectation`. Each poll creates this ordinary expectation for the
-probe value. The matcher runs without an increment to the expectation counter.
-The temporal matcher increments the counter one time.
+`ValueMatchers` declares native value matcher methods for `Expectation` and
+`TemporalExpectation`. These methods are visible through PHP reflection.
+Their native signatures and generic PHPDoc types do not require a PHPStan
+method-reflection extension. `__call()` dispatches custom extension matchers only.
 
-The `@mixin Expectation<T>` declaration supplies the native matcher methods to
-the API-reference generator.
+`CallExpectation` and `TemporalCallExpectation` expose call matchers.
+Value expectations do not expose `toThrow()`. `CallOutcome` preserves one
+invocation, including its exact throwable or null return value.
 
-Native matcher methods are not reflection-visible on `TemporalExpectation`.
-This is an intentional interface change. Code that reflects matcher methods
-MUST use `Expectation` as its source.
-
-The PHPStan extension supplies the native methods on temporal chains. The IDE
-helper supplies the same methods as annotations. Thus, normal temporal matcher
-syntax keeps its static signatures in these tools.
+The internal `MatcherEvaluation` applies each matcher and creates diagnostics.
+Each poll evaluates one captured subject. The matcher does not increment the
+expectation counter during a poll. The temporal matcher increments it once.
 
 An `ExpectationFailed` from matcher code records a mismatch. `eventually()`
 continues after a mismatch, while `consistently()` fails. Other exceptions from
-matcher code stop the poll operation. `eventually()` retries a probe exception
-only if `retryOnException()` lists its type.
+matcher code stop the poll operation. A return-value poll retries a probe
+exception only if `retryOnException()` lists its type.
 
-A successful temporal matcher returns an ordinary `Expectation` for the last
-value. Each matcher after it checks that value one time.
+A temporal call matcher captures the invocation before it checks the outcome.
+`toThrow()` therefore observes exceptions without a callback that returns
+another callback. Constraint validation occurs before the first call.
+
+A successful temporal value matcher returns an ordinary `Expectation` for the
+last value. A successful temporal call matcher returns a `CallExpectation`
+for the last outcome. Later matchers inspect that value or outcome without
+another invocation.
 
 ## Poll operation
 

@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class WorkerRuntimeRunnerRunTest
 {
@@ -26,8 +27,9 @@ final readonly class WorkerRuntimeRunnerRunTest
             namespace WorkerBoundaryProbe;
 
             use Greenlight\Attribute\Test;
-            use Greenlight\Expect\Expect;
             use Greenlight\Plugin\WorkerRuntimeRunner;
+
+            use function Greenlight\expect;
 
             final class Boundary
             {
@@ -56,13 +58,13 @@ final readonly class WorkerRuntimeRunnerRunTest
                 #[Test]
                 public function firstAssignmentRunsInsideTheBoundary(): void
                 {
-                    Expect::that(Boundary::$active)->toBeTrue();
+                    expect(Boundary::$active)->toBeTrue();
                 }
 
                 #[Test]
                 public function nextAssignmentUsesTheSameBoundary(): void
                 {
-                    Expect::that(Boundary::$active)->toBeTrue();
+                    expect(Boundary::$active)->toBeTrue();
                 }
             }
             PHP);
@@ -86,10 +88,10 @@ final readonly class WorkerRuntimeRunnerRunTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('worker runtime boundary run failed: ' . $result->output())
             ->toBe(0);
-        Expect::that($result->output())->toContain('2 tests, 2 passed');
-        Expect::that(\file_get_contents($project->directory . '/worker-runtime.marker'))->toBe('closed');
+        expect($result->output())->toContain('2 tests, 2 passed');
+        expect(\file_get_contents($project->directory . '/worker-runtime.marker'))->toBe('closed');
     }
 }

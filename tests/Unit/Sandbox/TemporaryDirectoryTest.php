@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Sandbox;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\TemporaryDirectory;
@@ -16,16 +15,18 @@ use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\PhpSubprocess;
 
+use function Greenlight\expect;
+
 final class TemporaryDirectoryTest
 {
     #[Test]
     public function nothingExistsOnDiskBeforeFirstUse(): void
     {
-        // path() is the only method that accesses the disk. Construction does
-        // not create a directory for disposal.
+        // Construction does not create a directory.
+        // Before first use, dispose() has no filesystem effect.
         $directory = new TemporaryDirectory();
 
-        Expect::that(static function () use ($directory): void {
+        expect()->calling(static function () use ($directory): void {
             $directory->dispose();
         })->because('nothing exists on disk before first use')->not()->toThrow(\Throwable::class);
     }
@@ -37,10 +38,10 @@ final class TemporaryDirectoryTest
 
         $path = $directory->path();
 
-        Expect::that(\is_dir($path))->because('path creates a writable directory and memoizes it')->toBeTrue();
-        Expect::that(\is_writable($path))->toBeTrue();
-        Expect::that(\realpath($path))->toBe($path);
-        Expect::that($directory->path())->toBe($path);
+        expect(\is_dir($path))->because('path creates a writable directory and memoizes it')->toBeTrue();
+        expect(\is_writable($path))->toBeTrue();
+        expect(\realpath($path))->toBe($path);
+        expect($directory->path())->toBe($path);
 
         $directory->dispose();
     }
@@ -48,7 +49,7 @@ final class TemporaryDirectoryTest
     #[Test]
     public function aTemporaryRootCannotContainANullByte(): void
     {
-        Expect::that(static fn(): TemporaryDirectory => new TemporaryDirectory("root\0suffix"))
+        expect()->calling(static fn(): TemporaryDirectory => new TemporaryDirectory("root\0suffix"))
             ->because('the fixture MUST reject an invalid temporary root before a file-system operation')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -92,10 +93,10 @@ final class TemporaryDirectoryTest
                 ],
             );
 
-            Expect::that($result->exitCode)
+            expect($result->exitCode)
                 ->because('a blocked temp root MUST fail directory creation')
                 ->toBe(23);
-            Expect::that($result->stdout)
+            expect($result->stdout)
                 ->because('the failure MUST identify the generated directory and cause')
                 ->toMatch(
                     '/\AFailed to create temp directory "'
@@ -117,12 +118,12 @@ final class TemporaryDirectoryTest
 
         $directory = new TemporaryDirectory($restricted);
 
-        Expect::that(
+        expect()->calling(
             static function () use ($directory, &$warning): void {
                 ErrorTrap::run(static fn() => $directory->path(), $warning);
             },
         )->because('a restricted temporary root causes a fixture error')->toThrow(TemporaryDirectoryError::class);
-        Expect::that($warning)
+        expect($warning)
             ->because('a restricted temporary root MUST not leak engine diagnostics')
             ->toBeNull();
     }
@@ -133,7 +134,7 @@ final class TemporaryDirectoryTest
         $first = new TemporaryDirectory();
         $second = new TemporaryDirectory();
 
-        Expect::that($first->path())->because('two instances get distinct paths')->not()->toBe($second->path());
+        expect($first->path())->because('two instances get distinct paths')->not()->toBe($second->path());
 
         $first->dispose();
         $second->dispose();
@@ -146,8 +147,8 @@ final class TemporaryDirectoryTest
 
         $nested = $directory->subdirectory('a/b');
 
-        Expect::that($nested)->because('subdirectory creates nested directories')->toBe($directory->path() . '/a/b');
-        Expect::that(\is_dir($nested))->toBeTrue();
+        expect($nested)->because('subdirectory creates nested directories')->toBe($directory->path() . '/a/b');
+        expect(\is_dir($nested))->toBeTrue();
 
         $directory->dispose();
     }
@@ -160,7 +161,7 @@ final class TemporaryDirectoryTest
         \file_put_contents($blocked, 'not a directory');
         $target = $blocked . '/nested';
 
-        Expect::that(static fn(): string => $directory->subdirectory('blocked/nested'))
+        expect()->calling(static fn(): string => $directory->subdirectory('blocked/nested'))
             ->because('an existing file blocks a nested subdirectory with the full target')
             ->toThrow(
                 TemporaryDirectoryError::class,
@@ -179,7 +180,7 @@ final class TemporaryDirectoryTest
     {
         $directory = new TemporaryDirectory();
 
-        Expect::that(static fn(): string => $directory->subdirectory($name))
+        expect()->calling(static fn(): string => $directory->subdirectory($name))
             ->because('subdirectory rejects unsafe paths')
             ->toThrow(\InvalidArgumentException::class, message: $expectedMessage);
 
@@ -236,7 +237,7 @@ final class TemporaryDirectoryTest
 
         $directory->dispose();
 
-        Expect::that(\file_exists($path))->because('dispose removes the directory including nested files')->toBeFalse();
+        expect(\file_exists($path))->because('dispose removes the directory including nested files')->toBeFalse();
     }
 
     #[Test]
@@ -254,7 +255,7 @@ final class TemporaryDirectoryTest
                 throw new SkipTest('The filesystem does not enforce directory write permissions.');
             }
 
-            Expect::that(static function () use ($directory): void {
+            expect()->calling(static function () use ($directory): void {
                 $directory->dispose();
             })
                 ->because('fixture cleanup MUST report the entry that it cannot remove')
@@ -287,7 +288,7 @@ final class TemporaryDirectoryTest
                 throw new SkipTest('The filesystem does not enforce directory write permissions.');
             }
 
-            Expect::that(static function () use ($directory): void {
+            expect()->calling(static function () use ($directory): void {
                 $directory->dispose();
             })
                 ->because('fixture cleanup MUST report a root that it cannot remove')
@@ -324,13 +325,13 @@ final class TemporaryDirectoryTest
 
             $directory->dispose();
 
-            Expect::that(\is_link($link))
+            expect(\is_link($link))
                 ->because('disposal MUST remove the symbolic link')
                 ->toBeFalse();
-            Expect::that(\is_dir($target->path()))
+            expect(\is_dir($target->path()))
                 ->because('disposal MUST leave the symbolic link target unchanged')
                 ->toBeTrue();
-            Expect::that(\file_get_contents($sentinel))
+            expect(\file_get_contents($sentinel))
                 ->toBe('keep');
         } finally {
             $directory->dispose();
@@ -348,8 +349,8 @@ final class TemporaryDirectoryTest
         // path() call still creates a new writable directory.
         $path = $directory->path();
 
-        Expect::that(\is_dir($path))->because('dispose without use is a no-op')->toBeTrue();
-        Expect::that(\is_writable($path))->toBeTrue();
+        expect(\is_dir($path))->because('dispose without use is a no-op')->toBeTrue();
+        expect(\is_writable($path))->toBeTrue();
 
         $directory->dispose();
     }

@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Test;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\ExpectationCounter;
+
+use function Greenlight\expect;
 
 final class ExpectationCounterTest
 {
@@ -36,16 +37,16 @@ final class ExpectationCounterTest
         ExpectationCounter::increment();
         $afterResume = ExpectationCounter::count();
 
-        Expect::that($value)
+        expect($value)
             ->because('nested suppression MUST preserve the operation value')
             ->toBe('result');
-        Expect::that($observed)
+        expect($observed)
             ->because('nested suppression MUST keep the expectation count unchanged')
             ->toBe([1, 1]);
-        Expect::that($afterSuppression)
+        expect($afterSuppression)
             ->because('nested suppression MUST restore the earlier expectation count')
             ->toBe(1);
-        Expect::that($afterResume)
+        expect($afterResume)
             ->because('expectation counting MUST resume after nested suppression')
             ->toBe(2);
     }
@@ -55,7 +56,7 @@ final class ExpectationCounterTest
     {
         ExpectationCounter::reset();
 
-        Expect::that(static fn(): mixed => ExpectationCounter::withoutCounting(
+        expect()->calling(static fn(): mixed => ExpectationCounter::withoutCounting(
             static function (): never {
                 ExpectationCounter::increment();
 
@@ -69,10 +70,10 @@ final class ExpectationCounterTest
         ExpectationCounter::increment();
         $afterResume = ExpectationCounter::count();
 
-        Expect::that($afterThrow)
+        expect($afterThrow)
             ->because('suppression MUST restore the earlier count after an operation error')
             ->toBe(1);
-        Expect::that($afterResume)
+        expect($afterResume)
             ->because('expectation counting MUST resume after an operation error')
             ->toBe(2);
     }

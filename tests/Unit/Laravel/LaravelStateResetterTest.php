@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Laravel;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
-use Greenlight\Expect\Expect;
 use Greenlight\Laravel\LaravelStateResetter;
 use Illuminate\Support\Str;
+
+use function Greenlight\expect;
 
 #[SkipUnless(ClassAvailable::class, Str::class)]
 final class LaravelStateResetterTest
@@ -28,7 +29,7 @@ final class LaravelStateResetterTest
             LaravelStateResetter::reset();
             Str::random(8);
 
-            Expect::that($factoryCalls)
+            expect($factoryCalls)
                 ->because('Laravel reset MUST remove a custom random-string factory')
                 ->toBe(0);
         } finally {

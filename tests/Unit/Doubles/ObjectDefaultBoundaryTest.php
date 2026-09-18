@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\InvalidDoubleUsage;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\ObjectDefaults\DynamicPrivateConstantDefaults;
 use Greenlight\Tests\Fixture\Doubles\ObjectDefaults\PrivateConstructorDefaults;
 use Greenlight\Tests\Fixture\Doubles\ObjectDefaults\PrivateObjectConstantDefaults;
 use Greenlight\Tests\Fixture\Doubles\ObjectDefaults\TrackedValue;
+
+use function Greenlight\expect;
 
 final readonly class ObjectDefaultBoundaryTest
 {
@@ -39,19 +40,19 @@ final readonly class ObjectDefaultBoundaryTest
         ));
         $stub = new \ReflectionMethod(Doubles::class, 'stub');
 
-        Expect::that(fn(): mixed => $stub->invoke($this->doubles, $type))
+        expect()->calling(fn(): mixed => $stub->invoke($this->doubles, $type))
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'Doubles cannot read the object default of parameter "$value" from "'
                     . $type . '::run()". Declare the method on a separate line in a readable PHP file.',
             );
-        Expect::that(TrackedValue::$constructions)->toBe(0);
+        expect(TrackedValue::$constructions)->toBe(0);
     }
 
     #[Test]
     public function privateConstructorsHaveAnExplicitDiagnostic(): void
     {
-        Expect::that(fn(): object => $this->doubles->stub(PrivateConstructorDefaults::class))
+        expect()->calling(fn(): object => $this->doubles->stub(PrivateConstructorDefaults::class))
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'Doubles cannot access the object default of parameter "$value" from "'
@@ -63,7 +64,7 @@ final readonly class ObjectDefaultBoundaryTest
     #[Test]
     public function dynamicPrivateConstantsHaveAnExplicitDiagnostic(): void
     {
-        Expect::that(fn(): object => $this->doubles->stub(DynamicPrivateConstantDefaults::class))
+        expect()->calling(fn(): object => $this->doubles->stub(DynamicPrivateConstantDefaults::class))
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'Doubles cannot access the object default of parameter "$value" from "'
@@ -75,7 +76,7 @@ final readonly class ObjectDefaultBoundaryTest
     #[Test]
     public function privateObjectConstantsHaveAnExplicitDiagnostic(): void
     {
-        Expect::that(fn(): object => $this->doubles->stub(PrivateObjectConstantDefaults::class))
+        expect()->calling(fn(): object => $this->doubles->stub(PrivateObjectConstantDefaults::class))
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'Doubles cannot access the object default of parameter "$value" from "'

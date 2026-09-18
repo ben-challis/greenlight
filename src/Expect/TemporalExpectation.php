@@ -13,10 +13,12 @@ use Greenlight\Test\ExpectationCounter;
  * consistent expectations.
  *
  * @template T
- * @mixin Expectation<T>
  */
 abstract class TemporalExpectation
 {
+    /** @use ValueMatchers<T> */
+    use ValueMatchers;
+
     private bool $negated = false;
 
     /** @var non-empty-string|null */
@@ -83,7 +85,41 @@ abstract class TemporalExpectation
      * @throws \BadMethodCallException if no native or registered extension matcher has the requested name
      * @throws ExpectationFailed
      */
-    final public function __call(string $name, array $arguments): Expectation // @phpstan-ignore throws.unusedType (Dynamic matcher dispatch can throw this exception.)
+    final public function __call(string $name, array $arguments): Expectation
+    {
+        foreach ($this->extensions as $extension) {
+            if (isset($extension->matchers()[$name])) {
+                return $this->matchValue($name, $arguments);
+            }
+        }
+
+        throw new \BadMethodCallException(\sprintf('Greenlight has no native or registered extension matcher named %s.', $name));
+    }
+
+    /**
+     * @param array<array-key, mixed> $arguments
+     *
+     * @return Expectation<T>
+     *
+     * @throws ExpectationFailed
+     */
+    final protected function matchValue(string $name, array $arguments): Expectation
+    {
+        $result = $this->evaluate($name, $arguments);
+
+        return new Expectation(static fn() => $result->subject, $this->renderer, $this->extensions);
+    }
+
+    /**
+     * @internal
+     *
+     * @param array<array-key, mixed> $arguments
+     *
+     * @return MatcherEvaluation<T>
+     *
+     * @throws ExpectationFailed
+     */
+    final public function evaluate(string $name, array $arguments): MatcherEvaluation
     {
         $matcher = ExpectationCall::forTemporal($name, $arguments);
 
@@ -91,13 +127,13 @@ abstract class TemporalExpectation
     }
 
     /**
-     * @param \Closure(Expectation<T>): Expectation<T> $matcher
+     * @param \Closure(MatcherEvaluation<T>): MatcherEvaluation<T> $matcher
      *
-     * @return Expectation<T>
+     * @return MatcherEvaluation<T>
      *
      * @throws ExpectationFailed
      */
-    final protected function apply(\Closure $matcher): Expectation
+    final protected function apply(\Closure $matcher): MatcherEvaluation
     {
         $negated = $this->negated;
         $this->negated = false;
@@ -108,10 +144,10 @@ abstract class TemporalExpectation
     }
 
     /**
-     * @param \Closure(Expectation<T>): Expectation<T> $matcher
+     * @param \Closure(MatcherEvaluation<T>): MatcherEvaluation<T> $matcher
      * @param non-empty-string|null $reason
      *
-     * @return Expectation<T>
+     * @return MatcherEvaluation<T>
      *
      * @throws ExpectationFailed
      */
@@ -120,10 +156,10 @@ abstract class TemporalExpectation
         bool $negated,
         ?string $reason,
         ?SourceLocation $location,
-    ): Expectation;
+    ): MatcherEvaluation;
 
     /**
-     * @param \Closure(Expectation<T>): Expectation<T> $matcher
+     * @param \Closure(MatcherEvaluation<T>): MatcherEvaluation<T> $matcher
      * @param non-empty-string|null $reason
      * @param list<class-string<\Exception>> $retryOnExceptions
      *
@@ -157,7 +193,7 @@ abstract class TemporalExpectation
             );
         }
 
-        $expectation = new Expectation($subject, $this->renderer, $this->extensions);
+        $expectation = new MatcherEvaluation($subject, $this->renderer, $this->extensions);
 
         if ($negated) {
             $expectation->not();
@@ -169,7 +205,7 @@ abstract class TemporalExpectation
 
         try {
             ExpectationCounter::withoutCounting(
-                static fn(): Expectation => $matcher($expectation),
+                static fn(): MatcherEvaluation => $matcher($expectation),
             );
         } catch (ExpectationFailed $failure) {
             return TemporalObservation::failed(
@@ -185,11 +221,11 @@ abstract class TemporalExpectation
     /**
      * @param T $subject
      *
-     * @return Expectation<T>
+     * @return MatcherEvaluation<T>
      */
-    final protected function immediate(mixed $subject): Expectation
+    final protected function immediate(mixed $subject): MatcherEvaluation
     {
-        return new Expectation($subject, $this->renderer, $this->extensions);
+        return new MatcherEvaluation($subject, $this->renderer, $this->extensions);
     }
 
     final protected function sleepUntil(float $target): void

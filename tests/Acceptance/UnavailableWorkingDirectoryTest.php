@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class UnavailableWorkingDirectoryTest
 {
@@ -30,8 +31,8 @@ final readonly class UnavailableWorkingDirectoryTest
             $root . '/bin/greenlight',
         ]);
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stderr)->toBe('Could not determine the current working directory.');
-        Expect::that($result->stdout)->toBe('');
+        expect($result->exitCode)->toBe(1);
+        expect($result->stderr)->toBe('Could not determine the current working directory.');
+        expect($result->stdout)->toBe('');
     }
 }

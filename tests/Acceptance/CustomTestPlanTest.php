@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
+
+use function Greenlight\expect;
 
 final readonly class CustomTestPlanTest
 {
@@ -38,8 +39,8 @@ final readonly class CustomTestPlanTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that(JsonlEvents::finishedTestIds($result))->toBe([
+        expect($result->exitCode)->toBe(0);
+        expect(JsonlEvents::finishedTestIds($result))->toBe([
             'CustomTestPlanProbe\\BetaTest::passes',
         ]);
     }
@@ -64,8 +65,8 @@ final readonly class CustomTestPlanTest
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl', '--no-ansi']);
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stderr)->toBe(
+        expect($result->exitCode)->toBe(1);
+        expect($result->stderr)->toBe(
             'greenlight: Plugin "InvalidPlan" added unknown test "UnknownTest::passes" during transformTestPlan(). A plan transformer can only remove or reorder selected tests.',
         );
     }

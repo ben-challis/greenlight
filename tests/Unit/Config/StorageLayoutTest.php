@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Config;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\StorageConfiguration;
 use Greenlight\Config\StorageLayout;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class StorageLayoutTest
 {
@@ -19,16 +20,16 @@ final readonly class StorageLayoutTest
         $temporary = \rtrim(\sys_get_temp_dir(), '/');
         $layout = StorageLayout::resolve(new StorageConfiguration(), $workingDirectory);
 
-        Expect::that($layout->runStateFile)
+        expect($layout->runStateFile)
             ->because('default run state MUST retain its project-specific system temporary path')
             ->toBe($temporary . '/greenlight-state-' . $key . '.json');
-        Expect::that($layout->cacheDirectory)
+        expect($layout->cacheDirectory)
             ->because('the default data cache MUST use the system temporary directory')
             ->toBe($temporary);
-        Expect::that($layout->generatedCodeDirectory)
+        expect($layout->generatedCodeDirectory)
             ->because('default generated code MUST retain its project-specific directory')
             ->toBe($temporary . '/greenlight-proxies-' . $key);
-        Expect::that($layout->temporaryDirectory)
+        expect($layout->temporaryDirectory)
             ->because('default runtime data MUST use the system temporary directory')
             ->toBe($temporary);
     }
@@ -42,16 +43,16 @@ final readonly class StorageLayoutTest
             temporaryDirectory: 'build/runtime',
         ), '/project');
 
-        Expect::that($layout->runStateFile)
+        expect($layout->runStateFile)
             ->because('an explicit state directory MUST not depend on the checkout path')
             ->toBe('/shared/state/run-state.json');
-        Expect::that($layout->cacheDirectory)
+        expect($layout->cacheDirectory)
             ->because('an area without an override MUST use its directory below the root')
             ->toBe('/project/.greenlight/cache');
-        Expect::that($layout->generatedCodeDirectory)
+        expect($layout->generatedCodeDirectory)
             ->because('generated code without an override MUST use its directory below the root')
             ->toBe('/project/.greenlight/generated-code');
-        Expect::that($layout->temporaryDirectory)
+        expect($layout->temporaryDirectory)
             ->because('relative area overrides MUST resolve against the initial working directory')
             ->toBe('/project/build/runtime');
     }
@@ -65,10 +66,10 @@ final readonly class StorageLayoutTest
             'suites-123456789abc',
         );
 
-        Expect::that($layout->runStateFile)
+        expect($layout->runStateFile)
             ->because('suite selections MUST have separate failure and timing state')
             ->toBe('/project/.greenlight/state/run-state-suites-123456789abc.json');
-        Expect::that($layout->cacheDirectory)
+        expect($layout->cacheDirectory)
             ->because('suite selections MUST keep the configured discovery-cache directory')
             ->toBe('/project/.greenlight/cache');
     }

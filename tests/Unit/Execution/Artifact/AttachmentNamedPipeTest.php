@@ -10,11 +10,12 @@ use Greenlight\Attribute\Timeout;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\SkipTest;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class AttachmentNamedPipeTest
 {
@@ -42,7 +43,7 @@ final readonly class AttachmentNamedPipeTest
         $this->cleanup->defer($store->cleanup(...));
         $attachments = $store->forAttempt(new TestId(self::class, __FUNCTION__), 1, new TestArtifactBudget());
 
-        Expect::that(static fn() => $attachments->file('evidence.bin', $path))
+        expect()->calling(static fn() => $attachments->file('evidence.bin', $path))
             ->toThrow(AttachmentError::class, message: \sprintf('Attachment source "%s" is not a regular file.', $path));
     }
 }

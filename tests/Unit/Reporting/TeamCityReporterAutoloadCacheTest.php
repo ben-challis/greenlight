@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestStarted;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Sandbox\Autoloaders;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class TeamCityReporterAutoloadCacheTest
 {
@@ -35,10 +36,10 @@ final readonly class TeamCityReporterAutoloadCacheTest
         $reporter->onEvent(new TestClassStarted($class, 1.0, 'w-1'));
         $reporter->onEvent(new TestStarted(new TestId($class, 'runs'), 1.1));
 
-        Expect::that($autoloadCalls)
+        expect($autoloadCalls)
             ->because('a failed optional location lookup MUST not rerun the autoloader for each event')
             ->toBe(1);
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('cached lookup failure MUST not stop later report events')
             ->toBe(
                 "##teamcity[testSuiteStarted name='{$class}' flowId='{$class}']\n"

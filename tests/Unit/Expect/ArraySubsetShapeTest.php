@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ArraySubsetShapeTest
 {
@@ -22,10 +23,10 @@ final class ArraySubsetShapeTest
         string $message,
     ): void {
         $detail = FailureProbe::detailOf(
-            static fn() => Expect::that($subject)->toContainSubset($subset),
+            static fn() => expect($subject)->toContainSubset($subset),
         );
 
-        Expect::that($detail->message)
+        expect($detail->message)
             ->because('a nested array and scalar MUST produce a matcher failure, not an internal type error')
             ->toBe($message);
     }

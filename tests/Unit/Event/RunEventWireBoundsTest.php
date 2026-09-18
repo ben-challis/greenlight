@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\RunFinished;
 use Greenlight\Event\RunStarted;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class RunEventWireBoundsTest
 {
@@ -25,7 +26,7 @@ final class RunEventWireBoundsTest
         ];
         $payload[$field] = $wireValue;
 
-        Expect::that(RunStarted::fromWire($payload)->toWire()[$field])
+        expect(RunStarted::fromWire($payload)->toWire()[$field])
             ->because('run-started wire fields MUST normalize to safe bounds')
             ->toBe($expected);
     }
@@ -57,7 +58,7 @@ final class RunEventWireBoundsTest
         ];
         $payload[$field] = $wireValue;
 
-        Expect::that(RunFinished::fromWire($payload)->toWire()[$field])
+        expect(RunFinished::fromWire($payload)->toWire()[$field])
             ->because('run-finished wire fields MUST normalize to safe bounds')
             ->toBe($expected);
     }

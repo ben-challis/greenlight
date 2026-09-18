@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Execution\Artifact;
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Artifact\StreamWriter;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Execution\Artifact\ZeroWriteStream;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactStreamWriteFailureTest
 {
@@ -29,7 +30,7 @@ final readonly class ArtifactStreamWriteFailureTest
         }
 
         try {
-            Expect::that(static fn() => StreamWriter::writeFully($stream, 'evidence'))
+            expect()->calling(static fn() => StreamWriter::writeFully($stream, 'evidence'))
                 ->because('a write without progress MUST fail instead of looping')
                 ->toThrow(
                     AttachmentError::class,

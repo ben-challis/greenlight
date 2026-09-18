@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class CustomCommandTest
 {
@@ -43,11 +44,11 @@ final readonly class CustomCommandTest
 
         $result = GreenlightCli::run($project->directory, ['company:hello', 'Ben', '--mode=brief']);
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stdout)
+        expect($result->exitCode)->toBe(1);
+        expect($result->stdout)
             ->toContain('cwd=' . $project->directory)
             ->toContain('args=Ben|--mode=brief');
-        Expect::that($result->stderr)->toBe('company diagnostic');
+        expect($result->stderr)->toBe('company diagnostic');
     }
 
     #[Test]
@@ -72,9 +73,9 @@ final readonly class CustomCommandTest
 
         $result = GreenlightCli::run($project->directory, ['company:probe', '--no-ansi']);
 
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stdout)->toBe('');
-        Expect::that($result->stderr)->toBe('greenlight: Command name "run" is registered more than once.');
+        expect($result->exitCode)->toBe(1);
+        expect($result->stdout)->toBe('');
+        expect($result->stderr)->toBe('greenlight: Command name "run" is registered more than once.');
     }
 
     #[Test]
@@ -101,8 +102,8 @@ final readonly class CustomCommandTest
             PHP);
 
         $threw = GreenlightCli::run($project->directory, ['company:throws', '--no-ansi']);
-        Expect::that($threw->exitCode)->toBe(1);
-        Expect::that($threw->stderr)
+        expect($threw->exitCode)->toBe(1);
+        expect($threw->stderr)
             ->toBe('greenlight: Command "company:throws" caused an error: Command exploded');
     }
 

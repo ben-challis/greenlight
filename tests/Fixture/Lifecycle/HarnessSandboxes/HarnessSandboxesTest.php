@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Fixture\Lifecycle\HarnessSandboxes;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
+
+use function Greenlight\expect;
 
 final readonly class HarnessSandboxesTest
 {
@@ -27,7 +29,7 @@ final readonly class HarnessSandboxesTest
 
         TraceLog::add('temp:' . $path);
 
-        Expect::that(\is_file($path . '/probe.txt'))->toBeTrue();
-        Expect::that(\getenv('GREENLIGHT_SANDBOX_E2E'))->toBe('inside');
+        expect(\is_file($path . '/probe.txt'))->toBeTrue();
+        expect(\getenv('GREENLIGHT_SANDBOX_E2E'))->toBe('inside');
     }
 }

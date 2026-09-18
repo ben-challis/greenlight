@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Cli\Watch;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\Debouncer;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class DebouncerValidationTest
 {
@@ -15,7 +16,7 @@ final readonly class DebouncerValidationTest
     #[DataSet('nonFiniteQuietPeriods')]
     public function rejectsANonFiniteQuietPeriod(float $quietSeconds): void
     {
-        Expect::that(static fn(): Debouncer => new Debouncer($quietSeconds))
+        expect()->calling(static fn(): Debouncer => new Debouncer($quietSeconds))
             ->because('a non-finite quiet period MUST NOT disable future watch runs')
             ->toThrow(
                 \InvalidArgumentException::class,

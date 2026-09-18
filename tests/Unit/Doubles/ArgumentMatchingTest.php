@@ -12,11 +12,12 @@ use Greenlight\Doubles\ArgumentMatcher;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\Recorder;
 use Greenlight\Tests\Fixture\Doubles\Wide;
+
+use function Greenlight\expect;
 
 final readonly class ArgumentMatchingTest
 {
@@ -38,7 +39,7 @@ final readonly class ArgumentMatchingTest
                 ->andReturns([]);
         });
 
-        Expect::that(static fn(): array => $wide->variadic('head', ...$actualRest))
+        expect()->calling(static fn(): array => $wide->variadic('head', ...$actualRest))
             ->because('exact argument matching requires the same argument count')
             ->toThrow(ExpectationFailed::class, '/unexpected call/');
     }
@@ -59,7 +60,7 @@ final readonly class ArgumentMatchingTest
             $plan->expects('add')->with(Argument::type('int'), Argument::type('int'))->once()->andReturns(5);
         });
 
-        Expect::that($calculator->add(2, 3))->because('type matches builtin values')->toBe(5);
+        expect($calculator->add(2, 3))->because('type matches builtin values')->toBe(5);
     }
 
     #[Test]
@@ -80,15 +81,15 @@ final readonly class ArgumentMatchingTest
             $plan->expects('record')->with(Argument::type('int'))->once();
         });
 
-        Expect::that(static function () use ($recorder): void {
+        expect()->calling(static function () use ($recorder): void {
             $recorder->record('not an int');
         })
             ->because("record('not an int') MUST fail its type(int) argument matcher")
             ->toThrow(static function (ExpectationFailed $failure): void {
                 $detail = $failure->detail();
 
-                Expect::that($detail->expected)->toContain('type(int)');
-                Expect::that($detail->actual)->toBe("record('not an int')");
+                expect($detail->expected)->toContain('type(int)');
+                expect($detail->actual)->toBe("record('not an int')");
             });
     }
 
@@ -96,7 +97,7 @@ final readonly class ArgumentMatchingTest
     #[DataSet('invalidArgumentTypes')]
     public function typeMatchersRejectMissingTypeNames(string $type): void
     {
-        Expect::that(static fn(): ArgumentMatcher => Argument::type($type))
+        expect()->calling(static fn(): ArgumentMatcher => Argument::type($type))
             ->because('argument type matchers MUST identify a type')
             ->toThrow(
                 InvalidDoubleUsage::class,
@@ -118,12 +119,12 @@ final readonly class ArgumentMatchingTest
     {
         $matcher = Argument::intersection(FirstArgumentType::class, SecondArgumentType::class);
 
-        Expect::that($matcher->matches(new CombinedArgumentType()))
+        expect($matcher->matches(new CombinedArgumentType()))
             ->because('intersection() accepts a value that has every specified type')
             ->toBeTrue();
-        Expect::that($matcher->matches(new FirstArgumentTypeOnly()))->toBeFalse();
-        Expect::that(Argument::intersection('int', 'int')->matches(42))->toBeTrue();
-        Expect::that(Argument::intersection('int', 'string')->matches(42))->toBeFalse();
+        expect($matcher->matches(new FirstArgumentTypeOnly()))->toBeFalse();
+        expect(Argument::intersection('int', 'int')->matches(42))->toBeTrue();
+        expect(Argument::intersection('int', 'string')->matches(42))->toBeFalse();
     }
 
     #[Test]
@@ -131,34 +132,34 @@ final readonly class ArgumentMatchingTest
     {
         $matcher = Argument::union(FirstArgumentType::class, SecondArgumentType::class);
 
-        Expect::that($matcher->matches(new CombinedArgumentType()))
+        expect($matcher->matches(new CombinedArgumentType()))
             ->because('union() accepts a value that has one or more specified types')
             ->toBeTrue();
-        Expect::that($matcher->matches(new FirstArgumentTypeOnly()))->toBeTrue();
-        Expect::that($matcher->matches(new \stdClass()))->toBeFalse();
-        Expect::that(Argument::union('int', 'string')->matches('value'))->toBeTrue();
+        expect($matcher->matches(new FirstArgumentTypeOnly()))->toBeTrue();
+        expect($matcher->matches(new \stdClass()))->toBeFalse();
+        expect(Argument::union('int', 'string')->matches('value'))->toBeTrue();
     }
 
     #[Test]
     public function typeCombinationDiagnosticsPreserveTypeOrder(): void
     {
-        Expect::that(Argument::intersection(FirstArgumentType::class, SecondArgumentType::class)->describe())
+        expect(Argument::intersection(FirstArgumentType::class, SecondArgumentType::class)->describe())
             ->toBe('intersection(Greenlight\\Tests\\Unit\\Doubles\\FirstArgumentType, '
                 . 'Greenlight\\Tests\\Unit\\Doubles\\SecondArgumentType)');
-        Expect::that(Argument::union('int', 'string', \DateTimeInterface::class)->describe())
+        expect(Argument::union('int', 'string', \DateTimeInterface::class)->describe())
             ->toBe('union(int, string, DateTimeInterface)');
     }
 
     #[Test]
     public function typeCombinationsRejectMissingTypeNames(): void
     {
-        Expect::that(static fn(): ArgumentMatcher => Argument::intersection('int', ''))
+        expect()->calling(static fn(): ArgumentMatcher => Argument::intersection('int', ''))
             ->because('type combination matchers MUST identify every type')
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'Argument::intersection() requires type names that contain a non-space character.',
             );
-        Expect::that(static fn(): ArgumentMatcher => Argument::union('   ', 'string'))
+        expect()->calling(static fn(): ArgumentMatcher => Argument::union('   ', 'string'))
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'Argument::union() requires type names that contain a non-space character.',
@@ -175,7 +176,7 @@ final readonly class ArgumentMatchingTest
                 ->andReturns(3);
         });
 
-        Expect::that($calculator->add(2, 1))->because('predicate matches when the closure returns true')->toBe(3);
+        expect($calculator->add(2, 1))->because('predicate matches when the closure returns true')->toBe(3);
     }
 
     #[Test]
@@ -189,10 +190,10 @@ final readonly class ArgumentMatchingTest
                 ->andReturns(3);
         });
 
-        Expect::that(static fn(): int => $calculator->add(-2, 1))
+        expect()->calling(static fn(): int => $calculator->add(-2, 1))
             ->because('add(-2, 1) MUST fail its predicate(positive) argument matcher')
             ->toThrow(static function (ExpectationFailed $failure): void {
-                Expect::that($failure->detail()->expected)->toContain('predicate(positive)');
+                expect($failure->detail()->expected)->toContain('predicate(positive)');
             });
     }
 
@@ -206,16 +207,16 @@ final readonly class ArgumentMatchingTest
             return $value !== '';
         });
 
-        Expect::that($matcher->matches(1))
+        expect($matcher->matches(1))
             ->because('a typed predicate MUST reject an incompatible value')
             ->toBeFalse();
-        Expect::that($predicateCalled)
+        expect($predicateCalled)
             ->because('a typed predicate MUST NOT receive an incompatible value')
             ->toBeFalse();
-        Expect::that($matcher->matches('value'))
+        expect($matcher->matches('value'))
             ->because('a typed predicate MUST receive a compatible value')
             ->toBeTrue();
-        Expect::that($predicateCalled)->toBeTrue();
+        expect($predicateCalled)->toBeTrue();
     }
 
     #[Test]
@@ -225,10 +226,10 @@ final readonly class ArgumentMatchingTest
             static fn((\IteratorAggregate&\Countable)|string|null $value): bool => true,
         );
 
-        Expect::that($matcher->matches(new \ArrayObject()))->toBeTrue();
-        Expect::that($matcher->matches('value'))->toBeTrue();
-        Expect::that($matcher->matches(null))->toBeTrue();
-        Expect::that($matcher->matches(new \stdClass()))->toBeFalse();
+        expect($matcher->matches(new \ArrayObject()))->toBeTrue();
+        expect($matcher->matches('value'))->toBeTrue();
+        expect($matcher->matches(null))->toBeTrue();
+        expect($matcher->matches(new \stdClass()))->toBeFalse();
     }
 
     #[Test]
@@ -238,7 +239,7 @@ final readonly class ArgumentMatchingTest
             throw new \TypeError('predicate body failed');
         });
 
-        Expect::that(static fn(): bool => $matcher->matches(new \DateTimeImmutable()))
+        expect()->calling(static fn(): bool => $matcher->matches(new \DateTimeImmutable()))
             ->because('a typed predicate MUST preserve errors from its closure body')
             ->toThrow(\TypeError::class, message: 'predicate body failed');
     }
@@ -276,7 +277,7 @@ final readonly class ArgumentMatchingTest
             $plan->expects('record')->with($expected)->once();
         });
 
-        Expect::that(static function () use ($recorder, $actual): void {
+        expect()->calling(static function () use ($recorder, $actual): void {
             $recorder->record($actual);
         })
             ->because('a bare object value in with() MUST match by identity')
@@ -312,10 +313,10 @@ final readonly class ArgumentMatchingTest
             }),
         );
 
-        Expect::that($matcher->matches('not a date'))
+        expect($matcher->matches('not a date'))
             ->because('allOf() MUST stop after the type matcher rejects the value')
             ->toBeFalse();
-        Expect::that($predicateCalled)->toBeFalse();
+        expect($predicateCalled)->toBeFalse();
     }
 
     #[Test]
@@ -326,7 +327,7 @@ final readonly class ArgumentMatchingTest
             Argument::predicate(static fn(mixed $value): bool => $value !== null, 'not null'),
         );
 
-        Expect::that($matcher->describe())
+        expect($matcher->describe())
             ->because('allOf() diagnostics MUST preserve matcher order')
             ->toBe('allOf(type(DateTimeInterface), predicate(not null))');
     }
@@ -334,7 +335,7 @@ final readonly class ArgumentMatchingTest
     #[Test]
     public function allOfRejectsCaptors(): void
     {
-        Expect::that(static fn(): ArgumentMatcher => Argument::allOf(Argument::any(), Argument::captor()))
+        expect()->calling(static fn(): ArgumentMatcher => Argument::allOf(Argument::any(), Argument::captor()))
             ->because('a captor in allOf() cannot record the selected call')
             ->toThrow(
                 InvalidDoubleUsage::class,
@@ -345,7 +346,7 @@ final readonly class ArgumentMatchingTest
     #[Test]
     public function equalsDiagnosticsRenderTheExpectedValue(): void
     {
-        Expect::that(Argument::equals(['a' => [1, 2]])->describe())
+        expect(Argument::equals(['a' => [1, 2]])->describe())
             ->because('equals() diagnostics render the expected value')
             ->toBe("equals(['a' => [1, 2]])");
     }
@@ -357,13 +358,13 @@ final readonly class ArgumentMatchingTest
             $plan->expects('add')->with(1, Argument::type('int'))->once()->andReturns(9);
         });
 
-        Expect::that($calculator->add(1, 8))->because('bare values and matchers mix in one with')->toBe(9);
+        expect($calculator->add(1, 8))->because('bare values and matchers mix in one with')->toBe(9);
     }
 
     #[Test]
     public function anyDiagnosticsNameTheConstraint(): void
     {
-        Expect::that(Argument::any()->describe())
+        expect(Argument::any()->describe())
             ->because('any() diagnostics identify the argument constraint')
             ->toBe('any()');
     }
@@ -379,14 +380,14 @@ final readonly class ArgumentMatchingTest
         $calculator->add(1, 7);
         $calculator->add(999, 7);
 
-        Expect::that($captor->values())->because('a captor in with collects values in call order')->toEqual([1, 999]);
-        Expect::that($captor->value())->toBe(999);
+        expect($captor->values())->because('a captor in with collects values in call order')->toEqual([1, 999]);
+        expect($captor->value())->toBe(999);
     }
 
     #[Test]
     public function aCaptorWithoutCapturesRefusesToProduceAValue(): void
     {
-        Expect::that(static fn(): mixed => Argument::captor()->value())
+        expect()->calling(static fn(): mixed => Argument::captor()->value())
             ->because('a captor without captures refuses to produce a value')
             ->toThrow(InvalidDoubleUsage::class, message: 'The captor has no value. No matched call supplied a value.');
     }
@@ -394,7 +395,7 @@ final readonly class ArgumentMatchingTest
     #[Test]
     public function captorDiagnosticsNameTheConstraint(): void
     {
-        Expect::that(Argument::captor()->describe())
+        expect(Argument::captor()->describe())
             ->because('captor diagnostics identify the argument constraint')
             ->toBe('captor()');
     }
@@ -410,11 +411,11 @@ final readonly class ArgumentMatchingTest
         $calculator->add(1, 9);
         $calculator->add(2, 8);
 
-        Expect::that($captor)
+        expect($captor)
             ->because('captureArgument() MUST return ArgumentCaptor.')
             ->toBeInstanceOf(ArgumentCaptor::class);
 
-        Expect::that($captor->values())->because('capture argument records every matched call')->toEqual([9, 8]);
+        expect($captor->values())->because('capture argument records every matched call')->toEqual([9, 8]);
     }
 
     #[Test]
@@ -427,11 +428,11 @@ final readonly class ArgumentMatchingTest
 
         $calculator->add(42, 7);
 
-        Expect::that($captor)
+        expect($captor)
             ->because('captureArgument() MUST return ArgumentCaptor.')
             ->toBeInstanceOf(ArgumentCaptor::class);
 
-        Expect::that($captor->value())->because('capture argument works alongside with constraints')->toBe(42);
+        expect($captor->value())->because('capture argument works alongside with constraints')->toBe(42);
     }
 
     #[Test]
@@ -439,7 +440,7 @@ final readonly class ArgumentMatchingTest
     {
         $doubles = new Doubles();
 
-        Expect::that(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
+        expect()->calling(static fn(): mixed => $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
             $plan->expects('add')->captureArgument(-1); // @phpstan-ignore greenlight.mockPlan.capturePosition (deliberately invalid: tests runtime validation)
         }))->because('capture argument rejects negative positions')
             ->toThrow(InvalidDoubleUsage::class, message: 'captureArgument(-1) requires a position of zero or more.');
@@ -458,8 +459,8 @@ final readonly class ArgumentMatchingTest
         $calculator->add(1, 10);
         $calculator->add(2, 20);
 
-        Expect::that($first->values())->because('captors only see calls their own expectation matched')->toEqual([10]);
-        Expect::that($second->values())->toEqual([20]);
+        expect($first->values())->because('captors only see calls their own expectation matched')->toEqual([10]);
+        expect($second->values())->toEqual([20]);
     }
 }
 

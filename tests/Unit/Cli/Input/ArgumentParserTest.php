@@ -10,7 +10,8 @@ use Greenlight\Cli\Input\ArgumentParser;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\OptionSpec;
 use Greenlight\Cli\Input\OptionValue;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ArgumentParserTest
 {
@@ -26,12 +27,12 @@ final class ArgumentParserTest
             '--seed=123',
         ]);
 
-        Expect::that($parsed->command)->because('parses command options and repeated values')->toBe('run');
-        Expect::that($parsed->value('workers'))->because('parses command options and repeated values')->toBe('4');
-        Expect::that($parsed->has('bail'))->because('parses command options and repeated values')->toBeTrue();
-        Expect::that($parsed->value('bail'))->because('parses command options and repeated values')->toBe(null);
-        Expect::that($parsed->values('group'))->because('parses command options and repeated values')->toBe(['slow', 'io']);
-        Expect::that($parsed->value('seed'))->because('parses command options and repeated values')->toBe('123');
+        expect($parsed->command)->because('parses command options and repeated values')->toBe('run');
+        expect($parsed->value('workers'))->because('parses command options and repeated values')->toBe('4');
+        expect($parsed->has('bail'))->because('parses command options and repeated values')->toBeTrue();
+        expect($parsed->value('bail'))->because('parses command options and repeated values')->toBe(null);
+        expect($parsed->values('group'))->because('parses command options and repeated values')->toBe(['slow', 'io']);
+        expect($parsed->value('seed'))->because('parses command options and repeated values')->toBe('123');
     }
 
     #[Test]
@@ -39,8 +40,8 @@ final class ArgumentParserTest
     {
         $parsed = self::parser()->parse(['--bail=3']);
 
-        Expect::that($parsed->command)->because('optional value options accept a value')->toBe(null);
-        Expect::that($parsed->value('bail'))->because('optional value options accept a value')->toBe('3');
+        expect($parsed->command)->because('optional value options accept a value')->toBe(null);
+        expect($parsed->value('bail'))->because('optional value options accept a value')->toBe('3');
     }
 
     #[Test]
@@ -53,22 +54,22 @@ final class ArgumentParserTest
             '--seed=123',
         ]);
 
-        Expect::that($parsed->command)
+        expect($parsed->command)
             ->because('option position MUST NOT change the selected command')
             ->toBe('run');
-        Expect::that($parsed->value('workers'))
+        expect($parsed->value('workers'))
             ->toBe('4');
-        Expect::that($parsed->values('group'))
+        expect($parsed->values('group'))
             ->toBe(['slow']);
-        Expect::that($parsed->value('seed'))
+        expect($parsed->value('seed'))
             ->toBe('123');
     }
 
     #[Test]
     public function shortAliasesMapToTheirLongOptions(): void
     {
-        Expect::that(self::parser()->parse(['-h'])->has('help'))->because('short aliases map to their long options')->toBeTrue();
-        Expect::that(self::parser()->parse(['-V'])->has('version'))->because('short aliases map to their long options')->toBeTrue();
+        expect(self::parser()->parse(['-h'])->has('help'))->because('short aliases map to their long options')->toBeTrue();
+        expect(self::parser()->parse(['-V'])->has('version'))->because('short aliases map to their long options')->toBeTrue();
     }
 
     /**
@@ -78,7 +79,7 @@ final class ArgumentParserTest
     #[DataSet('malformedArguments')]
     public function rejectsMalformedInputWithExactGuidance(array $argv, string $message): void
     {
-        Expect::that(
+        expect()->calling(
             static function () use ($argv): void {
                 self::parser()->parse($argv);
             },

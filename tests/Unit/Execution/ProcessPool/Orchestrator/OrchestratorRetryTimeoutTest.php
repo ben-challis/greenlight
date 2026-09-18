@@ -14,7 +14,6 @@ use Greenlight\Execution\ProcessPool\Protocol\Messages\AttemptStarted;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
@@ -24,6 +23,8 @@ use Greenlight\Test\TestDefinition;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\ScriptedWorkerTransport;
+
+use function Greenlight\expect;
 
 final readonly class OrchestratorRetryTimeoutTest
 {
@@ -47,10 +48,10 @@ final readonly class OrchestratorRetryTimeoutTest
 
         $summary = new Orchestrator($transport)->run($this->plan($id), $sink, 1);
 
-        Expect::that($summary->passed)->toBe(1);
-        Expect::that($summary->failed)->toBe(0);
-        Expect::that($sink->results()[0]->attempts)->toBe(40);
-        Expect::that($transport->started)->toHaveCount(1);
+        expect($summary->passed)->toBe(1);
+        expect($summary->failed)->toBe(0);
+        expect($sink->results()[0]->attempts)->toBe(40);
+        expect($transport->started)->toHaveCount(1);
     }
 
     #[Test]
@@ -67,11 +68,11 @@ final readonly class OrchestratorRetryTimeoutTest
 
         $summary = new Orchestrator($transport)->run($this->plan($id), $sink, 1);
 
-        Expect::that($summary->failed)->toBe(1);
-        Expect::that($sink->results()[0]->attempts)->toBe(2);
-        Expect::that($sink->results()[0]->failures[0]->message)->toContain('exceeded its 0.100-second time limit');
-        Expect::that($sink->results()[0]->durationSeconds)->toBeGreaterThan(2.3);
-        Expect::that($sink->results()[0]->failures[0]->message)->toContain('after 2.400 seconds');
+        expect($summary->failed)->toBe(1);
+        expect($sink->results()[0]->attempts)->toBe(2);
+        expect($sink->results()[0]->failures[0]->message)->toContain('exceeded its 0.100-second time limit');
+        expect($sink->results()[0]->durationSeconds)->toBeGreaterThan(2.3);
+        expect($sink->results()[0]->failures[0]->message)->toContain('after 2.400 seconds');
     }
 
     private function plan(TestId $id): ExecutionPlan

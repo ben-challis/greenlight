@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Protocol;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Protocol\FrameBuffer;
 use Greenlight\Execution\ProcessPool\Protocol\JsonFrameCodec;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ExactFrameLimitTest
 {
@@ -27,19 +28,19 @@ final class ExactFrameLimitTest
         $buffer->feed($frame);
         $body = $buffer->next();
 
-        Expect::that(\strlen($frame))
+        expect(\strlen($frame))
             ->because('the framed body MUST be exactly the configured limit')
             ->toBe(self::LIMIT + 4);
 
-        Expect::that($body)
+        expect($body)
             ->because('A frame body at the configured limit MUST be accepted.')
             ->not()
             ->toBeNull();
 
-        Expect::that($codec->decode($body))
+        expect($codec->decode($body))
             ->because('the exact-limit frame MUST survive the protocol round trip')
             ->toBe($envelope);
-        Expect::that($buffer->hasPendingBytes())
+        expect($buffer->hasPendingBytes())
             ->toBeFalse();
     }
 
@@ -53,7 +54,7 @@ final class ExactFrameLimitTest
         ];
         $body = \json_encode($envelope, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE);
 
-        Expect::that(\strlen($body))
+        expect(\strlen($body))
             ->because('the Unicode frame fixture MUST reach the exact byte limit')
             ->toBe(self::LIMIT);
 
@@ -61,15 +62,15 @@ final class ExactFrameLimitTest
         $buffer->feed(\pack('N', \strlen($body)) . $body);
         $decodedBody = $buffer->next();
 
-        Expect::that($decodedBody)
+        expect($decodedBody)
             ->because('A Unicode frame body at the configured byte limit MUST be complete.')
             ->not()
             ->toBeNull();
 
-        Expect::that(new JsonFrameCodec(self::LIMIT)->decode($decodedBody))
+        expect(new JsonFrameCodec(self::LIMIT)->decode($decodedBody))
             ->because('frame lengths MUST count Unicode bytes, not characters')
             ->toBe($envelope);
-        Expect::that($buffer->hasPendingBytes())
+        expect($buffer->hasPendingBytes())
             ->toBeFalse();
     }
 }

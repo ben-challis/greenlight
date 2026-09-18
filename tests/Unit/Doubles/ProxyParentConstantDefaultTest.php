@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Doubles\ParentConstantDefault;
 use Greenlight\Tests\Fixture\Doubles\ParentConstantDefaultBase;
+
+use function Greenlight\expect;
 
 final readonly class ProxyParentConstantDefaultTest
 {
@@ -28,12 +29,12 @@ final readonly class ProxyParentConstantDefaultTest
         try {
             $answer = $double->mode();
 
-            Expect::that($parameter->getDefaultValueConstantName())
+            expect($parameter->getDefaultValueConstantName())
                 ->because('a generated method MUST resolve a parent constant against the parent type')
                 ->toBe(ParentConstantDefaultBase::class . '::MODE');
-            Expect::that($parameter->getDefaultValue())
+            expect($parameter->getDefaultValue())
                 ->toBe('inherited');
-            Expect::that($answer)
+            expect($answer)
                 ->toBe('answered');
         } finally {
             $doubles->dispose();

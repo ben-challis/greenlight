@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
+
+use function Greenlight\expect;
 
 final readonly class NamedArgumentTest
 {
@@ -32,9 +33,9 @@ final readonly class NamedArgumentTest
 
         $arguments = ['b' => 2, 'a' => 1];
 
-        Expect::that($calculator->add(...$arguments))
+        expect($calculator->add(...$arguments))
             ->because('named double arguments follow their declared parameter order')
             ->toBe(3);
-        Expect::that($received)->toBe([1, 2]);
+        expect($received)->toBe([1, 2]);
     }
 }

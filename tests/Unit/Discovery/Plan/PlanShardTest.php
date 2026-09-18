@@ -10,8 +10,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Discovery\Plan\PlanShard;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final class PlanShardTest
 {
@@ -32,7 +33,7 @@ final class PlanShardTest
                 $id = (string) $entry->id;
                 // The shards do not overlap. A test ID MUST NOT occur in two
                 // shards.
-                Expect::that($seen)->not()->toHaveKey($id);
+                expect($seen)->not()->toHaveKey($id);
                 $seen[$id] = true;
             }
 
@@ -40,7 +41,7 @@ final class PlanShardTest
         }
 
         // The union of the shards is the complete execution plan.
-        Expect::that($total)->because('shards partition the plan')->toBe(\count($plan->entries));
+        expect($total)->because('shards partition the plan')->toBe(\count($plan->entries));
     }
 
     #[Test]
@@ -57,7 +58,7 @@ final class PlanShardTest
 
             foreach (\array_keys($classes) as $class) {
                 $expected = \crc32($class) % 4 === $index - 1;
-                Expect::that($expected)->toBeTrue();
+                expect($expected)->toBeTrue();
             }
         }
     }
@@ -79,7 +80,7 @@ final class PlanShardTest
             }
         }
 
-        Expect::that($actual)
+        expect($actual)
             ->because('sharding MUST preserve class, method, and data-set order')
             ->toBe($expected);
     }
@@ -89,7 +90,7 @@ final class PlanShardTest
     {
         $plan = $this->plan(5);
 
-        Expect::that(PlanShard::select($plan, 1, 1))->because('one shard is the whole plan')->toBe($plan);
+        expect(PlanShard::select($plan, 1, 1))->because('one shard is the whole plan')->toBe($plan);
     }
 
     #[Test]
@@ -98,7 +99,7 @@ final class PlanShardTest
     {
         $plan = $this->plan(1);
 
-        Expect::that(static function () use ($plan, $index, $count): void {
+        expect()->calling(static function () use ($plan, $index, $count): void {
             PlanShard::select($plan, $index, $count);
         })
             ->because('invalid shard coordinates MUST NOT select an execution plan')

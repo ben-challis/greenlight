@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Unit\Test;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Wire\InvalidWirePayload;
 use Greenlight\Test\DataProvider;
 use Greenlight\Test\ExecutionPolicy;
@@ -15,6 +14,8 @@ use Greenlight\Test\SchedulingPolicy;
 use Greenlight\Test\SkipPolicy;
 use Greenlight\Test\TestDefinition;
 use Greenlight\Tests\Support\JsonWire;
+
+use function Greenlight\expect;
 
 final class TestDefinitionTest
 {
@@ -34,10 +35,10 @@ final class TestDefinitionTest
 
         $restored = TestDefinition::fromWire(JsonWire::roundTrip($definition->toWire()));
 
-        Expect::that($restored->toWire())
+        expect($restored->toWire())
             ->because('the composed test definition MUST survive the wire')
             ->toBe($definition->toWire());
-        Expect::that($restored->scheduling->resources)
+        expect($restored->scheduling->resources)
             ->because('the scheduling policy MUST remove duplicate resources')
             ->toBe(['postgres', 'redis']);
     }
@@ -47,25 +48,25 @@ final class TestDefinitionTest
     {
         $definition = new TestDefinition('App\FooTest', 'bar');
 
-        Expect::that($definition->groups)->toBe([]);
-        Expect::that($definition->skip->toWire())->toBe(new SkipPolicy()->toWire());
-        Expect::that($definition->retry->toWire())->toBe(new RetryPolicy()->toWire());
-        Expect::that($definition->dataProvider->toWire())->toBe(new DataProvider()->toWire());
-        Expect::that($definition->execution->toWire())->toBe(new ExecutionPolicy()->toWire());
-        Expect::that($definition->scheduling->toWire())->toBe(new SchedulingPolicy()->toWire());
+        expect($definition->groups)->toBe([]);
+        expect($definition->skip->toWire())->toBe(new SkipPolicy()->toWire());
+        expect($definition->retry->toWire())->toBe(new RetryPolicy()->toWire());
+        expect($definition->dataProvider->toWire())->toBe(new DataProvider()->toWire());
+        expect($definition->execution->toWire())->toBe(new ExecutionPolicy()->toWire());
+        expect($definition->scheduling->toWire())->toBe(new SchedulingPolicy()->toWire());
     }
 
     #[Test]
     public function rejectsEmptyGroupsOnBothSides(): void
     {
-        Expect::that(static fn(): TestDefinition => new TestDefinition('App\FooTest', 'bar', ['ok', '']))
+        expect()->calling(static fn(): TestDefinition => new TestDefinition('App\FooTest', 'bar', ['ok', '']))
             ->because('a direct definition MUST reject an empty group')
             ->toThrow(\InvalidArgumentException::class, message: 'Group names cannot be empty.');
 
         $payload = new TestDefinition('App\FooTest', 'bar', ['ok'])->toWire();
         $payload['groups'] = ['ok', ''];
 
-        Expect::that(static fn(): TestDefinition => TestDefinition::fromWire($payload))
+        expect()->calling(static fn(): TestDefinition => TestDefinition::fromWire($payload))
             ->because('a wire definition MUST reject an empty group')
             ->toThrow(InvalidWirePayload::class);
     }
@@ -76,7 +77,7 @@ final class TestDefinitionTest
         $definition = new TestDefinition('App\ExampleTest', 'example', groups: ['0']);
         $decoded = TestDefinition::fromWire(JsonWire::roundTrip($definition->toWire()));
 
-        Expect::that($decoded->groups)
+        expect($decoded->groups)
             ->because('the group name MUST survive the wire')
             ->toBe(['0']);
     }
@@ -85,7 +86,7 @@ final class TestDefinitionTest
     #[DataSet('invalidIdentities')]
     public function rejectsInvalidDeclarationIdentity(string $class, string $method, string $message): void
     {
-        Expect::that(static fn(): TestDefinition => new TestDefinition($class, $method))
+        expect()->calling(static fn(): TestDefinition => new TestDefinition($class, $method))
             ->because('a test definition MUST identify a class and method')
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }

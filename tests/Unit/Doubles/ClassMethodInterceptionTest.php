@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Clock;
+
+use function Greenlight\expect;
 
 final readonly class ClassMethodInterceptionTest
 {
@@ -21,7 +22,7 @@ final readonly class ClassMethodInterceptionTest
             $plan->expects('now')->once()->andReturns('fixed-time');
         });
 
-        Expect::that($clock->now())
+        expect($clock->now())
             ->because('a class double MUST use its configured answer for a concrete method')
             ->toBe('fixed-time');
     }

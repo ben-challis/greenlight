@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
+
+use function Greenlight\expect;
 
 final readonly class CliTest
 {
@@ -23,8 +24,8 @@ final readonly class CliTest
         $result = $this->runCli(['--dry-run', '--config=tests/Fixture/ConfigFiles/Valid/greenlight.php']);
         $output = $result->outputLines();
 
-        Expect::that($result->exitCode)->because('prints the resolved plan for a fixture configuration')->toBe(0);
-        Expect::that($output)->because('prints the resolved plan for a fixture configuration')
+        expect($result->exitCode)->because('prints the resolved plan for a fixture configuration')->toBe(0);
+        expect($output)->because('prints the resolved plan for a fixture configuration')
             ->toContain('  test paths: tests/Unit, tests/Acceptance')
             ->toContain('  suite unit: tests/Unit')
             ->toContain('  suite integration: tests/Integration [tags: io]')
@@ -49,21 +50,21 @@ final readonly class CliTest
         ]);
         $output = $result->outputLines();
 
-        Expect::that($result->exitCode)->because('command line flags override the configuration file')->toBe(0);
-        Expect::that($output)->because('command line flags override the configuration file')
+        expect($result->exitCode)->because('command line flags override the configuration file')->toBe(0);
+        expect($output)->because('command line flags override the configuration file')
             ->toContain('  workers: 2')
             ->toContain('  stop after: 7 failed or errored tests')
             ->toContain('  order: random (seed 9)')
             ->toContain('  groups: slow');
-        Expect::that($output)->because('command line flags override the configuration file')->toContain('  resource limits: postgres=2');
+        expect($output)->because('command line flags override the configuration file')->toContain('  resource limits: postgres=2');
     }
 
     #[Test]
     public function helpAndVersionExitZero(): void
     {
         $result = $this->runCli(['--help']);
-        Expect::that($result->exitCode)->because('help and version exit zero')->toBe(0);
-        Expect::that($result->output())
+        expect($result->exitCode)->because('help and version exit zero')->toBe(0);
+        expect($result->output())
             ->because('help and version exit zero and lists required coverage diff inputs')
             ->toContain('Usage:')
             ->toContain('--baseline=<path>')
@@ -73,8 +74,8 @@ final readonly class CliTest
             ->toContain('For artifacts:prune, list selected runs without deletion.');
 
         $result = $this->runCli(['--version']);
-        Expect::that($result->exitCode)->because('help and version exit zero')->toBe(0);
-        Expect::that($result->outputLines())->toContain('Greenlight ' . Application::VERSION);
+        expect($result->exitCode)->because('help and version exit zero')->toBe(0);
+        expect($result->outputLines())->toContain('Greenlight ' . Application::VERSION);
     }
 
     #[Test]
@@ -82,8 +83,8 @@ final readonly class CliTest
     {
         $result = $this->runCli(['--help']);
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($result->output())
+        expect($result->exitCode)->toBe(0);
+        expect($result->output())
             ->toContain('a full match with * and ? wildcards.')
             ->toContain('Matching is case-insensitive.')
             ->toContain('Matching is case-sensitive.')
@@ -100,9 +101,9 @@ final readonly class CliTest
     {
         $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'cli-run');
         $result = GreenlightCli::run($project->directory, ['run']);
-        Expect::that($result->exitCode)->because('run executes a passing suite and exits zero')->toBe(0);
-        Expect::that($result->output())->because('run executes a passing suite and exits zero')->toContain('1 test, 1 passed');
-        Expect::that($result->output())->because('run executes a passing suite and exits zero')->not()->toContain('alpha:one');
+        expect($result->exitCode)->because('run executes a passing suite and exits zero')->toBe(0);
+        expect($result->output())->because('run executes a passing suite and exits zero')->toContain('1 test, 1 passed');
+        expect($result->output())->because('run executes a passing suite and exits zero')->not()->toContain('alpha:one');
     }
 
     #[Test]
@@ -114,9 +115,9 @@ final readonly class CliTest
         // verify terminal behavior.
         $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'cli-output-flags');
         $result = GreenlightCli::run($project->directory, ['run', '--no-ansi', '--verbose']);
-        Expect::that($result->exitCode)->because('no ANSI and verbose are accepted and output stays escape free')->toBe(0);
-        Expect::that($result->output())->because('no ANSI and verbose are accepted and output stays escape free')->not()->toContain("\x1b[");
-        Expect::that($result->output())->because('no ANSI and verbose are accepted and output stays escape free')->toContain('1 test, 1 passed');
+        expect($result->exitCode)->because('no ANSI and verbose are accepted and output stays escape free')->toBe(0);
+        expect($result->output())->because('no ANSI and verbose are accepted and output stays escape free')->not()->toContain("\x1b[");
+        expect($result->output())->because('no ANSI and verbose are accepted and output stays escape free')->toContain('1 test, 1 passed');
     }
 
     #[Test]
@@ -124,8 +125,8 @@ final readonly class CliTest
     {
         $result = $this->runCli(['run'], 'tests/Fixture/RunFailingConfig');
 
-        Expect::that($result->exitCode)->because('run executes a failing suite and exits one')->toBe(1);
-        Expect::that($result->output())->because('run executes a failing suite and exits one')->toContain('intentional boom');
+        expect($result->exitCode)->because('run executes a failing suite and exits one')->toBe(1);
+        expect($result->output())->because('run executes a failing suite and exits one')->toContain('intentional boom');
     }
 
     #[Test]
@@ -133,8 +134,8 @@ final readonly class CliTest
     {
         $result = $this->runCli(['run'], 'tests/Fixture/RunEmptyConfig');
 
-        Expect::that($result->exitCode)->because('run with no tests exits one')->toBe(1);
-        Expect::that($result->output())->because('run with no tests exits one')->toContain('Greenlight found no tests');
+        expect($result->exitCode)->because('run with no tests exits one')->toBe(1);
+        expect($result->output())->because('run with no tests exits one')->toContain('Greenlight found no tests');
     }
 
     #[Test]
@@ -143,8 +144,8 @@ final readonly class CliTest
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'cli');
         $result = GreenlightCli::run($project->directory, ['list-tests']);
         $output = $result->outputLines();
-        Expect::that($result->exitCode)->because('list tests prints discovered test IDs')->toBe(0);
-        Expect::that($output)->because('list tests prints discovered test IDs')
+        expect($result->exitCode)->because('list tests prints discovered test IDs')->toBe(0);
+        expect($output)->because('list tests prints discovered test IDs')
             ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one')
             ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two');
     }
@@ -155,8 +156,8 @@ final readonly class CliTest
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'cli');
         $result = GreenlightCli::run($project->directory, ['list-tests', '--group=slow']);
         $output = $result->outputLines();
-        Expect::that($result->exitCode)->because('list tests honors group filters')->toBe(0);
-        Expect::that($output)->because('list tests honors group filters')
+        expect($result->exitCode)->because('list tests honors group filters')->toBe(0);
+        expect($output)->because('list tests honors group filters')
             ->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two')
             ->not()->toContain('Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one');
     }
@@ -168,10 +169,10 @@ final readonly class CliTest
         $projectDirectory = (string) \realpath($project->directory);
         $result = GreenlightCli::run($project->directory, ['list-tests', '--config=missing.php']);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('list tests reports an explicitly missing configuration')
             ->toBe(1);
-        Expect::that($result->output())
+        expect($result->output())
             ->toContain('Configuration file "' . $projectDirectory . '/missing.php" does not exist.');
     }
 
@@ -180,8 +181,8 @@ final readonly class CliTest
     {
         $result = $this->runCli([], 'tests/Fixture/ConfigFiles/Empty');
 
-        Expect::that($result->exitCode)->because('missing configuration file fails with an actionable message')->toBe(1);
-        Expect::that($result->output())->because('missing configuration file fails with an actionable message')->toContain('greenlight: No greenlight.php found in');
+        expect($result->exitCode)->because('missing configuration file fails with an actionable message')->toBe(1);
+        expect($result->output())->because('missing configuration file fails with an actionable message')->toContain('greenlight: No greenlight.php found in');
     }
 
     #[Test]
@@ -189,9 +190,9 @@ final readonly class CliTest
     {
         $result = $this->runCli(['--frobnicate']);
 
-        Expect::that($result->exitCode)->because('unknown options are usage errors')->toBe(64);
-        Expect::that($result->output())->because('unknown options are usage errors')->toContain('greenlight: Unknown option "--frobnicate"');
-        Expect::that($result->output())->because('unknown options are usage errors')->not()->toContain("\x1b[");
+        expect($result->exitCode)->because('unknown options are usage errors')->toBe(64);
+        expect($result->output())->because('unknown options are usage errors')->toContain('greenlight: Unknown option "--frobnicate"');
+        expect($result->output())->because('unknown options are usage errors')->not()->toContain("\x1b[");
     }
 
     /**
@@ -203,12 +204,12 @@ final readonly class CliTest
     {
         $result = $this->runCli($arguments);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('an invalid internal worker entry MUST stop before connection')
             ->toBe(64);
-        Expect::that($result->stderr)
+        expect($result->stderr)
             ->toBe('__worker requires <address> <workerId> <token>.');
-        Expect::that($result->stdout)
+        expect($result->stdout)
             ->toBe('');
     }
 
@@ -233,12 +234,12 @@ final readonly class CliTest
             'secret-token',
         ]);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('an internal worker connection failure MUST report a failed process')
             ->toBe(1);
-        Expect::that($result->stderr)
+        expect($result->stderr)
             ->toStartWith('The worker did not connect to invalid://worker:');
-        Expect::that($result->stdout)
+        expect($result->stdout)
             ->toBe('');
     }
 

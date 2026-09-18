@@ -326,6 +326,9 @@ function parseTypeDeclaration(source, file, tokens, namespace, declarationIndex,
   const members = parseMembers(source, tokens, openIndex, closeIndex, kind)
     .map((member) => ({ ...member, file }));
   const shortName = nameToken.value;
+  const traits = [...source.slice(tokens[openIndex].end, tokens[closeIndex].start)
+    .matchAll(/^    use ([A-Za-z_\\][A-Za-z0-9_\\]*(?:,\s*[A-Za-z_\\][A-Za-z0-9_\\]*)*);$/gmu)]
+    .flatMap((match) => match[1].split(/,\s*/u));
 
   return {
     name: namespace === '' ? shortName : `${namespace}\\${shortName}`,
@@ -339,6 +342,7 @@ function parseTypeDeclaration(source, file, tokens, namespace, declarationIndex,
     internal: hasInternalTag(typeDoc?.value),
     signature,
     members,
+    traits,
   };
 }
 
@@ -355,6 +359,13 @@ function effectiveMembers(type, typesByName, active = new Set()) {
   if (parent !== undefined) {
     members.push(...effectiveMembers(parent, typesByName, nextActive)
       .filter((member) => member.name !== '__construct()'));
+  }
+
+  for (const traitName of type.traits ?? []) {
+    const trait = referencedType(type, traitName, typesByName);
+    if (trait !== undefined) {
+      members.push(...effectiveMembers(trait, typesByName, nextActive));
+    }
   }
 
   for (const tag of type.doc.tags) {

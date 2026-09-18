@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Unit\Doubles;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Doubles\AbstractProtectedMethodService;
 use Greenlight\Tests\Fixture\Doubles\ProtectedMethodService;
+
+use function Greenlight\expect;
 
 final readonly class ProtectedMethodInterceptionTest
 {
@@ -22,7 +23,7 @@ final readonly class ProtectedMethodInterceptionTest
         $double = $doubles->stub(ProtectedMethodService::class);
 
         try {
-            Expect::that($double->message())
+            expect($double->message())
                 ->because('a class double MUST preserve concrete protected implementation details')
                 ->toBe('original message');
         } finally {
@@ -36,7 +37,7 @@ final readonly class ProtectedMethodInterceptionTest
         $doubles = new Doubles($this->tempDirectory->subdirectory('abstract-proxies'));
 
         try {
-            Expect::that($doubles->stub(AbstractProtectedMethodService::class))
+            expect($doubles->stub(AbstractProtectedMethodService::class))
                 ->because('a class double MUST implement an abstract protected method')
                 ->toBeInstanceOf(AbstractProtectedMethodService::class);
         } finally {

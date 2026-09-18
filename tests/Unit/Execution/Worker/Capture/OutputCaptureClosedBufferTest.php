@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Execution\Worker\Capture;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Worker\OutputCapture;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class OutputCaptureClosedBufferTest
 {
@@ -22,10 +23,10 @@ final readonly class OutputCaptureClosedBufferTest
 
         $captured = $capture->stop();
 
-        Expect::that($captured->stdout)
+        expect($captured->stdout)
             ->because('stop MUST preserve output after user code closes the capture buffer')
             ->toBe('captured before close');
-        Expect::that(\ob_get_level())
+        expect(\ob_get_level())
             ->because('stop MUST preserve the output-buffer baseline')
             ->toBe($baseline);
     }

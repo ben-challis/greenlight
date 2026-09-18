@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Notifier;
+
+use function Greenlight\expect;
 
 final readonly class SpyMethodCaseTest
 {
@@ -21,7 +22,7 @@ final readonly class SpyMethodCaseTest
         $notifier = $this->doubles->spy(Notifier::class);
         $notifier->notify('ops', 'deployed');
 
-        Expect::that($this->doubles->callsTo($notifier, $method))
+        expect($this->doubles->callsTo($notifier, $method))
             ->because('recorded method names MUST follow PHP case-insensitive dispatch')
             ->toBe([['ops', 'deployed']]);
     }

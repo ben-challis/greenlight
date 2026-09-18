@@ -9,7 +9,8 @@ use Greenlight\Execution\ProcessPool\Orchestrator\DispatchKind;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceLease;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceScheduler;
 use Greenlight\Execution\ProcessPool\Orchestrator\SchedulingUnit;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 /**
  * Creates one-test scheduling units and verifies scheduler assignments.
@@ -35,11 +36,11 @@ final class SchedulingFixture
     {
         $decision = $scheduler->dispatch($freshWorker);
 
-        Expect::that($decision->kind)
+        expect($decision->kind)
             ->because('the scheduling fixture requires an assignment')
             ->toBe(DispatchKind::Assign);
 
-        Expect::that($decision->lease)
+        expect($decision->lease)
             ->because(\sprintf('Expected an assignment, got %s.', $decision->kind->name))
             ->toBeInstanceOf(ResourceLease::class);
 

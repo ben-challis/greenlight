@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\RunFinished;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
@@ -15,6 +14,8 @@ use Greenlight\Result\TestResult;
 use Greenlight\Test\SkipTest;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\SimpleXml;
+
+use function Greenlight\expect;
 
 final readonly class JUnitLocaleTest
 {
@@ -30,7 +31,7 @@ final readonly class JUnitLocaleTest
                 throw new SkipTest("No decimal-comma locale is available.");
             }
 
-            Expect::that(\localeconv()["decimal_point"])->toBe(",");
+            expect(\localeconv()["decimal_point"])->toBe(",");
             $output = new BufferOutput();
             $reporter = new JUnitReporter($output);
             $reporter->onEvent(new TestFinished(new TestResult(
@@ -42,10 +43,10 @@ final readonly class JUnitLocaleTest
             $reporter->onEvent(new RunFinished("locale-run", new ResultSummary(passed: 1), 0.5, 1.5));
             $reporter->finish();
             $document = \simplexml_load_string($output->buffer());
-            Expect::that($document)->toBeInstanceOf(\SimpleXMLElement::class);
-            Expect::that((string) $document["time"])->toBe("0.500000");
-            Expect::that((string) SimpleXml::xpath($document, "/testsuites/testsuite")[0]["time"])->toBe("0.125000");
-            Expect::that((string) SimpleXml::xpath($document, "/testsuites/testsuite/testcase")[0]["time"])->toBe("0.125000");
+            expect($document)->toBeInstanceOf(\SimpleXMLElement::class);
+            expect((string) $document["time"])->toBe("0.500000");
+            expect((string) SimpleXml::xpath($document, "/testsuites/testsuite")[0]["time"])->toBe("0.125000");
+            expect((string) SimpleXml::xpath($document, "/testsuites/testsuite/testcase")[0]["time"])->toBe("0.125000");
         } finally {
             if ($previous !== false) {
                 \setlocale(\LC_NUMERIC, $previous);

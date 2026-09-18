@@ -8,7 +8,8 @@ use Greenlight\Artifact\AttachmentError;
 use Greenlight\Artifact\UnavailableAttachments;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class UnavailableAttachmentsTest
 {
@@ -21,7 +22,7 @@ final class UnavailableAttachmentsTest
     {
         $attachments = new UnavailableAttachments();
 
-        Expect::that(static fn() => $call($attachments))
+        expect()->calling(static fn() => $call($attachments))
             ->because('attachments are unavailable outside an active attempt')
             ->toThrow(
                 AttachmentError::class,

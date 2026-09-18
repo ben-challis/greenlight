@@ -9,13 +9,14 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Fixture\Execution\Artifact\CorruptingFileCopier;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactPostCopyIntegrityTest
 {
@@ -47,16 +48,16 @@ final readonly class ArtifactPostCopyIntegrityTest
             attachments: [$staged],
         );
 
-        Expect::that(static fn(): TestResult => $store->publish($result))
+        expect()->calling(static fn(): TestResult => $store->publish($result))
             ->because('post-copy corruption MUST reject attachment publication')
             ->toThrow(
                 AttachmentError::class,
                 message: 'Published attachment content does not match its metadata.',
             );
-        Expect::that(\is_file($staged->path))
+        expect(\is_file($staged->path))
             ->because('a rejected publication MUST NOT leave the final attachment')
             ->toBeFalse();
-        Expect::that(\glob($staged->path . '.part-*'))
+        expect(\glob($staged->path . '.part-*'))
             ->because('a rejected publication MUST remove its partial attachment')
             ->toBe([]);
     }

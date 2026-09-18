@@ -11,8 +11,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactSession;
 use Greenlight\Execution\Artifact\ArtifactStore;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactStagingDirectoryCollisionTest
 {
@@ -37,7 +38,7 @@ final readonly class ArtifactStagingDirectoryCollisionTest
             $configuration,
         );
 
-        Expect::that(static fn() => $store->stageBytes(
+        expect()->calling(static fn() => $store->stageBytes(
             'evidence',
             'evidence.txt',
             $storageKey,
@@ -52,7 +53,7 @@ final readonly class ArtifactStagingDirectoryCollisionTest
                 AttachmentError::class,
                 matching: '/^Failed to create attachment staging subdirectory/',
             );
-        Expect::that((string) \file_get_contents($blocker))
+        expect((string) \file_get_contents($blocker))
             ->because('a rejected attachment MUST preserve the existing entry')
             ->toBe('occupied');
 
@@ -68,7 +69,7 @@ final readonly class ArtifactStagingDirectoryCollisionTest
             $configuration,
         );
 
-        Expect::that($staged->name)
+        expect($staged->name)
             ->because('a rejected attachment MUST release its run quota')
             ->toBe('evidence.txt');
     }

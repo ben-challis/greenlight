@@ -8,9 +8,10 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\RunFinished;
 use Greenlight\Event\RunStarted;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Tests\Support\JsonWire;
+
+use function Greenlight\expect;
 
 final readonly class RunEventValidationTest
 {
@@ -27,10 +28,10 @@ final readonly class RunEventValidationTest
             RunFinished::class => RunFinished::fromWire(JsonWire::roundTrip($event->toWire())),
         };
 
-        Expect::that($event->runId)
+        expect($event->runId)
             ->because('a run event MUST retain each non-empty run ID')
             ->toBe('0');
-        Expect::that($decoded->runId)
+        expect($decoded->runId)
             ->because('the run ID MUST survive the wire')
             ->toBe('0');
     }
@@ -43,7 +44,7 @@ final readonly class RunEventValidationTest
         int $workers,
         string $message,
     ): void {
-        Expect::that(static fn(): RunStarted => new RunStarted(
+        expect()->calling(static fn(): RunStarted => new RunStarted(
             $runId,
             $plannedTests,
             $workers,
@@ -105,7 +106,7 @@ final readonly class RunEventValidationTest
         float $durationSeconds,
         string $message,
     ): void {
-        Expect::that(static fn(): RunFinished => new RunFinished(
+        expect()->calling(static fn(): RunFinished => new RunFinished(
             $runId,
             new ResultSummary(),
             $durationSeconds,

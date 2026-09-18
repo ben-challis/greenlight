@@ -6,21 +6,22 @@ namespace Greenlight\Tests\Unit\Execution\Worker;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Worker\LeakDetector;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class LeakDetectorTest
 {
     #[Test]
     public function anExplicitModeSnapshotControlsTheEnvironmentWarning(): void
     {
-        Expect::that(LeakDetector::environmentWarning(['develop']))
+        expect(LeakDetector::environmentWarning(['develop']))
             ->because('Xdebug develop mode MUST explain its leak-detection false positives')
             ->toBe(
                 'Warning: Xdebug develop mode keeps caught exceptions in memory. Thus, leak detection reports '
                 . 'false positives. Rerun with XDEBUG_MODE=off to get correct results.',
             );
-        Expect::that(LeakDetector::environmentWarning(['coverage']))
+        expect(LeakDetector::environmentWarning(['coverage']))
             ->because('Xdebug modes without develop MUST NOT warn about leak detection')
             ->toBeNull();
     }
@@ -38,10 +39,10 @@ final class LeakDetectorTest
         $detector->watch($collectedId, $collected);
         unset($collected);
 
-        Expect::that($detector->sweep())
+        expect($detector->sweep())
             ->because('a sweep MUST report only instances that remain alive')
             ->toBe([$retainedId]);
-        Expect::that($detector->sweep())
+        expect($detector->sweep())
             ->because('a leak MUST be reported one time')
             ->toBe([]);
     }
@@ -58,7 +59,7 @@ final class LeakDetectorTest
         $detector->watch($firstId, $first);
         $detector->watch($secondId, $second);
 
-        Expect::that($detector->sweep())
+        expect($detector->sweep())
             ->because('a sweep MUST report every retained instance in watch order')
             ->toBe([$firstId, $secondId]);
     }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Psr15;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Psr15\HttpHarness;
 use Greenlight\Psr15\Psr15Error;
@@ -14,6 +13,8 @@ use Laminas\Diactoros\ServerRequest;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+
+use function Greenlight\expect;
 
 final class HttpHarnessTest
 {
@@ -38,8 +39,8 @@ final class HttpHarnessTest
 
         $result = new HttpHarness($handler)->send($request);
 
-        Expect::that($handler->received)->toBe($request);
-        Expect::that($result)->toBe($response);
+        expect($handler->received)->toBe($request);
+        expect($result)->toBe($response);
     }
 
     #[Test]
@@ -67,8 +68,8 @@ final class HttpHarnessTest
         $harness->send($request);
         $harness->send($request);
 
-        Expect::that($created)->toBe(1);
-        Expect::that($counter->handled)->toBe(2);
+        expect($created)->toBe(1);
+        expect($counter->handled)->toBe(2);
     }
 
     #[Test]
@@ -83,8 +84,8 @@ final class HttpHarnessTest
             new ServerRequest([], [], '/status', 'GET'),
         ));
 
-        Expect::that($error->getMessage())->toBe('The PSR-15 handler factory failed.');
-        Expect::that($error->getPrevious())->toBe($cause);
+        expect($error->getMessage())->toBe('The PSR-15 handler factory failed.');
+        expect($error->getPrevious())->toBe($cause);
     }
 
     #[Test]
@@ -94,7 +95,7 @@ final class HttpHarnessTest
             $this->invalidHandlerFactory(), // @phpstan-ignore argument.type (This test supplies an invalid handler factory.)
         );
 
-        Expect::that(static fn(): ResponseInterface => $harness->send(
+        expect()->calling(static fn(): ResponseInterface => $harness->send(
             new ServerRequest([], [], '/status', 'GET'),
         ))->toThrow(
             Psr15Error::class,
@@ -122,9 +123,9 @@ final class HttpHarnessTest
             new ServerRequest([], [], 'https://example.test/orders/42?token=private', 'PATCH'),
         ));
 
-        Expect::that($error->getMessage())->toMatch('/failed for request "PATCH \/orders\/42"\.$/');
-        Expect::that($error->getMessage())->not()->toContain('token');
-        Expect::that($error->getPrevious())->toBe($cause);
+        expect($error->getMessage())->toMatch('/failed for request "PATCH \/orders\/42"\.$/');
+        expect($error->getMessage())->not()->toContain('token');
+        expect($error->getPrevious())->toBe($cause);
     }
 
     #[Test]
@@ -141,7 +142,7 @@ final class HttpHarnessTest
         $harness->dispose();
         $harness->dispose();
 
-        Expect::that($released)->toBe([$handler]);
+        expect($released)->toBe([$handler]);
     }
 
     #[Test]
@@ -168,8 +169,8 @@ final class HttpHarnessTest
 
         $harness->dispose();
 
-        Expect::that($created)->toBeFalse();
-        Expect::that($released)->toBeFalse();
+        expect($created)->toBeFalse();
+        expect($released)->toBeFalse();
     }
 
     #[Test]
@@ -187,9 +188,9 @@ final class HttpHarnessTest
 
         $error = $this->errorFrom($harness->dispose(...));
 
-        Expect::that($error->getMessage())->toContain('The release callback failed for PSR-15 handler');
-        Expect::that($error->getPrevious())->toBe($cause);
-        Expect::that(static fn(): ResponseInterface => $harness->send($request))->toThrow(
+        expect($error->getMessage())->toContain('The release callback failed for PSR-15 handler');
+        expect($error->getPrevious())->toBe($cause);
+        expect()->calling(static fn(): ResponseInterface => $harness->send($request))->toThrow(
             Psr15Error::class,
             message: 'The PSR-15 HTTP harness is closed. Create a new harness for the next request.',
         );

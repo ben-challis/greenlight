@@ -153,6 +153,7 @@ final class Equality
             if (\count($a) !== \count($b)) {
                 return false;
             }
+
             return \array_all(
                 $a,
                 static function ($value, $key) use ($b, &$leftObjects, &$rightObjects): bool {

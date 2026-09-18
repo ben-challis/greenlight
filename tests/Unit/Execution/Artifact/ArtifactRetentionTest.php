@@ -8,10 +8,11 @@ use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactRetention;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\SkipTest;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactRetentionTest
 {
@@ -31,13 +32,13 @@ final readonly class ArtifactRetentionTest
 
         $report = $retention->prune(now: 40);
 
-        Expect::that(\array_map(static fn($item): string => $item->runId, $report->items))
+        expect(\array_map(static fn($item): string => $item->runId, $report->items))
             ->because('the count policy MUST select completed runs in deterministic oldest-first order')
             ->toBe(['run-oldest']);
-        Expect::that($report->items[0]->reasons)->toBe(['count']);
-        Expect::that(\is_dir($parent . '/run-oldest'))->toBeFalse();
-        Expect::that(\is_dir($parent . '/run-middle'))->toBeTrue();
-        Expect::that(\is_dir($parent . '/run-newest'))->toBeTrue();
+        expect($report->items[0]->reasons)->toBe(['count']);
+        expect(\is_dir($parent . '/run-oldest'))->toBeFalse();
+        expect(\is_dir($parent . '/run-middle'))->toBeTrue();
+        expect(\is_dir($parent . '/run-newest'))->toBeTrue();
     }
 
     #[Test]
@@ -50,8 +51,8 @@ final readonly class ArtifactRetentionTest
 
         $report = $retention->prune(now: 100);
 
-        Expect::that(\array_map(static fn($item): string => $item->runId, $report->items))->toBe(['run-past']);
-        Expect::that(\is_dir($parent . '/run-future'))
+        expect(\array_map(static fn($item): string => $item->runId, $report->items))->toBe(['run-past']);
+        expect(\is_dir($parent . '/run-future'))
             ->because('a clock change MUST NOT make a future completion eligible for age pruning')
             ->toBeTrue();
     }
@@ -66,10 +67,10 @@ final readonly class ArtifactRetentionTest
 
         $report = $retention->prune(dryRun: true, now: 30);
 
-        Expect::that($report->dryRun)->toBeTrue();
-        Expect::that(\array_map(static fn($item): string => $item->runId, $report->items))->toBe(['run-first']);
-        Expect::that(\is_file($parent . '/run-first/evidence.txt'))->toBeTrue();
-        Expect::that(\is_file($parent . '/.greenlight-prune.lock'))
+        expect($report->dryRun)->toBeTrue();
+        expect(\array_map(static fn($item): string => $item->runId, $report->items))->toBe(['run-first']);
+        expect(\is_file($parent . '/run-first/evidence.txt'))->toBeTrue();
+        expect(\is_file($parent . '/.greenlight-prune.lock'))
             ->because('dry-run maintenance MUST NOT change the artifact parent')
             ->toBeFalse();
     }
@@ -86,11 +87,11 @@ final readonly class ArtifactRetentionTest
         $active->close();
         $secondReport = $retention->prune(now: \PHP_INT_MAX);
 
-        Expect::that($report->items)->toBe([]);
-        Expect::that($secondReport->items)
+        expect($report->items)->toBe([]);
+        expect($secondReport->items)
             ->because('an unlocked active marker identifies an incomplete recoverable run')
             ->toBe([]);
-        Expect::that(\is_dir($parent . '/run-active'))->toBeTrue();
+        expect(\is_dir($parent . '/run-active'))->toBeTrue();
     }
 
     #[Test]
@@ -115,11 +116,11 @@ final readonly class ArtifactRetentionTest
 
         $report = $retention->prune(now: 100);
 
-        Expect::that($report->items)->toBe([]);
-        Expect::that(\file_get_contents($parent . '/user-content/keep.txt'))->toBe('keep');
-        Expect::that(\is_dir($parent . '/run-malformed'))->toBeTrue();
-        Expect::that(\is_dir($parent . '/run-future-version'))->toBeTrue();
-        Expect::that(\file_get_contents($parent . '/run-changed/user.txt'))
+        expect($report->items)->toBe([]);
+        expect(\file_get_contents($parent . '/user-content/keep.txt'))->toBe('keep');
+        expect(\is_dir($parent . '/run-malformed'))->toBeTrue();
+        expect(\is_dir($parent . '/run-future-version'))->toBeTrue();
+        expect(\file_get_contents($parent . '/run-changed/user.txt'))
             ->because('content that is absent from the completion manifest MUST NOT be deleted')
             ->toBe('user');
     }
@@ -138,13 +139,13 @@ final readonly class ArtifactRetentionTest
 
         $report = $retention->prune(now: 100);
 
-        Expect::that($report->items)->toBe([]);
-        Expect::that(\file_get_contents($sentinel))
+        expect($report->items)->toBe([]);
+        expect(\file_get_contents($sentinel))
             ->because('retention MUST NOT follow or remove a symbolic link target')
             ->toBe('keep');
-        Expect::that(\is_link($parent . '/run-link/external'))->toBeTrue();
-        Expect::that(\is_link($parent . '/linked-run'))->toBeTrue();
-        Expect::that(static fn() => ArtifactRetention::contentManifest($parent . '/linked-run'))
+        expect(\is_link($parent . '/run-link/external'))->toBeTrue();
+        expect(\is_link($parent . '/linked-run'))->toBeTrue();
+        expect()->calling(static fn() => ArtifactRetention::contentManifest($parent . '/linked-run'))
             ->because('manifest inspection MUST NOT follow a symbolic run root')
             ->toThrow(\RuntimeException::class);
     }
@@ -167,8 +168,8 @@ final readonly class ArtifactRetentionTest
             \fclose($lock);
         }
 
-        Expect::that($report->items)->toBe([]);
-        Expect::that(\is_dir($parent . '/run-claimed'))
+        expect($report->items)->toBe([]);
+        expect(\is_dir($parent . '/run-claimed'))
             ->because('a concurrent claim MUST make the run ineligible for this prune operation')
             ->toBeTrue();
     }
@@ -183,11 +184,11 @@ final readonly class ArtifactRetentionTest
 
         $report = $retention->prune(now: 30);
 
-        Expect::that(\array_map(static fn($item): string => $item->runId, $report->items))
+        expect(\array_map(static fn($item): string => $item->runId, $report->items))
             ->because('the byte policy MUST select each required run in oldest-first order')
             ->toBe(['run-one', 'run-two']);
-        Expect::that($report->items[0]->reasons)->toBe(['size']);
-        Expect::that($report->items[1]->reasons)->toBe(['size']);
+        expect($report->items[0]->reasons)->toBe(['size']);
+        expect($report->items[1]->reasons)->toBe(['size']);
     }
 
     #[Test]
@@ -212,8 +213,8 @@ final readonly class ArtifactRetentionTest
 
         $report = $retention->prune(now: \PHP_INT_MAX);
 
-        Expect::that($report->items)->toBe([]);
-        Expect::that(\file_get_contents($outside))
+        expect($report->items)->toBe([]);
+        expect(\file_get_contents($outside))
             ->because('traversal and oversized metadata MUST NOT select content outside the artifact parent')
             ->toBe('keep');
     }
@@ -238,8 +239,8 @@ final readonly class ArtifactRetentionTest
             }
         }
 
-        Expect::that($report->items)->toBe([]);
-        Expect::that($report->warnings)
+        expect($report->items)->toBe([]);
+        expect($report->warnings)
             ->because('a cleanup failure MUST remain an advisory retention result')
             ->toBe(['Greenlight did not prune artifact run "run-read-only".']);
     }
@@ -260,7 +261,7 @@ final readonly class ArtifactRetentionTest
 
         $report = $retention->prune(dryRun: true, now: 100);
 
-        Expect::that(\array_map(static fn($item): array => [$item->runId, $item->reasons], $report->items))
+        expect(\array_map(static fn($item): array => [$item->runId, $item->reasons], $report->items))
             ->because('combined retention MUST use the documented policy precedence')
             ->toBe([
                 ['run-aged', ['age']],
@@ -275,11 +276,11 @@ final readonly class ArtifactRetentionTest
         $parent = $this->tempDirectory->subdirectory('retention-begin-errors');
         $retention = $this->retention($parent, maxCompletedRuns: 1);
 
-        Expect::that(static fn() => $retention->begin('../outside'))
+        expect()->calling(static fn() => $retention->begin('../outside'))
             ->toThrow(AttachmentError::class, message: 'Artifact run ID is unsafe.');
 
         \mkdir($parent . '/run-existing');
-        Expect::that(static fn() => $retention->begin('run-existing'))
+        expect()->calling(static fn() => $retention->begin('run-existing'))
             ->toThrow(AttachmentError::class);
     }
 
@@ -292,19 +293,19 @@ final readonly class ArtifactRetentionTest
         \file_put_contents($base . '/blocked', 'file');
 
         $linkedParent = $this->retention($base . '/linked', maxCompletedRuns: 1);
-        Expect::that(static fn() => $linkedParent->begin('run'))
+        expect()->calling(static fn() => $linkedParent->begin('run'))
             ->toThrow(AttachmentError::class, message: 'Attachment output directory contains a symbolic link.');
 
         $linkedAncestor = $this->retention($base . '/linked/artifacts', maxCompletedRuns: 1);
-        Expect::that(static fn() => $linkedAncestor->begin('run'))
+        expect()->calling(static fn() => $linkedAncestor->begin('run'))
             ->toThrow(AttachmentError::class, message: 'Attachment output directory contains a symbolic link.');
 
         $fileAncestor = $this->retention($base . '/blocked/artifacts', maxCompletedRuns: 1);
-        Expect::that(static fn() => $fileAncestor->begin('run'))
+        expect()->calling(static fn() => $fileAncestor->begin('run'))
             ->toThrow(AttachmentError::class, message: 'Attachment output path contains a non-directory entry.');
 
         $noncanonical = $this->retention($base . '/.', maxCompletedRuns: 1);
-        Expect::that(static fn() => $noncanonical->begin('run'))
+        expect()->calling(static fn() => $noncanonical->begin('run'))
             ->toThrow(AttachmentError::class, message: 'Artifact parent directory is not canonical.');
     }
 
@@ -317,7 +318,7 @@ final readonly class ArtifactRetentionTest
 
         $report = $retention->prune();
 
-        Expect::that($report->warnings)
+        expect($report->warnings)
             ->toBe(['Greenlight did not lock the artifact parent for pruning.']);
     }
 
@@ -335,12 +336,12 @@ final readonly class ArtifactRetentionTest
 
         $report = $retention->prune(now: 100);
 
-        Expect::that($report->items)->toBe([]);
-        Expect::that(\is_dir($parent . '/unsafe name'))->toBeTrue();
-        Expect::that(\is_dir($parent . '/run-missing-metadata'))->toBeTrue();
-        Expect::that(\is_dir($parent . '/run-empty-metadata'))->toBeTrue();
-        Expect::that(\is_dir($parent . '/run-list-metadata'))->toBeTrue();
-        Expect::that(\is_dir($parent . '/run-numeric-key'))->toBeTrue();
+        expect($report->items)->toBe([]);
+        expect(\is_dir($parent . '/unsafe name'))->toBeTrue();
+        expect(\is_dir($parent . '/run-missing-metadata'))->toBeTrue();
+        expect(\is_dir($parent . '/run-empty-metadata'))->toBeTrue();
+        expect(\is_dir($parent . '/run-list-metadata'))->toBeTrue();
+        expect(\is_dir($parent . '/run-numeric-key'))->toBeTrue();
     }
 
     #[Test]
@@ -350,13 +351,13 @@ final readonly class ArtifactRetentionTest
         $unowned = $parent . '/unowned-directory';
         \mkdir($unowned);
         \mkdir($unowned . '/empty');
-        Expect::that(static fn() => ArtifactRetention::contentManifest($unowned))
+        expect()->calling(static fn() => ArtifactRetention::contentManifest($unowned))
             ->toThrow(\RuntimeException::class, message: 'Artifact run content contains an unowned directory.');
 
         $unsafe = $parent . '/unsafe-path';
         \mkdir($unsafe);
         \file_put_contents($unsafe . '/bad\\name', 'content');
-        Expect::that(static fn() => ArtifactRetention::contentManifest($unsafe))
+        expect()->calling(static fn() => ArtifactRetention::contentManifest($unsafe))
             ->toThrow(\RuntimeException::class, message: 'Artifact run content contains an unsafe path.');
 
         $readFailure = $parent . '/read-failure';
@@ -364,7 +365,7 @@ final readonly class ArtifactRetentionTest
         \file_put_contents($readFailure . '/unreadable.txt', 'content');
         \chmod($readFailure . '/unreadable.txt', 0o000);
         try {
-            Expect::that(static fn() => ArtifactRetention::contentManifest($readFailure))
+            expect()->calling(static fn() => ArtifactRetention::contentManifest($readFailure))
                 ->toThrow(\RuntimeException::class, message: 'Greenlight did not read artifact run content.');
         } finally {
             \chmod($readFailure . '/unreadable.txt', 0o600);
@@ -374,7 +375,7 @@ final readonly class ArtifactRetentionTest
         \mkdir($unwritable);
         \chmod($unwritable, 0o500);
         try {
-            Expect::that(static fn() => ArtifactRetention::writeMetadata($unwritable, []))
+            expect()->calling(static fn() => ArtifactRetention::writeMetadata($unwritable, []))
                 ->toThrow(\RuntimeException::class, message: 'Greenlight did not write artifact run metadata.');
         } finally {
             \chmod($unwritable, 0o700);
@@ -383,7 +384,7 @@ final readonly class ArtifactRetentionTest
         $blockedTarget = $parent . '/blocked-target';
         \mkdir($blockedTarget);
         \mkdir($blockedTarget . '/' . ArtifactRetention::METADATA_FILE);
-        Expect::that(static fn() => ArtifactRetention::writeMetadata($blockedTarget, []))
+        expect()->calling(static fn() => ArtifactRetention::writeMetadata($blockedTarget, []))
             ->toThrow(\RuntimeException::class, message: 'Greenlight did not finalize artifact run metadata.');
     }
 
@@ -398,7 +399,7 @@ final readonly class ArtifactRetentionTest
 
         $invalid = $retention->begin('run-invalid');
         ArtifactRetention::writeMetadata($invalid->directory, []);
-        Expect::that($invalid->complete(...))
+        expect()->calling($invalid->complete(...))
             ->toThrow(\RuntimeException::class, message: 'Artifact run metadata is not an active Greenlight record.');
         $invalid->close();
     }
@@ -431,8 +432,8 @@ final readonly class ArtifactRetentionTest
             }
         }
 
-        Expect::that($report->items)->toBe([]);
-        Expect::that($report->warnings)->toBe([
+        expect($report->items)->toBe([]);
+        expect($report->warnings)->toBe([
             'Greenlight did not prune artifact run "run-read-only-nested".',
         ]);
     }
@@ -450,7 +451,7 @@ final readonly class ArtifactRetentionTest
             \chmod($parent, 0o700);
         }
 
-        Expect::that($report->warnings)->toBe([
+        expect($report->warnings)->toBe([
             'Greenlight did not lock the artifact parent for pruning.',
         ]);
     }
@@ -464,8 +465,8 @@ final readonly class ArtifactRetentionTest
 
         $report = $retention->prune(now: 20);
 
-        Expect::that($report->items)->toBe([]);
-        Expect::that(\is_dir($parent . '/run-kept'))->toBeTrue();
+        expect($report->items)->toBe([]);
+        expect(\is_dir($parent . '/run-kept'))->toBeTrue();
     }
 
     #[Test]
@@ -480,7 +481,7 @@ final readonly class ArtifactRetentionTest
             throw new SkipTest('The filesystem did not create a named pipe.');
         }
 
-        Expect::that(static fn() => ArtifactRetention::contentManifest($directory))
+        expect()->calling(static fn() => ArtifactRetention::contentManifest($directory))
             ->toThrow(\RuntimeException::class, message: 'Artifact run content contains an unsupported filesystem entry.');
     }
 

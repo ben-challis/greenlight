@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\RunPolicy;
+
+use function Greenlight\expect;
 
 final readonly class RunPolicyTest
 {
@@ -22,7 +23,7 @@ final readonly class RunPolicyTest
         [$failOnSkipped, $failOnRetriedPass, $failed, $errored, $skipped, $retriedPasses] = $case;
         $summary = new ResultSummary(failed: $failed, errored: $errored, skipped: $skipped);
 
-        Expect::that(new RunPolicy($failOnSkipped, $failOnRetriedPass)->accepts($summary, $retriedPasses))
+        expect(new RunPolicy($failOnSkipped, $failOnRetriedPass)->accepts($summary, $retriedPasses))
             ->because('the run policy MUST evaluate the final summary without changing test outcomes')
             ->toBe($expected);
     }

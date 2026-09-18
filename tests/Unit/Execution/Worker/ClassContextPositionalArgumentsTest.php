@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Execution\Worker;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Worker\ClassContext;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Execution\Worker\AssociativeDataSetProbe;
+
+use function Greenlight\expect;
 
 final readonly class ClassContextPositionalArgumentsTest
 {
@@ -21,7 +22,7 @@ final readonly class ClassContextPositionalArgumentsTest
             'sterling',
         );
 
-        Expect::that($arguments)
+        expect($arguments)
             ->because('provider row keys MUST NOT become named test arguments')
             ->toBe(['GBP', 100]);
     }

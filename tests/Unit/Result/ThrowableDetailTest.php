@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ThrowableDetail;
+
+use function Greenlight\expect;
 
 final class ThrowableDetailTest
 {
@@ -16,9 +17,9 @@ final class ThrowableDetailTest
     {
         $callLine = __LINE__ + 2;
 
-        Expect::that(fn() => $this->throwFromInstanceMethod())->toThrow(
+        expect()->calling(fn() => $this->throwFromInstanceMethod())->toThrow(
             static function (\RuntimeException $threw) use ($callLine): void {
-                Expect::that(ThrowableDetail::fromThrowable($threw)->stackFrames[0])
+                expect(ThrowableDetail::fromThrowable($threw)->stackFrames[0])
                     ->because('a throwable detail MUST identify the method and source of each stack frame')
                     ->toBe(
                         self::class
@@ -34,16 +35,16 @@ final class ThrowableDetailTest
     #[Test]
     public function deepTracesAreBoundedWithATruncationMarker(): void
     {
-        Expect::that(fn() => $this->throwAtDepth(40))->toThrow(
+        expect()->calling(fn() => $this->throwAtDepth(40))->toThrow(
             static function (\RuntimeException $threw): void {
-                Expect::that($threw->getMessage())->toBe('bottom');
+                expect($threw->getMessage())->toBe('bottom');
 
                 $detail = ThrowableDetail::fromThrowable($threw);
 
-                Expect::that($detail->stackFrames)
+                expect($detail->stackFrames)
                     ->because('deep throwable traces are bounded with a truncation marker')
                     ->toHaveCount(33);
-                Expect::that($detail->stackFrames[32])
+                expect($detail->stackFrames[32])
                     ->toBe('... (trace truncated)');
             },
         );
@@ -53,7 +54,7 @@ final class ThrowableDetailTest
     #[DataSet('invalidDetails')]
     public function rejectsInvalidConstruction(string $class, string $file, int $line, string $message): void
     {
-        Expect::that(
+        expect()->calling(
             static fn(): ThrowableDetail => new ThrowableDetail(
                 $class,
                 'message',

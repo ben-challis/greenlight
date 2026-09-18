@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\Autoloaders;
+
+use function Greenlight\expect;
 
 final class AutoloadersOwnershipTest
 {
@@ -25,7 +26,7 @@ final class AutoloadersOwnershipTest
             $sandbox->dispose();
             \class_exists('GreenlightExistingAutoloaderProbe');
 
-            Expect::that($calls)->toBe(['GreenlightExistingAutoloaderProbe']);
+            expect($calls)->toBe(['GreenlightExistingAutoloaderProbe']);
         } finally {
             $sandbox->dispose();
             \spl_autoload_unregister($loader);
@@ -47,12 +48,12 @@ final class AutoloadersOwnershipTest
             $inner->register($loader);
             $inner->dispose();
             \class_exists('GreenlightOuterAutoloaderProbe');
-            Expect::that($calls)->toBe(['GreenlightOuterAutoloaderProbe']);
+            expect($calls)->toBe(['GreenlightOuterAutoloaderProbe']);
 
             $outer->dispose();
             $calls = [];
             \class_exists('GreenlightClosedAutoloaderProbe');
-            Expect::that($calls)->toBe([]);
+            expect($calls)->toBe([]);
         } finally {
             $inner->dispose();
             $outer->dispose();

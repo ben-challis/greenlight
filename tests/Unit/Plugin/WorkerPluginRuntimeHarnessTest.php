@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Plugin;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Fake;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
@@ -19,6 +18,8 @@ use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\Prioritized;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Test\TestChannel;
+
+use function Greenlight\expect;
 
 final class WorkerPluginRuntimeHarnessTest
 {
@@ -58,7 +59,7 @@ final class WorkerPluginRuntimeHarnessTest
             [],
         );
 
-        Expect::that($calls->getArrayCopy())
+        expect($calls->getArrayCopy())
             ->because('harness providers MUST keep stable plugin priority order')
             ->toBe([
                 'early',
@@ -106,7 +107,7 @@ final class WorkerPluginRuntimeHarnessTest
             [],
         );
 
-        Expect::that($scopes->resolve(\stdClass::class, 'test'))
+        expect($scopes->resolve(\stdClass::class, 'test'))
             ->because('a terminal resolver MUST follow all fallback-capable resolvers')
             ->toBe($answer);
     }

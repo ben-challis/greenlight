@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Coverage\Diff;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Diff\FileDelta;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class FileDeltaMissingSideTest
 {
@@ -20,7 +21,7 @@ final readonly class FileDeltaMissingSideTest
     ): void {
         $delta = new FileDelta('/src/Example.php', $baseline, $current, []);
 
-        Expect::that($delta->delta())
+        expect($delta->delta())
             ->because('an absent coverage-map side MUST contribute zero percent')
             ->toBe($expected);
     }

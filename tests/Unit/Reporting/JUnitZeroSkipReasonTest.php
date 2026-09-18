@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class JUnitZeroSkipReasonTest
 {
@@ -30,7 +31,7 @@ final class JUnitZeroSkipReasonTest
         $reporter->onEvent(new TestFinished($result, 1.0));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('JUnit MUST preserve the skip reason "0"')
             ->toContain('<skipped message="0">0</skipped>');
     }

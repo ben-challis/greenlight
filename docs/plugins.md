@@ -853,7 +853,7 @@ Call extension matchers through the expectation chain:
 
 <!-- php-example {"example":"plugins-example-14","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::that($id)->toBeValidUuid();
+Expect::value($id)->toBeValidUuid();
 ```
 
 Extension matchers support `not()` and cannot replace native matchers.
@@ -899,7 +899,7 @@ indexers do not run PHPStan plugins.
 Run `vendor/bin/greenlight ide-helper` to generate
 `_greenlight_ide_helper.php`. No process executes this file. It declares a
 duplicate expectation chain with `@method` annotations for each configured
-matcher. It also adds native matcher annotations to the temporal declaration.
+matcher. Native immediate and temporal matchers use their PHP declarations.
 PhpStorm and Intelephense merge the duplicate declaration. Thus, native and
 configured matchers have their real signatures in IDE completion.
 

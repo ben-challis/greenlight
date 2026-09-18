@@ -11,12 +11,13 @@ use Greenlight\Event\WorkerSpawned;
 use Greenlight\Event\WorkerTiming;
 use Greenlight\Execution\ProcessPool\Orchestrator\InitialWorkerAssignment;
 use Greenlight\Execution\ProcessPool\Orchestrator\Orchestrator;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\NativeOrchestrator;
 use Greenlight\Tests\Support\PhpSubprocess;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final readonly class OrchestratorInitialAssignmentTest
 {
@@ -43,7 +44,7 @@ final readonly class OrchestratorInitialAssignmentTest
             throw new \LogicException('The first worker timing record is missing.');
         }
 
-        Expect::that($firstWorker[0]['at'])
+        expect($firstWorker[0]['at'])
             ->because('useful work SHOULD start before the slowest initial worker is ready')
             ->toBeLessThan($slowReadyAt);
         $fastWorkerAssignmentsBeforeSlowReady = \array_values(\array_filter(
@@ -51,20 +52,20 @@ final readonly class OrchestratorInitialAssignmentTest
             static fn(array $assignment): bool => $assignment['at'] < $slowReadyAt,
         ));
 
-        Expect::that(\array_column($fastWorkerAssignmentsBeforeSlowReady, 'class'))
+        expect(\array_column($fastWorkerAssignmentsBeforeSlowReady, 'class'))
             ->because('the fast worker MUST NOT take a second assignment before the other intended worker is ready')
             ->toBe(['FirstTest']);
-        Expect::that($secondWorker[0]['class'])
+        expect($secondWorker[0]['class'])
             ->because('each intended initial worker MUST receive one fair first assignment')
             ->toBe('SecondTest');
 
         $assignedClasses = [...\array_column($firstWorker, 'class'), ...\array_column($secondWorker, 'class')];
         \sort($assignedClasses);
 
-        Expect::that($assignedClasses)
+        expect($assignedClasses)
             ->because('either ready worker MAY receive work after the fair first wave')
             ->toBe(['FirstTest', 'SecondTest', 'ThirdTest']);
-        Expect::that($firstWorkerTiming->bootstrapBarrierSeconds)
+        expect($firstWorkerTiming->bootstrapBarrierSeconds)
             ->because('profile output MUST attribute the fair first-wave wait to bootstrap coordination')
             ->toBeGreaterThan(0.0);
     }
@@ -81,7 +82,7 @@ final readonly class OrchestratorInitialAssignmentTest
         $firstWorker = $this->assignments($directory, 'w-1');
         $slowReadyAt = (float) \file_get_contents($directory . '/slow-ready');
 
-        Expect::that($firstWorker[0]['at'])
+        expect($firstWorker[0]['at'])
             ->because('the explicit initial barrier MUST preserve worker bootstrap lifecycle guarantees')
             ->toBeGreaterThan($slowReadyAt);
     }
@@ -101,7 +102,7 @@ final readonly class OrchestratorInitialAssignmentTest
             static fn(object $event): bool => $event instanceof WorkerSpawned,
         ));
 
-        Expect::that($spawned)
+        expect($spawned)
             ->because('exclusive resource capacity proves that only one worker can run')
             ->toHaveCount(1);
     }

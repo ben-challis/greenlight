@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\CoverageJson;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class CoverageMergeTest
 {
@@ -46,29 +47,29 @@ final readonly class CoverageMergeTest
             '--no-ansi',
         ]);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('compatible coverage inputs MUST produce all selected exports')
             ->toBe(0);
-        Expect::that($result->output())
+        expect($result->output())
             ->toContain('Coverage: 75.00% (3 of 4 lines)')
             ->toContain('json → out/coverage.json')
             ->toContain('html → out/html');
-        Expect::that(CoverageJson::read($directory . '/out/coverage.json')->toWire())
+        expect(CoverageJson::read($directory . '/out/coverage.json')->toWire())
             ->toBe([
                 'files' => [
                     '/project/src/A.php' => [[1, 2], [3]],
                     '/project/src/B.php' => [[4], []],
                 ],
             ]);
-        Expect::that((string) \file_get_contents($directory . '/out/lcov.info'))
+        expect((string) \file_get_contents($directory . '/out/lcov.info'))
             ->toContain("SF:/project/src/A.php\n")
             ->toContain("DA:3,0\n")
             ->toContain("SF:/project/src/B.php\n");
-        Expect::that((string) \file_get_contents($directory . '/out/clover.xml'))
+        expect((string) \file_get_contents($directory . '/out/clover.xml'))
             ->toContain('<file name="/project/src/A.php">');
-        Expect::that((string) \file_get_contents($directory . '/out/cobertura.xml'))
+        expect((string) \file_get_contents($directory . '/out/cobertura.xml'))
             ->toContain('filename="project/src/A.php"');
-        Expect::that((string) \file_get_contents($directory . '/out/html/index.html'))
+        expect((string) \file_get_contents($directory . '/out/html/index.html'))
             ->toContain('src/A.php')
             ->toContain('src/B.php');
 
@@ -80,8 +81,8 @@ final readonly class CoverageMergeTest
             '--no-ansi',
         ]);
 
-        Expect::that($reverse->exitCode)->toBe(0);
-        Expect::that((string) \file_get_contents($directory . '/reverse.json'))
+        expect($reverse->exitCode)->toBe(0);
+        expect((string) \file_get_contents($directory . '/reverse.json'))
             ->because('input order MUST NOT change serialized coverage')
             ->toBe((string) \file_get_contents($directory . '/out/coverage.json'));
     }
@@ -110,10 +111,10 @@ final readonly class CoverageMergeTest
             '--no-ansi',
         ]);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('explicit roots MUST map each shard to the selected project root')
             ->toBe(0);
-        Expect::that(CoverageJson::read($directory . '/merged.json')->toWire())
+        expect(CoverageJson::read($directory . '/merged.json')->toWire())
             ->toBe([
                 'files' => [
                     '/current/project/src/A.php' => [[1, 2], []],
@@ -140,10 +141,10 @@ final readonly class CoverageMergeTest
             '--no-ansi',
         ]);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('duplicate and empty inputs MUST be idempotent')
             ->toBe(0);
-        Expect::that(CoverageJson::read($directory . '/merged.json')->toWire())
+        expect(CoverageJson::read($directory . '/merged.json')->toWire())
             ->toBe([
                 'files' => [
                     '/project/A.php' => [[1], [2]],
@@ -166,10 +167,10 @@ final readonly class CoverageMergeTest
             '--no-ansi',
         ]);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('empty shard maps MUST produce one valid empty map')
             ->toBe(0);
-        Expect::that((string) \file_get_contents($directory . '/merged.json'))
+        expect((string) \file_get_contents($directory . '/merged.json'))
             ->toBe('{"v":1,"files":{},"totals":{"files":0,"coveredLines":0,"executableLines":0,"percentage":100}}' . "\n");
     }
 
@@ -193,13 +194,13 @@ final readonly class CoverageMergeTest
             '--no-ansi',
         ]);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('a failed merged coverage gate MUST fail the command')
             ->toBe(1);
-        Expect::that($result->output())
+        expect($result->output())
             ->toContain('Coverage gate failed: 50.00% is less than the minimum 50.01%.')
             ->toContain('Coverage gate failed: 1 uncovered line exceeds the maximum 0.');
-        Expect::that(\is_file($directory . '/merged.json'))
+        expect(\is_file($directory . '/merged.json'))
             ->because('a failed gate MUST keep the merged coverage export')
             ->toBeTrue();
     }

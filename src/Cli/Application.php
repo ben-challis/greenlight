@@ -24,7 +24,7 @@ use Greenlight\Reporting\StreamOutput;
  */
 final readonly class Application
 {
-    public const string VERSION = '0.1.0'; // x-release-please-version
+    public const string VERSION = '0.2.0'; // x-release-please-version
 
     private function __construct(private Console $console) {}
 
@@ -60,6 +60,8 @@ final readonly class Application
      */
     public function run(array $argv, string $workingDirectory, ?string $binPath = null): int
     {
+        require_once __DIR__ . '/../Expect/functions.php';
+
         if (($argv[0] ?? null) === '__watch-run') {
             $result = new WatchRunCommand($this->console)->run(\array_slice($argv, 1), $workingDirectory, $binPath);
 

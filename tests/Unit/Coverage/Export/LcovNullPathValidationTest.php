@@ -8,7 +8,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\LcovExporter;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class LcovNullPathValidationTest
 {
@@ -19,7 +20,7 @@ final class LcovNullPathValidationTest
             new FileCoverage("/src/A\0hidden.php", [1], []),
         ]);
 
-        Expect::that(static fn(): array => new LcovExporter()->export($map))
+        expect()->calling(static fn(): array => new LcovExporter()->export($map))
             ->because('LCOV source records MUST contain valid file paths')
             ->toThrow(
                 \InvalidArgumentException::class,

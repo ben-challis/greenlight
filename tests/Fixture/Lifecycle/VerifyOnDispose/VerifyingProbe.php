@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Fixture\Lifecycle\VerifyOnDispose;
 
 use Greenlight\Doubles\Fake;
-use Greenlight\Expect\Expect;
+
 use Greenlight\Harness\Disposable;
+
+use function Greenlight\expect;
 
 final class VerifyingProbe implements Disposable, Fake
 {
@@ -20,6 +22,6 @@ final class VerifyingProbe implements Disposable, Fake
     #[\Override]
     public function dispose(): void
     {
-        Expect::that($this->touches)->toBe(2);
+        expect($this->touches)->toBe(2);
     }
 }

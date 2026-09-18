@@ -42,6 +42,16 @@ final class TemporaryDirectory implements Disposable
                 throw TemporaryDirectoryError::rootCreationFailed($path, $warning);
             }
 
+            if ($resolvedTemporaryRoot === false) {
+                $resolvedPath = ErrorTrap::run(static fn() => \realpath($path), $warning);
+
+                if ($resolvedPath === false) {
+                    throw TemporaryDirectoryError::rootCreationFailed($path, $warning);
+                }
+
+                $path = $resolvedPath;
+            }
+
             $this->path = $path;
         }
 

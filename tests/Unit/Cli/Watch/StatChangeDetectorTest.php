@@ -9,10 +9,11 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\StatChangeDetector;
 use Greenlight\Cli\Watch\WatchPathMatcher;
 use Greenlight\Cli\Watch\WatchScanFailed;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\FilesystemRestriction;
+
+use function Greenlight\expect;
 
 final readonly class StatChangeDetectorTest
 {
@@ -31,13 +32,13 @@ final readonly class StatChangeDetectorTest
             $directory,
         ]);
 
-        Expect::that($detector->poll())
+        expect($detector->poll())
             ->because('the initial scan records only existing PHP files')
             ->toBe([]);
 
         \file_put_contents($textFile, 'changed');
 
-        Expect::that($detector->poll())
+        expect($detector->poll())
             ->because('missing directories and non-PHP changes MUST be ignored')
             ->toBe([]);
     }
@@ -65,10 +66,10 @@ final readonly class StatChangeDetectorTest
         \file_put_contents($excluded, 'second');
         \file_put_contents($unmatched, 'second');
 
-        Expect::that($detector->poll())
+        expect($detector->poll())
             ->because('exclusions MUST have precedence and unmatched files MUST not be hashed')
             ->toHaveCount(1);
-        Expect::that($detector->poll())->toBe([]);
+        expect($detector->poll())->toBe([]);
     }
 
     #[Test]
@@ -85,7 +86,7 @@ final readonly class StatChangeDetectorTest
         $detector->poll();
         \file_put_contents($file, 'second');
 
-        Expect::that($detector->poll())->toBe([$file]);
+        expect($detector->poll())->toBe([$file]);
     }
 
     #[Test]
@@ -103,9 +104,9 @@ final readonly class StatChangeDetectorTest
         \file_put_contents($file, 'second');
         $recreated = $detector->poll();
 
-        Expect::that($created)->toBe([$file]);
-        Expect::that($removed)->toBe([$file]);
-        Expect::that($recreated)->toBe([$file]);
+        expect($created)->toBe([$file]);
+        expect($removed)->toBe([$file]);
+        expect($recreated)->toBe([$file]);
     }
 
     #[Test]
@@ -121,7 +122,7 @@ final readonly class StatChangeDetectorTest
 
         $changes = $detector->poll();
 
-        Expect::that($changes)->toBe([$new, $old]);
+        expect($changes)->toBe([$new, $old]);
     }
 
     #[Test]
@@ -141,7 +142,7 @@ final readonly class StatChangeDetectorTest
         $detector->poll();
         \file_put_contents($file, 'second');
 
-        Expect::that($detector->poll())
+        expect($detector->poll())
             ->because('watch polling MUST not follow directory symlinks')
             ->toBe([]);
     }
@@ -154,7 +155,7 @@ final readonly class StatChangeDetectorTest
         \file_put_contents($root . '/b.yaml', 'b');
         $detector = new StatChangeDetector([], additionalPaths: [$root], maximumFiles: 1);
 
-        Expect::that($detector->poll(...))
+        expect()->calling($detector->poll(...))
             ->toThrow(
                 WatchScanFailed::class,
                 message: 'Watch mode matched more files than the limit of 1. Narrow the watch paths or patterns, or increase maximumFiles().',
@@ -172,10 +173,10 @@ final readonly class StatChangeDetectorTest
         $detector = new StatChangeDetector([$directory]);
         $changed = ErrorTrap::run(static fn() => $detector->poll(), $warning);
 
-        Expect::that($changed)
+        expect($changed)
             ->because('a restricted watch directory MUST behave as a missing directory')
             ->toBe([]);
-        Expect::that($warning)
+        expect($warning)
             ->because('a restricted watch directory MUST not leak engine diagnostics')
             ->toBeNull();
     }

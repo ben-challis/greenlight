@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\IntegrationFixture;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\FixtureResource;
+
+use function Greenlight\expect;
 
 final readonly class FixtureResourceFloatTest
 {
@@ -15,7 +16,7 @@ final readonly class FixtureResourceFloatTest
     {
         $resource = FixtureResource::from(['ratio' => 42]);
 
-        Expect::that($resource->float('ratio'))
+        expect($resource->float('ratio'))
             ->because('float fixture access MUST normalize integer values')
             ->toBe(42.0);
     }

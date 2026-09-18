@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Unit\IntegrationFixture;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\FixtureResource;
 use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final class IntegrationResourcesTest
 {
@@ -28,16 +29,16 @@ final class IntegrationResourcesTest
             secrets: ['password' => 'do-not-print'],
         );
 
-        Expect::that($resource->string('host'))->toBe('127.0.0.1');
-        Expect::that($resource->int('port'))->toBe(5432);
-        Expect::that($resource->bool('tls'))->toBeTrue();
-        Expect::that($resource->float('ratio'))->toBe(1.5);
-        Expect::that($resource->list('tags'))->toBe(['test', 'database']);
-        Expect::that($resource->map('options'))->toBe(['timeout' => 3]);
-        Expect::that($resource->secret('password')->reveal())->toBe('do-not-print');
-        Expect::that($resource->__debugInfo()['secrets'])->toBe(['password' => '[redacted]']);
-        Expect::that(\var_export($resource, true))->not()->toContain('do-not-print');
-        Expect::that(\var_export($resource->secret('password'), true))->not()->toContain('do-not-print');
+        expect($resource->string('host'))->toBe('127.0.0.1');
+        expect($resource->int('port'))->toBe(5432);
+        expect($resource->bool('tls'))->toBeTrue();
+        expect($resource->float('ratio'))->toBe(1.5);
+        expect($resource->list('tags'))->toBe(['test', 'database']);
+        expect($resource->map('options'))->toBe(['timeout' => 3]);
+        expect($resource->secret('password')->reveal())->toBe('do-not-print');
+        expect($resource->__debugInfo()['secrets'])->toBe(['password' => '[redacted]']);
+        expect(\var_export($resource, true))->not()->toContain('do-not-print');
+        expect(\var_export($resource->secret('password'), true))->not()->toContain('do-not-print');
     }
 
     #[Test]
@@ -53,10 +54,10 @@ final class IntegrationResourcesTest
         $restored = IntegrationResources::fromWire($resources->toWire());
         $postgres = $restored->fixture('postgres');
 
-        Expect::that($postgres->string('host'))->toBe('db');
-        Expect::that($postgres->int('port'))->toBe(5432);
-        Expect::that($postgres->secret('password')->reveal())->toBe('secret');
-        Expect::that($restored->has('redis'))->toBeFalse();
+        expect($postgres->string('host'))->toBe('db');
+        expect($postgres->int('port'))->toBe(5432);
+        expect($postgres->secret('password')->reveal())->toBe('secret');
+        expect($restored->has('redis'))->toBeFalse();
     }
 
     #[Test]
@@ -72,9 +73,9 @@ final class IntegrationResourcesTest
         );
         $merged = $shared->mergedWith($channel);
 
-        Expect::that($merged->string('host'))->toBe('db');
-        Expect::that($merged->string('database'))->toBe('channel_2');
-        Expect::that($merged->secret('password')->reveal())->toBe('channel-secret');
+        expect($merged->string('host'))->toBe('db');
+        expect($merged->string('database'))->toBe('channel_2');
+        expect($merged->secret('password')->reveal())->toBe('channel-secret');
     }
 
     #[Test]
@@ -90,16 +91,16 @@ final class IntegrationResourcesTest
         $dump = \ob_get_clean();
         $export = \var_export($resources, true);
 
-        Expect::that(($debug['fixtures']['database'] ?? null) === $resource)
+        expect(($debug['fixtures']['database'] ?? null) === $resource)
             ->because('integration resource debug information MUST retain its fixture map')
             ->toBe(true);
-        Expect::that(\is_string($dump) && \str_contains($dump, 'database'))
+        expect(\is_string($dump) && \str_contains($dump, 'database'))
             ->because('integration resource dumps MUST identify their fixture IDs')
             ->toBe(true);
-        Expect::that(\is_string($dump) && \str_contains($dump, $secret))
+        expect(\is_string($dump) && \str_contains($dump, $secret))
             ->because('integration resource dumps MUST NOT disclose nested secrets')
             ->toBe(false);
-        Expect::that(\str_contains($export, $secret))
+        expect(\str_contains($export, $secret))
             ->because('integration resource exports MUST NOT disclose nested secrets')
             ->toBe(false);
     }
@@ -107,7 +108,7 @@ final class IntegrationResourcesTest
     #[Test]
     public function resourcesRejectInvalidFixtureMaps(): void
     {
-        Expect::that(static fn(): IntegrationResources => new IntegrationResources([
+        expect()->calling(static fn(): IntegrationResources => new IntegrationResources([
             "\xB1\x31" => FixtureResource::empty(),
         ]))->toThrow(\InvalidArgumentException::class, matching: '/non-empty UTF-8 fixture IDs/');
     }
@@ -118,17 +119,17 @@ final class IntegrationResourcesTest
         $stream = MemoryStream::open();
 
         try {
-            Expect::that(static fn(): FixtureResource => FixtureResource::from(['stream' => $stream]))
+            expect()->calling(static fn(): FixtureResource => FixtureResource::from(['stream' => $stream]))
                 ->toThrow(\InvalidArgumentException::class, matching: '/JSON-safe/');
         } finally {
             MemoryStream::close($stream);
         }
 
-        Expect::that(static fn(): FixtureResource => FixtureResource::from(['number' => \INF]))
+        expect()->calling(static fn(): FixtureResource => FixtureResource::from(['number' => \INF]))
             ->toThrow(\InvalidArgumentException::class, matching: '/finite numbers/');
-        Expect::that(static fn(): FixtureResource => FixtureResource::from(['text' => "\xB1\x31"]))
+        expect()->calling(static fn(): FixtureResource => FixtureResource::from(['text' => "\xB1\x31"]))
             ->toThrow(\InvalidArgumentException::class, matching: '/UTF-8/');
-        Expect::that(static fn(): FixtureResource => FixtureResource::from(secrets: ['token' => "\xB1\x31"]))
+        expect()->calling(static fn(): FixtureResource => FixtureResource::from(secrets: ['token' => "\xB1\x31"]))
             ->toThrow(\InvalidArgumentException::class, matching: '/UTF-8/');
     }
 
@@ -139,7 +140,7 @@ final class IntegrationResourcesTest
     #[DataSet('invalidSecretTypes')]
     public function secretMapsRejectInvalidRuntimeTypes(array $secrets): void
     {
-        Expect::that(static fn(): FixtureResource => FixtureResource::from(
+        expect()->calling(static fn(): FixtureResource => FixtureResource::from(
             secrets: $secrets,
         ))
             ->because('fixture secret maps MUST reject invalid runtime types at their boundary')
@@ -167,7 +168,7 @@ final class IntegrationResourcesTest
     {
         $from = new \ReflectionMethod(FixtureResource::class, 'from');
 
-        Expect::that(static fn(): mixed => $from->invoke(null, $values))
+        expect()->calling(static fn(): mixed => $from->invoke(null, $values))
             ->because('fixture value maps MUST reject invalid runtime keys at their boundary')
             ->toThrow(
                 \InvalidArgumentException::class,

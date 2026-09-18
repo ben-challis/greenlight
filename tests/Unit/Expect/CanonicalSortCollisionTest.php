@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class CanonicalSortCollisionTest
 {
@@ -17,7 +18,7 @@ final class CanonicalSortCollisionTest
         $second = new \stdClass();
         $second->next = $second;
 
-        Expect::that([$first, $second])->toEqualCanonicalizing([$second, $first]);
+        expect([$first, $second])->toEqualCanonicalizing([$second, $first]);
     }
 
     #[Test]
@@ -26,8 +27,8 @@ final class CanonicalSortCollisionTest
         $first = 1.000000000000001;
         $second = 1.000000000000002;
 
-        Expect::that([$first, $second])->toEqualCanonicalizing([$second, $first]);
-        Expect::that([$first, $first])->not()->toEqualCanonicalizing([$first, $second]);
+        expect([$first, $second])->toEqualCanonicalizing([$second, $first]);
+        expect([$first, $first])->not()->toEqualCanonicalizing([$first, $second]);
     }
 
     #[Test]
@@ -35,7 +36,7 @@ final class CanonicalSortCollisionTest
     {
         $integer = 2 ** 54;
 
-        Expect::that([$integer, 17.0])->toEqualCanonicalizing([17.0, (float) $integer]);
+        expect([$integer, 17.0])->toEqualCanonicalizing([17.0, (float) $integer]);
     }
 
     #[Test]
@@ -43,12 +44,12 @@ final class CanonicalSortCollisionTest
     {
         $integer = -(2 ** 54);
 
-        Expect::that([$integer, -17.0])->toEqualCanonicalizing([-17.0, (float) $integer]);
+        expect([$integer, -17.0])->toEqualCanonicalizing([-17.0, (float) $integer]);
     }
 
     #[Test]
     public function signedZeroValuesShareSortPositions(): void
     {
-        Expect::that([-0.0, -1.0])->toEqualCanonicalizing([-1.0, 0.0]);
+        expect([-0.0, -1.0])->toEqualCanonicalizing([-1.0, 0.0]);
     }
 }

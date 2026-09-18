@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\StreamOutput;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Tests\Fixture\Reporting\PartialWriteStream;
+
+use function Greenlight\expect;
 
 final readonly class StreamOutputDiagnosticTest
 {
@@ -38,7 +39,7 @@ final readonly class StreamOutputDiagnosticTest
         try {
             $output = new StreamOutput($stream);
 
-            Expect::that(static fn() => $output->write('cannot be written'))
+            expect()->calling(static fn() => $output->write('cannot be written'))
                 ->because('a stream diagnostic becomes only a reporting error')
                 ->toThrow(
                     ReportGenerationFailed::class,
@@ -49,7 +50,7 @@ final readonly class StreamOutputDiagnosticTest
             \fclose($stream);
         }
 
-        Expect::that($diagnostic)
+        expect($diagnostic)
             ->because('reporter write diagnostics MUST NOT reach the host error handler')
             ->toBeNull();
     }

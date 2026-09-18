@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanTimeoutConstructorRuleTest
@@ -45,10 +46,10 @@ final readonly class PhpStanTimeoutConstructorRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)->because('timeout construction requires valid seconds')->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that($probe->errors)->toHaveCount(5);
-        Expect::that($probe->messages())
+        expect($probe->exitCode)->because('timeout construction requires valid seconds')->toBe(1);
+        expect($probe->goodPassed)->toBeTrue();
+        expect($probe->errors)->toHaveCount(5);
+        expect($probe->messages())
             ->because('each invalid timeout value has the same actionable diagnostic')
             ->toBe(\implode("\n", \array_fill(0, 5, 'Timeout seconds must be finite and greater than zero.')));
     }

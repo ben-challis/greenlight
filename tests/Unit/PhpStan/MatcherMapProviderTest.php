@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\PhpStan;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\PhpStan\MatcherMapProvider;
+
+use function Greenlight\expect;
 
 final class MatcherMapProviderTest
 {
@@ -16,10 +17,10 @@ final class MatcherMapProviderTest
         $provider = new MatcherMapProvider([]);
         $first = $provider->get();
 
-        Expect::that($provider->get())
+        expect($provider->get())
             ->because('PHPStan extensions MUST share one lazily loaded matcher map')
             ->toBe($first);
-        Expect::that($first->names())
+        expect($first->names())
             ->toBe([]);
     }
 }

@@ -8,11 +8,12 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\State\RunState;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Support\FilesystemRestriction;
+
+use function Greenlight\expect;
 
 final readonly class RunStateTest
 {
@@ -23,13 +24,19 @@ final readonly class RunStateTest
     {
         $state = RunState::forFile($this->stateFile());
 
-        Expect::that($state->failedTests())->toBeNull();
+        expect($state->failedTests())->toBeNull();
 
-        Expect::that($state->record(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']))->toBeTrue();
-        Expect::that($state->failedTests())->toBe(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']);
+        expect($state->record(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']))->toBeTrue();
+        expect($state->failedTests())->toBe(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']);
+        expect(RunState::forFile($this->stateFile())->failedTests())
+            ->because('a later command MUST read the recorded failures from disk')
+            ->toBe(['Acme\AlphaTest::one', 'Acme\BetaTest::two[label]']);
 
-        $state->record([]);
-        Expect::that($state->failedTests())->toBe([]);
+        expect($state->record([]))->toBeTrue();
+        expect($state->failedTests())->toBe([]);
+        expect(RunState::forFile($this->stateFile())->failedTests())
+            ->because('a later successful run MUST clear the persisted failures')
+            ->toBe([]);
     }
 
     #[Test]
@@ -37,10 +44,13 @@ final readonly class RunStateTest
     {
         $state = RunState::forFile($this->stateFile());
 
-        Expect::that($state->classSeconds())->toBe([]);
+        expect($state->classSeconds())->toBe([]);
 
-        $state->record([], ['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
-        Expect::that($state->classSeconds())->toBe(['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
+        expect($state->record([], ['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]))->toBeTrue();
+        expect($state->classSeconds())->toBe(['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
+        expect(RunState::forFile($this->stateFile())->classSeconds())
+            ->because('a later command MUST read the recorded durations from disk')
+            ->toBe(['Acme\AlphaTest' => 1.25, 'Acme\BetaTest' => 0.5]);
     }
 
     #[Test]
@@ -60,7 +70,7 @@ final readonly class RunStateTest
             }
             JSON);
 
-        Expect::that(RunState::forFile($file)->classSeconds())
+        expect(RunState::forFile($file)->classSeconds())
             ->because('cached durations MUST be finite, non-negative numbers for named classes')
             ->toBe([
                 'Acme\ValidTest' => 1.25,
@@ -74,13 +84,13 @@ final readonly class RunStateTest
         $file = $this->stateFile();
         \file_put_contents($file, 'not json at all');
 
-        Expect::that(RunState::forFile($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
+        expect(RunState::forFile($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
 
         \file_put_contents($file, '{"failed": "not a list"}');
-        Expect::that(RunState::forFile($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
+        expect(RunState::forFile($file)->failedTests())->because('corrupt state reads as absent')->toBeNull();
 
         \file_put_contents($file, '{"failed": {"first": "Acme\\\\AlphaTest::one"}}');
-        Expect::that(RunState::forFile($file)->failedTests())->because('object-shaped state reads as absent')->toBeNull();
+        expect(RunState::forFile($file)->failedTests())->because('object-shaped state reads as absent')->toBeNull();
     }
 
     #[Test]
@@ -100,11 +110,11 @@ final readonly class RunStateTest
             ],
         ], \JSON_THROW_ON_ERROR));
 
-        Expect::that($state->failedTests())
+        expect($state->failedTests())
             ->because('invalid failed-test entries MUST NOT hide valid IDs')
             ->toBe(['Acme\AlphaTest::one']);
 
-        Expect::that($state->classSeconds())
+        expect($state->classSeconds())
             ->because('invalid duration entries MUST NOT hide valid timings')
             ->toBe([
                 'Acme\AlphaTest' => 1.25,
@@ -123,14 +133,14 @@ final readonly class RunStateTest
 
         $state = RunState::forFile($file);
 
-        Expect::that($state->failedTests())->toBe(['Acme\AlphaTest::one']);
+        expect($state->failedTests())->toBe(['Acme\AlphaTest::one']);
 
         \file_put_contents($file, \json_encode([
             'failed' => ['Acme\BetaTest::two'],
             'classSeconds' => ['Acme\BetaTest' => 2.5],
         ], \JSON_THROW_ON_ERROR));
 
-        Expect::that($state->classSeconds())
+        expect($state->classSeconds())
             ->because('one command MUST use failures and durations from the same state snapshot')
             ->toBe(['Acme\AlphaTest' => 1.25]);
     }
@@ -147,7 +157,7 @@ final readonly class RunStateTest
             throw new SkipTest('The filesystem does not enforce unreadable file permissions.');
         }
 
-        Expect::that(RunState::forFile($file)->failedTests())
+        expect(RunState::forFile($file)->failedTests())
             ->because('unreadable advisory state MUST behave as absent state')
             ->toBeNull();
     }
@@ -165,10 +175,10 @@ final readonly class RunStateTest
             $warning,
         );
 
-        Expect::that($failedTests)
+        expect($failedTests)
             ->because('restricted advisory state MUST behave as absent state')
             ->toBeNull();
-        Expect::that($warning)
+        expect($warning)
             ->because('a restricted advisory state path MUST not leak engine diagnostics')
             ->toBeNull();
     }
@@ -180,8 +190,8 @@ final readonly class RunStateTest
 
         RunState::forFile($file)->record(['Acme\AlphaTest::one']);
 
-        Expect::that(RunState::forFile($file)->failedTests())->toBe(['Acme\AlphaTest::one']);
-        Expect::that(\glob($file . '.tmp-*'))->toBe([]);
+        expect(RunState::forFile($file)->failedTests())->toBe(['Acme\AlphaTest::one']);
+        expect(\glob($file . '.tmp-*'))->toBe([]);
     }
 
     #[Test]
@@ -195,11 +205,11 @@ final readonly class RunStateTest
         \mkdir($file);
         \file_put_contents($file . '/occupant.txt', 'keep');
 
-        Expect::that(RunState::forFile($file)->record(['Acme\AlphaTest::one']))->toBeFalse();
+        expect(RunState::forFile($file)->record(['Acme\AlphaTest::one']))->toBeFalse();
 
-        Expect::that(\is_dir($file))->toBeTrue();
-        Expect::that((string) \file_get_contents($file . '/occupant.txt'))->toBe('keep');
-        Expect::that(\glob($file . '.tmp-*'))->toBe([]);
+        expect(\is_dir($file))->toBeTrue();
+        expect((string) \file_get_contents($file . '/occupant.txt'))->toBe('keep');
+        expect(\glob($file . '.tmp-*'))->toBe([]);
     }
 
     #[Test]
@@ -208,12 +218,15 @@ final readonly class RunStateTest
     {
         $state = RunState::forFile($this->stateFile());
 
-        Expect::that($state->record(['Acme\AlphaTest::one']))->toBeTrue();
-        Expect::that($state->record(['Acme\BetaTest::two'], ['Acme\BetaTest' => $duration]))
+        expect($state->record(['Acme\AlphaTest::one']))->toBeTrue();
+        expect($state->record(['Acme\BetaTest::two'], ['Acme\BetaTest' => $duration]))
             ->because('non-finite durations cannot be represented in the state JSON')
             ->toBeFalse();
-        Expect::that($state->failedTests())
+        expect($state->failedTests())
             ->because('a failed encode does not replace the previous state')
+            ->toBe(['Acme\AlphaTest::one']);
+        expect(RunState::forFile($this->stateFile())->failedTests())
+            ->because('a failed encode MUST preserve the previous file for later commands')
             ->toBe(['Acme\AlphaTest::one']);
     }
 

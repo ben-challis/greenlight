@@ -9,9 +9,10 @@ use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
+
+use function Greenlight\expect;
 
 final class DoublesDisposalIsolationTest
 {
@@ -25,7 +26,7 @@ final class DoublesDisposalIsolationTest
         });
 
         if ($verificationFails) {
-            Expect::that(static fn() => $doubles->dispose())
+            expect()->calling(static fn() => $doubles->dispose())
                 ->because('the selected disposal outcome MUST fail verification')
                 ->toThrow(ExpectationFailed::class);
         } else {
@@ -33,7 +34,7 @@ final class DoublesDisposalIsolationTest
             $doubles->dispose();
         }
 
-        Expect::that(static fn(): array => $doubles->callsTo($calculator, 'add'))
+        expect()->calling(static fn(): array => $doubles->callsTo($calculator, 'add'))
             ->because('disposal MUST revoke access to recordings from the closed verification scope')
             ->toThrow(
                 InvalidDoubleUsage::class,

@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\Plan\PlanEntry;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\DataProvider;
 use Greenlight\Test\TestDefinition;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\DiscoveryCachePath;
+
+use function Greenlight\expect;
 
 final class DiscoveryCacheRuntimeProviderTest
 {
@@ -55,10 +56,10 @@ final class DiscoveryCacheRuntimeProviderTest
             $cache = DiscoveryCache::forDirectories([$directory]);
             $cache->store($source, [$entry]);
 
-            Expect::that($cache->persist())
+            expect($cache->persist())
                 ->because('a runtime provider has no dependency file')
                 ->toBeTrue();
-            Expect::that(DiscoveryCache::forDirectories([$directory])->lookup($source))
+            expect(DiscoveryCache::forDirectories([$directory])->lookup($source))
                 ->because('the entry remains available from the cache')
                 ->not()
                 ->toBeNull();

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
 use Greenlight\Tests\Support\Subprocess;
+
+use function Greenlight\expect;
 
 final readonly class CompletionTest
 {
@@ -19,8 +20,8 @@ final readonly class CompletionTest
     public function printsAScriptPerShellAndRejectsUnknownShells(): void
     {
         $result = $this->run('bash');
-        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0);
-        Expect::that($result->stdout)->toContain('_greenlight_completions')
+        expect($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0);
+        expect($result->stdout)->toContain('_greenlight_completions')
             ->toContain('coverage:merge')
             ->toContain('coverage:diff')
             ->toContain('artifacts:prune')
@@ -30,24 +31,24 @@ final readonly class CompletionTest
         $bashScript = $result->stdout;
 
         $result = $this->run('zsh');
-        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0);
-        Expect::that($result->stdout)->toContain('compdef _greenlight greenlight')
+        expect($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0);
+        expect($result->stdout)->toContain('compdef _greenlight greenlight')
             ->toContain('--detect-leaks')
             ->toContain('teamcity');
 
         $result = $this->run('fish');
-        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0);
-        Expect::that($result->stdout)->toContain('complete -c greenlight')
+        expect($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(0);
+        expect($result->stdout)->toContain('complete -c greenlight')
             ->toContain('-l detect-leaks')
             ->toContain('teamcity');
 
         $result = $this->run('powershell');
-        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(64);
-        Expect::that($result->stderr)->toContain('Unknown shell');
+        expect($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(64);
+        expect($result->stderr)->toContain('Unknown shell');
 
         $result = $this->run();
-        Expect::that($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(64);
-        Expect::that($result->stderr)->toContain('requires a shell argument');
+        expect($result->exitCode)->because('prints a script per shell and rejects unknown shells')->toBe(64);
+        expect($result->stderr)->toContain('requires a shell argument');
 
         $this->syntaxCheckWhenBashIsAvailable($bashScript);
     }
@@ -75,7 +76,7 @@ final readonly class CompletionTest
         $file = $this->tempDirectory->path() . '/completion.bash';
         \file_put_contents($file, $script . "\n");
         $result = Subprocess::run(\dirname(__DIR__, 2), [$bash, '-n', $file]);
-        Expect::that($result->exitCode)->toBe(0);
+        expect($result->exitCode)->toBe(0);
     }
 
     private function run(string ...$arguments): ProcessResult

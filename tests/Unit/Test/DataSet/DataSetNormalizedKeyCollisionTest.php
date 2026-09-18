@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Test\DataSet;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\DataSet\DataSetError;
 use Greenlight\Test\DataSet\DataSetExpander;
 use Greenlight\Tests\Fixture\DiscoveryProviderNormalizedDuplicate\NormalizedDuplicateKeysTest;
+
+use function Greenlight\expect;
 
 final class DataSetNormalizedKeyCollisionTest
 {
@@ -17,7 +18,7 @@ final class DataSetNormalizedKeyCollisionTest
     {
         $reflection = new \ReflectionClass(NormalizedDuplicateKeysTest::class);
 
-        Expect::that(static fn(): array => new DataSetExpander()->rowsFor(
+        expect()->calling(static fn(): array => new DataSetExpander()->rowsFor(
             $reflection,
             'needsData',
             'rows',

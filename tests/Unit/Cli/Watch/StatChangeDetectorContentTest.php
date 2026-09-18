@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Cli\Watch;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\StatChangeDetector;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class StatChangeDetectorContentTest
 {
@@ -31,7 +32,7 @@ final readonly class StatChangeDetectorContentTest
         \clearstatcache(true, $source);
         $detector = new StatChangeDetector([$directory]);
 
-        Expect::that($detector->poll())
+        expect($detector->poll())
             ->because('the first poll MUST only record the source fingerprint')
             ->toBe([]);
 
@@ -43,13 +44,13 @@ final readonly class StatChangeDetectorContentTest
 
         \clearstatcache(true, $source);
 
-        Expect::that(\filemtime($source))
+        expect(\filemtime($source))
             ->because('the rewrite MUST preserve the modification time in the original fingerprint')
             ->toBe($mtime);
-        Expect::that(\filesize($source))
+        expect(\filesize($source))
             ->because('the rewrite MUST preserve the file size in the original fingerprint')
             ->toBe(\strlen($original));
-        Expect::that($detector->poll())
+        expect($detector->poll())
             ->because('the content fingerprint MUST report an equal-size rewrite')
             ->toBe([$source]);
     }

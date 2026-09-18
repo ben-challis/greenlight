@@ -8,7 +8,8 @@ use Greenlight\Artifact\Attachment;
 use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class AttachmentValidMediaTypeTest
 {
@@ -27,10 +28,10 @@ final readonly class AttachmentValidMediaTypeTest
         );
         $restored = Attachment::fromWire($attachment->toWire());
 
-        Expect::that($attachment->mediaType)
+        expect($attachment->mediaType)
             ->because('attachment construction MUST preserve a valid media type')
             ->toBe($mediaType);
-        Expect::that($restored->mediaType)
+        expect($restored->mediaType)
             ->because('attachment wire decoding MUST preserve a valid media type')
             ->toBe($mediaType);
     }

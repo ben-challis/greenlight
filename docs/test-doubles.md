@@ -30,7 +30,7 @@ final class CheckoutServiceTest
 
         $payment = new CheckoutService($gateway)->checkout(1999, 'GBP');
 
-        Expect::that($payment->id)->toBe('payment-123');
+        Expect::value($payment->id)->toBe('payment-123');
     }
 }
 ```
@@ -89,17 +89,36 @@ Each mock method with a native non-`void` return type needs an explicit
 response. A method declared `void` or without a native return type needs no
 response and returns `null`. PHPDoc return tags do not change this rule.
 
+The following examples show separate response plans.
+
+Return one value for every matched call:
+
 <!-- php-example {"example":"test-doubles-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $plan->expects('nextId')->andReturns('id-1');
+```
 
+Return successive values for two calls:
+
+<!-- php-example {"example":"test-doubles-response-sequence","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
 $plan->expects('nextId')
     ->times(2)
     ->andReturnsSequence('id-1', 'id-2');
+```
 
+Calculate the response from the call arguments:
+
+<!-- php-example {"example":"test-doubles-response-callback","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
 $plan->expects('convert')
     ->andReturnsUsing(fn (int $value): int => $value * 2);
+```
 
+Throw an exception:
+
+<!-- php-example {"example":"test-doubles-response-throwable","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
 $plan->expects('load')
     ->andThrows(new NotFound('Missing record.'));
 ```
@@ -208,8 +227,8 @@ $captor = $plan->expects('save')
 
 // Exercise the subject.
 
-Expect::that($captor->values())->toHaveCount(2);
-Expect::that($captor->value())->toBeInstanceOf(Order::class);
+Expect::value($captor->values())->toHaveCount(2);
+Expect::value($captor->value())->toBeInstanceOf(Order::class);
 ```
 
 `values()` returns each captured value. `value()` returns the last value. It
@@ -231,7 +250,7 @@ $events = $this->doubles->spy(EventPublisher::class);
 
 new CheckoutService($events)->checkout();
 
-Expect::that(
+Expect::value(
     $this->doubles->callsTo($events, 'publish'),
 )->toEqual([[new OrderPlaced('order-1')]]);
 ```

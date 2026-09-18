@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Attribute;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Retry;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class RetryTimesValidationTest
 {
@@ -15,7 +16,7 @@ final class RetryTimesValidationTest
     #[DataSet('nonPositiveTimes')]
     public function rejectsNonPositiveTimes(int $times): void
     {
-        Expect::that(static fn(): Retry => new Retry($times))
+        expect()->calling(static fn(): Retry => new Retry($times))
             ->because('retry times MUST be positive')
             ->toThrow(
                 \InvalidArgumentException::class,

@@ -52,12 +52,14 @@ final class SelectionPlan
             ? $resolved->selection->withExactIds($previousFailures)
             : $resolved->selection;
         $priorityClasses = [];
+        $priorityClassSet = [];
 
         if (!$resolved->order->isRandomized() && \is_array($previousFailures)) {
             foreach ($previousFailures as $id) {
                 $class = \strstr($id, '::', true);
 
-                if (\is_string($class) && $class !== '' && !\in_array($class, $priorityClasses, true)) {
+                if (\is_string($class) && $class !== '' && !isset($priorityClassSet[$class])) {
+                    $priorityClassSet[$class] = true;
                     $priorityClasses[] = $class;
                 }
             }

@@ -92,6 +92,18 @@ The rule removes coverage metadata attributes, for example `#[CoversClass]`,
 because coverage configuration belongs in `greenlight.php`. It also removes
 use metadata, `#[TestDox]`, and `#[DisableReturnValueGenerationForTestDoubles]`.
 
+Preview the proposed changes:
+
+```sh
+vendor/bin/rector process --dry-run
+```
+
+Apply the changes after you review the preview:
+
+```sh
+vendor/bin/rector process
+```
+
 Rector's printer also reflows each converted class. Run your code-style fixer
 after the conversion. If no test depends on `#[Isolated]`, run the suite one
 time with `--workers=1` before you enable parallel workers. Otherwise, start
@@ -113,7 +125,7 @@ with two process-pool workers.
   `throw new SkipTest($reason)`.
 * Replace requirement attributes with a `#[SkipUnless]` condition.
 * Use `#[SkipUnless(ExtensionLoaded::class, 'redis')]` for an extension check.
-* Replace `$this->assert...()` calls with static `Expect::that(...)` chains.
+* Replace `$this->assert...()` calls with static `Expect::value(...)` chains.
 * Replace `createMock()` and `getMockBuilder()` with the injected `Doubles`
   service.
 * Use the `mock()`, `stub()`, and `spy()` methods to create doubles.
@@ -126,25 +138,25 @@ with two process-pool workers.
 
 ## Convert assertions
 
-Expectations start with `Expect::that()`. They do not use methods on the test
+Expectations start with `Expect::value()`. They do not use methods on the test
 class.
 
 <!-- php-example {"mode":"display","reason":"Compares partial PHPUnit and Greenlight expressions side by side."} -->
 ```php
 // PHPUnit                                                // Greenlight
-$this->assertSame('a', $value);                           Expect::that($value)->toBe('a');
-$this->assertEquals($expected, $order);                   Expect::that($order)->toEqual($expected);
+$this->assertSame('a', $value);                           Expect::value($value)->toBe('a');
+$this->assertEquals($expected, $order);                   Expect::value($order)->toEqual($expected);
 $this->fail('Reason');                                    Fail::because('Reason');
-$this->assertTrue($open, 'Order must stay open');         Expect::that($open)->because('Order must stay open')->toBeTrue();
-$this->assertInstanceOf(Response::class, $r);             Expect::that($r)->toBeInstanceOf(Response::class);
-$this->assertCount(3, $items);                            Expect::that($items)->toHaveCount(3);
-$this->expectException(DomainException::class);           Expect::that($fn)->toThrow(DomainException::class);
-$this->assertGreaterThanOrEqual(3, $n);                   Expect::that($n)->toBeGreaterThanOrEqual(3);
-$this->assertIsArray($value);                             Expect::that($value)->toBeArray();
-$this->assertContains($needle, $haystack);                Expect::that($haystack)->toContain($needle);
-$this->assertEqualsCanonicalizing($a, $b);                Expect::that($b)->toEqualCanonicalizing($a);
-$this->assertJson($payload);                              Expect::that($payload)->toBeJson();
-$this->assertJsonStringEqualsJsonString($e, $a);          Expect::that($a)->toMatchJson($e);
+$this->assertTrue($open, 'Order must stay open');         Expect::value($open)->because('Order must stay open')->toBeTrue();
+$this->assertInstanceOf(Response::class, $r);             Expect::value($r)->toBeInstanceOf(Response::class);
+$this->assertCount(3, $items);                            Expect::value($items)->toHaveCount(3);
+$this->expectException(DomainException::class);           Expect::calling($fn)->toThrow(DomainException::class);
+$this->assertGreaterThanOrEqual(3, $n);                   Expect::value($n)->toBeGreaterThanOrEqual(3);
+$this->assertIsArray($value);                             Expect::value($value)->toBeArray();
+$this->assertContains($needle, $haystack);                Expect::value($haystack)->toContain($needle);
+$this->assertEqualsCanonicalizing($a, $b);                Expect::value($b)->toEqualCanonicalizing($a);
+$this->assertJson($payload);                              Expect::value($payload)->toBeJson();
+$this->assertJsonStringEqualsJsonString($e, $a);          Expect::value($a)->toMatchJson($e);
 ```
 
 Other type predicates include `toBeString()`, `toBeInt()`, `toBeFloat()`,
@@ -202,10 +214,10 @@ Use this expectation:
 
 <!-- php-example {"example":"migrating-from-phpunit-example-05","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::that(fn() => $fixtureManager->start())
+Expect::calling(fn() => $fixtureManager->start())
     ->toThrow(
         static function (IntegrationFixtureError $error): void {
-            Expect::that($error->getPrevious())
+            Expect::value($error->getPrevious())
                 ->toBeInstanceOf(LengthException::class);
         },
     );
@@ -217,7 +229,7 @@ Replace manual `sleep()` calls or retry loops with `eventually()`:
 
 <!-- php-example {"example":"migrating-from-phpunit-example-06","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::eventually(fn() => $repository->find($id))
+Expect::calling(fn() => $repository->find($id))->returnValue()->eventually()
     ->within(2.0)
     ->toEqual($expected);
 ```
@@ -267,7 +279,7 @@ Use a captured argument instead of callback inspection:
 ```php
 $captor = $plan->expects('save')->once()->andReturns(true)->captureArgument(0);
 // ... exercise the subject ...
-Expect::that($captor->value())->toBeInstanceOf(Order::class);
+Expect::value($captor->value())->toBeInstanceOf(Order::class);
 ```
 
 `stub(Type::class)` supplies a collaborator and rejects each interaction.
@@ -275,8 +287,9 @@ Expect::that($captor->value())->toBeInstanceOf(Order::class);
 If the collaborator must return a value, use a mock with explicit
 expectations.
 
-`spy(Type::class)` records calls only for methods that return nothing. A spy
-does not create a return value.
+`spy(Type::class)` records calls to methods declared `void` or without a native
+return type. These calls return `null`. A call with another native return type
+fails the test.
 
 Read records with `$this->doubles->callsTo($spy, 'method')`. Check the records
 with `Expect`.
@@ -371,7 +384,7 @@ These differences are intentional:
 4. Convert one remaining leaf test class manually.
 5. Remove the base class.
 6. Add `#[Test]` to each test method.
-7. Convert assertions to `Expect::that()`.
+7. Convert assertions to `Expect::value()`.
 8. Convert data providers.
 9. Keep the provider body when only the attribute must change.
 10. Convert mocks after the other test code.
