@@ -36,6 +36,7 @@ use Greenlight\Test\ExpectationCounter;
  *   The comparison safely processes cyclic structures.
  *
  * @internal
+ *
  * @template T
  */
 final class MatcherEvaluation
@@ -766,6 +767,7 @@ final class MatcherEvaluation
 
     /**
      * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function toReturn(mixed $expected): self
@@ -773,8 +775,15 @@ final class MatcherEvaluation
         if (!\is_callable($this->subject)) {
             throw new \LogicException('A call matcher requires a callable.');
         }
+
         $actual = ($this->subject)();
-        return $this->verify($actual === $expected, 'to be ' . $this->renderer->render($expected), $this->renderer->render($expected), $this->renderer->render($actual));
+
+        return $this->verify(
+            $actual === $expected,
+            'to be ' . $this->renderer->render($expected),
+            $this->renderer->render($expected),
+            $this->renderer->render($actual),
+        );
     }
 
     /**

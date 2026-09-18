@@ -6,6 +6,7 @@ namespace Greenlight\Expect;
 
 /**
  * Collects time controls for a call expectation.
+ *
  * @template T
  */
 final readonly class PendingEventuallyCall
@@ -15,11 +16,15 @@ final readonly class PendingEventuallyCall
 
     /**
      * @internal
+     *
      * @param \Closure(): T $call
      * @param list<ExpectationExtension> $extensions
      */
-    public function __construct(\Closure $call, private ValueRenderer $renderer, private array $extensions)
-    {
+    public function __construct(
+        \Closure $call,
+        private ValueRenderer $renderer,
+        private array $extensions,
+    ) {
         $this->pending = PendingEventually::create(
             static fn() => CallOutcome::capture($call)->replay(...),
             ExpectationRuntime::clock(),
@@ -33,17 +38,21 @@ final readonly class PendingEventuallyCall
     public function not(): self
     {
         $this->pending->not();
+
         return $this;
     }
 
     /**
      * @param non-empty-string $reason
+     *
      * @return self<T>
+     *
      * @throws ExpectationFailed
      */
     public function because(string $reason): self
     {
         $this->pending->because($reason);
+
         return $this;
     }
 
@@ -51,11 +60,13 @@ final readonly class PendingEventuallyCall
     public function pollEvery(float $seconds): self
     {
         $this->pending->pollEvery($seconds);
+
         return $this;
     }
 
     /**
      * @return TemporalCallExpectation<T>
+     *
      * @throws ExpectationFailed
      */
     public function within(float $seconds): TemporalCallExpectation

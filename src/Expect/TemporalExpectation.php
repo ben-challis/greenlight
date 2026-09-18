@@ -92,29 +92,37 @@ abstract class TemporalExpectation
                 return $this->matchValue($name, $arguments);
             }
         }
+
         throw new \BadMethodCallException(\sprintf('Greenlight has no native or registered extension matcher named %s.', $name));
     }
 
     /**
      * @param array<array-key, mixed> $arguments
+     *
      * @return Expectation<T>
+     *
      * @throws ExpectationFailed
      */
     final protected function matchValue(string $name, array $arguments): Expectation
     {
         $result = $this->evaluate($name, $arguments);
+
         return new Expectation(static fn() => $result->subject, $this->renderer, $this->extensions);
     }
 
     /**
      * @internal
+     *
      * @param array<array-key, mixed> $arguments
+     *
      * @return MatcherEvaluation<T>
+     *
      * @throws ExpectationFailed
      */
     final public function evaluate(string $name, array $arguments): MatcherEvaluation
     {
         $matcher = ExpectationCall::forTemporal($name, $arguments);
+
         return $this->apply($matcher->invoke(...));
     }
 

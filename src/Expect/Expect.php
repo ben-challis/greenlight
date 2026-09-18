@@ -34,8 +34,11 @@ final class Expect
 
     /**
      * Selects a call without executing it.
+     *
      * @template T
+     *
      * @param callable(): T $call
+     *
      * @return CallExpectation<T>
      */
     public static function calling(callable $call): CallExpectation
@@ -53,6 +56,7 @@ final class Expect
      * @param list<ExpectationExtension> $extensions
      *
      * @return \Closure(): void A callback that restores the previous extension list.
+     *
      * @throws ExpectationExtensionError
      */
     public static function install(array $extensions): \Closure

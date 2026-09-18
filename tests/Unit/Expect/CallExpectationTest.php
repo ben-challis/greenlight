@@ -57,6 +57,7 @@ final class CallExpectationTest
         $error = new \Error('broken');
         $call = Expect::calling(static function () use (&$calls, $error): never {
             ++$calls;
+
             throw $error;
         });
 

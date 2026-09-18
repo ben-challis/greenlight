@@ -8,6 +8,7 @@ namespace Greenlight\Expect;
  * Declares the native value matcher signatures.
  *
  * @internal
+ *
  * @template T
  */
 trait ValueMatchers
@@ -393,6 +394,7 @@ trait ValueMatchers
 
     /**
      * @param array<array-key, mixed> $arguments
+     *
      * @return Expectation<T>
      */
     abstract protected function matchValue(string $name, array $arguments): Expectation;
