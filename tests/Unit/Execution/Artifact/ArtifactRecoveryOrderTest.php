@@ -80,7 +80,7 @@ final readonly class ArtifactRecoveryOrderTest
 
         $recovered = $store->recover(new TestResult($id, Outcome::Errored, 0.0, 0));
 
-        Expect::that(\array_map(
+        expect(\array_map(
             static fn($attachment): string => $attachment->name,
             $recovered->attachments,
         ))

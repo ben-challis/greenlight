@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanDataRowNullLabelTest
@@ -85,9 +86,9 @@ final readonly class PhpStanDataRowNullLabelTest
             PHP,
         );
 
-        Expect::that($probe->goodErrors)->toBe([]);
-        Expect::that($probe->exitCode)->toBe(1);
-        Expect::that($probe->errors)->toBe([
+        expect($probe->goodErrors)->toBe([]);
+        expect($probe->exitCode)->toBe(1);
+        expect($probe->errors)->toBe([
             '#[DataRow] key "#0" occurs more than once on positionalNull().',
             '#[DataRow] key "#1" occurs more than once on namedNull().',
             '#[DataRow] key "#0" occurs more than once on constantNull().',
