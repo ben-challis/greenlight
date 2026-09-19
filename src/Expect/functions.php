@@ -23,7 +23,13 @@ use Greenlight\Expect\OmittedExpectationValue;
 function expect(mixed $value = OmittedExpectationValue::Value): ExpectationBuilder|Expectation
 {
     if (\func_num_args() === 0) {
-        return new ExpectationBuilder();
+        static $builder = null;
+
+        if (!$builder instanceof ExpectationBuilder) {
+            $builder = new ExpectationBuilder();
+        }
+
+        return $builder;
     }
 
     return Expect::value($value);
