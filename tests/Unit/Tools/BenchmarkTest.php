@@ -28,6 +28,7 @@ final readonly class BenchmarkTest
             'seed' => '-17',
             'pause-ms' => '250',
             'format' => 'json',
+            'output' => '/tmp/benchmark.json',
             'with-comparisons' => false,
         ]);
 
@@ -40,6 +41,7 @@ final readonly class BenchmarkTest
             'seed' => -17,
             'pauseMs' => 250,
             'format' => 'json',
+            'output' => '/tmp/benchmark.json',
             'withComparisons' => true,
         ]);
     }
@@ -107,7 +109,7 @@ final readonly class BenchmarkTest
     {
         yield 'unknown shape' => [
             ['shape' => 'unknown'],
-            'Unknown benchmark shape "unknown". Use one of: many-fast, few-slow, giant-dataset, mixed, many-isolated, resource-constrained, skewed-bootstrap, chatty-diagnostics, coverage-heavy.',
+            'Unknown benchmark shape "unknown". Use one of: minimal, many-fast, few-slow, cpu-bound, giant-dataset, mixed, many-isolated, resource-constrained, skewed-bootstrap, chatty-diagnostics, coverage-heavy.',
         ];
         yield 'invalid run count' => [
             ['runs' => '0'],
@@ -132,6 +134,10 @@ final readonly class BenchmarkTest
         yield 'excessive pause' => [
             ['pause-ms' => '60001'],
             'Option --pause-ms must be at most 60000, got 60001.',
+        ];
+        yield 'empty output path' => [
+            ['output' => ''],
+            'Option --output must specify a JSON file path.',
         ];
     }
 
@@ -173,6 +179,107 @@ final readonly class BenchmarkTest
         expect($configurations['pest']['command'])->toContain('--cache-directory=.benchmark-cache/pest');
         expect($configurations['pest-parallel']['command'])->toContain('--parallel --processes=4');
         expect($configurations['pest-parallel']['command'])->toContain('--cache-directory=.benchmark-cache/pest-parallel');
+    }
+
+    #[Test]
+    public function oneWorkerDoesNotCreateDuplicateGreenlightMeasurements(): void
+    {
+        $configurations = \benchmarkConfigurations('many-isolated', '/tmp/project', '/tmp/root', 1, false);
+
+        expect(\array_keys($configurations))->toBe(['greenlight-one']);
+        expect($configurations['greenlight-one']['executionMode'])->toBe('in-process');
+        expect(\benchmarkConfigurations('many-isolated', '/tmp/project', '/tmp/root', 4, false)['greenlight-parallel']['executionMode'])
+            ->toBe('fresh-process-per-test');
+    }
+
+    #[Test]
+    public function detectsUnbalancedSamplePositions(): void
+    {
+        $ids = ['one', 'four', 'phpunit', 'paratest', 'pest', 'pest-parallel'];
+
+        expect(\benchmarkScheduleIsBalanced(\benchmarkSchedule($ids, 12, 731, 'sample')))->toBeTrue();
+        expect(\benchmarkScheduleIsBalanced(\benchmarkSchedule($ids, 5, 731, 'sample')))->toBeFalse();
+        expect(\benchmarkScheduleIsBalanced(\benchmarkSchedule(['one'], 1, 731, 'sample')))->toBeTrue();
+        expect(\benchmarkScheduleIsBalanced([]))->toBeFalse();
+    }
+
+    #[Test]
+    public function outputFileCannotReplaceAnExistingResult(): void
+    {
+        $path = $this->tempDirectory->path() . '/existing.json';
+        \file_put_contents($path, 'previous result');
+
+        expect()->calling(static fn() => \benchmarkOpenOutput($path))->toThrow(\RuntimeException::class);
+        expect(\file_get_contents($path))->toBe('previous result');
+    }
+
+    #[Test]
+    public function jsonFileRetainsSamplesAndCaveatsAlongsideTheTable(): void
+    {
+        $path = $this->tempDirectory->path() . '/report.json';
+        $output = \benchmarkOpenOutput($path);
+        $options = \benchmarkParseOptions(['shape' => 'many-isolated', 'output' => $path, 'runs' => '5']);
+        $rows = [];
+
+        foreach (\benchmarkConfigurations('many-isolated', '/tmp/project', '/tmp/root', 4, false) as $id => $configuration) {
+            $rows[] = [
+                'shape' => 'many-isolated',
+                'tests' => 40,
+                'configurationId' => $id,
+                ...$configuration,
+                'samplesSeconds' => [0.1, 0.2, 0.3, 0.4, 0.5],
+                ...\benchmarkDistribution([0.1, 0.2, 0.3, 0.4, 0.5]),
+            ];
+        }
+
+        \ob_start();
+
+        try {
+            \benchmarkReport($options, $rows, \dirname(__DIR__, 3), [], $output);
+            $table = (string) \ob_get_contents();
+        } finally {
+            \ob_end_clean();
+
+            if (\is_resource($output)) {
+                \fclose($output);
+            }
+        }
+
+        $json = (string) \file_get_contents($path);
+        $report = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
+
+        if (!\is_array($report)) {
+            throw new \RuntimeException('The benchmark report must decode to an array.');
+        }
+
+        expect($report['results'] ?? null)->toBe($rows);
+        expect($json)->toContain('"schemaVersion": 2');
+        expect($json)->toContain('"schedules":');
+        expect($json)->toContain('unbalanced sample order');
+        expect($json)->toContain('does not provide process isolation');
+        expect($table)->toContain('execution mode');
+        expect($table)->toContain('fresh-process-per-test');
+        expect($table)->toContain('JSON report: ' . $path);
+    }
+
+    #[Test]
+    #[DataSet('newCommonShapes')]
+    public function newCommonShapesExecuteAllGeneratedTests(string $shape, int $tests): void
+    {
+        $project = $this->tempDirectory->path() . '/benchmark-' . $shape;
+        expect(\benchmarkGenerateShape($shape, 1, $project))->toBe($tests);
+        expect(\benchmarkHasComparisonFixture($shape))->toBeTrue();
+
+        foreach (\benchmarkConfigurations($shape, $project, \dirname(__DIR__, 3), 2, false) as $id => $configuration) {
+            \benchmarkVerifyConfiguration($configuration['command'], $tests, $project, $id);
+        }
+    }
+
+    /** @return iterable<string, array{string, int}> */
+    public static function newCommonShapes(): iterable
+    {
+        yield 'minimal suite' => ['minimal', 1];
+        yield 'CPU work' => ['cpu-bound', 8];
     }
 
     #[Test]

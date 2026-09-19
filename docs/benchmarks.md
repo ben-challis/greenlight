@@ -9,6 +9,16 @@ Save all samples from the full comparison:
 php tools/benchmark.php --with-comparisons --format=json > benchmark.json
 ```
 
+To keep the table and save the same run as JSON, use `--output`:
+
+```sh
+php tools/benchmark.php --with-comparisons --output=benchmark.json
+```
+
+Select a new output path for each run. The harness refuses to replace a file.
+It creates the file before the benchmark to check write access.
+The file stays empty until the harness writes the final report.
+
 Run a Greenlight-only benchmark with the default table report:
 
 ```sh
@@ -26,7 +36,7 @@ The harness applies these controls before and during each measurement:
 * The harness stops if a configuration does not execute all generated tests.
 * Two warmups run before the measured samples.
 * The harness discards all warmup times.
-* Twelve sample rounds put each comparison configuration in each position twice.
+* Twelve sample rounds put each of the six comparison configurations in each position twice.
 * A seed makes the configuration order reproducible.
 * A 100 ms pause separates command executions.
 * One temporary project supplies all configurations for a benchmark shape.
@@ -43,6 +53,12 @@ One tool cannot warm or change the cache of another tool.
 
 Use the JSON report to inspect each exact command.
 
+These controls use the default options. Custom run counts can produce an
+unbalanced sample order. The report warns when configuration positions have
+different sample counts. A multiple of twice the configuration count gives
+equal position counts. The report also warns about fewer than twelve samples
+or no warmups. Verification still runs when the warmup count is zero.
+
 ## Comparison tools
 
 Use `--with-comparisons` to add these pinned tools:
@@ -55,13 +71,15 @@ The harness installs the tools in each temporary project.
 Pest uses its closure-style test syntax.
 The Pest comparison includes serial and parallel configurations.
 
-The comparison tools run only the four common benchmark shapes.
+The comparison tools run only the six common benchmark shapes.
 The other shapes use Greenlight features that do not have equivalent configurations.
 
 The common benchmark shapes are:
 
+* `minimal`: One trivial test to expose fixed command costs
 * `many-fast`: Many test files with short test bodies
 * `few-slow`: A small number of test files with 25 ms test bodies
+* `cpu-bound`: Independent tests with one million integer arithmetic iterations per test
 * `giant-dataset`: One test file with one large data set
 * `mixed`: Fast tests, slow tests, and one large data set
 
@@ -72,6 +90,32 @@ The Greenlight-specific benchmark shapes are:
 * `skewed-bootstrap`: Worker bootstrap delays that increase with the channel number
 * `chatty-diagnostics`: Many notices that workers capture and send
 * `coverage-heavy`: Assignments with large coverage maps
+
+The `minimal` result includes discovery, reports, and one test. It does not
+measure process startup alone. Do not subtract it from another shape as an
+exact estimate of test execution time.
+
+The `few-slow` shape measures concurrent waits. It does not establish CPU
+scaling. Use `cpu-bound` to examine fixed CPU work without sleeps. At scale 10,
+that shape has 40 classes and 80 tests. All three fixture formats use the same
+arithmetic loop and verify the same result. Scale changes the number of classes,
+not the work per test.
+
+## Execution modes
+
+The report identifies the execution mode for each configuration:
+
+* `in-process`: The command process executes the tests.
+* `process-pool`: Child processes execute the tests.
+* `fresh-process-per-test`: Each isolated Greenlight test gets a fresh worker process.
+
+Greenlight with one worker uses the in-process adapter. It does not provide
+process isolation. The `many-isolated` report warns that its one-worker result
+is not an equivalent isolation baseline. Keep this distinction in performance
+claims. Other specialized shapes can also exercise different adapter paths.
+
+With `--workers=1`, the harness measures the Greenlight in-process configuration
+once. ParaTest and parallel Pest still use their process-pool commands.
 
 ## Reports
 
@@ -89,6 +133,9 @@ A wide quartile interval or high `rMAD` identifies unstable measurements.
 The JSON report also contains these items:
 
 * Every raw sample in sample-round order for each configuration
+* Configuration IDs and execution modes
+* Exact configuration order for each warmup and sample round
+* Measurement warnings
 * The exact command for each configuration
 * All benchmark parameters
 * The source revision
@@ -96,11 +143,22 @@ The JSON report also contains these items:
 * The PHP version and binary path
 * The platform description
 * Loaded measurement extensions, such as Xdebug or `ddtrace`
+* Selected PHP INI values for CLI OPcache, JIT, Xdebug, and PCOV
 * All resolved comparison package versions
 
 Use `--seed` to reproduce the order.
 Use `--warmups` and `--runs` to change the sample plan.
 Use `--pause-ms` to change the pause between commands.
+
+The JSON schema version is 2. PHP INI values describe the harness process.
+The exact commands record child-process overrides, such as `XDEBUG_MODE=coverage`.
+Loaded extensions and INI values do not establish whether every profiler or
+tracer is active. Record external instrumentation settings with the report.
+
+Q1 and Q3 describe the middle half of the samples. They are not confidence
+intervals. The relative MAD is the median absolute deviation divided by the
+median, expressed as a percentage. The harness does not apply a normal-distribution
+scale factor.
 
 ## Publication procedure
 
