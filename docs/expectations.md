@@ -16,7 +16,7 @@ them.
 
 ## Function syntax
 
-You can use `Greenlight\expect()` instead of `Expect::value()`:
+You can use `Greenlight\expect()` instead of the `Expect` class for value and call expectations:
 
 <!-- php-example {"example":"expectations-function","file":"snippet.php","mode":"file","tools":["phpstan","rector"]} -->
 ```php
@@ -37,10 +37,6 @@ Outside the runner, load the helper explicitly after the Composer autoloader:
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/vendor/greenlight/greenlight/src/Expect/functions.php';
 ```
-
-The function belongs to the `Greenlight` namespace. It does not define a global
-`expect()` function, so other libraries can keep their own function. Import it
-with an alias if the file already imports another `expect()` function.
 
 `expect($value)` has the same generic return type and matchers as
 `Expect::value($value)`. It never executes a callable subject. This rule also
