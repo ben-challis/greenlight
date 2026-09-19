@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Fixture\Expect;
 
 use Greenlight\Doubles\Fake;
-use Greenlight\Expect\PollingClock;
+use Greenlight\Expect\Clock;
 
-final class StalledPollingClock implements PollingClock, Fake
+final class StalledClock implements Clock, Fake
 {
     #[\Override]
     public function now(): float

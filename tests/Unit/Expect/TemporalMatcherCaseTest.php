@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Expect;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ExpectationRuntime;
-use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+use Greenlight\Tests\Fixture\Expect\FakeClock;
 
 use function Greenlight\expect;
 
@@ -16,7 +16,7 @@ final class TemporalMatcherCaseTest
     #[Test]
     public function uppercaseMembershipReusesAnIterableAcrossRetries(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $calls = 0;
         $haystack = (static function (): \Generator {
             yield 'ready';

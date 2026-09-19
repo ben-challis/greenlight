@@ -25,7 +25,7 @@ final class ConsistentlyExpectation extends TemporalExpectation
      */
     private function __construct(
         \Closure $probe,
-        PollingClock $clock,
+        Clock $clock,
         ?float $attemptDeadline,
         float $intervalSeconds,
         private readonly float $forSeconds,
@@ -54,7 +54,7 @@ final class ConsistentlyExpectation extends TemporalExpectation
      */
     public static function create(
         \Closure $probe,
-        PollingClock $clock,
+        Clock $clock,
         ?float $attemptDeadline,
         float $intervalSeconds,
         float $forSeconds,

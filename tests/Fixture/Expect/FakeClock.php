@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Fixture\Expect;
 
 use Greenlight\Doubles\Fake;
-use Greenlight\Expect\PollingClock;
+use Greenlight\Expect\Clock;
 
-final class FakePollingClock implements PollingClock, Fake
+final class FakeClock implements Clock, Fake
 {
     public float $time = 0.0;
 

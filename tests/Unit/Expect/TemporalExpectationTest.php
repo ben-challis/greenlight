@@ -11,7 +11,7 @@ use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Expect\PendingEventually;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\ExpectationCounter;
-use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+use Greenlight\Tests\Fixture\Expect\FakeClock;
 use Greenlight\Tests\Fixture\Expect\PositiveNumbersExtension;
 use Greenlight\Tests\Fixture\Expect\TransientProbeFailure;
 
@@ -24,7 +24,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function eventuallyStopsAtTheFirstMatchingObservation(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $values = ['pending', 'pending', 'ready'];
         $calls = 0;
 
@@ -45,7 +45,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function temporalNativeMatchersPreserveNamedAndVariadicArguments(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
 
         ExpectationRuntime::withClock($clock, static function (): void {
             expect()->calling(static fn(): float => 10.1)->returnValue()->eventually()
@@ -74,7 +74,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function eventuallyReusesAOneShotIterableAcrossRetries(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $values = ['pending', 'ready'];
         $calls = 0;
         $haystack = (static function (): \Generator {
@@ -100,7 +100,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function eventuallyFailureKeepsTheFinalDiffAndBoundedHistory(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $value = 0;
 
         $detail = FailureProbe::detailOf(static function () use ($clock, &$value): void {
@@ -128,7 +128,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function eventuallyNegationWaitsUntilTheNegatedMatcherPasses(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $values = ['busy', 'busy', 'idle'];
         $calls = 0;
 
@@ -151,7 +151,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function eventuallyReportsWhenNoAttemptTimeRemains(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         ExpectationRuntime::enterAttempt(0.0);
 
         try {
@@ -173,7 +173,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function probeExceptionsPropagateUnlessExplicitlyRetryable(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $failure = new TransientProbeFailure('not ready');
 
         expect()->calling(static fn() => ExpectationRuntime::withClock(
@@ -204,7 +204,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function eventuallyFailurePreservesRetryableExceptionDiagnostics(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $rendered = \sprintf(
             "threw %s with message 'not ready'",
             TransientProbeFailure::class,
@@ -236,7 +236,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function errorsAndMatcherMisuseAreNeverRetried(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $calls = 0;
         $failure = new \Error('programming error');
 
@@ -274,7 +274,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function consistentlySamplesThroughTheWholePeriod(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $calls = 0;
 
         ExpectationRuntime::withClock(
@@ -298,7 +298,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function consistentlyFailsOnTheFirstViolation(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $values = ['stable', 'stable', 'changed', 'stable'];
         $calls = 0;
 
@@ -326,7 +326,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function consistentlyReportsAFirstObservationFailure(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
 
         $detail = FailureProbe::detailOf(static fn() => ExpectationRuntime::withClock(
             $clock,
@@ -345,7 +345,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function consistentlyReportsWhenNoAttemptTimeRemains(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         ExpectationRuntime::enterAttempt(0.0);
 
         try {
@@ -368,7 +368,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function aTemporalMatcherCountsAsOneExpectation(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         ExpectationCounter::reset();
 
         ExpectationRuntime::withClock(
@@ -383,7 +383,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function temporalExpectationsDispatchConfiguredExtensionMatchers(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $subjects = [-1, 2];
         $restoreExtensions = Expect::install([new PositiveNumbersExtension()]);
         $this->cleanup->defer($restoreExtensions);
@@ -405,7 +405,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function theOuterTestDeadlineTruncatesAnEventuallyWait(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         ExpectationRuntime::enterAttempt(0.015);
 
         try {
@@ -431,7 +431,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function theOuterTestDeadlineTruncatesAConsistentlyObservationPeriod(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         ExpectationRuntime::enterAttempt(0.015);
 
         try {
@@ -499,7 +499,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function consistentlyAcceptsTheMinimumPollingInterval(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
 
         ExpectationRuntime::withClock($clock, static function (): void {
             expect()->calling(static fn(): int => 1)->returnValue()->consistently()
@@ -516,7 +516,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function eventuallyCarriesTheReasonIntoTheFailure(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
 
         $detail = FailureProbe::detailOf(static function () use ($clock): void {
             ExpectationRuntime::withClock(
@@ -537,7 +537,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function consistentlyCarriesTheReasonIntoTheFailure(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
 
         $detail = FailureProbe::detailOf(static function () use ($clock): void {
             ExpectationRuntime::withClock(
@@ -567,7 +567,7 @@ final readonly class TemporalExpectationTest
     #[Test]
     public function observationHistoryCollapsesRepeatsAndBoundsChanges(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $value = 0;
 
         $detail = FailureProbe::detailOf(static function () use ($clock, &$value): void {

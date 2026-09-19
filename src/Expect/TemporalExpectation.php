@@ -33,7 +33,7 @@ abstract class TemporalExpectation
     public function __construct(
         /** @var \Closure(): T */
         protected readonly \Closure $probe,
-        protected readonly PollingClock $clock,
+        protected readonly Clock $clock,
         protected readonly ?float $attemptDeadline,
         protected readonly float $intervalSeconds,
         protected readonly ValueRenderer $renderer,

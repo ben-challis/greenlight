@@ -11,16 +11,16 @@ namespace Greenlight\Expect;
  */
 final class ExpectationRuntime
 {
-    private static ?PollingClock $clock = null;
+    private static ?Clock $clock = null;
 
     private static ?float $deadline = null;
 
     /** @codeCoverageIgnore */
     private function __construct() {}
 
-    public static function clock(): PollingClock
+    public static function clock(): Clock
     {
-        return self::$clock ??= new SystemPollingClock();
+        return self::$clock ??= new SystemClock();
     }
 
     public static function deadline(): ?float
@@ -47,7 +47,7 @@ final class ExpectationRuntime
      *
      * @return T
      */
-    public static function withClock(PollingClock $clock, \Closure $operation): mixed
+    public static function withClock(Clock $clock, \Closure $operation): mixed
     {
         $previous = self::$clock;
         self::$clock = $clock;

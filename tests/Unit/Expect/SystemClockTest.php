@@ -6,18 +6,18 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\SystemPollingClock;
+use Greenlight\Expect\SystemClock;
 
 use function Greenlight\expect;
 
-final class SystemPollingClockTest
+final class SystemClockTest
 {
     #[Test]
     #[DataSet('nonpositiveDurations')]
     public function nonpositiveSleepDoesNotCallTheNativeSleeper(float $seconds): void
     {
         $microseconds = [];
-        $clock = new SystemPollingClock(static function (int $duration) use (&$microseconds): void {
+        $clock = new SystemClock(static function (int $duration) use (&$microseconds): void {
             $microseconds[] = $duration;
         });
 
@@ -42,7 +42,7 @@ final class SystemPollingClockTest
     {
         $microseconds = [];
         $time = 0.0;
-        $clock = new SystemPollingClock(
+        $clock = new SystemClock(
             static function (int $duration) use (&$microseconds, &$time): void {
                 $microseconds[] = $duration;
                 $time += $duration / 1_000_000;
@@ -76,7 +76,7 @@ final class SystemPollingClockTest
     {
         $time = 10.0;
         $microseconds = [];
-        $clock = new SystemPollingClock(
+        $clock = new SystemClock(
             static function (int $duration) use (&$time, &$microseconds): void {
                 $microseconds[] = $duration;
                 $time += \count($microseconds) === 1 ? 0.25 : $duration / 1_000_000;
@@ -97,7 +97,7 @@ final class SystemPollingClockTest
     {
         $time = 0.0;
         $microseconds = [];
-        $clock = new SystemPollingClock(
+        $clock = new SystemClock(
             static function (int $duration) use (&$time, &$microseconds): void {
                 $microseconds[] = $duration;
                 $time += 3.0;
