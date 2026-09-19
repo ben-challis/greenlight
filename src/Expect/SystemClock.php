@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Uses hrtime() for monotonic time and usleep() between polls.
+ * Uses hrtime() for monotonic time and usleep() for delays.
  *
  * Repeats native sleep calls of at most one second until the requested
  * duration has elapsed.
  *
  * @internal
  */
-final readonly class SystemPollingClock implements PollingClock
+final readonly class SystemClock implements Clock
 {
     private const float MAX_SLEEP_SECONDS = 1.0;
 
@@ -62,7 +62,7 @@ final readonly class SystemPollingClock implements PollingClock
                 ++$stalled;
 
                 if ($stalled >= 10_000) {
-                    throw new \LogicException('The polling clock did not advance during sleep.');
+                    throw new \LogicException('The clock did not advance during sleep.');
                 }
             } else {
                 $stalled = 0;

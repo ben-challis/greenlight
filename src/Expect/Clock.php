@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Expect;
 
 /**
- * Supplies monotonic time and delays to the poll loop.
+ * Supplies monotonic time and delays.
  *
  * @internal
  */
-interface PollingClock
+interface Clock
 {
     /** Returns monotonic time in seconds. */
     public function now(): float;

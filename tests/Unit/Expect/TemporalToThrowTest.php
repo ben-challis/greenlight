@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Expect;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\ExpectationRuntime;
-use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+use Greenlight\Tests\Fixture\Expect\FakeClock;
 
 use function Greenlight\expect;
 
@@ -20,7 +20,7 @@ final class TemporalToThrowTest
     #[DataSet('messageConstraints')]
     public function eventuallyRetriesUntilACallableThrowsTheExpectedException(string $constraint): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $calls = 0;
 
         ExpectationRuntime::withClock($clock, static function () use ($constraint, &$calls): void {
@@ -60,7 +60,7 @@ final class TemporalToThrowTest
     #[Test]
     public function eventuallyRetriesUntilACallableThrowsTheExactThrowableInstance(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $calls = 0;
         $failure = new \RuntimeException('ready');
 
@@ -126,7 +126,7 @@ final class TemporalToThrowTest
     #[Test]
     public function eventuallyRetriesWhenTheThrowableCallbackExpectationFails(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $calls = 0;
 
         ExpectationRuntime::withClock($clock, static function () use (&$calls): void {
@@ -149,7 +149,7 @@ final class TemporalToThrowTest
     #[Test]
     public function eventuallyReportsTheFinalThrowableCallbackFailure(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
 
         $detail = FailureProbe::detailOf(static fn() => ExpectationRuntime::withClock(
             $clock,

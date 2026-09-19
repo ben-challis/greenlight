@@ -52,7 +52,7 @@ final class PendingConsistently
      */
     private function __construct(
         private readonly \Closure $probe,
-        private readonly PollingClock $clock,
+        private readonly Clock $clock,
         private readonly ?float $attemptDeadline,
         private readonly ValueRenderer $renderer,
         private readonly array $extensions,
@@ -70,7 +70,7 @@ final class PendingConsistently
      */
     public static function create(
         \Closure $probe,
-        PollingClock $clock,
+        Clock $clock,
         ?float $attemptDeadline,
         ValueRenderer $renderer,
         array $extensions,

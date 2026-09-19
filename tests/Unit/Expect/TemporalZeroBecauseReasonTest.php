@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\ExpectationRuntime;
-use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+use Greenlight\Tests\Fixture\Expect\FakeClock;
 
 use function Greenlight\expect;
 
@@ -15,7 +15,7 @@ final readonly class TemporalZeroBecauseReasonTest
     #[Test]
     public function temporalExpectationRetainsAZeroReason(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $detail = FailureProbe::detailOf(static fn() => ExpectationRuntime::withClock(
             $clock,
             static fn() => expect()->calling(static fn(): bool => false)->returnValue()->consistently()

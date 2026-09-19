@@ -8,7 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Test\Cleanup;
-use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+use Greenlight\Tests\Fixture\Expect\FakeClock;
 use Greenlight\Tests\Fixture\PhpStanExtension\DigestExtension;
 
 use function Greenlight\expect;
@@ -35,7 +35,7 @@ final readonly class ExtensionMatcherDispatchTest
     #[Test]
     public function temporalMatchersPreserveNamedExtensionArguments(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $restoreExtensions = Expect::install([new DigestExtension()]);
         $this->cleanup->defer($restoreExtensions);
 

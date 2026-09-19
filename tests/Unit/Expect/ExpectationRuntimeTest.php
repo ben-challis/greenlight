@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\ExpectationRuntime;
-use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+use Greenlight\Tests\Fixture\Expect\FakeClock;
 
 use function Greenlight\expect;
 
@@ -16,8 +16,8 @@ final class ExpectationRuntimeTest
     public function nestedClockIsRestoredAfterTheOperationThrows(): void
     {
         $baseline = ExpectationRuntime::clock();
-        $outer = new FakePollingClock();
-        $inner = new FakePollingClock();
+        $outer = new FakeClock();
+        $inner = new FakeClock();
         $expected = new \RuntimeException('clock operation failed');
 
         ExpectationRuntime::withClock(
