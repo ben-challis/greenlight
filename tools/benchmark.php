@@ -627,7 +627,7 @@ function benchmarkReport(array $options, array $results, string $root, array $co
 
     try {
         $json = \json_encode([
-            'schemaVersion' => 2,
+            'schemaVersion' => 1,
             'environment' => $environment,
             'parameters' => $options,
             'comparisonVersions' => $options['withComparisons'] ? [

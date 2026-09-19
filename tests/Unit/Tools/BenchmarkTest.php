@@ -253,7 +253,7 @@ final readonly class BenchmarkTest
         }
 
         expect($report['results'] ?? null)->toBe($rows);
-        expect($json)->toContain('"schemaVersion": 2');
+        expect($json)->toContain('"schemaVersion": 1');
         expect($json)->toContain('"schedules":');
         expect($json)->toContain('unbalanced sample order');
         expect($json)->toContain('does not provide process isolation');

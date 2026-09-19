@@ -150,7 +150,7 @@ Use `--seed` to reproduce the order.
 Use `--warmups` and `--runs` to change the sample plan.
 Use `--pause-ms` to change the pause between commands.
 
-The JSON schema version is 2. PHP INI values describe the harness process.
+The JSON schema version is 1. PHP INI values describe the harness process.
 The exact commands record child-process overrides, such as `XDEBUG_MODE=coverage`.
 Loaded extensions and INI values do not establish whether every profiler or
 tracer is active. Record external instrumentation settings with the report.
