@@ -230,24 +230,10 @@ abstract class TemporalExpectation
 
     final protected function sleepUntil(float $target): void
     {
-        $stalled = 0;
-        $previous = $this->clock->now();
+        $remaining = $target - $this->clock->now();
 
-        while (($remaining = $target - $this->clock->now()) > 0.0) {
+        if ($remaining > 0.0) {
             $this->clock->sleep($remaining);
-            $current = $this->clock->now();
-
-            if ($current <= $previous) {
-                ++$stalled;
-
-                if ($stalled >= 10_000) {
-                    throw new \LogicException('The polling clock did not advance during sleep.');
-                }
-            } else {
-                $stalled = 0;
-            }
-
-            $previous = $current;
         }
     }
 
