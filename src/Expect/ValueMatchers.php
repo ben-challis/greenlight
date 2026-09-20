@@ -32,6 +32,7 @@ trait ValueMatchers
      * @return Expectation<T>
      *
      * @throws ExpectationFailed
+     * @throws \InvalidArgumentException when the comparison follows a cyclic array
      */
     public function toEqual(mixed $expected): Expectation
     {
@@ -47,6 +48,7 @@ trait ValueMatchers
      * @return Expectation<T>
      *
      * @throws ExpectationFailed
+     * @throws \InvalidArgumentException when an array selected for comparison or ordering contains a cycle
      */
     public function toEqualCanonicalizing(mixed $expected): Expectation
     {
