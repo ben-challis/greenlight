@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\Test;
-use function Greenlight\expect;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final class CyclicArrayEqualityTest
 {
@@ -26,6 +27,7 @@ final class CyclicArrayEqualityTest
             '-r',
             <<<'PHP'
             require $argv[1];
+            require_once dirname($argv[1], 2) . '/src/Expect/functions.php';
 
             use function Greenlight\expect;
 
