@@ -70,8 +70,7 @@ final readonly class PhpStanDoublesCallRuleTest
         expect($probe->goodPassed)->toBeTrue();
         expect(\count($probe->errors))->toBe(2);
         expect($probe->messages())
-            ->toContain('callsTo() cannot inspect "notifiy()" on doubled type "BadSpyNotifier"');
-        expect($probe->messages())
+            ->toContain('callsTo() cannot inspect "notifiy()" on doubled type "BadSpyNotifier"')
             ->toContain('callsTo() cannot inspect "flush()" on doubled type "BadSpyNotifier"');
     }
 }

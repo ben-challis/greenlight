@@ -75,9 +75,10 @@ final readonly class PhpStanDoubleableTypeRuleTest
             ->because('PHPStan messages: ' . $probe->messages())
             ->toBeTrue();
         expect(\count($probe->errors))->toBe(4);
-        expect($probe->messages())->toContain('Doubles::mock() cannot double FinalService because it is final');
-        expect($probe->messages())->toContain('Doubles::stub() cannot double ReadonlyService because it is a readonly class');
-        expect($probe->messages())->toContain('Doubles::spy() cannot double ServiceState because it is an enum');
-        expect($probe->messages())->toContain('Doubles::mock() cannot double ServiceBehavior because it is a trait');
+        expect($probe->messages())
+            ->toContain('Doubles::mock() cannot double FinalService because it is final')
+            ->toContain('Doubles::stub() cannot double ReadonlyService because it is a readonly class')
+            ->toContain('Doubles::spy() cannot double ServiceState because it is an enum')
+            ->toContain('Doubles::mock() cannot double ServiceBehavior because it is a trait');
     }
 }

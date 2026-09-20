@@ -119,36 +119,37 @@ final readonly class PhpStanCheckedExceptionTest
             ->because('PHPStan MUST not require throws tags in test code')
             ->toBeTrue();
         expect($probe->errors)->toHaveCount(10);
-        expect($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Expect\\ExpectationFailed but it\'s missing from the PHPDoc @throws tag.',
-        );
-        expect($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Coverage\\CoverageError but it\'s missing from the PHPDoc @throws tag.',
-        );
-        expect($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Doubles\\InvalidDoubleUsage but it\'s missing from the PHPDoc @throws tag.',
-        );
-        expect($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Harness\\UnresolvableService but it\'s missing from the PHPDoc @throws tag.',
-        );
-        expect($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Reporting\\ReportGenerationFailed but it\'s missing from the PHPDoc @throws tag.',
-        );
-        expect($probe->messages())->toContain(
-            'throws checked exception Greenlight\\IntegrationFixture\\IntegrationFixtureError but it\'s missing from the PHPDoc @throws tag.',
-        );
-        expect($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Sandbox\\TemporaryDirectoryError but it\'s missing from the PHPDoc @throws tag.',
-        );
-        expect($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Execution\\ProcessPool\\Protocol\\ProtocolError but it\'s missing from the PHPDoc @throws tag.',
-        );
-        expect($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Probe\\ProbeServiceResolutionFailed but it\'s missing from the PHPDoc @throws tag.',
-        );
-        expect($probe->messages())->toContain(
-            'throws checked exception Greenlight\\Execution\\Worker\\WorkerError but it\'s missing from the PHPDoc @throws tag.',
-        );
+        expect($probe->messages())
+            ->toContain(
+                'throws checked exception Greenlight\\Expect\\ExpectationFailed but it\'s missing from the PHPDoc @throws tag.',
+            )
+            ->toContain(
+                'throws checked exception Greenlight\\Coverage\\CoverageError but it\'s missing from the PHPDoc @throws tag.',
+            )
+            ->toContain(
+                'throws checked exception Greenlight\\Doubles\\InvalidDoubleUsage but it\'s missing from the PHPDoc @throws tag.',
+            )
+            ->toContain(
+                'throws checked exception Greenlight\\Harness\\UnresolvableService but it\'s missing from the PHPDoc @throws tag.',
+            )
+            ->toContain(
+                'throws checked exception Greenlight\\Reporting\\ReportGenerationFailed but it\'s missing from the PHPDoc @throws tag.',
+            )
+            ->toContain(
+                'throws checked exception Greenlight\\IntegrationFixture\\IntegrationFixtureError but it\'s missing from the PHPDoc @throws tag.',
+            )
+            ->toContain(
+                'throws checked exception Greenlight\\Sandbox\\TemporaryDirectoryError but it\'s missing from the PHPDoc @throws tag.',
+            )
+            ->toContain(
+                'throws checked exception Greenlight\\Execution\\ProcessPool\\Protocol\\ProtocolError but it\'s missing from the PHPDoc @throws tag.',
+            )
+            ->toContain(
+                'throws checked exception Greenlight\\Probe\\ProbeServiceResolutionFailed but it\'s missing from the PHPDoc @throws tag.',
+            )
+            ->toContain(
+                'throws checked exception Greenlight\\Execution\\Worker\\WorkerError but it\'s missing from the PHPDoc @throws tag.',
+            );
     }
 
     #[Test]

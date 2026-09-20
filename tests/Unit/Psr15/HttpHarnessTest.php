@@ -123,8 +123,10 @@ final class HttpHarnessTest
             new ServerRequest([], [], 'https://example.test/orders/42?token=private', 'PATCH'),
         ));
 
-        expect($error->getMessage())->toMatch('/failed for request "PATCH \/orders\/42"\.$/');
-        expect($error->getMessage())->not()->toContain('token');
+        expect($error->getMessage())
+            ->toMatch('/failed for request "PATCH \/orders\/42"\.$/')
+            ->not()
+            ->toContain('token');
         expect($error->getPrevious())->toBe($cause);
     }
 

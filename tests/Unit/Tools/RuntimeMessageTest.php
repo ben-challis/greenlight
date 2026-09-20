@@ -148,8 +148,10 @@ final readonly class RuntimeMessageTest
         $result = PhpSubprocess::run($root, [$script]);
 
         expect($result->exitCode)->toBe(1);
-        expect($result->stdout)->toContain('Synthetic test run failed.');
-        expect($result->stdout)->not()->toContain('Flat-memory gate passed.');
+        expect($result->stdout)
+            ->toContain('Synthetic test run failed.')
+            ->not()
+            ->toContain('Flat-memory gate passed.');
         expect($result->stderr)->toContain('The generated test run failed with exit code 17.');
         expect(\is_dir((string) \file_get_contents($bin . '/run-directory')))->toBeFalse();
     }

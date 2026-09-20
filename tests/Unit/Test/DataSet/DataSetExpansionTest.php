@@ -149,8 +149,9 @@ final class DataSetExpansionTest
             ->because('missing provider fails naming it')
             ->toThrow(static function (DiscoveryError $error): void {
                 $error = self::dataSetCause($error);
-                expect($error->getMessage())->toContain('doesNotExist');
-                expect($error->getMessage())->toContain('MissingProviderTest');
+                expect($error->getMessage())
+                    ->toContain('doesNotExist')
+                    ->toContain('MissingProviderTest');
             });
     }
 
@@ -181,8 +182,9 @@ final class DataSetExpansionTest
             ->because('non static provider is rejected')
             ->toThrow(static function (DiscoveryError $error): void {
                 $error = self::dataSetCause($error);
-                expect($error->getMessage())->toContain('Declare the provider as public and static');
-                expect($error->getMessage())->toContain('instanceProvider');
+                expect($error->getMessage())
+                    ->toContain('Declare the provider as public and static')
+                    ->toContain('instanceProvider');
             });
     }
 
@@ -193,8 +195,9 @@ final class DataSetExpansionTest
             ->because('a non-public data-set provider MUST fail discovery')
             ->toThrow(static function (DiscoveryError $error): void {
                 $error = self::dataSetCause($error);
-                expect($error->getMessage())->toContain('Declare the provider as public and static');
-                expect($error->getMessage())->toContain('privateProvider');
+                expect($error->getMessage())
+                    ->toContain('Declare the provider as public and static')
+                    ->toContain('privateProvider');
             });
     }
 
@@ -205,8 +208,9 @@ final class DataSetExpansionTest
             ->because('non iterable provider is rejected')
             ->toThrow(static function (DiscoveryError $error): void {
                 $error = self::dataSetCause($error);
-                expect($error->getMessage())->toContain('Return an iterable from the provider');
-                expect($error->getMessage())->toContain('string');
+                expect($error->getMessage())
+                    ->toContain('Return an iterable from the provider')
+                    ->toContain('string');
             });
     }
 
@@ -217,8 +221,9 @@ final class DataSetExpansionTest
             ->because('throwing provider fails discovery with the cause')
             ->toThrow(static function (DiscoveryError $error): void {
                 $error = self::dataSetCause($error);
-                expect($error->getMessage())->toContain('provider exploded');
-                expect($error->getMessage())->toContain('boom');
+                expect($error->getMessage())
+                    ->toContain('provider exploded')
+                    ->toContain('boom');
                 expect($error->getPrevious())->toBeInstanceOf(\RuntimeException::class);
                 expect($error->getPrevious()->getMessage())->toBe('provider exploded');
             });
@@ -231,8 +236,9 @@ final class DataSetExpansionTest
             ->because('provider that throws during iteration fails discovery with the cause')
             ->toThrow(static function (DiscoveryError $error): void {
                 $error = self::dataSetCause($error);
-                expect($error->getMessage())->toContain('iteration exploded');
-                expect($error->getMessage())->toContain('rows');
+                expect($error->getMessage())
+                    ->toContain('iteration exploded')
+                    ->toContain('rows');
                 expect($error->getPrevious())->toBeInstanceOf(\RuntimeException::class);
                 expect($error->getPrevious()->getMessage())->toBe('iteration exploded');
             });
@@ -245,8 +251,9 @@ final class DataSetExpansionTest
             ->because('slow provider exceeds the configured budget')
             ->toThrow(static function (DiscoveryError $error): void {
                 $error = self::dataSetCause($error);
-                expect($error->getMessage())->toContain('time budget');
-                expect($error->getMessage())->toContain('dawdles');
+                expect($error->getMessage())
+                    ->toContain('time budget')
+                    ->toContain('dawdles');
             });
     }
 

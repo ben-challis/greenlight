@@ -19,8 +19,9 @@ final readonly class PhpStanNativeMatcherSubjectRuleTest
     #[Test]
     public function nativeMatcherSubjectTypesFollowExpectationChains(): void
     {
-        expect('greenlight')->toContain(...['light']);
-        expect('greenlight')->toContain(...['needle' => 'light']);
+        expect('greenlight')
+            ->toContain(...['light'])
+            ->toContain(...['needle' => 'light']);
 
         $probe = PhpStanProbe::analyze(
             $this->tempDirectory,
@@ -91,8 +92,9 @@ final readonly class PhpStanNativeMatcherSubjectRuleTest
         expect($probe->exitCode)->because('native matchers require compatible subject types')->toBe(1);
         expect($probe->goodPassed)->toBeTrue();
         expect(\count($probe->errors))->toBe(19);
-        expect($probe->messages())->toContain('toContain() requires a string or iterable subject');
-        expect($probe->messages())->toContain('toContain() requires a string needle for a string subject');
-        expect($probe->messages())->toContain('toMatchJson() requires a string subject');
+        expect($probe->messages())
+            ->toContain('toContain() requires a string or iterable subject')
+            ->toContain('toContain() requires a string needle for a string subject')
+            ->toContain('toMatchJson() requires a string subject');
     }
 }

@@ -68,7 +68,8 @@ final readonly class PhpStanDataSetTypeTest
             ->toBe(1);
         expect($probe->goodPassed)->because('PHPStan messages: ' . $probe->messages())->toBeTrue();
         expect(\count($probe->errors))->toBe(2);
-        expect($probe->messages())->toContain('expects class-string, string given');
-        expect($probe->messages())->toContain('expects class-string|null, string given');
+        expect($probe->messages())
+            ->toContain('expects class-string, string given')
+            ->toContain('expects class-string|null, string given');
     }
 }

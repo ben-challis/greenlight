@@ -158,13 +158,14 @@ final readonly class IntegrationFixtureRunTest
         expect($result->exitCode)->toBe(1);
         expect($result->output())
             ->because('the provisioning failure MUST remain the primary run failure')
-            ->toContain('intentional fixture provisioning failure');
-        expect($result->output())
+            ->toContain('intentional fixture provisioning failure')
             ->because('rollback failures MUST remain visible after a provisioning failure')
             ->toContain('Additionally, cleanup for integration fixture "probe" failed')
             ->toContain('intentional fixture cleanup failure')
-            ->not()->toContain('tests,')
-            ->not()->toContain('fixture-secret');
+            ->not()
+            ->toContain('tests,')
+            ->not()
+            ->toContain('fixture-secret');
         expect($this->matches($project->path('markers/resource-*')))->toBe([]);
         expect($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);
     }
@@ -242,12 +243,12 @@ final readonly class IntegrationFixtureRunTest
         expect($result->exitCode)->toBe(1);
         expect($result->output())
             ->because('the worker bootstrap failure MUST remain the primary run failure')
-            ->toContain('intentional worker bootstrap failure');
-        expect($result->output())
+            ->toContain('intentional worker bootstrap failure')
             ->because('fixture cleanup failures MUST remain visible after a run failure')
             ->toContain('Additionally, cleanup for integration fixture "probe" failed')
             ->toContain('intentional fixture cleanup failure')
-            ->not()->toContain('fixture-secret');
+            ->not()
+            ->toContain('fixture-secret');
         expect(\is_file($project->path('markers/executed.log')))->toBeFalse();
         expect($this->matches($project->path('markers/resource-*')))->toBe([]);
         expect($this->lines($project->path('markers/cleaned.log')))->toBe(['cleaned']);

@@ -101,9 +101,13 @@ final class ToBeAndToEqualTest
     #[Test]
     public function toEqualComparesObjectsByClassAndProperties(): void
     {
-        expect(new Point(1, 2))->because('toEqual() compares objects by class and properties')->toEqual(new Point(1, 2));
-        expect(new Point(1, 2))->because('toEqual() compares objects by class and properties')->not()->toEqual(new Point(1, 3));
-        expect(new Point(1, 2))->because('toEqual() compares objects by class and properties')->not()->toEqual(new \stdClass());
+        expect(new Point(1, 2))
+            ->because('toEqual() compares objects by class and properties')
+            ->toEqual(new Point(1, 2))
+            ->not()
+            ->toEqual(new Point(1, 3))
+            ->not()
+            ->toEqual(new \stdClass());
     }
 
     #[Test]
@@ -123,15 +127,20 @@ final class ToBeAndToEqualTest
     {
         $subject = (object) ['first' => null, 'second' => 2];
 
-        expect($subject)->toEqual((object) ['second' => 2.0, 'first' => null]);
-        expect($subject)->not()->toEqual((object) ['other' => null, 'second' => 2]);
+        expect($subject)
+            ->toEqual((object) ['second' => 2.0, 'first' => null])
+            ->not()
+            ->toEqual((object) ['other' => null, 'second' => 2]);
     }
 
     #[Test]
     public function toEqualComparesEnumsByIdentity(): void
     {
-        expect(Suit::Hearts)->because('toEqual() compares enums by identity')->toEqual(Suit::Hearts);
-        expect(Suit::Hearts)->because('toEqual() compares enums by identity')->not()->toEqual(Suit::Spades);
+        expect(Suit::Hearts)
+            ->because('toEqual() compares enums by identity')
+            ->toEqual(Suit::Hearts)
+            ->not()
+            ->toEqual(Suit::Spades);
     }
 
     #[Test]
@@ -140,8 +149,11 @@ final class ToBeAndToEqualTest
         $utc = new \DateTimeImmutable('2024-01-01T12:00:00+00:00');
         $cet = new \DateTimeImmutable('2024-01-01T13:00:00+01:00');
 
-        expect($utc)->because('toEqual() compares date times by instant')->toEqual($cet);
-        expect($utc)->because('toEqual() compares date times by instant')->not()->toEqual(new \DateTimeImmutable('2024-01-01T12:00:01+00:00'));
+        expect($utc)
+            ->because('toEqual() compares date times by instant')
+            ->toEqual($cet)
+            ->not()
+            ->toEqual(new \DateTimeImmutable('2024-01-01T12:00:01+00:00'));
     }
 
     #[Test]

@@ -13,8 +13,10 @@ final class TypeMatchersTest
     #[Test]
     public function toBeInstanceOfPasses(): void
     {
-        expect(new \ArrayObject())->because('toBeInstanceOf() passes')->toBeInstanceOf(\ArrayObject::class);
-        expect(new \ArrayObject())->because('toBeInstanceOf() passes')->toBeInstanceOf(\Traversable::class);
+        expect(new \ArrayObject())
+            ->because('toBeInstanceOf() passes')
+            ->toBeInstanceOf(\ArrayObject::class)
+            ->toBeInstanceOf(\Traversable::class);
     }
 
     #[Test]

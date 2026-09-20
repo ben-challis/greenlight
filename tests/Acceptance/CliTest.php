@@ -51,12 +51,13 @@ final readonly class CliTest
         $output = $result->outputLines();
 
         expect($result->exitCode)->because('command line flags override the configuration file')->toBe(0);
-        expect($output)->because('command line flags override the configuration file')
+        expect($output)
+            ->because('command line flags override the configuration file')
             ->toContain('  workers: 2')
             ->toContain('  stop after: 7 failed or errored tests')
             ->toContain('  order: random (seed 9)')
-            ->toContain('  groups: slow');
-        expect($output)->because('command line flags override the configuration file')->toContain('  resource limits: postgres=2');
+            ->toContain('  groups: slow')
+            ->toContain('  resource limits: postgres=2');
     }
 
     #[Test]
@@ -102,8 +103,11 @@ final readonly class CliTest
         $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'cli-run');
         $result = GreenlightCli::run($project->directory, ['run']);
         expect($result->exitCode)->because('run executes a passing suite and exits zero')->toBe(0);
-        expect($result->output())->because('run executes a passing suite and exits zero')->toContain('1 test, 1 passed');
-        expect($result->output())->because('run executes a passing suite and exits zero')->not()->toContain('alpha:one');
+        expect($result->output())
+            ->because('run executes a passing suite and exits zero')
+            ->toContain('1 test, 1 passed')
+            ->not()
+            ->toContain('alpha:one');
     }
 
     #[Test]
@@ -116,8 +120,11 @@ final readonly class CliTest
         $project = AcceptanceProject::createWithOnePassingTest($this->tempDirectory, 'cli-output-flags');
         $result = GreenlightCli::run($project->directory, ['run', '--no-ansi', '--verbose']);
         expect($result->exitCode)->because('no ANSI and verbose are accepted and output stays escape free')->toBe(0);
-        expect($result->output())->because('no ANSI and verbose are accepted and output stays escape free')->not()->toContain("\x1b[");
-        expect($result->output())->because('no ANSI and verbose are accepted and output stays escape free')->toContain('1 test, 1 passed');
+        expect($result->output())
+            ->because('no ANSI and verbose are accepted and output stays escape free')
+            ->not()
+            ->toContain("\x1b[")
+            ->toContain('1 test, 1 passed');
     }
 
     #[Test]
@@ -191,8 +198,11 @@ final readonly class CliTest
         $result = $this->runCli(['--frobnicate']);
 
         expect($result->exitCode)->because('unknown options are usage errors')->toBe(64);
-        expect($result->output())->because('unknown options are usage errors')->toContain('greenlight: Unknown option "--frobnicate"');
-        expect($result->output())->because('unknown options are usage errors')->not()->toContain("\x1b[");
+        expect($result->output())
+            ->because('unknown options are usage errors')
+            ->toContain('greenlight: Unknown option "--frobnicate"')
+            ->not()
+            ->toContain("\x1b[");
     }
 
     /**

@@ -178,7 +178,9 @@ final readonly class ValueRendererTest
     {
         $rendered = new ValueRenderer()->render("bad \xB1\x31 bytes");
 
-        expect($rendered)->because('scrubs invalid UTF-8')->toMatch('//u');
-        expect($rendered)->because('scrubs invalid UTF-8')->toContain('bad');
+        expect($rendered)
+            ->because('scrubs invalid UTF-8')
+            ->toMatch('//u')
+            ->toContain('bad');
     }
 }
