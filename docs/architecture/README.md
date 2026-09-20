@@ -9,29 +9,10 @@ responsibilities, interfaces, invariants, and machine-readable formats.
 
 ## Runtime flow
 
-```mermaid
-flowchart LR
-    config["greenlight.php<br/>GreenlightConfig"] --> cli["CLI and focused configuration resolution"]
-    tests["Test files<br/>attributes and data sets"] --> discovery["Discovery<br/>immutable plan"]
-    cli --> coordinator["Run coordinator"]
-    coordinator --> discovery
-    discovery --> coordinator
-    coordinator --> fixtures["Integration fixture graph"]
-    coordinator --> inprocess["In-process adapter"]
-    coordinator --> orchestrator["Process-pool adapter"]
-    orchestrator --> workers["Worker processes"]
-    fixtures -. "shared and per-channel resources" .-> workers
-    fixtures -. "shared and channel 1 resources" .-> inprocess
-    workers --> events["Typed events and results"]
-    inprocess --> events
-    events --> reporters["TTY, plain, JSONL, JUnit,<br/>GitHub and TeamCity reporters"]
-    workers --> staging["Private artifact staging"]
-    staging --> orchestrator
-    orchestrator --> adaptercoverage["Adapter coverage map"]
-    inprocess --> adaptercoverage
-    cli --> coverage["CLI coverage session<br/>final merge, transforms, gates, and exports"]
-    adaptercoverage --> coverage
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="runtime-flow-dark.svg">
+  <img src="runtime-flow-light.svg" alt="Runtime flow from the CLI through discovery, execution, extensions, and results.">
+</picture>
 
 The CLI resolves the configuration once and selects one execution adapter.
 It selects `InProcessExecution` when the worker count is one or the worker

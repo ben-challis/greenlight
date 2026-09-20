@@ -1,0 +1,114 @@
+flowchart TD
+
+    subgraph group_cli["CLI Control Plane"]
+        node_launcher["Greenlight CLI<br/>Launcher<br/>entry point"]
+        node_app["CLI Application<br/>[Application.php]"]
+        node_dispatcher["Command<br/>Dispatcher"]
+        node_lifecycle["CLI Run Lifecycle<br/>run session"]
+        node_config["Configuration<br/>Resolver"]
+    end
+
+    subgraph group_discovery["Discovery &amp; Planning"]
+        node_selection["Selection<br/>Discovery"]
+        node_discoverer["Test Discoverer<br/>discovery"]
+        node_attributes["Test Attributes<br/>metadata"]
+        node_plan["Execution Plan<br/>[ExecutionPlan.php]"]
+        node_runstate[("Run-State Store<br/>[RunState.php]")]
+    end
+
+    subgraph group_execution["Execution &amp; Scheduling"]
+        node_coordinator["Run Coordinator<br/>[RunCoordinator.php]"]
+        node_inprocess["In-Process<br/>Executor"]
+        node_pool["Process-Pool<br/>Executor"]
+        node_orchestrator["Process-Pool<br/>Orchestrator<br/>[Orchestrator.php]"]
+        node_scheduler["Resource<br/>Scheduler"]
+        node_worker["PHP Worker<br/>Subprocess<br/>worker process"]
+        node_runner["Worker Process<br/>Runner<br/>worker runner"]
+        node_protocol["Worker Protocol<br/>transport"]
+        node_executor["Worker Test<br/>Executor<br/>[TestExecutor.php]"]
+    end
+
+    subgraph group_runtime["Runtime Extensions"]
+        node_fixture["Fixture<br/>Provisioner<br/>fixture service"]
+        node_catalog["Integration<br/>Resource<br/>Catalog"]
+        node_bootstrap["Worker Bootstrap<br/>Context<br/>worker context"]
+        node_consumer["Consumer Test<br/>Classes<br/>test code"]
+        node_doubles["Test-Double Call<br/>Runtime<br/>mock runtime"]
+    end
+
+    subgraph group_results["Results &amp; Coverage"]
+        node_reporter["Reporter Runtime<br/>reporting"]
+        node_artifacts["Artifact Storage<br/>artifact store"]
+        node_coverage["Coverage Session"]
+        node_coverage_runtime["pcov/Xdebug<br/>Runtime<br/>coverage runtime"]
+    end
+
+    node_developer(("Developer or CI Job<br/>external actor"))
+
+    node_developer -->|"invokes run"| node_launcher
+    node_launcher -->|"bootstraps"| node_app
+    node_app -->|"dispatches"| node_dispatcher
+    node_dispatcher -->|"selects run"| node_lifecycle
+    node_lifecycle -->|"resolves config"| node_config
+    node_lifecycle -->|"requests tests"| node_selection
+    node_selection -->|"delegates discovery"| node_discoverer
+    node_discoverer -->|"interprets metadata"| node_attributes
+    node_discoverer -->|"produces plan"| node_plan
+    node_lifecycle -->|"persists durations"| node_runstate
+    node_lifecycle -->|"starts execution"| node_coordinator
+    node_coordinator -.->|"selects single worker"| node_inprocess
+    node_coordinator -.->|"selects parallel mode"| node_pool
+    node_pool -->|"delegates control"| node_orchestrator
+    node_orchestrator -->|"gates assignments"| node_scheduler
+    node_orchestrator -->|"provisions fixtures"| node_fixture
+    node_fixture -->|"creates session"| node_catalog
+    node_catalog -->|"supplies resources"| node_bootstrap
+    node_orchestrator -->|"spawns and assigns"| node_worker
+    node_worker -->|"invokes worker mode"| node_app
+    node_app -->|"runs worker"| node_runner
+    node_runner -->|"communicates"| node_protocol
+    node_runner -->|"executes assignments"| node_executor
+    node_executor -->|"invokes tests"| node_consumer
+    node_consumer -->|"routes calls"| node_doubles
+    node_executor -->|"stages attachments"| node_artifacts
+    node_orchestrator -->|"delivers events"| node_reporter
+    node_lifecycle -.->|"manages coverage"| node_coverage
+    node_coverage -->|"starts collection"| node_coverage_runtime
+
+    click node_launcher "https://github.com/ben-challis/greenlight/blob/main/bin/greenlight"
+    click node_app "https://github.com/ben-challis/greenlight/blob/main/src/Cli/Application.php"
+    click node_dispatcher "https://github.com/ben-challis/greenlight/blob/main/src/Cli/Plugin/CommandDispatcher.php"
+    click node_lifecycle "https://github.com/ben-challis/greenlight/blob/main/src/Cli/Run/RunSession.php"
+    click node_config "https://github.com/ben-challis/greenlight/blob/main/src/Cli/Configuration/ConfigurationResolver.php"
+    click node_selection "https://github.com/ben-challis/greenlight/blob/main/src/Cli/Discovery/SelectionDiscovery.php"
+    click node_discoverer "https://github.com/ben-challis/greenlight/blob/main/src/Discovery/TestDiscoverer.php"
+    click node_attributes "https://github.com/ben-challis/greenlight/tree/main/src/Attribute"
+    click node_plan "https://github.com/ben-challis/greenlight/blob/main/src/Discovery/Plan/ExecutionPlan.php"
+    click node_runstate "https://github.com/ben-challis/greenlight/blob/main/src/Cli/State/RunState.php"
+    click node_coordinator "https://github.com/ben-challis/greenlight/blob/main/src/Execution/RunCoordinator.php"
+    click node_inprocess "https://github.com/ben-challis/greenlight/blob/main/src/Execution/Adapter/InProcessExecution.php"
+    click node_pool "https://github.com/ben-challis/greenlight/blob/main/src/Execution/Adapter/ProcessPoolExecution.php"
+    click node_orchestrator "https://github.com/ben-challis/greenlight/blob/main/src/Execution/ProcessPool/Orchestrator/Orchestrator.php"
+    click node_scheduler "https://github.com/ben-challis/greenlight/blob/main/src/Execution/ProcessPool/Orchestrator/ResourceScheduler.php"
+    click node_runner "https://github.com/ben-challis/greenlight/blob/main/src/Execution/ProcessPool/Worker/WorkerProcess.php"
+    click node_protocol "https://github.com/ben-challis/greenlight/tree/main/src/Execution/ProcessPool/Protocol"
+    click node_executor "https://github.com/ben-challis/greenlight/blob/main/src/Execution/Worker/TestExecutor.php"
+    click node_fixture "https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/IntegrationFixtureManager.php"
+    click node_catalog "https://github.com/ben-challis/greenlight/blob/main/src/IntegrationFixture/ProvisionedIntegrationFixtures.php"
+    click node_bootstrap "https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WorkerBootstrapContext.php"
+    click node_doubles "https://github.com/ben-challis/greenlight/blob/main/src/Doubles/CallHandler.php"
+    click node_reporter "https://github.com/ben-challis/greenlight/blob/main/src/Reporting/CompositeReporter.php"
+    click node_artifacts "https://github.com/ben-challis/greenlight/tree/main/src/Execution/Artifact"
+    click node_coverage "https://github.com/ben-challis/greenlight/blob/main/src/Cli/Coverage/CoverageSession.php"
+
+    %% Keep theme defaults for fills and text so both light and dark modes remain readable.
+    classDef toneBlue stroke:#3b82f6,stroke-width:2px
+    classDef toneAmber stroke:#b8860b,stroke-width:2px
+    classDef toneMint stroke:#2e9d65,stroke-width:2px
+    classDef toneRose stroke:#d65c7a,stroke-width:2px
+    classDef toneIndigo stroke:#8b7bd8,stroke-width:2px
+    class node_launcher,node_app,node_dispatcher,node_lifecycle,node_config toneBlue
+    class node_selection,node_discoverer,node_attributes,node_plan,node_runstate toneAmber
+    class node_coordinator,node_inprocess,node_pool,node_orchestrator,node_scheduler,node_worker,node_runner,node_protocol,node_executor toneMint
+    class node_fixture,node_catalog,node_bootstrap,node_consumer,node_doubles toneRose
+    class node_reporter,node_artifacts,node_coverage,node_coverage_runtime,node_developer toneIndigo
