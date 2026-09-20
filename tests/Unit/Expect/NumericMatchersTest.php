@@ -63,7 +63,6 @@ final class NumericMatchersTest
         expect(3)
             ->because('toBeGreaterThanOrEqual() passes')
             ->toBeGreaterThanOrEqual(2)
-            ->because('toBeGreaterThanOrEqual() passes')
             ->toBeGreaterThanOrEqual(3);
         expect(2.5)->because('toBeGreaterThanOrEqual() passes')->toBeGreaterThanOrEqual(2.5);
     }

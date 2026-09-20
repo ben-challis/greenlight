@@ -16,7 +16,6 @@ final class TypeMatchersTest
         expect(new \ArrayObject())
             ->because('toBeInstanceOf() passes')
             ->toBeInstanceOf(\ArrayObject::class)
-            ->because('toBeInstanceOf() passes')
             ->toBeInstanceOf(\Traversable::class);
     }
 

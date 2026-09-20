@@ -61,7 +61,6 @@ final class StringMatchersTest
         expect('greenlight')
             ->because('toStartWith() passes')
             ->toStartWith('green')
-            ->because('toStartWith() passes')
             ->toStartWith('');
     }
 

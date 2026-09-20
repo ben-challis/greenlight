@@ -181,7 +181,6 @@ final readonly class ValueRendererTest
         expect($rendered)
             ->because('scrubs invalid UTF-8')
             ->toMatch('//u')
-            ->because('scrubs invalid UTF-8')
             ->toContain('bad');
     }
 }

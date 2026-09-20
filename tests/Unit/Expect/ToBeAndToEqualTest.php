@@ -104,10 +104,8 @@ final class ToBeAndToEqualTest
         expect(new Point(1, 2))
             ->because('toEqual() compares objects by class and properties')
             ->toEqual(new Point(1, 2))
-            ->because('toEqual() compares objects by class and properties')
             ->not()
             ->toEqual(new Point(1, 3))
-            ->because('toEqual() compares objects by class and properties')
             ->not()
             ->toEqual(new \stdClass());
     }
@@ -141,7 +139,6 @@ final class ToBeAndToEqualTest
         expect(Suit::Hearts)
             ->because('toEqual() compares enums by identity')
             ->toEqual(Suit::Hearts)
-            ->because('toEqual() compares enums by identity')
             ->not()
             ->toEqual(Suit::Spades);
     }
@@ -155,7 +152,6 @@ final class ToBeAndToEqualTest
         expect($utc)
             ->because('toEqual() compares date times by instant')
             ->toEqual($cet)
-            ->because('toEqual() compares date times by instant')
             ->not()
             ->toEqual(new \DateTimeImmutable('2024-01-01T12:00:01+00:00'));
     }

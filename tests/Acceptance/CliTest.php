@@ -57,7 +57,6 @@ final readonly class CliTest
             ->toContain('  stop after: 7 failed or errored tests')
             ->toContain('  order: random (seed 9)')
             ->toContain('  groups: slow')
-            ->because('command line flags override the configuration file')
             ->toContain('  resource limits: postgres=2');
     }
 
@@ -107,7 +106,6 @@ final readonly class CliTest
         expect($result->output())
             ->because('run executes a passing suite and exits zero')
             ->toContain('1 test, 1 passed')
-            ->because('run executes a passing suite and exits zero')
             ->not()
             ->toContain('alpha:one');
     }
@@ -126,7 +124,6 @@ final readonly class CliTest
             ->because('no ANSI and verbose are accepted and output stays escape free')
             ->not()
             ->toContain("\x1b[")
-            ->because('no ANSI and verbose are accepted and output stays escape free')
             ->toContain('1 test, 1 passed');
     }
 
@@ -204,7 +201,6 @@ final readonly class CliTest
         expect($result->output())
             ->because('unknown options are usage errors')
             ->toContain('greenlight: Unknown option "--frobnicate"')
-            ->because('unknown options are usage errors')
             ->not()
             ->toContain("\x1b[");
     }
