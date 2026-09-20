@@ -64,8 +64,7 @@ final readonly class RectorSizeAttributeTest
             expect($probe->code)
                 ->because('converted size group case: ' . $caseName)
                 ->toContain(\sprintf("#[\\Greenlight\\Attribute\\Group('%s')]", $group))
-                ->not()
-                ->toContain('#[' . $attribute . ']');
+                ->not()->toContain('#[' . $attribute . ']');
         }
     }
 

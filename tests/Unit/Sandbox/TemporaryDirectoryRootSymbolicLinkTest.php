@@ -33,8 +33,7 @@ final class TemporaryDirectoryRootSymbolicLinkTest
         try {
             expect()->calling(static fn() => $directory->dispose())
                 ->because('disposal MUST remove the root symbolic link without entry traversal')
-                ->not()
-                ->toThrow(\Throwable::class);
+                ->not()->toThrow(\Throwable::class);
 
             expect(\is_link($root))
                 ->because('disposal MUST remove the root symbolic link')

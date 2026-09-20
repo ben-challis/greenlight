@@ -61,8 +61,7 @@ final class DiscoveryCacheRuntimeProviderTest
                 ->toBeTrue();
             expect(DiscoveryCache::forDirectories([$directory])->lookup($source))
                 ->because('the entry remains available from the cache')
-                ->not()
-                ->toBeNull();
+                ->not()->toBeNull();
         } finally {
             @\unlink($cacheFile);
             @\unlink($source);

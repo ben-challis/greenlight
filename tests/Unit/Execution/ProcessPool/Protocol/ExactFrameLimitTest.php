@@ -34,8 +34,7 @@ final class ExactFrameLimitTest
 
         expect($body)
             ->because('A frame body at the configured limit MUST be accepted.')
-            ->not()
-            ->toBeNull();
+            ->not()->toBeNull();
 
         expect($codec->decode($body))
             ->because('the exact-limit frame MUST survive the protocol round trip')
@@ -64,8 +63,7 @@ final class ExactFrameLimitTest
 
         expect($decodedBody)
             ->because('A Unicode frame body at the configured byte limit MUST be complete.')
-            ->not()
-            ->toBeNull();
+            ->not()->toBeNull();
 
         expect(new JsonFrameCodec(self::LIMIT)->decode($decodedBody))
             ->because('frame lengths MUST count Unicode bytes, not characters')

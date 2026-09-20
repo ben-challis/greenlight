@@ -338,10 +338,8 @@ final class IterableMatchersTest
     {
         expect(['a' => 1])
             ->because('not()->toContain() subset')
-            ->not()
-            ->toContainSubset(['a' => 2])
-            ->not()
-            ->toContainSubset(['b' => 1]);
+            ->not()->toContainSubset(['a' => 2])
+            ->not()->toContainSubset(['b' => 1]);
     }
 
     #[Test]

@@ -46,8 +46,7 @@ final readonly class StreamOutputTest
 
         expect($stream)
             ->because('Greenlight MUST open the read-only in-memory stream.')
-            ->not()
-            ->toBeFalse();
+            ->not()->toBeFalse();
         $this->cleanup->defer(static fn(): bool => \fclose($stream));
 
         $output = new StreamOutput($stream);
@@ -119,8 +118,7 @@ final readonly class StreamOutputTest
 
         expect($stream)
             ->because('Greenlight MUST open the partial-write stream.')
-            ->not()
-            ->toBeFalse();
+            ->not()->toBeFalse();
         $this->cleanup->defer(static fn(): bool => \fclose($stream));
 
         return $stream;

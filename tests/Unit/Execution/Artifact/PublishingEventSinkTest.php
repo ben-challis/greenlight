@@ -67,8 +67,7 @@ final readonly class PublishingEventSinkTest
 
         expect($finished->result)
             ->because('a completed event MUST replace its staged result with the published result')
-            ->not()
-            ->toBe($result);
+            ->not()->toBe($result);
         expect($finished->occurredAt)
             ->because('publishing MUST preserve the event timestamp')
             ->toBe(11.0);

@@ -153,8 +153,7 @@ final class XdebugDriverTest
 
         expect($file)
             ->because('collects real line coverage over the fixture')
-            ->not()
-            ->toBeNull();
+            ->not()->toBeNull();
 
         expect($file->coveredLines)
             ->because('collects real line coverage over the fixture')
@@ -162,8 +161,7 @@ final class XdebugDriverTest
 
         expect($file->uncoveredLines)
             ->because('collects real line coverage over the fixture')
-            ->not()
-            ->toContain(Adder::ADD_RETURN_LINE);
+            ->not()->toContain(Adder::ADD_RETURN_LINE);
     }
 
     /**

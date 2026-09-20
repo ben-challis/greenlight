@@ -92,8 +92,7 @@ final readonly class SeedOrderTest
             ->toBe(0);
         expect($result->stdout)
             ->because('the unseeded run header MUST omit the seed')
-            ->not()
-            ->toContain('seed:');
+            ->not()->toContain('seed:');
     }
 
     /**

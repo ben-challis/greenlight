@@ -34,7 +34,6 @@ final readonly class RepeatSingleIterationTest
         expect($result->output())
             ->because('one requested iteration MUST omit repeat-loop output')
             ->toContain('1 test, 1 passed')
-            ->not()
-            ->toContain('Repeat:');
+            ->not()->toContain('Repeat:');
     }
 }

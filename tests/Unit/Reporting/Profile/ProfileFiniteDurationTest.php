@@ -42,9 +42,7 @@ final readonly class ProfileFiniteDurationTest
 
         expect($aggregator->render(new Style(ansi: false)))
             ->because('finite event timestamps MUST produce only finite profile metrics')
-            ->not()
-            ->toContain('INF')
-            ->not()
-            ->toContain('NAN');
+            ->not()->toContain('INF')
+            ->not()->toContain('NAN');
     }
 }

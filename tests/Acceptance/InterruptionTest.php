@@ -95,8 +95,7 @@ final readonly class InterruptionTest
             ->toContain('"test-finished"');
         expect($finished)
             ->because('The interrupted run MUST finish an active test.')
-            ->not()
-            ->toBeEmpty();
+            ->not()->toBeEmpty();
 
         foreach ($finished as $event) {
             expect($event->result->outcome)
@@ -116,14 +115,12 @@ final readonly class InterruptionTest
 
         expect($result->stderr)
             ->because('Interruption diagnostics MUST remain plain when standard error is a pipe.')
-            ->not()
-            ->toContain("\x1b[");
+            ->not()->toContain("\x1b[");
 
         $workerPids = $this->spawnedWorkerPids($events);
         expect($workerPids)
             ->because('The interrupted run MUST start at least one worker.')
-            ->not()
-            ->toBeEmpty();
+            ->not()->toBeEmpty();
 
         foreach ($workerPids as $pid) {
             $alive = Subprocess::run($root, ['ps', '-p', (string) $pid, '-o', 'pid=']);

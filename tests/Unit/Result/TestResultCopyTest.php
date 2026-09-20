@@ -36,8 +36,7 @@ final class TestResultCopyTest
 
         expect($replacement)
             ->because('a result mutation MUST produce a replacement result')
-            ->not()
-            ->toBe($original);
+            ->not()->toBe($original);
         expect($original->toWire())
             ->because('a result mutation MUST NOT change the original result')
             ->toBe($originalWire);
@@ -83,8 +82,7 @@ final class TestResultCopyTest
 
         expect($recovered)
             ->because('recovering an attempt count MUST produce a replacement result')
-            ->not()
-            ->toBe($original);
+            ->not()->toBe($original);
         expect($original->attempts)
             ->because('recovering an attempt count MUST NOT change the original result')
             ->toBe(2);

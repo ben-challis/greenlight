@@ -170,8 +170,7 @@ final readonly class DiscoveryCacheTest
                 ->toBe(2);
             expect($rewritten)
                 ->because('discovery replaces the corrupt plan entry')
-                ->not()
-                ->toContain('"entries":[[]]');
+                ->not()->toContain('"entries":[[]]');
         } finally {
             @\unlink($cacheFile);
             @\unlink($source);

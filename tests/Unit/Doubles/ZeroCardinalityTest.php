@@ -25,7 +25,6 @@ final class ZeroCardinalityTest
             $doubles->dispose();
         })
             ->because('times(0) MUST permit an uncalled expectation')
-            ->not()
-            ->toThrow(\Throwable::class);
+            ->not()->toThrow(\Throwable::class);
     }
 }

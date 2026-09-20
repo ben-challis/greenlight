@@ -125,8 +125,7 @@ final class HttpHarnessTest
 
         expect($error->getMessage())
             ->toMatch('/failed for request "PATCH \/orders\/42"\.$/')
-            ->not()
-            ->toContain('token');
+            ->not()->toContain('token');
         expect($error->getPrevious())->toBe($cause);
     }
 

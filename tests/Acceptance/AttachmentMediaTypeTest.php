@@ -87,8 +87,7 @@ final readonly class AttachmentMediaTypeTest
             ->because('file attachments work without the optional fileinfo function')
             ->toBe(0);
         expect($finished)
-            ->not()
-            ->toBeNull();
+            ->not()->toBeNull();
         expect($finished->attachments)
             ->toHaveCount(1);
         expect($finished->attachments[0]->mediaType)

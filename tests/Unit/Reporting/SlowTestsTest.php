@@ -79,8 +79,7 @@ final class SlowTestsTest
         expect($lines[25])
             ->toBe('  0.520s Acme\SlowTest::case02');
         expect($rendered)
-            ->not()
-            ->toContain('case01');
+            ->not()->toContain('case01');
     }
 
     #[Test]
@@ -101,10 +100,8 @@ final class SlowTestsTest
             ->toContain('0.950s Acme\SlowTest::lateSlowest')
             ->toContain('0.710s Acme\SlowTest::case21')
             ->toContain('0.680s Acme\SlowTest::case18')
-            ->not()
-            ->toContain('lateButFaster')
-            ->not()
-            ->toContain('case17');
+            ->not()->toContain('lateButFaster')
+            ->not()->toContain('case17');
     }
 
     #[Test]

@@ -53,7 +53,6 @@ final readonly class JUnitReporterAutoloadTest
             ->toBeInstanceOf(\SimpleXMLElement::class);
         expect($output->buffer())
             ->because('an autoloader failure MUST omit the optional source file')
-            ->not()
-            ->toContain(' file=');
+            ->not()->toContain(' file=');
     }
 }

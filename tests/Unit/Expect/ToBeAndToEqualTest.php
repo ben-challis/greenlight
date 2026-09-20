@@ -74,12 +74,10 @@ final class ToBeAndToEqualTest
 
         expect($integer)
             ->because('toEqual() keeps integer precision')
-            ->not()
-            ->toEqual($roundedFloat);
+            ->not()->toEqual($roundedFloat);
         expect($roundedFloat)
             ->because('toEqual() keeps integer precision in both operand orders')
-            ->not()
-            ->toEqual($integer);
+            ->not()->toEqual($integer);
     }
 
     #[Test]
@@ -104,10 +102,8 @@ final class ToBeAndToEqualTest
         expect(new Point(1, 2))
             ->because('toEqual() compares objects by class and properties')
             ->toEqual(new Point(1, 2))
-            ->not()
-            ->toEqual(new Point(1, 3))
-            ->not()
-            ->toEqual(new \stdClass());
+            ->not()->toEqual(new Point(1, 3))
+            ->not()->toEqual(new \stdClass());
     }
 
     #[Test]
@@ -118,8 +114,7 @@ final class ToBeAndToEqualTest
 
         expect($withProperty)
             ->because('object equality requires the same property count')
-            ->not()
-            ->toEqual(new \stdClass());
+            ->not()->toEqual(new \stdClass());
     }
 
     #[Test]
@@ -129,8 +124,7 @@ final class ToBeAndToEqualTest
 
         expect($subject)
             ->toEqual((object) ['second' => 2.0, 'first' => null])
-            ->not()
-            ->toEqual((object) ['other' => null, 'second' => 2]);
+            ->not()->toEqual((object) ['other' => null, 'second' => 2]);
     }
 
     #[Test]
@@ -139,8 +133,7 @@ final class ToBeAndToEqualTest
         expect(Suit::Hearts)
             ->because('toEqual() compares enums by identity')
             ->toEqual(Suit::Hearts)
-            ->not()
-            ->toEqual(Suit::Spades);
+            ->not()->toEqual(Suit::Spades);
     }
 
     #[Test]
@@ -152,8 +145,7 @@ final class ToBeAndToEqualTest
         expect($utc)
             ->because('toEqual() compares date times by instant')
             ->toEqual($cet)
-            ->not()
-            ->toEqual(new \DateTimeImmutable('2024-01-01T12:00:01+00:00'));
+            ->not()->toEqual(new \DateTimeImmutable('2024-01-01T12:00:01+00:00'));
     }
 
     #[Test]
@@ -164,8 +156,7 @@ final class ToBeAndToEqualTest
 
         expect($instant)
             ->because('date time equality MUST preserve microsecond precision')
-            ->not()
-            ->toEqual($nextMicrosecond);
+            ->not()->toEqual($nextMicrosecond);
     }
 
     #[Test]

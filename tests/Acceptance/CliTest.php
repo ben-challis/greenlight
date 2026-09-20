@@ -106,8 +106,7 @@ final readonly class CliTest
         expect($result->output())
             ->because('run executes a passing suite and exits zero')
             ->toContain('1 test, 1 passed')
-            ->not()
-            ->toContain('alpha:one');
+            ->not()->toContain('alpha:one');
     }
 
     #[Test]
@@ -122,8 +121,7 @@ final readonly class CliTest
         expect($result->exitCode)->because('no ANSI and verbose are accepted and output stays escape free')->toBe(0);
         expect($result->output())
             ->because('no ANSI and verbose are accepted and output stays escape free')
-            ->not()
-            ->toContain("\x1b[")
+            ->not()->toContain("\x1b[")
             ->toContain('1 test, 1 passed');
     }
 
@@ -201,8 +199,7 @@ final readonly class CliTest
         expect($result->output())
             ->because('unknown options are usage errors')
             ->toContain('greenlight: Unknown option "--frobnicate"')
-            ->not()
-            ->toContain("\x1b[");
+            ->not()->toContain("\x1b[");
     }
 
     /**

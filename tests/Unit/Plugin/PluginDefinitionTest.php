@@ -27,8 +27,7 @@ final readonly class PluginDefinitionTest
         expect($first)->toBeInstanceOf(NamedFakePlugin::class);
         expect($second)
             ->because('a plugin definition factory MUST create a fresh instance on each call')
-            ->not()
-            ->toBe($first);
+            ->not()->toBe($first);
     }
 
     #[Test]

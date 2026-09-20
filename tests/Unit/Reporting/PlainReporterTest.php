@@ -140,7 +140,6 @@ final class PlainReporterTest
         expect($output->buffer())
             ->because('a failed test MUST NOT also appear in successful risky-test guidance')
             ->toContain('FAIL Acme\\RiskyTest::failsWithoutExpectations')
-            ->not()
-            ->toContain('Risky tests:');
+            ->not()->toContain('Risky tests:');
     }
 }

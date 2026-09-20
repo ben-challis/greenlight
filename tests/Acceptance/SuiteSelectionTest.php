@@ -41,8 +41,7 @@ final readonly class SuiteSelectionTest
             ->because('suite names and tags MUST select one union before sharding')
             ->toContain('SelectableSuites\\UnitTest::passes')
             ->toContain('SelectableSuites\\IntegrationTest::fails')
-            ->not()
-            ->toContain('SelectableSuites\\BaseTest::fails');
+            ->not()->toContain('SelectableSuites\\BaseTest::fails');
 
         $union = [...$this->testIds($first), ...$this->testIds($second)];
         \sort($union);
@@ -64,10 +63,8 @@ final readonly class SuiteSelectionTest
         expect($groups->output())
             ->because('group listing MUST discover only the selected suites')
             ->toContain('unit (1 tests)')
-            ->not()
-            ->toContain('base')
-            ->not()
-            ->toContain('integration');
+            ->not()->toContain('base')
+            ->not()->toContain('integration');
         expect($plan->output())
             ->because('dry-run output MUST show the effective suite selection')
             ->toContain('test paths: (excluded by suite selection)')
@@ -75,8 +72,7 @@ final readonly class SuiteSelectionTest
             ->toContain('suite tags: io')
             ->toContain('suite integration: tests/Integration [tags: io]')
             ->toContain('coverage include paths: src')
-            ->not()
-            ->toContain('suite unit:');
+            ->not()->toContain('suite unit:');
     }
 
     #[Test]

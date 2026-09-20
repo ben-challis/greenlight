@@ -244,8 +244,7 @@ final class ProtocolTest
 
         expect($body)
             ->because('FrameBuffer::next() MUST return the complete encoded frame.')
-            ->not()
-            ->toBeNull();
+            ->not()->toBeNull();
 
         expect($codec->decode($body)['message'])->because('binary bytes in messages survive encoding')->toContain('bad');
     }

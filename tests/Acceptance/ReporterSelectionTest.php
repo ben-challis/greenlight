@@ -48,8 +48,7 @@ final readonly class ReporterSelectionTest
             ->toBe(0);
         expect($result->stdout)
             ->toContain('1 test, 1 passed')
-            ->not()
-            ->toContain("\x1b[");
+            ->not()->toContain("\x1b[");
         expect($result->stderr)
             ->toBe('');
     }
@@ -68,8 +67,7 @@ final readonly class ReporterSelectionTest
         expect($result->stdout)
             ->because('the reporter without a file MUST continue to use standard output')
             ->toContain('1 test, 1 passed')
-            ->not()
-            ->toContain('<?xml');
+            ->not()->toContain('<?xml');
         expect((string) \file_get_contents($junit))
             ->because('the reporter file path MUST resolve from the command working directory')
             ->toStartWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
@@ -92,8 +90,7 @@ final readonly class ReporterSelectionTest
         expect((string) \file_get_contents($report))
             ->because('a file is not an interactive terminal')
             ->toContain('1 test, 1 passed')
-            ->not()
-            ->toContain("\x1b[");
+            ->not()->toContain("\x1b[");
         expect($result->stderr)->toBe('');
     }
 

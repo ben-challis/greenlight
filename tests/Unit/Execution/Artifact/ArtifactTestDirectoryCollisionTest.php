@@ -58,8 +58,7 @@ final readonly class ArtifactTestDirectoryCollisionTest
         expect($second->attachments)
             ->toHaveCount(1);
         expect($first->attachments[0]->path)
-            ->not()
-            ->toBe($second->attachments[0]->path);
+            ->not()->toBe($second->attachments[0]->path);
         expect((string) \file_get_contents($first->attachments[0]->path))
             ->toBe('spaced data-set key');
         expect((string) \file_get_contents($second->attachments[0]->path))
