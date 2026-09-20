@@ -54,7 +54,6 @@ final class ReturnValueExpectation extends Expectation
         }
 
         $this->negated = false;
-        $this->reason = null;
 
         return $pending;
     }
@@ -83,7 +82,6 @@ final class ReturnValueExpectation extends Expectation
         }
 
         $this->negated = false;
-        $this->reason = null;
 
         return $pending;
     }

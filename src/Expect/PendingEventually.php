@@ -157,7 +157,6 @@ final class PendingEventually
         }
 
         $this->negated = false;
-        $this->reason = null;
 
         return $expectation;
     }

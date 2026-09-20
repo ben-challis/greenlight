@@ -42,17 +42,39 @@ final readonly class BecauseTest
     #[Test]
     public function becauseDoesNotChangeAPassingMatcher(): void
     {
-        expect(true)->because('a passing matcher consumes the reason without reporting it')->toBeTrue();
+        expect(true)->because('a passing matcher retains the reason without reporting it')->toBeTrue();
     }
 
     #[Test]
-    public function becauseIsConsumedByTheNextMatcher(): void
+    public function becauseAppliesToSubsequentMatchers(): void
     {
         $detail = FailureProbe::detailOf(
-            static fn() => expect(1)->because('the first matcher consumes this reason')->toBe(1)->toBe(2),
+            static fn() => expect(1)->because('the id must be valid')->not()->toBe(2)->toBe(1)->toBe(2),
         );
 
-        expect($detail->message)->because('because() is consumed by the next matcher')->toBe('Expected 1 to be 2.');
+        expect($detail->message)->toBe('Expected 1 to be 2 because the id must be valid.');
+    }
+
+    #[Test]
+    public function anotherBecauseReplacesTheReasonForSubsequentMatchers(): void
+    {
+        $detail = FailureProbe::detailOf(
+            static fn() => expect(1)
+                ->because('the id must be valid')->toBe(1)
+                ->because('  the id must change  ')->toBeInt()->toBe(2),
+        );
+
+        expect($detail->message)->toBe('Expected 1 to be 2 because the id must change.');
+    }
+
+    #[Test]
+    public function separateExpectationsDoNotInheritTheReason(): void
+    {
+        expect(1)->because('the id must be valid')->toBe(1);
+
+        $detail = FailureProbe::detailOf(static fn() => expect(1)->toBe(2));
+
+        expect($detail->message)->toBe('Expected 1 to be 2.');
     }
 
     #[Test]
@@ -126,7 +148,7 @@ final readonly class BecauseTest
         $this->cleanup->defer($restoreExtensions);
 
         $detail = FailureProbe::detailOf(
-            static fn() => expect(2)->because('the id must be odd')->__call('toBeOdd', []),
+            static fn() => expect(2)->because('the id must be odd')->toBeInt()->__call('toBeOdd', []),
         );
 
         expect($detail->message)->because('extension matchers carry the reason')

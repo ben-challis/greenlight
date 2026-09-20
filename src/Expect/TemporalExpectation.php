@@ -49,8 +49,8 @@ abstract class TemporalExpectation
     }
 
     /**
-     * Sets a reason for the next matcher. The next matcher consumes the
-     * reason.
+     * Sets a reason for all subsequent matchers in the chain.
+     * Another `because()` call replaces the reason.
      *
      * If the matcher fails, the failure message ends with "because" and the
      * reason. An empty reason causes a usage failure.
@@ -73,6 +73,16 @@ abstract class TemporalExpectation
         $this->reason = $reason;
 
         return $this;
+    }
+
+    /**
+     * @internal
+     *
+     * @return non-empty-string|null
+     */
+    final public function reason(): ?string
+    {
+        return $this->reason;
     }
 
     /**
@@ -107,7 +117,13 @@ abstract class TemporalExpectation
     {
         $result = $this->evaluate($name, $arguments);
 
-        return new Expectation(static fn() => $result->subject, $this->renderer, $this->extensions);
+        $expectation = new Expectation(static fn() => $result->subject, $this->renderer, $this->extensions);
+
+        if ($this->reason !== null) {
+            $expectation->because($this->reason);
+        }
+
+        return $expectation;
     }
 
     /**
@@ -138,7 +154,6 @@ abstract class TemporalExpectation
         $negated = $this->negated;
         $this->negated = false;
         $reason = $this->reason;
-        $this->reason = null;
 
         return $this->waitFor($matcher, $negated, $reason, CallSite::capture());
     }
