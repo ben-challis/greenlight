@@ -172,12 +172,9 @@ const assigned = new Set();
 const generated = new Map();
 
 for (const section of sections) {
-  const types = publicTypes.filter((type) => {
-    const matchesPrefix = section.prefixes.some((prefix) => type.name.startsWith(prefix));
-    const matchesName = section.names?.includes(type.name) ?? false;
-
-    return matchesPrefix || matchesName;
-  });
+  const types = publicTypes.filter((type) =>
+    section.prefixes.some((prefix) => type.name.startsWith(prefix)),
+  );
   const shortNameCounts = new Map();
 
   for (const type of types) {
