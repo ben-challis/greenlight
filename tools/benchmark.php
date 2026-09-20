@@ -15,6 +15,7 @@ declare(strict_types=1);
  *   php tools/benchmark.php [--shape=<name>] [--scale=<n>] [--workers=<k>]
  *                           [--warmups=<w>] [--runs=<r>] [--seed=<s>]
  *                           [--pause-ms=<n>] [--format=<table|json>]
+ *                           [--output=<json-path>]
  *                           [--with-comparisons]
  *
  * Omit --shape to run all shapes.
@@ -26,8 +27,10 @@ const PEST_VERSION = '5.1.1';
 const BENCHMARK_DEFAULT_SEED = 2_026_082_1;
 
 const BENCHMARK_SHAPES = [
+    'minimal',
     'many-fast',
     'few-slow',
+    'cpu-bound',
     'giant-dataset',
     'mixed',
     'many-isolated',
@@ -45,6 +48,8 @@ if (\is_string($scriptFilename) && \realpath($scriptFilename) === __FILE__) {
 
 function benchmarkMain(): int
 {
+    $output = null;
+
     try {
         $parsed = \getopt('', [
             'shape:',
@@ -55,6 +60,7 @@ function benchmarkMain(): int
             'seed:',
             'pause-ms:',
             'format:',
+            'output:',
             'with-comparisons',
             'with-phpunit',
         ]);
@@ -64,6 +70,7 @@ function benchmarkMain(): int
         }
 
         $options = \benchmarkParseOptions($parsed);
+        $output = \benchmarkOpenOutput($options['output']);
         $root = \dirname(__DIR__);
         $results = [];
         $comparisonPackages = [];
@@ -149,7 +156,9 @@ function benchmarkMain(): int
                     $results[] = [
                         'shape' => $shape,
                         'tests' => $tests,
+                        'configurationId' => $id,
                         'tool' => $configuration['tool'],
+                        'executionMode' => $configuration['executionMode'],
                         'command' => $configuration['command'],
                         'samplesSeconds' => $samples[$id],
                         ...\benchmarkDistribution($samples[$id]),
@@ -160,13 +169,17 @@ function benchmarkMain(): int
             }
         }
 
-        \benchmarkReport($options, $results, $root, $comparisonPackages);
+        \benchmarkReport($options, $results, $root, $comparisonPackages, $output);
 
         return 0;
     } catch (InvalidArgumentException|RuntimeException $error) {
         \fwrite(\STDERR, $error->getMessage() . "\n");
 
         return 1;
+    } finally {
+        if (\is_resource($output)) {
+            \fclose($output);
+        }
     }
 }
 
@@ -182,6 +195,7 @@ function benchmarkMain(): int
  *   seed: int,
  *   pauseMs: int<0, 60000>,
  *   format: 'table'|'json',
+ *   output: non-empty-string|null,
  *   withComparisons: bool
  * }
  */
@@ -212,6 +226,12 @@ function benchmarkParseOptions(array $options): array
         throw new InvalidArgumentException(\sprintf('Option --pause-ms must be at most 60000, got %d.', $pauseMs));
     }
 
+    $output = \benchmarkOptionValue($options, 'output');
+
+    if ($output === '') {
+        throw new InvalidArgumentException('Option --output must specify a JSON file path.');
+    }
+
     return [
         'shapes' => $shapes,
         'scale' => \benchmarkPositiveIntegerOption($options, 'scale', 10),
@@ -221,9 +241,26 @@ function benchmarkParseOptions(array $options): array
         'seed' => \benchmarkIntegerOption($options, 'seed', BENCHMARK_DEFAULT_SEED),
         'pauseMs' => $pauseMs,
         'format' => $format,
+        'output' => $output,
         'withComparisons' => \array_key_exists('with-comparisons', $options)
             || \array_key_exists('with-phpunit', $options),
     ];
+}
+
+/** @return resource|null */
+function benchmarkOpenOutput(?string $path)
+{
+    if ($path === null) {
+        return null;
+    }
+
+    $output = @\fopen($path, 'x');
+
+    if ($output === false) {
+        throw new RuntimeException(\sprintf('Cannot create benchmark output "%s". Select a new file in a writable directory.', $path));
+    }
+
+    return $output;
 }
 
 /** @param array<string, string|array<mixed>|false> $options */
@@ -321,7 +358,29 @@ function benchmarkSchedule(array $configurationIds, int $rounds, int $seed, stri
     return $schedule;
 }
 
-/** @return array<string, array{tool: string, command: string}> */
+/** @param list<list<string>> $schedule */
+function benchmarkScheduleIsBalanced(array $schedule): bool
+{
+    if ($schedule === []) {
+        return false;
+    }
+
+    $positions = [];
+
+    foreach ($schedule[0] as $id) {
+        $positions[$id] = \array_fill(0, \count($schedule[0]), 0);
+    }
+
+    foreach ($schedule as $order) {
+        foreach ($order as $position => $id) {
+            ++$positions[$id][$position];
+        }
+    }
+
+    return \array_all($positions, static fn(array $counts): bool => \count(\array_unique($counts)) === 1);
+}
+
+/** @return non-empty-array<string, array{tool: string, executionMode: string, command: string}> */
 function benchmarkConfigurations(string $shape, string $project, string $root, int $workers, bool $withComparisons): array
 {
     $environment = $shape === 'coverage-heavy' ? 'XDEBUG_MODE=coverage ' : '';
@@ -335,13 +394,19 @@ function benchmarkConfigurations(string $shape, string $project, string $root, i
     $configurations = [
         'greenlight-parallel' => [
             'tool' => \sprintf('greenlight (workers=%d)', $workers),
+            'executionMode' => $shape === 'many-isolated' ? 'fresh-process-per-test' : 'process-pool',
             'command' => \sprintf($greenlight, $workers),
         ],
         'greenlight-one' => [
             'tool' => 'greenlight (workers=1)',
+            'executionMode' => 'in-process',
             'command' => \sprintf($greenlight, 1),
         ],
     ];
+
+    if ($workers === 1) {
+        unset($configurations['greenlight-parallel']);
+    }
 
     if (!$withComparisons || !\benchmarkHasComparisonFixture($shape)) {
         return $configurations;
@@ -349,6 +414,7 @@ function benchmarkConfigurations(string $shape, string $project, string $root, i
 
     $configurations['phpunit'] = [
         'tool' => 'phpunit',
+        'executionMode' => 'in-process',
         'command' => \sprintf(
             'cd %s && %s vendor/bin/phpunit --cache-directory=.benchmark-cache/phpunit',
             \escapeshellarg($project),
@@ -357,6 +423,7 @@ function benchmarkConfigurations(string $shape, string $project, string $root, i
     ];
     $configurations['paratest'] = [
         'tool' => \sprintf('paratest (p=%d)', $workers),
+        'executionMode' => 'process-pool',
         'command' => \sprintf(
             'cd %s && %s vendor/bin/paratest -p%d --cache-directory=.benchmark-cache/paratest',
             \escapeshellarg($project),
@@ -366,6 +433,7 @@ function benchmarkConfigurations(string $shape, string $project, string $root, i
     ];
     $configurations['pest'] = [
         'tool' => 'pest',
+        'executionMode' => 'in-process',
         'command' => \sprintf(
             'cd %s && %s vendor/bin/pest --configuration=pest.xml --cache-directory=.benchmark-cache/pest',
             \escapeshellarg($project),
@@ -374,6 +442,7 @@ function benchmarkConfigurations(string $shape, string $project, string $root, i
     ];
     $configurations['pest-parallel'] = [
         'tool' => \sprintf('pest (p=%d)', $workers),
+        'executionMode' => 'process-pool',
         'command' => \sprintf(
             'cd %s && %s vendor/bin/pest --configuration=pest.xml --parallel --processes=%d --cache-directory=.benchmark-cache/pest-parallel',
             \escapeshellarg($project),
@@ -387,7 +456,7 @@ function benchmarkConfigurations(string $shape, string $project, string $root, i
 
 function benchmarkHasComparisonFixture(string $shape): bool
 {
-    return \in_array($shape, ['many-fast', 'few-slow', 'giant-dataset', 'mixed'], true);
+    return \in_array($shape, ['minimal', 'many-fast', 'few-slow', 'cpu-bound', 'giant-dataset', 'mixed'], true);
 }
 
 function benchmarkTime(string $command): float
@@ -504,12 +573,15 @@ function benchmarkMedian(array $samples): float
  *   seed: int,
  *   pauseMs: int<0, 60000>,
  *   format: 'table'|'json',
+ *   output: non-empty-string|null,
  *   withComparisons: bool
  * } $options
  * @param list<array{
  *   shape: string,
  *   tests: int,
+ *   configurationId: string,
  *   tool: string,
+ *   executionMode: string,
  *   command: string,
  *   samplesSeconds: list<float>,
  *   firstQuartile: float,
@@ -518,28 +590,66 @@ function benchmarkMedian(array $samples): float
  *   relativeMadPercent: float
  * }> $results
  * @param array<string, non-empty-string> $comparisonPackages
+ * @param resource|null $output
  */
-function benchmarkReport(array $options, array $results, string $root, array $comparisonPackages): void
+function benchmarkReport(array $options, array $results, string $root, array $comparisonPackages, $output = null): void
 {
     $environment = \benchmarkEnvironment($root);
+    $schedules = [];
+    $warnings = [];
+
+    if ($options['warmups'] === 0) {
+        $warnings[] = 'No warmups were requested. Verification still runs before measurement.';
+    }
+
+    if ($options['runs'] < 12) {
+        $warnings[] = 'Fewer than 12 samples were requested. Use this run as a harness check.';
+    }
+
+    foreach ($options['shapes'] as $shape) {
+        $ids = \array_column(\array_values(\array_filter(
+            $results,
+            static fn(array $row): bool => $row['shape'] === $shape,
+        )), 'configurationId');
+        $schedules[$shape] = [
+            'warmup' => \benchmarkSchedule($ids, $options['warmups'], $options['seed'], $shape . ':warmup'),
+            'sample' => \benchmarkSchedule($ids, $options['runs'], $options['seed'], $shape . ':sample'),
+        ];
+
+        if (!\benchmarkScheduleIsBalanced($schedules[$shape]['sample'])) {
+            $warnings[] = \sprintf('Shape "%s" has an unbalanced sample order. Use a run count that is a multiple of %d.', $shape, 2 * \count($ids));
+        }
+
+        if ($shape === 'many-isolated') {
+            $warnings[] = 'The many-isolated in-process configuration does not provide process isolation. Do not compare it as an equivalent isolation mode.';
+        }
+    }
+
+    try {
+        $json = \json_encode([
+            'schemaVersion' => 1,
+            'environment' => $environment,
+            'parameters' => $options,
+            'comparisonVersions' => $options['withComparisons'] ? [
+                'phpunit' => PHPUNIT_VERSION,
+                'paratest' => PARATEST_VERSION,
+                'pest' => PEST_VERSION,
+            ] : new stdClass(),
+            'comparisonPackages' => $comparisonPackages === [] ? new stdClass() : $comparisonPackages,
+            'schedules' => $schedules,
+            'warnings' => $warnings,
+            'results' => $results,
+        ], \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR) . "\n";
+    } catch (JsonException $error) {
+        throw new RuntimeException('Greenlight cannot encode the benchmark report.', $error->getCode(), previous: $error);
+    }
+
+    if ($output !== null && \fwrite($output, $json) !== \strlen($json)) {
+        throw new RuntimeException('Greenlight cannot write the complete benchmark JSON report.');
+    }
 
     if ($options['format'] === 'json') {
-        try {
-            echo \json_encode([
-                'schemaVersion' => 1,
-                'environment' => $environment,
-                'parameters' => $options,
-                'comparisonVersions' => $options['withComparisons'] ? [
-                    'phpunit' => PHPUNIT_VERSION,
-                    'paratest' => PARATEST_VERSION,
-                    'pest' => PEST_VERSION,
-                ] : new stdClass(),
-                'comparisonPackages' => $comparisonPackages === [] ? new stdClass() : $comparisonPackages,
-                'results' => $results,
-            ], \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR) . "\n";
-        } catch (JsonException $error) {
-            throw new RuntimeException('Greenlight cannot encode the benchmark report.', $error->getCode(), previous: $error);
-        }
+        echo $json;
 
         return;
     }
@@ -555,6 +665,23 @@ function benchmarkReport(array $options, array $results, string $root, array $co
         $environment['sourceRevision'] ?? 'unknown',
         $environment['sourceTreeDirty'] === true ? ' (dirty)' : '',
     );
+    echo \sprintf(
+        "Parameters: scale %d, workers %d, warmups %d, runs %d, seed %d, pause %d ms.\n",
+        $options['scale'],
+        $options['workers'],
+        $options['warmups'],
+        $options['runs'],
+        $options['seed'],
+        $options['pauseMs'],
+    );
+
+    foreach ($warnings as $warning) {
+        echo 'Warning: ' . $warning . "\n";
+    }
+
+    if ($output !== null) {
+        echo \sprintf("JSON report: %s.\n", $options['output']);
+    }
 
     if ($options['withComparisons']) {
         echo \sprintf(
@@ -565,10 +692,11 @@ function benchmarkReport(array $options, array $results, string $root, array $co
         );
     }
     echo \sprintf(
-        "%-20s %6s  %-24s %7s %8s %8s %8s %8s\n",
+        "%-20s %6s  %-24s %-22s %7s %8s %8s %8s %8s\n",
         'shape',
         'tests',
         'tool',
+        'execution mode',
         'samples',
         'q1',
         'median',
@@ -578,10 +706,11 @@ function benchmarkReport(array $options, array $results, string $root, array $co
 
     foreach ($results as $row) {
         echo \sprintf(
-            "%-20s %6d  %-24s %7d %7.3fs %7.3fs %7.3fs %7.1f%%\n",
+            "%-20s %6d  %-24s %-22s %7d %7.3fs %7.3fs %7.3fs %7.1f%%\n",
             $row['shape'],
             $row['tests'],
             $row['tool'],
+            $row['executionMode'],
             \count($row['samplesSeconds']),
             $row['firstQuartile'],
             $row['median'],
@@ -599,7 +728,8 @@ function benchmarkReport(array $options, array $results, string $root, array $co
  *   platform: string,
  *   sourceRevision: non-empty-string|null,
  *   sourceTreeDirty: bool|null,
- *   measurementExtensions: list<string>
+ *   measurementExtensions: list<string>,
+ *   phpSettings: array<string, string|false>
  * }
  */
 function benchmarkEnvironment(string $root): array
@@ -615,6 +745,7 @@ function benchmarkEnvironment(string $root): array
         : null;
     $statusOutput = [];
     \exec(\sprintf('git -C %s status --porcelain --untracked-files=no 2>/dev/null', \escapeshellarg($root)), $statusOutput, $statusExit);
+    $settings = ['opcache.enable_cli', 'opcache.jit', 'opcache.jit_buffer_size', 'xdebug.mode', 'pcov.enabled'];
 
     return [
         'measuredAtUtc' => \gmdate('c'),
@@ -624,6 +755,10 @@ function benchmarkEnvironment(string $root): array
         'sourceRevision' => $revision,
         'sourceTreeDirty' => $statusExit === 0 ? $statusOutput !== [] : null,
         'measurementExtensions' => $extensions,
+        'phpSettings' => \array_combine(
+            $settings,
+            \array_map(\ini_get(...), $settings),
+        ),
     ];
 }
 
@@ -636,10 +771,14 @@ function benchmarkGenerateShape(string $shape, int $scale, string $project): int
     }
 
     $tests = match ($shape) {
+        // Measures complete command costs with one trivial test.
+        'minimal' => \benchmarkWriteClasses($project, 'Minimal', 1, 1),
         // Measures discovery and event costs with many classes and trivial bodies.
         'many-fast' => \benchmarkWriteClasses($project, 'ManyFast', 40 * $scale, 5),
         // Measures scheduler costs with a small number of classes that sleep.
         'few-slow' => \benchmarkWriteClasses($project, 'FewSlow', 8, 4, sleepMicros: 25_000),
+        // Measures parallel execution of fixed CPU work without sleeps.
+        'cpu-bound' => \benchmarkWriteClasses($project, 'CpuBound', 4 * $scale, 2, cpuIterations: 1_000_000),
         // Measures the indivisible-class limit with one class and many data rows.
         'giant-dataset' => \benchmarkWriteGiantDataSet($project, 100 * $scale),
         'mixed' => \benchmarkWriteClasses($project, 'MixedFast', 20 * $scale, 5)
@@ -759,7 +898,14 @@ function benchmarkWriteClasses(
     string $attribute = '',
     int $diagnostics = 0,
     int $statements = 0,
+    int $cpuIterations = 0,
 ): int {
+    $expectedCpuValue = 0;
+
+    for ($iteration = 0; $iteration < $cpuIterations; ++$iteration) {
+        $expectedCpuValue = ($expectedCpuValue + $iteration) % 65_521;
+    }
+
     for ($i = 0; $i < $classes; ++$i) {
         $name = \sprintf('%s%04dTest', $prefix, $i);
         $glBody = '';
@@ -784,7 +930,19 @@ function benchmarkWriteClasses(
                 $work .= $diagnosticWork;
             }
 
-            if ($statements > 0) {
+            if ($cpuIterations > 0) {
+                $work .= \sprintf(<<<'PHP'
+                    $value = 0;
+
+                    for ($iteration = 0; $iteration < %d; ++$iteration) {
+                        $value = ($value + $iteration) %% 65_521;
+                    }
+
+                    PHP, $cpuIterations);
+                $glExpectation = \sprintf('Expect::value($value)->toBe(%d);', $expectedCpuValue);
+                $puExpectation = \sprintf('$this->assertSame(%d, $value);', $expectedCpuValue);
+                $pestExpectation = \sprintf('expect($value)->toBe(%d);', $expectedCpuValue);
+            } elseif ($statements > 0) {
                 $work .= \sprintf("\$value = %d;\n        ", $m);
 
                 for ($statement = 0; $statement < $statements; ++$statement) {
