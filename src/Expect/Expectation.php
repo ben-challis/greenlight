@@ -64,6 +64,9 @@ class Expectation
     }
 
     /**
+     * Sets a reason for all subsequent matchers in the chain.
+     * Another `because()` call replaces the reason.
+     *
      * @param non-empty-string $reason
      *
      * @throws ExpectationFailed
@@ -116,7 +119,6 @@ class Expectation
         }
 
         $this->negated = false;
-        $this->reason = null;
 
         ExpectationCall::forImmediate($name, $arguments)->invoke($this->evaluation);
 

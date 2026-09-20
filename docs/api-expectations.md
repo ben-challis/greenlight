@@ -37,6 +37,9 @@ PHPDoc:
 
 ### `because()`
 
+Sets a reason for all subsequent matchers in the chain.
+Another `because()` call replaces the reason.
+
 ```php
 public function because(string $reason): self
 ```
@@ -47,7 +50,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L53)
 
 ### `toReturn()`
 
@@ -62,7 +65,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L65)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L68)
 
 ### `returnValue()`
 
@@ -77,7 +80,7 @@ PHPDoc:
 - `@return ReturnValueExpectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L79)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L82)
 
 ### `toThrow()`
 
@@ -99,7 +102,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L109)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L111)
 
 ### `eventually()`
 
@@ -112,7 +115,7 @@ PHPDoc:
 - `@return PendingEventuallyCall<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L137)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L138)
 
 ### `consistently()`
 
@@ -631,8 +634,8 @@ final public function not(): static
 
 ### `because()`
 
-Sets a reason for the next matcher. The next matcher consumes the
-reason.
+Sets a reason for all subsequent matchers in the chain.
+Another `because()` call replaces the reason.
 
 If the matcher fails, the failure message ends with "because" and the
 reason. An empty reason causes a usage failure.
@@ -663,7 +666,7 @@ PHPDoc:
 - `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L88)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L98)
 
 ## `EventuallyExpectation`
 
@@ -1169,8 +1172,8 @@ final public function not(): static
 
 ### `because()`
 
-Sets a reason for the next matcher. The next matcher consumes the
-reason.
+Sets a reason for all subsequent matchers in the chain.
+Another `because()` call replaces the reason.
 
 If the matcher fails, the failure message ends with "because" and the
 reason. An empty reason causes a usage failure.
@@ -1201,7 +1204,7 @@ PHPDoc:
 - `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L88)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L98)
 
 ## `Expect`
 
@@ -1773,6 +1776,9 @@ public function not(): static
 
 ### `because()`
 
+Sets a reason for all subsequent matchers in the chain.
+Another `because()` call replaces the reason.
+
 ```php
 public function because(string $reason): static
 ```
@@ -1782,7 +1788,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L71)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L74)
 
 ### `__call()`
 
@@ -1797,7 +1803,7 @@ PHPDoc:
 - `@throws \BadMethodCallException`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L88)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L91)
 
 ## `ExpectationBuilder`
 
@@ -2729,6 +2735,9 @@ public function not(): static
 
 ### `because()`
 
+Sets a reason for all subsequent matchers in the chain.
+Another `because()` call replaces the reason.
+
 ```php
 public function because(string $reason): static
 ```
@@ -2738,7 +2747,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L71)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L74)
 
 ### `__call()`
 
@@ -2753,7 +2762,7 @@ PHPDoc:
 - `@throws \BadMethodCallException`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L88)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L91)
 
 ### `eventually()`
 
@@ -2779,7 +2788,7 @@ PHPDoc:
 - `@return PendingConsistently<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ReturnValueExpectation.php#L67)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ReturnValueExpectation.php#L66)
 
 ## `TemporalCallExpectation`
 
@@ -3358,8 +3367,8 @@ final public function not(): static
 
 ### `because()`
 
-Sets a reason for the next matcher. The next matcher consumes the
-reason.
+Sets a reason for all subsequent matchers in the chain.
+Another `because()` call replaces the reason.
 
 If the matcher fails, the failure message ends with "because" and the
 reason. An empty reason causes a usage failure.
@@ -3390,4 +3399,4 @@ PHPDoc:
 - `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L88)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L98)

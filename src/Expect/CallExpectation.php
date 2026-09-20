@@ -41,6 +41,9 @@ final class CallExpectation
     }
 
     /**
+     * Sets a reason for all subsequent matchers in the chain.
+     * Another `because()` call replaces the reason.
+     *
      * @param non-empty-string $reason
      *
      * @return self<T>
@@ -89,7 +92,6 @@ final class CallExpectation
         }
 
         $this->negated = false;
-        $this->reason = null;
 
         return $value;
     }
@@ -122,7 +124,6 @@ final class CallExpectation
         }
 
         $this->negated = false;
-        $this->reason = null;
 
         $evaluation->toThrow($throwable, $matching, $message);
 
@@ -147,7 +148,6 @@ final class CallExpectation
         }
 
         $this->negated = false;
-        $this->reason = null;
 
         return $pending;
     }
@@ -170,7 +170,6 @@ final class CallExpectation
         }
 
         $this->negated = false;
-        $this->reason = null;
 
         return $pending;
     }

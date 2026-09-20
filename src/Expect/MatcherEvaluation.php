@@ -108,8 +108,8 @@ final class MatcherEvaluation
     }
 
     /**
-     * Sets a reason for the next matcher in the chain. The next matcher
-     * consumes the reason.
+     * Sets a reason for all subsequent matchers in the chain.
+     * Another `because()` call replaces the reason.
      *
      * If the matcher fails, the failure message ends with "because" and the
      * reason. An empty reason causes a usage failure.
@@ -866,7 +866,6 @@ final class MatcherEvaluation
             } catch (ExpectationFailed $failure) {
                 if (!$this->negated) {
                     $this->negated = false;
-                    $this->reason = null;
 
                     throw $failure;
                 }
@@ -929,7 +928,6 @@ final class MatcherEvaluation
         $negated = $this->negated;
         $this->negated = false;
         $reason = $this->reason;
-        $this->reason = null;
 
         if ($negated ? !$matched : $matched) {
             return $this;
@@ -1000,7 +998,6 @@ final class MatcherEvaluation
     private function usageFailure(string $message): never
     {
         $this->negated = false;
-        $this->reason = null;
 
         throw ExpectationFailed::fromDetail(new FailureDetail(
             $message,

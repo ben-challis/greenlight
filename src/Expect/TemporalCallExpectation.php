@@ -54,7 +54,7 @@ final readonly class TemporalCallExpectation
     {
         $result = $this->temporal->evaluate('toReturn', [$expected]);
 
-        return new CallExpectation($result->subject, $this->renderer, $this->extensions);
+        return $this->continueWith($result->subject);
     }
 
     /**
@@ -73,6 +73,25 @@ final readonly class TemporalCallExpectation
     ): CallExpectation {
         $result = $this->temporal->evaluate('toThrow', [$throwable, $matching, $message]);
 
-        return new CallExpectation($result->subject, $this->renderer, $this->extensions);
+        return $this->continueWith($result->subject);
+    }
+
+    /**
+     * @param \Closure(): T $call
+     *
+     * @return CallExpectation<T>
+     *
+     * @throws ExpectationFailed
+     */
+    private function continueWith(\Closure $call): CallExpectation
+    {
+        $expectation = new CallExpectation($call, $this->renderer, $this->extensions);
+        $reason = $this->temporal->reason();
+
+        if ($reason !== null) {
+            $expectation->because($reason);
+        }
+
+        return $expectation;
     }
 }
