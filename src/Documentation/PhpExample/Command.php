@@ -11,6 +11,9 @@ namespace Greenlight\Documentation\PhpExample;
  */
 final readonly class Command
 {
+    /** @codeCoverageIgnore */
+    private function __construct() {}
+
     /**
      * @param list<string> $arguments
      */
