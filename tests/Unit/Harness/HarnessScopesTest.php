@@ -283,8 +283,8 @@ final class HarnessScopesTest
 
         expect($error)
             ->because('a resolver failure MUST expose the public service resolution failure contract')
-            ->toBeInstanceOf(ServiceResolutionFailed::class);
-        expect($error)->toBe($failure);
+            ->toBeInstanceOf(ServiceResolutionFailed::class)
+            ->toBe($failure);
         expect($later->consulted)
             ->because('Greenlight MUST NOT call a resolver after a failure')
             ->toBeFalse();

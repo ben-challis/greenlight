@@ -55,11 +55,14 @@ final readonly class PolicyTest
         $output = $result->output();
         $riskyBlock = \substr($output, (int) \strpos($output, 'Risky tests:'));
         expect($result->exitCode)->because('risky tests warn by default and fail under the flag')->toBe(0);
-        expect($riskyBlock)->toContain('Risky tests: 1');
-        expect($riskyBlock)->toContain('These tests passed without a verified expectation.')
+        expect($riskyBlock)
+            ->toContain('Risky tests: 1')
+            ->toContain('These tests passed without a verified expectation.')
             ->toContain('RiskyProbeTest::assertsNothing')
-            ->not()->toContain('optedOut')
-            ->not()->toContain('mocksOnly');
+            ->not()
+            ->toContain('optedOut')
+            ->not()
+            ->toContain('mocksOnly');
 
         // Only the mock verification adds to the count. Tests without an
         // expectation add nothing.

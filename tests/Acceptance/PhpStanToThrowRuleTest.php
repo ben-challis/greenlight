@@ -156,13 +156,14 @@ final readonly class PhpStanToThrowRuleTest
         expect($probe->exitCode)->because('pattern and exact message constraints are mutually exclusive')->toBe(1);
         expect($probe->goodPassed)->toBeTrue();
         expect(\count($probe->errors))->toBe(10);
-        expect($probe->messages())->toContain('toThrow() accepts either matching: or message:, not both');
-        expect($probe->messages())->toContain(
-            'Do not specify matching: or message: when the throwable is a callback.',
-        );
-        expect($probe->messages())->toContain(
-            'Do not specify matching: or message: when the throwable argument is a Throwable instance.',
-        );
+        expect($probe->messages())
+            ->toContain('toThrow() accepts either matching: or message:, not both')
+            ->toContain(
+                'Do not specify matching: or message: when the throwable is a callback.',
+            )
+            ->toContain(
+                'Do not specify matching: or message: when the throwable argument is a Throwable instance.',
+            );
     }
 
     #[Test]
@@ -241,14 +242,15 @@ final readonly class PhpStanToThrowRuleTest
         expect($probe->exitCode)->toBe(1);
         expect($probe->goodPassed)->toBeTrue();
         expect(\count($probe->errors))->toBe(7);
-        expect($probe->messages())->toContain(
-            'Give the throwable callback for toThrow() one typed Throwable argument.',
-        );
-        expect($probe->messages())->toContain(
-            'Declare one named, non-null Throwable parameter type for the toThrow() callback.',
-        );
-        expect($probe->messages())->toContain(
-            'Parameter #1 $throwable of method Greenlight\\Expect\\CallExpectation<',
-        );
+        expect($probe->messages())
+            ->toContain(
+                'Give the throwable callback for toThrow() one typed Throwable argument.',
+            )
+            ->toContain(
+                'Declare one named, non-null Throwable parameter type for the toThrow() callback.',
+            )
+            ->toContain(
+                'Parameter #1 $throwable of method Greenlight\\Expect\\CallExpectation<',
+            );
     }
 }

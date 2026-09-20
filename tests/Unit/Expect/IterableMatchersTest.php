@@ -236,8 +236,11 @@ final class IterableMatchersTest
     #[Test]
     public function toBeInPasses(): void
     {
-        expect(2)->because('toBeIn() passes')->toBeIn([1, 2, 3]);
-        expect(2)->because('toBeIn() passes')->toBeIn($this->numbers());
+        expect(2)
+            ->because('toBeIn() passes')
+            ->toBeIn([1, 2, 3])
+            ->because('toBeIn() passes')
+            ->toBeIn($this->numbers());
     }
 
     #[Test]
@@ -270,8 +273,11 @@ final class IterableMatchersTest
     #[Test]
     public function toContainSubsetPasses(): void
     {
-        expect(['a' => 1, 'b' => 2])->because('toContainSubset() passes')->toContainSubset(['a' => 1]);
-        expect(['a' => 1, 'b' => 2])->because('toContainSubset() passes')->toContainSubset([]);
+        expect(['a' => 1, 'b' => 2])
+            ->because('toContainSubset() passes')
+            ->toContainSubset(['a' => 1])
+            ->because('toContainSubset() passes')
+            ->toContainSubset([]);
     }
 
     #[Test]
@@ -332,8 +338,13 @@ final class IterableMatchersTest
     #[Test]
     public function notToContainSubset(): void
     {
-        expect(['a' => 1])->because('not()->toContain() subset')->not()->toContainSubset(['a' => 2]);
-        expect(['a' => 1])->because('not()->toContain() subset')->not()->toContainSubset(['b' => 1]);
+        expect(['a' => 1])
+            ->because('not()->toContain() subset')
+            ->not()
+            ->toContainSubset(['a' => 2])
+            ->because('not()->toContain() subset')
+            ->not()
+            ->toContainSubset(['b' => 1]);
     }
 
     #[Test]

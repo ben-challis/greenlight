@@ -87,11 +87,12 @@ final readonly class PhpStanDoublePlanResultRuleTest
             ->because('PHPStan messages: ' . $probe->messages())
             ->toBeTrue();
         expect(\count($probe->errors))->toBe(9);
-        expect($probe->messages())->toContain('times(-1) requires a count of zero or more');
-        expect($probe->messages())->toContain('atLeast(0) requires a count of one or more');
-        expect($probe->messages())->toContain('andReturnsSequence() on InvalidResultPlan::add() requires at least one value');
-        expect($probe->messages())->toContain('andReturns() value #1 for InvalidResultPlan::add() has type string, but the method returns int');
-        expect($probe->messages())->toContain('andReturnsUsing() answer for InvalidResultPlan::add()');
-        expect($probe->messages())->toContain('captureArgument(2) for InvalidResultPlan::add() requires a position from zero to 1');
+        expect($probe->messages())
+            ->toContain('times(-1) requires a count of zero or more')
+            ->toContain('atLeast(0) requires a count of one or more')
+            ->toContain('andReturnsSequence() on InvalidResultPlan::add() requires at least one value')
+            ->toContain('andReturns() value #1 for InvalidResultPlan::add() has type string, but the method returns int')
+            ->toContain('andReturnsUsing() answer for InvalidResultPlan::add()')
+            ->toContain('captureArgument(2) for InvalidResultPlan::add() requires a position from zero to 1');
     }
 }

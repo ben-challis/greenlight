@@ -60,7 +60,8 @@ final readonly class PhpStanNativeExpectationTypesTest
         expect($probe->goodErrors)->toBe([]);
         expect($probe->exitCode)->toBe(1);
         expect($probe->errors)->toHaveCount(7);
-        expect($probe->messages())->toContain('undefined method');
-        expect($probe->messages())->toContain('expects callable():');
+        expect($probe->messages())
+            ->toContain('undefined method')
+            ->toContain('expects callable():');
     }
 }

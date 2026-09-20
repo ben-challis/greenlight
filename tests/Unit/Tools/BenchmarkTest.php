@@ -171,14 +171,17 @@ final readonly class BenchmarkTest
     {
         $configurations = \benchmarkConfigurations('many-fast', '/tmp/project', '/tmp/root', 4, true);
 
-        expect($configurations)->toHaveKey('pest');
-        expect($configurations)->toHaveKey('pest-parallel');
+        expect($configurations)
+            ->toHaveKey('pest')
+            ->toHaveKey('pest-parallel');
         expect($configurations['phpunit']['command'])->toContain('--cache-directory=.benchmark-cache/phpunit');
         expect($configurations['paratest']['command'])->toContain('--cache-directory=.benchmark-cache/paratest');
-        expect($configurations['pest']['command'])->toContain('--configuration=pest.xml');
-        expect($configurations['pest']['command'])->toContain('--cache-directory=.benchmark-cache/pest');
-        expect($configurations['pest-parallel']['command'])->toContain('--parallel --processes=4');
-        expect($configurations['pest-parallel']['command'])->toContain('--cache-directory=.benchmark-cache/pest-parallel');
+        expect($configurations['pest']['command'])
+            ->toContain('--configuration=pest.xml')
+            ->toContain('--cache-directory=.benchmark-cache/pest');
+        expect($configurations['pest-parallel']['command'])
+            ->toContain('--parallel --processes=4')
+            ->toContain('--cache-directory=.benchmark-cache/pest-parallel');
     }
 
     #[Test]
@@ -253,13 +256,15 @@ final readonly class BenchmarkTest
         }
 
         expect($report['results'] ?? null)->toBe($rows);
-        expect($json)->toContain('"schemaVersion": 1');
-        expect($json)->toContain('"schedules":');
-        expect($json)->toContain('unbalanced sample order');
-        expect($json)->toContain('does not provide process isolation');
-        expect($table)->toContain('execution mode');
-        expect($table)->toContain('fresh-process-per-test');
-        expect($table)->toContain('JSON report: ' . $path);
+        expect($json)
+            ->toContain('"schemaVersion": 1')
+            ->toContain('"schedules":')
+            ->toContain('unbalanced sample order')
+            ->toContain('does not provide process isolation');
+        expect($table)
+            ->toContain('execution mode')
+            ->toContain('fresh-process-per-test')
+            ->toContain('JSON report: ' . $path);
     }
 
     #[Test]

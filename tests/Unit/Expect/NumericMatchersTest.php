@@ -60,8 +60,11 @@ final class NumericMatchersTest
     #[Test]
     public function toBeGreaterThanOrEqualPasses(): void
     {
-        expect(3)->because('toBeGreaterThanOrEqual() passes')->toBeGreaterThanOrEqual(2);
-        expect(3)->because('toBeGreaterThanOrEqual() passes')->toBeGreaterThanOrEqual(3);
+        expect(3)
+            ->because('toBeGreaterThanOrEqual() passes')
+            ->toBeGreaterThanOrEqual(2)
+            ->because('toBeGreaterThanOrEqual() passes')
+            ->toBeGreaterThanOrEqual(3);
         expect(2.5)->because('toBeGreaterThanOrEqual() passes')->toBeGreaterThanOrEqual(2.5);
     }
 

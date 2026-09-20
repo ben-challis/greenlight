@@ -66,8 +66,9 @@ final readonly class SuccessfulResultRetentionTest
 
         $reporter->finish();
 
-        expect($output->buffer())->toContain('artifacts/response.json');
-        expect($output->buffer())->toContain($outcome === Outcome::Skipped
+        expect($output->buffer())
+            ->toContain('artifacts/response.json')
+            ->toContain($outcome === Outcome::Skipped
             ? 'ExampleTest::example (Example skip reason.)'
             : 'ExampleTest::example (2 attempts)');
     }

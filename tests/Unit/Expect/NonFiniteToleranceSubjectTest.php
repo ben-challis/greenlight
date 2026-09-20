@@ -23,8 +23,9 @@ final class NonFiniteToleranceSubjectTest
     {
         expect(\PHP_FLOAT_MAX)->toBeWithin(\PHP_FLOAT_MAX, \PHP_FLOAT_MAX);
         expect(-\PHP_FLOAT_MAX)->toBeWithin(\PHP_FLOAT_MAX, -\PHP_FLOAT_MAX);
-        expect(0.0)->toBeWithin(\PHP_FLOAT_MAX, \PHP_FLOAT_MAX);
-        expect(0.0)->toBeWithin(\PHP_FLOAT_MAX, -\PHP_FLOAT_MAX);
+        expect(0.0)
+            ->toBeWithin(\PHP_FLOAT_MAX, \PHP_FLOAT_MAX)
+            ->toBeWithin(\PHP_FLOAT_MAX, -\PHP_FLOAT_MAX);
     }
 
     /** @return iterable<string, array{float, float, float}> */

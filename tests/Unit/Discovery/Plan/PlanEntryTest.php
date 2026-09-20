@@ -31,11 +31,9 @@ final readonly class PlanEntryTest
 
         expect($payload)
             ->because('the plan wire payload MUST not repeat declaration identity')
-            ->toHaveKey('definition');
-        expect($payload)
+            ->toHaveKey('definition')
             ->because('the plan wire payload MUST include data-set identity')
-            ->toHaveKey('dataSetKey');
-        expect($payload)
+            ->toHaveKey('dataSetKey')
             ->because('the plan wire payload MUST not include a derived test ID')
             ->not()
             ->toHaveKey('id');

@@ -35,9 +35,10 @@ final readonly class Psr4ViolationTest
         expect()->calling($this->discoverFixture('DiscoveryPsr4Violation'))
             ->because('wrong namespace produces a typed error naming file and class')
             ->toThrow(static function (DiscoveryError $error): void {
-                expect($error->getMessage())->toContain('The autoloader cannot load class');
-                expect($error->getMessage())->toContain(MismatchTest::class);
-                expect($error->getMessage())->toContain('MismatchTest.php');
+                expect($error->getMessage())
+                    ->toContain('The autoloader cannot load class')
+                    ->toContain(MismatchTest::class)
+                    ->toContain('MismatchTest.php');
             });
     }
 
@@ -47,8 +48,9 @@ final readonly class Psr4ViolationTest
         expect()->calling($this->discoverFixture('DiscoveryClassNameMismatch'))
             ->because('class name not matching file name produces a typed error')
             ->toThrow(static function (DiscoveryError $error): void {
-                expect($error->getMessage())->toContain('SomethingElseTest');
-                expect($error->getMessage())->toContain('WrongNameTest');
+                expect($error->getMessage())
+                    ->toContain('SomethingElseTest')
+                    ->toContain('WrongNameTest');
             });
     }
 
@@ -58,8 +60,9 @@ final readonly class Psr4ViolationTest
         expect()->calling($this->discoverFixture('DiscoveryNoClass'))
             ->because('a file without a declaration produces a typed error')
             ->toThrow(static function (DiscoveryError $error): void {
-                expect($error->getMessage())->toContain('does not declare a class');
-                expect($error->getMessage())->toContain('NothingHereTest.php');
+                expect($error->getMessage())
+                    ->toContain('does not declare a class')
+                    ->toContain('NothingHereTest.php');
             });
     }
 

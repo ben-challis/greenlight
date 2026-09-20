@@ -128,15 +128,17 @@ final readonly class PhpStanExpectationArgumentRuleTest
         expect($probe->exitCode)->because('constant expectation arguments must satisfy runtime constraints')->toBe(1);
         expect($probe->goodPassed)->toBeTrue();
         expect(\count($probe->errors))->toBe(11);
-        expect($probe->messages())->toContain('Regular expression "/[/" for toMatch() is invalid');
-        expect($probe->messages())->toContain('toMatchJson() requires valid expected JSON');
-        expect($probe->messages())->toContain('within() requires a finite duration greater than 0.000 seconds');
+        expect($probe->messages())
+            ->toContain('Regular expression "/[/" for toMatch() is invalid')
+            ->toContain('toMatchJson() requires valid expected JSON')
+            ->toContain('within() requires a finite duration greater than 0.000 seconds');
 
         $probe = $probes['tolerance and reason arguments'];
         expect($probe->exitCode)->because('constant tolerances and reasons must satisfy runtime constraints')->toBe(1);
         expect($probe->goodPassed)->toBeTrue();
         expect(\count($probe->errors))->toBe(8);
-        expect($probe->messages())->toContain('toBeWithin() requires a finite tolerance of zero or more');
-        expect($probe->messages())->toContain('because() requires a non-empty reason');
+        expect($probe->messages())
+            ->toContain('toBeWithin() requires a finite tolerance of zero or more')
+            ->toContain('because() requires a non-empty reason');
     }
 }

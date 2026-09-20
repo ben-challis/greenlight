@@ -117,11 +117,12 @@ final readonly class PhpStanConfigurationBuilderTypeTest
             ->toBe(1);
         expect($probe->goodPassed)->toBeTrue();
         expect(\count($probe->errors))->toBe(29);
-        expect($probe->messages())->toContain('Minimum coverage percentage must be from 0 through 100.');
-        expect($probe->messages())->toContain('Minimum coverage percentage can have at most two decimal places.');
-        expect($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::workers() expects');
-        expect($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::randomizeOrder() expects');
-        expect($probe->messages())->toContain('Greenlight\Config\ArtifactBuilder::maxRunAttachments() expects');
-        expect($probe->messages())->toContain('Greenlight\Config\StorageBuilder::temporaryDirectory() expects');
+        expect($probe->messages())
+            ->toContain('Minimum coverage percentage must be from 0 through 100.')
+            ->toContain('Minimum coverage percentage can have at most two decimal places.')
+            ->toContain('Greenlight\Config\GreenlightConfig::workers() expects')
+            ->toContain('Greenlight\Config\GreenlightConfig::randomizeOrder() expects')
+            ->toContain('Greenlight\Config\ArtifactBuilder::maxRunAttachments() expects')
+            ->toContain('Greenlight\Config\StorageBuilder::temporaryDirectory() expects');
     }
 }

@@ -58,8 +58,11 @@ final class StringMatchersTest
     #[Test]
     public function toStartWithPasses(): void
     {
-        expect('greenlight')->because('toStartWith() passes')->toStartWith('green');
-        expect('greenlight')->because('toStartWith() passes')->toStartWith('');
+        expect('greenlight')
+            ->because('toStartWith() passes')
+            ->toStartWith('green')
+            ->because('toStartWith() passes')
+            ->toStartWith('');
     }
 
     #[Test]

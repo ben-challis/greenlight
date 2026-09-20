@@ -80,8 +80,9 @@ final readonly class PhpStanArgumentMatcherTypeTest
         expect($probe->exitCode)->because('PHPStan MUST preserve known argument matcher types')->toBe(1);
         expect($probe->goodPassed)->because('PHPStan messages: ' . $probe->messages())->toBeTrue();
         expect(\count($probe->errors))->toBe(2);
-        expect($probe->messages())->toContain('ArgumentMatcher<int>');
-        expect($probe->messages())->toContain('ArgumentMatcher<mixed>');
+        expect($probe->messages())
+            ->toContain('ArgumentMatcher<int>')
+            ->toContain('ArgumentMatcher<mixed>');
     }
 
     #[Test]

@@ -89,8 +89,7 @@ final class PlanFormatterTest
 
         expect($formatted)
             ->because('the plan names the one resolved seed and configured plugins')
-            ->toContain('  order: random (seed ');
-        expect($formatted)
+            ->toContain('  order: random (seed ')
             ->toContain('  plugins: ' . NamedFakePlugin::class);
     }
 

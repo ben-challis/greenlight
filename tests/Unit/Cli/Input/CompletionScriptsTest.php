@@ -86,14 +86,12 @@ final class CompletionScriptsTest
 
         expect($scripts->render('bash'))
             ->because('Bash MUST complete the automatic worker count for the workers flag')
-            ->toContain('--workers=*)');
-        expect($scripts->render('bash'))
+            ->toContain('--workers=*)')
             ->toContain('compgen -W "auto" -P "--workers="');
 
         expect($scripts->render('zsh'))
             ->because('Zsh MUST complete the automatic worker count for the workers flag')
-            ->toContain("compset -P '--workers='");
-        expect($scripts->render('zsh'))
+            ->toContain("compset -P '--workers='")
             ->toContain('compadd -- auto');
 
         expect($scripts->render('fish'))

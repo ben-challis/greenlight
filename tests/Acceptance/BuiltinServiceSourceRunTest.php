@@ -68,7 +68,8 @@ final readonly class BuiltinServiceSourceRunTest
         expect($result->exitCode)
             ->because($output === '' ? 'The built-in source run returned no output.' : $output)
             ->toBe(1);
-        expect($output)->toContain('1 test, 0 passed, 1 errored');
-        expect($output)->toContain('source "' . $source . '"');
+        expect($output)
+            ->toContain('1 test, 0 passed, 1 errored')
+            ->toContain('source "' . $source . '"');
     }
 }

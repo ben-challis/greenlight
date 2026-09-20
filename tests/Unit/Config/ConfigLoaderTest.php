@@ -100,8 +100,8 @@ final class ConfigLoaderTest
             ->toThrow(
                 static function (ConfigFileError $error): void {
                     expect($error->getMessage())
-                        ->toContain('must return a Greenlight\Config\GreenlightConfig instance');
-                    expect($error->getMessage())->toContain('returned string');
+                        ->toContain('must return a Greenlight\Config\GreenlightConfig instance')
+                        ->toContain('returned string');
                 },
             );
     }
@@ -112,8 +112,9 @@ final class ConfigLoaderTest
         expect()->calling(static fn(): GreenlightConfig => new ConfigLoader()->loadFromDirectory(self::fixtureDir('Throwing')))
             ->toThrow(
                 static function (ConfigFileError $error): void {
-                    expect($error->getMessage())->toContain('config exploded');
-                    expect($error->getMessage())->toContain('RuntimeException');
+                    expect($error->getMessage())
+                        ->toContain('config exploded')
+                        ->toContain('RuntimeException');
                     expect($error->getPrevious())->toBeInstanceOf(\RuntimeException::class);
                     expect($error->getPrevious()->getMessage())->toBe('config exploded');
                 },

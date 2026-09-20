@@ -41,10 +41,15 @@ final class JsonContainerShapeTest
     #[Test]
     public function validNullCharacterKeysRetainTheirNamesAndContainerShapes(): void
     {
-        expect('{"\u0000name":{}}')->toMatchJson('{"\u0000name":{}}');
-        expect('{"\u0000name":{}}')->not()->toMatchJson('{"\u0000name":[]}');
-        expect('{"\u0000name":1}')->not()->toMatchJson('{"name":1}');
-        expect('{"\u0000name":1}')->not()->toMatchJson('{"_\u0000name":1}');
+        expect('{"\u0000name":{}}')
+            ->toMatchJson('{"\u0000name":{}}')
+            ->not()
+            ->toMatchJson('{"\u0000name":[]}');
+        expect('{"\u0000name":1}')
+            ->not()
+            ->toMatchJson('{"name":1}')
+            ->not()
+            ->toMatchJson('{"_\u0000name":1}');
     }
 
     #[Test]
