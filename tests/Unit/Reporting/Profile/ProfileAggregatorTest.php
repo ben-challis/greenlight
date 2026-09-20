@@ -13,10 +13,11 @@ use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\WorkerSpawned;
 use Greenlight\Event\WorkerTiming;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Profile\ProfileAggregator;
 use Greenlight\Reporting\Style;
 use Greenlight\Result\ResultSummary;
+
+use function Greenlight\expect;
 
 final class ProfileAggregatorTest
 {
@@ -47,7 +48,7 @@ final class ProfileAggregatorTest
 
             TEXT;
 
-        Expect::that($aggregator->render(new Style(ansi: false)))->because('derives worker statistics, boot latency, and spread from a canned stream')->toBe($expected);
+        expect($aggregator->render(new Style(ansi: false)))->because('derives worker statistics, boot latency, and spread from a canned stream')->toBe($expected);
     }
 
     #[Test]
@@ -71,7 +72,7 @@ final class ProfileAggregatorTest
 
         $rendered = $aggregator->render(new Style(ansi: false));
 
-        Expect::that($rendered)->because('slowest durations right align across widths')->toContain("    12.000s  Acme\\SlowTest\n")
+        expect($rendered)->because('slowest durations right align across widths')->toContain("    12.000s  Acme\\SlowTest\n")
             ->toContain("     1.000s  Acme\\QuickTest\n");
     }
 
@@ -97,7 +98,7 @@ final class ProfileAggregatorTest
 
         $rendered = $aggregator->render(new Style(ansi: false));
 
-        Expect::that($rendered)
+        expect($rendered)
             ->because('detailed timing MUST split worker startup and attribute orchestrator-visible idle time')
             ->toContain("  Startup phases:\n")
             ->toContain("    Spawn to hello: 0.200s average (2 workers)\n")
@@ -108,8 +109,7 @@ final class ProfileAggregatorTest
             ->toContain("    Resource capacity: 1.000s total\n")
             ->toContain("    No queued work: 0.200s total\n")
             ->toContain("  Retirement request to exit observed: 0.200s average (2 workers)\n")
-            ->not()
-            ->toContain('Boot latency:');
+            ->not()->toContain('Boot latency:');
     }
 
     #[Test]
@@ -123,7 +123,7 @@ final class ProfileAggregatorTest
 
         $rendered = $aggregator->render(new Style(ansi: true));
 
-        Expect::that($rendered)->because('utilization bands and slow durations color with ANSI')
+        expect($rendered)->because('utilization bands and slow durations color with ANSI')
             ->toContain("3.500s   \x1b[33m78%\x1b[0m\n")
             ->toContain("1.000s   \x1b[31m50%\x1b[0m\n")
             ->toContain("\x1b[33m2.500s\x1b[0m  Acme\AlphaTest");
@@ -149,7 +149,7 @@ final class ProfileAggregatorTest
             $aggregator->onEvent($event);
         }
 
-        Expect::that($aggregator->render(new Style(ansi: false)))
+        expect($aggregator->render(new Style(ansi: false)))
             ->because('isolated workers MUST be distinct from worker pool processes')
             ->toContain("Workers: 2 requested, 2 spawned, 1 isolated\n")
             ->toContain("  Worker  Classes    Busy  Util  Isolated\n")
@@ -174,7 +174,7 @@ final class ProfileAggregatorTest
             $aggregator->onEvent($event);
         }
 
-        Expect::that($aggregator->render(new Style(ansi: true)))->because('fully busy workers color green')
+        expect($aggregator->render(new Style(ansi: true)))->because('fully busy workers color green')
             ->toContain("0.500s  \x1b[32m100%\x1b[0m\n");
     }
 
@@ -197,7 +197,7 @@ final class ProfileAggregatorTest
             $aggregator->onEvent($event);
         }
 
-        Expect::that($aggregator->render(new Style(ansi: true)))
+        expect($aggregator->render(new Style(ansi: true)))
             ->because('90 percent is the first green utilization value')
             ->toContain("0.900s   \x1b[32m90%\x1b[0m\n")
             ->because('70 percent is the first yellow utilization value')
@@ -210,7 +210,7 @@ final class ProfileAggregatorTest
         $aggregator = new ProfileAggregator();
         $aggregator->onEvent(new WorkerSpawned('w-1', 11, 100.0));
 
-        Expect::that($aggregator->render(new Style(ansi: false)))->because('without a finished run nothing renders')->toBe('');
+        expect($aggregator->render(new Style(ansi: false)))->because('without a finished run nothing renders')->toBe('');
     }
 
     #[Test]
@@ -230,14 +230,12 @@ final class ProfileAggregatorTest
             $aggregator->onEvent($event);
         }
 
-        Expect::that($aggregator->render(new Style(ansi: false)))
+        expect($aggregator->render(new Style(ansi: false)))
             ->because('the summary counts every spawned worker')
-            ->toContain('Workers: 2 requested, 2 spawned');
-        Expect::that($aggregator->render(new Style(ansi: false)))
+            ->toContain('Workers: 2 requested, 2 spawned')
             ->because('an idle worker has no class statistics to report')
             ->toContain("\n  active        1  0.500s")
-            ->not()
-            ->toContain("\n  idle");
+            ->not()->toContain("\n  idle");
     }
 
     /**
@@ -255,12 +253,11 @@ final class ProfileAggregatorTest
             $aggregator->onEvent($event);
         }
 
-        Expect::that($aggregator->render(new Style(ansi: false)))
+        expect($aggregator->render(new Style(ansi: false)))
             ->because('a missing worker period MUST NOT invent a utilization percentage')
             ->toContain("\n  Worker  Classes    Busy  Util\n")
             ->toContain($expectedRow . "\n")
-            ->not()
-            ->toContain('%');
+            ->not()->toContain('%');
     }
 
     /**

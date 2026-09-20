@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Sandbox\TemporaryDirectoryError;
 use Greenlight\Test\SkipTest;
+
+use function Greenlight\expect;
 
 final readonly class TemporaryDirectoryNestedRestrictionTest
 {
@@ -35,19 +36,19 @@ final readonly class TemporaryDirectoryNestedRestrictionTest
             }
 
             $warning = null;
-            Expect::that(static function () use ($directory, &$warning): void {
+            expect()->calling(static function () use ($directory, &$warning): void {
                 ErrorTrap::run(static fn() => $directory->dispose(), $warning);
             })
                 ->because('fixture cleanup MUST translate directory traversal failures')
                 ->toThrow(
                     TemporaryDirectoryError::class,
                     matching: \sprintf(
-                        '/^Failed to remove temp directory "%s": .*%s.*Permission denied\.$/',
+                        '/^Failed to remove temp directory "%s": RecursiveDirectoryIterator::__construct\((?:%s)?\): Failed to open directory: Permission denied\.$/',
                         \preg_quote($root, '/'),
                         \preg_quote($nested, '/'),
                     ),
                 );
-            Expect::that($warning)
+            expect($warning)
                 ->because('a nested traversal failure MUST not leak an engine diagnostic')
                 ->toBeNull();
         } finally {

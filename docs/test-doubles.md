@@ -30,7 +30,7 @@ final class CheckoutServiceTest
 
         $payment = new CheckoutService($gateway)->checkout(1999, 'GBP');
 
-        Expect::that($payment->id)->toBe('payment-123');
+        Expect::value($payment->id)->toBe('payment-123');
     }
 }
 ```
@@ -46,10 +46,11 @@ identifies incorrect test code. It is not an expectation failure.
   `mock(Type::class, $plan)`. An unplanned interaction fails immediately.
 * If the test needs an unused dependency, use `stub(Type::class)`. Each
   intercepted interaction fails immediately.
-* If the test must examine calls that return void, use `spy(Type::class)`. The
-  spy records an unplanned call.
+* If the test must examine calls to a method declared `void` or without a
+  native return type, use `spy(Type::class)`. The spy records an unplanned call.
 
-A call to a spy method that returns a value fails the test.
+These spy calls return `null`. A call to a spy method with any other native
+return type fails the test. PHPDoc return tags do not change this rule.
 
 ## Mock call plans
 
@@ -84,25 +85,49 @@ does not declare.
 
 ## Mock responses
 
-Each mock method that returns a value needs an explicit response:
+Each mock method with a native non-`void` return type needs an explicit
+response. A method declared `void` or without a native return type needs no
+response and returns `null`. PHPDoc return tags do not change this rule.
+
+The following examples show separate response plans.
+
+Return one value for every matched call:
 
 <!-- php-example {"example":"test-doubles-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 $plan->expects('nextId')->andReturns('id-1');
+```
 
+Return successive values for two calls:
+
+<!-- php-example {"example":"test-doubles-response-sequence","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
 $plan->expects('nextId')
     ->times(2)
     ->andReturnsSequence('id-1', 'id-2');
+```
 
+Calculate the response from the call arguments:
+
+<!-- php-example {"example":"test-doubles-response-callback","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
 $plan->expects('convert')
     ->andReturnsUsing(fn (int $value): int => $value * 2);
+```
 
+Throw an exception:
+
+<!-- php-example {"example":"test-doubles-response-throwable","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
 $plan->expects('load')
     ->andThrows(new NotFound('Missing record.'));
 ```
 
 `andReturnsSequence()` consumes one value for each call that matches. Greenlight
 reports an error if a call occurs after the sequence is empty.
+
+For a method that declares `never`, use `andThrows()`. If a configured answer
+returns, Greenlight reports an `InvalidDoubleUsage` error.
 
 ## Argument matches
 
@@ -170,23 +195,24 @@ The bundled PHPStan extension preserves the combined value type in each
 cannot match the selected method parameter. Other type names use `mixed`, as
 they do for `Argument::type()`.
 
-Use `Argument::allOf()` to apply two or more constraints to one argument:
+Use a typed predicate to apply a type constraint and a value constraint:
 
 <!-- php-example {"example":"test-doubles-example-07","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Doubles\Argument;
 
-$plan->expects('save')->with(Argument::allOf(
-    Argument::type(Order::class),
-    Argument::predicate(
-        fn (Order $order): bool => $order->isReady(),
-        'a ready order',
-    ),
+$plan->expects('save')->with(Argument::predicate(
+    fn (Order $order): bool => $order->isReady(),
+    'a ready order',
 ));
 ```
 
-Greenlight checks the matchers from left to right. Put a type matcher before a
-predicate that has a parameter of that type. `allOf()` does not accept a captor.
+The parameter type rejects an incompatible value before the predicate runs.
+Greenlight rejects the plan if this type cannot match the method parameter.
+
+Use `Argument::allOf()` to apply two or more constraints to one argument.
+Greenlight checks the matchers from left to right. `allOf()` does not accept a
+captor.
 
 ## Argument capture
 
@@ -201,19 +227,22 @@ $captor = $plan->expects('save')
 
 // Exercise the subject.
 
-Expect::that($captor->values())->toHaveCount(2);
-Expect::that($captor->value())->toBeInstanceOf(Order::class);
+Expect::value($captor->values())->toHaveCount(2);
+Expect::value($captor->value())->toBeInstanceOf(Order::class);
 ```
 
 `values()` returns each captured value. `value()` returns the last value. It
-fails if `Argument::captor()` did not capture a value.
+fails if the captor did not capture a value.
 
 If a plan must capture more than one argument, put an explicit
 `Argument::captor()` inside `with()` for each argument.
 
 ## Spy calls
 
-`callsTo()` returns argument lists in call order:
+`callsTo()` returns argument lists in call order. It copies each top-level
+argument value at the start of the call. Later assignments to a reference
+parameter do not change earlier recordings. Objects keep their identity.
+Greenlight does not clone them.
 
 <!-- php-example {"example":"test-doubles-example-09","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
@@ -221,10 +250,33 @@ $events = $this->doubles->spy(EventPublisher::class);
 
 new CheckoutService($events)->checkout();
 
-Expect::that(
+Expect::value(
     $this->doubles->callsTo($events, 'publish'),
 )->toEqual([[new OrderPlaced('order-1')]]);
 ```
+
+## Clone calls
+
+Greenlight intercepts a public, non-final `__clone()` method. It does not run
+the application implementation:
+
+* A mock requires a planned `__clone` call. An unexpected clone fails immediately
+  and at verification, even if application code catches the exception.
+* A spy records the clone call.
+* A stub rejects the clone call.
+
+An intercepted clone is a separate object with the same expectations and call
+history as the original double. This also applies to a clone of a clone.
+`callsTo()` accepts each of these objects and returns the same call history.
+This history contains calls to other methods.
+
+Call counts apply across all these objects.
+A clone does not reset a planned count. For example, `expects('__clone')->once()`
+permits one clone in total.
+
+If a test clones a mock, add a `__clone` expectation to its plan.
+If the test clones a stub, use a mock with an explicit clone expectation.
+A final `__clone()` keeps its implementation and can run application code.
 
 ## Supported types and limits
 
@@ -237,3 +289,25 @@ implementations. Calls through these methods can run application code.
 
 Greenlight does not run the class constructor when it creates a double. Prefer
 an interface at the application boundary.
+
+Greenlight suppresses a non-final destructor. It cannot suppress a final
+destructor, which can run application code.
+
+### Object parameter defaults
+
+Methods can declare object defaults and objects inside nested arrays.
+Greenlight copies each `new` expression from the method's source file into the
+proxy. It preserves constructor arguments, imported names, and literal values.
+It does not construct these default objects when it creates the double.
+PHP constructs them when a call omits the applicable argument.
+
+The method must have a readable PHP source file. Methods declared through
+`eval()` cannot supply object default expressions. Declare methods on separate
+lines so Greenlight can identify the original declaration. A default cannot depend on
+a private constructor that the proxy cannot access. Dynamic constant access
+also requires a class without private constants. These cases produce
+`InvalidDoubleUsage`.
+
+Define unqualified constants before you create the double. Greenlight resolves
+these constants in the original namespace, with PHP's global fallback, when it
+generates the proxy. Private scalar and enum constants retain their values.

@@ -77,24 +77,24 @@ final readonly class ToolAnalyser
         $files = $payload['files'] ?? [];
 
         if (!\is_array($files)) {
-            throw new DocumentationExampleError('PHPStan JSON field "files" is invalid.');
+            throw DocumentationExampleError::invalidPhpStanFiles();
         }
 
         foreach ($files as $file => $fileResult) {
             if (!\is_string($file) || !\is_array($fileResult)) {
-                throw new DocumentationExampleError('PHPStan JSON file result is invalid.');
+                throw DocumentationExampleError::invalidPhpStanFileResult();
             }
 
             $snippet = $this->generatedSnippet($root, $file, $group);
             $messages = $fileResult['messages'] ?? [];
 
             if (!\is_array($messages)) {
-                throw new DocumentationExampleError('PHPStan JSON messages are invalid.');
+                throw DocumentationExampleError::invalidPhpStanMessages();
             }
 
             foreach ($messages as $message) {
                 if (!\is_array($message) || !\is_string($message['message'] ?? null)) {
-                    throw new DocumentationExampleError('PHPStan JSON message is invalid.');
+                    throw DocumentationExampleError::invalidPhpStanMessage();
                 }
 
                 $generatedLine = \is_int($message['line'] ?? null) ? $message['line'] : 1;
@@ -132,10 +132,7 @@ final readonly class ToolAnalyser
         }
 
         if ($result->exitCode !== 0 && $diagnostics === []) {
-            throw new DocumentationExampleError(\sprintf(
-                'PHPStan failed without a reported diagnostic%s.',
-                $result->stderr === '' ? '' : ': ' . \trim($result->stderr),
-            ));
+            throw DocumentationExampleError::phpStanFailedWithoutDiagnostic($result->stderr);
         }
 
         return $diagnostics;
@@ -183,12 +180,12 @@ final readonly class ToolAnalyser
         $fatalErrors = $payload['fatal_errors'] ?? [];
 
         if (!\is_array($fatalErrors)) {
-            throw new DocumentationExampleError('Rector JSON field "fatal_errors" is invalid.');
+            throw DocumentationExampleError::invalidRectorFatalErrors();
         }
 
         foreach ($fatalErrors as $fatalError) {
             if (!\is_string($fatalError)) {
-                throw new DocumentationExampleError('Rector JSON fatal error is invalid.');
+                throw DocumentationExampleError::invalidRectorFatalError();
             }
 
             $diagnostics[] = new Diagnostic(
@@ -202,12 +199,12 @@ final readonly class ToolAnalyser
         $fileDiffs = $payload['file_diffs'] ?? [];
 
         if (!\is_array($fileDiffs)) {
-            throw new DocumentationExampleError('Rector JSON field "file_diffs" is invalid.');
+            throw DocumentationExampleError::invalidRectorFileDiffs();
         }
 
         foreach ($fileDiffs as $fileDiff) {
             if (!\is_array($fileDiff) || !\is_string($fileDiff['file'] ?? null)) {
-                throw new DocumentationExampleError('Rector JSON file diff is invalid.');
+                throw DocumentationExampleError::invalidRectorFileDiff();
             }
 
             $snippet = $this->generatedSnippet($root, $fileDiff['file'], $selected);
@@ -250,10 +247,7 @@ final readonly class ToolAnalyser
         }
 
         if ($result->exitCode !== 0 && $diagnostics === []) {
-            throw new DocumentationExampleError(\sprintf(
-                'Rector failed without a reported change%s.',
-                $result->stderr === '' ? '' : ': ' . \trim($result->stderr),
-            ));
+            throw DocumentationExampleError::rectorFailedWithoutChange($result->stderr);
         }
 
         return $diagnostics;
@@ -276,10 +270,7 @@ final readonly class ToolAnalyser
     private function binaryCommand(string $binary): array
     {
         if (!\is_file($binary)) {
-            throw new DocumentationExampleError(\sprintf(
-                'Documentation PHP tool "%s" does not exist.',
-                $binary,
-            ));
+            throw DocumentationExampleError::toolNotFound($binary);
         }
 
         return \str_ends_with($binary, '.php') ? [\PHP_BINARY, $binary] : [$binary];
@@ -301,10 +292,7 @@ final readonly class ToolAnalyser
             }
         }
 
-        throw new DocumentationExampleError(\sprintf(
-            'Tool result refers to unknown generated file "%s".',
-            $file,
-        ));
+        throw DocumentationExampleError::unknownGeneratedFile($file);
     }
 
     /**
@@ -318,27 +306,18 @@ final readonly class ToolAnalyser
         try {
             $payload = \json_decode($result->stdout, true, flags: \JSON_THROW_ON_ERROR);
         } catch (\JsonException $error) {
-            throw new DocumentationExampleError(\sprintf(
-                '%s did not produce valid JSON for %s: %s%s.',
-                $tool,
-                $fallback->source->example,
-                $error->getMessage(),
-                $result->stderr === '' ? '' : ' ' . \trim($result->stderr),
-            ), $error->getCode(), $error);
+            throw DocumentationExampleError::invalidToolJson($tool, $fallback->source->example, $error, $result->stderr);
         }
 
         if (!\is_array($payload) || \array_is_list($payload)) {
-            throw new DocumentationExampleError(\sprintf('%s JSON output must be an object.', $tool));
+            throw DocumentationExampleError::toolOutputNotAnObject($tool);
         }
 
         $validated = [];
 
         foreach ($payload as $field => $value) {
             if (!\is_string($field)) {
-                throw new DocumentationExampleError(\sprintf(
-                    '%s JSON fields must have string names.',
-                    $tool,
-                ));
+                throw DocumentationExampleError::invalidToolFieldName($tool);
             }
 
             $validated[$field] = $value;

@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Internal\Filesystem;
 
 /**
- * Messages include the target path and each warning that PHP supplies.
+ * Reports a failure to name, write, or rename a temporary state file.
+ * The message includes the affected path and available failure details.
  *
  * @internal
  */

@@ -1,0 +1,133 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Acceptance;
+
+use Greenlight\Attribute\Test;
+use Greenlight\Sandbox\TemporaryDirectory;
+use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
+
+final readonly class CustomCommandTest
+{
+    public function __construct(private TemporaryDirectory $tempDirectory) {}
+
+    #[Test]
+    public function configuredCommandReceivesRawArgumentsContextAndOutputChannels(): void
+    {
+        $project = $this->project('custom-command', <<<'PHP'
+            final class CompanyCommandProvider implements CommandProvider
+            {
+                public function commands(): array
+                {
+                    return [new CommandDefinition(
+                        'company:hello',
+                        'Print a company greeting',
+                        static function (CommandInvocation $invocation): CommandResult {
+                            $invocation->write("cwd=" . $invocation->workingDirectory . "\n");
+                            $invocation->write("args=" . implode('|', $invocation->arguments) . "\n");
+                            $invocation->writeError("company diagnostic\n");
+
+                            return CommandResult::failure();
+                        },
+                    )];
+                }
+            }
+
+            return GreenlightConfig::create()->plugins(
+                static fn(): CompanyCommandProvider => new CompanyCommandProvider(),
+            );
+            PHP);
+
+        $result = GreenlightCli::run($project->directory, ['company:hello', 'Ben', '--mode=brief']);
+
+        expect($result->exitCode)->toBe(1);
+        expect($result->stdout)
+            ->toContain('cwd=' . $project->directory)
+            ->toContain('args=Ben|--mode=brief');
+        expect($result->stderr)->toBe('company diagnostic');
+    }
+
+    #[Test]
+    public function customAndBundledCommandsShareOneNameRegistry(): void
+    {
+        $project = $this->project('duplicate-command', <<<'PHP'
+            final class DuplicateCommandProvider implements CommandProvider
+            {
+                public function commands(): array
+                {
+                    return [
+                        new CommandDefinition('run', 'Replace the run command', static fn(CommandInvocation $invocation): CommandResult => CommandResult::success()),
+                        new CommandDefinition('company:probe', 'Load this provider', static fn(CommandInvocation $invocation): CommandResult => CommandResult::success()),
+                    ];
+                }
+            }
+
+            return GreenlightConfig::create()->plugins(
+                static fn(): DuplicateCommandProvider => new DuplicateCommandProvider(),
+            );
+            PHP);
+
+        $result = GreenlightCli::run($project->directory, ['company:probe', '--no-ansi']);
+
+        expect($result->exitCode)->toBe(1);
+        expect($result->stdout)->toBe('');
+        expect($result->stderr)->toBe('greenlight: Command name "run" is registered more than once.');
+    }
+
+    #[Test]
+    public function commandFailuresAreContainedAtThePluginBoundary(): void
+    {
+        $project = $this->project('failed-command', <<<'PHP'
+            final class FailedCommandProvider implements CommandProvider
+            {
+                public function commands(): array
+                {
+                    return [
+                        new CommandDefinition(
+                            'company:throws',
+                            'Throw from a command',
+                            static fn(CommandInvocation $invocation): CommandResult => throw new RuntimeException('Command exploded'),
+                        ),
+                    ];
+                }
+            }
+
+            return GreenlightConfig::create()->plugins(
+                static fn(): FailedCommandProvider => new FailedCommandProvider(),
+            );
+            PHP);
+
+        $threw = GreenlightCli::run($project->directory, ['company:throws', '--no-ansi']);
+        expect($threw->exitCode)->toBe(1);
+        expect($threw->stderr)
+            ->toBe('greenlight: Command "company:throws" caused an error: Command exploded');
+    }
+
+    private function project(string $name, string $body): AcceptanceProject
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, $name);
+        $project->writeFile('greenlight.php', \sprintf(
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Plugin\CommandDefinition;
+            use Greenlight\Plugin\CommandInvocation;
+            use Greenlight\Plugin\CommandProvider;
+            use Greenlight\Plugin\CommandResult;
+            use Greenlight\Config\GreenlightConfig;
+
+            %s
+
+            PHP,
+            $body,
+        ));
+
+        return $project;
+    }
+}

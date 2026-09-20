@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tempest;
 
 use Greenlight\Harness\Scope;
+use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
+use Greenlight\Harness\ServiceSource;
 use Greenlight\Harness\TerminalServiceResolver;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\BeforeTestSubscriber;
@@ -17,7 +19,6 @@ use Greenlight\Plugin\WorkerBootstrapSubscriber;
 use Greenlight\Result\TestResult;
 use Tempest\Container\Container;
 use Tempest\Container\GenericContainer;
-use Tempest\Container\Tag;
 use Tempest\Core\FrameworkKernel;
 use Tempest\Core\Kernel;
 use Tempest\Discovery\DiscoveryLocation;
@@ -30,12 +31,15 @@ use Tempest\Http\Request;
  * configuration, container reset, deferred tasks, and shutdown events stay
  * under kernel control.
  *
- * The bridge uses the `testing` environment by default. Native `#[Tag]`
- * attributes select tagged Tempest bindings. Isolate external test resources
- * by `GREENLIGHT_CHANNEL`.
+ * The bridge uses the `testing` environment by default. `#[Service]` selects
+ * a tagged Tempest binding.
+ * Isolate external test resources by `GREENLIGHT_CHANNEL`.
  */
-final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, TerminalServiceResolver, WorkerBootstrapSubscriber
+final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, ServiceSource, TerminalServiceResolver, WorkerBootstrapSubscriber
 {
+    /** @var non-empty-string|null */
+    private readonly ?string $source;
+
     private ?FrameworkKernel $kernel = null;
 
     private ?TempestProcessState $processState = null;
@@ -51,14 +55,27 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
         private readonly string $root,
         private readonly string $environment = 'testing',
         private readonly array $discoveryLocations = [],
+        ?string $source = null,
     ) {
         if ($root === '') {
-            throw new \InvalidArgumentException('Tempest application root MUST NOT be empty.');
+            throw new \InvalidArgumentException('Tempest application root cannot be empty.');
         }
 
         if ($environment === '') {
-            throw new \InvalidArgumentException('Tempest environment MUST NOT be empty.');
+            throw new \InvalidArgumentException('Tempest environment cannot be empty.');
         }
+
+        if ($source === '') {
+            throw new \InvalidArgumentException('Service source must not be empty.');
+        }
+
+        $this->source = $source;
+    }
+
+    #[\Override]
+    public function source(): ?string
+    {
+        return $this->source;
     }
 
     #[\Override]
@@ -90,13 +107,13 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
         $tag = null;
 
         foreach ($attributes as $attribute) {
-            if ($attribute instanceof Tag) {
-                $tag = $attribute->name;
+            if ($attribute instanceof Service) {
+                $tag = $attribute->id;
             }
         }
 
         try {
-            $service = $this->container()->get($type, $tag);
+            $service = $this->container()->get($type, tag: $tag);
         } catch (ServiceResolutionFailed $error) {
             throw $error;
         } catch (\Throwable $cause) {
@@ -104,7 +121,7 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
         }
 
         if (!$service instanceof $type) {
-            throw TempestBridgeError::serviceTypeMismatch($type, \get_debug_type($service));
+            throw TempestBridgeError::serviceTypeMismatch($type, $service);
         }
 
         return $service;

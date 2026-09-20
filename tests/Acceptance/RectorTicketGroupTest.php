@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\RectorProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class RectorTicketGroupTest
@@ -48,21 +49,20 @@ final readonly class RectorTicketGroupTest
             name: 'ticket-group',
         );
 
-        Expect::that($probe->changed)
+        expect($probe->changed)
             ->because('the ticket attribute MUST be convertible')
             ->toBeTrue();
-        Expect::that($probe->code)
+        expect($probe->code)
             ->because('the converted group MUST keep the ticket identifier')
             ->toContain("#[\Greenlight\Attribute\Group('GH-123')]");
 
         $run = $probe->runConvertedTests(['--group=GH-123']);
 
-        Expect::that($run->exitCode)
+        expect($run->exitCode)
             ->because('the converted ticket group MUST select its test')
             ->toBe(0);
-        Expect::that($run->stdout)
+        expect($run->stdout)
             ->toContain('1 test, 1 passed')
-            ->not()
-            ->toContain('2 tests');
+            ->not()->toContain('2 tests');
     }
 }

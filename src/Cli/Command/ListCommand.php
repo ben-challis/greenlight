@@ -6,6 +6,7 @@ namespace Greenlight\Cli\Command;
 
 use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Discovery\SelectionDiscovery;
+use Greenlight\Cli\Discovery\SelectionPlan;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
@@ -15,6 +16,7 @@ use Greenlight\Config\ResolvedConfiguration;
 use Greenlight\Config\SuiteConfiguration;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Plugin\CommandResult;
 
 /**
  * Discovers and formats test, group, and suite listings.
@@ -25,16 +27,49 @@ final readonly class ListCommand
 {
     public function __construct(private Console $console) {}
 
-    public function run(ParsedArguments $arguments, string $workingDirectory): int
+    public function run(ParsedArguments $arguments, string $workingDirectory): CommandResult
+    {
+        $format = $arguments->value('format') ?? 'text';
+
+        if (!\in_array($format, ['text', 'json'], true)) {
+            $this->console->error(CliError::unknownTestListFormat($format)->getMessage(), $arguments->has('no-ansi'));
+            return CommandResult::usage();
+        }
+
+        $manifest = $format === 'json';
+
+        if ($manifest && ($arguments->has('list-groups') || $arguments->has('list-suites'))) {
+            $this->console->error(CliError::formatRequiresTestListing()->getMessage(), $arguments->has('no-ansi'));
+            return CommandResult::usage();
+        }
+
+        if (!$manifest) {
+            return $this->execute($arguments, $workingDirectory, false);
+        }
+
+        \ob_start();
+
+        try {
+            return $this->execute($arguments, $workingDirectory, true);
+        } finally {
+            $diagnostics = \ob_get_clean();
+
+            if (\is_string($diagnostics) && $diagnostics !== '') {
+                $this->console->err($diagnostics);
+            }
+        }
+    }
+
+    private function execute(ParsedArguments $arguments, string $workingDirectory, bool $manifest): CommandResult
     {
         try {
             $loaded = new ConfigurationLoader()->load($arguments, $workingDirectory);
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return 64;
+            return CommandResult::usage();
         } catch (ConfigFileError|InvalidConfiguration $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return 1;
+            return CommandResult::failure();
         }
         $standalone = $arguments->command === 'list-tests';
         if (!$standalone && $arguments->has('list-suites')) {
@@ -43,24 +78,43 @@ final readonly class ListCommand
         $discovery = new SelectionDiscovery($loaded, $workingDirectory);
         $this->warnWhenExcludePathsMatchNothing($discovery, $arguments->has('no-ansi'));
         try {
-            $plan = $discovery->plan();
+            $plan = SelectionPlan::resolve($loaded, $workingDirectory, $arguments->has('failed'));
+        } catch (CliError $error) {
+            $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
+            return CommandResult::usage();
         } catch (DiscoveryError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
-            return 1;
+            return CommandResult::failure();
         }
+
+        if ($manifest) {
+            $document = TestManifest::document(
+                $plan,
+                $loaded->resolved->discovery->suites,
+                $loaded->resolved->selection->shard,
+                $workingDirectory,
+            );
+            $this->console->out(\json_encode(
+                $document,
+                \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_INVALID_UTF8_SUBSTITUTE | \JSON_THROW_ON_ERROR,
+            ) . "\n");
+
+            return CommandResult::success();
+        }
+
         return !$standalone && $arguments->has('list-groups') ? $this->groups($plan) : $this->tests($plan);
     }
 
-    private function tests(ExecutionPlan $plan): int
+    private function tests(ExecutionPlan $plan): CommandResult
     {
         foreach ($plan->entries as $entry) {
             $this->console->out($entry->id . "\n");
         }
         $this->console->out(\sprintf("\n%d tests\n", \count($plan->entries)));
-        return 0;
+        return CommandResult::success();
     }
 
-    private function groups(ExecutionPlan $plan): int
+    private function groups(ExecutionPlan $plan): CommandResult
     {
         $counts = [];
         foreach ($plan->entries as $entry) {
@@ -73,10 +127,10 @@ final readonly class ListCommand
             $this->console->out(\sprintf("%s (%d tests)\n", $group, $count));
         }
         $this->console->out(\sprintf("\n%d groups\n", \count($counts)));
-        return 0;
+        return CommandResult::success();
     }
 
-    private function suites(ResolvedConfiguration $resolved): int
+    private function suites(ResolvedConfiguration $resolved): CommandResult
     {
         $suites = $resolved->discovery->suites;
         \usort($suites, static fn(SuiteConfiguration $a, SuiteConfiguration $b): int => \strcmp($a->name, $b->name));
@@ -88,7 +142,7 @@ final readonly class ListCommand
             $this->console->out($line . "\n");
         }
         $this->console->out(\sprintf("\n%d suites\n", \count($suites)));
-        return 0;
+        return CommandResult::success();
     }
 
     private function warnWhenExcludePathsMatchNothing(SelectionDiscovery $discovery, bool $noAnsi): void

@@ -31,57 +31,48 @@ final readonly class SuiteConfiguration
     public function __construct(string $name, array $paths, array $tags)
     {
         if ($name === '') {
-            throw new InvalidConfiguration('Suite names cannot be empty.');
+            throw InvalidConfiguration::emptySuiteName();
         }
 
         if (!\array_is_list($paths)) {
-            throw new InvalidConfiguration(\sprintf('Suite "%s" paths must be a list.', $name));
+            throw InvalidConfiguration::suitePathsNotAList($name);
         }
 
         $validatedPaths = [];
 
         foreach ($paths as $path) {
             if (!\is_string($path)) {
-                throw new InvalidConfiguration(\sprintf(
-                    'Suite "%s" was given a path that is not a string.',
-                    $name,
-                ));
+                throw InvalidConfiguration::suitePathNotAString($name);
             }
 
             if ($path === '') {
-                throw new InvalidConfiguration(\sprintf('Suite "%s" was given an empty path.', $name));
+                throw InvalidConfiguration::emptySuitePath($name);
             }
 
             if (\str_contains($path, "\0")) {
-                throw new InvalidConfiguration(\sprintf('Suite "%s" paths cannot contain a null byte.', $name));
+                throw InvalidConfiguration::suitePathContainsNullByte($name);
             }
 
             $validatedPaths[] = $path;
         }
 
         if ($validatedPaths === []) {
-            throw new InvalidConfiguration(\sprintf(
-                'Suite "%s" has no paths. Call in() with at least one directory inside its configurator.',
-                $name,
-            ));
+            throw InvalidConfiguration::missingSuitePaths($name);
         }
 
         if (!\array_is_list($tags)) {
-            throw new InvalidConfiguration(\sprintf('Suite "%s" tags must be a list.', $name));
+            throw InvalidConfiguration::suiteTagsNotAList($name);
         }
 
         $validatedTags = [];
 
         foreach ($tags as $tag) {
             if (!\is_string($tag)) {
-                throw new InvalidConfiguration(\sprintf(
-                    'Suite "%s" was given a tag that is not a string.',
-                    $name,
-                ));
+                throw InvalidConfiguration::suiteTagNotAString($name);
             }
 
             if ($tag === '') {
-                throw new InvalidConfiguration(\sprintf('Suite "%s" was given an empty tag.', $name));
+                throw InvalidConfiguration::emptySuiteTag($name);
             }
 
             $validatedTags[] = $tag;

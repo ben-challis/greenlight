@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerIdleReason;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerTimingRecorder;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class WorkerTimingRecorderTest
 {
@@ -30,14 +31,14 @@ final readonly class WorkerTimingRecorderTest
 
         $timing = $recorder->snapshot('worker-1');
 
-        Expect::that($timing->spawnToHelloSeconds)->toBeWithin(0.000_001, 0.1);
-        Expect::that($timing->helloToReadySeconds)->toBeWithin(0.000_001, 0.3);
-        Expect::that($timing->readyToFirstAssignmentSeconds)->toBeWithin(0.000_001, 0.5);
-        Expect::that($timing->assignmentGaps)->toBe(1);
-        Expect::that($timing->assignmentGapSeconds)->toBeWithin(0.000_001, 0.3);
-        Expect::that($timing->bootstrapBarrierSeconds)->toBeWithin(0.000_001, 0.2);
-        Expect::that($timing->resourceCapacitySeconds)->toBeWithin(0.000_001, 0.6);
-        Expect::that($timing->noQueuedWorkSeconds)->toBeWithin(0.000_001, 0.1);
-        Expect::that($timing->retirementToExitSeconds)->toBeWithin(0.000_001, 0.15);
+        expect($timing->spawnToHelloSeconds)->toBeWithin(0.000_001, 0.1);
+        expect($timing->helloToReadySeconds)->toBeWithin(0.000_001, 0.3);
+        expect($timing->readyToFirstAssignmentSeconds)->toBeWithin(0.000_001, 0.5);
+        expect($timing->assignmentGaps)->toBe(1);
+        expect($timing->assignmentGapSeconds)->toBeWithin(0.000_001, 0.3);
+        expect($timing->bootstrapBarrierSeconds)->toBeWithin(0.000_001, 0.2);
+        expect($timing->resourceCapacitySeconds)->toBeWithin(0.000_001, 0.6);
+        expect($timing->noQueuedWorkSeconds)->toBeWithin(0.000_001, 0.1);
+        expect($timing->retirementToExitSeconds)->toBeWithin(0.000_001, 0.15);
     }
 }

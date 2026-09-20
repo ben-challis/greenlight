@@ -10,8 +10,8 @@ These signatures are the public API.
 
 Namespace: `Greenlight\Result`
 
-When output is too long, Greenlight keeps the first part. This part usually
-identifies the cause. The last part usually contains repeated information.
+Contains standard output, diagnostics, and truncation flags for one attempt.
+When output exceeds the capture limit, Greenlight keeps the first part.
 
 Greenlight converts captured standard output to valid UTF-8 before it adds
 the output to a test result.
@@ -521,11 +521,10 @@ PHPDoc:
 ### `__toString()`
 
 ```php
-[\Override]
 public function __toString(): string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L39)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/SourceLocation.php#L40)
 
 ## `TestResult`
 
@@ -534,15 +533,18 @@ Namespace: `Greenlight\Result`
 A plugin does not change a result object. It uses `withOutcome()` to produce
 a replacement and record the source of the change.
 
-The expectations value counts each matcher in a chain separately. It counts
-each mock expectation when disposal verifies it. Stubs do not add to the
-count. An unsuccessful result contains the count at the time of the abort.
+The expectations value counts each immediate matcher and each mock
+expectation that disposal verifies. Each temporal matcher counts once,
+regardless of the number of polls. Stubs do not add to the count.
+
+The worker records the count after cleanup and per-test service disposal,
+before `afterTest()` subscribers. Retries report the final attempt's count.
 
 ```php
 final readonly class TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L24)
 
 ### `$attempts`
 
@@ -554,7 +556,7 @@ PHPDoc:
 
 - `@var positive-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L29)
 
 ### `$expectations`
 
@@ -566,7 +568,7 @@ PHPDoc:
 
 - `@var non-negative-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L34)
 
 ### `$id`
 
@@ -574,7 +576,7 @@ PHPDoc:
 public TestId $id
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L41)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L44)
 
 ### `$outcome`
 
@@ -582,7 +584,7 @@ public TestId $id
 public Outcome $outcome
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L42)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L45)
 
 ### `$durationSeconds`
 
@@ -590,7 +592,7 @@ public Outcome $outcome
 public float $durationSeconds
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L43)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L46)
 
 ### `$memoryDeltaBytes`
 
@@ -598,7 +600,7 @@ public float $durationSeconds
 public int $memoryDeltaBytes
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L47)
 
 ### `$failures`
 
@@ -606,7 +608,7 @@ public int $memoryDeltaBytes
 public array $failures
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L46)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L49)
 
 ### `$error`
 
@@ -614,7 +616,7 @@ public array $failures
 public ?ThrowableDetail $error
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L50)
 
 ### `$skipReason`
 
@@ -622,7 +624,7 @@ public ?ThrowableDetail $error
 public ?string $skipReason
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L48)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L51)
 
 ### `$transformations`
 
@@ -630,7 +632,7 @@ public ?string $skipReason
 public array $transformations
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L49)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L52)
 
 ### `$output`
 
@@ -638,7 +640,7 @@ public array $transformations
 public ?CapturedOutput $output
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L53)
 
 ### `$risky`
 
@@ -646,7 +648,7 @@ public ?CapturedOutput $output
 public bool $risky
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L51)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L54)
 
 ### `$attachments`
 
@@ -654,7 +656,7 @@ public bool $risky
 public array $attachments
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L53)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L56)
 
 ### `__construct()`
 
@@ -683,7 +685,7 @@ PHPDoc:
 - `@param list<Attachment> $attachments`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L40)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L43)
 
 ### `withOutcome()`
 
@@ -694,14 +696,15 @@ public function withOutcome(Outcome $outcome, string $transformedBy): self
 PHPDoc:
 
 - `@param non-empty-string $transformedBy`
+- `@throws \InvalidArgumentException if the transformation source is empty`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L74)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/TestResult.php#L79)
 
 ## `ThrowableDetail`
 
 Namespace: `Greenlight\Result`
 
-Greenlight records at most 32 stack frames when it creates this value.
+Contains a throwable's class, message, source location, and stack trace.
 
 ```php
 final readonly class ThrowableDetail
@@ -782,8 +785,10 @@ PHPDoc:
 
 ### `fromThrowable()`
 
+Records at most 32 stack frames. Adds a truncation marker if more frames exist.
+
 ```php
 public static function fromThrowable(\Throwable $throwable): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L60)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L63)

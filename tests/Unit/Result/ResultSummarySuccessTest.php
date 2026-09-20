@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ResultSummary;
+
+use function Greenlight\expect;
 
 final readonly class ResultSummarySuccessTest
 {
@@ -17,7 +18,7 @@ final readonly class ResultSummarySuccessTest
         ResultSummary $summary,
         bool $expected,
     ): void {
-        Expect::that($summary->isSuccessful())
+        expect($summary->isSuccessful())
             ->because('run success MUST depend on failed and errored counts only')
             ->toBe($expected);
     }

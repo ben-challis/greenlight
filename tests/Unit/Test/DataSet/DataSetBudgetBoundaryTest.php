@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Test\DataSet;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\DataSet\DataSetExpander;
 use Greenlight\Tests\Fixture\Discovery\FakeMonotonicClock;
 use Greenlight\Tests\Fixture\DiscoveryDataSets\ProviderKeysTest;
+
+use function Greenlight\expect;
 
 final readonly class DataSetBudgetBoundaryTest
 {
@@ -24,7 +25,7 @@ final readonly class DataSetBudgetBoundaryTest
             5.0,
         );
 
-        Expect::that($rows)
+        expect($rows)
             ->because('a provider MUST exceed its time budget before discovery rejects it')
             ->toBe([
                 'first case' => ['a'],
@@ -43,7 +44,7 @@ final readonly class DataSetBudgetBoundaryTest
             \PHP_FLOAT_MAX,
         );
 
-        Expect::that($rows)
+        expect($rows)
             ->because('a finite provider budget MUST retain its duration after conversion to nanoseconds')
             ->toBe([
                 'first case' => ['a'],

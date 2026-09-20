@@ -38,6 +38,9 @@ jobs:
       - name: "Install dependencies"
         run: "npm --prefix website ci"
 
+      - name: "Install browser"
+        run: "npm --prefix website exec -- playwright install --with-deps chromium"
+
       - name: "Check and build"
         run: "npm --prefix website run check"
 
@@ -64,7 +67,7 @@ jobs:
           node-version: "24"
 
       - name: "Validate Renovate configuration"
-        run: "npx --yes --package renovate@44.39.3 -- renovate-config-validator --strict"
+        run: "npx --yes --package renovate@44.103.0 -- renovate-config-validator --strict"
 
   zizmor:
     name: "GitHub Actions security"
@@ -80,7 +83,7 @@ jobs:
           persist-credentials: false
 
       - name: "Run zizmor"
-        uses: "zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054" # v0.6.2
+        uses: "zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482" # v0.6.4
 
   actionlint:
     name: "GitHub Actions workflows"
@@ -219,6 +222,10 @@ jobs:
       - name: "Verify Hyperf attempt-container disposal"
         working-directory: ".github/fixtures/hyperf-bridge"
         run: "php verify-lifecycle.php attempt"
+
+      - name: "Run Hyperf cleanup failure acceptance tests"
+        working-directory: ".github/fixtures/hyperf-bridge"
+        run: "vendor/bin/greenlight run --config=cleanup.php --no-ansi --reporter=plain"
 
   ci:
     name: "CI (PHP ${{ matrix.php-version }}, ${{ matrix.dependencies }} deps${{ matrix.symfony-version && format(', Symfony {0}', matrix.symfony-version) || '' }})"
@@ -400,10 +407,19 @@ jobs:
           path: "build/greenlight-state/run-state.json"
           key: "greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-${{ github.run_id }}-${{ github.run_attempt }}"
 
+      - name: "Save test results"
+        if: "${{ !cancelled() && matrix.analytics == true && steps.tests_analytics.outcome != 'skipped' }}"
+        uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # v7.0.1
+        with:
+          name: "test-results-php-${{ matrix.php-version }}-${{ matrix.dependencies }}"
+          path: "build/test-results/greenlight.junit.xml"
+          if-no-files-found: "error"
+          retention-days: 30
+
       - name: "Upload test results to Codecov"
         if: "${{ !cancelled() && matrix.analytics == true }}"
         continue-on-error: true
-        uses: "codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f" # v7.0.0
+        uses: "codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5" # v7.1.1
         with:
           disable_search: true
           fail_ci_if_error: false
@@ -452,8 +468,8 @@ jobs:
             --filter=ServerSocketUnixCleanupTest \
             --filter=SocketChannelTest \
             --filter=SuitePathDiscoveryTest \
-            --filter=TempDirectoryRootSymbolicLinkTest \
-            --filter=TempDirectorySubdirectoryLinkTest \
+            --filter=TemporaryDirectoryRootSymbolicLinkTest \
+            --filter=TemporaryDirectorySubdirectoryLinkTest \
             --filter=TerminalTest \
             --filter=WorkerProcessRunTest
 
@@ -463,7 +479,6 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: "read"
-      id-token: "write"
     env:
       XDEBUG_MODE: "off"
 
@@ -495,20 +510,17 @@ jobs:
         run: |
           XDEBUG_MODE=coverage php bin/greenlight run --config=greenlight.tempest-coverage.php \
             --ansi \
+            --minimum-coverage=90 \
             --filter='*Tempest*Test::*'
 
-      - name: "Upload Tempest coverage to Codecov"
-        continue-on-error: true
-        uses: "codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f" # v7.0.0
+      - name: "Save Tempest coverage"
+        if: "${{ !cancelled() }}"
+        uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # v7.0.1
         with:
-          disable_search: true
-          fail_ci_if_error: false
-          files: "build/coverage/cobertura.xml"
-          use_oidc: true
-
-      - name: "Run the Tempest coverage gate"
-        if: "always()"
-        run: "composer coverage-gate"
+          name: "coverage-tempest"
+          path: "build/coverage/cobertura.xml"
+          if-no-files-found: "error"
+          retention-days: 30
 
   php-next:
     name: "PHP 8.6 pre-release compatibility"
@@ -588,7 +600,6 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: "read"
-      id-token: "write"
 
     steps:
       - name: "Checkout"
@@ -610,20 +621,57 @@ jobs:
           dependency-versions: "locked"
 
       - name: "Run the suite with coverage"
-        run: "composer tests:coverage -- --ansi"
+        run: "composer tests:coverage -- --ansi --minimum-coverage=90"
+
+      - name: "Save full-suite coverage"
+        if: "${{ !cancelled() }}"
+        uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # v7.0.1
+        with:
+          name: "coverage-full"
+          path: "build/coverage/cobertura.xml"
+          if-no-files-found: "error"
+          retention-days: 30
+
+  coverage-upload:
+    name: "Publish complete coverage"
+    if: "${{ !cancelled() }}"
+    needs:
+      - "coverage"
+      - "tempest"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 10
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
+        with:
+          persist-credentials: false
+
+      # Require both artifacts before the single Codecov upload. Do not publish
+      # a report that contains only the Tempest bridge after a canceled run.
+      - name: "Download full-suite coverage"
+        uses: "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c" # v8.0.1
+        with:
+          name: "coverage-full"
+          path: "build/coverage/full"
+
+      - name: "Download Tempest coverage"
+        uses: "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c" # v8.0.1
+        with:
+          name: "coverage-tempest"
+          path: "build/coverage/tempest"
 
       - name: "Upload coverage to Codecov"
         continue-on-error: true
-        uses: "codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f" # v7.0.0
+        uses: "codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5" # v7.1.1
         with:
           disable_search: true
           fail_ci_if_error: false
-          files: "build/coverage/cobertura.xml"
+          files: "build/coverage/full/cobertura.xml,build/coverage/tempest/cobertura.xml"
           use_oidc: true
-
-      - name: "Run the self-coverage gate"
-        if: "always()"
-        run: "composer coverage-gate"
 
   pcov:
     name: "PCOV coverage integration"
@@ -654,6 +702,9 @@ jobs:
 
       - name: "Collect and export coverage with PCOV"
         run: "php bin/greenlight run --ansi --filter='Greenlight\\Tests\\Acceptance\\CoverageRunTest::collectsAndExportsCoverageThroughTheProcessPool'"
+
+      - name: "Reject disabled PCOV coverage"
+        run: "php bin/greenlight run --ansi --filter='Greenlight\\Tests\\Acceptance\\DisabledPcovTest'"
 
   benchmark-harness:
     name: "Benchmark harness smoke (numbers not published)"
@@ -702,7 +753,7 @@ jobs:
     steps:
       - name: "Deploy to GitHub Pages"
         id: "deployment"
-        uses: "actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128" # v5
+        uses: "actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346" # v5
 
   required-checks:
     name: "Required checks"
@@ -714,11 +765,13 @@ jobs:
       - "actionlint"
       - "markdownlint"
       - "installed-package"
+      - "hyperf-bridge"
       - "ci"
       - "macos-portability"
       - "tempest"
       - "memory"
       - "coverage"
+      - "coverage-upload"
       - "pcov"
       - "benchmark-harness"
     runs-on: "ubuntu-latest"
@@ -727,31 +780,7 @@ jobs:
     steps:
       - name: "Verify required jobs"
         env:
-          ACTIONLINT_RESULT: "${{ needs.actionlint.result }}"
-          BENCHMARK_HARNESS_RESULT: "${{ needs.benchmark-harness.result }}"
-          CI_RESULT: "${{ needs.ci.result }}"
-          COVERAGE_RESULT: "${{ needs.coverage.result }}"
-          DOCUMENTATION_RESULT: "${{ needs.documentation.result }}"
-          INSTALLED_PACKAGE_RESULT: "${{ needs.installed-package.result }}"
-          MACOS_PORTABILITY_RESULT: "${{ needs.macos-portability.result }}"
-          MARKDOWNLINT_RESULT: "${{ needs.markdownlint.result }}"
-          MEMORY_RESULT: "${{ needs.memory.result }}"
-          PCOV_RESULT: "${{ needs.pcov.result }}"
-          RENOVATE_CONFIG_RESULT: "${{ needs.renovate-config.result }}"
-          TEMPEST_RESULT: "${{ needs.tempest.result }}"
-          ZIZMOR_RESULT: "${{ needs.zizmor.result }}"
+          NEEDS_RESULTS: "${{ toJSON(needs) }}"
         shell: "bash"
         run: |
-          test "${DOCUMENTATION_RESULT}" = "success"
-          test "${RENOVATE_CONFIG_RESULT}" = "success"
-          test "${ZIZMOR_RESULT}" = "success"
-          test "${ACTIONLINT_RESULT}" = "success"
-          test "${MARKDOWNLINT_RESULT}" = "success"
-          test "${INSTALLED_PACKAGE_RESULT}" = "success"
-          test "${CI_RESULT}" = "success"
-          test "${MACOS_PORTABILITY_RESULT}" = "success"
-          test "${TEMPEST_RESULT}" = "success"
-          test "${MEMORY_RESULT}" = "success"
-          test "${COVERAGE_RESULT}" = "success"
-          test "${PCOV_RESULT}" = "success"
-          test "${BENCHMARK_HARNESS_RESULT}" = "success"
+          jq --exit-status 'all(.[]; .result == "success")' <<< "${NEEDS_RESULTS}"

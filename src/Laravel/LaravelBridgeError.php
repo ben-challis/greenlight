@@ -46,14 +46,14 @@ final class LaravelBridgeError extends ServiceResolutionFailed
         ));
     }
 
-    public static function notAnApplication(string $actual): self
+    public static function notAnApplication(mixed $actual): self
     {
         return new self(\sprintf(
             'The Laravel bootstrap returned "%s" instead of an '
             . 'Illuminate\Contracts\Foundation\Application instance, so LaravelPlugin cannot '
             . 'boot it. Return the application from the bootstrap file or the closure, '
             . 'usually the result of Application::configure(...)->create().',
-            $actual,
+            \get_debug_type($actual),
         ));
     }
 
@@ -66,12 +66,12 @@ final class LaravelBridgeError extends ServiceResolutionFailed
         );
     }
 
-    public static function consoleKernelTypeMismatch(string $actual): self
+    public static function consoleKernelTypeMismatch(mixed $actual): self
     {
         return new self(\sprintf(
             'The Laravel console kernel binding contains "%s" instead of an '
             . 'Illuminate\Contracts\Console\Kernel instance, so LaravelPlugin cannot boot it.',
-            $actual,
+            \get_debug_type($actual),
         ));
     }
 
@@ -85,12 +85,12 @@ final class LaravelBridgeError extends ServiceResolutionFailed
         ));
     }
 
-    public static function serviceTypeMismatch(string $id, string $type, string $actual): self
+    public static function serviceTypeMismatch(string $id, string $type, mixed $actual): self
     {
         return new self(\sprintf(
             'The Laravel service "%s" is an instance of "%s", but the parameter declares "%s".',
             $id,
-            $actual,
+            \get_debug_type($actual),
             $type,
         ));
     }

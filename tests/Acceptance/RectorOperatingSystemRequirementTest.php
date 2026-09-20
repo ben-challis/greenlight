@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\RectorProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class RectorOperatingSystemRequirementTest
@@ -43,10 +44,10 @@ final readonly class RectorOperatingSystemRequirementTest
             name: 'operating-system-requirement',
         );
 
-        Expect::that($probe->changed)
+        expect($probe->changed)
             ->because('the operating-system requirement MUST be convertible')
             ->toBeTrue();
-        Expect::that($probe->code)
+        expect($probe->code)
             ->because('the converted condition MUST keep the requested operating-system family')
             ->toContain(
                 '#[\Greenlight\Attribute\SkipUnless('
@@ -55,10 +56,10 @@ final readonly class RectorOperatingSystemRequirementTest
 
         $run = $probe->runConvertedTests();
 
-        Expect::that($run->exitCode)
+        expect($run->exitCode)
             ->because('the converted operating-system condition MUST permit the matching family')
             ->toBe(0);
-        Expect::that($run->stdout)
+        expect($run->stdout)
             ->toContain('1 test, 1 passed');
     }
 }

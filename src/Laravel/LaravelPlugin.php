@@ -9,6 +9,7 @@ use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
+use Greenlight\Harness\ServiceSource;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
@@ -20,12 +21,17 @@ use Illuminate\Foundation\Bootstrap\HandleExceptions;
 use Illuminate\Foundation\Bootstrap\RegisterProviders;
 
 /**
- * Boots one Laravel application lazily for a test and resolves bound services.
- * `#[Service]` selects an explicit binding ID. Isolate external test resources
+ * Boots a Laravel application on first use and resolves bound services.
+ * By default, Greenlight releases the application after each test attempt.
+ *
+ * `#[Service]` selects a binding ID or a named source. Isolate external test resources
  * by `GREENLIGHT_CHANNEL`.
  */
-final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
+final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver, ServiceSource
 {
+    /** @var non-empty-string|null */
+    private readonly ?string $source;
+
     /** @var \Closure(): Application */
     private readonly \Closure $factory;
 
@@ -36,19 +42,25 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
 
     /**
      * @param string|\Closure(): Application $application
-     *   A path to the file that returns the application, usually
-     *   bootstrap/app.php, or a closure returning the application when
-     *   exotic construction is needed.
+     *   A path to a file that returns the application, usually bootstrap/app.php.
+     *   For other application setup, pass a closure that returns the application.
      * @param non-empty-string $env
      * @param bool $refreshBetweenTests
-     *   Set to false only when no service carries state; tests on one worker
-     *   then share one unreset application for the worker lifetime.
+     *   Set to false only when no service keeps state between tests.
+     *   Tests on one worker then share one application without resets.
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         string|\Closure $application,
         private readonly string $env = 'testing',
         private readonly bool $refreshBetweenTests = true,
+        ?string $source = null,
     ) {
+        if ($source === '') {
+            throw new \InvalidArgumentException('Service source must not be empty.');
+        }
+
+        $this->source = $source;
         $this->factory = $application instanceof \Closure
             ? $application
             : static function () use ($application): Application {
@@ -61,11 +73,17 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
                 $app = require $application;
 
                 if (!$app instanceof Application) {
-                    throw LaravelBridgeError::notAnApplication(\get_debug_type($app));
+                    throw LaravelBridgeError::notAnApplication($app);
                 }
 
                 return $app;
             };
+    }
+
+    #[\Override]
+    public function source(): ?string
+    {
+        return $this->source;
     }
 
     /**
@@ -92,10 +110,12 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     public function resolve(string $type, array $attributes): ?object
     {
         $id = $type;
+        $explicit = false;
 
         foreach ($attributes as $attribute) {
             if ($attribute instanceof Service) {
-                $id = $attribute->id;
+                $id = $attribute->id ?? $type;
+                $explicit = true;
             }
         }
 
@@ -103,7 +123,7 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             $app = $this->application();
 
             if (!$app->bound($id)) {
-                if ($id !== $type) {
+                if ($explicit) {
                     throw LaravelBridgeError::unknownServiceId($id, $type);
                 }
 
@@ -113,7 +133,7 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             $service = $app->make($id);
 
             if (!$service instanceof $type) {
-                throw LaravelBridgeError::serviceTypeMismatch($id, $type, \get_debug_type($service));
+                throw LaravelBridgeError::serviceTypeMismatch($id, $type, $service);
             }
 
             return $service;
@@ -153,7 +173,7 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             $app = ($this->factory)();
 
             if (!$app instanceof Application) {
-                throw LaravelBridgeError::notAnApplication(\get_debug_type($app));
+                throw LaravelBridgeError::notAnApplication($app);
             }
 
             $this->app = $app;
@@ -165,7 +185,7 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
             $kernel = $this->containerEntry($app, Kernel::class);
 
             if (!$kernel instanceof Kernel) {
-                throw LaravelBridgeError::consoleKernelTypeMismatch(\get_debug_type($kernel));
+                throw LaravelBridgeError::consoleKernelTypeMismatch($kernel);
             }
 
             $this->preserveDiagnosticHandlers($app);

@@ -11,9 +11,10 @@ use Greenlight\Coverage\Collection\Driver\CoverageDriver;
 use Greenlight\Coverage\Collection\Driver\DriverSelector;
 use Greenlight\Coverage\Collection\Driver\PcovDriver;
 use Greenlight\Coverage\Collection\Driver\XdebugDriver;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Coverage\RecordingFakeDriver;
 use Greenlight\Tests\Fixture\Coverage\UnavailableFakeDriver;
+
+use function Greenlight\expect;
 
 final class CoverageCollectorTest
 {
@@ -25,26 +26,26 @@ final class CoverageCollectorTest
             selector: new DriverSelector([RecordingFakeDriver::class]),
         );
 
-        Expect::that($collector)
+        expect($collector)
             ->because('The available driver MUST create a coverage collector.')
             ->toBeInstanceOf(CoverageCollector::class);
 
         $collector->start();
 
-        Expect::that(RecordingFakeDriver::started())
+        expect(RecordingFakeDriver::started())
             ->because('the collector starts the selected driver')
             ->toBeTrue();
 
         $files = $collector->stop()->files();
 
-        Expect::that(RecordingFakeDriver::started())
+        expect(RecordingFakeDriver::started())
             ->because('the collector stops the selected driver')
             ->toBeFalse();
-        Expect::that(\array_keys($files))
+        expect(\array_keys($files))
             ->because('the collector filters raw coverage to the included paths')
             ->toBe(['/project/src/Included.php']);
-        Expect::that($files['/project/src/Included.php']->coveredLines)->toBe([10]);
-        Expect::that($files['/project/src/Included.php']->uncoveredLines)->toBe([11]);
+        expect($files['/project/src/Included.php']->coveredLines)->toBe([10]);
+        expect($files['/project/src/Included.php']->uncoveredLines)->toBe([11]);
     }
 
     #[Test]
@@ -59,10 +60,10 @@ final class CoverageCollectorTest
             new DriverSelector([UnavailableFakeDriver::class]),
         );
 
-        Expect::that($collector)
+        expect($collector)
             ->because('an unavailable driver does not create a collector')
             ->toBeNull();
-        Expect::that($reason)->toBe(
+        expect($reason)->toBe(
             'No coverage driver is available. Greenlight tried UnavailableFakeDriver. Install pcov or enable Xdebug coverage mode. '
                 . 'Set xdebug.mode to "coverage", or set the XDEBUG_MODE environment variable.',
         );
@@ -76,14 +77,14 @@ final class CoverageCollectorTest
             selector: new DriverSelector([RecordingFakeDriver::class]),
         );
 
-        Expect::that($collector)
+        expect($collector)
             ->because('The available driver MUST create a coverage collector.')
             ->toBeInstanceOf(CoverageCollector::class);
 
         $collector->start();
         $files = $collector->stop()->files();
 
-        Expect::that(\array_keys($files))
+        expect(\array_keys($files))
             ->because('empty coverage include paths MUST retain every collected file')
             ->toBe([
                 '/project/src/Included.php',
@@ -117,26 +118,26 @@ final class CoverageCollectorTest
             $expectedName = new \ReflectionClass($expected)->getShortName();
             $otherName = new \ReflectionClass($other)->getShortName();
 
-            Expect::that($reason)
+            expect($reason)
                 ->because(\sprintf('Unavailable %s coverage MUST report a reason.', $setting))
                 ->toBeString();
 
-            Expect::that($collector)
+            expect($collector)
                 ->because($setting . ' selects only its configured coverage driver')
                 ->toBeNull();
-            Expect::that($reason)->toContain('Greenlight tried ' . $expectedName . '.');
-            Expect::that(\str_contains($reason, $otherName))->toBeFalse();
+            expect($reason)->toContain('Greenlight tried ' . $expectedName . '.');
+            expect(\str_contains($reason, $otherName))->toBeFalse();
 
             return;
         }
 
-        Expect::that($collector)
+        expect($collector)
             ->because(\sprintf('Available %s coverage MUST create a collector.', $setting))
             ->toBeInstanceOf(CoverageCollector::class);
 
         $driver = new \ReflectionProperty(CoverageCollector::class, 'driver')->getValue($collector);
 
-        Expect::that($driver)
+        expect($driver)
             ->because($setting . ' selects only its configured coverage driver')
             ->toBeInstanceOf($expected);
     }

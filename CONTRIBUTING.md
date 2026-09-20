@@ -4,18 +4,55 @@ Thank you for your interest in Greenlight. These rules apply to every change.
 
 ## Requirements
 
-Greenlight requires PHP 8.4 or later.
+Greenlight requires PHP 8.4 or later. The documentation checks require Node.js
+24 or later and npm.
+
+From the repository root, run `composer install` to install the PHP development
+dependencies.
+
+Run `make docs-install` to install the documentation dependencies and Chromium
+for the browser tests.
+
+## Code and architecture
+
+Use the [code conventions](docs/architecture/conventions.md).
+Read the [architecture overview](docs/architecture/README.md) for module
+responsibilities and dependency direction.
+Keep dependencies within the boundaries in [deptrac.yaml](deptrac.yaml).
+
+## Documentation sources
+
+Edit guides in `docs/`. The website uses these Markdown files directly.
+Architecture pages in `docs/architecture/` remain repository documentation.
+
+The API generator reads public PHP declarations and PHPDoc in `src/`.
+To change the API reference, edit those sources. Then run:
+
+```sh
+npm --prefix website run api:generate
+```
+
+Commit the updated API pages with their source changes. Do not edit generated
+`docs/api.md` or `docs/api-*.md` pages directly. The generator is
+`website/scripts/generate-api-reference.mjs`.
+
+Edit website text and accessibility labels in `website/src/`. Do not edit
+`website/dist/`, `build/docs-php/`, or `.phpstan-api-stubs/`. Build and
+development tools generate these directories.
+
+The [PHP example guide](docs/architecture/documentation-php-examples.md)
+explains the metadata required for PHP code fences in `README.md` and `docs/`.
 
 ## Technical prose
 
 Use the [technical writing standard](docs/architecture/technical-writing.md)
-for all repository-owned technical prose. The standard applies ASD-STE100 Issue
-9 to documentation, PHPDoc, comments, contributor material, accessibility text,
-diagnostics, CLI help, and human-readable output.
+for all repository-owned technical prose. The policy uses Simplified Technical
+English principles for documentation, PHPDoc, comments, contributor material,
+accessibility text, diagnostics, CLI help, and human-readable output.
 
-Use uppercase `MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, and `MAY` as
-normative tokens. Use STE clarity principles for marketing copy. The
-controlled vocabulary is optional for marketing copy.
+Write direct instructions for requirements. Identify recommendations and options
+clearly. Preserve normative terms in formal specifications and protocol rules.
+Use the same clarity principles for marketing copy.
 
 Before you push prose changes, review the prose:
 
@@ -25,30 +62,51 @@ Before you push prose changes, review the prose:
 - Review each `-ing` form. Correct each verbal use.
 - Put only one instruction in each sentence.
 
+## Tests
+
+Add focused unit or acceptance tests for behavior changes.
+Use `Greenlight\expect()` for assertions. Import it with a `use function`
+declaration. Use `expect($value)` for values and `expect()->calling($callback)`
+for calls. Keep direct class calls when a test verifies the class API itself.
+Use the [test conventions](docs/architecture/conventions.md#tests) for test
+names, assertion exceptions, and shared fixture changes.
+
+Run focused tests with:
+
+```sh
+php bin/greenlight run --filter='<test-id>'
+```
+
+Replace `<test-id>` with the test ID to run.
+
 ## Before you push
 
 Run:
 
-```bash
+```sh
 composer static-analysis
 composer tests
 make docs-check
 ```
 
-CI runs the same checks. All three MUST pass locally.
+All three commands must pass before you push. The
+[CI workflow](.github/workflows/ci.yml) defines the PHP and documentation jobs.
 
 The Composer CI commands use one shared local slot by default. The slot applies
-across Git worktrees. Set `GREENLIGHT_LOCAL_CI_MAX_PARALLELISM` to a positive
-integer to permit more concurrent commands. Hosted CI does not use this limit.
+across Git worktrees. Set `GREENLIGHT_LOCAL_CI_MAX_PARALLELISM` to an integer
+from `1` to `64` to select the maximum number of concurrent commands. The lock
+does not apply when the `CI` environment variable is truthy. An unset or empty
+value, `0`, `false`, `no`, or `off` is false. Comparisons ignore case and
+surrounding whitespace.
 
 ## Commits and pull requests
 
 Submit changes in pull requests to `main`.
 
 Greenlight uses squash merges. The pull request title becomes the commit
-message. It MUST use the
+message. Use the
 [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
-format:
+format for commit messages and pull request titles:
 
 ```text
 type(scope): short description
@@ -110,7 +168,7 @@ this directory. Greenlight does not execute its contents.
 
 If completion for `PHPStan\` symbols is absent, run:
 
-```bash
+```sh
 composer phpstan:stubs
 ```
 
@@ -119,8 +177,7 @@ composer phpstan:stubs
 Greenlight is a development dependency. A runtime dependency can conflict with
 the project under test. Implement each necessary capability in Greenlight.
 
-You MAY add development dependencies for tools. You MUST NOT add runtime
-dependencies.
+You can add development dependencies for tools. Do not add runtime dependencies.
 
 ## Questions
 

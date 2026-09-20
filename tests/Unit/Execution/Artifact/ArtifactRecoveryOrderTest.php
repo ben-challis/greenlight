@@ -8,12 +8,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactRecoveryOrderTest
 {
@@ -44,10 +45,10 @@ final readonly class ArtifactRecoveryOrderTest
             attempts: 10,
         ));
 
-        Expect::that($recovered->attachments)
+        expect($recovered->attachments)
             ->because('crash recovery orders evidence by numeric attempt')
             ->toHaveCount(2);
-        Expect::that(\array_map(
+        expect(\array_map(
             static fn($attachment): array => [$attachment->attempt, $attachment->name],
             $recovered->attachments,
         ))
@@ -55,5 +56,35 @@ final readonly class ArtifactRecoveryOrderTest
                 [2, 'second.txt'],
                 [10, 'tenth.txt'],
             ]);
+    }
+
+    #[Test]
+    public function recoveredAttachmentsKeepCreationOrderBeyondTwoDigits(): void
+    {
+        $root = $this->tempDirectory->subdirectory('recovery-sequence');
+        $store = ArtifactStore::open(
+            new ArtifactConfiguration($root, maxAttachmentsPerTest: 101),
+            $root,
+            'run-sequence',
+        );
+        $this->cleanup->defer($store->cleanup(...));
+        $id = new TestId('Example\EvidenceTest', 'crashesWithManyAttachments');
+        $attempt = $store->forAttempt($id, 1, new TestArtifactBudget());
+        $expectedNames = [];
+
+        for ($sequence = 1; $sequence <= 101; ++$sequence) {
+            $name = 'evidence-' . $sequence . '.txt';
+            $attempt->text($name, 'evidence');
+            $expectedNames[] = $name;
+        }
+
+        $recovered = $store->recover(new TestResult($id, Outcome::Errored, 0.0, 0));
+
+        expect(\array_map(
+            static fn($attachment): string => $attachment->name,
+            $recovered->attachments,
+        ))
+            ->because('crash recovery must preserve attachment creation order within each attempt')
+            ->toBe($expectedNames);
     }
 }

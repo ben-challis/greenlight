@@ -6,15 +6,17 @@ namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
+use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\UnresolvableService;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Test\SkipTest;
 use Greenlight\Test\TestDefinition;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class TestContextTest
 {
@@ -32,10 +34,10 @@ final class TestContextTest
 
         $service = $context->service(\ArrayObject::class);
 
-        Expect::that($service)
+        expect($service)
             ->because('the plugin context resolves a registered harness service')
             ->toBeInstanceOf(\ArrayObject::class);
-        Expect::that($service->getArrayCopy())->toBe(['ready']);
+        expect($service->getArrayCopy())->toBe(['ready']);
     }
 
     #[Test]
@@ -43,12 +45,36 @@ final class TestContextTest
     {
         $context = $this->context(new HarnessScopes());
 
-        Expect::that(static fn(): object => $context->service(\ArrayObject::class))
+        expect()->calling(static fn(): object => $context->service(\ArrayObject::class))
             ->because('a missing service identifies the plugin context')
             ->toThrow(
                 UnresolvableService::class,
                 message: 'No harness service is registered for type "ArrayObject", required by "plugin context for Fixture\\PluginTest". '
                 . 'Constructor injection resolves exact types only.',
+            );
+    }
+
+    #[Test]
+    public function servicePreservesTheHarnessTypeMismatch(): void
+    {
+        $resolver = new class implements ServiceResolver {
+            #[\Override]
+            public function resolve(string $type, array $attributes): object
+            {
+                return new \stdClass();
+            }
+        };
+        $context = $this->context(new HarnessScopes(resolvers: [$resolver]));
+
+        expect()->calling(static fn(): object => $context->service(\ArrayObject::class))
+            ->toThrow(
+                UnresolvableService::class,
+                message: UnresolvableService::resolverTypeMismatch(
+                    \ArrayObject::class,
+                    'plugin context for Fixture\\PluginTest',
+                    $resolver::class,
+                    new \stdClass(),
+                )->getMessage(),
             );
     }
 
@@ -66,13 +92,13 @@ final class TestContextTest
         $scopes->openTest();
         $context = $this->context($scopes);
 
-        Expect::that($context->service(\ArrayObject::class))
+        expect($context->service(\ArrayObject::class))
             ->because('the plugin context can resolve a service while the test scope is open')
             ->toBeInstanceOf(\ArrayObject::class);
 
         $scopes->closeTest();
 
-        Expect::that(static fn(): object => $context->service(\ArrayObject::class))
+        expect()->calling(static fn(): object => $context->service(\ArrayObject::class))
             ->because('the plugin context MUST NOT expose a service after the test scope closes')
             ->toThrow(\LogicException::class, message: 'No test scope is open.');
     }
@@ -82,7 +108,7 @@ final class TestContextTest
     {
         $context = $this->context(new HarnessScopes());
 
-        Expect::that(static function () use ($context): void {
+        expect()->calling(static function () use ($context): void {
             $context->attachments->text('note.txt', 'body');
         })
             ->because('a plugin context without an active attempt MUST reject attachments')
@@ -97,7 +123,7 @@ final class TestContextTest
     {
         $context = $this->context(new HarnessScopes());
 
-        Expect::that(static fn(): never => $context->skip('dependency is unavailable'))
+        expect()->calling(static fn(): never => $context->skip('dependency is unavailable'))
             ->because('a plugin skip MUST preserve its reason for the test result')
             ->toThrow(SkipTest::class, message: 'dependency is unavailable');
     }

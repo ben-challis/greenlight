@@ -11,7 +11,7 @@ Swow engine.
 Install the Hyperf framework and dependency injector in the application:
 
 ```console
-composer require hyperf/framework:^3.2 hyperf/di:^3.2
+composer require hyperf/framework:~3.2.0 hyperf/di:~3.2.0
 ```
 
 Enable the Swoole and pcntl extensions for the PHP command that runs
@@ -26,7 +26,7 @@ use Greenlight\Hyperf\HyperfPlugin;
 
 return GreenlightConfig::create()
     ->paths(['tests'])
-    ->plugins(static fn(): HyperfPlugin => new HyperfPlugin(dirname(__DIR__)));
+    ->plugins(static fn(): HyperfPlugin => new HyperfPlugin(__DIR__));
 ```
 
 Pass the application root directory to the plugin. Include the standard
@@ -48,7 +48,7 @@ use Greenlight\Hyperf\ContainerLifetime;
 use Greenlight\Hyperf\HyperfPlugin;
 
 new HyperfPlugin(
-    dirname(__DIR__),
+    __DIR__,
     containerLifetime: ContainerLifetime::Worker,
 );
 ```
@@ -62,7 +62,7 @@ each test attempt:
 <!-- php-example {"example":"hyperf-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 new HyperfPlugin(
-    dirname(__DIR__),
+    __DIR__,
     containerLifetime: ContainerLifetime::TestAttempt,
 );
 ```
@@ -112,14 +112,14 @@ container.
 
 ## Test-attempt container lifecycle
 
-The isolated mode uses this lifecycle for each attempt:
+`ContainerLifetime::TestAttempt` uses this lifecycle for each attempt:
 
 1. Start one root Swoole coroutine.
 2. Load `config/container.php` and activate its new container.
 3. Resolve `Hyperf\Contract\ApplicationInterface` to boot the application.
 4. Construct the test and run all hooks, plugins, and the test method.
 5. Close the Greenlight test service scope.
-6. Call the reset callback and disposal callback.
+6. Call the reset callback, then the disposal callback, even if reset fails.
 7. Remove access to the discarded application container.
 8. Clear Swoole timers and resume Hyperf's worker-exit coordinator.
 9. End the coroutine.
@@ -140,8 +140,8 @@ final readonly class RegistrationTest
 }
 ```
 
-Greenlight first checks its harness services. It then asks the active Hyperf
-container.
+Without an explicit service source, Greenlight first checks its harness
+services. It then asks the active Hyperf container.
 
 Use `#[Service]` when the parameter type does not select the necessary ID:
 
@@ -163,12 +163,24 @@ Concrete Hyperf bridge exceptions are internal.
 A test can also receive `Psr\Container\ContainerInterface`. This service is
 available only during the current test attempt.
 
+### Select a service source
+
+Pass `source: 'app'` to `HyperfPlugin` to name this plugin instance. Use
+`#[Service(source: 'app')]` to request a service by type from this source.
+Use `#[Service('payments.client', source: 'app')]` to select an explicit ID in
+its container.
+
+An explicit source takes precedence over global harness services. A missing
+service fails without a request to another source. Use the same source
+attribute to select this plugin's `ContainerInterface` harness service. See
+[service sources](plugins.md#servicesource) for naming and resolution rules.
+
 ## Reset and disposal
 
 Hyperf does not supply one reset operation for all application services. The
 application keeps request state in coroutine context or resets that state after
 each attempt. See Hyperf's
-[coroutine guidance](https://hyperf.wiki/3.1/#/en/coroutine).
+[coroutine guidance](https://github.com/hyperf/hyperf/blob/3.2/docs/en/coroutine.md).
 
 Use `reset:` to reset project state after each attempt. Use
 `dispose:` for resources that belong to the selected container lifetime:
@@ -178,7 +190,7 @@ Use `reset:` to reset project state after each attempt. Use
 use Psr\Container\ContainerInterface;
 
 new HyperfPlugin(
-    dirname(__DIR__),
+    __DIR__,
     reset: static function (ContainerInterface $container): void {
         $container->get(RequestStateProbe::class)->reset();
     },
@@ -191,9 +203,17 @@ new HyperfPlugin(
 The reset callback runs after Greenlight closes its per-test service scope. It
 runs inside the test coroutine in both modes.
 
-The disposal callback runs before Greenlight discards its container. In worker
-mode, it runs once when the worker exits. In test-attempt mode, it runs after
-each attempt. It always runs inside a coroutine.
+The disposal callback runs before Greenlight discards its container.
+In worker mode, it runs once after the worker finishes its assignments.
+A disposal failure stops the worker runtime and fails the run.
+
+In test-attempt mode, the reset callback runs first. Greenlight calls disposal
+even if reset throws. A failure from either callback gives the attempt an error.
+A reset failure in worker mode also gives the attempt an error.
+
+The first throwable remains the cause. At the end of the container lifetime,
+Greenlight still removes container access, clears the coroutine runtime, and
+ends the root coroutine.
 
 The bridge does not reset application static properties or global variables.
 Reset these values in an `#[After]` hook or the `reset:` callback.

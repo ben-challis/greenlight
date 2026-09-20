@@ -49,7 +49,7 @@ final readonly class WatchLoop
         $this->detector->poll();
         $failedClasses = $runOnce([]);
         $iterations = 1;
-        ($this->out)("\nWaiting for changes. Press Enter to run all tests. Press q to quit.\n");
+        ($this->out)("\nWaiting for changes. Press Enter to rerun the selected tests. Press q to quit.\n");
 
         while ($maxIterations === null || $iterations < $maxIterations) {
             if ($this->shutdown?->requested() === true) {
@@ -75,7 +75,7 @@ final readonly class WatchLoop
                 $this->debouncer->reset();
                 $failedClasses = $runOnce($runNow ? [] : $failedClasses);
                 ++$iterations;
-                ($this->out)("\nWaiting for changes. Press Enter to run all tests. Press q to quit.\n");
+                ($this->out)("\nWaiting for changes. Press Enter to rerun the selected tests. Press q to quit.\n");
 
                 continue;
             }

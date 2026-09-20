@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Expect\Node;
+
+use function Greenlight\expect;
 
 final readonly class CyclicEqualityTopologyTest
 {
@@ -21,10 +22,9 @@ final readonly class CyclicEqualityTopologyTest
         $first->next = $second;
         $second->next = $first;
 
-        Expect::that($selfCycle)
+        expect($selfCycle)
             ->because('deep equality MUST preserve cyclic object relationships')
-            ->not()
-            ->toEqual($first);
+            ->not()->toEqual($first);
     }
 
     #[Test]
@@ -34,10 +34,9 @@ final readonly class CyclicEqualityTopologyTest
         $left = (object) ['first' => $shared, 'second' => $shared];
         $right = (object) ['first' => new \stdClass(), 'second' => new \stdClass()];
 
-        Expect::that($left)
+        expect($left)
             ->because('deep equality MUST distinguish sharing one object from duplicating its state')
-            ->not()
-            ->toEqual($right);
+            ->not()->toEqual($right);
     }
 
     #[Test]
@@ -47,9 +46,8 @@ final readonly class CyclicEqualityTopologyTest
         $shared = new \stdClass();
         $right = (object) ['first' => $shared, 'second' => $shared];
 
-        Expect::that($left)
+        expect($left)
             ->because('deep equality MUST distinguish duplicating state from sharing one object')
-            ->not()
-            ->toEqual($right);
+            ->not()->toEqual($right);
     }
 }

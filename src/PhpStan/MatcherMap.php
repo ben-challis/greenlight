@@ -7,7 +7,10 @@ namespace Greenlight\PhpStan;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\InvalidConfiguration;
+use Greenlight\Expect\CallExpectation;
+use Greenlight\Expect\Expectation;
 use Greenlight\Expect\ExpectationExtension;
+use Greenlight\Expect\ExpectationExtensionError;
 
 /**
  * Combines extension matchers from a set of Greenlight configuration files.
@@ -43,6 +46,7 @@ final readonly class MatcherMap
         $loader = new ConfigLoader();
         $matchers = [];
         $declaredIn = [];
+        $nativeMethods = \array_fill_keys(\array_map(\strtolower(...), [...\get_class_methods(Expectation::class), ...\get_class_methods(CallExpectation::class)]), true);
 
         foreach ($configFiles as $file) {
             if (!\str_starts_with($file, '/')) {
@@ -63,6 +67,10 @@ final readonly class MatcherMap
                 }
 
                 foreach ($plugin->matchers() as $name => $matcher) {
+                    if (isset($nativeMethods[\strtolower($name)])) {
+                        throw MatcherMapError::invalidExtension(ExpectationExtensionError::nativeMethod($name));
+                    }
+
                     $reflection = new \ReflectionFunction($matcher);
                     $signature = self::signature($reflection);
                     $existingSignature = isset($matchers[$name]) ? self::signature($matchers[$name]) : null;
@@ -199,8 +207,9 @@ final readonly class MatcherMap
         }
 
         $nullable = $type->allowsNull() && !\in_array($type->getName(), ['mixed', 'null'], true);
+        $qualifier = $type->isBuiltin() || \in_array($type->getName(), ['self', 'static', 'parent'], true) ? '' : '\\';
 
-        return ($nullable ? '?' : '') . self::resolvedTypeName($type->getName(), $scopeClass);
+        return ($nullable ? '?' : '') . $qualifier . self::resolvedTypeName($type->getName(), $scopeClass);
     }
 
     /** @param ?\ReflectionClass<object> $scopeClass */

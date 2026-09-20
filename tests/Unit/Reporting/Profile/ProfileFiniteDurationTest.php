@@ -10,10 +10,11 @@ use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\WorkerSpawned;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Profile\ProfileAggregator;
 use Greenlight\Reporting\Style;
 use Greenlight\Result\ResultSummary;
+
+use function Greenlight\expect;
 
 final readonly class ProfileFiniteDurationTest
 {
@@ -39,11 +40,9 @@ final readonly class ProfileFiniteDurationTest
             $aggregator->onEvent($event);
         }
 
-        Expect::that($aggregator->render(new Style(ansi: false)))
+        expect($aggregator->render(new Style(ansi: false)))
             ->because('finite event timestamps MUST produce only finite profile metrics')
-            ->not()
-            ->toContain('INF')
-            ->not()
-            ->toContain('NAN');
+            ->not()->toContain('INF')
+            ->not()->toContain('NAN');
     }
 }

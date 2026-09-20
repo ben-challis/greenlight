@@ -6,12 +6,13 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class TeamCityReporterCarriageReturnTest
 {
@@ -30,7 +31,7 @@ final class TeamCityReporterCarriageReturnTest
 
         $reporter->onEvent(new TestFinished($result, 1.0));
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('TeamCity service messages MUST escape carriage returns as |r')
             ->toContain("message='before|rafter'");
     }

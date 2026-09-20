@@ -54,8 +54,9 @@ Marks a public method to run before each test in the class.
 If a class has multiple before-hooks, Greenlight runs them in declaration
 order.
 
-A before-hook can throw `SkipTest` to skip the test. A throwable other than
-`SkipTest` gives the test an error.
+A before-hook can throw `SkipTest` to skip the test. An `ExpectationFailed`
+from the hook fails the test. Another throwable gives the test an error.
+In each case, Greenlight skips the test method and runs the after-hooks.
 
 ## After
 
@@ -102,13 +103,23 @@ or:
 #[DataSet(CurrencyDataSets::class, 'currencies')]
 ```
 
-The provider must return an iterable of named data sets for the test method.
+Return a non-empty iterable from the provider. Use one argument array for each
+test invocation.
 
-Providers run at discovery time before tests execute. Do not use I/O or global
-state in a provider.
+Greenlight invokes the provider during discovery to create the execution plan.
+The plan contains data-set keys, not argument values. Greenlight invokes the
+provider again once for each worker-side class assignment to create the values
+in that worker. Return every planned key on each invocation.
 
-Each provider key names a data set and appears in test IDs and reports. Each
-provider value is the argument list for one test invocation.
+Keep providers pure, deterministic, and free of I/O and global state. Each
+invocation has a five-second time budget. Greenlight checks elapsed time after the call and as
+it reads rows. This check cannot interrupt a blocked provider.
+
+Use an integer or string for each provider key. Greenlight changes an integer
+key to `#<key>`. It keeps a non-empty printable string key unchanged. It changes
+an empty or nonprintable string key to the first eight hexadecimal characters
+of its SHA-256 hash. The normalized key appears in test IDs and reports.
+Duplicate normalized keys cause a discovery error.
 
 <!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
@@ -309,7 +320,7 @@ environment checks, so most `#[SkipUnless]` uses need no hand-written class:
 * `ClassAvailable(Redis::class)` checks that the class exists.
 
 The skip reason names the condition and its arguments, for example
-`Condition ExtensionLoaded("redis") is not satisfied.`
+`Condition ExtensionLoaded("redis") is not satisfied`.
 
 ## Retry
 
@@ -323,19 +334,28 @@ int $times
 ?string $onlyOn = null
 ```
 
-Retries a failed test up to `$times` additional attempts.
+Retries an unsuccessful test attempt up to `$times` additional attempts.
 
 Use a `$times` value of 1 or more.
 
 When you supply `$onlyOn`, use a throwable class-string. Greenlight retries
-only failures with that throwable type. It does not retry other failures.
+only when the attempt cause has that throwable type. It does not retry an
+unsuccessful attempt that has no matching cause.
 
 Greenlight gives each attempt a new test instance and a new per-test scope.
-Thus, state does not pass between attempts.
+Per-class services, per-worker services, plugin instances, and process-global
+state remain in the same worker. Reset shared state before another attempt
+uses it. Retries do not start a new worker, even for an isolated test.
 
 Each retry also starts `eventually()` and `consistently()` with a new deadline
 and an empty observation log. `retryOnException()` retries a probe within the
 same test attempt, while `#[Retry]` starts the whole test again.
+
+If a test passes after retry, reporters keep its passed outcome and attempt
+count. They also report the retried pass as evidence of instability.
+
+Use `failOnRetriedPass()` or `--fail-on-retried-pass` to fail the run for this
+evidence. The policy does not change the test outcome.
 
 <!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
@@ -357,18 +377,22 @@ float $seconds
 
 `$seconds` must be finite and greater than zero.
 
-Fails the test if it runs longer than the configured budget.
+The worker checks elapsed time after hooks, deferred cleanup, and per-test
+service disposal. An otherwise passed attempt fails if it exceeds the budget.
+This check cannot interrupt PHP code that is still active. Each retry starts
+a new attempt budget.
 
-Greenlight enforces a timeout in two layers. The worker checks elapsed time
-cooperatively and fails a test that exceeds its budget. If the worker does not
-return, the orchestrator terminates it after the hard-kill grace period.
+With process-pool execution, the orchestrator also stops a worker that exceeds
+the timeout plus a grace period. Greenlight replaces the stopped worker and
+continues the run.
 
-The orchestrator replaces the stopped worker and continues the run.
+In-process execution has no separate worker to stop. This includes
+`--workers=1` and automatic fallback when process functions are unavailable.
+A blocked test can therefore prevent an in-process run from completing.
 
-An `eventually()` or `consistently()` matcher cannot run past the current test
-timeout. If the test timeout occurs first, the failure gives the requested
-duration. A blocked probe remains subject to the orchestrator hard-kill grace
-period.
+An `eventually()` or `consistently()` matcher checks the current attempt
+deadline between probe calls. A blocked probe cannot check this deadline.
+Only process-pool execution provides the outer timeout for a blocked probe.
 
 <!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
@@ -376,6 +400,8 @@ period.
 #[Timeout(seconds: 5.0)]
 public function convergesQuickly(): void { ... }
 ```
+
+Each retry starts a new timeout budget and a new hard-kill grace period.
 
 ## AllowParallel
 
@@ -409,8 +435,8 @@ placement and completion-event order remain load-dependent.
 Each assignment emits one class-started and class-finished event pair. The
 `#[Before]` and `#[After]` hooks still run for each test attempt.
 
-A data provider can run again in each assigned worker. Keep providers pure,
-deterministic, and fast.
+Each split assignment expands its data provider independently. Thus, the same
+provider can run many times for one test class.
 
 `#[AllowParallel]` is incompatible with these features:
 
@@ -438,8 +464,8 @@ string $name
 ```
 
 Marks a test that requires one slot of a named resource. A name must start with
-a lowercase letter or digit. After the first character, the name accepts dots,
-underscores, and hyphens.
+a lowercase ASCII letter or digit. Remaining characters can be lowercase ASCII
+letters, digits, dots, underscores, or hyphens.
 
 <!-- php-example {"mode":"display","reason":"Uses an ellipsis to omit code that is not relevant to the example."} -->
 ```php
@@ -465,7 +491,7 @@ isolated or `#[AllowParallel]` test.
 Resources default to a limit of one. Use `resourceLimit()` in `greenlight.php`
 or `--resource-limit` to set a larger limit.
 
-The requirement controls the class start time. It does not select a concrete
+The requirement controls the assignment start time. It does not select a concrete
 resource instance or provide a lease identifier. Use `TestChannel` when every
 worker can have its own instance. A smaller set of distinct instances still
 needs an application-owned allocator.
@@ -479,11 +505,16 @@ Target: method or class.
 
 No parameters.
 
-Runs the test method, or each test in the class, in a dedicated new worker.
-Greenlight discards that worker after the test.
+With process-pool execution, runs the test method, or each test in the class,
+in a dedicated new worker. Greenlight discards that worker after the test.
 
 Use this for tests that modify process-global state, such as ini settings,
 environment variables, or static caches.
+
+In-process execution cannot provide this isolation. `--workers=1` and the
+automatic fallback for unavailable process functions run the complete plan in
+one process. Do not use either mode when a test depends on `#[Isolated]` for
+process-global state cleanup.
 
 ## CoverageIgnore
 

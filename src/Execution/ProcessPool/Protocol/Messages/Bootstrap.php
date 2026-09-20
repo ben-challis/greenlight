@@ -7,6 +7,7 @@ namespace Greenlight\Execution\ProcessPool\Protocol\Messages;
 use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Internal\Wire\Wire;
+use Greenlight\Result\ResultPolicy;
 
 /**
  * Orchestrator to worker: immutable worker-lifetime configuration.
@@ -25,6 +26,7 @@ final readonly class Bootstrap implements Message
         public IntegrationResources $resources,
         public ?string $generatedCodeDirectory = null,
         public ?string $temporaryDirectory = null,
+        public ?ResultPolicy $policy = null,
     ) {}
 
     #[\Override]
@@ -42,6 +44,7 @@ final readonly class Bootstrap implements Message
             'resources' => $this->resources->toWire(),
             'generatedCodeDirectory' => $this->generatedCodeDirectory,
             'temporaryDirectory' => $this->temporaryDirectory,
+            'policy' => $this->policy?->toWire(),
         ];
     }
 
@@ -60,6 +63,9 @@ final readonly class Bootstrap implements Message
             ($temporary = \array_key_exists('temporaryDirectory', $payload)
                 ? Wire::nullableString($payload, 'temporaryDirectory')
                 : null) === '' ? null : $temporary,
+            ($policy = \array_key_exists('policy', $payload) ? Wire::nullableMap($payload, 'policy') : null) === null
+                ? null
+                : ResultPolicy::fromWire($policy),
         );
     }
 }

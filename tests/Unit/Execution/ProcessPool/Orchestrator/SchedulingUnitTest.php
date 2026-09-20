@@ -7,15 +7,16 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Execution\ProcessPool\Orchestrator\SchedulingUnit;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final class SchedulingUnitTest
 {
     #[Test]
     public function itCannotBeEmpty(): void
     {
-        Expect::that(static fn(): SchedulingUnit => new SchedulingUnit(new ExecutionPlan([]), false))->because('a scheduling unit cannot be empty')
+        expect()->calling(static fn(): SchedulingUnit => new SchedulingUnit(new ExecutionPlan([]), false))->because('a scheduling unit cannot be empty')
             ->toThrow(\InvalidArgumentException::class, '/cannot be empty/');
     }
 
@@ -27,7 +28,7 @@ final class SchedulingUnitTest
             PlanEntryFixture::create('ExampleTest', 'second', resources: ['database']),
         ]), false);
 
-        Expect::that($unit->resources)
+        expect($unit->resources)
             ->because('one class MUST acquire each required resource once')
             ->toBe(['database', 'cache']);
     }

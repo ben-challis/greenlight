@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Execution\Worker;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class WorkerCaptureCleanupTest
 {
@@ -77,10 +78,10 @@ final readonly class WorkerCaptureCleanupTest
         try {
             $result = $process->wait(2.0);
 
-            Expect::that($result->exitCode)
+            expect($result->exitCode)
                 ->because('capture cleanup MUST complete without terminating the worker')
                 ->toBe(0);
-            Expect::that($result->stderr)
+            expect($result->stderr)
                 ->because('capture failure MUST run callbacks, close the test scope, and clear the temporal deadline')
                 ->toBe('1:1:clear');
         } finally {

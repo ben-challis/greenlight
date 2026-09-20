@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Protocol;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Done;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ResultSummary;
+
+use function Greenlight\expect;
 
 final readonly class DoneResultPayloadWireTest
 {
@@ -31,7 +32,7 @@ final readonly class DoneResultPayloadWireTest
 
         $done = Done::fromWire($payload);
 
-        Expect::that($done->toWire())
+        expect($done->toWire())
             ->because('a completed assignment MUST preserve its coverage and leaked test IDs')
             ->toBe($payload);
     }

@@ -14,8 +14,9 @@ use Random\Engine\Mt19937;
 use Random\Randomizer;
 
 /**
- * Discovery does not invoke test methods. It invokes only user callables that
- * are data providers.
+ * Builds an execution plan from test metadata and data providers.
+ * Discovery loads test classes through registered autoloaders. It does not
+ * invoke test methods or lifecycle hooks.
  *
  * @internal
  */
@@ -59,12 +60,12 @@ final readonly class TestDiscoverer
 
             if ($unfiltered === null) {
                 try {
-                    $unfiltered = $this->entriesForFile($file);
+                    $unfiltered = $this->entriesForFile($file, $class);
                 } catch (DataSetError $error) {
                     throw DiscoveryError::invalidDataSet($error);
                 }
 
-                $cache?->store($file, $unfiltered);
+                $cache?->store($file, $unfiltered, $class);
             }
 
             $entries = $this->filtered($unfiltered, $selection, $file);
@@ -99,8 +100,8 @@ final readonly class TestDiscoverer
     }
 
     /**
-     * Uses Fisher-Yates with a seeded engine. Thus, the same seed always
-     * produces the same class order without dependence on global random state.
+     * Uses Fisher-Yates with a seeded engine. The same input order and seed
+     * produce the same class order without dependence on global random state.
      *
      * @param list<non-empty-string> $classes
      *
@@ -125,11 +126,13 @@ final readonly class TestDiscoverer
      *
      * @param non-empty-string $file
      *
+     * @param-out class-string|null $class
+     *
      * @return list<PlanEntry>
      * @throws DataSetError
      * @throws DiscoveryError
      */
-    private function entriesForFile(string $file): array
+    private function entriesForFile(string $file, ?string &$class): array
     {
         $class = $this->resolveClass($file);
 

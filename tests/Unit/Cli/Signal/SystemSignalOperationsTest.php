@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Cli\Signal;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Signal\SystemSignalOperations;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class SystemSignalOperationsTest
 {
@@ -21,7 +22,7 @@ final readonly class SystemSignalOperationsTest
         $operations = new SystemSignalOperations();
         $available = \function_exists('pcntl_signal') && \function_exists('pcntl_async_signals');
 
-        Expect::that($operations->available())
+        expect($operations->available())
             ->because('native signal availability MUST match the required pcntl functions')
             ->toBe($available);
 
@@ -38,10 +39,10 @@ final readonly class SystemSignalOperationsTest
         $operations->enableAsync();
         $operations->register(\SIGUSR1, $handler);
 
-        Expect::that(\pcntl_async_signals())
+        expect(\pcntl_async_signals())
             ->because('native signal operations MUST enable asynchronous delivery')
             ->toBeTrue();
-        Expect::that(\pcntl_signal_get_handler(\SIGUSR1))
+        expect(\pcntl_signal_get_handler(\SIGUSR1))
             ->because('native signal operations MUST register the exact handler')
             ->toBe($handler);
     }
@@ -65,13 +66,13 @@ final readonly class SystemSignalOperationsTest
             $root . '/vendor/autoload.php',
         ]);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because(\sprintf('the capability check runs with %s disabled', $function))
             ->toBe(0);
-        Expect::that($result->stdout)
+        expect($result->stdout)
             ->because(\sprintf('native signal handling requires %s', $function))
             ->toBe('unavailable');
-        Expect::that($result->stderr)
+        expect($result->stderr)
             ->toBe('');
     }
 

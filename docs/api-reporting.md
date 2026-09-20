@@ -97,7 +97,7 @@ final readonly class ReporterDefinition
 public string $name
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L23)
 
 ### `$factory`
 
@@ -105,7 +105,7 @@ public string $name
 public \Closure $factory
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L24)
 
 ### `__construct()`
 
@@ -120,8 +120,9 @@ PHPDoc:
 
 - `@param non-empty-string $name`
 - `@param \Closure(Output): Reporter $factory Return a new reporter for each call. Greenlight owns the supplied output.`
+- `@throws \InvalidArgumentException if the reporter name is invalid`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Reporting/ReporterDefinition.php#L22)
 
 ## `ReportGenerationFailed`
 

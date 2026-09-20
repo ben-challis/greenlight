@@ -55,8 +55,8 @@ final class PlanFormatter
         $lines[] = '  resource limits: ' . ($resourceLimits === [] ? '(default 1 per required resource)' : \implode(', ', $resourceLimits));
         $lines[] = '  stop after: ' . match (true) {
             $configuration->execution->stopAfterFailures === null => 'never',
-            $configuration->execution->stopAfterFailures === 1 => '1 failure',
-            default => $configuration->execution->stopAfterFailures . ' failures',
+            $configuration->execution->stopAfterFailures === 1 => '1 failed or errored test',
+            default => $configuration->execution->stopAfterFailures . ' failed or errored tests',
         };
 
         $seed = $configuration->order->seed;
@@ -86,6 +86,11 @@ final class PlanFormatter
         $lines[] = '  storage cache: ' . $storage->cacheDirectory;
         $lines[] = '  storage generated code: ' . $storage->generatedCodeDirectory;
         $lines[] = '  storage temporary: ' . $storage->temporaryDirectory;
+        $lines[] = '  watch debounce: ' . $configuration->watch->debounceMilliseconds . ' ms';
+        $lines[] = '  additional watch paths: ' . ($configuration->watch->paths === [] ? '(none)' : \implode(', ', $configuration->watch->paths));
+        $lines[] = '  watch include patterns: ' . ($configuration->watch->includePatterns === [] ? '(all additional directory files)' : \implode(', ', $configuration->watch->includePatterns));
+        $lines[] = '  watch exclude patterns: ' . ($configuration->watch->excludePatterns === [] ? '(none)' : \implode(', ', $configuration->watch->excludePatterns));
+        $lines[] = '  watch file limit: ' . $configuration->watch->maximumFiles;
 
         if (!$configuration->coverage instanceof CoverageConfiguration) {
             $lines[] = '  coverage: (off)';
@@ -102,6 +107,9 @@ final class PlanFormatter
 
             $lines[] = '  coverage include paths: ' . ($configuration->coverage->includePaths === [] ? '(none)' : \implode(', ', $configuration->coverage->includePaths));
             $lines[] = '  coverage driver: ' . ($configuration->coverage->driver ?? '(auto)');
+            $lines[] = '  coverage driver required: ' . ($configuration->coverage->requireDriver ? 'yes' : 'no');
+            $lines[] = '  minimum coverage: ' . ($configuration->coverage->minimumPercentage === null ? '(none)' : \sprintf('%.2f%%', $configuration->coverage->minimumPercentage));
+            $lines[] = '  maximum uncovered lines: ' . ($configuration->coverage->maximumUncoveredLines === null ? '(none)' : (string) $configuration->coverage->maximumUncoveredLines);
             $lines[] = '  coverage exports: ' . ($exports === [] ? '(none)' : \implode(', ', $exports));
         }
 

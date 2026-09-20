@@ -11,20 +11,21 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
 /**
  * CI rules that can change a passed test to a failed test.
  *
- * The worker calls apply() for each final result. This call occurs after
- * retries and afterTest subscribers. Thus, each consumer receives the same
- * result.
+ * Greenlight applies the policy through its terminal-result plugin. This call
+ * occurs after retries and afterTest subscribers. Thus, each consumer receives
+ * the same result.
  *
  * The applicable flag changes a passed test with a captured deprecation,
  * notice, or warning to a failed test. The diagnostic becomes the failure
- * detail. The transformation log records the change.
+ * detail. Configured ignore patterns exempt matching deprecations.
+ * The transformation log records the change.
  *
  * A pattern without "*" or "?" matches part of a deprecation message without
  * case sensitivity. A pattern with either character matches the complete
  * message.
  *
- * A passed test with no verified expectations becomes risky. failOnRisky
- * changes this result to failed.
+ * A passed test with no verified expectations becomes risky unless it has
+ * #[NoExpectations]. failOnRisky changes a risky result to failed.
  *
  * @internal
  */
@@ -52,7 +53,7 @@ final readonly class ResultPolicy
         foreach ($ignoreDeprecations as $index => $pattern) {
             if ($index !== \count($validatedPatterns) || !\is_string($pattern) || $pattern === '') {
                 throw new \InvalidArgumentException(
-                    'Deprecation ignore patterns MUST be a list of non-empty strings.',
+                    'Use a list of non-empty strings for deprecation ignore patterns.',
                 );
             }
 

@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
 use Greenlight\Tests\Fixture\Doubles\Recorder;
+
+use function Greenlight\expect;
 
 final class DoublesDisposalAggregationTest
 {
@@ -26,14 +27,14 @@ final class DoublesDisposalAggregationTest
             $plan->expects('record')->once();
         });
 
-        Expect::that(static function () use ($doubles): void {
+        expect()->calling(static function () use ($doubles): void {
             $doubles->dispose();
         })
             ->because(
                 'disposal MUST report unmet expectations from every mock in creation order',
             )
             ->toThrow(static function (ExpectationFailed $failure): void {
-                Expect::that($failure->getMessage())->toBe(
+                expect($failure->getMessage())->toBe(
                     "2 expectations failed:\n"
                     . '1) Calls to ' . Calculator::class . '::add(): 0 times. '
                     . "The expectation requires exactly 1 time.\n"
@@ -41,7 +42,7 @@ final class DoublesDisposalAggregationTest
                     . 'The expectation requires exactly 1 time.',
                 );
 
-                Expect::that($failure->details)->toEqual([
+                expect($failure->details)->toEqual([
                     new FailureDetail(
                         'Calls to ' . Calculator::class . '::add(): 0 times. '
                             . 'The expectation requires exactly 1 time.',

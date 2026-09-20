@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\CoverageJson;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class GeneratedCoveragePathTest
 {
@@ -21,7 +22,7 @@ final readonly class GeneratedCoveragePathTest
         $project = $this->writeProject();
         $generatedDirectory = $project->path('generated');
 
-        Expect::that(\is_dir($generatedDirectory))
+        expect(\is_dir($generatedDirectory))
             ->because('the absolute coverage include path MUST be absent before the run')
             ->toBeFalse();
 
@@ -31,21 +32,19 @@ final readonly class GeneratedCoveragePathTest
             ['XDEBUG_MODE' => 'coverage'],
         );
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('coverage MUST collect source generated during the run')
             ->toBe(0);
 
         $generatedFile = CoverageJson::read($project->path('coverage.json'))
             ->files()[$generatedDirectory . '/RuntimeSource.php'] ?? null;
 
-        Expect::that($generatedFile)
+        expect($generatedFile)
             ->because('The coverage export MUST contain generated/RuntimeSource.php.')
-            ->not()
-            ->toBeNull();
-        Expect::that($generatedFile->coveredLines)
+            ->not()->toBeNull();
+        expect($generatedFile->coveredLines)
             ->because('the generated source MUST contain covered lines')
-            ->not()
-            ->toHaveCount(0);
+            ->not()->toHaveCount(0);
     }
 
     private function writeProject(): AcceptanceProject
@@ -59,7 +58,8 @@ final readonly class GeneratedCoveragePathTest
             namespace GeneratedCoverageProject;
 
             use Greenlight\Attribute\Test;
-            use Greenlight\Expect\Expect;
+
+            use function Greenlight\expect;
 
             final class GeneratesSourceTest
             {
@@ -83,7 +83,7 @@ final readonly class GeneratedCoveragePathTest
 
                     require $directory . '/RuntimeSource.php';
 
-                    Expect::that(generatedValue())->toBe(42);
+                    expect(generatedValue())->toBe(42);
                 }
             }
             PHP);

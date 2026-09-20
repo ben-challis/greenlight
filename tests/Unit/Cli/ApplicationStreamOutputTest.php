@@ -7,12 +7,13 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Reporting\PartialWriteStream;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final readonly class ApplicationStreamOutputTest
 {
@@ -37,10 +38,9 @@ final readonly class ApplicationStreamOutputTest
         $this->streamWrappers->register(self::SCHEME, PartialWriteStream::class);
 
         $partial = ErrorTrap::run(static fn() => \fopen(self::SCHEME . '://partial', 'wb'));
-        Expect::that($partial)
+        expect($partial)
             ->because('Greenlight MUST open the partial-write CLI test stream.')
-            ->not()
-            ->toBeFalse();
+            ->not()->toBeFalse();
         $this->cleanup->defer(static fn(): bool => \fclose($partial));
 
         $other = MemoryStream::open();
@@ -50,10 +50,10 @@ final readonly class ApplicationStreamOutputTest
             ? Application::forStreams($other, $partial)
             : Application::forStreams($partial, $other);
 
-        Expect::that($application->run($arguments, __DIR__))
+        expect($application->run($arguments, __DIR__))
             ->because('a CLI write through a partial stream MUST preserve the exit code')
             ->toBe($expectedExit);
-        Expect::that(PartialWriteStream::contents())
+        expect(PartialWriteStream::contents())
             ->because('a short CLI stream write MUST NOT truncate output')
             ->toBe($expectedOutput);
     }

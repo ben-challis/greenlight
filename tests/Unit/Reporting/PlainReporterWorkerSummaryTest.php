@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Reporting;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\RunFinished;
 use Greenlight\Event\WorkerSpawned;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\PlainReporter;
 use Greenlight\Result\ResultSummary;
+
+use function Greenlight\expect;
 
 final class PlainReporterWorkerSummaryTest
 {
@@ -22,7 +23,7 @@ final class PlainReporterWorkerSummaryTest
         $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.3));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('the plain summary MUST report its only spawned worker')
             ->toContain("Workers: 1 spawned\n");
     }
@@ -35,10 +36,9 @@ final class PlainReporterWorkerSummaryTest
         $reporter->onEvent(new RunFinished('run-1', new ResultSummary(passed: 1), 0.1, 1.3));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('an in-process run MUST NOT report a spawned worker')
-            ->not()
-            ->toContain('Workers:');
+            ->not()->toContain('Workers:');
     }
 
 }

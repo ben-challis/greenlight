@@ -21,8 +21,14 @@ final readonly class IntegrationFixtureDefinition
     public array $dependsOn;
 
     /**
+     * Creates one fixture definition.
+     *
+     * Each ID must be a non-empty UTF-8 string that is not an integer string.
+     * Dependency IDs must be unique.
+     *
      * @param \Closure(IntegrationFixtureContext): void $provision
      * @param list<mixed> $dependsOn
+     * @throws \InvalidArgumentException when an ID does not satisfy these requirements
      */
     public function __construct(
         string $id,

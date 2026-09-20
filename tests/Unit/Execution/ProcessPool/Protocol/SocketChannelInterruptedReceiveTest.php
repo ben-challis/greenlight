@@ -8,10 +8,11 @@ use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Test\SkipTest;
 use Greenlight\Tests\Support\ConnectedStreamPair;
+
+use function Greenlight\expect;
 
 final readonly class SocketChannelInterruptedReceiveTest
 {
@@ -32,7 +33,7 @@ final readonly class SocketChannelInterruptedReceiveTest
         \pcntl_signal(\SIGUSR1, static function (): void {}, false);
         $parentPid = \getmypid();
 
-        Expect::that($parentPid)
+        expect($parentPid)
             ->because('The test worker MUST have a process ID.')
             ->toBeInt();
 
@@ -64,26 +65,26 @@ final readonly class SocketChannelInterruptedReceiveTest
             \fclose($pair[1]);
         }
 
-        Expect::that($status)
+        expect($status)
             ->because('The signal helper MUST provide a process status.')
             ->toBeInt();
 
-        Expect::that($received)
+        expect($received)
             ->because('a signal-interrupted select MUST end the receive attempt')
             ->toBeNull();
-        Expect::that($eof)
+        expect($eof)
             ->because('an interrupted select MUST not claim that the peer closed')
             ->toBeFalse();
-        Expect::that($waited)
+        expect($waited)
             ->because('the signal helper MUST finish before the test exits')
             ->toBe($childPid);
-        Expect::that($stopped)
+        expect($stopped)
             ->because('the signal helper MUST remain active until the receive attempt ends')
             ->toBeTrue();
-        Expect::that(\pcntl_wifsignaled($status))
+        expect(\pcntl_wifsignaled($status))
             ->because('the test MUST stop the signal helper after the receive attempt ends')
             ->toBeTrue();
-        Expect::that(\pcntl_wtermsig($status))
+        expect(\pcntl_wtermsig($status))
             ->toBe(\SIGTERM);
     }
 }

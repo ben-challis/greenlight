@@ -17,6 +17,7 @@ use Greenlight\Result\ThrowableDetail;
  */
 final readonly class HarnessServiceDisposal
 {
+    /** @codeCoverageIgnore */
     private function __construct() {}
 
     /**

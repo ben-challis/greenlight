@@ -59,12 +59,14 @@ final readonly class ReporterOutputPlan
 
             $path = $file === null ? null : self::absolutePath($file, $workingDirectory);
 
-            if ($path !== null && isset($targets[$path])) {
-                throw CliError::duplicateReporterOutput($file);
-            }
-
             if ($path !== null) {
-                $targets[$path] = true;
+                $target = self::targetIdentity($path);
+
+                if (isset($targets[$target])) {
+                    throw CliError::duplicateReporterOutput($file);
+                }
+
+                $targets[$target] = true;
             }
 
             $resolved[] = ['name' => $name, 'path' => $path];
@@ -139,6 +141,25 @@ final readonly class ReporterOutputPlan
         );
     }
 
+    public function writesOnlyReportersToStandardOutput(string ...$names): bool
+    {
+        $selected = false;
+
+        foreach ($this->selections as $selection) {
+            if ($selection['output'] !== $this->standardOutput) {
+                continue;
+            }
+
+            if (!\in_array($selection['name'], $names, true)) {
+                return false;
+            }
+
+            $selected = true;
+        }
+
+        return $selected;
+    }
+
     /**
      * @return array{non-empty-string, ?non-empty-string}
      *
@@ -165,6 +186,27 @@ final readonly class ReporterOutputPlan
         }
 
         return \rtrim($workingDirectory, '/') . '/' . $path;
+    }
+
+    private static function targetIdentity(string $path): string
+    {
+        // Resolve existing ancestors before comparing paths through symbolic links.
+        // Keep unresolved parent segments because their filesystem meaning can differ.
+        $resolved = ErrorTrap::run(static fn() => \realpath($path), $warning);
+
+        if ($resolved !== false) {
+            return $resolved;
+        }
+
+        $parent = \dirname($path);
+
+        if ($parent === $path) {
+            return $path;
+        }
+
+        $name = \basename($path);
+
+        return \rtrim(self::targetIdentity($parent), '/') . ($name === '.' ? '' : '/' . $name);
     }
 
     /** @throws ReporterSetupFailed */

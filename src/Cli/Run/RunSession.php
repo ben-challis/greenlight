@@ -7,6 +7,7 @@ namespace Greenlight\Cli\Run;
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Configuration\LoadedConfiguration;
+use Greenlight\Cli\Coverage\CoveragePluginRuntime;
 use Greenlight\Cli\Coverage\CoverageSession;
 use Greenlight\Cli\Coverage\CoverageSettingsResolver;
 use Greenlight\Cli\Coverage\CoverageWriter;
@@ -32,11 +33,14 @@ use Greenlight\Execution\Adapter\InProcessExecution;
 use Greenlight\Execution\Adapter\ProcessPoolExecution;
 use Greenlight\Execution\ExecutionAdapter;
 use Greenlight\Execution\ExecutionFailed;
+use Greenlight\Execution\RunAcceptance;
 use Greenlight\Execution\RunCoordinator;
+use Greenlight\Execution\RunPolicyError;
 use Greenlight\Execution\RunResult;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Process\GracefulShutdown;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\SummaryFormat;
@@ -60,6 +64,7 @@ final readonly class RunSession
         private GracefulShutdown $shutdown,
         private TestSelection $selection,
         private RunState $state,
+        private bool $coverageOutputOnStderr = false,
     ) {}
 
     /**
@@ -71,9 +76,9 @@ final readonly class RunSession
     public function runAttempt(Reporter $reporter, array $priorityClasses, array $classSeconds): RunAttemptResult
     {
         $failedTap = new FailedTestsTap(new ReporterSink($reporter));
-        $exitCode = $this->execute($reporter, $failedTap, $priorityClasses, $classSeconds);
+        $result = $this->execute($reporter, $failedTap, $priorityClasses, $classSeconds);
 
-        return new RunAttemptResult($exitCode, $failedTap->failedTests(), $failedTap->classSeconds());
+        return new RunAttemptResult($result, $failedTap->failedTests(), $failedTap->classSeconds());
     }
 
     /**
@@ -90,7 +95,7 @@ final readonly class RunSession
         $coverageSettings = CoverageSettingsResolver::resolve($this->configuration->resolved->coverage, $this->workingDirectory);
 
         try {
-            $this->coordinate($reporter, $tap, $priorityClasses, $classSeconds, $workers, $coverageSettings);
+            $run = $this->coordinate($reporter, $tap, $priorityClasses, $classSeconds, $workers, $coverageSettings);
         } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
             $reporter->finish();
             $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
@@ -100,6 +105,7 @@ final readonly class RunSession
 
         $reporter->finish();
         $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
+        $this->reportRunPolicyFailures($run, $failedTap);
 
         return $tap->failedClasses();
     }
@@ -111,7 +117,7 @@ final readonly class RunSession
     public function persist(array $failedTests, array $classSeconds): void
     {
         if (!$this->state->record($failedTests, $classSeconds)) {
-            $this->console->err("Greenlight did not save run state. On the next run, --failed and longest-first scheduling have no prior data.\n");
+            $this->console->err("Greenlight did not save run state. The next run will use older or missing data for --failed and longest-first scheduling.\n");
         }
     }
 
@@ -121,13 +127,12 @@ final readonly class RunSession
      * @throws CoverageError
      * @throws ReportGenerationFailed
      */
-    private function execute(Reporter $reporter, FailedTestsTap $failedTap, array $priorityClasses, array $classSeconds): int
+    private function execute(Reporter $reporter, FailedTestsTap $failedTap, array $priorityClasses, array $classSeconds): CommandResult
     {
         $resolved = $this->configuration->resolved;
         $workers = $resolved->workers->count->fixed ?? CpuCores::count();
         $testCoverageStore = null;
         $reporterFinished = false;
-
         try {
             $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $this->workingDirectory);
             $storage = StorageLayout::resolve($resolved->storage, $this->workingDirectory);
@@ -147,59 +152,76 @@ final readonly class RunSession
                     $reporter->finish();
                     $reporterFinished = true;
                     $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
-                    $interruptExit = $this->shutdown->exitCode();
-                    if ($interruptExit !== null) {
-                        $this->console->err("Interrupted. Integration fixture teardown was attempted before exit.\n");
+                    $interruptSignal = $this->shutdown->signal();
+                    if ($interruptSignal !== null) {
+                        $this->console->err("\n" . $this->console->stderrStyle($this->arguments->has('no-ansi'))->warn(
+                            'Interrupted. Integration fixture teardown was attempted before exit.',
+                        ) . "\n");
                     }
 
-                    return $interruptExit ?? 1;
+                    return $interruptSignal === null
+                        ? CommandResult::failure()
+                        : CommandResult::interrupted($interruptSignal);
                 }
                 $coverage = $coverageSession->finish($run->coverage);
             } finally {
                 $coverageSession->close();
             }
 
-            if ($coverage instanceof CoverageMap) {
-                $coverage = new IgnoreFilter()->apply($coverage);
-            }
             $reporter->finish();
             $reporterFinished = true;
             $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
-            $interruptExit = $this->shutdown->exitCode();
-            if ($interruptExit !== null) {
-                $this->console->err("Interrupted. The summary includes only tests that finished before shutdown.\n");
+            if ($coverage instanceof CoverageMap) {
+                $coverage = new IgnoreFilter()->apply($coverage);
+                $coverage = CoveragePluginRuntime::fromDefinitions($resolved->execution->plugins)
+                    ->transform($coverage);
+            }
+            $interruptSignal = $this->shutdown->signal();
+            if ($interruptSignal !== null) {
+                $this->console->err("\n" . $this->console->stderrStyle($this->arguments->has('no-ansi'))->warn(
+                    'Interrupted. The summary includes only tests that finished before shutdown.',
+                ) . "\n");
 
-                return $interruptExit;
+                return CommandResult::interrupted($interruptSignal);
             }
             if ($run->plannedTests === 0) {
                 $this->console->err("Greenlight found no tests. Check the configuration, test paths, and filters.\n");
 
-                return 1;
+                return CommandResult::failure();
             }
             $coverageConfig = $resolved->coverage;
-            if ($coverageConfig instanceof CoverageConfiguration) {
-                if (!$coverage instanceof CoverageMap) {
-                    $this->console->err("No worker collected the requested coverage. Install pcov or enable Xdebug with coverage mode.\n");
-                } elseif (!new CoverageWriter($this->console)->write($coverageConfig, $coverage, $this->workingDirectory, $this->console->stdoutStyle($this->arguments->has('no-ansi')))) {
-                    return 1;
-                }
+            if ($coverageConfig instanceof CoverageConfiguration
+                && !new CoverageWriter($this->console, $this->coverageOutputOnStderr)->write(
+                    $coverageConfig,
+                    $coverage,
+                    $this->workingDirectory,
+                    $this->coverageOutputOnStderr
+                        ? $this->console->stderrStyle($this->arguments->has('no-ansi'))
+                        : $this->console->stdoutStyle($this->arguments->has('no-ansi')),
+                )
+            ) {
+                return CommandResult::failure();
             }
             if ($run->leaks !== []) {
                 $this->console->err(SummaryFormat::leaks($run->leaks, $this->console->stderrStyle($this->arguments->has('no-ansi'))));
 
-                return 1;
+                return CommandResult::failure();
             }
 
-            if (!$resolved->execution->runPolicy->accepts($run->summary)) {
-                if ($run->summary->isSuccessful()) {
-                    $this->console->err(\sprintf(
-                        "Greenlight failed because the fail-on-skipped policy found %d skipped %s.\n",
-                        $run->summary->skipped,
-                        $run->summary->skipped === 1 ? 'test' : 'tests',
-                    ));
-                }
+            if (!$run->summary->isSuccessful()) {
+                return CommandResult::failure();
+            }
 
-                return 1;
+            try {
+                $policyFailed = $this->reportRunPolicyFailures($run, $failedTap);
+            } catch (RunPolicyError $error) {
+                $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
+
+                return CommandResult::failure();
+            }
+
+            if ($policyFailed) {
+                return CommandResult::failure();
             }
 
             if ($testCoverageStore instanceof TestCoverageStore
@@ -215,18 +237,34 @@ final readonly class RunSession
                 );
             }
 
-            return 0;
+            return CommandResult::success();
         } catch (CoverageError $error) {
             if (!$reporterFinished) {
                 $reporter->finish();
             }
-
             $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
 
-            return 1;
+            return CommandResult::failure();
         } finally {
             $testCoverageStore?->close();
         }
+    }
+
+    /** @throws RunPolicyError */
+    private function reportRunPolicyFailures(RunResult $run, FailedTestsTap $tap): bool
+    {
+        $resolved = $this->configuration->resolved;
+        $messages = RunAcceptance::failureMessages(
+            $resolved->execution,
+            $run->summary,
+            $tap->retriedPasses(),
+        );
+
+        foreach ($messages as $message) {
+            $this->console->err($message . "\n");
+        }
+
+        return $messages !== [];
     }
 
     /**
@@ -234,7 +272,6 @@ final readonly class RunSession
      * @param array<string, float> $classSeconds
      * @param positive-int $workers
      * @throws AttachmentError
-     * @throws CoverageError
      * @throws DiscoveryError
      * @throws IntegrationFixtureError
      * @throws ExecutionFailed

@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ResultSummary;
+
+use function Greenlight\expect;
 
 final class ResultSummaryTest
 {
@@ -23,7 +24,7 @@ final class ResultSummaryTest
         ];
         $counts[$field] = -1;
 
-        Expect::that(
+        expect()->calling(
             static fn(): ResultSummary => new ResultSummary(
                 $counts['passed'],
                 $counts['failed'],
@@ -43,7 +44,7 @@ final class ResultSummaryTest
         foreach (['passed', 'failed', 'errored', 'skipped'] as $field) {
             yield $field => [
                 $field,
-                \sprintf('Result summary %s count MUST NOT be negative.', $field),
+                \sprintf('Result summary %s count cannot be negative.', $field),
             ];
         }
     }

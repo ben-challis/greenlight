@@ -6,6 +6,7 @@ namespace Greenlight\Config;
 
 /**
  * Collects the configuration for attachment output and safety limits.
+ * Size values use bytes or binary `K`, `M`, and `G` suffixes, with an optional final `B`.
  */
 final class ArtifactBuilder
 {
@@ -27,7 +28,19 @@ final class ArtifactBuilder
     /** @var positive-int */
     private int $maxRunBytes = ArtifactConfiguration::DEFAULT_MAX_RUN_BYTES;
 
+    /** @var positive-int|null */
+    private ?int $maxCompletedRuns = null;
+
+    /** @var positive-int|null */
+    private ?int $maxCompletedRunAgeSeconds = null;
+
+    /** @var positive-int|null */
+    private ?int $maxRetainedBytes = null;
+
     /**
+     * Sets the parent directory for retained attachments.
+     * The default is `build/greenlight-artifacts`, relative to the command working directory.
+     *
      * @param non-empty-string $directory
      *
      * @throws InvalidConfiguration
@@ -35,11 +48,11 @@ final class ArtifactBuilder
     public function directory(string $directory): self
     {
         if ($directory === '') {
-            throw new InvalidConfiguration('Artifact directory cannot be empty.');
+            throw InvalidConfiguration::emptyArtifactDirectory();
         }
 
         if (\str_contains($directory, "\0")) {
-            throw new InvalidConfiguration('Artifact directory cannot contain a null byte.');
+            throw InvalidConfiguration::artifactDirectoryContainsNullByte();
         }
 
         $this->directory = $directory;
@@ -48,6 +61,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * Limits attachment count for one test across all attempts. The default is 32.
+     *
      * @param positive-int $count
      *
      * @throws InvalidConfiguration
@@ -55,7 +70,7 @@ final class ArtifactBuilder
     public function maxAttachmentsPerTest(int $count): self
     {
         if ($count < 1) {
-            throw new InvalidConfiguration('Artifact count per test must be at least 1.');
+            throw InvalidConfiguration::invalidArtifactCountPerTest();
         }
 
         $this->maxAttachmentsPerTest = $count;
@@ -64,6 +79,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * Limits the size of one attachment. The default is `25M`.
+     *
      * @param non-empty-string $size
      *
      * @throws InvalidConfiguration
@@ -76,6 +93,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * Limits attachment bytes for one test across all attempts. The default is `100M`.
+     *
      * @param non-empty-string $size
      *
      * @throws InvalidConfiguration
@@ -88,6 +107,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * Limits staged and retained attachment count for one run. The default is 10,000.
+     *
      * @param positive-int $count
      *
      * @throws InvalidConfiguration
@@ -95,7 +116,7 @@ final class ArtifactBuilder
     public function maxRunAttachments(int $count): self
     {
         if ($count < 1) {
-            throw new InvalidConfiguration('Artifact count per run must be at least 1.');
+            throw InvalidConfiguration::invalidArtifactCountPerRun();
         }
 
         $this->maxRunAttachments = $count;
@@ -104,6 +125,8 @@ final class ArtifactBuilder
     }
 
     /**
+     * Limits staged and retained attachment bytes for one run. The default is `1G`.
+     *
      * @param non-empty-string $size
      *
      * @throws InvalidConfiguration
@@ -111,6 +134,59 @@ final class ArtifactBuilder
     public function maxRunSize(string $size): self
     {
         $this->maxRunBytes = MemorySize::parseToBytes($size);
+
+        return $this;
+    }
+
+    /**
+     * Selects older completed runs for deletion when the retained run count exceeds this limit.
+     * No count-based retention limit applies by default.
+     *
+     * @param positive-int $count
+     *
+     * @throws InvalidConfiguration
+     */
+    public function maxCompletedRuns(int $count): self
+    {
+        if ($count < 1) {
+            throw InvalidConfiguration::invalidCompletedRunCount();
+        }
+
+        $this->maxCompletedRuns = $count;
+
+        return $this;
+    }
+
+    /**
+     * Selects completed runs for deletion after this many seconds from completion.
+     * No age-based retention limit applies by default.
+     *
+     * @param positive-int $seconds
+     *
+     * @throws InvalidConfiguration
+     */
+    public function maxCompletedRunAge(int $seconds): self
+    {
+        if ($seconds < 1) {
+            throw InvalidConfiguration::invalidCompletedRunAge();
+        }
+
+        $this->maxCompletedRunAgeSeconds = $seconds;
+
+        return $this;
+    }
+
+    /**
+     * Selects older completed runs for deletion when retained content exceeds this size.
+     * No size-based retention limit applies by default.
+     *
+     * @param non-empty-string $size
+     *
+     * @throws InvalidConfiguration
+     */
+    public function maxRetainedSize(string $size): self
+    {
+        $this->maxRetainedBytes = MemorySize::parseToBytes($size);
 
         return $this;
     }
@@ -127,6 +203,9 @@ final class ArtifactBuilder
             $this->maxTestBytes,
             $this->maxRunAttachments,
             $this->maxRunBytes,
+            $this->maxCompletedRuns,
+            $this->maxCompletedRunAgeSeconds,
+            $this->maxRetainedBytes,
         );
     }
 }

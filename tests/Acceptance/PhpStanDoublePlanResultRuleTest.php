@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanDoublePlanResultRuleTest
@@ -79,18 +80,19 @@ final readonly class PhpStanDoublePlanResultRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)
+        expect($probe->exitCode)
             ->because('PHPStan rejects invalid mock plan results and limits')
             ->toBe(1);
-        Expect::that($probe->goodPassed)
+        expect($probe->goodPassed)
             ->because('PHPStan messages: ' . $probe->messages())
             ->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(9);
-        Expect::that($probe->messages())->toContain('times(-1) requires a count of zero or more');
-        Expect::that($probe->messages())->toContain('atLeast(0) requires a count of one or more');
-        Expect::that($probe->messages())->toContain('andReturnsSequence() on InvalidResultPlan::add() requires at least one value');
-        Expect::that($probe->messages())->toContain('andReturns() value #1 for InvalidResultPlan::add() has type string, but the method returns int');
-        Expect::that($probe->messages())->toContain('andReturnsUsing() answer for InvalidResultPlan::add()');
-        Expect::that($probe->messages())->toContain('captureArgument(2) for InvalidResultPlan::add() requires a position from zero to 1');
+        expect(\count($probe->errors))->toBe(9);
+        expect($probe->messages())
+            ->toContain('times(-1) requires a count of zero or more')
+            ->toContain('atLeast(0) requires a count of one or more')
+            ->toContain('andReturnsSequence() on InvalidResultPlan::add() requires at least one value')
+            ->toContain('andReturns() value #1 for InvalidResultPlan::add() has type string, but the method returns int')
+            ->toContain('andReturnsUsing() answer for InvalidResultPlan::add()')
+            ->toContain('captureArgument(2) for InvalidResultPlan::add() requires a position from zero to 1');
     }
 }

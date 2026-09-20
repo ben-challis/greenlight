@@ -30,7 +30,7 @@ final readonly class LaravelProcessState
     public static function setEnvironment(string $environment): self
     {
         if (\str_contains($environment, "\0")) {
-            throw new \InvalidArgumentException('Laravel environment MUST NOT contain a null byte.');
+            throw new \InvalidArgumentException('Laravel environment cannot contain a null byte.');
         }
 
         $backup = EnvironmentBackup::capture('APP_ENV');

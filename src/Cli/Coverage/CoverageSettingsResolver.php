@@ -9,7 +9,8 @@ use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Internal\Php\ErrorTrap;
 
-/** Resolves CLI coverage configuration into runner settings.
+/**
+ * Resolves CLI coverage configuration into runner settings.
  *
  * @internal
  */

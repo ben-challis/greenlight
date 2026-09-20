@@ -44,6 +44,11 @@ final class JUnitReporter implements Reporter
      */
     private array $countsByClass = [];
 
+    /**
+     * @var array<string, array<string, ?string>> source files per test method
+     */
+    private array $sourceFilesByClassAndMethod = [];
+
     private ?float $runDurationSeconds = null;
 
     private readonly XmlWriterRuntime $xmlWriter;
@@ -172,11 +177,26 @@ final class JUnitReporter implements Reporter
         $writer->writeAttribute('assertions', (string) $result->expectations);
         $writer->writeAttribute('time', $this->time($result->durationSeconds));
 
+        $sourceFile = $this->sourceFile($result->id->class, $result->id->method);
+
+        if ($sourceFile !== null) {
+            $writer->writeAttribute('file', $this->xml($sourceFile));
+        }
+
+        if ($result->outcome === Outcome::Passed && $result->attempts > 1) {
+            $writer->startElement('flakyFailure');
+            $writer->writeAttribute('type', 'retry');
+            $writer->writeAttribute('message', \sprintf('Passed after %d attempts.', $result->attempts));
+            $writer->text('Greenlight recorded a successful terminal result after retry.');
+            $writer->endElement();
+        }
+
         if ($result->outcome === Outcome::Failed) {
             if ($result->failures === []) {
                 $writer->startElement('failure');
                 $writer->writeAttribute('type', 'failure');
                 $writer->writeAttribute('message', 'failed');
+                $writer->text('failed');
                 $writer->endElement();
             }
 
@@ -185,7 +205,7 @@ final class JUnitReporter implements Reporter
                 $writer->writeAttribute('type', 'failure');
                 $writer->writeAttribute('message', $this->xml($failure->message));
 
-                $body = [];
+                $body = [$failure->message];
 
                 if ($failure->expected !== null) {
                     $body[] = 'expected: ' . $failure->expected;
@@ -199,9 +219,7 @@ final class JUnitReporter implements Reporter
                     $body[] = 'at ' . $failure->location;
                 }
 
-                if ($body !== []) {
-                    $writer->text($this->xml(\implode("\n", $body)));
-                }
+                $writer->text($this->xml(\implode("\n", $body)));
 
                 $writer->endElement();
             }
@@ -216,12 +234,13 @@ final class JUnitReporter implements Reporter
                 $writer->writeAttribute('type', $this->xml($error->class));
                 $writer->writeAttribute('message', $this->xml($error->message));
 
-                $body = $error->stackFrames;
+                $body = [$error->message, ...$error->stackFrames];
                 $body[] = 'at ' . $error->file . ':' . $error->line;
                 $writer->text($this->xml(\implode("\n", $body)));
             } else {
                 $writer->writeAttribute('type', 'error');
                 $writer->writeAttribute('message', 'errored');
+                $writer->text('errored');
             }
 
             $writer->endElement();
@@ -232,6 +251,7 @@ final class JUnitReporter implements Reporter
 
             if ($result->skipReason !== null) {
                 $writer->writeAttribute('message', $this->xml($result->skipReason));
+                $writer->text($this->xml($result->skipReason));
             }
 
             $writer->endElement();
@@ -256,6 +276,33 @@ final class JUnitReporter implements Reporter
         return \implode("\n", $lines) . "\n";
     }
 
+    /**
+     * @param non-empty-string $class
+     * @param non-empty-string $method
+     */
+    private function sourceFile(string $class, string $method): ?string
+    {
+        $classFiles = $this->sourceFilesByClassAndMethod[$class] ?? [];
+
+        if (\array_key_exists($method, $classFiles)) {
+            return $classFiles[$method];
+        }
+
+        $file = null;
+
+        try {
+            $reflected = new \ReflectionMethod($class, $method)->getFileName();
+
+            if ($reflected !== false) {
+                $file = $reflected;
+            }
+        } catch (\Throwable) {
+            // Continue report generation if an autoloader fails.
+        }
+
+        return $this->sourceFilesByClassAndMethod[$class][$method] = $file;
+    }
+
     private function xml(string $value): string
     {
         return (string) \preg_replace(
@@ -271,6 +318,6 @@ final class JUnitReporter implements Reporter
             $seconds = \PHP_FLOAT_MAX;
         }
 
-        return \sprintf('%.6f', $seconds);
+        return \sprintf('%.6F', $seconds);
     }
 }

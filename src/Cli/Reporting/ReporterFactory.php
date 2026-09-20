@@ -16,6 +16,7 @@ use Greenlight\Reporting\Profile\ProfileReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\ReporterDefinition;
 use Greenlight\Reporting\RunHeader;
+use Greenlight\Reporting\StreamOutput;
 use Greenlight\Reporting\Style;
 
 /**
@@ -38,17 +39,14 @@ final readonly class ReporterFactory
         $prefix = \rtrim($workingDirectory, '/') . '/';
         $displayedConfig = \str_starts_with($configFile, $prefix) ? \substr($configFile, \strlen($prefix)) : $configFile;
         $header = new RunHeader($version, $displayedConfig, $seed, workerFallback: $workerFallback);
-        $definitions = [];
-        $bundled = PluginDefinition::fromFactory(
-            fn(): BundledReporters => new BundledReporters(
-                $capabilities,
-                $header,
-                $arguments,
-                TerminalRowsResolver::resolve(),
-            ),
-        );
+        $definitions = new BundledReporters(
+            $capabilities,
+            $header,
+            $arguments,
+            TerminalRowsResolver::resolve(),
+        )->reporters();
 
-        foreach ([$bundled, ...$plugins] as $pluginDefinition) {
+        foreach ($plugins as $pluginDefinition) {
             if (!$pluginDefinition->supports(ReporterProvider::class)) {
                 continue;
             }
@@ -107,9 +105,12 @@ final readonly class ReporterFactory
         $reporters = $outputs->createReporters($catalog);
 
         if ($arguments->has('profile')) {
+            $machineOutput = $outputs->writesOnlyReportersToStandardOutput('jsonl', 'junit');
             $reporters[] = new ProfileReporter(
-                $outputs->standardOutput,
-                new Style($outputs->standardOutput->capabilities->color),
+                $machineOutput ? new StreamOutput($this->console->stderr()) : $outputs->standardOutput,
+                $machineOutput
+                    ? $this->console->stderrStyle($arguments->has('no-ansi'))
+                    : new Style($outputs->standardOutput->capabilities->color),
             );
         }
 

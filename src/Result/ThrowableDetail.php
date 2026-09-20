@@ -8,7 +8,7 @@ use Greenlight\Internal\Text\Utf8;
 use Greenlight\Internal\Wire\Wire;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 
-/** Greenlight records at most 32 stack frames when it creates this value. */
+/** Contains a throwable's class, message, source location, and stack trace. */
 final readonly class ThrowableDetail
 {
     private const int MAX_STACK_FRAMES = 32;
@@ -57,6 +57,9 @@ final readonly class ThrowableDetail
         $this->line = $line;
     }
 
+    /**
+     * Records at most 32 stack frames. Adds a truncation marker if more frames exist.
+     */
     public static function fromThrowable(\Throwable $throwable): self
     {
         $frames = [];

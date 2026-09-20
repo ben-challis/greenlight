@@ -33,11 +33,10 @@ PHPDoc:
 ### `dispose()`
 
 ```php
-[\Override]
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/Autoloaders.php#L24)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/Autoloaders.php#L29)
 
 ## `EnvironmentVariables`
 
@@ -79,11 +78,10 @@ PHPDoc:
 ### `dispose()`
 
 ```php
-[\Override]
 public function dispose(): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/EnvironmentVariables.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/EnvironmentVariables.php#L38)
 
 ## `StreamWrapperError`
 
@@ -141,15 +139,16 @@ public function register(string $scheme, string $wrapper): void
 
 PHPDoc:
 
+- `@param non-empty-string $scheme`
 - `@param class-string $wrapper`
+- `@throws \InvalidArgumentException if the scheme is empty`
 - `@throws StreamWrapperError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrappers.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrappers.php#L25)
 
 ### `dispose()`
 
 ```php
-[\Override]
 public function dispose(): void
 ```
 
@@ -157,14 +156,14 @@ PHPDoc:
 
 - `@throws StreamWrapperError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrappers.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/StreamWrappers.php#L47)
 
 ## `TemporaryDirectory`
 
 Namespace: `Greenlight\Sandbox`
 
-Creates one root directory on first use. A path inside it cannot escape the
-root.
+Creates one root directory on first use. `subdirectory()` rejects traversal
+segments and symbolic links in the requested path.
 Disposal removes a symbolic link and leaves its target unchanged.
 
 ```php
@@ -210,12 +209,11 @@ PHPDoc:
 - `@throws \InvalidArgumentException`
 - `@throws TemporaryDirectoryError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L60)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L70)
 
 ### `dispose()`
 
 ```php
-[\Override]
 public function dispose(): void
 ```
 
@@ -223,7 +221,7 @@ PHPDoc:
 
 - `@throws TemporaryDirectoryError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L107)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L118)
 
 ## `TemporaryDirectoryError`
 

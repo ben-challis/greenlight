@@ -34,8 +34,16 @@ final readonly class FixtureResource
     private \Closure $revealSecrets;
 
     /**
+     * Creates one resource from ordinary values and secrets.
+     *
+     * Values can contain null, integers, booleans, finite floats, UTF-8 strings, lists, and maps.
+     * Map keys must be non-empty UTF-8 strings.
+     * Values can contain up to 16 nested lists or maps below the top-level map.
+     * Secrets must map non-empty UTF-8 string keys to UTF-8 string values.
+     *
      * @param array<string, mixed> $values
      * @param array<mixed> $secrets
+     * @throws \InvalidArgumentException when an input does not satisfy these requirements
      */
     public static function from(array $values = [], #[\SensitiveParameter] array $secrets = []): self
     {
@@ -68,6 +76,9 @@ final readonly class FixtureResource
         return \array_key_exists($key, $this->values) || \array_key_exists($key, $this->secrets());
     }
 
+    /**
+     * @throws \OutOfBoundsException when no ordinary value has the key
+     */
     public function value(string $key): mixed
     {
         if (!\array_key_exists($key, $this->values)) {
@@ -77,6 +88,10 @@ final readonly class FixtureResource
         return $this->values[$key];
     }
 
+    /**
+     * @throws \OutOfBoundsException when no ordinary value has the key
+     * @throws \UnexpectedValueException when the value is not a string
+     */
     public function string(string $key): string
     {
         $value = $this->value($key);
@@ -88,6 +103,10 @@ final readonly class FixtureResource
         return $value;
     }
 
+    /**
+     * @throws \OutOfBoundsException when no ordinary value has the key
+     * @throws \UnexpectedValueException when the value is not an integer
+     */
     public function int(string $key): int
     {
         $value = $this->value($key);
@@ -99,6 +118,10 @@ final readonly class FixtureResource
         return $value;
     }
 
+    /**
+     * @throws \OutOfBoundsException when no ordinary value has the key
+     * @throws \UnexpectedValueException when the value is not an integer or float
+     */
     public function float(string $key): float
     {
         $value = $this->value($key);
@@ -110,6 +133,10 @@ final readonly class FixtureResource
         return (float) $value;
     }
 
+    /**
+     * @throws \OutOfBoundsException when no ordinary value has the key
+     * @throws \UnexpectedValueException when the value is not a boolean
+     */
     public function bool(string $key): bool
     {
         $value = $this->value($key);
@@ -123,6 +150,8 @@ final readonly class FixtureResource
 
     /**
      * @return list<mixed>
+     * @throws \OutOfBoundsException when no ordinary value has the key
+     * @throws \UnexpectedValueException when the value is not a list
      */
     public function list(string $key): array
     {
@@ -137,6 +166,8 @@ final readonly class FixtureResource
 
     /**
      * @return array<string, mixed>
+     * @throws \OutOfBoundsException when no ordinary value has the key
+     * @throws \UnexpectedValueException when the value is not a map
      */
     public function map(string $key): array
     {
@@ -150,6 +181,9 @@ final readonly class FixtureResource
         return $value;
     }
 
+    /**
+     * @throws \OutOfBoundsException when no secret has the key
+     */
     public function secret(string $key): SensitiveValue
     {
         $secrets = $this->secrets();

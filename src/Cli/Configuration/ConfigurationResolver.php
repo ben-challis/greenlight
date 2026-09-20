@@ -45,13 +45,15 @@ final class ConfigurationResolver
         $configuredIncludes = $coverage instanceof CoverageConfiguration ? $coverage->includePaths : [];
         $configuredDriver = $coverage instanceof CoverageConfiguration ? $coverage->driver : null;
         $configuredExports = $coverage instanceof CoverageConfiguration ? $coverage->exports : [];
+        $configuredMinimum = $coverage instanceof CoverageConfiguration ? $coverage->minimumPercentage : null;
+        $configuredMaximum = $coverage instanceof CoverageConfiguration ? $coverage->maximumUncoveredLines : null;
+        $configuredRequireDriver = $coverage instanceof CoverageConfiguration && $coverage->requireDriver;
         $configuredPerTestTarget = $coverage instanceof CoverageConfiguration ? $coverage->perTestTarget : null;
 
         if ($coverageOverrides->disabled) {
             $coverage = null;
         } elseif ($coverage instanceof CoverageConfiguration
-            || $coverageOverrides->includePaths !== []
-            || $coverageOverrides->perTestTarget !== null
+            || $coverageOverrides->enablesCoverage()
         ) {
             $coverage = new CoverageConfiguration(
                 [
@@ -60,6 +62,9 @@ final class ConfigurationResolver
                 ],
                 $configuredDriver,
                 $configuredExports,
+                $coverageOverrides->minimumPercentage ?? $configuredMinimum,
+                $coverageOverrides->maximumUncoveredLines ?? $configuredMaximum,
+                $configuredRequireDriver || $coverageOverrides->requireDriver,
                 $coverageOverrides->perTestTarget ?? $configuredPerTestTarget,
             );
         }
@@ -85,7 +90,8 @@ final class ConfigurationResolver
                     $configuration->execution->policy->failOnRisky || $executionOverrides->policy->failOnRisky,
                 ),
                 runPolicy: new RunPolicy(
-                    $configuration->execution->runPolicy->failOnSkipped || $executionOverrides->runPolicy->failOnSkipped,
+                    failOnSkipped: $configuration->execution->runPolicy->failOnSkipped || $executionOverrides->runPolicy->failOnSkipped,
+                    failOnRetriedPass: $configuration->execution->runPolicy->failOnRetriedPass || $executionOverrides->runPolicy->failOnRetriedPass,
                 ),
                 stopAfterFailures: $executionOverrides->stopAfterFailures ?? $configuration->execution->stopAfterFailures,
                 artifacts: $artifacts,

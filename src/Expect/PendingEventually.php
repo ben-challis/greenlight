@@ -6,12 +6,40 @@ namespace Greenlight\Expect;
 
 /**
  * Collects poll options until `within()` sets the deadline.
- * Use `Expect::eventually()` to create this object.
+ * Use `Expect::calling(...)->returnValue()->eventually()` to create this object.
  *
  * @template T
  */
 final class PendingEventually
 {
+    private bool $negated = false;
+
+    /** @var non-empty-string|null */
+    private ?string $reason = null;
+
+    /** @return self<T> */
+    public function not(): self
+    {
+        $this->negated = true;
+
+        return $this;
+    }
+
+    /**
+     * @param non-empty-string $reason
+     *
+     * @return self<T>
+     *
+     * @throws ExpectationFailed
+     */
+    public function because(string $reason): self
+    {
+        new MatcherEvaluation(null, $this->renderer)->because($reason);
+        $this->reason = $reason;
+
+        return $this;
+    }
+
     private const float DEFAULT_INTERVAL_SECONDS = 0.025;
 
     private float $intervalSeconds = self::DEFAULT_INTERVAL_SECONDS;
@@ -29,14 +57,14 @@ final class PendingEventually
      */
     private function __construct(
         private readonly \Closure $probe,
-        private readonly PollingClock $clock,
+        private readonly Clock $clock,
         private readonly ?float $attemptDeadline,
         private readonly ValueRenderer $renderer,
         private readonly array $extensions,
     ) {}
 
     /**
-     * @internal Use Expect::eventually() instead.
+     * @internal Use Expect::calling(...)->returnValue()->eventually() instead.
      *
      * @template TProbe
      *
@@ -47,7 +75,7 @@ final class PendingEventually
      */
     public static function create(
         \Closure $probe,
-        PollingClock $clock,
+        Clock $clock,
         ?float $attemptDeadline,
         ValueRenderer $renderer,
         array $extensions,
@@ -57,10 +85,18 @@ final class PendingEventually
 
     /**
      * @return self<T>
+     *
+     * @throws \InvalidArgumentException if the interval is not finite or is less than 0.001 seconds
      */
     public function pollEvery(float $seconds): self
     {
-        $this->requireDuration($seconds, 'Polling interval', minimum: 0.001, inclusive: true);
+        if (!\is_finite($seconds) || $seconds < 0.001) {
+            throw new \InvalidArgumentException(\sprintf(
+                'Set Polling interval to a finite value of at least %.3f seconds.',
+                0.001,
+            ));
+        }
+
         $this->intervalSeconds = $seconds;
 
         return $this;
@@ -70,6 +106,8 @@ final class PendingEventually
      * @param class-string<\Exception> ...$types
      *
      * @return self<T>
+     *
+     * @throws \InvalidArgumentException if a type does not extend Exception
      */
     public function retryOnException(string ...$types): self
     {
@@ -84,13 +122,22 @@ final class PendingEventually
     }
 
     /**
+     * @throws ExpectationFailed
+     *
      * @return EventuallyExpectation<T>
+     *
+     * @throws \InvalidArgumentException if the duration is not finite or is not positive
      */
     public function within(float $seconds): EventuallyExpectation
     {
-        $this->requireDuration($seconds, 'Eventually duration');
+        if (!\is_finite($seconds) || $seconds <= 0.0) {
+            throw new \InvalidArgumentException(\sprintf(
+                'Set Eventually duration to a finite value greater than %.3f seconds.',
+                0.0,
+            ));
+        }
 
-        return EventuallyExpectation::create(
+        $expectation = EventuallyExpectation::create(
             $this->probe,
             $this->clock,
             $this->attemptDeadline,
@@ -100,25 +147,18 @@ final class PendingEventually
             $this->renderer,
             $this->extensions,
         );
-    }
 
-    private function requireDuration(
-        float $seconds,
-        string $label,
-        float $minimum = 0.0,
-        bool $inclusive = false,
-    ): void {
-        if (!\is_finite($seconds) || ($inclusive ? $seconds < $minimum : $seconds <= $minimum)) {
-            $constraint = $inclusive
-                ? \sprintf('of at least %.3f seconds', $minimum)
-                : \sprintf('greater than %.3f seconds', $minimum);
-
-            throw new \InvalidArgumentException(\sprintf(
-                'Set %s to a finite value %s.',
-                $label,
-                $constraint,
-            ));
+        if ($this->negated) {
+            $expectation->not();
         }
+
+        if ($this->reason !== null) {
+            $expectation->because($this->reason);
+        }
+
+        $this->negated = false;
+
+        return $expectation;
     }
 
     /**

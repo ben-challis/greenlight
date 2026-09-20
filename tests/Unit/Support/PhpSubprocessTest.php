@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Support;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class PhpSubprocessTest
 {
@@ -21,9 +22,9 @@ final readonly class PhpSubprocessTest
             'echo PHP_BINARY;',
         ]);
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($result->stdout)->toBe(\PHP_BINARY);
-        Expect::that($result->stderr)->toBe('');
+        expect($result->exitCode)->toBe(0);
+        expect($result->stdout)->toBe(\PHP_BINARY);
+        expect($result->stderr)->toBe('');
     }
 
     #[Test]
@@ -34,14 +35,14 @@ final readonly class PhpSubprocessTest
             'fwrite(STDOUT, "stdout:exact"); fwrite(STDERR, "stderr:exact");',
         ]);
 
-        Expect::that($result->stdout)->toBe('stdout:exact');
-        Expect::that($result->stderr)->toBe('stderr:exact');
+        expect($result->stdout)->toBe('stdout:exact');
+        expect($result->stderr)->toBe('stderr:exact');
     }
 
     #[Test]
     public function commandPlacesPhpArgumentsBeforeTheProgram(): void
     {
-        Expect::that(PhpSubprocess::command(
+        expect(PhpSubprocess::command(
             ['probe.php', 'program-argument'],
             ['-d', 'precision=3'],
         ))->toBe([
@@ -67,8 +68,8 @@ final readonly class PhpSubprocessTest
             ],
         );
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that($result->stdout)->toBe('caller');
-        Expect::that($result->stderr)->toBe('');
+        expect($result->exitCode)->toBe(0);
+        expect($result->stdout)->toBe('caller');
+        expect($result->stderr)->toBe('');
     }
 }

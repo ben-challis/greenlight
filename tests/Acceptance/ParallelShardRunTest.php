@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
+
+use function Greenlight\expect;
 
 final readonly class ParallelShardRunTest
 {
@@ -36,27 +37,25 @@ final readonly class ParallelShardRunTest
         \sort($allIds);
         \sort($union);
 
-        Expect::that($all->exitCode)
+        expect($all->exitCode)
             ->because('the unsharded parallel run MUST succeed')
             ->toBe(0);
-        Expect::that($first->exitCode)
+        expect($first->exitCode)
             ->because('parallel shard one MUST succeed')
             ->toBe(0);
-        Expect::that($second->exitCode)
+        expect($second->exitCode)
             ->because('parallel shard two MUST succeed')
             ->toBe(0);
-        Expect::that($firstIds)
+        expect($firstIds)
             ->because('parallel shard one MUST contain tests')
-            ->not()
-            ->toHaveCount(0);
-        Expect::that($secondIds)
+            ->not()->toHaveCount(0);
+        expect($secondIds)
             ->because('parallel shard two MUST contain tests')
-            ->not()
-            ->toHaveCount(0);
-        Expect::that(\array_intersect($firstIds, $secondIds))
+            ->not()->toHaveCount(0);
+        expect(\array_intersect($firstIds, $secondIds))
             ->because('parallel shards MUST NOT execute the same test')
             ->toBe([]);
-        Expect::that($union)
+        expect($union)
             ->because('parallel shards MUST reconstitute the full run exactly once')
             ->toBe($allIds);
     }

@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
 use Greenlight\Discovery\Plan\PlanEntry;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\DataProvider;
@@ -15,6 +14,8 @@ use Greenlight\Test\TestDefinition;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\DiscoveryCachePath;
 use Greenlight\Tests\Support\PlanEntryFixture;
+
+use function Greenlight\expect;
 
 final readonly class DiscoveryCacheContentFingerprintTest
 {
@@ -41,12 +42,12 @@ final readonly class DiscoveryCacheContentFingerprintTest
         $cache->store($source, [$entry]);
 
         try {
-            Expect::that($cache->persist())
+            expect($cache->persist())
                 ->because('the discovery cache MUST persist the initial source fingerprint')
                 ->toBeTrue();
 
             $warm = DiscoveryCache::forDirectories([$directory])->lookup($source);
-            Expect::that(\array_map(
+            expect(\array_map(
                 static fn(PlanEntry $cached): array => $cached->toWire(),
                 $warm ?? [],
             ))
@@ -61,13 +62,13 @@ final readonly class DiscoveryCacheContentFingerprintTest
 
             \clearstatcache(true, $source);
 
-            Expect::that(\filemtime($source))
+            expect(\filemtime($source))
                 ->because('the rewrite MUST preserve the cached source modification time')
                 ->toBe($mtime);
-            Expect::that(\filesize($source))
+            expect(\filesize($source))
                 ->because('the rewrite MUST preserve the cached source file size')
                 ->toBe(\strlen($original));
-            Expect::that(DiscoveryCache::forDirectories([$directory])->lookup($source))
+            expect(DiscoveryCache::forDirectories([$directory])->lookup($source))
                 ->because('the content fingerprint MUST invalidate an equal-size rewrite')
                 ->toBeNull();
         } finally {
@@ -122,13 +123,12 @@ final readonly class DiscoveryCacheContentFingerprintTest
         $cache->store($source, [$entry]);
 
         try {
-            Expect::that($cache->persist())
+            expect($cache->persist())
                 ->because('the discovery cache MUST persist the provider fingerprint')
                 ->toBeTrue();
-            Expect::that(DiscoveryCache::forDirectories([$directory])->lookup($source))
+            expect(DiscoveryCache::forDirectories([$directory])->lookup($source))
                 ->because('unchanged provider content MUST keep the cached plan entry')
-                ->not()
-                ->toBeNull();
+                ->not()->toBeNull();
 
             \file_put_contents($provider, \str_replace('alpha', 'bravo', $providerSource));
 
@@ -138,13 +138,13 @@ final readonly class DiscoveryCacheContentFingerprintTest
 
             \clearstatcache(true, $provider);
 
-            Expect::that(\filemtime($provider))
+            expect(\filemtime($provider))
                 ->because('the rewrite MUST preserve the cached provider modification time')
                 ->toBe($mtime);
-            Expect::that(\filesize($provider))
+            expect(\filesize($provider))
                 ->because('the rewrite MUST preserve the cached provider file size')
                 ->toBe(\strlen($providerSource));
-            Expect::that(DiscoveryCache::forDirectories([$directory])->lookup($source))
+            expect(DiscoveryCache::forDirectories([$directory])->lookup($source))
                 ->because('the content fingerprint MUST invalidate an equal-size provider rewrite')
                 ->toBeNull();
         } finally {

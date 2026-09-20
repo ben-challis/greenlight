@@ -16,8 +16,8 @@ use Greenlight\Internal\Php\ErrorTrap;
  * absolute. Each file page name contains a hash of its absolute path. Thus,
  * page names are deterministic and safe for a file system.
  *
- * If Greenlight cannot read a source file, the page shows only line numbers
- * and statuses.
+ * If Greenlight cannot read a source file, the page shows only known coverage
+ * line numbers and statuses. It omits gaps between those lines.
  *
  * @internal
  */
@@ -158,15 +158,12 @@ final readonly class HtmlExporter implements CoverageExporter
 
         $lineHits = $file->lineHits();
         $source = $this->highlightedLines($file->file);
-        $lastLine = $source === null
-            ? (\array_key_last($lineHits) ?? 0)
-            : \count($source);
-
         $body .= '<pre>' . "\n";
 
-        for ($line = 1; $line <= $lastLine; ++$line) {
+        foreach ($source ?? \array_fill_keys(\array_keys($lineHits), '') as $index => $text) {
+            $line = $source === null ? $index : $index + 1;
             $lineClass = ($lineHits[$line] ?? null) === 1 ? 'cov' : (isset($lineHits[$line]) ? 'unc' : '');
-            $content = \sprintf('<span class="num">%d</span>%s', $line, $source[$line - 1] ?? '');
+            $content = \sprintf('<span class="num">%d</span>%s', $line, $text);
             // Lines with a class appear as blocks. A final newline adds an
             // empty line box inside the <pre>.
             $body .= $lineClass === '' ? $content . "\n" : \sprintf('<span class="%s">%s</span>', $lineClass, $content);

@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\AllowParallel;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\RectorProbe;
+
+use function Greenlight\expect;
 
 #[AllowParallel]
 #[RequiresResource('analysis-process')]
@@ -57,14 +58,13 @@ final readonly class RectorSizeAttributeTest
             $attribute = $groups[$caseName]['attribute'];
             $group = $groups[$caseName]['group'];
 
-            Expect::that($probe->changed)
+            expect($probe->changed)
                 ->because('PHPUnit size attribute case: ' . $caseName)
                 ->toBeTrue();
-            Expect::that($probe->code)
+            expect($probe->code)
                 ->because('converted size group case: ' . $caseName)
                 ->toContain(\sprintf("#[\\Greenlight\\Attribute\\Group('%s')]", $group))
-                ->not()
-                ->toContain('#[' . $attribute . ']');
+                ->not()->toContain('#[' . $attribute . ']');
         }
     }
 

@@ -6,12 +6,13 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\PlainReporter;
 use Greenlight\Reporting\RunHeader;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class PlainReporterTest
 {
@@ -29,7 +30,7 @@ final class PlainReporterTest
             PASS Acme\CalculatorTest::multipliesIntegers[large numbers] (0.340s)
             ERROR Acme\NetworkTest::connects (0.005s)
             SKIP Acme\NetworkTest::pings (0.000s)
-            PASS Acme\NetworkTest::retriesFlakyEndpoint (0.150s) (attempts: 3)
+            PASS Acme\NetworkTest::retriesFlakyEndpoint (0.150s) (passed after 3 attempts)
 
             FAIL Acme\CalculatorTest::subtractsIntegers
               Failed asserting that two values are equal.
@@ -42,15 +43,19 @@ final class PlainReporterTest
                 Acme\NetworkTest::connect at /project/tests/NetworkTest.php:17
               at /project/tests/NetworkTest.php:17
 
-            6 tests, 3 passed, 1 failed, 1 errored, 1 skipped, 11 expectations
+            6 tests, 3 passed, 1 failed, 1 errored, 1 skipped, 1 passed after retry, 11 expectations
             Time: 1.234s
             Workers: 2 spawned
 
             Skipped:
               Acme\NetworkTest::pings (Requires ext-redis.)
+
+            Passed after retry:
+              Acme\NetworkTest::retriesFlakyEndpoint (3 attempts)
+            These results are evidence of instability.
             TXT;
 
-        Expect::that($output->buffer())->because('canned stream renders the golden output')->toBe($expected . "\n");
+        expect($output->buffer())->because('canned stream renders the golden output')->toBe($expected . "\n");
     }
 
     #[Test]
@@ -59,7 +64,7 @@ final class PlainReporterTest
         $output = new BufferOutput();
         CannedStream::feed(new PlainReporter($output, new RunHeader('0.4.0', 'greenlight.php', 7, phpVersion: '8.3.1')));
 
-        Expect::that($output->buffer())->because('header line precedes the run line when provided')
+        expect($output->buffer())->because('header line precedes the run line when provided')
             ->toStartWith("Greenlight 0.4.0\nPHP 8.3.1 | configuration: greenlight.php | workers: 2 | seed: 7\nRun run-1: 6 tests, 2 workers\n");
     }
 
@@ -72,7 +77,7 @@ final class PlainReporterTest
         $second = new BufferOutput();
         CannedStream::feed(new PlainReporter($second));
 
-        Expect::that($first->buffer())->because('identical streams produce byte identical output')->toBe($second->buffer());
+        expect($first->buffer())->because('identical streams produce byte identical output')->toBe($second->buffer());
     }
 
     #[Test]
@@ -81,7 +86,7 @@ final class PlainReporterTest
         $output = new BufferOutput();
         CannedStream::feed(new PlainReporter($output));
 
-        Expect::that($output->buffer())->because('output contains no ANSI escapes')->not()->toContain("\e");
+        expect($output->buffer())->because('output contains no ANSI escapes')->not()->toContain("\e");
     }
 
     #[Test]
@@ -110,7 +115,7 @@ final class PlainReporterTest
               Acme\RiskyTest::passesWithoutExpectations
             TXT;
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('successful risky tests MUST render exact actionable guidance')
             ->toBe($expected . "\n");
     }
@@ -132,10 +137,9 @@ final class PlainReporterTest
         ));
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('a failed test MUST NOT also appear in successful risky-test guidance')
             ->toContain('FAIL Acme\\RiskyTest::failsWithoutExpectations')
-            ->not()
-            ->toContain('Risky tests:');
+            ->not()->toContain('Risky tests:');
     }
 }

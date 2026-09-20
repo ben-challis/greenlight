@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Wide;
+
+use function Greenlight\expect;
 
 final readonly class ProxyByReferenceTest
 {
@@ -27,7 +28,7 @@ final readonly class ProxyByReferenceTest
 
         $wide->byReference($items);
 
-        Expect::that($items)
+        expect($items)
             ->because('a doubled method MUST preserve by-reference argument changes')
             ->toBe(['original', 'changed']);
     }

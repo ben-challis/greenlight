@@ -11,8 +11,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactSession;
 use Greenlight\Execution\Artifact\ArtifactStore;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactMetadataCollisionTest
 {
@@ -35,7 +36,7 @@ final readonly class ArtifactMetadataCollisionTest
             $configuration,
         );
 
-        Expect::that(static fn() => $store->stageBytes(
+        expect()->calling(static fn() => $store->stageBytes(
             'evidence',
             'evidence.txt',
             $storageKey,
@@ -50,10 +51,10 @@ final readonly class ArtifactMetadataCollisionTest
                 AttachmentError::class,
                 message: 'Failed to finalize attachment recovery metadata.',
             );
-        Expect::that(\is_dir($metadata))
+        expect(\is_dir($metadata))
             ->because('rollback MUST preserve pre-existing metadata blockers')
             ->toBeTrue();
-        Expect::that(\file_exists($staging . '/' . $storageKey))
+        expect(\file_exists($staging . '/' . $storageKey))
             ->because('rollback MUST remove attachment content without completed metadata')
             ->toBeFalse();
 
@@ -69,7 +70,7 @@ final readonly class ArtifactMetadataCollisionTest
             $configuration,
         );
 
-        Expect::that($staged->name)
+        expect($staged->name)
             ->because('a metadata failure MUST release its run quota')
             ->toBe('replacement.txt');
     }

@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Orchestrator\ServerSocket;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\SkipTest;
+
+use function Greenlight\expect;
 
 final readonly class ServerSocketUnixCleanupTest
 {
@@ -39,7 +40,7 @@ final readonly class ServerSocketUnixCleanupTest
         try {
             $socket = ServerSocket::listen($root);
 
-            Expect::that($socket->address)
+            expect($socket->address)
                 ->because('a writable temporary root MUST use the Unix listener')
                 ->toStartWith('unix://');
 
@@ -48,10 +49,10 @@ final readonly class ServerSocketUnixCleanupTest
             $client = \stream_socket_client($socket->address);
 
             try {
-                Expect::that(\is_resource($client))
+                expect(\is_resource($client))
                     ->because('the Unix listener MUST accept connections at its published address')
                     ->toBeTrue();
-                Expect::that(\is_dir($directory))
+                expect(\is_dir($directory))
                     ->because('the Unix listener MUST create its socket directory')
                     ->toBeTrue();
             } finally {
@@ -63,13 +64,13 @@ final readonly class ServerSocketUnixCleanupTest
             $closed = true;
             $socket->close();
 
-            Expect::that(\is_dir($directory))
+            expect(\is_dir($directory))
                 ->because('closing the listener MUST remove its generated directory')
                 ->toBeFalse();
-            Expect::that(\is_dir($root))
+            expect(\is_dir($root))
                 ->because('closing the listener MUST leave its supplied temporary root')
                 ->toBeTrue();
-            Expect::that(static function () use ($socket): void {
+            expect()->calling(static function () use ($socket): void {
                 $socket->close();
             })
                 ->because('listener cleanup MUST tolerate a repeated defensive close')
@@ -90,10 +91,10 @@ final readonly class ServerSocketUnixCleanupTest
         $socket = ServerSocket::listen($missingRoot);
 
         try {
-            Expect::that($socket->address)
+            expect($socket->address)
                 ->because('a missing temporary root MUST use the TCP listener')
                 ->toStartWith('tcp://127.0.0.1:');
-            Expect::that(\is_dir($missingRoot))
+            expect(\is_dir($missingRoot))
                 ->because('the Unix listener MUST NOT create the supplied temporary root')
                 ->toBeFalse();
         } finally {

@@ -9,7 +9,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Condition\Condition;
 use Greenlight\Condition\PhpVersionAtLeast;
 use Greenlight\Condition\PhpVersionLessThan;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class PhpVersionConditionValidationTest
 {
@@ -20,11 +21,11 @@ final readonly class PhpVersionConditionValidationTest
     #[DataSet('emptyVersionConditions')]
     public function rejectsAnEmptyPhpVersion(\Closure $create): void
     {
-        Expect::that($create)
+        expect()->calling($create)
             ->because('a PHP version condition MUST identify its comparison version')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'PHP version MUST NOT be empty.',
+                message: 'PHP version cannot be empty.',
             );
     }
 
@@ -33,8 +34,8 @@ final readonly class PhpVersionConditionValidationTest
      */
     public static function emptyVersionConditions(): iterable
     {
-        yield 'at least' => [static fn(): PhpVersionAtLeast => new PhpVersionAtLeast('')];
-        yield 'less than' => [static fn(): PhpVersionLessThan => new PhpVersionLessThan('')];
+        yield 'at least' => [static fn(): PhpVersionAtLeast => new PhpVersionAtLeast('')]; // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+        yield 'less than' => [static fn(): PhpVersionLessThan => new PhpVersionLessThan('')]; // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
     }
 
     /**
@@ -44,7 +45,7 @@ final readonly class PhpVersionConditionValidationTest
     #[DataSet('zeroVersionConditions')]
     public function acceptsZeroAsAPhpVersion(\Closure $create, bool $expected): void
     {
-        Expect::that($create()->isSatisfied())
+        expect($create()->isSatisfied())
             ->because('the non-empty version "0" MUST retain PHP version comparison semantics')
             ->toBe($expected);
     }

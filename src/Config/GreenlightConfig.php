@@ -25,9 +25,7 @@ final class GreenlightConfig
 
     private WorkerCount $workers;
 
-    private CoverageBuilder $coverage;
-
-    private bool $coverageEnabled = false;
+    private ?CoverageBuilder $coverage = null;
 
     private WatchBuilder $watch;
 
@@ -50,6 +48,8 @@ final class GreenlightConfig
 
     private bool $failOnSkipped = false;
 
+    private bool $failOnRetriedPass = false;
+
     /**
      * @var list<non-empty-string>
      */
@@ -59,6 +59,7 @@ final class GreenlightConfig
 
     private bool $randomizeOrder = false;
 
+    /** @var int<0, max>|null */
     private ?int $randomSeed = null;
 
     /**
@@ -69,7 +70,6 @@ final class GreenlightConfig
     private function __construct()
     {
         $this->workers = WorkerCount::auto();
-        $this->coverage = new CoverageBuilder();
         $this->watch = new WatchBuilder();
         $this->artifacts = new ArtifactBuilder();
         $this->storage = new StorageBuilder();
@@ -81,8 +81,9 @@ final class GreenlightConfig
     }
 
     /**
-     * Sets the base test-discovery directories. Greenlight combines these
-     * paths with all suite paths when the command has no suite selector.
+     * Replaces the base test-discovery directories. The default is `['tests']`.
+     * Greenlight combines these paths with all suite paths when the command
+     * has no suite selector. Relative paths use the command working directory.
      *
      * @param non-empty-list<non-empty-string> $tests
      *
@@ -105,29 +106,29 @@ final class GreenlightConfig
     private function validatePaths(array $tests): array
     {
         if (!\array_is_list($tests)) {
-            throw new InvalidConfiguration('Test paths must be a list.');
+            throw InvalidConfiguration::testPathsNotAList();
         }
 
         $validated = [];
 
         foreach ($tests as $path) {
             if (!\is_string($path)) {
-                throw new InvalidConfiguration('Test paths must contain only strings.');
+                throw InvalidConfiguration::testPathNotAString();
             }
 
             if ($path === '') {
-                throw new InvalidConfiguration('Test paths cannot be empty strings.');
+                throw InvalidConfiguration::emptyTestPath();
             }
 
             if (\str_contains($path, "\0")) {
-                throw new InvalidConfiguration('Test paths cannot contain a null byte.');
+                throw InvalidConfiguration::testPathContainsNullByte();
             }
 
             $validated[] = $path;
         }
 
         if ($validated === []) {
-            throw new InvalidConfiguration('paths() needs at least one directory.');
+            throw InvalidConfiguration::missingTestPaths();
         }
 
         return $validated;
@@ -149,11 +150,11 @@ final class GreenlightConfig
     public function suite(string $name, callable $configurator): self
     {
         if ($name === '') {
-            throw new InvalidConfiguration('Suite names cannot be empty.');
+            throw InvalidConfiguration::emptySuiteName();
         }
 
         if (isset($this->suites[$name])) {
-            throw new InvalidConfiguration(\sprintf('Suite "%s" is declared twice.', $name));
+            throw InvalidConfiguration::duplicateSuite($name);
         }
 
         $builder = new SuiteBuilder($name);
@@ -164,7 +165,9 @@ final class GreenlightConfig
     }
 
     /**
-     * Sets the number of worker processes.
+     * Sets the maximum worker count. The default, `auto`, uses the detected CPU count.
+     * A count of one runs tests in the command process without process isolation.
+     * Process-pool execution can use fewer workers when the selected work or resource limits restrict concurrency.
      *
      * @param positive-int|'auto' $count
      *
@@ -193,19 +196,15 @@ final class GreenlightConfig
         try {
             ResourceName::assertValid($name);
         } catch (\InvalidArgumentException $error) {
-            throw new InvalidConfiguration($error->getMessage(), $error->getCode(), previous: $error);
+            throw InvalidConfiguration::invalidResourceName($error);
         }
 
         if ($limit < 1) {
-            throw new InvalidConfiguration(\sprintf(
-                'Resource "%s" must have a limit of at least 1, got %d.',
-                $name,
-                $limit,
-            ));
+            throw InvalidConfiguration::invalidResourceLimit($name, $limit);
         }
 
         if (\array_key_exists($name, $this->resourceLimits)) {
-            throw new InvalidConfiguration(\sprintf('Resource limit "%s" is declared twice.', $name));
+            throw InvalidConfiguration::duplicateResourceLimit($name);
         }
 
         $this->resourceLimits[$name] = $limit;
@@ -214,19 +213,24 @@ final class GreenlightConfig
     }
 
     /**
+     * Enables coverage collection and changes its settings.
+     * Each call starts with the current configuration. Greenlight ignores the configurator return value.
+     *
      * @param callable(CoverageBuilder): mixed $configurator
      */
     public function coverage(callable $configurator): self
     {
-        $builder = clone $this->coverage;
+        $builder = $this->coverage instanceof CoverageBuilder ? clone $this->coverage : new CoverageBuilder();
         $configurator($builder);
         $this->coverage = clone $builder;
-        $this->coverageEnabled = true;
 
         return $this;
     }
 
     /**
+     * Changes watch inputs and polling limits. Use `--watch` to start watch mode.
+     * Each call starts with the current configuration. Greenlight ignores the configurator return value.
+     *
      * @param callable(WatchBuilder): mixed $configurator
      */
     public function watch(callable $configurator): self
@@ -239,6 +243,9 @@ final class GreenlightConfig
     }
 
     /**
+     * Changes attachment output, safety limits, and retention settings.
+     * Each call starts with the current configuration. Greenlight ignores the configurator return value.
+     *
      * @param callable(ArtifactBuilder): mixed $configurator
      */
     public function artifacts(callable $configurator): self
@@ -252,7 +259,7 @@ final class GreenlightConfig
 
     /**
      * Sets directories for persistent state, caches, generated code, and
-     * temporary run data. Multiple calls use the same builder.
+     * temporary run data. Each call starts with the current configuration.
      *
      * @param callable(StorageBuilder): mixed $configurator
      */
@@ -267,8 +274,8 @@ final class GreenlightConfig
 
     /**
      * Fails an otherwise passed test if captured output contains a
-     * deprecation. The diagnostic becomes the failure detail. Use a regular
-     * expression to exempt known dependency messages.
+     * deprecation. The diagnostic becomes the failure detail. Use
+     * `ignoreDeprecationsMatching()` to exempt known dependency messages.
      *
      * @see self::ignoreDeprecationsMatching()
      */
@@ -319,6 +326,17 @@ final class GreenlightConfig
     }
 
     /**
+     * Fails the run if a test passes after retry. The test keeps its passed
+     * outcome and attempt count.
+     */
+    public function failOnRetriedPass(bool $enabled = true): self
+    {
+        $this->failOnRetriedPass = $enabled;
+
+        return $this;
+    }
+
+    /**
      * Exempts deprecation messages from `failOnDeprecation()`. A pattern matches
      * part of a message without case sensitivity. A pattern that contains "*"
      * or "?" matches the complete message. Multiple calls add patterns.
@@ -333,7 +351,7 @@ final class GreenlightConfig
 
         foreach ($patterns as $pattern) {
             if ($pattern === '') {
-                throw new InvalidConfiguration('ignoreDeprecationsMatching() patterns cannot be empty.');
+                throw InvalidConfiguration::emptyDeprecationPattern();
             }
 
             $validated[] = $pattern;
@@ -356,7 +374,7 @@ final class GreenlightConfig
             try {
                 $definitions[] = PluginDefinition::fromFactory($factory);
             } catch (\InvalidArgumentException $error) {
-                throw new InvalidConfiguration($error->getMessage(), $error->getCode(), previous: $error);
+                throw InvalidConfiguration::invalidPluginFactory($error);
             }
         }
 
@@ -365,6 +383,10 @@ final class GreenlightConfig
         return $this;
     }
 
+    /**
+     * Stops new work after the first failed or errored test.
+     * Active assignments can finish after the limit. This option is disabled by default.
+     */
     public function failFast(bool $enabled = true): self
     {
         $this->failFast = $enabled;
@@ -372,9 +394,18 @@ final class GreenlightConfig
         return $this;
     }
 
-    /** If the seed is null, Greenlight selects and prints a seed when it resolves the command. */
+    /**
+     * If the seed is null, Greenlight selects and prints a seed when it resolves the command.
+     *
+     * @param int<0, max>|null $seed
+     * @throws InvalidConfiguration
+     */
     public function randomizeOrder(?int $seed = null): self
     {
+        if ($seed !== null && $seed < 0) {
+            throw InvalidConfiguration::negativeRandomSeed($seed);
+        }
+
         $this->randomizeOrder = true;
         $this->randomSeed = $seed;
 
@@ -384,6 +415,9 @@ final class GreenlightConfig
     /**
      * Uses a wider parameter type than the public contract. This gives callers
      * without static analysis a clear runtime error for invalid strings.
+     *
+     * @param positive-int|'auto' $count
+     *
      * @throws InvalidConfiguration
      */
     private function workerCount(int|string $count): WorkerCount
@@ -396,10 +430,7 @@ final class GreenlightConfig
             return WorkerCount::auto();
         }
 
-        throw new InvalidConfiguration(\sprintf(
-            'Worker count must be a positive integer or "auto", got "%s".',
-            $count,
-        ));
+        throw InvalidConfiguration::invalidWorkerCountString($count);
     }
 
     /**
@@ -426,12 +457,15 @@ final class GreenlightConfig
                     $this->ignoreDeprecations,
                     $this->failOnRisky,
                 ),
-                runPolicy: new RunPolicy($this->failOnSkipped),
+                runPolicy: new RunPolicy(
+                    failOnSkipped: $this->failOnSkipped,
+                    failOnRetriedPass: $this->failOnRetriedPass,
+                ),
                 stopAfterFailures: $this->failFast ? 1 : null,
                 artifacts: $this->artifacts->toConfiguration(),
             ),
             order: new OrderConfiguration($this->randomizeOrder, $this->randomSeed),
-            coverage: $this->coverageEnabled ? $this->coverage->toConfiguration() : null,
+            coverage: $this->coverage?->toConfiguration(),
             watch: $this->watch->toConfiguration(),
             storage: $this->storage->toConfiguration(),
         );

@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Unit\Execution\Artifact;
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Artifact\NativeFileCopier;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\StreamWrappers;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Execution\Artifact\TrackedOpenStream;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactCopyOpenFailureTest
 {
@@ -31,7 +32,7 @@ final readonly class ArtifactCopyOpenFailureTest
         TrackedOpenStream::reset();
 
         $destinationWarning = null;
-        Expect::that(static function () use ($root, &$destinationWarning): void {
+        expect()->calling(static function () use ($root, &$destinationWarning): void {
             ErrorTrap::run(
                 static fn() => new NativeFileCopier()->copy(
                     self::SCHEME . '://source',
@@ -45,11 +46,11 @@ final readonly class ArtifactCopyOpenFailureTest
                 AttachmentError::class,
                 message: 'Failed to copy attachment into its output directory.',
             );
-        Expect::that($destinationWarning)
+        expect($destinationWarning)
             ->because('a destination open failure MUST not leak an engine diagnostic')
             ->toBeNull();
 
-        Expect::that(TrackedOpenStream::closedStreams())
+        expect(TrackedOpenStream::closedStreams())
             ->because('a destination open failure MUST close the source stream')
             ->toBe(1);
     }
@@ -60,7 +61,7 @@ final readonly class ArtifactCopyOpenFailureTest
         $root = $this->tempDirectory->subdirectory('missing-copy-source');
         $destination = $root . '/destination.txt';
 
-        Expect::that(static fn() => new NativeFileCopier()->copy(
+        expect()->calling(static fn() => new NativeFileCopier()->copy(
             $root . '/missing-source.txt',
             $destination,
         ))
@@ -69,7 +70,7 @@ final readonly class ArtifactCopyOpenFailureTest
                 AttachmentError::class,
                 message: 'Failed to copy attachment into its output directory.',
             );
-        Expect::that(\file_exists($destination))
+        expect(\file_exists($destination))
             ->because('a source open failure MUST not leave an empty destination')
             ->toBeFalse();
     }

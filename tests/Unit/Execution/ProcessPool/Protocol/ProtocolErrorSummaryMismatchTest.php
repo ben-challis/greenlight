@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Protocol;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ProtocolErrorSummaryMismatchTest
 {
@@ -19,7 +20,7 @@ final class ProtocolErrorSummaryMismatchTest
             '{"passed":2,"failed":0}',
         );
 
-        Expect::that($error->getMessage())
+        expect($error->getMessage())
             ->because(
                 'a summary mismatch MUST identify which totals the worker reported '
                 . 'and which totals the event stream observed',

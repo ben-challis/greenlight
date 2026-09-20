@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class WatchDiscoveryErrorTest
 {
@@ -46,7 +47,7 @@ final readonly class WatchDiscoveryErrorTest
 
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-        Expect::that($output)
+        expect($output)
             ->because('watch mode MUST complete its initial valid run')
             ->toContain('1 test, 1 passed');
 
@@ -61,17 +62,17 @@ final readonly class WatchDiscoveryErrorTest
             PHP);
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-        Expect::that($output)
+        expect($output)
             ->because('watch mode MUST continue after a discovery error')
             ->toContain('Detected changes');
 
         $process->write('q');
         $result = $process->wait(10.0);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('watch mode MUST remain available after a discovery error')
             ->toBe(0);
-        Expect::that($result->stderr)
+        expect($result->stderr)
             ->because('watch mode MUST report the discovery error')
             ->toContain('BrokenTest.php')
             ->toContain('WrongName');

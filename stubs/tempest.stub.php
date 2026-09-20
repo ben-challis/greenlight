@@ -26,12 +26,6 @@ final class GenericContainer implements Container
     public function reset(): self {}
 }
 
-#[\Attribute]
-final readonly class Tag
-{
-    public function __construct(public string|\UnitEnum $name) {}
-}
-
 namespace Tempest\Core;
 
 use Tempest\Container\Container;

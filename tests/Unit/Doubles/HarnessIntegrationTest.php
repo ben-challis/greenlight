@@ -9,7 +9,6 @@ use Greenlight\Condition\Condition;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
 use Greenlight\Event\EventSink;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationExtension;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Harness\Disposable;
@@ -17,6 +16,8 @@ use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
+
+use function Greenlight\expect;
 
 final class HarnessIntegrationTest
 {
@@ -30,7 +31,7 @@ final class HarnessIntegrationTest
 
         $doubles = $scopes->resolve(Doubles::class, self::class);
 
-        Expect::that($doubles)
+        expect($doubles)
             ->because('HarnessScopes::resolve() MUST return Doubles.')
             ->toBeInstanceOf(Doubles::class);
 
@@ -40,11 +41,11 @@ final class HarnessIntegrationTest
 
         $failures = $scopes->closeTest();
 
-        Expect::that($failures)->because('registered as a per test service it verifies at scope close')->toHaveCount(1);
-        Expect::that($failures[0])->toBeInstanceOf(ExpectationFailed::class);
+        expect($failures)->because('registered as a per test service it verifies at scope close')->toHaveCount(1);
+        expect($failures[0])->toBeInstanceOf(ExpectationFailed::class);
 
         $failure = $failures[0];
-        Expect::that($failure->detail()->message)->toContain('add');
+        expect($failure->detail()->message)->toContain('add');
     }
 
     #[Test]
@@ -57,10 +58,10 @@ final class HarnessIntegrationTest
         $extension = $doubles->stub(ExpectationExtension::class);
         $events = $doubles->spy(EventSink::class);
 
-        Expect::that($condition)->because('public harness interfaces can be doubled')->toBeInstanceOf(Condition::class);
-        Expect::that($disposable)->toBeInstanceOf(Disposable::class);
-        Expect::that($extension)->toBeInstanceOf(ExpectationExtension::class);
-        Expect::that($events)->toBeInstanceOf(EventSink::class);
+        expect($condition)->because('public harness interfaces can be doubled')->toBeInstanceOf(Condition::class);
+        expect($disposable)->toBeInstanceOf(Disposable::class);
+        expect($extension)->toBeInstanceOf(ExpectationExtension::class);
+        expect($events)->toBeInstanceOf(EventSink::class);
 
         $doubles->dispose();
     }

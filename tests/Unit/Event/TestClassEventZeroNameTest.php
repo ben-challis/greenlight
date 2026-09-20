@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class TestClassEventZeroNameTest
 {
@@ -22,10 +23,10 @@ final readonly class TestClassEventZeroNameTest
         $event = new $eventClass('0', 1.25, 'worker-1');
         $restored = $eventClass::fromWire($event->toWire());
 
-        Expect::that($event->class)
+        expect($event->class)
             ->because('class lifecycle events MUST retain non-empty zero-string class names')
             ->toBe('0');
-        Expect::that($restored->class)
+        expect($restored->class)
             ->toBe('0');
     }
 

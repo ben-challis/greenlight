@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Tests\Fixture\Harness\FailingDisposable;
 use Greenlight\Tests\Fixture\Harness\RecordingDisposable;
+
+use function Greenlight\expect;
 
 final class ScopeContainerFailureContinuationTest
 {
@@ -31,10 +32,10 @@ final class ScopeContainerFailureContinuationTest
             static fn(): FailingDisposable => new FailingDisposable(),
         ));
 
-        Expect::that($recording)
+        expect($recording)
             ->because('ScopeContainer MUST resolve RecordingDisposable.')
             ->toBeInstanceOf(RecordingDisposable::class);
-        Expect::that($failing)
+        expect($failing)
             ->because('ScopeContainer MUST resolve FailingDisposable.')
             ->toBeInstanceOf(FailingDisposable::class);
 
@@ -43,14 +44,14 @@ final class ScopeContainerFailureContinuationTest
 
         $failures = $container->dispose();
 
-        Expect::that($failures)
+        expect($failures)
             ->because('a disposal failure MUST NOT prevent disposal of the remaining services')
             ->toHaveCount(1);
-        Expect::that($failures[0]->getMessage())
+        expect($failures[0]->getMessage())
             ->toBe('disposal broke');
-        Expect::that(FailingDisposable::disposals())
+        expect(FailingDisposable::disposals())
             ->toBe(1);
-        Expect::that(RecordingDisposable::disposals())
+        expect(RecordingDisposable::disposals())
             ->toBe(1);
     }
 }

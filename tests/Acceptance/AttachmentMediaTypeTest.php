@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
+
+use function Greenlight\expect;
 
 final readonly class AttachmentMediaTypeTest
 {
@@ -30,7 +31,8 @@ final readonly class AttachmentMediaTypeTest
             use Greenlight\Attribute\Test;
             use Greenlight\Artifact\AttachmentRetention;
             use Greenlight\Artifact\Attachments;
-            use Greenlight\Expect\Expect;
+
+            use function Greenlight\expect;
 
             final readonly class AttachmentMediaTypeProbeTest
             {
@@ -47,7 +49,7 @@ final readonly class AttachmentMediaTypeTest
                         retention: AttachmentRetention::Always,
                     );
 
-                    Expect::that(true)->toBeTrue();
+                    expect(true)->toBeTrue();
                 }
             }
             PHP);
@@ -81,15 +83,14 @@ final readonly class AttachmentMediaTypeTest
             }
         }
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('file attachments work without the optional fileinfo function')
             ->toBe(0);
-        Expect::that($finished)
-            ->not()
-            ->toBeNull();
-        Expect::that($finished->attachments)
+        expect($finished)
+            ->not()->toBeNull();
+        expect($finished->attachments)
             ->toHaveCount(1);
-        Expect::that($finished->attachments[0]->mediaType)
+        expect($finished->attachments[0]->mediaType)
             ->toBe('application/octet-stream');
     }
 }

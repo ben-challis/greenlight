@@ -7,9 +7,9 @@ namespace Greenlight\Tests\Support;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
- * The caller of start() owns the active process handle. After start() returns,
- * the caller MUST immediately guarantee that terminate() will run. After
- * wait() collects the result, terminate() has no effect.
+ * The caller of start() owns the active process handle. Immediately after
+ * start() returns, use a finally block to call terminate(). After wait()
+ * collects the result, terminate() has no effect.
  */
 final class Subprocess
 {
@@ -194,6 +194,22 @@ final class Subprocess
     {
         if (!\proc_terminate($this->process, $signal)) {
             throw new \RuntimeException(\sprintf('Could not send signal %d to process.', $signal));
+        }
+    }
+
+    /**
+     * @throws \RuntimeException when the signal cannot be sent
+     */
+    public function signalProcessGroup(int $signal): void
+    {
+        if (!\function_exists('posix_kill')) {
+            throw new \RuntimeException('Could not send a process-group signal without POSIX support.');
+        }
+
+        $status = \proc_get_status($this->process);
+
+        if (!\posix_kill(-$status['pid'], $signal)) {
+            throw new \RuntimeException(\sprintf('Could not send signal %d to the process group.', $signal));
         }
     }
 

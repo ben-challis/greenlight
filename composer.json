@@ -3,7 +3,7 @@
     "description": "A test framework for PHP 8.4+ with typed attributes, parallel execution, flat memory use, and lifecycle-safe test doubles.",
     "license": "MIT",
     "type": "library",
-    "version": "0.0.0",
+    "version": "0.3.0",
     "keywords": [
         "testing",
         "test-framework",
@@ -91,7 +91,6 @@
         ],
         "code-style:check": "php-cs-fixer fix --dry-run --diff --ansi",
         "code-style:fix": "php-cs-fixer fix --diff --ansi",
-        "coverage-gate": "@php tools/coverage-gate.php",
         "deptrac": "deptrac analyse --no-progress --report-uncovered --fail-on-uncovered",
         "docs:php:check": "@php tools/docs-php.php check",
         "lint": [
@@ -126,9 +125,8 @@
         "check": "Runs static analysis, tests, and the memory gate.",
         "code-style:check": "Checks code style without changes to files.",
         "code-style:fix": "Corrects code-style violations.",
-        "coverage-gate": "Checks the test coverage requirements.",
         "deptrac": "Checks the dependency boundaries.",
-        "docs:php:check": "Checks the PHP API documentation.",
+        "docs:php:check": "Checks classified PHP examples in the documentation.",
         "lint": "Checks the PHP syntax.",
         "memory-gate": "Checks for memory growth during a long test run.",
         "phpstan": "Analyzes PHP types with PHPStan.",

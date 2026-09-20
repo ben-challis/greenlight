@@ -15,18 +15,20 @@ use Greenlight\Condition\FunctionAvailable;
 use Greenlight\Condition\OperatingSystemFamily;
 use Greenlight\Condition\PhpVersionAtLeast;
 use Greenlight\Condition\PhpVersionLessThan;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\EnvironmentVariables;
+
+use function Greenlight\expect;
 
 final readonly class ConditionsTest
 {
     public function __construct(private EnvironmentVariables $environment) {}
 
+    /** @param non-empty-string $extension */
     #[Test]
     #[DataSet('extensionLoadedStates')]
     public function extensionLoadedChecksTheLoadedExtensionList(string $extension, bool $expected): void
     {
-        Expect::that(new ExtensionLoaded($extension)->isSatisfied())
+        expect(new ExtensionLoaded($extension)->isSatisfied())
             ->because('the condition MUST match only a loaded extension')
             ->toBe($expected);
     }
@@ -40,11 +42,12 @@ final readonly class ConditionsTest
         yield 'missing extension' => ['greenlight_no_such_extension', false];
     }
 
+    /** @param non-empty-string $extension */
     #[Test]
     #[DataSet('extensionMissingStates')]
     public function extensionMissingIsTheInverseOfExtensionLoaded(string $extension, bool $expected): void
     {
-        Expect::that(new ExtensionMissing($extension)->isSatisfied())
+        expect(new ExtensionMissing($extension)->isSatisfied())
             ->because('the condition MUST match only an extension that is not loaded')
             ->toBe($expected);
     }
@@ -67,10 +70,10 @@ final readonly class ConditionsTest
         $this->environment->set($presentName, 'anything');
         $this->environment->unset($absentName);
 
-        Expect::that(new EnvironmentVariableSet($presentName)->isSatisfied())
+        expect(new EnvironmentVariableSet($presentName)->isSatisfied())
             ->because('the condition MUST match a set environment variable')
             ->toBeTrue();
-        Expect::that(new EnvironmentVariableSet($absentName)->isSatisfied())
+        expect(new EnvironmentVariableSet($absentName)->isSatisfied())
             ->because('the condition MUST reject an unset environment variable')
             ->toBeFalse();
     }
@@ -84,22 +87,23 @@ final readonly class ConditionsTest
         $this->environment->set($presentName, 'expected');
         $this->environment->unset($absentName);
 
-        Expect::that(new EnvironmentVariableEquals($presentName, 'expected')->isSatisfied())
+        expect(new EnvironmentVariableEquals($presentName, 'expected')->isSatisfied())
             ->because('the condition MUST match the exact environment variable value')
             ->toBeTrue();
-        Expect::that(new EnvironmentVariableEquals($presentName, 'other')->isSatisfied())
+        expect(new EnvironmentVariableEquals($presentName, 'other')->isSatisfied())
             ->because('the condition MUST reject a different environment variable value')
             ->toBeFalse();
-        Expect::that(new EnvironmentVariableEquals($absentName, 'expected')->isSatisfied())
+        expect(new EnvironmentVariableEquals($absentName, 'expected')->isSatisfied())
             ->because('the condition MUST reject an unset environment variable')
             ->toBeFalse();
     }
 
+    /** @param non-empty-string $family */
     #[Test]
     #[DataSet('operatingSystemFamilies')]
     public function operatingSystemFamilyComparesCaseInsensitively(string $family, bool $expected): void
     {
-        Expect::that(new OperatingSystemFamily($family)->isSatisfied())
+        expect(new OperatingSystemFamily($family)->isSatisfied())
             ->because('the condition MUST compare operating system family names without case sensitivity')
             ->toBe($expected);
     }
@@ -114,11 +118,12 @@ final readonly class ConditionsTest
         yield 'unknown family' => ['NotAnOperatingSystem', false];
     }
 
+    /** @param non-empty-string $version */
     #[Test]
     #[DataSet('minimumPhpVersions')]
     public function phpVersionAtLeastComparesAgainstTheRunningVersion(string $version, bool $expected): void
     {
-        Expect::that(new PhpVersionAtLeast($version)->isSatisfied())
+        expect(new PhpVersionAtLeast($version)->isSatisfied())
             ->because('the condition MUST accept versions that do not exceed the current PHP version')
             ->toBe($expected);
     }
@@ -133,11 +138,12 @@ final readonly class ConditionsTest
         yield 'newer version' => ['99.0', false];
     }
 
+    /** @param non-empty-string $version */
     #[Test]
     #[DataSet('maximumPhpVersions')]
     public function phpVersionLessThanComparesAgainstTheRunningVersion(string $version, bool $expected): void
     {
-        Expect::that(new PhpVersionLessThan($version)->isSatisfied())
+        expect(new PhpVersionLessThan($version)->isSatisfied())
             ->because('the condition MUST accept versions that exceed the current PHP version')
             ->toBe($expected);
     }
@@ -152,11 +158,12 @@ final readonly class ConditionsTest
         yield 'current version' => [\PHP_VERSION, false];
     }
 
+    /** @param non-empty-string $function */
     #[Test]
     #[DataSet('functionAvailability')]
     public function functionAvailableChecksCallableFunctions(string $function, bool $expected): void
     {
-        Expect::that(new FunctionAvailable($function)->isSatisfied())
+        expect(new FunctionAvailable($function)->isSatisfied())
             ->because('the condition MUST match only an available function')
             ->toBe($expected);
     }
@@ -170,11 +177,12 @@ final readonly class ConditionsTest
         yield 'missing function' => ['greenlight_no_such_function', false];
     }
 
+    /** @param non-empty-string $class */
     #[Test]
     #[DataSet('classAvailability')]
     public function classAvailableChecksAutoloadableClasses(string $class, bool $expected): void
     {
-        Expect::that(new ClassAvailable($class)->isSatisfied())
+        expect(new ClassAvailable($class)->isSatisfied())
             ->because('the condition MUST match only an autoloadable class')
             ->toBe($expected);
     }
@@ -191,11 +199,11 @@ final readonly class ConditionsTest
     #[Test]
     public function classAvailableRejectsAnEmptyClassName(): void
     {
-        Expect::that(static fn(): ClassAvailable => new ClassAvailable(''))
+        expect()->calling(static fn(): ClassAvailable => new ClassAvailable('')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a class availability condition MUST identify the class')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Class name MUST NOT be empty.',
+                message: 'Class name cannot be empty.',
             );
     }
 

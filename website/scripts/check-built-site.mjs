@@ -79,6 +79,28 @@ for (const file of htmlFiles) {
     errors.push(`${label}: The page does not contain a valid canonical URL.`);
   }
 
+  if (label.startsWith('docs/')) {
+    const hasPageIndex = html.includes('<aside class="page-index"');
+    const hasMobilePageIndexTrigger = html.includes('aria-controls="mobile-page-index"');
+    const hasMobilePageIndexDialog = html.includes('<dialog id="mobile-page-index"');
+
+    if (
+      !html.includes('aria-controls="mobile-documentation-menu"') ||
+      !html.includes('<dialog id="mobile-documentation-menu"') ||
+      hasPageIndex !== hasMobilePageIndexTrigger ||
+      hasPageIndex !== hasMobilePageIndexDialog
+    ) {
+      errors.push(`${label}: The page does not contain the modal documentation controls.`);
+    }
+  }
+
+  if (
+    !html.includes('data-search-input-label="Search documentation"') ||
+    !html.includes('role="status" aria-live="polite" aria-atomic="true" data-search-status')
+  ) {
+    errors.push(`${label}: The page does not contain the accessible search status.`);
+  }
+
   const attributes = html.matchAll(/\b(?:href|src)="([^"]+)"/g);
 
   for (const [, url] of attributes) {

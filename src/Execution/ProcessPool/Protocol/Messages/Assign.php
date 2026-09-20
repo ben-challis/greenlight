@@ -21,7 +21,7 @@ final readonly class Assign implements Message
     /**
      * @param list<non-empty-string>|null $coverageInclude Null disables coverage.
      * @param non-empty-string|null $coverageDriver
-     * @param positive-int|null $stopAfterFailures Remaining assignment failure allowance.
+     * @param positive-int|null $stopAfterFailures Remaining assignment allowance for failed or errored tests.
      */
     public function __construct(
         public ExecutionPlan $slice,

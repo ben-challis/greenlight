@@ -9,9 +9,10 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactSession;
 use Greenlight\Execution\Artifact\ArtifactStore;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactAttemptRecordCollisionTest
 {
@@ -32,16 +33,16 @@ final readonly class ArtifactAttemptRecordCollisionTest
             new ArtifactConfiguration($root . '/published'),
         );
 
-        Expect::that(static fn() => $store->recordAttempt($id, 1))
+        expect()->calling(static fn() => $store->recordAttempt($id, 1))
             ->because('a non-directory staging entry MUST block attempt recording')
             ->toThrow(
                 AttachmentError::class,
                 matching: '/^Failed to create attachment staging subdirectory/',
             );
-        Expect::that((string) \file_get_contents($testDirectory))
+        expect((string) \file_get_contents($testDirectory))
             ->because('a rejected attempt record MUST preserve the existing entry')
             ->toBe('occupied');
-        Expect::that(\file_exists($testDirectory . '/.attempt'))
+        expect(\file_exists($testDirectory . '/.attempt'))
             ->because('a rejected attempt record MUST not create an attempt file')
             ->toBeFalse();
     }

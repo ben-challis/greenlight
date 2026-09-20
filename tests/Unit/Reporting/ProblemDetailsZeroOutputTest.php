@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\ProblemDetails;
 use Greenlight\Result\CapturedOutput;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class ProblemDetailsZeroOutputTest
 {
@@ -25,7 +26,7 @@ final class ProblemDetailsZeroOutputTest
             output: new CapturedOutput('0'),
         );
 
-        Expect::that(ProblemDetails::render($result))
+        expect(ProblemDetails::render($result))
             ->because('captured output MUST preserve the string "0"')
             ->toBe("  captured output:\n    0\n");
     }

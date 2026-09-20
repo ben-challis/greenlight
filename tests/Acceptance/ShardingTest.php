@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class ShardingTest
 {
@@ -30,8 +31,8 @@ final readonly class ShardingTest
         }
         \sort($all);
         \sort($union);
-        Expect::that($all)->because('shards reconstitute the full list exactly once')->not()->toHaveCount(0);
-        Expect::that($union)->because('shards reconstitute the full list exactly once')->toBe($all);
+        expect($all)->because('shards reconstitute the full list exactly once')->not()->toHaveCount(0);
+        expect($union)->because('shards reconstitute the full list exactly once')->toBe($all);
     }
 
     #[Test]
@@ -41,8 +42,8 @@ final readonly class ShardingTest
         $project = AcceptanceProject::createWithDiscoveryBasicTests($this->tempDirectory, 'sharding');
         $result = GreenlightCli::run($project->directory, ['list-tests', $flag]);
 
-        Expect::that($result->exitCode)->because('malformed shard specs are usage errors')->toBe(64);
-        Expect::that($result->output())->because('malformed shard specs are usage errors')->toBe($diagnostic);
+        expect($result->exitCode)->because('malformed shard specs are usage errors')->toBe(64);
+        expect($result->output())->because('malformed shard specs are usage errors')->toBe($diagnostic);
     }
 
     /**

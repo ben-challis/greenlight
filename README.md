@@ -26,7 +26,7 @@ Greenlight runs its own test suite with `bin/greenlight run`.
 * Leak detection, crash recovery, timeouts, and process isolation
 * Strict mocks, stubs, and spies with automatic verification
 * Typed expectations with clear differences
-* Stable CI shards and deterministic reports
+* Stable CI shards and machine-readable reports
 * Test attachments for values, text, bytes, and files
 * Aggregate and per-test coverage through pcov or Xdebug
 * Focused mutation testing through the separate Infection adapter
@@ -57,18 +57,21 @@ final class PriceTest
     {
         $total = Price::fromString($unit)->times($quantity);
 
-        Expect::that($total->format())->toBe($expected);
+        Expect::value($total->format())->toBe($expected);
     }
 
     #[Test]
     public function rejectsNegativeQuantities(): void
     {
-        Expect::that(static function (): void {
+        Expect::calling(static function (): void {
             Price::fromString('9.99')->times(-1);
         })->toThrow(\InvalidArgumentException::class, matching: '/quantity/');
     }
 }
 ```
+
+`Price` represents application code in this example. See the
+[start guide](docs/getting-started.md) for a complete application and test.
 
 Tests use typed PHP classes. Attributes identify tests, before and after
 methods, data sets, retries, timeouts, skip conditions, groups, resource
@@ -113,14 +116,19 @@ Greenlight discovers each test class once and creates an execution plan.
 Workers request assignments when they have capacity.
 
 The orchestrator controls resource limits, worker replacement, event checks,
-and reports. It also stores test durations to improve the order of later runs.
+and result delivery to reporters. The CLI stores test durations to improve the
+order of later runs.
+
+With one configured or detected worker, the CLI runs tests in its own process.
+This mode has no worker-process isolation or hard timeout enforcement.
 
 Greenlight normally schedules complete test classes. It schedules each
 `#[Isolated]` test separately. Add `#[AllowParallel]` to split an independent
 large class into one assignment for each selected test or data set.
 
-Greenlight preserves execution-plan order. Worker placement and completion
-order remain load-dependent.
+Greenlight assigns scheduling units in execution-plan order as resource capacity
+permits. Worker placement and completion order depend on the run. Reporters
+receive events as they arrive.
 
 Use a channel to give each worker a separate external resource. Use
 `#[RequiresResource]` to limit concurrent access to a shared resource.

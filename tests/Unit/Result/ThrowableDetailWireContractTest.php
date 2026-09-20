@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Result;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\ThrowableDetail;
+
+use function Greenlight\expect;
 
 final class ThrowableDetailWireContractTest
 {
@@ -24,7 +25,7 @@ final class ThrowableDetailWireContractTest
             ],
         );
 
-        Expect::that($detail->toWire())
+        expect($detail->toWire())
             ->because('the wire payload MUST preserve each throwable diagnostic field')
             ->toBe([
                 'class' => \RuntimeException::class,

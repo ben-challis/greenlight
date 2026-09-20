@@ -9,17 +9,10 @@ use Greenlight\Internal\Wire\Wire;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
- * The map sorts files by path. Thus, identical coverage always has identical
- * serialized data.
+ * Contains line coverage for source files in path order.
  *
- * merge() is commutative, associative, and idempotent. Thus, the orchestrator
- * can merge worker payloads in all arrival orders. It does not require a final
- * merge operation at the end of a run.
- *
- * The wire payload is compact. Under "files", each path maps to a two-item
- * list. The covered line list is first. The uncovered line list is second.
- *
- * @internal
+ * `merge()` combines covered and uncovered lines for each file. Covered lines
+ * take priority. Merge order and repeated inputs do not change the result.
  */
 final readonly class CoverageMap
 {
@@ -68,6 +61,7 @@ final readonly class CoverageMap
         return new self(\array_merge(\array_values($this->files), \array_values($other->files)));
     }
 
+    /** @return int<0, max> */
     public function coveredLineTotal(): int
     {
         $total = 0;
@@ -79,12 +73,25 @@ final readonly class CoverageMap
         return $total;
     }
 
+    /** @return int<0, max> */
     public function executableLineTotal(): int
     {
         $total = 0;
 
         foreach ($this->files as $file) {
             $total += $file->executableLineCount();
+        }
+
+        return $total;
+    }
+
+    /** @return int<0, max> */
+    public function uncoveredLineTotal(): int
+    {
+        $total = 0;
+
+        foreach ($this->files as $file) {
+            $total += \count($file->uncoveredLines);
         }
 
         return $total;
@@ -106,7 +113,11 @@ final readonly class CoverageMap
         return $this->coveredLineTotal() / $executable * 100.0;
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @internal
+     *
+     * @return array<string, mixed>
+     */
     public function toWire(): array
     {
 
@@ -116,6 +127,8 @@ final readonly class CoverageMap
     }
 
     /**
+     * @internal
+     *
      * @param array<string, mixed> $payload
      * @throws WireCommunicationFailed
      */
@@ -143,7 +156,7 @@ final readonly class CoverageMap
     }
 
     /**
-     * @return list<int>
+     * @return list<positive-int>
      * @throws WireCommunicationFailed
      */
     private static function lineList(mixed $value): array

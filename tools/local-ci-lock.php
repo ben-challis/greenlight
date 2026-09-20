@@ -7,8 +7,8 @@ const MAX_PARALLELISM_ENVIRONMENT_VARIABLE = 'GREENLIGHT_LOCAL_CI_MAX_PARALLELIS
 const LOCK_DIRECTORY_ENVIRONMENT_VARIABLE = 'GREENLIGHT_LOCAL_CI_LOCK_DIRECTORY';
 
 /**
- * Limits concurrent local CI commands from Git worktrees. Hosted CI bypasses
- * the limit because each job has independent resources.
+ * Limits concurrent local CI commands from Git worktrees.
+ * A truthy CI environment variable bypasses the limit.
  *
  * @param list<string> $arguments
  */

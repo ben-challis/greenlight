@@ -28,6 +28,10 @@ parameters:
 Use `configFiles` only for custom matcher checks. The data-provider and native
 matcher rules work without it.
 
+If you use [phpstan/extension-installer](https://github.com/phpstan/extension-installer),
+it registers the include for you. Set only the `greenlight.configFiles`
+parameter for custom matcher checks.
+
 ## Double checks
 
 The extension checks a constant method name in `Doubles::callsTo()` against the
@@ -76,9 +80,21 @@ The extension reports constant attribute arguments that Greenlight cannot use:
 Errors have identifiers under `greenlight.attributeArgument.*` (`retry`,
 `skipUnless`, `timeout`, `resource`).
 
-If you use [phpstan/extension-installer](https://github.com/phpstan/extension-installer),
-it registers the include for you. Set only the `greenlight.configFiles`
-parameter.
+## Float argument checks
+
+PHPStan does not have float range types. The extension checks constant values
+for these method arguments:
+
+* `CoverageBuilder::minimumPercentage()` accepts a value from `0` through
+  `100`, with at most two decimal places.
+* `toBeWithin()` accepts a finite tolerance of zero or more.
+* `pollEvery()` accepts a finite duration of at least `0.001` seconds.
+* `within()` and `for()` accept a finite duration greater than zero.
+
+Coverage errors use `greenlight.coverageBuilderArgument.*`. Expectation errors
+use `greenlight.expectationArgument.tolerance` and
+`greenlight.expectationArgument.duration`. Greenlight checks unresolved values
+at run time.
 
 ## Native matcher constraints
 
@@ -88,12 +104,12 @@ callback can specify and check the throwable:
 
 <!-- php-example {"example":"phpstan-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::that($callback)->toThrow(DomainException::class, message: 'Exact message');
-Expect::that($callback)->toThrow(DomainException::class, matching: '/message/i');
-Expect::that($callback)->toThrow($failure);
-Expect::that($callback)->toThrow(
+Expect::calling($callback)->toThrow(DomainException::class, message: 'Exact message');
+Expect::calling($callback)->toThrow(DomainException::class, matching: '/message/i');
+Expect::calling($callback)->toThrow($failure);
+Expect::calling($callback)->toThrow(
     static function (DomainException $error): void {
-        Expect::that($error->getPrevious())->toBeInstanceOf(LengthException::class);
+        Expect::value($error->getPrevious())->toBeInstanceOf(LengthException::class);
     },
 );
 ```
@@ -112,17 +128,10 @@ A call that supplies a message constraint with a Throwable instance causes the
 `greenlight.toThrow.instanceConstraint` error. Greenlight also rejects the call
 at run time.
 
-The subject for `toThrow()` must be callable. The extension reports a known
-incompatible subject before the test runs:
-
-<!-- php-example {"example":"phpstan-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
-```php
-Expect::that(42)->toThrow(DomainException::class);
-```
-
-This call causes the `greenlight.toThrow.subjectType` error. The extension
-does not report the error for a `mixed` subject. Greenlight validates unresolved
-subject types at run time.
+`Expect::calling()` requires a callable through its native PHP parameter type.
+PHPStan reports an ordinary argument-type error for a non-callable argument.
+`Expect::value()` does not expose `toThrow()`. PHPStan reports an undefined
+method for that call, even without the Greenlight extension.
 
 ## Mock plan checks
 
@@ -134,14 +143,16 @@ The extension reports these mock plan errors:
 * The planned method does not exist or Greenlight cannot intercept it.
 * `withNoArguments()` cannot satisfy the required parameter count.
 * `with()` supplies too few or too many arguments.
-* A value in `with()` has a type that the method parameter does not accept.
+* A value or statically typed matcher in `with()` cannot match the method
+  parameter.
 * A cardinality or capture position is outside its permitted range.
 * A configured result does not match the method return type.
 * An answer closure does not accept the method arguments or return its type.
 * A return sequence has no values.
 
-Argument matchers do not have to match the declared parameter type. They
-describe the values that the mock accepts at run time.
+The extension checks the value type of `ArgumentMatcher<T>`. It reports an
+error when a known `T` cannot overlap the declared parameter type. It leaves
+`mixed` and unresolved matcher types for run-time validation.
 
 Errors use the `greenlight.mockPlan.*` identifiers. The final identifier part
 is `method`, `arity`, `argument`, `cardinality`, `answer`, or `capturePosition`.
@@ -156,12 +167,12 @@ A dynamic method name or position keeps the documented `mixed` value type.
 
 These checks apply when a plugin adds matchers through `ExpectationExtension`.
 See [plugins](plugins.md). Built-in matchers such as `toBe()` are real methods
-on `Expectation`. The extension supplies their signatures on temporal chains.
+on immediate and temporal value expectations. Their signatures do not require
+the extension.
 
-Temporal matcher calls and custom matcher calls use `__call()` at run time.
-PHPStan cannot infer their signatures from `__call()`. The extension reflects
-native matcher methods from `Expectation`. It also loads configuration files
-and reflects each custom matcher closure.
+Custom matcher calls use `__call()` at run time. PHPStan cannot infer their
+signatures from `__call()`. The extension loads configuration files and reflects
+each custom matcher closure.
 
 The declared closure return type must be compatible with `bool`. PHPStan leaves
 an absent or `mixed` return type unresolved.
@@ -176,7 +187,7 @@ final class DigestMatchers implements ExpectationExtension
     {
         return [
             'toBeValidUuid' => static fn(string $subject): bool =>
-                \preg_match('/^[0-9a-f-]{36}$/', $subject) === 1,
+                \preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $subject) === 1,
             'toHaveDigestLength' => static fn(string $subject, int $length): bool =>
                 \strlen($subject) === $length,
         ];
@@ -188,14 +199,14 @@ The extension checks calls against those closure signatures:
 
 <!-- php-example {"example":"phpstan-example-06","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::that($id)->toBeValidUuid();     // checked: name, arguments, types
-Expect::that($id)->toBeValidUuuid();    // fails analysis: unknown matcher
-Expect::that($hash)->toHaveDigestLength('six'); // fails analysis: expects int
-Expect::that(123)->toBeValidUuid();      // fails analysis: expects a string subject
+Expect::value($id)->toBeValidUuid();     // checked: name, arguments, types
+Expect::value($id)->toBeValidUuuid();    // fails analysis: unknown matcher
+Expect::value($hash)->toHaveDigestLength('six'); // fails analysis: expects int
+Expect::value(123)->toBeValidUuid();      // fails analysis: expects a string subject
 ```
 
 The first closure parameter declares the accepted subject type. PHPStan gets
-this type from `that()` and temporal probes.
+this type from `value()` and return-value probes.
 
 Each custom matcher returns the same typed chain. Thus, later custom matchers
 receive the same subject type.
@@ -204,13 +215,13 @@ The same checks apply to temporal expectations:
 
 <!-- php-example {"example":"phpstan-example-07","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::eventually(fn(): string => $hash)
+Expect::calling(fn(): string => $hash)->returnValue()->eventually()
     ->within(1.0)
     ->toHaveDigestLength(6);
 ```
 
-Temporal return types mix in the native `Expectation<T>` matcher declarations.
-Thus, native and extension matchers keep the probe subject type.
+Temporal value expectations declare native matcher methods through a PHP trait.
+Generic PHPDoc types preserve the probe return type across these methods.
 
 If configuration files register one matcher name with different parameter or
 return types, analysis fails. PHPStan does not select one signature.
@@ -234,7 +245,7 @@ passes:
 <!-- php-example {"example":"phpstan-subject-refinement","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 /** @var FileCoverage|null $file */
-Expect::that($file)->not()->toBeNull();
+Expect::value($file)->not()->toBeNull();
 
 $file->coveredLines; // PHPStan knows that this value is FileCoverage.
 ```
@@ -247,7 +258,8 @@ PHPStan applies this refinement to these native matchers:
 * `toBeArray()`, `toBeString()`, `toBeInt()`, `toBeFloat()`, and `toBeBool()`
 * `toBeCallable()` and `toBeIterable()`
 
-The call must contain `Expect::that()` and the matcher in the same expression.
+The call must contain `Expect::value()` or `Greenlight\expect()` and the matcher
+in the same expression.
 PHPStan also follows `because()` and `not()` in that expression.
 
 A stored expectation does not narrow the original subject. A temporal
@@ -261,14 +273,11 @@ use:
 * `toMatch()` and the `matching:` argument of `toThrow()` require a valid
   regular expression.
 * The expected value for `toMatchJson()` must contain valid JSON.
-* `toBeWithin()` requires a finite tolerance of zero or more.
-* A constant `because()` reason must contain a non-whitespace character.
-* `pollEvery()` requires a finite duration of at least 0.001 seconds.
-* `within()` and `for()` require a finite duration greater than zero.
+* A constant `because()` reason must not be empty after PHP's `trim()` operation.
 
 Errors have identifiers under `greenlight.expectationArgument.*` (`pattern`,
-`json`, `tolerance`, `reason`, `duration`). PHPStan checks constant values before
-run time. Greenlight checks unresolved values at run time.
+`json`, `reason`). PHPStan checks constant values before run time. Greenlight
+checks unresolved values at run time.
 
 ## Test method checks
 
@@ -359,8 +368,8 @@ Typical messages:
 ```text
 Data provider sums() for adds() does not exist on PriceTest.
 Data provider PriceTest::sums() must be public and static.
-Data provider PriceTest::sums() must return an iterable of argument arrays, returns string.
-Data provider sums() row argument #3 of adds() expects int, string given.
+Data provider PriceTest::sums() must return an iterable of argument arrays. It returns string.
+Data provider sums() row argument #3 for adds() has type string, but the parameter requires int.
 #[DataRow] supplies 2 arguments, but adds() expects exactly 3.
 ```
 
@@ -385,7 +394,7 @@ a known incompatible subject before the test runs:
 | Required subject | Matchers |
 | --- | --- |
 | `string` or `iterable` | `toContain()` |
-| `Countable` or `Traversable` | `toHaveCount()` |
+| `array`, `Countable`, or `Traversable` | `toHaveCount()` |
 | `string`, `array`, `Countable`, or `Traversable` | `toBeEmpty()` |
 | `string`, `array`, or `Countable` | `toHaveLength()` |
 | `array` or `ArrayAccess` | `toHaveKey()` |

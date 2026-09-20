@@ -9,6 +9,11 @@ namespace Greenlight\Artifact;
  */
 final class AttachmentError extends \RuntimeException
 {
+    private function __construct(string $message, ?\Throwable $previous = null)
+    {
+        parent::__construct($message, previous: $previous);
+    }
+
     public static function unavailable(): self
     {
         return new self('Attachments are not available outside an active test attempt.');
@@ -47,5 +52,11 @@ final class AttachmentError extends \RuntimeException
     public static function storage(string $message): self
     {
         return new self($message . '.');
+    }
+
+    /** @internal */
+    public static function plugin(\Throwable $cause): self
+    {
+        return new self($cause->getMessage(), previous: $cause);
     }
 }

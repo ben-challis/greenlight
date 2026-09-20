@@ -10,8 +10,8 @@ declare(strict_types=1);
  */
 
 // A small set of methods runs many times with data sets. Per-method runtime
-// caches reach their limit during engine warmup. Thus, a remaining slope
-// identifies a per-test lifecycle leak.
+// caches can stabilize during engine warmup. Growth after warmup can indicate
+// a per-test lifecycle leak. The measurements do not identify its cause.
 const CLASS_COUNT = 20;
 const METHODS_PER_CLASS = 5;
 const ROWS_PER_METHOD = 100;
@@ -28,6 +28,7 @@ if (!\mkdir($suiteDir, 0o777, true) && !\is_dir($suiteDir)) {
 }
 
 $totalTests = CLASS_COUNT * METHODS_PER_CLASS * ROWS_PER_METHOD;
+$warmupTests = WARMUP_TESTS;
 
 for ($classIndex = 0; $classIndex < CLASS_COUNT; ++$classIndex) {
     $methods = '';
@@ -40,7 +41,7 @@ for ($classIndex = 0; $classIndex < CLASS_COUNT; ++$classIndex) {
             public function t{$testIndex}(int \$row): void
             {
                 \$payload = str_repeat('x', 1024 + \$row);
-                Expect::that(strlen(\$payload))->toBe(1024 + \$row);
+                Expect::value(strlen(\$payload))->toBe(1024 + \$row);
             }
 
         PHP;
@@ -146,29 +147,46 @@ return GreenlightConfig::create()
     ->paths([__DIR__ . '/suite'])
     ->workers(count: 1)
     ->plugins(
-        static fn(): MemGate\MemoryProbe => new MemGate\MemoryProbe('{$samplesFile}', {WARMUP}, {TOTAL}),
+        static fn(): MemGate\MemoryProbe => new MemGate\MemoryProbe('{$samplesFile}', {$warmupTests}, {$totalTests}),
     );
 
 PHP);
 
-$config = \file_get_contents($workDir . '/greenlight.php');
-$config = \str_replace(['{WARMUP}', '{TOTAL}'], [(string) WARMUP_TESTS, (string) $totalTests], (string) $config);
-\file_put_contents($workDir . '/greenlight.php', $config);
-
 echo \sprintf("Greenlight runs %d generated tests in one worker...\n", $totalTests);
-
-$command = \sprintf(
-    'cd %s && %s %s run --reporter=plain 2>&1 | tail -4',
-    \escapeshellarg($workDir),
-    \escapeshellarg(\PHP_BINARY),
-    \escapeshellarg($root . '/bin/greenlight'),
-);
-\exec($command, $output, $exitCode);
-echo \implode("\n", $output) . "\n";
 
 $cleanup = static function () use ($workDir): void {
     \exec('rm -rf ' . \escapeshellarg($workDir));
 };
+
+$process = \proc_open(
+    \sprintf(
+        '%s %s run --reporter=plain 2>&1',
+        \escapeshellarg(\PHP_BINARY),
+        \escapeshellarg($root . '/bin/greenlight'),
+    ),
+    [0 => \STDIN, 1 => ['pipe', 'w'], 2 => \STDERR],
+    $pipes,
+    $workDir,
+);
+
+if (!\is_resource($process)) {
+    $cleanup();
+    throw new RuntimeException('Greenlight could not start the generated test run.');
+}
+
+$output = [];
+
+while (($line = \fgets($pipes[1])) !== false) {
+    $output[] = \rtrim($line, "\r\n");
+
+    if (\count($output) > 4) {
+        \array_shift($output);
+    }
+}
+
+\fclose($pipes[1]);
+$exitCode = \proc_close($process);
+echo \implode("\n", $output) . "\n";
 
 $samplesJson = \is_file($samplesFile) ? \file_get_contents($samplesFile) : false;
 
@@ -195,6 +213,12 @@ if ($baseline === null || $final === null) {
     exit(1);
 }
 
+if ($exitCode !== 0) {
+    \fwrite(\STDERR, \sprintf("The generated test run failed with exit code %d.\n", $exitCode));
+    $cleanup();
+    exit(1);
+}
+
 $drift = $final - $baseline;
 
 echo \sprintf(
@@ -210,7 +234,7 @@ echo \sprintf(
 $cleanup();
 
 if ($drift > MAX_DRIFT_BYTES) {
-    \fwrite(\STDERR, "FLAT-MEMORY GATE FAILED: Greenlight leaks memory during a long run.\n");
+    \fwrite(\STDERR, "Flat-memory gate failed: measured memory growth exceeds the limit.\n");
     exit(1);
 }
 

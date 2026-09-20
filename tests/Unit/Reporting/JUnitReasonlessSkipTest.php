@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\JUnitReporter;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class JUnitReasonlessSkipTest
 {
@@ -31,10 +32,9 @@ final class JUnitReasonlessSkipTest
 
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('a reasonless skip remains a valid JUnit skipped element without invented detail')
             ->toContain('<skipped/>')
-            ->not()
-            ->toContain('<skipped message=');
+            ->not()->toContain('<skipped message=');
     }
 }

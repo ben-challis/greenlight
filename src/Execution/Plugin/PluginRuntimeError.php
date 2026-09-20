@@ -8,7 +8,7 @@ use Greenlight\Result\Outcome;
 use Greenlight\Test\TestId;
 
 /**
- * A worker plugin cannot complete a test lifecycle operation.
+ * A plugin cannot complete a runtime operation.
  *
  * @internal
  */
@@ -31,11 +31,35 @@ final class PluginRuntimeError extends \RuntimeException
     }
 
     /** @param class-string $plugin */
-    public static function changedTestIdentity(string $plugin, TestId $before, TestId $after): self
+    public static function creationFailed(string $plugin, \Throwable $cause): self
     {
         return new self(\sprintf(
-            'Plugin "%s" changed the test identity during afterTest() from "%s" to "%s".',
+            'Plugin "%s" caused an error during creation: %s',
             $plugin,
+            $cause->getMessage(),
+        ), $cause);
+    }
+
+    /** @param class-string $plugin */
+    public static function emptyRunPolicyFailure(string $plugin): self
+    {
+        return new self(\sprintf(
+            'Plugin "%s" returned an empty failure message from failureMessage().',
+            $plugin,
+        ));
+    }
+
+    /** @param class-string $plugin */
+    public static function changedTestIdentity(
+        string $plugin,
+        TestId $before,
+        TestId $after,
+        string $hook = 'afterTest',
+    ): self {
+        return new self(\sprintf(
+            'Plugin "%s" changed the test identity during %s() from "%s" to "%s".',
+            $plugin,
+            $hook,
             $before,
             $after,
         ));
@@ -49,6 +73,16 @@ final class PluginRuntimeError extends \RuntimeException
             $plugin,
             $before->value,
             $after->value,
+        ));
+    }
+
+    /** @param class-string $plugin */
+    public static function addedUnknownTest(string $plugin, TestId $test): self
+    {
+        return new self(\sprintf(
+            'Plugin "%s" added unknown test "%s" during transformTestPlan(). A plan transformer can only remove or reorder selected tests.',
+            $plugin,
+            $test,
         ));
     }
 }

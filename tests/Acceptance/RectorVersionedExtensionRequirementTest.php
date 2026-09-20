@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\RectorProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class RectorVersionedExtensionRequirementTest
@@ -45,10 +46,10 @@ final readonly class RectorVersionedExtensionRequirementTest
             name: 'versioned-extension-requirement',
         );
 
-        Expect::that($probe->changed)
+        expect($probe->changed)
             ->because('Greenlight cannot preserve an extension version constraint')
             ->toBeFalse();
-        Expect::that($probe->code)
+        expect($probe->code)
             ->toBe($source)
             ->toContain("#[RequiresPhpExtension('json', '>=99')]");
     }

@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Attribute;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class DataSetTest
 {
@@ -17,8 +18,8 @@ final class DataSetTest
         ?string $method,
         string $message,
     ): void {
-        Expect::that(
-            static fn(): DataSet => new DataSet($provider, $method),
+        expect()->calling(
+            static fn(): object => new \ReflectionClass(DataSet::class)->newInstance($provider, $method),
         )
             ->because('data set provider identifiers MUST be non-empty')
             ->toThrow(\InvalidArgumentException::class, message: $message);
@@ -32,19 +33,19 @@ final class DataSetTest
         yield 'local provider' => [
             '',
             null,
-            'Data set provider MUST NOT be empty.',
+            'Data set provider cannot be empty.',
         ];
 
         yield 'external provider class' => [
             '',
             'rows',
-            'Data set provider class MUST NOT be empty.',
+            'Data set provider class cannot be empty.',
         ];
 
         yield 'external provider method' => [
             self::class,
             '',
-            'Data set provider method MUST NOT be empty.',
+            'Data set provider method cannot be empty.',
         ];
     }
 }

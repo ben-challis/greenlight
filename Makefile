@@ -9,6 +9,7 @@ docs: $(DOCS_MODULES)
 
 docs-install:
 	npm --prefix $(DOCS_DIR) ci
+	npm --prefix $(DOCS_DIR) exec -- playwright install chromium
 
 docs-build: $(DOCS_MODULES)
 	npm --prefix $(DOCS_DIR) run build

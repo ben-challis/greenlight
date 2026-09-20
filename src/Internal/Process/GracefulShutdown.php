@@ -6,7 +6,6 @@ namespace Greenlight\Internal\Process;
 
 /**
  * Records only the first signal. The asynchronous handler does no other work.
- * An exit code is 128 plus the signal number.
  *
  * @internal
  */
@@ -24,8 +23,8 @@ final class GracefulShutdown
         return $this->signal !== null;
     }
 
-    public function exitCode(): ?int
+    public function signal(): ?int
     {
-        return $this->signal === null ? null : 128 + $this->signal;
+        return $this->signal;
     }
 }

@@ -43,7 +43,7 @@ final readonly class DoubleableTypeRule implements Rule
             return [];
         }
 
-        $type = $this->argument($node, 'type', 0);
+        $type = MethodCallArguments::find($node, 'type', 0);
 
         if (!$type instanceof Arg) {
             return [];
@@ -92,33 +92,6 @@ final readonly class DoubleableTypeRule implements Rule
 
         if ($class->isTrait()) {
             return 'it is a trait. Use a class or interface that uses it';
-        }
-
-        return null;
-    }
-
-    private function argument(MethodCall $call, string $name, int $position): ?Arg
-    {
-        $nextPosition = 0;
-
-        foreach ($call->getArgs() as $argument) {
-            if ($argument->unpack) {
-                continue;
-            }
-
-            if ($argument->name instanceof Identifier) {
-                if ($argument->name->toString() === $name) {
-                    return $argument;
-                }
-
-                continue;
-            }
-
-            if ($nextPosition === $position) {
-                return $argument;
-            }
-
-            ++$nextPosition;
         }
 
         return null;

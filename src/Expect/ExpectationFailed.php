@@ -58,8 +58,8 @@ final class ExpectationFailed extends \Exception
     }
 
     /**
-     * Returns the first failure. In the default mode, this is the only
-     * failure.
+     * Returns the first failure. Use `$details` to read all failures, including
+     * multiple unmet mock expectations.
      */
     public function detail(): FailureDetail
     {

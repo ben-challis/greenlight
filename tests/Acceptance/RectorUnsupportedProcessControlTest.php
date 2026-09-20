@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\AllowParallel;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\RectorProbe;
+
+use function Greenlight\expect;
 
 #[AllowParallel]
 #[RequiresResource('analysis-process')]
@@ -29,8 +30,8 @@ final readonly class RectorUnsupportedProcessControlTest
         $probes = RectorProbe::convertBatch($this->tempDirectory, $cases, name: 'unsupported-process-controls');
 
         foreach ($probes as $caseName => $probe) {
-            Expect::that($probe->changed)->because('unsupported process control case: ' . $caseName)->toBeFalse();
-            Expect::that($probe->code)->because('unsupported process control case: ' . $caseName)->toBe($cases[$caseName]);
+            expect($probe->changed)->because('unsupported process control case: ' . $caseName)->toBeFalse();
+            expect($probe->code)->because('unsupported process control case: ' . $caseName)->toBe($cases[$caseName]);
         }
     }
 }

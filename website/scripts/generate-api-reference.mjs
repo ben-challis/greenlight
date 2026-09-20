@@ -33,6 +33,12 @@ const sections = [
     prefixes: ['Greenlight\\Artifact\\'],
   },
   {
+    id: 'api-coverage',
+    title: 'Coverage API',
+    description: 'This reference lists coverage maps and per-file line coverage values.',
+    prefixes: ['Greenlight\\Coverage\\'],
+  },
+  {
     id: 'api-events',
     title: 'Event API',
     description: 'This reference lists the events that plugins and reporters receive during a run.',
@@ -166,12 +172,9 @@ const assigned = new Set();
 const generated = new Map();
 
 for (const section of sections) {
-  const types = publicTypes.filter((type) => {
-    const matchesPrefix = section.prefixes.some((prefix) => type.name.startsWith(prefix));
-    const matchesName = section.names?.includes(type.name) ?? false;
-
-    return matchesPrefix || matchesName;
-  });
+  const types = publicTypes.filter((type) =>
+    section.prefixes.some((prefix) => type.name.startsWith(prefix)),
+  );
   const shortNameCounts = new Map();
 
   for (const type of types) {
@@ -320,6 +323,9 @@ function parseTypeDeclaration(source, file, tokens, namespace, declarationIndex,
   const members = parseMembers(source, tokens, openIndex, closeIndex, kind)
     .map((member) => ({ ...member, file }));
   const shortName = nameToken.value;
+  const traits = [...source.slice(tokens[openIndex].end, tokens[closeIndex].start)
+    .matchAll(/^    use ([A-Za-z_\\][A-Za-z0-9_\\]*(?:,\s*[A-Za-z_\\][A-Za-z0-9_\\]*)*);$/gmu)]
+    .flatMap((match) => match[1].split(/,\s*/u));
 
   return {
     name: namespace === '' ? shortName : `${namespace}\\${shortName}`,
@@ -333,6 +339,7 @@ function parseTypeDeclaration(source, file, tokens, namespace, declarationIndex,
     internal: hasInternalTag(typeDoc?.value),
     signature,
     members,
+    traits,
   };
 }
 
@@ -349,6 +356,13 @@ function effectiveMembers(type, typesByName, active = new Set()) {
   if (parent !== undefined) {
     members.push(...effectiveMembers(parent, typesByName, nextActive)
       .filter((member) => member.name !== '__construct()'));
+  }
+
+  for (const traitName of type.traits ?? []) {
+    const trait = referencedType(type, traitName, typesByName);
+    if (trait !== undefined) {
+      members.push(...effectiveMembers(trait, typesByName, nextActive));
+    }
   }
 
   for (const tag of type.doc.tags) {
@@ -572,7 +586,14 @@ function parseMembers(source, tokens, openIndex, closeIndex, typeKind) {
 
       if (isMethod(significant)) {
         addPromotedProperties(members, source, significant);
-        addMember(members, source, significant, token.start, 'method', typeKind);
+        addMember(
+          members,
+          source,
+          significant,
+          significant.findLast((candidate) => candidate.kind !== 'doc').end,
+          'method',
+          typeKind,
+        );
       } else if (isPublicProperty(significant)) {
         const propertyTokens = [...significant, ...tokens.slice(index, endIndex + 1)];
         addMember(members, source, propertyTokens, tokens[endIndex].end, 'property', typeKind);
@@ -608,6 +629,7 @@ function memberTokens(tokens) {
   }
 
   while (tokens[index]?.value === '#' && tokens[index + 1]?.value === '[') {
+    index += 1;
     let attributeDepth = 0;
 
     do {
@@ -1021,7 +1043,7 @@ function renderIndex() {
   ];
 
   for (const section of sections) {
-    lines.push(`- [${section.title}](${section.id}.md) — ${section.description}`);
+    lines.push(`- [${section.title}](${section.id}.md). ${section.description}`);
   }
 
   lines.push('');

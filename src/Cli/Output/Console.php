@@ -58,9 +58,9 @@ final readonly class Console
         );
     }
 
-    public function stdoutStyle(bool $noAnsi): Style
+    public function stdoutStyle(bool $noAnsi, bool $ansi = false): Style
     {
-        return new Style($this->capabilities($noAnsi)->color);
+        return new Style($this->capabilities($noAnsi, $ansi)->color);
     }
 
     public function stderrStyle(bool $noAnsi): Style

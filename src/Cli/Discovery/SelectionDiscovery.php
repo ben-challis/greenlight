@@ -11,6 +11,7 @@ use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanShard;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Test\TestSelection;
 
 /**
  * Discovers one selected plan and diagnoses unmatched excluded paths.
@@ -24,20 +25,25 @@ final readonly class SelectionDiscovery
     /**
      * @throws DiscoveryError
      */
-    public function plan(): ExecutionPlan
+    public function plan(?TestSelection $selection = null): ExecutionPlan
     {
         $resolved = $this->configuration->resolved;
-        $storage = StorageLayout::resolve($resolved->storage, $this->workingDirectory);
+        $selection ??= $resolved->selection;
+        $storage = StorageLayout::resolve(
+            $resolved->storage,
+            $this->workingDirectory,
+            $resolved->suiteSelection->stateIdentity(),
+        );
         $plan = new TestDiscoverer()->discover(
             $this->configuration->directories,
-            $resolved->selection,
+            $selection,
             $resolved->order->seed,
             DiscoveryCache::forDirectories($this->configuration->directories, $storage->cacheDirectory),
         );
 
-        return $resolved->selection->shard === null
+        return $selection->shard === null
             ? $plan
-            : PlanShard::select($plan, \max(1, $resolved->selection->shard[0]), \max(1, $resolved->selection->shard[1]));
+            : PlanShard::select($plan, \max(1, $selection->shard[0]), \max(1, $selection->shard[1]));
     }
 
     /** @return list<non-empty-string> */

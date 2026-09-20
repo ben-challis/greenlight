@@ -4,12 +4,23 @@ declare(strict_types=1);
 
 namespace Greenlight\PhpStan;
 
-/** @internal */
+use Greenlight\Expect\ExpectationExtensionError;
+
+/**
+ * Configured extension matchers have conflicting names or signatures.
+ *
+ * @internal
+ */
 final class MatcherMapError extends \RuntimeException
 {
-    private function __construct(string $message)
+    private function __construct(string $message, ?\Throwable $previous = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, previous: $previous);
+    }
+
+    public static function invalidExtension(ExpectationExtensionError $error): self
+    {
+        return new self($error->getMessage(), $error);
     }
 
     public static function conflictingSignatures(

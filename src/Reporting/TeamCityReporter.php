@@ -160,6 +160,16 @@ final class TeamCityReporter implements Reporter
             ]);
         }
 
+        if ($result->outcome === Outcome::Passed && $result->attempts > 1) {
+            $this->message('testMetadata', [
+                'testName' => $name,
+                'name' => 'greenlight.attempts',
+                'type' => 'number',
+                'value' => (string) $result->attempts,
+                'flowId' => $flowId,
+            ]);
+        }
+
         $this->message('testFinished', [
             'name' => $name,
             'duration' => (string) $this->durationMilliseconds($result->durationSeconds),

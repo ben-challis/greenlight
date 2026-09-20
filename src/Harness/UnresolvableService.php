@@ -19,6 +19,34 @@ final class UnresolvableService extends ServiceResolutionFailed
         parent::__construct($message);
     }
 
+    public static function unknownSource(string $source, string $consumer): self
+    {
+        return new self(\sprintf(
+            'Service source "%s", required by "%s", is not registered. Register the source or change #[Service(source: ...)].',
+            $source,
+            $consumer,
+        ));
+    }
+
+    public static function ambiguousSource(string $type, string $consumer): self
+    {
+        return new self(\sprintf(
+            'Multiple service sources define type "%s", required by "%s". Select a source with #[Service(source: ...)].',
+            $type,
+            $consumer,
+        ));
+    }
+
+    public static function missingSourceService(string $source, string $id, string $consumer): self
+    {
+        return new self(\sprintf(
+            'Service source "%s" cannot supply service "%s", required by "%s". Check the service ID and source name.',
+            $source,
+            $id,
+            $consumer,
+        ));
+    }
+
     public static function unknownType(string $type, string $consumer, int $resolversConsulted = 0): self
     {
         $suffix = $resolversConsulted === 0
@@ -36,7 +64,7 @@ final class UnresolvableService extends ServiceResolutionFailed
         ));
     }
 
-    public static function resolverTypeMismatch(string $type, string $consumer, string $resolver, string $actual): self
+    public static function resolverTypeMismatch(string $type, string $consumer, string $resolver, mixed $actual): self
     {
         return new self(\sprintf(
             'Resolver "%s" answered the request for "%s" (required by "%s") with an instance of "%s", '
@@ -44,16 +72,16 @@ final class UnresolvableService extends ServiceResolutionFailed
             $resolver,
             $type,
             $consumer,
-            $actual,
+            \get_debug_type($actual),
         ));
     }
 
-    public static function factoryTypeMismatch(string $type, string $actual): self
+    public static function factoryTypeMismatch(string $type, mixed $actual): self
     {
         return new self(\sprintf(
-            'Service definition for type "%s" created "%s". Its factory MUST return an instance of "%s".',
+            'Service definition for type "%s" created "%s". Make its factory return an instance of "%s".',
             $type,
-            $actual,
+            \get_debug_type($actual),
             $type,
         ));
     }
@@ -72,7 +100,7 @@ final class UnresolvableService extends ServiceResolutionFailed
     {
         return new self(\sprintf(
             'Constructor parameter $%s of "%s" has no resolvable type. '
-            . 'A test constructor can declare only harness service types.',
+            . 'Use one class or interface type, or give the parameter a default value.',
             $parameter,
             $consumer,
         ));

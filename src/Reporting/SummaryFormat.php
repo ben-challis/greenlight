@@ -16,7 +16,8 @@ final class SummaryFormat
     /** @codeCoverageIgnore */
     private function __construct() {}
 
-    public static function tests(ResultSummary $summary, int $expectations, Style $style): string
+    /** @param non-negative-int $retriedPasses */
+    public static function tests(ResultSummary $summary, int $expectations, Style $style, int $retriedPasses = 0): string
     {
         $parts = [Plural::count($summary->total(), 'test')];
 
@@ -35,6 +36,10 @@ final class SummaryFormat
             $parts[] = $style->warn(\sprintf('%d skipped', $summary->skipped));
         }
 
+        if ($retriedPasses > 0) {
+            $parts[] = $style->warn(\sprintf('%d passed after retry', $retriedPasses));
+        }
+
         $parts[] = Plural::count($expectations, 'expectation');
 
         return \implode(', ', $parts);
@@ -50,7 +55,7 @@ final class SummaryFormat
     }
 
     /**
-     * @param list<TestResult> $skipped
+     * @param list<TestResult|TestSummary> $skipped
      */
     public static function skipped(array $skipped, Style $style): string
     {
@@ -90,6 +95,40 @@ final class SummaryFormat
         }
 
         return \implode("\n", $lines) . "\n";
+    }
+
+    /**
+     * @param list<TestResult|TestSummary> $retriedPasses
+     */
+    public static function retriedPasses(array $retriedPasses, Style $style): string
+    {
+        if ($retriedPasses === []) {
+            return '';
+        }
+
+        $lines = ["\n" . $style->warn('Passed after retry:')];
+
+        foreach ($retriedPasses as $result) {
+            $lines[] = \sprintf('  %s (%d attempts)', $result->id, $result->attempts);
+        }
+
+        $lines[] = 'These results are evidence of instability.';
+
+        return \implode("\n", $lines) . "\n";
+    }
+
+    /**
+     * @param non-empty-list<non-empty-string> $risky
+     */
+    public static function risky(array $risky): string
+    {
+        return \sprintf(
+            "\nRisky tests: %d\n"
+            . "These tests passed without a verified expectation.\n"
+            . "Add #[NoExpectations] to accept this result. Use --fail-on-risky to fail the run.\n%s\n",
+            \count($risky),
+            \implode("\n", \array_map(static fn(string $id): string => '  ' . $id, $risky)),
+        );
     }
 
     public static function coverage(float $percentage, int $coveredLines, int $executableLines, Style $style): string

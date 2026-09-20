@@ -42,6 +42,8 @@ final class WorkerState
 
     public float $inFlightSince = 0.0;
 
+    public float $inFlightAttemptSince = 0.0;
+
     /** @var non-negative-int */
     public int $inFlightAttempt = 0;
 
@@ -94,9 +96,10 @@ final class WorkerState
         return !$this->retiring;
     }
 
-    public function requestStop(): void
+    public function requestStop(float $at): void
     {
         $this->stopRequested = true;
+        $this->lastProgressAt = $at;
     }
 
     /** @return list<TestId> */

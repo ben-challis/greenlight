@@ -9,7 +9,8 @@ use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\Condition;
 use Greenlight\Condition\EnvironmentVariableSet;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class SkipUnlessTest
 {
@@ -17,13 +18,13 @@ final class SkipUnlessTest
     #[DataSet('invalidConditionClasses')]
     public function invalidConditionClassesAreRejected(string $condition): void
     {
-        Expect::that(
+        expect()->calling(
             static fn(): object => new \ReflectionClass(SkipUnless::class)->newInstance($condition),
         )
             ->because('a skip condition MUST name an instantiable Condition class')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'SkipUnless condition MUST name an instantiable Condition class.',
+                message: 'Set the SkipUnless condition to an instantiable Condition class.',
             );
     }
 
@@ -45,13 +46,13 @@ final class SkipUnlessTest
     #[DataSet('nonFiniteFloats')]
     public function nonFiniteFloatArgumentsAreRejected(float $argument): void
     {
-        Expect::that(
+        expect()->calling(
             static fn(): SkipUnless => new SkipUnless(EnvironmentVariableSet::class, $argument),
         )
             ->because('skip condition arguments MUST be safe for the JSON worker protocol')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'SkipUnless arguments MUST use finite floats.',
+                message: 'Use finite floats in SkipUnless arguments.',
             );
     }
 

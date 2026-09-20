@@ -26,7 +26,7 @@ final readonly class TempestProcessState
     public static function activate(string $environment, ?GenericContainer $container = null): self
     {
         if (\str_contains($environment, "\0")) {
-            throw new \InvalidArgumentException('Tempest environment MUST NOT contain a null byte.');
+            throw new \InvalidArgumentException('Tempest environment cannot contain a null byte.');
         }
 
         $backup = EnvironmentBackup::capture('ENVIRONMENT');

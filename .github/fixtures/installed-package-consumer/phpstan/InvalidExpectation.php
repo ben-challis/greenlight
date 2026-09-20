@@ -6,4 +6,4 @@ namespace Greenlight\ConsumerSmoke;
 
 use Greenlight\Expect\Expect;
 
-Expect::that(42)->toContain(4);
+Expect::value(42)->toContain(4);

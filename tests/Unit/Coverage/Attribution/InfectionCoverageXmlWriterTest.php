@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Coverage\Attribution;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\InfectionAdapter\CoverageXmlWriter;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class InfectionCoverageXmlWriterTest
 {
@@ -49,16 +50,16 @@ final readonly class InfectionCoverageXmlWriterTest
             Fail::because('Expected the Infection coverage index to contain a string href.');
         }
 
-        Expect::that($href)->toBeString()->not()->toBe('');
+        expect($href)->toBeString()->not()->toBe('');
 
         $file = new \DOMDocument();
         $file->load($target . '/' . $href);
         $xpath = new \DOMXPath($file);
         $xpath->registerNamespace('c', 'https://schema.phpunit.de/coverage/1.0');
 
-        Expect::that($xpath->evaluate('string(/c:phpunit/c:file/@path)'))->toBe('src');
-        Expect::that($xpath->evaluate('string(/c:phpunit/c:file/c:coverage/c:line/c:covered/@by)'))->toBe('Example\SubjectTest::works');
-        Expect::that($xpath->evaluate('string(/c:phpunit/c:file/c:totals/c:lines/@executable)'))->toBe('2');
-        Expect::that($xpath->evaluate('string(/c:phpunit/c:file/c:totals/c:lines/@executed)'))->toBe('1');
+        expect($xpath->evaluate('string(/c:phpunit/c:file/@path)'))->toBe('src');
+        expect($xpath->evaluate('string(/c:phpunit/c:file/c:coverage/c:line/c:covered/@by)'))->toBe('Example\SubjectTest::works');
+        expect($xpath->evaluate('string(/c:phpunit/c:file/c:totals/c:lines/@executable)'))->toBe('2');
+        expect($xpath->evaluate('string(/c:phpunit/c:file/c:totals/c:lines/@executed)'))->toBe('1');
     }
 }

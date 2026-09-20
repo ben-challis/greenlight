@@ -8,14 +8,15 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Configuration\CliOverrides;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class CliOverridesSingleShardRangeTest
 {
     #[Test]
     public function invalidSingleShardIndexNamesTheOnlyValidIndex(): void
     {
-        Expect::that(static fn(): CliOverrides => CliOverrides::fromArguments(
+        expect()->calling(static fn(): CliOverrides => CliOverrides::fromArguments(
             new ParsedArguments(null, ['shard' => ['2/1']]),
         ))
             ->because('single-shard guidance MUST name its only valid index')

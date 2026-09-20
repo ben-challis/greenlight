@@ -38,7 +38,7 @@ final readonly class WorkerTiming
         public ?float $retirementToExitSeconds,
     ) {
         if ($workerId === '') {
-            throw new \InvalidArgumentException('Worker ID MUST NOT be empty.');
+            throw new \InvalidArgumentException('Worker ID cannot be empty.');
         }
 
         foreach ([
@@ -52,12 +52,12 @@ final readonly class WorkerTiming
             $retirementToExitSeconds,
         ] as $duration) {
             if ($duration !== null && (!\is_finite($duration) || $duration < 0.0)) {
-                throw new \InvalidArgumentException('Worker timing durations MUST be finite and nonnegative.');
+                throw new \InvalidArgumentException('Use finite, nonnegative worker timing durations.');
             }
         }
 
         if ($assignmentGaps < 0) {
-            throw new \InvalidArgumentException('Worker assignment gap count MUST NOT be negative.');
+            throw new \InvalidArgumentException('Worker assignment gap count cannot be negative.');
         }
 
         $this->workerId = $workerId;

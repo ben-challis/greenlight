@@ -9,13 +9,14 @@ use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\GithubReporter;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\TeamCityReporter;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class CiReporterAttachmentRetentionTest
 {
@@ -25,14 +26,14 @@ final class CiReporterAttachmentRetentionTest
         $githubOutput = new BufferOutput();
         $this->feed(new GithubReporter($githubOutput));
 
-        Expect::that($githubOutput->buffer())
+        expect($githubOutput->buffer())
             ->because('GitHub output MUST retain the publication notice for an earlier attachment')
             ->toContain('::notice::Greenlight attachments: build/greenlight-artifacts/run-1');
 
         $teamCityOutput = new BufferOutput();
         $this->feed(new TeamCityReporter($teamCityOutput));
 
-        Expect::that($teamCityOutput->buffer())
+        expect($teamCityOutput->buffer())
             ->because('TeamCity output MUST retain the publication command for an earlier attachment')
             ->toContain("##teamcity[publishArtifacts 'build/greenlight-artifacts/run-1']");
     }

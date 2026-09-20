@@ -8,9 +8,10 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\TestDiscoverer;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\Autoloaders;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class TestDiscovererLoadedClassTest
 {
@@ -55,7 +56,7 @@ final readonly class TestDiscovererLoadedClassTest
         };
         $this->autoloaders->register($loader);
 
-        Expect::that(
+        expect()->calling(
             static fn(): ExecutionPlan => new TestDiscoverer()->discover([$expectedDirectory]),
         )->because('discovery MUST reject class paths that it cannot resolve')->toThrow(
             DiscoveryError::class,
@@ -98,7 +99,7 @@ final readonly class TestDiscovererLoadedClassTest
         };
         $this->autoloaders->register($loader);
 
-        Expect::that(
+        expect()->calling(
             static fn(): ExecutionPlan => new TestDiscoverer()->discover([$expectedDirectory]),
         )->because('discovery MUST reject a class that the autoloader loaded from another file')->toThrow(
             DiscoveryError::class,

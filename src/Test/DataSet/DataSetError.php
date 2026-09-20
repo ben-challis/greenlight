@@ -60,13 +60,13 @@ final class DataSetError extends \RuntimeException
         ));
     }
 
-    public static function providerNotIterable(string $class, string $provider, string $actualType): self
+    public static function providerNotIterable(string $class, string $provider, mixed $actual): self
     {
         return new self(\sprintf(
             'Data-set provider %s::%s() returned %s. Return an iterable from the provider.',
             $class,
             $provider,
-            $actualType,
+            \get_debug_type($actual),
         ));
     }
 
@@ -87,7 +87,7 @@ final class DataSetError extends \RuntimeException
     public static function providerTooSlow(string $class, string $provider, float $budgetSeconds): self
     {
         return new self(\sprintf(
-            'Data-set provider %s::%s() exceeded the %.3f-second discovery time budget. Providers run during plan creation. Keep them pure and fast.',
+            'Data-set provider %s::%s() exceeded the %.3f-second provider time budget. Providers run during discovery and execution. Keep them pure and fast.',
             $class,
             $provider,
             $budgetSeconds,
@@ -103,13 +103,13 @@ final class DataSetError extends \RuntimeException
         ));
     }
 
-    public static function providerKeyInvalid(string $class, string $provider, string $keyType): self
+    public static function providerKeyInvalid(string $class, string $provider, mixed $key): self
     {
         return new self(\sprintf(
             'Data-set provider %s::%s() produced a key of type %s. Use string or integer keys.',
             $class,
             $provider,
-            $keyType,
+            \get_debug_type($key),
         ));
     }
 

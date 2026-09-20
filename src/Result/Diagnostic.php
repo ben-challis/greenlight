@@ -30,7 +30,7 @@ final readonly class Diagnostic
         int $line,
     ) {
         if ($line < 1) {
-            throw new \InvalidArgumentException('Diagnostic line MUST be greater than zero.');
+            throw new \InvalidArgumentException('Use a diagnostic line number greater than zero.');
         }
 
         $this->line = $line;

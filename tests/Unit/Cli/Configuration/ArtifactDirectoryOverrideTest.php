@@ -10,7 +10,8 @@ use Greenlight\Cli\Configuration\ConfigurationResolver;
 use Greenlight\Cli\Configuration\ExecutionOverrides;
 use Greenlight\Config\ArtifactBuilder;
 use Greenlight\Config\GreenlightConfig;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ArtifactDirectoryOverrideTest
 {
@@ -24,7 +25,10 @@ final class ArtifactDirectoryOverrideTest
                 ->maxAttachmentSize('11K')
                 ->maxTestSize('13K')
                 ->maxRunAttachments(17)
-                ->maxRunSize('19K'))
+                ->maxRunSize('19K')
+                ->maxCompletedRuns(23)
+                ->maxCompletedRunAge(29)
+                ->maxRetainedSize('31K'))
             ->build();
 
         $resolved = ConfigurationResolver::resolve(
@@ -32,7 +36,7 @@ final class ArtifactDirectoryOverrideTest
             new CliOverrides(execution: new ExecutionOverrides(artifactsDirectory: 'build/cli-evidence')),
         );
 
-        Expect::that($resolved->execution->artifacts->toWire())
+        expect($resolved->execution->artifacts->toWire())
             ->because('the CLI directory override MUST preserve configured artifact safety limits')
             ->toBe([
                 'directory' => 'build/cli-evidence',
@@ -41,6 +45,9 @@ final class ArtifactDirectoryOverrideTest
                 'maxTestBytes' => 13 * 1024,
                 'maxRunAttachments' => 17,
                 'maxRunBytes' => 19 * 1024,
+                'maxCompletedRuns' => 23,
+                'maxCompletedRunAgeSeconds' => 29,
+                'maxRetainedBytes' => 31 * 1024,
             ]);
     }
 }

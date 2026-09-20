@@ -10,11 +10,21 @@ covered each line.
 The coverage difference command also uses this format:
 
 ```sh id="x3l9w8"
-greenlight coverage:diff --baseline=baseline.json --current=current.json
+vendor/bin/greenlight coverage:diff --baseline=baseline.json --current=current.json
 ```
+
+Without root options, both input documents **MUST** use absolute file-path keys.
 
 The schema has a version. The fields and meanings in version 1 are stable. See
 [compatibility](compatibility.md) for the change rules.
+
+The version 1 producer schema is at
+[resources/schema/coverage-v1.schema.json](../../resources/schema/coverage-v1.schema.json).
+It defines documents from `export()`. The importer also accepts documents that
+omit derived percentages and totals because it calculates these values again.
+
+The prose below defines path, sorting, and relationship rules that the JSON
+Schema does not express.
 
 ## Document shape
 
@@ -57,13 +67,26 @@ Absolute keys make a baseline specific to its checkout root. Coverage from two
 sources represents the same file only when the keys match exactly. Sources
 include worktrees, containers, and machines.
 
-Use a stable mounted path. As an alternative, normalize both documents before
-you compare them. Project-relative keys require a new schema version.
+Use a stable mounted path. For different roots, the [coverage difference
+command](../configuration.md#coveragediff) can normalize absolute keys for one
+comparison.
 
-`files` is always an object. This rule also applies to an empty report:
+Supply both root options. Each file key **MUST** be below the selected root.
+Normalization does not change the documents.
+
+`files` is always an object. An empty report has an empty `files` object:
 
 ```json id="g6nqcx"
-{}
+{
+    "v": 1,
+    "files": {},
+    "totals": {
+        "files": 0,
+        "coveredLines": 0,
+        "executableLines": 0,
+        "percentage": 100
+    }
+}
 ```
 
 ### files.*.covered
@@ -117,6 +140,43 @@ Greenlight rounds the value to two decimal places.
 An empty report has `100.0` coverage because there are no executable lines to
 miss.
 
+## Merge behavior
+
+The coverage merge command reads two or more coverage documents:
+
+```sh id="merge-coverage-json"
+vendor/bin/greenlight coverage:merge \
+    --input=shard-1.json \
+    --input=shard-2.json \
+    --export=json=coverage.json
+```
+
+The result contains the union of the file paths and executable line sets. A
+line has coverage if any input identifies it as covered. Thus, an uncovered
+line has no covered occurrence in any input.
+
+The merge operation is commutative, associative, and idempotent. Input order,
+duplicate inputs, and empty maps do not change the result.
+
+A file can be absent from an input. The result contains that file if a different
+input contains it.
+
+The command rejects malformed documents and unsupported versions. Each file
+path must be absolute.
+
+For different roots, give one `--input-root` for each input. Give one
+`--project-root` for the output. Greenlight removes each applicable input root
+and adds the output root.
+
+The command rejects these root errors:
+
+* The number of input roots differs from the number of inputs.
+* A path is outside its applicable input root.
+* The same input has different input roots.
+
+Root relocation does not change the schema. The JSON output contains absolute
+file paths.
+
 ## Semantics
 
 The format stores covered and uncovered line sets, not hit counts.
@@ -124,7 +184,9 @@ The format stores covered and uncovered line sets, not hit counts.
 The format excludes lines that the coverage driver identifies as dead or
 unreachable code. These lines do not appear in `covered` or `uncovered`.
 
-A line has coverage if one or more tests in the run executed it.
+A line has coverage if the driver recorded its execution during collection.
+The CLI can merge worker coverage with command-process and relayed subprocess
+coverage. Thus, covered lines can include code outside test bodies.
 
 The line lists supply the `percentage` values and the `totals` object.
 `import()` calculates these values again and ignores the stored values.
@@ -134,7 +196,8 @@ The file uses UTF-8 JSON, unescaped slashes, and a newline at its end.
 
 ## Versions
 
-Version `1` **MAY** receive additive fields.
+Version `1` **MAY** receive optional fields at the top level, in `totals`, or
+in each file entry. New required fields need a new version.
 
 Readers **MUST** ignore unknown keys.
 

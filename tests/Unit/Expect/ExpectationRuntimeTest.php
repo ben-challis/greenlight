@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationRuntime;
-use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+use Greenlight\Tests\Fixture\Expect\FakeClock;
+
+use function Greenlight\expect;
 
 final class ExpectationRuntimeTest
 {
@@ -15,26 +16,26 @@ final class ExpectationRuntimeTest
     public function nestedClockIsRestoredAfterTheOperationThrows(): void
     {
         $baseline = ExpectationRuntime::clock();
-        $outer = new FakePollingClock();
-        $inner = new FakePollingClock();
+        $outer = new FakeClock();
+        $inner = new FakeClock();
         $expected = new \RuntimeException('clock operation failed');
 
         ExpectationRuntime::withClock(
             $outer,
             static function () use ($inner, $outer, $expected): void {
-                Expect::that(static fn(): mixed => ExpectationRuntime::withClock(
+                expect()->calling(static fn(): mixed => ExpectationRuntime::withClock(
                     $inner,
                     static fn(): never => throw $expected,
                 ))
                     ->because('withClock propagates the operation exception')
                     ->toThrow($expected);
 
-                Expect::that(ExpectationRuntime::clock())
+                expect(ExpectationRuntime::clock())
                     ->toBe($outer);
             },
         );
 
-        Expect::that(ExpectationRuntime::clock())
+        expect(ExpectationRuntime::clock())
             ->toBe($baseline);
     }
 }

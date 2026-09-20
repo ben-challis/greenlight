@@ -13,10 +13,12 @@ use Greenlight\Cli\Configuration\PlanFormatter;
 use Greenlight\Config\CoverageBuilder;
 use Greenlight\Config\GreenlightConfig;
 use Greenlight\Config\SuiteBuilder;
-use Greenlight\Expect\Expect;
+use Greenlight\Config\WatchBuilder;
 use Greenlight\Test\TestInclusions;
 use Greenlight\Test\TestSelection;
 use Greenlight\Tests\Fixture\Plugins\NamedFakePlugin;
+
+use function Greenlight\expect;
 
 final class PlanFormatterTest
 {
@@ -28,6 +30,9 @@ final class PlanFormatterTest
                 ->coverage(static fn(CoverageBuilder $coverage) => $coverage
                     ->include('src')
                     ->driver('xdebug')
+                    ->requireDriver()
+                    ->minimumPercentage(95.25)
+                    ->maximumUncoveredLines(3)
                     ->perTest('build/test-coverage.jsonl')
                     ->export('json', 'build/coverage.json'))
                 ->build(),
@@ -37,7 +42,7 @@ final class PlanFormatterTest
         $temporary = \rtrim(\sys_get_temp_dir(), '/');
         $projectKey = \substr(\sha1('/project'), 0, 12);
 
-        Expect::that(PlanFormatter::format($configuration, '/project/greenlight.php', '/project'))->toBe(
+        expect(PlanFormatter::format($configuration, '/project/greenlight.php', '/project'))->toBe(
             <<<PLAN
                 Run plan
                   configuration file: /project/greenlight.php
@@ -54,8 +59,16 @@ final class PlanFormatterTest
                   storage cache: {$temporary}
                   storage generated code: {$temporary}/greenlight-proxies-{$projectKey}
                   storage temporary: {$temporary}
+                  watch debounce: 200 ms
+                  additional watch paths: (none)
+                  watch include patterns: (all additional directory files)
+                  watch exclude patterns: (none)
+                  watch file limit: 100000
                   coverage include paths: src
                   coverage driver: xdebug
+                  coverage driver required: yes
+                  minimum coverage: 95.25%
+                  maximum uncovered lines: 3
                   coverage exports: json -> build/coverage.json, per-test -> build/test-coverage.jsonl
 
                 PLAN,
@@ -75,10 +88,9 @@ final class PlanFormatterTest
 
         $formatted = PlanFormatter::format($configuration, '/project/greenlight.php', '/project');
 
-        Expect::that($formatted)
+        expect($formatted)
             ->because('the plan names the one resolved seed and configured plugins')
-            ->toContain('  order: random (seed ');
-        Expect::that($formatted)
+            ->toContain('  order: random (seed ')
             ->toContain('  plugins: ' . NamedFakePlugin::class);
     }
 
@@ -108,7 +120,7 @@ final class PlanFormatterTest
         $temporary = \rtrim(\sys_get_temp_dir(), '/');
         $projectKey = \substr(\sha1('/project'), 0, 12);
 
-        Expect::that(PlanFormatter::format($configuration, '/project/greenlight.php', '/project'))
+        expect(PlanFormatter::format($configuration, '/project/greenlight.php', '/project'))
             ->because('the run plan MUST show each configured execution detail')
             ->toBe(
                 <<<PLAN
@@ -128,10 +140,38 @@ final class PlanFormatterTest
                       storage cache: {$temporary}
                       storage generated code: {$temporary}/greenlight-proxies-{$projectKey}
                       storage temporary: {$temporary}
+                      watch debounce: 200 ms
+                      additional watch paths: (none)
+                      watch include patterns: (all additional directory files)
+                      watch exclude patterns: (none)
+                      watch file limit: 100000
                       coverage: (off)
 
                     PLAN,
             );
+    }
+
+    #[Test]
+    public function formatsConfiguredWatchInputs(): void
+    {
+        $configuration = ConfigurationResolver::resolve(
+            GreenlightConfig::create()
+                ->watch(static fn(WatchBuilder $watch) => $watch
+                    ->debounceMilliseconds(350)
+                    ->paths('templates', 'config/app.yaml')
+                    ->include('**/*.twig', '**/*.yaml')
+                    ->exclude('build/**')
+                    ->maximumFiles(2_000))
+                ->build(),
+            new CliOverrides(),
+        );
+
+        expect(PlanFormatter::format($configuration, '/project/greenlight.php', '/project'))
+            ->toContain('  watch debounce: 350 ms')
+            ->toContain('  additional watch paths: templates, config/app.yaml')
+            ->toContain('  watch include patterns: **/*.twig, **/*.yaml')
+            ->toContain('  watch exclude patterns: build/**')
+            ->toContain('  watch file limit: 2000');
     }
 
     /**
@@ -139,8 +179,8 @@ final class PlanFormatterTest
      */
     public static function failureLimits(): iterable
     {
-        yield 'singular' => [1, '1 failure'];
+        yield 'singular' => [1, '1 failed or errored test'];
 
-        yield 'plural' => [3, '3 failures'];
+        yield 'plural' => [3, '3 failed or errored tests'];
     }
 }

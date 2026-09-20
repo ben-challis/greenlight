@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Config\CoverageExport;
 use Greenlight\Config\InvalidConfiguration;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class CoverageExportTest
 {
@@ -16,7 +17,7 @@ final class CoverageExportTest
     #[DataSet('incompleteExports')]
     public function rejectsAnIncompleteExport(string $format, string $target): void
     {
-        Expect::that(static fn(): CoverageExport => new CoverageExport($format, $target))
+        expect()->calling(static fn(): CoverageExport => new CoverageExport($format, $target))
             ->because('a coverage export MUST identify its format and target')
             ->toThrow(
                 InvalidConfiguration::class,
@@ -37,7 +38,7 @@ final class CoverageExportTest
     #[DataSet('unknownFormats')]
     public function rejectsAnUnknownFormat(string $format): void
     {
-        Expect::that(static fn(): CoverageExport => new CoverageExport($format, 'coverage.out'))
+        expect()->calling(static fn(): CoverageExport => new CoverageExport($format, 'coverage.out'))
             ->because('coverage exports MUST use a format that Greenlight can write')
             ->toThrow(
                 InvalidConfiguration::class,
@@ -53,9 +54,9 @@ final class CoverageExportTest
     {
         $export = new CoverageExport('json', '0');
 
-        Expect::that($export->format)
+        expect($export->format)
             ->toBe('json');
-        Expect::that($export->target)
+        expect($export->target)
             ->because('a zero-string coverage export target is not empty')
             ->toBe('0');
     }

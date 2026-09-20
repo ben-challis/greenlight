@@ -25,11 +25,11 @@ final readonly class TestClassFinished implements WireEvent
         public string $workerId = '',
     ) {
         if ($class === '') {
-            throw new \InvalidArgumentException('Test class name MUST NOT be empty.');
+            throw new \InvalidArgumentException('Test class name cannot be empty.');
         }
 
         if (!\is_finite($occurredAt)) {
-            throw new \InvalidArgumentException('Event timestamp MUST be finite.');
+            throw new \InvalidArgumentException('Use a finite event timestamp.');
         }
 
         $this->class = $class;

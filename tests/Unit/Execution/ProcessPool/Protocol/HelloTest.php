@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Protocol;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\JsonWire;
+
+use function Greenlight\expect;
 
 final class HelloTest
 {
@@ -19,13 +20,13 @@ final class HelloTest
         $hello = new Hello($workerId, $token, 1);
         $decoded = Hello::fromWire(JsonWire::roundTrip($hello->toWire()));
 
-        Expect::that($hello->workerId)
+        expect($hello->workerId)
             ->because('a worker introduction MUST retain each non-empty worker ID')
             ->toBe($workerId);
-        Expect::that($hello->token)
+        expect($hello->token)
             ->because('a worker introduction MUST retain each non-empty authentication token')
             ->toBe($token);
-        Expect::that($decoded->toWire())
+        expect($decoded->toWire())
             ->because('the worker introduction MUST survive the wire')
             ->toBe($hello->toWire());
     }
@@ -38,7 +39,7 @@ final class HelloTest
         int $pid,
         string $message,
     ): void {
-        Expect::that(static fn(): Hello => new Hello($workerId, $token, $pid))
+        expect()->calling(static fn(): Hello => new Hello($workerId, $token, $pid))
             ->because('worker introductions MUST identify an authenticated operating-system process')
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }

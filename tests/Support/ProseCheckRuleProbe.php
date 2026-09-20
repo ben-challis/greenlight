@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Support;
 
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 /**
  * Checks named invalid prose samples and their valid counterparts.
@@ -37,19 +38,19 @@ final readonly class ProseCheckRuleProbe
         }
 
         $invalidResult = self::run($invalidFiles->directory);
-        Expect::that($invalidResult->exitCode)->because('blocking rules reject all invalid prose cases')->toBe(1);
+        expect($invalidResult->exitCode)->because('blocking rules reject all invalid prose cases')->toBe(1);
 
         foreach ($cases as $name => $case) {
-            Expect::that($invalidResult->output())
+            expect($invalidResult->output())
                 ->because('reports each rule with its invalid case filename')
                 ->toContain($name . '.md:3: ' . $case['rule'] . ':');
         }
 
         $validResult = self::run($validFiles->directory);
-        Expect::that($validResult->exitCode)->because('blocking rules accept all valid prose cases')->toBe(0);
+        expect($validResult->exitCode)->because('blocking rules accept all valid prose cases')->toBe(0);
 
         foreach (\array_keys($cases) as $name) {
-            Expect::that($validResult->output())
+            expect($validResult->output())
                 ->because('reports no diagnostic for each valid case filename')
                 ->not()->toContain($name . '.md:');
         }

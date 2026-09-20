@@ -11,8 +11,6 @@ use Greenlight\Cli\Discovery\SelectionDiscovery;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Cli\Output\Terminal;
-use Greenlight\Cli\Output\TerminalCapabilities;
 use Greenlight\Cli\Reporting\ReporterFactory;
 use Greenlight\Cli\Reporting\ReporterOutputPlan;
 use Greenlight\Cli\Reporting\ReporterSetupFailed;
@@ -26,92 +24,66 @@ use Greenlight\Config\StorageLayout;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Internal\Process\GracefulShutdown;
+use Greenlight\Plugin\CommandOutcome;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\ReportGenerationFailed;
-use Greenlight\Reporting\Style;
 
 /**
  * Orchestrates one ordinary run command and its repeat policy.
  *
- * Uses exit code 0 for success. Uses 1 for a test or run failure. Uses 64 for
- * invalid command-line use.
+ * Uses exit code 0 for success. Uses 1 for a test or run failure.
+ * Uses 64 for invalid command-line use. Interruption uses 128 plus the signal.
  *
  * @internal
  */
 final readonly class RunCommand
 {
-    private const int EXIT_OK = 0;
-    private const int EXIT_FAILURE = 1;
-    private const int EXIT_USAGE = 64;
-
-    /** @var resource */
-    private mixed $stderr;
-
-    /** @var \Closure(string): void */
-    private \Closure $out;
-
-    /** @var \Closure(string): void */
-    private \Closure $err;
-
     /** @param non-empty-string $version */
-    public function __construct(private Console $console, private string $version)
-    {
-        $this->stderr = $this->console->stderr();
-        $this->out = $this->console->out(...);
-        $this->err = $this->console->err(...);
-    }
+    public function __construct(private Console $console, private string $version) {}
 
     /**
      * @throws CoverageError
      * @throws ReportGenerationFailed
      */
-    public function run(ParsedArguments $arguments, string $workingDirectory, ?string $binPath): int
-    {
-        return $this->runCommand($arguments, $workingDirectory, $binPath);
-    }
-
-    /**
-     * @throws CoverageError
-     * @throws ReportGenerationFailed
-     */
-    private function runCommand(ParsedArguments $arguments, string $workingDirectory, ?string $binPath = null): int
+    public function run(ParsedArguments $arguments, string $workingDirectory, ?string $binPath): CommandResult
     {
         try {
             $configuration = new ConfigurationLoader()->load($arguments, $workingDirectory);
         } catch (CliError $error) {
-            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+            $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
-            return self::EXIT_USAGE;
+            return CommandResult::usage();
         } catch (ConfigFileError|InvalidConfiguration $error) {
-            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+            $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
-            return self::EXIT_FAILURE;
+            return CommandResult::failure();
         }
         $resolved = $configuration->resolved;
         $configFile = $configuration->file;
         $overrides = $configuration->overrides;
 
         if ($arguments->has('watch') && ($overrides->repeat->count !== null || $overrides->repeat->untilFailure)) {
-            $this->printError('Do not use --watch with --repeat or --repeat-until-failure.', $arguments->has('no-ansi'));
+            $this->console->error('Do not use --watch with --repeat or --repeat-until-failure.', $arguments->has('no-ansi'));
 
-            return self::EXIT_USAGE;
+            return CommandResult::usage();
         }
 
         if ($arguments->has('watch') && $resolved->coverage?->perTestTarget !== null) {
-            $this->printError('Per-test coverage is not available in watch mode.', $arguments->has('no-ansi'));
+            $this->console->error('Per-test coverage is not available in watch mode.', $arguments->has('no-ansi'));
 
-            return self::EXIT_USAGE;
+            return CommandResult::usage();
         }
 
         if ($arguments->has('dry-run')) {
-            ($this->out)(PlanFormatter::format($resolved, $configFile, $workingDirectory));
+            $this->console->out(PlanFormatter::format($resolved, $configFile, $workingDirectory));
 
-            return self::EXIT_OK;
+            return CommandResult::success();
         }
 
         $this->warnWhenExcludePathsMatchNothing(new SelectionDiscovery($configuration, $workingDirectory), $arguments->has('no-ansi'));
 
         $workers = $resolved->workers->count->fixed ?? CpuCores::count();
-        $workerBin = $this->workerBinPath($binPath);
+        $workerBin = WorkerExecutable::resolve($binPath);
         $reporterFactory = new ReporterFactory($this->console);
 
         try {
@@ -127,27 +99,27 @@ final readonly class RunCommand
             $this->assertRepeatOutputsAreCompatible($arguments, $overrides->repeat, $resolved->coverage);
             $reporterOutputs = $reporterFactory->outputs($arguments, $reporterCatalog, $workingDirectory);
         } catch (CliError $error) {
-            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+            $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
-            return self::EXIT_USAGE;
+            return CommandResult::usage();
         } catch (ReporterSetupFailed $error) {
-            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+            $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
-            return self::EXIT_FAILURE;
+            return CommandResult::failure();
         }
 
         try {
             $reporter = $reporterFactory->create($arguments, $reporterCatalog, $reporterOutputs);
         } catch (CliError $error) {
             $reporterOutputs->close();
-            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+            $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
-            return self::EXIT_USAGE;
+            return CommandResult::usage();
         } catch (ReporterSetupFailed $error) {
             $reporterOutputs->close();
-            $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+            $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
-            return self::EXIT_FAILURE;
+            return CommandResult::failure();
         }
 
         try {
@@ -168,15 +140,18 @@ final readonly class RunCommand
 
             if ($arguments->has('failed')) {
                 if ($previousFailures === null) {
-                    $this->printError('--failed requires state from a previous run. Run Greenlight once without --failed.', $arguments->has('no-ansi'));
+                    $this->console->error(CliError::failedRequiresState()->getMessage(), $arguments->has('no-ansi'));
 
-                    return self::EXIT_USAGE;
+                    return CommandResult::usage();
                 }
 
                 if ($previousFailures === []) {
-                    ($this->out)("No tests failed in the previous run. There are no tests to run again.\n");
+                    $noticeOutput = $reporterOutputs->writesReporterToStandardOutput('jsonl')
+                        ? $this->console->err(...)
+                        : $this->console->out(...);
+                    $noticeOutput("No tests failed in the previous run. There are no tests to run again.\n");
 
-                    return self::EXIT_OK;
+                    return CommandResult::success();
                 }
 
                 $selection = $resolved->selection->withExactIds($previousFailures);
@@ -200,12 +175,22 @@ final readonly class RunCommand
 
             $classSeconds = $resolved->order->isRandomized() ? [] : $state->classSeconds();
             $this->warnWhenLeakDetectionIsUnreliable($arguments->has('detect-leaks'), $arguments->has('no-ansi'));
-            $session = new RunSession($this->console, $arguments, $configuration, $workingDirectory, $workerBin, $shutdown, $selection, $state);
+            $session = new RunSession(
+                $this->console,
+                $arguments,
+                $configuration,
+                $workingDirectory,
+                $workerBin,
+                $shutdown,
+                $selection,
+                $state,
+                $reporterOutputs->writesReporterToStandardOutput('jsonl'),
+            );
 
             // --repeat=1 specifies one standard run. Show the loop, banners, and
             // summary only when more than one iteration is possible.
             if (($overrides->repeat->count === null || $overrides->repeat->count === 1) && !$overrides->repeat->untilFailure) {
-                return $session->runAttempt($reporter, $priorityClasses, $classSeconds)->exitCode;
+                return $session->runAttempt($reporter, $priorityClasses, $classSeconds)->result;
             }
 
             // Without an explicit --repeat, --repeat-until-failure has a limit of
@@ -217,8 +202,8 @@ final readonly class RunCommand
             $failedTestSet = [];
             $lastClassSeconds = [];
             $repeatOutput = $reporterOutputs->writesReporterToStandardOutput('jsonl')
-                ? $this->err
-                : $this->out;
+                ? $this->console->err(...)
+                : $this->console->out(...);
 
             for ($iteration = 1; $iteration <= $limit; $iteration++) {
                 $repeatOutput($bounded
@@ -229,13 +214,13 @@ final readonly class RunCommand
                     try {
                         $reporter = $reporterFactory->create($arguments, $reporterCatalog, $reporterOutputs);
                     } catch (CliError $error) {
-                        $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+                        $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
-                        return self::EXIT_USAGE;
+                        return CommandResult::usage();
                     } catch (ReporterSetupFailed $error) {
-                        $this->printError($error->getMessage(), $arguments->has('no-ansi'));
+                        $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
-                        return self::EXIT_FAILURE;
+                        return CommandResult::failure();
                     }
                 }
 
@@ -250,13 +235,13 @@ final readonly class RunCommand
 
                 $lastClassSeconds = $attempt->classSeconds;
 
-                $interruptExit = $shutdown->exitCode();
+                $interruptSignal = $shutdown->signal();
 
-                if ($interruptExit !== null) {
-                    return $interruptExit;
+                if ($interruptSignal !== null) {
+                    return CommandResult::interrupted($interruptSignal);
                 }
 
-                if ($attempt->exitCode !== self::EXIT_OK) {
+                if ($attempt->result->outcome() !== CommandOutcome::Success) {
                     $failedIterations[] = $iteration;
 
                     if ($overrides->repeat->untilFailure) {
@@ -268,7 +253,7 @@ final readonly class RunCommand
             if ($failedIterations === []) {
                 $repeatOutput(\sprintf("Repeat: %d iterations, all passed\n", $limit));
 
-                return self::EXIT_OK;
+                return CommandResult::success();
             }
 
             // Record each test that fails in an iteration. Thus, a later --failed
@@ -277,7 +262,7 @@ final readonly class RunCommand
 
             $repeatOutput(\sprintf("Repeat: failed iterations: %s\n", \implode(', ', $failedIterations)));
 
-            return self::EXIT_FAILURE;
+            return CommandResult::failure();
         } finally {
             $reporterOutputs->close();
         }
@@ -292,31 +277,15 @@ final readonly class RunCommand
         $warning = LeakDetector::environmentWarning();
 
         if ($warning !== null) {
-            ($this->err)($this->stderrStyle($noAnsiFlag)->warn($warning) . "\n");
+            $this->console->err($this->console->stderrStyle($noAnsiFlag)->warn($warning) . "\n");
         }
     }
 
     private function warnWhenExcludePathsMatchNothing(SelectionDiscovery $discovery, bool $noAnsiFlag): void
     {
         foreach ($discovery->unmatchedExcludePathWarnings() as $warning) {
-            ($this->err)($this->stderrStyle($noAnsiFlag)->warn($warning) . "\n");
+            $this->console->err($this->console->stderrStyle($noAnsiFlag)->warn($warning) . "\n");
         }
-    }
-
-    private function printError(string $message, bool $noAnsiFlag): void
-    {
-        ($this->err)($this->stderrStyle($noAnsiFlag)->error('greenlight:') . ' ' . $message . "\n");
-    }
-
-    private function stderrStyle(bool $noAnsiFlag): Style
-    {
-        $capabilities = TerminalCapabilities::detect(
-            Terminal::isTty($this->stderr),
-            ['CI' => \getenv('CI'), 'NO_COLOR' => \getenv('NO_COLOR')],
-            $noAnsiFlag,
-        );
-
-        return new Style($capabilities->color);
     }
 
     /** @throws CliError */
@@ -337,11 +306,4 @@ final readonly class RunCommand
             throw CliError::repeatWithSingleRunOutput($outputs);
         }
     }
-
-    /** @return non-empty-string|false */
-    private function workerBinPath(?string $binPath): string|false
-    {
-        return WorkerExecutable::resolve($binPath);
-    }
-
 }

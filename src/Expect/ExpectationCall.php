@@ -22,6 +22,12 @@ final readonly class ExpectationCall
         private array $arguments,
     ) {}
 
+    /** @param array<array-key, mixed> $arguments */
+    public static function forImmediate(string $name, array $arguments): self
+    {
+        return new self($name, $arguments);
+    }
+
     /**
      * @param array<array-key, mixed> $arguments
      *
@@ -29,11 +35,13 @@ final readonly class ExpectationCall
      */
     public static function forTemporal(string $name, array $arguments): self
     {
-        if ($name === 'toBeIn') {
+        $nativeName = \strtolower($name);
+
+        if ($nativeName === 'tobein') {
             self::makeIterableReusable($arguments, 'haystack', 0);
         }
 
-        if ($name === 'toThrow') {
+        if ($nativeName === 'tothrow') {
             $throwable = self::argument($arguments, 'throwable', 0);
             $matching = self::argument($arguments, 'matching', 1);
             $message = self::argument($arguments, 'message', 2);
@@ -74,13 +82,15 @@ final readonly class ExpectationCall
     }
 
     /**
-     * @return Expectation<T>
+     * @return MatcherEvaluation<T>
      *
      * @template T
      *
-     * @param Expectation<T> $expectation
+     * @param MatcherEvaluation<T> $expectation
+     *
+     * @throws \BadMethodCallException if no native or registered extension matcher has the requested name
      */
-    public function invoke(Expectation $expectation): Expectation
+    public function invoke(MatcherEvaluation $expectation): MatcherEvaluation
     {
         $matcher = [$expectation, $this->name];
 
@@ -93,9 +103,9 @@ final readonly class ExpectationCall
 
         $result = \call_user_func_array($matcher, $this->arguments);
 
-        if (!$result instanceof Expectation) {
+        if (!$result instanceof MatcherEvaluation) {
             throw new \LogicException(\sprintf(
-                'Matcher "%s" did not return an Expectation.',
+                'Matcher "%s" did not return an MatcherEvaluation.',
                 $this->name,
             ));
         }

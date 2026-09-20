@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Unit\Cli;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Output\TerminalRowsResolver;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class ApplicationTerminalRowsFallbackTest
 {
@@ -28,7 +29,7 @@ final readonly class ApplicationTerminalRowsFallbackTest
 
         $rows = TerminalRowsResolver::resolve();
 
-        Expect::that($rows)
+        expect($rows)
             ->because('the terminal probe MUST set the reporter height when LINES is unavailable')
             ->toBe(31);
     }
@@ -41,7 +42,7 @@ final readonly class ApplicationTerminalRowsFallbackTest
 
         $rows = TerminalRowsResolver::resolve();
 
-        Expect::that($rows)
+        expect($rows)
             ->because('the reporter MUST use 24 rows when terminal height detection fails')
             ->toBe(24);
     }
@@ -62,7 +63,7 @@ final readonly class ApplicationTerminalRowsFallbackTest
             $this->installTput($probeOutput);
         }
 
-        Expect::that(TerminalRowsResolver::resolve())
+        expect(TerminalRowsResolver::resolve())
             ->because('malformed terminal row text MUST NOT set the reporter height')
             ->toBe(24);
     }

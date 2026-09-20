@@ -11,9 +11,13 @@ namespace Greenlight\Config;
  */
 final readonly class RunOrder
 {
-    /** @param int|null $seed A null value keeps declared order. */
+    /** @param int<0, max>|null $seed A null value keeps declared order. */
     public function __construct(public ?int $seed = null) {}
 
+    /**
+     * @phpstan-assert-if-true int<0, max> $this->seed
+     * @phpstan-assert-if-false null $this->seed
+     */
     public function isRandomized(): bool
     {
         return $this->seed !== null;

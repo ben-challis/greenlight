@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Orchestrator\ServerSocket;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\Cleanup;
+
+use function Greenlight\expect;
 
 final readonly class ServerSocketTest
 {
@@ -19,7 +20,7 @@ final readonly class ServerSocketTest
         $temporaryDirectory = \is_dir('/tmp') ? '/tmp' : \sys_get_temp_dir();
         $blocked = \tempnam($temporaryDirectory, 'greenlight-socket-');
 
-        Expect::that($blocked)
+        expect($blocked)
             ->because('The test MUST create the blocked socket directory fixture.')
             ->toBeString();
 
@@ -27,10 +28,10 @@ final readonly class ServerSocketTest
         $socket = ServerSocket::listen($blocked);
         $this->cleanup->defer($socket->close(...));
 
-        Expect::that($socket->address)
+        expect($socket->address)
             ->because('the orchestrator MUST use TCP when its Unix socket cannot open')
             ->toStartWith('tcp://127.0.0.1:');
-        Expect::that(\is_resource($socket->stream()))
+        expect(\is_resource($socket->stream()))
             ->toBeTrue();
     }
 }

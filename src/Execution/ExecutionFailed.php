@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Greenlight\Execution;
 
+use Greenlight\Execution\Plugin\PluginRuntimeError;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 
 /**
- * Greenlight raises this error when an execution adapter cannot complete a run.
+ * Greenlight raises this error when execution cannot complete a run.
  *
  * @internal
  */
@@ -35,6 +36,11 @@ final class ExecutionFailed extends \RuntimeException
     }
 
     public static function processPool(WireCommunicationFailed $previous): self
+    {
+        return new self($previous->getMessage(), $previous);
+    }
+
+    public static function plugin(PluginRuntimeError $previous): self
     {
         return new self($previous->getMessage(), $previous);
     }

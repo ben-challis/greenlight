@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Fixture\ResourceScheduling;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+
+use function Greenlight\expect;
 
 final class SlowResourceTest
 {
@@ -14,6 +16,6 @@ final class SlowResourceTest
     {
         \usleep(750_000);
 
-        Expect::that(true)->toBeTrue();
+        expect(true)->toBeTrue();
     }
 }

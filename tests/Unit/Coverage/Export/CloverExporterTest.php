@@ -8,8 +8,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\CloverExporter;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\SimpleXml;
+
+use function Greenlight\expect;
 
 final class CloverExporterTest
 {
@@ -23,7 +24,7 @@ final class CloverExporterTest
 
         $xml = new \SimpleXMLElement(new CloverExporter(1234)->export($map)[CloverExporter::FILE_NAME]);
 
-        Expect::that($this->structure($xml))
+        expect($this->structure($xml))
             ->because('document carries per file and project statement metrics')
             ->toBe([
                 'generated' => '1234',
@@ -95,7 +96,7 @@ final class CloverExporterTest
     {
         $xml = new \SimpleXMLElement(new CloverExporter()->export(CoverageMap::empty())[CloverExporter::FILE_NAME]);
 
-        Expect::that($this->structure($xml))
+        expect($this->structure($xml))
             ->because('empty map still produces a parsable document')
             ->toBe([
                 'generated' => '0',

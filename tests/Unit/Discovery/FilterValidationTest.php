@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\TestExclusions;
 use Greenlight\Test\TestInclusions;
+
+use function Greenlight\expect;
 
 final class FilterValidationTest
 {
@@ -16,7 +17,7 @@ final class FilterValidationTest
     #[DataSet('filterDimensions')]
     public function emptyFilterValuesAreRejected(string $dimension): void
     {
-        Expect::that(static fn(): TestInclusions|TestExclusions => self::withValue($dimension, ''))
+        expect()->calling(static fn(): TestInclusions|TestExclusions => self::withValue($dimension, ''))
             ->because('an empty filter value MUST NOT broaden or suppress test selection')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -35,7 +36,7 @@ final class FilterValidationTest
 
         $property = $this->propertyName($dimension);
 
-        Expect::that(\get_object_vars($filter)[$property] ?? null)
+        expect(\get_object_vars($filter)[$property] ?? null)
             ->because('a non-empty falsey filter value MUST retain its selection meaning')
             ->toBe(['0']);
     }

@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\IntegrationFixture;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\FixtureResource;
 use Greenlight\IntegrationFixture\IntegrationFixtureContext;
 use Greenlight\IntegrationFixture\IntegrationFixtureDefinition;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\IntegrationFixture\IntegrationFixtureManager;
+
+use function Greenlight\expect;
 
 final class IntegrationFixtureManagerTest
 {
@@ -66,18 +67,18 @@ final class IntegrationFixtureManagerTest
         $channelOne = $session->forChannel(1)->fixture('database');
         $channelTwo = $session->forChannel(2)->fixture('database');
 
-        Expect::that($trace)->toBe(['network:start', 'database:start']);
-        Expect::that($observedContext)->toBe(['run-1', 4, [1, 2], [2, 3]]);
-        Expect::that($channelOne->string('database'))->toBe('test_1');
-        Expect::that($channelTwo->string('database'))->toBe('test_2');
-        Expect::that($session->close())->toBe([]);
-        Expect::that($trace)->toBe([
+        expect($trace)->toBe(['network:start', 'database:start']);
+        expect($observedContext)->toBe(['run-1', 4, [1, 2], [2, 3]]);
+        expect($channelOne->string('database'))->toBe('test_1');
+        expect($channelTwo->string('database'))->toBe('test_2');
+        expect($session->close())->toBe([]);
+        expect($trace)->toBe([
             'network:start',
             'database:start',
             'database:stop',
             'network:stop',
         ]);
-        Expect::that($session->close())->toBe([]);
+        expect($session->close())->toBe([]);
     }
 
     #[Test]
@@ -91,7 +92,7 @@ final class IntegrationFixtureManagerTest
             null,
         );
 
-        Expect::that($session->forChannel(1)->fixture('database')->toWire())
+        expect($session->forChannel(1)->fixture('database')->toWire())
             ->because('every provisioned fixture MUST remain available even when it exposes no resources')
             ->toBe([
                 'values' => [],
@@ -127,7 +128,7 @@ final class IntegrationFixtureManagerTest
             ),
         ];
 
-        Expect::that(fn() => IntegrationFixtureManager::provision(
+        expect()->calling(fn() => IntegrationFixtureManager::provision(
             $definitions,
             'run-2',
             2,
@@ -135,7 +136,7 @@ final class IntegrationFixtureManagerTest
             null,
         ))->toThrow(IntegrationFixtureError::class, matching: '/second.*could not start/');
 
-        Expect::that($trace)->toBe([
+        expect($trace)->toBe([
             'first:start',
             'second:start',
             'second:stop',
@@ -166,7 +167,7 @@ final class IntegrationFixtureManagerTest
             ),
         ];
 
-        Expect::that(static fn() => IntegrationFixtureManager::provision(
+        expect()->calling(static fn() => IntegrationFixtureManager::provision(
             $definitions,
             'run-3',
             1,
@@ -175,11 +176,11 @@ final class IntegrationFixtureManagerTest
         ))
             ->because('provisioning diagnostics MUST include cleanup failures without replacing the primary failure')
             ->toThrow(static function (IntegrationFixtureError $error) use ($provisioningFailure): void {
-                Expect::that($error->getMessage())->toBe(
+                expect($error->getMessage())->toBe(
                     "Integration fixture \"database\" failed to provision: database start failed.\n"
                     . 'Additionally, cleanup for integration fixture "network" failed: network stop failed.',
                 );
-                Expect::that($error->getPrevious())
+                expect($error->getPrevious())
                     ->because('the provisioning failure MUST remain the previous exception')
                     ->toBe($provisioningFailure);
             });
@@ -192,7 +193,7 @@ final class IntegrationFixtureManagerTest
             new IntegrationFixtureDefinition('database', static function (): void {}, ['network']),
         ];
 
-        Expect::that(fn() => IntegrationFixtureManager::provision(
+        expect()->calling(fn() => IntegrationFixtureManager::provision(
             $missing,
             'run-3',
             1,
@@ -205,7 +206,7 @@ final class IntegrationFixtureManagerTest
             new IntegrationFixtureDefinition('bravo', static function (): void {}, ['alpha']),
         ];
 
-        Expect::that(fn() => IntegrationFixtureManager::provision(
+        expect()->calling(fn() => IntegrationFixtureManager::provision(
             $cycle,
             'run-4',
             1,
@@ -223,7 +224,7 @@ final class IntegrationFixtureManagerTest
             new IntegrationFixtureDefinition('bravo', static function (): void {}, ['alpha']),
         ];
 
-        Expect::that(fn() => IntegrationFixtureManager::provision(
+        expect()->calling(fn() => IntegrationFixtureManager::provision(
             $definitions,
             'run-cycle-prefix',
             1,
@@ -256,7 +257,7 @@ final class IntegrationFixtureManagerTest
             ),
         ];
 
-        Expect::that(fn() => IntegrationFixtureManager::provision(
+        expect()->calling(fn() => IntegrationFixtureManager::provision(
             $definitions,
             'run-5',
             2,
@@ -264,7 +265,7 @@ final class IntegrationFixtureManagerTest
             null,
         ))->toThrow(IntegrationFixtureError::class, matching: '/invalid channel resource/');
 
-        Expect::that($cleaned)->toBeTrue();
+        expect($cleaned)->toBeTrue();
     }
 
     #[Test]
@@ -275,7 +276,7 @@ final class IntegrationFixtureManagerTest
             new IntegrationFixtureDefinition('database', static function (): void {}),
         ];
 
-        Expect::that(fn() => IntegrationFixtureManager::provision(
+        expect()->calling(fn() => IntegrationFixtureManager::provision(
             $definitions,
             'run-7',
             1,
@@ -307,7 +308,7 @@ final class IntegrationFixtureManagerTest
             ),
         ];
 
-        Expect::that(fn() => IntegrationFixtureManager::provision(
+        expect()->calling(fn() => IntegrationFixtureManager::provision(
             $definitions,
             'run-7',
             1,
@@ -315,7 +316,7 @@ final class IntegrationFixtureManagerTest
             null,
         ))->toThrow(IntegrationFixtureError::class, matching: '/1 MiB transport limit/');
 
-        Expect::that($cleaned)->toBeTrue();
+        expect($cleaned)->toBeTrue();
     }
 
     #[Test]
@@ -336,7 +337,7 @@ final class IntegrationFixtureManagerTest
             ),
         ];
 
-        Expect::that(static fn() => IntegrationFixtureManager::provision(
+        expect()->calling(static fn() => IntegrationFixtureManager::provision(
             $definitions,
             'run-8',
             1,
@@ -345,13 +346,13 @@ final class IntegrationFixtureManagerTest
         ))
             ->because('transport diagnostics MUST include cleanup failures without replacing the primary failure')
             ->toThrow(static function (IntegrationFixtureError $error): void {
-                Expect::that($error->getMessage())->toBe(
+                expect($error->getMessage())->toBe(
                     "Integration fixture \"resource catalog\" failed to provision: "
                     . "Integration resources for channel 1 exceed the 1 MiB transport limit.\n"
                     . 'Additionally, cleanup for integration fixture "database" failed: database cleanup failed.',
                 );
 
-                Expect::that($error->getPrevious())
+                expect($error->getPrevious())
                     ->because('the transport failure MUST remain the previous exception')
                     ->toBeInstanceOf(\LengthException::class);
             });
@@ -375,7 +376,7 @@ final class IntegrationFixtureManagerTest
             ),
         ];
 
-        Expect::that(fn() => IntegrationFixtureManager::provision(
+        expect()->calling(fn() => IntegrationFixtureManager::provision(
             $definitions,
             'run-8',
             1,
@@ -403,7 +404,7 @@ final class IntegrationFixtureManagerTest
             ),
         ];
 
-        Expect::that(fn() => IntegrationFixtureManager::provision(
+        expect()->calling(fn() => IntegrationFixtureManager::provision(
             $definitions,
             'run-9',
             1,

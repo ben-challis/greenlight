@@ -17,6 +17,13 @@ final class CoverageBuilder
      */
     private ?string $driver = null;
 
+    private ?float $minimumPercentage = null;
+
+    /** @var int<0, max>|null */
+    private ?int $maximumUncoveredLines = null;
+
+    private bool $requireDriver = false;
+
     /**
      * @var list<CoverageExport>
      */
@@ -28,6 +35,9 @@ final class CoverageBuilder
     private ?string $perTestTarget = null;
 
     /**
+     * Adds source paths to the coverage filter. Multiple calls add paths.
+     * Relative paths use the command working directory. An empty filter accepts all files that the driver reports.
+     *
      * @param non-empty-string ...$paths
      *
      * @throws InvalidConfiguration
@@ -38,11 +48,11 @@ final class CoverageBuilder
 
         foreach ($paths as $path) {
             if ($path === '') {
-                throw new InvalidConfiguration('Coverage include paths cannot be empty.');
+                throw InvalidConfiguration::emptyCoveragePath();
             }
 
             if (\str_contains($path, "\0")) {
-                throw new InvalidConfiguration('Coverage include paths cannot contain a null byte.');
+                throw InvalidConfiguration::coveragePathContainsNullByte();
             }
 
             $validated[] = $path;
@@ -54,6 +64,9 @@ final class CoverageBuilder
     }
 
     /**
+     * Selects `pcov` or `xdebug` without fallback to the other driver.
+     * Omit this call for automatic selection, which tries pcov before Xdebug.
+     *
      * @param non-empty-string $driver
      *
      * @throws InvalidConfiguration
@@ -61,7 +74,7 @@ final class CoverageBuilder
     public function driver(string $driver): self
     {
         if ($driver === '') {
-            throw new InvalidConfiguration('Coverage driver cannot be empty.');
+            throw InvalidConfiguration::emptyCoverageDriver();
         }
 
         $this->driver = $driver;
@@ -70,6 +83,57 @@ final class CoverageBuilder
     }
 
     /**
+     * Sets the minimum accepted total line-coverage percentage.
+     *
+     * @param float $percentage A value from 0 through 100 with at most two decimal places.
+     *
+     * @throws InvalidConfiguration
+     */
+    public function minimumPercentage(float $percentage): self
+    {
+        if (!\is_finite($percentage) || $percentage < 0.0 || $percentage > 100.0) {
+            throw InvalidConfiguration::coveragePercentageOutOfRange();
+        }
+
+        if (\round($percentage, 2) !== $percentage) {
+            throw InvalidConfiguration::coveragePercentageTooPrecise();
+        }
+
+        $this->minimumPercentage = $percentage;
+
+        return $this;
+    }
+
+    /**
+     * Sets the maximum accepted number of uncovered executable lines.
+     *
+     * @param int<0, max> $lines
+     * @throws InvalidConfiguration
+     */
+    public function maximumUncoveredLines(int $lines): self
+    {
+        if ($lines < 0) {
+            throw InvalidConfiguration::negativeUncoveredLineLimit();
+        }
+
+        $this->maximumUncoveredLines = $lines;
+
+        return $this;
+    }
+
+    /** Fails the run when the selected coverage driver is not available. */
+    public function requireDriver(bool $required = true): self
+    {
+        $this->requireDriver = $required;
+
+        return $this;
+    }
+
+    /**
+     * Adds a coverage export. Multiple calls add exports.
+     * The target is a directory for `html` and a file for other formats.
+     * Relative targets use the command working directory.
+     *
      * @param 'json'|'lcov'|'clover'|'cobertura'|'html' $format
      * @param non-empty-string $target
      *
@@ -77,14 +141,6 @@ final class CoverageBuilder
      */
     public function export(string $format, string $target): self
     {
-        if ($format === '') {
-            throw new InvalidConfiguration('Coverage exports need a non-empty format and target.');
-        }
-
-        if ($target === '') {
-            throw new InvalidConfiguration('Coverage exports need a non-empty format and target.');
-        }
-
         $this->exports[] = new CoverageExport($format, $target);
 
         return $this;
@@ -100,7 +156,7 @@ final class CoverageBuilder
     public function perTest(string $target): self
     {
         if ($target === '') {
-            throw new InvalidConfiguration('Per-test coverage needs a non-empty target.');
+            throw InvalidConfiguration::emptyPerTestCoverageTarget();
         }
 
         $this->perTestTarget = $target;
@@ -113,6 +169,14 @@ final class CoverageBuilder
      */
     public function toConfiguration(): CoverageConfiguration
     {
-        return new CoverageConfiguration($this->includePaths, $this->driver, $this->exports, $this->perTestTarget);
+        return new CoverageConfiguration(
+            $this->includePaths,
+            $this->driver,
+            $this->exports,
+            $this->minimumPercentage,
+            $this->maximumUncoveredLines,
+            $this->requireDriver,
+            $this->perTestTarget,
+        );
     }
 }

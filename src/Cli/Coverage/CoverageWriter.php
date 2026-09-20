@@ -27,20 +27,42 @@ use Greenlight\Reporting\SummaryFormat;
  */
 final readonly class CoverageWriter
 {
-    public function __construct(private Console $console) {}
+    public function __construct(private Console $console, private bool $humanOutputOnStderr = false) {}
 
-    public function write(CoverageConfiguration $configuration, CoverageMap $coverage, string $workingDirectory, Style $style): bool
+    public function write(CoverageConfiguration $configuration, ?CoverageMap $coverage, string $workingDirectory, Style $style): bool
     {
-        $this->console->out("\n" . SummaryFormat::coverage($coverage->totalPercentage(), $coverage->coveredLineTotal(), $coverage->executableLineTotal(), $style) . "\n");
+        if (!$coverage instanceof CoverageMap) {
+            if ($configuration->requiresCoverageResult()) {
+                $this->console->err("Coverage is required, but no worker collected it. Install pcov or enable Xdebug with coverage mode.\n");
+
+                return false;
+            }
+
+            $this->console->err("No worker collected the requested coverage. Install pcov or enable Xdebug with coverage mode.\n");
+
+            return true;
+        }
+
+        $this->human("\n" . SummaryFormat::coverage($coverage->totalPercentage(), $coverage->coveredLineTotal(), $coverage->executableLineTotal(), $style) . "\n");
         foreach ($configuration->exports as $export) {
             $exporter = $this->exporterFor($export->format, $workingDirectory);
             if (!$exporter instanceof CoverageExporter) {
                 $this->console->err(\sprintf("Unknown coverage export format \"%s\".\n", $export->format));
                 return false;
             }
-            $files = $exporter->export($coverage);
+            try {
+                $files = $exporter->export($coverage);
+            } catch (\Throwable $error) {
+                $this->console->err(\sprintf(
+                    "Greenlight could not create the \"%s\" coverage export: %s\n",
+                    $export->format,
+                    $error->getMessage(),
+                ));
+
+                return false;
+            }
             $target = ConfigurationLoader::absolutePath($export->target, $workingDirectory);
-            if (\count($files) === 1) {
+            if ($export->format !== 'html') {
                 ErrorTrap::run(static fn() => \mkdir(\dirname($target), 0o777, true));
                 try {
                     AtomicFile::write($target, \reset($files));
@@ -59,9 +81,27 @@ final readonly class CoverageWriter
                     }
                 }
             }
-            $this->console->out(SummaryFormat::coverageExport($export->format, $export->target) . "\n");
+            $this->human(SummaryFormat::coverageExport($export->format, $export->target) . "\n");
         }
-        return true;
+
+        $failures = CoverageGate::failures($configuration, $coverage);
+
+        foreach ($failures as $failure) {
+            $this->console->err($failure . "\n");
+        }
+
+        return $failures === [];
+    }
+
+    private function human(string $text): void
+    {
+        if ($this->humanOutputOnStderr) {
+            $this->console->err($text);
+
+            return;
+        }
+
+        $this->console->out($text);
     }
 
     private function exporterFor(string $format, string $workingDirectory): ?CoverageExporter

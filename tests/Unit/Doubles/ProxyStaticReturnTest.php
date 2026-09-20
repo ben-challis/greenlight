@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Wide;
+
+use function Greenlight\expect;
 
 final readonly class ProxyStaticReturnTest
 {
@@ -25,7 +26,7 @@ final readonly class ProxyStaticReturnTest
             });
         });
 
-        Expect::that($double->returnsStatic())
+        expect($double->returnsStatic())
             ->because('a static return type MUST accept the generated proxy instance')
             ->toBe($double);
     }

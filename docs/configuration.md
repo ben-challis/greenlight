@@ -16,20 +16,20 @@ Greenlight applies configuration in this order:
 
 Later layers override earlier ones.
 
-For example, use this configuration:
+For example, configure automatic worker selection:
 
 <!-- php-example {"example":"configuration-example-01","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
 ->workers('auto')
 ```
 
-combined with this CLI flag:
+Then select one worker for a run:
 
 ```sh
 greenlight run --workers=1
 ```
 
-runs with one worker.
+The CLI flag overrides the configured worker count.
 
 ## GreenlightConfig
 
@@ -40,7 +40,7 @@ Create the builder with:
 GreenlightConfig::create()
 ```
 
-Every builder method returns `$this`. Thus, you can chain method calls.
+Configuration setters return `$this`, so you can chain their calls.
 
 ### `paths(array $tests): self`
 
@@ -67,8 +67,8 @@ Without a suite selector, each run includes every named suite. This behavior is
 compatible with configurations that use suites only to add paths.
 
 Use `--suite=<name>` or `--suite-tag=<tag>` to select suites. Repeat either
-option to select a union. A suite is selected if its name or one of its tags
-matches a selector.
+option to select a union. Greenlight selects a suite if its name or one of its
+tags matches a selector.
 
 An explicit selection scans only paths from selected suites. It does not scan
 base `paths()`. Test filters and sharding apply after this path selection.
@@ -96,15 +96,17 @@ Suite names and tags use case-sensitive exact matching.
 
 Default: `'auto'` workers.
 
-A worker requests one class at a time. When the worker finishes that class, it
-requests the next class.
+A worker executes one assignment at a time. By default, an assignment contains
+one complete class. Greenlight can batch small classes with the same resource
+requirements when previous durations are available.
 
 Greenlight keeps this class-level schedule by default. Add `#[AllowParallel]`
 to an independent large class to make each test or data set a separate
 assignment.
 
-The orchestrator gives first priority to classes that failed in the previous
-run. It orders the other classes by previous duration, longest first.
+Without randomization, the run gives first priority to classes that failed in
+the previous run. It orders classes with saved durations next, longest first.
+Classes without saved durations follow in discovery order.
 
 Worker placement is load-dependent. The stable parts are:
 
@@ -116,8 +118,9 @@ The seed reproduces failures related to order. It does not reproduce exact
 worker placement or completion-event order.
 
 `$count` accepts a positive integer or `'auto'`. With `'auto'`, Greenlight uses
-one worker per CPU core. Install the suggested `fidry/cpu-core-counter` package
-for CPU detection that respects cgroup limits in containers.
+one worker per detected CPU core. If CPU detection fails, it uses four workers.
+Install the suggested `fidry/cpu-core-counter` package for CPU detection that
+respects cgroup limits in containers.
 
 A worker remains active until the queue is empty or the worker fails.
 Greenlight does not hide memory growth or state leaks by replacing a healthy
@@ -159,8 +162,7 @@ Default: coverage off.
 The `coverage()` method enables coverage collection. Greenlight gives a
 `CoverageBuilder` to the configurator.
 
-Multiple calls to `coverage()` use the same builder. Thus, its settings
-accumulate.
+Repeated calls to `coverage()` preserve earlier settings.
 
 `CoverageBuilder` methods:
 
@@ -169,6 +171,14 @@ accumulate.
 * `driver(string $driver): self` restricts coverage to `pcov` or `xdebug` when
   you use that value. Other non-empty values have the default behavior:
   Greenlight tries pcov, then Xdebug.
+* `requireDriver(bool $required = true): self` fails the run when the selected
+  coverage driver is not available. Default: `false`.
+* `minimumPercentage(float $percentage): self` sets the minimum total line
+  coverage. The value must be from `0` through `100`. It can have two decimal
+  places. Default: no minimum.
+* `maximumUncoveredLines(int $lines): self` sets the maximum number of
+  uncovered executable lines. The value must be zero or more. Default: no
+  maximum.
 * `export(string $format, string $target): self` adds a coverage export.
   Supported formats are `json`, `lcov`, `clover`, `cobertura`, and `html`.
   `$target` is a file path, or a directory for multi-file formats such as
@@ -182,6 +192,9 @@ accumulate.
 ->coverage(fn ($c) => $c
     ->include('src')
     ->driver('pcov')
+    ->requireDriver()
+    ->minimumPercentage(90.0)
+    ->maximumUncoveredLines(100)
     ->perTest('coverage/test-map.jsonl')
     ->export('lcov', 'coverage/lcov.info')
     ->export('html', 'coverage/html'))
@@ -192,7 +205,27 @@ each coverage export.
 
 If no worker can collect coverage because neither pcov nor Xdebug coverage mode
 is available, Greenlight warns on stderr. That warning does not fail the run by
-itself.
+itself. `requireDriver()` changes the warning to a run failure.
+
+A configured coverage gate also requires coverage. Thus, an unavailable
+coverage driver fails the run when you configure a gate.
+
+The minimum percentage gate uses the total line coverage. Greenlight rounds
+the calculated percentage to two decimal places before the comparison. It uses
+half-up rounding. A result that is equal to the minimum passes.
+
+The uncovered-line gate counts executable lines that did not execute. A count
+that is equal to the maximum passes. If you configure both gates, both gates
+must pass.
+
+Greenlight writes all configured coverage exports before it evaluates the
+gates. Thus, a failed gate keeps the coverage evidence. A failed gate uses exit
+code `1`.
+
+Reporters continue to report test results. They do not add a coverage-gate
+result to JUnit, JSONL, or other machine formats. Use the process exit code for
+the machine-readable gate result. If JSONL writes to standard output,
+Greenlight writes human coverage output to standard error.
 
 Per-test coverage requires at least one include path and an available coverage
 driver. Missing either requirement fails the run. Greenlight publishes the map
@@ -213,22 +246,66 @@ paths filter coverage from all processes.
 
 ### `watch(callable $configurator): self`
 
-Default: 200 ms debounce.
+Defaults: 200 ms debounce and a 100,000-file poll limit.
 
 The configurator receives a `WatchBuilder`.
 
-`WatchBuilder` has one method:
+`WatchBuilder` has these methods:
 
 * `debounceMilliseconds(int $milliseconds): self` sets the quiet period before a
   rerun starts. The value must be at least 1.
+* `paths(string ...$paths): self` adds file or directory inputs.
+* `include(string ...$patterns): self` selects files below additional directory
+  inputs.
+* `exclude(string ...$patterns): self` removes from all watch inputs each file
+  that matches.
+* `maximumFiles(int $maximumFiles): self` sets the file limit for one poll.
+
+Relative paths use the command working directory. An input that does not exist
+stays in the configuration and can appear later.
+
+An additional file input does not need an include pattern. An additional
+directory includes all its regular files when there are no include patterns.
+When include patterns exist, the directory includes only files that match.
+
+Patterns match the complete path. Paths below the working directory use a
+relative path. Paths outside it use an absolute path.
+
+Pattern syntax is as follows:
+
+* `/` separates path segments.
+* `*` matches zero or more characters except `/`.
+* `?` matches one character except `/`.
+* `**` matches characters across path segments.
+
+Pattern comparison is case-sensitive. Patterns do not use negation. Use
+`exclude()` for an exclusion. An exclusion has precedence over each path and
+include pattern.
+
+The effective test and coverage roots keep their default PHP-only behavior.
+Exclusion patterns also apply to those roots.
 
 A rerun starts after the configured period has no file changes. Thus, a group
 of save operations starts only one run.
 
 <!-- php-example {"example":"configuration-example-06","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-->watch(fn ($w) => $w->debounceMilliseconds(500))
+->watch(fn ($w) => $w
+    ->debounceMilliseconds(500)
+    ->paths('templates', 'config/app.yaml', 'migrations')
+    ->include('**/*.twig', '**/*.yaml', '**/*.sql')
+    ->exclude(
+        'build/**',
+        'coverage/**',
+        'var/greenlight/**',
+    )
+    ->maximumFiles(25_000))
 ```
+
+Use exclusions for files that the run writes. Examples include build output,
+Greenlight storage, coverage output, and configured report or artifact targets.
+Greenlight does not add broad default exclusions because those exclusions can
+hide source inputs.
 
 ### `failOnDeprecation(bool $enabled = true): self`
 
@@ -313,11 +390,42 @@ create an error annotation for a skipped test.
 The policy evaluates terminal results after plugins and retries. A plugin that
 changes the terminal outcome changes the run-policy input.
 
-A skipped test does not count toward `--bail` because its outcome is not a test
-failure. The policy fails the completed iteration instead. Thus, repeat mode
-records that iteration as failed. `--repeat-until-failure` stops after it.
+A skipped test does not count toward `--bail` because its outcome is neither
+`failed` nor `errored`. The policy fails the completed iteration instead. Thus,
+repeat mode records that iteration as failed. `--repeat-until-failure` stops
+after it.
 
 Also available as `--fail-on-skipped`.
+
+### `failOnRetriedPass(bool $enabled = true): self`
+
+Default: off.
+
+Fails a run if one or more tests pass after retry.
+
+The run policy does not change the passed outcome. It keeps the attempt count
+and attachments from failed attempts.
+
+The `tty` reporter keeps each affected class in interactive output. The `tty`
+and `plain` reporters list each retried pass after the summary.
+
+JUnit uses the Surefire-compatible `flakyFailure` element. JSONL uses the
+existing `attempts` field. TeamCity uses numeric test metadata. GitHub creates a
+warning annotation.
+
+A retried pass does not count toward `--bail`. Plugins determine the terminal
+outcome before Greenlight evaluates the policy.
+
+The policy evaluates only tests in the selected shard. Repeat mode records an
+affected iteration as failed. `--repeat-until-failure` stops after it.
+
+Watch mode reports the policy failure after each affected run. The watch
+process continues, and `q` keeps its documented exit code.
+
+A retried pass is evidence of instability. It does not prove that a test has
+permanent flaky behavior.
+
+Also available as `--fail-on-retried-pass`.
 
 ### `plugins(Closure ...$plugins): self`
 
@@ -336,8 +444,8 @@ A `ReporterProvider` plugin registers custom names for `--reporter`. See
 
 Default: output below `build/greenlight-artifacts`, with failure-only retention.
 
-Greenlight gives an `ArtifactBuilder` to the configurator. Repeated calls use
-the same builder.
+Greenlight gives an `ArtifactBuilder` to the configurator. Repeated calls
+preserve earlier settings.
 
 <!-- php-example {"example":"configuration-example-07","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
@@ -347,7 +455,10 @@ the same builder.
     ->maxAttachmentSize('10M')
     ->maxTestSize('50M')
     ->maxRunAttachments(2_000)
-    ->maxRunSize('500M'))
+    ->maxRunSize('500M')
+    ->maxCompletedRuns(20)
+    ->maxCompletedRunAge(604_800)
+    ->maxRetainedSize('2G'))
 ```
 
 Defaults are 32 attachments and 100 MiB per test. Each attachment has a 25 MiB
@@ -355,17 +466,26 @@ limit. Each run has limits of 10,000 attachments and 1 GiB. Per-test limits
 include all retry attempts, even if retention policy discards attachments
 later. Greenlight releases run quota when it discards an attachment.
 
+Completed run retention is unbounded by default. Configure a maximum count,
+age in seconds, or total size. Greenlight applies age, count, and size limits
+in that order. Each limit removes the oldest eligible completed run first.
+
+Run `greenlight artifacts:prune --dry-run` to list selected directories. The
+command without `--dry-run` applies the configured policy.
+
 See [test attachments](attachments.md) for the runtime API and security model.
 
 ### `storage(callable $configurator): self`
 
-Default: all storage uses the system temporary directory.
+Default: state, caches, generated code, and temporary data use the system
+temporary directory. Published attachments use the separate `artifacts()`
+configuration.
 
-The configurator receives a `StorageBuilder`. Repeated calls use the same
-builder.
+The configurator receives a `StorageBuilder`. Repeated calls preserve earlier
+settings.
 
-Use `rootDirectory()` to put all Greenlight storage below one directory. An
-area-specific directory replaces its directory below the root.
+Use `rootDirectory()` to put these four storage areas below one directory.
+An area-specific directory replaces its directory below the root.
 
 `StorageBuilder` has these methods:
 
@@ -411,13 +531,17 @@ directories that it creates and owns.
 
 Default: off.
 
-Stops the run after the first failure.
+Stops new work after the first failed or errored test. Active assignments can
+finish after this limit. Thus, the final failure count can exceed one.
 
 ### `randomizeOrder(?int $seed = null): self`
 
-Default: declared order, no seed.
+Default: no randomization or seed. Previous failures and durations can change
+class order.
 
 Randomizes class order.
+
+Use a nonnegative integer for the seed. Zero is a valid seed.
 
 If `$seed` is `null`, Greenlight selects one seed when it resolves the command.
 Discovery and execution use this seed. Greenlight prints the seed. Use `--seed`
@@ -450,9 +574,12 @@ Use a channel when each worker can have a separate resource. Use
 concurrency. A resource limit controls the number of assignments that can run.
 It does not assign a resource instance to an assignment.
 
-Two concurrent tests do not share a channel. Channel numbers are from 1 through
-the worker count. The number of worker processes during the run does not change
-this range. After a worker crash, its replacement reuses the freed slot.
+Within one run, two concurrent tests do not share a channel. Channel numbers
+are from 1 through the worker count. Worker replacement does not change this
+range. After a worker crash, its replacement reuses the freed slot.
+
+Separate runs and CI shards reuse the same channel numbers. Give concurrent
+runs separate resource prefixes when they use the same external service.
 
 A `--workers=1` run executes in-process on channel 1.
 
@@ -482,7 +609,7 @@ For infrastructure that must be created and destroyed with the run, a plugin
 can implement `IntegrationFixtureProvider`. The provider runs in the
 orchestrator after discovery and sharding, creates shared or per-channel
 resources, and registers teardown. Workers receive an injectable
-`IntegrationResources` catalog containing shared values plus only their own
+`IntegrationResources` catalog with shared values plus only their own
 channel overlay. See [Writing plugins](plugins.md#integrationfixtureprovider).
 
 ## CLI reference
@@ -503,6 +630,56 @@ This is the default command if you do not give a command.
 
 Prints each discovered test ID on a separate line. It then prints the count.
 
+### `coverage:merge`
+
+Merges two or more Greenlight coverage JSON exports.
+
+Repeat `--input` for each source. Repeat `--export` for each required output:
+
+```sh
+greenlight coverage:merge \
+    --input=coverage-shard-1.json \
+    --input=coverage-shard-2.json \
+    --export=json=coverage.json \
+    --export=lcov=coverage.lcov \
+    --export=html=coverage-html
+```
+
+The command supports `json`, `lcov`, `clover`, `cobertura`, and `html`.
+
+The merged map contains the union of all executable lines. A line has coverage
+if one or more inputs identify it as covered. Input order does not change the
+result.
+
+Duplicate inputs and empty maps do not change the result. A file that is absent
+from one input remains in the result if another input contains it.
+
+By default, absolute paths identify files. For different checkout roots, repeat
+`--input-root` once for each input. Also set `--project-root`:
+
+```sh
+greenlight coverage:merge \
+    --input=one.json \
+    --input=two.json \
+    --input-root=/old/checkout-one \
+    --input-root=/old/checkout-two \
+    --project-root=/current/checkout \
+    --export=json=coverage.json
+```
+
+Greenlight maps each input path to the selected project root. It rejects a path
+outside its applicable input root. It also rejects one input that has different
+input roots.
+
+The command rejects malformed documents and unsupported schema versions. It
+also rejects relative file paths.
+
+Each output file uses an atomic replacement. Output files and HTML pages have
+deterministic content and order.
+
+The command accepts `--minimum-coverage` and `--maximum-uncovered-lines`. These
+gates apply to the merged map after Greenlight writes the outputs.
+
 ### `coverage:diff`
 
 Compares two coverage JSON exports.
@@ -514,8 +691,33 @@ Requires:
 --current=<path>
 ```
 
-Exits with code 1 if total coverage decreases or the current export has a new
-uncovered line. A total coverage gain does not hide a new uncovered line.
+For exports from different checkout roots, also use both root options:
+
+```sh
+greenlight coverage:diff \
+    --baseline=baseline.json \
+    --current=current.json \
+    --baseline-root=/old/checkout \
+    --current-root=/new/checkout
+```
+
+Greenlight removes each explicit root from the file paths in its applicable
+export. It then compares the project-relative paths. Each coverage path must be
+below its applicable root. The command fails if a path is outside the root.
+
+The root options do not change either coverage export. Coverage JSON version 1
+continues to use absolute path keys.
+
+The command also accepts `--minimum-coverage` and
+`--maximum-uncovered-lines`. These gates apply to the current export. A failed
+gate fails the command when the baseline has no regression.
+
+Exits with code 1 if coverage across files present in both exports decreases.
+It also fails if the current export has a newly uncovered line. This rule also
+applies to added files. A coverage gain elsewhere does not hide that line.
+
+Removed files do not cause a regression. The displayed total percentages
+include all files, so their difference alone does not determine the exit code.
 
 See the [coverage JSON schema](architecture/coverage-json.md) for the required
 format and path rules.
@@ -524,13 +726,26 @@ format and path rules.
 
 Renders a run profile from a saved JSONL event stream.
 
-The command accepts JSONL versions 2 and 3.
+The command accepts JSONL version 1.
 
 Requires:
 
 ```sh
 --input=<path>
 ```
+
+### artifacts:prune
+
+Applies the configured retention policy to completed artifact run directories.
+
+Use `--dry-run` to list the directories that the command would remove. The
+command reports each directory, its size, and the applicable limit.
+
+If you configure no retention policy, the command exits successfully and does
+not remove a directory.
+
+See [`artifacts()`](#artifactscallable-configurator-self) for the retention
+settings.
 
 ### ide-helper
 
@@ -553,17 +768,29 @@ change.
 
 ### completion
 
-Prints a shell completion script to stdout.
+Prints a shell completion script to standard output. Use the command for your
+shell from the project root.
 
-Example setup:
+For Bash:
 
-```sh
-source <(greenlight completion bash)
-source <(greenlight completion zsh)
-greenlight completion fish > ~/.config/fish/completions/greenlight.fish
+```bash
+source <(vendor/bin/greenlight completion bash)
 ```
 
-For zsh, run `compinit` before you source the completion script.
+For Zsh, initialize completion before you load the script:
+
+```zsh
+autoload -Uz compinit
+compinit
+source <(vendor/bin/greenlight completion zsh)
+```
+
+For Fish, create the completion directory before you save the script:
+
+```fish
+mkdir -p ~/.config/fish/completions
+vendor/bin/greenlight completion fish > ~/.config/fish/completions/greenlight.fish
+```
 
 ## Options
 
@@ -590,7 +817,8 @@ time.
 
 ### `--bail[=<n>]`
 
-Stops after `<n>` failures.
+Stops new work after `<n>` failed or errored tests. Active assignments can
+finish after this limit. Thus, the final failure count can exceed `<n>`.
 
 Bare `--bail` means `--bail=1`.
 
@@ -682,13 +910,27 @@ Repeatable.
 
 ### `--exclude-path=<prefix>`
 
-Excludes tests whose source file is below the path prefix.
+Excludes tests whose source path starts with the given prefix.
 
-Greenlight resolves relative prefixes from the current directory. Repeatable.
+Greenlight resolves relative prefixes from the current directory. It compares
+the path text without a directory-boundary check. For example,
+`--exclude-path=tests/Slow` also matches `tests/SlowExtra/ExampleTest.php`.
+
+Repeat the option to add prefixes.
 
 ### `--list-tests`
 
 Prints the selected test IDs. It does not run them.
+
+Use `--format=json` to write the version 1 test discovery manifest. The
+[manifest reference](architecture/test-manifest.md) defines its schema, order,
+metadata, compatibility rules, and exit codes.
+
+### `--format=<format>`
+
+Sets `list-tests` output to `text` or `json`. The default is `text`.
+
+Use this option only with `list-tests` or `run --list-tests`.
 
 ### `--list-groups`
 
@@ -738,8 +980,8 @@ Each shard enforces its own resource limits. If four shards each use
 
 Reruns only tests that failed or had an error in the previous run.
 
-Greenlight records failure state for each run in the system temporary
-directory.
+Greenlight records failure state for each run in the configured state
+directory. By default, it uses the system temporary directory.
 
 If no previous failure state exists, this is a usage error.
 
@@ -769,7 +1011,7 @@ Built-in reporters:
 * `github`
 * `teamcity`
 
-Repeatable. Multiple reporters write concurrently.
+Repeatable. Greenlight sends each event to the reporters in flag order.
 
 `ReporterProvider` plugins can add names. Greenlight creates reporters in flag
 order. A repeated name creates a separate reporter for each occurrence.
@@ -813,6 +1055,29 @@ Overrides the configured artifact parent directory for this run. Greenlight
 creates a unique run directory below it and reports that path in human and
 machine-readable output.
 
+### `--minimum-coverage=<percentage>`
+
+Overrides `CoverageBuilder::minimumPercentage()` for a run. The option also
+enables coverage when the configuration file does not configure it. With
+`coverage:diff`, the option checks the current export. With `coverage:merge`,
+the option checks the merged map.
+
+The value must be from `0` through `100`. It can have two decimal places.
+
+### `--maximum-uncovered-lines=<n>`
+
+Overrides `CoverageBuilder::maximumUncoveredLines()` for a run. The option also
+enables coverage when the configuration file does not configure it. With
+`coverage:diff`, the option checks the current export. With `coverage:merge`,
+the option checks the merged map.
+
+The value must be a nonnegative integer.
+
+### `--require-coverage-driver`
+
+Requires an available coverage driver for this run. The option also enables
+coverage when the configuration file does not configure it.
+
 ### `--baseline=<path>`
 
 Sets the baseline coverage JSON file for `coverage:diff`.
@@ -820,6 +1085,39 @@ Sets the baseline coverage JSON file for `coverage:diff`.
 ### `--current=<path>`
 
 Sets the current coverage JSON file for `coverage:diff`.
+
+### `--baseline-root=<path>`
+
+Sets the project root for baseline path normalization. Use this option with
+`--current-root`.
+
+### `--current-root=<path>`
+
+Sets the project root for current path normalization. Use this option with
+`--baseline-root`.
+
+### `--input=<path>`
+
+Sets the input stream for `profile:report`.
+
+With `coverage:merge`, the option sets one coverage JSON input. Repeat the
+option for each input.
+
+### `--export=<format>=<path>`
+
+Sets one output for `coverage:merge`. Repeat the option for each output.
+
+Supported formats are `json`, `lcov`, `clover`, `cobertura`, and `html`.
+
+### `--input-root=<path>`
+
+Sets the source project root for one `coverage:merge` input. Repeat the option
+once for each input. Use this option with `--project-root`.
+
+### `--project-root=<path>`
+
+Sets the target project root for `coverage:merge` path relocation. Use this
+option with `--input-root`.
 
 ### `--coverage-map=<path>`
 
@@ -833,8 +1131,8 @@ Adds a coverage include path for this run. Repeatable.
 
 ### `--no-coverage`
 
-Disables configured aggregate and per-test coverage for this run. It cannot be
-combined with `--coverage-map` or `--coverage-include`.
+Disables configured aggregate and per-test coverage for this run. Do not use it
+with an option that enables or requires coverage.
 
 ### `--watch`
 
@@ -843,6 +1141,9 @@ Starts with a complete run, then reruns all selected tests after a file change.
 Greenlight watches the effective test paths and all coverage include paths. An
 explicit suite selection limits the effective test paths to selected suites.
 After a change, classes that failed in the previous watch iteration run first.
+
+The `watch()` builder can add templates, YAML, JSON, SQL migrations, fixtures,
+and other inputs. It can also exclude generated output from every watched root.
 
 Watch mode does not publish coverage totals or coverage exports.
 Per-test coverage cannot be combined with watch mode.
@@ -853,6 +1154,29 @@ In watch mode:
 * `q` quits with exit code 0, regardless of the last iteration result.
 
 Signals use the exit codes in the [interruption](#interruption) section.
+
+### Configure watch inputs
+
+Use `WatchBuilder::paths()` to add files or directories. Relative paths use the
+command working directory. Include patterns select files in additional
+directories. Exact file inputs do not require an include pattern. Exclude
+patterns apply to all watch inputs and have precedence over include patterns.
+
+Each poll visits directory entries in a stable lexical order. It does not hash
+an excluded or unmatched file. A poll stops with an error when it exceeds the
+configured file limit.
+
+Greenlight does not follow symlinks in watched trees.
+
+A created file reports an addition. A removed file reports a deletion. A
+rename reports one deletion and one addition.
+
+An unreadable or temporarily absent file is not in that poll. If it was in the
+prior poll, Greenlight reports a deletion. It reports an addition when the file
+becomes readable again.
+
+Large projects increase poll time. Increase the watch debounce when frequent
+save events cause excess scans.
 
 ### `--detect-leaks`
 
@@ -883,6 +1207,10 @@ Enables the risky-test policy for this run.
 
 Enables the skipped-test run policy for this run.
 
+### `--fail-on-retried-pass`
+
+Enables the retried-pass run policy for this run.
+
 ### `--profile`
 
 Adds a run profile after the summary.
@@ -909,10 +1237,6 @@ artifact later with:
 greenlight profile:report --input=<file>
 ```
 
-### `--input=<path>`
-
-Sets the JSONL input file for `profile:report`.
-
 ### `--output=<path>`
 
 Changes the file written by `ide-helper`.
@@ -922,7 +1246,8 @@ Default: `_greenlight_ide_helper.php`.
 ### `--dry-run`
 
 Prints a summary of the resolved run settings without test discovery or
-execution.
+execution. The summary includes additional watch paths, patterns, debounce, and
+the file limit.
 
 ### `--verbose`
 
@@ -930,7 +1255,7 @@ In interactive output, prints a permanent line for every completed class.
 
 ### `--ansi`
 
-Enables colors in append-only reporter output. It does not enable the live
+Enables colors in help and append-only reporter output. It does not enable the live
 progress window.
 
 ### `--no-ansi`
@@ -945,7 +1270,10 @@ A truthy `CI` environment variable has the same effect.
 
 ### -h, --help
 
-Shows help.
+Shows help. Terminal output uses colors for the title, section headings,
+commands, and option labels. Piped output uses plain text by default.
+Use `--ansi` to enable colors.
+`NO_COLOR` and `--no-ansi` disable help colors.
 
 ### -V, --version
 
@@ -960,6 +1288,7 @@ Greenlight uses these exit codes:
   errors, coverage export errors, detected leaks, and zero discovered tests
 * `64`: usage error, such as an unknown command, unknown flag, or malformed
   option value
+* `128 + signal number`: interruption by a process signal
 
 Greenlight treats a run with zero tests as a configuration problem. It does not
 treat the run as a success.
@@ -990,7 +1319,8 @@ behavior and exits immediately.
 
 ## Discovery cache
 
-Greenlight caches discovery results per file under the system temp directory.
+Greenlight caches discovery results per file in the configured cache directory.
+By default, it uses the system temporary directory.
 
 The cache identity includes the effective discovery paths. The cache key for
 each entry includes the file path, mtime, and size. Greenlight can reuse data
@@ -1019,8 +1349,8 @@ Both human reporters start with a one-line header that contains:
 * seed, when randomized
 * worker count
 
-They end with a "Slowest tests" block when a test took at least 500 ms. The
-block lists the five slowest tests.
+They end with a "Slowest tests" block when a test took more than 500 ms. The
+block lists up to five tests that exceed this threshold.
 
 Fast suites do not print the block.
 

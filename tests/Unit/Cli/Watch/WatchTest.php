@@ -12,11 +12,12 @@ use Greenlight\Cli\Watch\StatChangeDetector;
 use Greenlight\Cli\Watch\SystemWatchClock;
 use Greenlight\Cli\Watch\WatchLoop;
 use Greenlight\Doubles\Fake;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Cli\Watch\FakeWatchClock;
+
+use function Greenlight\expect;
 
 final readonly class WatchTest
 {
@@ -25,7 +26,7 @@ final readonly class WatchTest
     #[Test]
     public function rejectsANegativeQuietPeriodWithExactGuidance(): void
     {
-        Expect::that(
+        expect()->calling(
             static fn(): Debouncer => new Debouncer(-0.1),
         )->toThrow(
             \InvalidArgumentException::class,
@@ -38,18 +39,18 @@ final readonly class WatchTest
     {
         $debouncer = new Debouncer(0.2);
 
-        Expect::that($debouncer->shouldFire(10.0))->because('debounce fires only after the quiet period')->toBeFalse();
+        expect($debouncer->shouldFire(10.0))->because('debounce fires only after the quiet period')->toBeFalse();
 
         $debouncer->noteChange(10.0);
-        Expect::that($debouncer->shouldFire(10.1))->because('debounce fires only after the quiet period')->toBeFalse();
+        expect($debouncer->shouldFire(10.1))->because('debounce fires only after the quiet period')->toBeFalse();
 
         // Multiple consecutive changes restart the quiet timer.
         $debouncer->noteChange(10.15);
-        Expect::that($debouncer->shouldFire(10.3))->because('debounce fires only after the quiet period')->toBeFalse();
-        Expect::that($debouncer->shouldFire(10.4))->because('debounce fires only after the quiet period')->toBeTrue();
+        expect($debouncer->shouldFire(10.3))->because('debounce fires only after the quiet period')->toBeFalse();
+        expect($debouncer->shouldFire(10.4))->because('debounce fires only after the quiet period')->toBeTrue();
 
         $debouncer->reset();
-        Expect::that($debouncer->shouldFire(11.0))->because('debounce fires only after the quiet period')->toBeFalse();
+        expect($debouncer->shouldFire(11.0))->because('debounce fires only after the quiet period')->toBeFalse();
     }
 
     #[Test]
@@ -58,7 +59,7 @@ final readonly class WatchTest
         $debouncer = new Debouncer(0.5);
         $debouncer->noteChange(4.0);
 
-        Expect::that($debouncer->shouldFire(4.5))
+        expect($debouncer->shouldFire(4.5))
             ->because('the quiet period includes its exact boundary')
             ->toBeTrue();
     }
@@ -70,19 +71,19 @@ final readonly class WatchTest
         \file_put_contents($directory . '/A.php', '<?php // a');
         $detector = new StatChangeDetector([$directory]);
 
-        Expect::that($detector->poll())->toBe([]);
+        expect($detector->poll())->toBe([]);
 
         // Both changes occur in the same second. Thus, a size change shows
         // that the fingerprint operates correctly.
         \file_put_contents($directory . '/A.php', '<?php // a changed');
-        Expect::that($detector->poll())->toBe([$directory . '/A.php']);
-        Expect::that($detector->poll())->toBe([]);
+        expect($detector->poll())->toBe([$directory . '/A.php']);
+        expect($detector->poll())->toBe([]);
 
         \file_put_contents($directory . '/B.php', '<?php // b');
-        Expect::that($detector->poll())->toBe([$directory . '/B.php']);
+        expect($detector->poll())->toBe([$directory . '/B.php']);
 
         \unlink($directory . '/A.php');
-        Expect::that($detector->poll())->toBe([$directory . '/A.php']);
+        expect($detector->poll())->toBe([$directory . '/A.php']);
     }
 
     #[Test]
@@ -100,19 +101,19 @@ final readonly class WatchTest
             $root,
         ]);
 
-        Expect::that($detector->poll())
+        expect($detector->poll())
             ->because('the first poll only records PHP files from directories that exist')
             ->toBe([]);
 
         \file_put_contents($ignoredFile, 'second and larger');
 
-        Expect::that($detector->poll())
+        expect($detector->poll())
             ->because('changes to non-PHP files are ignored')
             ->toBe([]);
 
         \file_put_contents($watchedFile, '<?php // second and larger');
 
-        Expect::that($detector->poll())
+        expect($detector->poll())
             ->because('nested PHP files are watched')
             ->toBe([$watchedFile]);
     }
@@ -153,12 +154,12 @@ final readonly class WatchTest
             },
         )->run(static fn(array $priorityClasses): array => [], maxIterations: 2);
 
-        $ready = "\nWaiting for changes. Press Enter to run all tests. Press q to quit.\n";
+        $ready = "\nWaiting for changes. Press Enter to rerun the selected tests. Press q to quit.\n";
 
-        Expect::that($output)
+        expect($output)
             ->because('a multi-file watch batch MUST use the plural notification')
             ->toBe($ready . "Detected changes in 2 files.\n" . $ready);
-        Expect::that($clock->sleeps)
+        expect($clock->sleeps)
             ->because('a zero quiet period MUST run without sleeping')
             ->toBe([]);
     }
@@ -210,7 +211,7 @@ final readonly class WatchTest
             return [];
         });
 
-        Expect::that($events)->toBe(['baseline', 'run', 'ready', 'key']);
+        expect($events)->toBe(['baseline', 'run', 'ready', 'key']);
     }
 
     #[Test]
@@ -251,15 +252,15 @@ final readonly class WatchTest
             return [];
         });
 
-        Expect::that($runs)
+        expect($runs)
             ->because('watch mode stops after the run that receives a shutdown request')
             ->toBe(1);
-        Expect::that($detector->polls)
+        expect($detector->polls)
             ->because('watch mode does not poll again after a shutdown request')
             ->toBe(1);
-        Expect::that($shutdown->exitCode())
-            ->because('watch mode converts the requested signal to a shell exit status')
-            ->toBe(143);
+        expect($shutdown->signal())
+            ->because('watch mode keeps the signal that requested shutdown')
+            ->toBe(15);
     }
 
     #[Test]
@@ -316,10 +317,10 @@ final readonly class WatchTest
         // The sequence has an initial run and one delayed run for the changes.
         // The delayed run starts with classes that initially failed. Enter
         // then causes one complete run.
-        Expect::that($runs)->because('loop debounces bursts forces on enter and quits on q')->toHaveCount(3);
-        Expect::that($runs[0])->toBe([]);
-        Expect::that($runs[1])->toBe(['App\\BrokenTest']);
-        Expect::that($runs[2])->toBe([]);
-        Expect::that($output)->toContain('Detected changes in 1 file.');
+        expect($runs)->because('loop debounces bursts forces on enter and quits on q')->toHaveCount(3);
+        expect($runs[0])->toBe([]);
+        expect($runs[1])->toBe(['App\\BrokenTest']);
+        expect($runs[2])->toBe([]);
+        expect($output)->toContain('Detected changes in 1 file.');
     }
 }

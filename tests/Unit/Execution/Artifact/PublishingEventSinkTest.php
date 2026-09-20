@@ -11,13 +11,14 @@ use Greenlight\Event\TestFinished;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\PublishingEventSink;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
 use Greenlight\Tests\Support\CollectingEventSink;
+
+use function Greenlight\expect;
 
 final readonly class PublishingEventSinkTest
 {
@@ -49,34 +50,33 @@ final readonly class PublishingEventSinkTest
         $sink->emit($started);
         $sink->emit(new TestFinished($result, 11.0));
 
-        Expect::that($inner->sequence())
+        expect($inner->sequence())
             ->because('the publishing sink MUST preserve event order')
             ->toBe(['RunStarted', 'TestFinished']);
-        Expect::that($inner->events[0])
+        expect($inner->events[0])
             ->because('events without test results MUST pass through unchanged')
             ->toBe($started);
 
         $finished = $inner->events[1];
 
-        Expect::that($finished)
+        expect($finished)
             ->because('The second event MUST be TestFinished.')
             ->toBeInstanceOf(TestFinished::class);
 
         $publishedPath = $finished->result->attachments[0]->path;
 
-        Expect::that($finished->result)
+        expect($finished->result)
             ->because('a completed event MUST replace its staged result with the published result')
-            ->not()
-            ->toBe($result);
-        Expect::that($finished->occurredAt)
+            ->not()->toBe($result);
+        expect($finished->occurredAt)
             ->because('publishing MUST preserve the event timestamp')
             ->toBe(11.0);
-        Expect::that($finished->result->attachments)
+        expect($finished->result->attachments)
             ->because('the inner sink MUST receive published attachment metadata')
             ->toHaveCount(1);
-        Expect::that($finished->result->attachments[0]->path)
+        expect($finished->result->attachments[0]->path)
             ->toContain('run-publishing-sink');
-        Expect::that((string) \file_get_contents(
+        expect((string) \file_get_contents(
             \str_starts_with($publishedPath, '/') ? $publishedPath : $root . '/' . $publishedPath,
         ))
             ->toBe('published evidence');

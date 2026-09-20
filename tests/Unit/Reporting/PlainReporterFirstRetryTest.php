@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Unit\Reporting;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\PlainReporter;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class PlainReporterFirstRetryTest
 {
@@ -30,8 +31,8 @@ final readonly class PlainReporterFirstRetryTest
             1_750_000_000.5,
         ));
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('the first retry MUST report both attempts')
-            ->toBe("PASS Acme\\RetryTest::passesOnFirstRetry (0.010s) (attempts: 2)\n");
+            ->toBe("PASS Acme\\RetryTest::passesOnFirstRetry (0.010s) (passed after 2 attempts)\n");
     }
 }

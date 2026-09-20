@@ -95,5 +95,6 @@ final class PhpUnitAttributes
 
     public const string TEST_WITH = 'TestWith';
 
+    /** @codeCoverageIgnore */
     private function __construct() {}
 }

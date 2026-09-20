@@ -61,6 +61,24 @@ final class CliError extends \RuntimeException
         return new self('--filter requires a pattern.');
     }
 
+    public static function unknownTestListFormat(string $format): self
+    {
+        return new self(\sprintf(
+            'Unknown list-tests format "%s". Select text or json.',
+            $format,
+        ));
+    }
+
+    public static function formatRequiresTestListing(): self
+    {
+        return new self('Use --format only with list-tests or run --list-tests.');
+    }
+
+    public static function failedRequiresState(): self
+    {
+        return new self('--failed requires state from a previous run. Run Greenlight once without --failed.');
+    }
+
     /** @param non-empty-list<non-empty-string> $names */
     public static function unknownSuites(array $names): self
     {
@@ -110,6 +128,32 @@ final class CliError extends \RuntimeException
     public static function notAPositiveInteger(string $flag, string $raw): self
     {
         return new self(\sprintf('%s requires a positive integer. Received "%s".', $flag, $raw));
+    }
+
+    public static function notANonNegativeInteger(string $flag, string $raw): self
+    {
+        return new self(\sprintf('%s requires a nonnegative integer. Received "%s".', $flag, $raw));
+    }
+
+    public static function invalidCoveragePercentage(string $raw): self
+    {
+        return new self(\sprintf(
+            '--minimum-coverage requires a percentage from 0 through 100 with at most two decimal places. Received "%s".',
+            $raw,
+        ));
+    }
+
+    public static function malformedCoverageExport(string $raw): self
+    {
+        return new self(\sprintf(
+            '--export requires <format>=<path>, such as json=coverage.json. Received "%s".',
+            $raw,
+        ));
+    }
+
+    public static function duplicateCoverageExport(string $path): self
+    {
+        return new self(\sprintf('Write coverage export target "%s" only once.', $path));
     }
 
     public static function malformedResourceLimit(string $raw): self
@@ -170,7 +214,7 @@ final class CliError extends \RuntimeException
 
     public static function coverageOptionsConflict(): self
     {
-        return new self('--no-coverage cannot be combined with --coverage-map or --coverage-include.');
+        return new self('--no-coverage cannot be combined with an option that enables or requires coverage.');
     }
 
     /** @param non-empty-list<non-empty-string> $values */

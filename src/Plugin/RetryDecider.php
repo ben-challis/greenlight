@@ -8,10 +8,14 @@ use Greenlight\Result\TestResult;
 use Greenlight\Test\RetryPolicy;
 
 /**
- * A worker calls a retry decider after each unsuccessful attempt.
+ * A worker checks retry deciders after each failed or errored attempt.
+ * Greenlight runs lower priorities first and uses registration order for equal
+ * priorities. It stops at the first decider that returns true.
  *
  * A `true` result starts a new attempt with a new test instance and a new
  * service scope.
+ * A false result permits the next decider to check the attempt. It does not
+ * prevent another decider, including the built-in retry policy, from retrying.
  *
  * `shouldRetry()` receives the retry policy, result, attempt number, and
  * optional cause. It does not receive `TestContext` because the attempt is

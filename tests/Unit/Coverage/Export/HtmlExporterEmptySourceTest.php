@@ -8,8 +8,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\HtmlExporter;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class HtmlExporterEmptySourceTest
 {
@@ -26,13 +27,12 @@ final readonly class HtmlExporterEmptySourceTest
 
         $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($path)];
 
-        Expect::that(\is_readable($path))
+        expect(\is_readable($path))
             ->because('the empty source MUST be readable')
             ->toBeTrue();
-        Expect::that($page)
+        expect($page)
             ->because('an empty source MUST retain a valid empty source block')
             ->toContain("<pre>\n</pre>")
-            ->not()
-            ->toContain('<span class="cov"><span class="num">1</span></span>');
+            ->not()->toContain('<span class="cov"><span class="num">1</span></span>');
     }
 }

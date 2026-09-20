@@ -82,10 +82,11 @@ final class RegistrationTest
 }
 ```
 
-Greenlight first resolves constructor parameters from its harness. It then asks
-fallback-capable service resolvers. Finally, it asks the Tempest container to
-resolve the type. Greenlight always places the terminal Tempest resolver last.
-Registration order and plugin priority do not change this rule.
+Without an explicit service source, Greenlight first resolves constructor
+parameters from its harness. It then asks fallback-capable service resolvers.
+Finally, it asks the Tempest container to resolve the type. Greenlight places
+the terminal Tempest resolver last in this chain. Registration order and
+plugin priority do not change this rule.
 
 Tempest can use discovered initializers and automatic constructor injection. If
 Tempest cannot resolve the type, Greenlight throws `ServiceResolutionFailed`.
@@ -93,19 +94,55 @@ The exception contains the Tempest container exception as its cause.
 
 ### Tagged services
 
-Use the Tempest `#[Tag]` attribute to select a tagged service:
+Replace Tempest `#[Tag]` with `#[Service]` on test constructor parameters.
+
+Use `#[Service]` to select a tagged service:
 
 <!-- php-example {"example":"tempest-example-04","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
 ```php
-use Tempest\Container\Tag;
+use Greenlight\Harness\Service;
 
 public function __construct(
-    #[Tag('archive')] private readonly Storage $storage,
+    #[Service('archive')] private readonly Storage $storage,
 ) {}
 ```
 
-The bridge passes the tag to the Tempest container. The resolved service has
-the declared parameter type.
+The bridge calls `$container->get(Storage::class, tag: 'archive')`. The ID
+selects a tag, and the declared parameter type stays `Storage`. Greenlight
+checks that the returned service has this type.
+
+`Service` accepts only string IDs. For an enum tag, change the Tempest binding
+and parameter attribute to use the same string.
+
+Without `#[Service]`, the bridge calls `$container->get(Storage::class)`.
+
+### Select a service source
+
+Pass `source: 'app'` to `TempestPlugin` to name this plugin instance. Use
+`#[Service(source: 'app')]` to request the default binding for a type from this
+source. Add an ID to select a tagged service:
+
+<!-- php-example {"example":"tempest-example-06","file":"snippet.php","mode":"class-members","tools":["rector"]} -->
+```php
+use Greenlight\Harness\Service;
+
+public function __construct(
+    #[Service('archive', source: 'app')]
+    private readonly Storage $storage,
+) {}
+```
+
+The `source` argument selects the plugin instance. The ID selects the tag.
+The selected plugin calls `$container->get(Storage::class, tag: 'archive')`.
+
+Source names do not remove the single-terminal-resolver limit. Register only
+one Tempest plugin.
+
+An explicit source takes precedence over global harness services and the
+resolver chain. A missing service fails without a request to another source.
+Use the same source attribute to select this plugin's kernel or container
+harness service. See [service sources](plugins.md#servicesource) for naming and
+resolution rules.
 
 ### Kernel and container services
 
@@ -131,8 +168,11 @@ operations:
 4. Reset the container and each discovered `Resettable` implementation.
 5. Dispatch `KernelEvent::RESET` and `KernelEvent::SHUTDOWN`.
 
-The call does not end the worker. The next test uses the reset container from
-the same kernel.
+The call does not end the worker. If shutdown succeeds, the next test uses the
+reset container from the same kernel. If shutdown throws, the attempt has an
+error and the bridge discards the active kernel. It restores the previous
+process environment and global container. The next container request boots a
+new kernel.
 
 Use Tempest's `Resettable` interface to reset container state after each test.
 Reset state outside the container in an `#[After]` hook.

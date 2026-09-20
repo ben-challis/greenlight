@@ -26,13 +26,16 @@ use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
 use Greenlight\Execution\Worker\ChannelEnvironment;
 use Greenlight\Execution\Worker\HarnessServiceDisposal;
 use Greenlight\Execution\Worker\LeakDetector;
+use Greenlight\Execution\Worker\ResultPolicyPlugin;
 use Greenlight\Execution\Worker\StandardHarnessPlugin;
 use Greenlight\Execution\Worker\Worker;
 use Greenlight\Execution\Worker\WorkerError;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Plugin\WorkerBootstrapContext;
+use Greenlight\Result\ResultPolicy;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\TestChannel;
 use Greenlight\Test\TestId;
@@ -48,6 +51,7 @@ final readonly class WorkerProcess
 
     public function __construct(
         private float $receivePollSeconds = self::RECEIVE_POLL_SECONDS,
+        private bool $isolateProcessGroup = false,
     ) {}
 
     /**
@@ -56,8 +60,14 @@ final readonly class WorkerProcess
      * @param non-empty-string $token
      * @throws ProtocolError
      */
-    public function run(string $address, string $workerId, string $token): int
+    public function run(string $address, string $workerId, string $token): CommandResult
     {
+        // Keep the worker and its subprocesses outside the terminal process group.
+        // Thus, terminal SIGINT reaches only the orchestrator.
+        if ($this->isolateProcessGroup && \function_exists('posix_setpgid')) {
+            ErrorTrap::run(static fn() => \posix_setpgid(0, 0));
+        }
+
         // The terminal sends Ctrl+C to the complete process group. Workers
         // ignore SIGINT. Thus, the orchestrator can control an orderly drain.
         // Crash containment does not report active tests as crashes from SIGINT.
@@ -84,7 +94,7 @@ final readonly class WorkerProcess
      * @param non-empty-string $token
      * @throws ProtocolError
      */
-    private function runWhileIgnoringInterrupt(string $address, string $workerId, string $token): int
+    private function runWhileIgnoringInterrupt(string $address, string $workerId, string $token): CommandResult
     {
         $stream = ErrorTrap::run(static function () use ($address, &$errorCode, &$errorMessage) {
             return \stream_socket_client($address, $errorCode, $errorMessage, 10.0);
@@ -93,7 +103,7 @@ final readonly class WorkerProcess
         if ($stream === false) {
             \fwrite(\STDERR, \sprintf("The worker did not connect to %s: %s\n", $address, $errorMessage));
 
-            return 1;
+            return CommandResult::failure();
         }
 
         $channel = new SocketChannel($stream);
@@ -115,11 +125,11 @@ final readonly class WorkerProcess
                         continue;
                     }
 
-                    return 0;
+                    return CommandResult::success();
                 }
 
                 if ($message instanceof Drain) {
-                    return 0;
+                    return CommandResult::success();
                 }
 
                 if (!$message instanceof Bootstrap) {
@@ -149,6 +159,9 @@ final readonly class WorkerProcess
                         $message->generatedCodeDirectory,
                         $message->temporaryDirectory,
                     ),
+                    ...($message->policy instanceof ResultPolicy
+                        ? [new ResultPolicyPlugin($message->policy)]
+                        : []),
                 ]);
                 $scopes = $plugins->prepareWorker(
                     $bootstrap,
@@ -164,7 +177,7 @@ final readonly class WorkerProcess
                     $channel->send($finalMessage);
                 }
 
-                return 0;
+                return CommandResult::success();
             }
         } catch (\Throwable $threw) {
             try {
@@ -174,7 +187,7 @@ final readonly class WorkerProcess
                 // the channel is gone.
             }
 
-            return 1;
+            return CommandResult::failure();
         } finally {
             $scopes?->closeWorker();
             $channel->close();
@@ -266,7 +279,6 @@ final readonly class WorkerProcess
                 $plugins,
                 $leakDetector,
                 $workerId,
-                $message->policy,
                 $artifactStore,
             )->run(
                 $message->slice,

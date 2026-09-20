@@ -9,8 +9,9 @@ use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Harness\Service;
+use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\WorkerBootstrapContext;
@@ -23,10 +24,11 @@ use Greenlight\Test\TestChannel;
 use Greenlight\Tests\Support\PluginLifecycle;
 use Greenlight\Tests\Support\ServiceResolverProbe;
 use Tempest\Container\GenericContainer;
-use Tempest\Container\Tag;
 use Tempest\Core\FrameworkKernel;
 use Tempest\Http\GenericRequest;
 use Tempest\Http\Request;
+
+use function Greenlight\expect;
 
 #[SkipUnless(ClassAvailable::class, FrameworkKernel::class)]
 final class TempestPluginLifecycleTest
@@ -53,16 +55,83 @@ final class TempestPluginLifecycleTest
     }
 
     #[Test]
-    public function resolvesATaggedContainerService(): void
+    public function theServiceIdSelectsATagForTheDeclaredType(): void
     {
         $plugin = $this->plugin();
         $kernel = $this->kernel($plugin);
         $expected = new TaggedProbeImplementation();
-        $kernel->container->singleton(TaggedProbe::class, $expected, 'preferred');
+        $kernel->container->singleton(TaggedProbe::class, new TaggedProbeImplementation());
+        $kernel->container->singleton(TaggedProbe::class, $expected, 'archive');
+        $kernel->container->singleton('archive', new TaggedProbeImplementation());
 
-        Expect::that($plugin->resolve(TaggedProbe::class, [new Tag('preferred')]))
-            ->because('the Tempest Tag attribute MUST select the tagged container binding')
+        expect($plugin->resolve(TaggedProbe::class, [new Service('archive')]))->toBe($expected);
+    }
+
+    #[Test]
+    public function aParameterWithoutASelectorUsesTheDefaultBinding(): void
+    {
+        $plugin = $this->plugin();
+        $kernel = $this->kernel($plugin);
+        $expected = new TaggedProbeImplementation();
+        $kernel->container->singleton(TaggedProbe::class, $expected);
+        $kernel->container->singleton(TaggedProbe::class, new TaggedProbeImplementation(), 'archive');
+
+        expect($plugin->resolve(TaggedProbe::class, []))->toBe($expected);
+    }
+
+    #[Test]
+    public function rejectsAServiceTagBindingOfTheWrongType(): void
+    {
+        $plugin = $this->plugin();
+        $kernel = $this->kernel($plugin);
+        $kernel->container->singleton(TaggedProbe::class, new TaggedProbeImplementation());
+        $kernel->container->singleton(TaggedProbe::class, new \stdClass(), 'archive');
+
+        expect()->calling(static fn(): object => $plugin->resolve(TaggedProbe::class, [new Service('archive')]))
+            ->toThrow(
+                ServiceResolutionFailed::class,
+                message: 'The Tempest container returned "stdClass" for the parameter type "'
+                    . TaggedProbe::class
+                    . '".',
+            );
+    }
+
+    #[Test]
+    public function aSourceOnlyServiceAttributeUsesTheDefaultBinding(): void
+    {
+        $plugin = $this->plugin(source: 'application');
+        $kernel = $this->kernel($plugin);
+        $expected = new TaggedProbeImplementation();
+        $kernel->container->singleton(TaggedProbe::class, $expected);
+        $kernel->container->singleton(TaggedProbe::class, new TaggedProbeImplementation(), 'archive');
+        $earlier = new ServiceResolverProbe(new TaggedProbeImplementation());
+        $scopes = WorkerPluginRuntime::fromPlugins([$earlier, $plugin])->prepareWorker(
+            new WorkerBootstrapContext('test-worker', new TestChannel(1), new IntegrationResources()),
+            [],
+        );
+
+        expect($scopes->resolve(TaggedProbe::class, 'test', [new Service(source: 'application')]))
             ->toBe($expected);
+        expect($earlier->calls)->toBe(0);
+    }
+
+    #[Test]
+    public function aServiceIdSelectsATagWithinTheNamedSource(): void
+    {
+        $plugin = $this->plugin(source: 'application');
+        $kernel = $this->kernel($plugin);
+        $expected = new TaggedProbeImplementation();
+        $kernel->container->singleton(TaggedProbe::class, new TaggedProbeImplementation());
+        $kernel->container->singleton(TaggedProbe::class, $expected, 'archive');
+        $earlier = new ServiceResolverProbe(new TaggedProbeImplementation());
+        $scopes = WorkerPluginRuntime::fromPlugins([$earlier, $plugin])->prepareWorker(
+            new WorkerBootstrapContext('test-worker', new TestChannel(1), new IntegrationResources()),
+            [],
+        );
+
+        expect($scopes->resolve(TaggedProbe::class, 'test', [new Service('archive', source: 'application')]))
+            ->toBe($expected);
+        expect($earlier->calls)->toBe(0);
     }
 
     #[Test]
@@ -76,10 +145,10 @@ final class TempestPluginLifecycleTest
             [],
         );
 
-        Expect::that($scopes->resolve(TaggedProbe::class, 'test'))
+        expect($scopes->resolve(TaggedProbe::class, 'test'))
             ->because('a fallback resolver MUST run before the terminal Tempest resolver')
             ->toBe($answer);
-        Expect::that($fallback->calls)->toBe(1);
+        expect($fallback->calls)->toBe(1);
     }
 
     #[Test]
@@ -88,7 +157,7 @@ final class TempestPluginLifecycleTest
         $plugin = $this->plugin();
         $this->kernel($plugin);
 
-        Expect::that(static fn(): object => $plugin->resolve(MissingProbe::class, []))
+        expect()->calling(static fn(): object => $plugin->resolve(MissingProbe::class, []))
             ->toThrow(
                 TempestBridgeError::class,
                 matching: '/^The Tempest container could not resolve the parameter type "'
@@ -103,7 +172,7 @@ final class TempestPluginLifecycleTest
         $missingRoot = $this->tempDirectory->path() . '/missing-resolution-root';
         $plugin = new TempestPlugin($missingRoot);
 
-        Expect::that(static fn(): object => $plugin->resolve(MissingProbe::class, []))
+        expect()->calling(static fn(): object => $plugin->resolve(MissingProbe::class, []))
             ->toThrow(
                 TempestBridgeError::class,
                 matching: '/^TempestPlugin could not boot the application at "'
@@ -121,7 +190,7 @@ final class TempestPluginLifecycleTest
 
         $plugin->beforeTest($this->context());
 
-        Expect::that($kernel->container->get(Request::class))
+        expect($kernel->container->get(Request::class))
             ->because('each Tempest test MUST receive a new base request after the container reset')
             ->toBeInstanceOf(GenericRequest::class);
     }
@@ -133,7 +202,7 @@ final class TempestPluginLifecycleTest
         $kernel = $this->kernel($plugin);
         $kernel->container->singleton(MissingProbe::class, new \stdClass());
 
-        Expect::that(static fn(): object => $plugin->resolve(MissingProbe::class, []))
+        expect()->calling(static fn(): object => $plugin->resolve(MissingProbe::class, []))
             ->toThrow(
                 TempestBridgeError::class,
                 message: 'The Tempest container returned "stdClass" for the parameter type "'
@@ -150,16 +219,16 @@ final class TempestPluginLifecycleTest
         $plugin = new TempestPlugin($missingRoot);
         $factory = $plugin->services()[0]->factory;
 
-        Expect::that(static fn(): object => $factory())
+        expect()->calling(static fn(): object => $factory())
             ->toThrow(
                 TempestBridgeError::class,
                 matching: '/^TempestPlugin could not boot the application at "'
                     . \preg_quote($missingRoot, '/')
                     . '": /',
             );
-        Expect::that(\getenv('ENVIRONMENT'))->toBe('before-tempest');
-        Expect::that($_ENV['ENVIRONMENT'])->toBe('before-tempest');
-        Expect::that($_SERVER['ENVIRONMENT'])->toBe('before-tempest');
+        expect(\getenv('ENVIRONMENT'))->toBe('before-tempest');
+        expect($_ENV['ENVIRONMENT'])->toBe('before-tempest');
+        expect($_SERVER['ENVIRONMENT'])->toBe('before-tempest');
     }
 
     #[Test]
@@ -170,18 +239,18 @@ final class TempestPluginLifecycleTest
         $kernel = $this->kernel($plugin);
         $kernel->container->singleton('Tempest\EventBus\EventBus', new \stdClass());
 
-        Expect::that(fn(): TestResult => $plugin->afterTest($this->context(), $this->result()))
+        expect()->calling(fn(): TestResult => $plugin->afterTest($this->context(), $this->result()))
             ->toThrow(
                 TempestBridgeError::class,
                 matching: '/^TempestPlugin could not shut down the application/',
             );
-        Expect::that(\getenv('ENVIRONMENT'))->toBe('before-tempest');
-        Expect::that($_ENV['ENVIRONMENT'])->toBe('before-tempest');
-        Expect::that($_SERVER['ENVIRONMENT'])->toBe('before-tempest');
-        Expect::that(GenericContainer::instance())->not()->toBe($kernel->container);
+        expect(\getenv('ENVIRONMENT'))->toBe('before-tempest');
+        expect($_ENV['ENVIRONMENT'])->toBe('before-tempest');
+        expect($_SERVER['ENVIRONMENT'])->toBe('before-tempest');
+        expect(GenericContainer::instance())->not()->toBe($kernel->container);
     }
 
-    private function plugin(): TempestPlugin
+    private function plugin(?string $source = null): TempestPlugin
     {
         $root = $this->tempDirectory->subdirectory('tempest-plugin-' . ++$this->projectNumber);
         $repository = \dirname(__DIR__, 3);
@@ -202,7 +271,7 @@ final class TempestPluginLifecycleTest
             Fail::because('Expected to link the Tempest test project vendor directory.');
         }
 
-        $plugin = new TempestPlugin($root);
+        $plugin = new TempestPlugin($root, source: $source);
         $this->plugins[] = $plugin;
 
         return $plugin;
@@ -213,7 +282,7 @@ final class TempestPluginLifecycleTest
         $factory = $plugin->services()[0]->factory;
         $kernel = $factory();
 
-        Expect::that($kernel)
+        expect($kernel)
             ->because('the Tempest kernel factory MUST return FrameworkKernel')
             ->toBeInstanceOf(FrameworkKernel::class);
 

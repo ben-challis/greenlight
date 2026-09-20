@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Doubles;
 
-use Greenlight\Attribute\NoExpectations;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\InvalidDoubleUsage;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Stubbable;
+
+use function Greenlight\expect;
 
 final class StubTest
 {
@@ -19,7 +19,7 @@ final class StubTest
         $doubles = new Doubles();
         $stub = $doubles->stub(Stubbable::class);
 
-        Expect::that($stub)->because('satisfies the type without running anything')->toBeInstanceOf(Stubbable::class);
+        expect($stub)->because('satisfies the type without running anything')->toBeInstanceOf(Stubbable::class);
 
         $doubles->dispose();
     }
@@ -30,7 +30,7 @@ final class StubTest
         $doubles = new Doubles();
         $stub = $doubles->stub(Stubbable::class);
 
-        Expect::that(static fn(): string => $stub->name())->because('each call is an authoring error')
+        expect()->calling(static fn(): string => $stub->name())->because('each call is an authoring error')
             ->toThrow(
                 InvalidDoubleUsage::class,
                 message: 'Code called "name()" on the stub of "' . Stubbable::class . '". '
@@ -47,7 +47,7 @@ final class StubTest
         $doubles = new Doubles();
         $stub = $doubles->stub(Stubbable::class);
 
-        Expect::that(static function () use ($stub): void {
+        expect()->calling(static function () use ($stub): void {
             $stub->touch();
         })->because('even void calls are authoring errors')->toThrow(
             InvalidDoubleUsage::class,
@@ -59,13 +59,4 @@ final class StubTest
         $doubles->dispose();
     }
 
-    #[Test]
-    #[NoExpectations]
-    public function anUntouchedStubVerifiesCleanly(): void
-    {
-        $doubles = new Doubles();
-        $doubles->stub(Stubbable::class);
-
-        $doubles->dispose();
-    }
 }

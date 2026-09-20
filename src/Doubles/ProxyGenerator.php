@@ -39,6 +39,14 @@ final readonly class ProxyGenerator
      */
     public function proxyClass(string $type): string
     {
+        /** @var array<string, class-string> $classes */
+        static $classes = [];
+        $key = \strtolower($type);
+
+        if (isset($classes[$key])) {
+            return $classes[$key];
+        }
+
         $reflection = $this->reflectDoubleable($type);
 
         $body = $this->renderBody($reflection);
@@ -67,7 +75,7 @@ final readonly class ProxyGenerator
             }
         }
 
-        return $proxyClass;
+        return $classes[$key] = $proxyClass;
     }
 
     /**
@@ -200,7 +208,7 @@ final readonly class ProxyGenerator
     {
         $name = \strtolower($method->name);
 
-        if (\in_array($name, ['__construct', '__destruct', '__clone'], true)) {
+        if (\in_array($name, ['__construct', '__destruct'], true)) {
             return null;
         }
 
@@ -250,9 +258,18 @@ final readonly class ProxyGenerator
                     $method->getDeclaringClass()->name,
                     $method->name,
                 );
+        } elseif (!$method->returnsReference()) {
+            $body = '        return ' . $invoke . "\n";
         } else {
-            $body = '        $__greenlightResult = ' . $invoke . "\n"
-                . "        return \$__greenlightResult;\n";
+            $resultName = '__greenlightResult';
+            $parameters = $method->getParameters();
+
+            while (\array_any($parameters, static fn(\ReflectionParameter $parameter): bool => $parameter->name === $resultName)) {
+                $resultName .= '_';
+            }
+
+            $body = '        $' . $resultName . ' = ' . $invoke . "\n"
+                . '        return $' . $resultName . ";\n";
         }
 
         return \sprintf(
@@ -263,6 +280,31 @@ final readonly class ProxyGenerator
     }
 
     private function renderInvocationArguments(\ReflectionMethod $method): string
+    {
+        $arguments = $this->renderPositionalArguments($method);
+
+        if (!$method->isVariadic()) {
+            return $arguments === '\\func_get_args()'
+                ? $arguments
+                : \sprintf(
+                    '\\array_merge(%s, \\array_slice(\\func_get_args(), %d))',
+                    $arguments,
+                    $method->getNumberOfParameters(),
+                );
+        }
+
+        $parameters = $method->getParameters();
+        $last = $parameters[\count($parameters) - 1];
+
+        return \sprintf(
+            '\\array_merge(\\array_slice(%s, 0, %d), $%s)',
+            $arguments,
+            \count($parameters) - 1,
+            $last->name,
+        );
+    }
+
+    private function renderPositionalArguments(\ReflectionMethod $method): string
     {
         $parameters = $method->getParameters();
 
@@ -372,7 +414,7 @@ final readonly class ProxyGenerator
             }
 
             if (\str_starts_with($constant, 'self::')) {
-                return '\\' . $context->name . '::' . \substr($constant, 6);
+                $constant = $context->name . '::' . \substr($constant, 6);
             }
 
             if (\str_starts_with($constant, 'parent::')) {
@@ -382,16 +424,44 @@ final readonly class ProxyGenerator
                     throw InvalidDoubleUsage::parentTypeWithoutParent($context->name);
                 }
 
-                return '\\' . $parent->name . '::' . \substr($constant, 8);
+                $constant = $parent->name . '::' . \substr($constant, 8);
+            }
+
+            $separator = \strrpos($constant, '::');
+
+            if ($separator !== false) {
+                $owner = \substr($constant, 0, $separator);
+
+                if (\class_exists($owner)) {
+                    $member = new \ReflectionClass($owner)->getReflectionConstant(\substr($constant, $separator + 2));
+
+                    if ($member instanceof \ReflectionClassConstant && $member->isPrivate()) {
+                        // A child proxy cannot access the parent's private constant.
+                        $value = $parameter->getDefaultValue();
+
+                        if (ParameterDefaultExpression::containsObject($value)) {
+                            throw InvalidDoubleUsage::objectDefaultScopeUnavailable($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
+                        }
+
+                        return \var_export($value, true);
+                    }
+                }
             }
 
             return '\\' . $constant;
         }
 
+        $expression = ParameterDefaultExpression::render($parameter, $context);
+
+        if ($expression !== null) {
+            return $expression;
+        }
+
         $value = $parameter->getDefaultValue();
 
-        if (\is_object($value) && !$value instanceof \UnitEnum) {
-            throw InvalidDoubleUsage::objectDefaultNotReproducible($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
+        if (ParameterDefaultExpression::containsObject($value)) {
+            return ParameterDefaultExpression::render($parameter, $context, requireSource: true)
+                ?? throw InvalidDoubleUsage::objectDefaultNotReproducible($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
         }
 
         return \var_export($value, true);

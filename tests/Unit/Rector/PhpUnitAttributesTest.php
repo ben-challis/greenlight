@@ -11,15 +11,16 @@ use Greenlight\Attribute\NoExpectations;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ExtensionLoaded;
 use Greenlight\Condition\OperatingSystemFamily;
-use Greenlight\Expect\Expect;
 use Greenlight\Rector\PhpUnitAttributes;
+
+use function Greenlight\expect;
 
 final class PhpUnitAttributesTest
 {
     #[Test]
     public function conversionTablesDescribeTheSupportedPhpUnitAttributesExactly(): void
     {
-        Expect::that(PhpUnitAttributes::RENAMES)
+        expect(PhpUnitAttributes::RENAMES)
             ->because('the Rector MUST preserve the supported PHPUnit attribute semantics')
             ->toBe([
                 'DataProvider' => DataSet::class,
@@ -29,27 +30,27 @@ final class PhpUnitAttributesTest
                 'RunTestsInSeparateProcesses' => Isolated::class,
                 'DoesNotPerformAssertions' => NoExpectations::class,
             ]);
-        Expect::that(PhpUnitAttributes::SIZE_GROUPS)
+        expect(PhpUnitAttributes::SIZE_GROUPS)
             ->toBe([
                 'Small' => 'small',
                 'Medium' => 'medium',
                 'Large' => 'large',
             ]);
-        Expect::that(PhpUnitAttributes::SKIP_UNLESS_CONDITIONS)
+        expect(PhpUnitAttributes::SKIP_UNLESS_CONDITIONS)
             ->toBe([
                 'RequiresPhpExtension' => ExtensionLoaded::class,
                 'RequiresOperatingSystemFamily' => OperatingSystemFamily::class,
             ]);
-        Expect::that(PhpUnitAttributes::STRUCTURAL)
+        expect(PhpUnitAttributes::STRUCTURAL)
             ->toBe(['Test', 'Before', 'After']);
-        Expect::that(PhpUnitAttributes::TEST_WITH)
+        expect(PhpUnitAttributes::TEST_WITH)
             ->toBe('TestWith');
     }
 
     #[Test]
     public function onlyInertPhpUnitAttributesAreDropped(): void
     {
-        Expect::that(PhpUnitAttributes::DROPS)
+        expect(PhpUnitAttributes::DROPS)
             ->because('the Rector MUST drop only PHPUnit metadata without Greenlight runtime behavior')
             ->toBe([
                 'CoversClass',

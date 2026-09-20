@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanConfigurationBuilderTypeTest
@@ -39,11 +40,15 @@ final readonly class PhpStanConfigurationBuilderTypeTest
                     ->suite('unit', static fn(SuiteBuilder $suite) => $suite->in('tests')->tag('fast'))
                     ->workers(count: 2)
                     ->resourceLimit('database', 1)
+                    ->randomizeOrder(seed: 0)
                     ->ignoreDeprecationsMatching('vendor *')
                     ->coverage(static fn(CoverageBuilder $coverage) => $coverage
                         ->include('src')
                         ->driver('pcov')
+                        ->minimumPercentage(95.25)
                         ->export('lcov', 'build/coverage.lcov'))
+                    ->coverage(static fn(CoverageBuilder $coverage) => $coverage->minimumPercentage(0.0))
+                    ->coverage(static fn(CoverageBuilder $coverage) => $coverage->minimumPercentage(100.0))
                     ->watch(static fn(WatchBuilder $watch) => $watch->debounceMilliseconds(200))
                     ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts
                         ->directory('build/artifacts')
@@ -79,11 +84,16 @@ final readonly class PhpStanConfigurationBuilderTypeTest
                 GreenlightConfig::create()->workers(count: 0);
                 GreenlightConfig::create()->resourceLimit('', 1);
                 GreenlightConfig::create()->resourceLimit('database', 0);
+                GreenlightConfig::create()->randomizeOrder(seed: -1);
                 GreenlightConfig::create()->ignoreDeprecationsMatching('');
 
                 new SuiteBuilder('unit')->in('')->tag('');
                 new CoverageBuilder()->include('')->driver('')->export('', 'report');
                 new CoverageBuilder()->export('xml', 'report.xml');
+                new CoverageBuilder()->minimumPercentage(-0.01);
+                new CoverageBuilder()->minimumPercentage(100.01);
+                new CoverageBuilder()->minimumPercentage(99.999);
+                new CoverageBuilder()->minimumPercentage(\INF);
                 new WatchBuilder()->debounceMilliseconds(0);
                 new ArtifactBuilder()
                     ->directory('')
@@ -102,13 +112,17 @@ final readonly class PhpStanConfigurationBuilderTypeTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)
+        expect($probe->exitCode)
             ->because('PHPStan rejects configuration values that cannot pass runtime validation')
             ->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(24);
-        Expect::that($probe->messages())->toContain('Greenlight\Config\GreenlightConfig::workers() expects');
-        Expect::that($probe->messages())->toContain('Greenlight\Config\ArtifactBuilder::maxRunAttachments() expects');
-        Expect::that($probe->messages())->toContain('Greenlight\Config\StorageBuilder::temporaryDirectory() expects');
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(29);
+        expect($probe->messages())
+            ->toContain('Minimum coverage percentage must be from 0 through 100.')
+            ->toContain('Minimum coverage percentage can have at most two decimal places.')
+            ->toContain('Greenlight\Config\GreenlightConfig::workers() expects')
+            ->toContain('Greenlight\Config\GreenlightConfig::randomizeOrder() expects')
+            ->toContain('Greenlight\Config\ArtifactBuilder::maxRunAttachments() expects')
+            ->toContain('Greenlight\Config\StorageBuilder::temporaryDirectory() expects');
     }
 }

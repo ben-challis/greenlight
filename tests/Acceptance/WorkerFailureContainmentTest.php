@@ -6,7 +6,6 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
@@ -16,6 +15,8 @@ use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\JsonlEvents;
 use Greenlight\Tests\Support\ProcessResult;
+
+use function Greenlight\expect;
 
 /** Crash and hang fixtures MUST NOT run in the orchestrator process. */
 final readonly class WorkerFailureContainmentTest
@@ -27,9 +28,9 @@ final readonly class WorkerFailureContainmentTest
     {
         $result = $this->runIn('CrashConfig', ['run', '--workers=2']);
 
-        Expect::that($result->exitCode)->because('crashed workers are contained and the run completes')->toBe(1);
-        Expect::that($this->summaryLine($result->output()))->toBe('3 tests, 2 passed, 1 errored, 0 expectations');
-        Expect::that($result->output())->toContain('crashed during this test');
+        expect($result->exitCode)->because('crashed workers are contained and the run completes')->toBe(1);
+        expect($this->summaryLine($result->output()))->toBe('3 tests, 2 passed, 1 errored, 0 expectations');
+        expect($result->output())->toContain('crashed during this test');
     }
 
     #[Test]
@@ -71,13 +72,13 @@ final readonly class WorkerFailureContainmentTest
             static fn($event): bool => $event instanceof TestFinished,
         );
 
-        Expect::that($finished)
+        expect($finished)
             ->because('The crashed retry did not emit TestFinished.')
             ->toBeInstanceOf(TestFinished::class);
 
-        Expect::that($result->exitCode)->because('a crash on a retry preserves the attempt count')->toBe(1);
-        Expect::that($finished->result->outcome)->toBe(Outcome::Errored);
-        Expect::that($finished->result->attempts)->toBe(2);
+        expect($result->exitCode)->because('a crash on a retry preserves the attempt count')->toBe(1);
+        expect($finished->result->outcome)->toBe(Outcome::Errored);
+        expect($finished->result->attempts)->toBe(2);
     }
 
     #[Test]
@@ -89,17 +90,17 @@ final readonly class WorkerFailureContainmentTest
         $events = JsonlEvents::from($result);
         $finished = \array_find($events, static fn($event): bool => $event instanceof TestFinished);
 
-        Expect::that($finished)
+        expect($finished)
             ->because('The hard timeout did not emit TestFinished.')
             ->toBeInstanceOf(TestFinished::class);
 
-        Expect::that($result->exitCode)->because('hanging tests are hard killed by the orchestrator')->toBe(1);
-        Expect::that($result->output())->toContain('time limit');
-        Expect::that($durationSeconds)->toBeLessThan(20.0);
-        Expect::that($finished->result->outcome)->toBe(Outcome::Failed);
-        Expect::that($finished->result->durationSeconds)->toBeGreaterThan(0.1);
-        Expect::that($finished->result->failures)->toHaveCount(1);
-        Expect::that($finished->result->error)->toBeNull();
+        expect($result->exitCode)->because('hanging tests are hard killed by the orchestrator')->toBe(1);
+        expect($result->output())->toContain('time limit');
+        expect($durationSeconds)->toBeLessThan(20.0);
+        expect($finished->result->outcome)->toBe(Outcome::Failed);
+        expect($finished->result->durationSeconds)->toBeGreaterThan(0.1);
+        expect($finished->result->failures)->toHaveCount(1);
+        expect($finished->result->error)->toBeNull();
     }
 
     #[Test]
@@ -135,20 +136,20 @@ final readonly class WorkerFailureContainmentTest
             static fn($event): bool => $event instanceof TestFinished,
         );
 
-        Expect::that($finished)
+        expect($finished)
             ->because('The diagnostic hard timeout did not emit TestFinished.')
             ->toBeInstanceOf(TestFinished::class);
 
         $failure = $finished->result->failures[0] ?? null;
 
-        Expect::that($failure)
+        expect($failure)
             ->because('The diagnostic hard timeout did not report a failure.')
             ->toBeInstanceOf(FailureDetail::class);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('a hard timeout MUST fail the run')
             ->toBe(1);
-        Expect::that($failure->message)
+        expect($failure->message)
             ->because('a hard timeout MUST preserve the worker diagnostic output')
             ->toContain("Worker output:\nThe timed-out worker emitted diagnostics.");
     }

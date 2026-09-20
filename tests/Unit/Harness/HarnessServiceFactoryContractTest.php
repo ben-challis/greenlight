@@ -6,12 +6,13 @@ namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\UnresolvableService;
 use Greenlight\Tests\Fixture\Harness\FactoryContractTarget;
+
+use function Greenlight\expect;
 
 final class HarnessServiceFactoryContractTest
 {
@@ -29,13 +30,13 @@ final class HarnessServiceFactoryContractTest
             ),
         ]);
 
-        Expect::that(static fn(): object => $scopes->resolve(\Countable::class, 'probe'))
+        expect()->calling(static fn(): object => $scopes->resolve(\Countable::class, 'probe'))
             ->because('a harness factory contract error MUST identify a non-object value')
             ->toThrow(
                 UnresolvableService::class,
                 message: \sprintf(
                     'Service definition for type "Countable" created "%s". '
-                    . 'Its factory MUST return an instance of "Countable".',
+                    . 'Make its factory return an instance of "Countable".',
                     $type,
                 ),
             );
@@ -55,12 +56,12 @@ final class HarnessServiceFactoryContractTest
     {
         $scopes = $this->scopesFor(\Countable::class);
 
-        Expect::that(static fn(): object => $scopes->resolve(\Countable::class, 'probe'))
+        expect()->calling(static fn(): object => $scopes->resolve(\Countable::class, 'probe'))
             ->because('an immediate harness factory MUST return its registered type')
             ->toThrow(
                 UnresolvableService::class,
                 message: 'Service definition for type "Countable" created "stdClass". '
-                . 'Its factory MUST return an instance of "Countable".',
+                . 'Make its factory return an instance of "Countable".',
             );
     }
 
@@ -69,12 +70,12 @@ final class HarnessServiceFactoryContractTest
     {
         $scopes = $this->scopesFor(FactoryContractTarget::class);
         $service = $scopes->resolve(FactoryContractTarget::class, 'probe');
-        Expect::that(static fn(): string => $service->value())
+        expect()->calling(static fn(): string => $service->value())
             ->because('a lazy harness factory MUST return its registered type when initialized')
             ->toThrow(
                 UnresolvableService::class,
                 message: 'Service definition for type "Greenlight\\Tests\\Fixture\\Harness\\FactoryContractTarget" '
-                . 'created "stdClass". Its factory MUST return an instance of '
+                . 'created "stdClass". Make its factory return an instance of '
                 . '"Greenlight\\Tests\\Fixture\\Harness\\FactoryContractTarget".',
             );
     }

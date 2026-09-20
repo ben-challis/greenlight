@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCacheEntry;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class DiscoveryCacheEntryNullDependencyHashTest
 {
@@ -26,7 +27,7 @@ final class DiscoveryCacheEntryNullDependencyHashTest
             ],
         ];
 
-        Expect::that(DiscoveryCacheEntry::fromDecoded($decoded))
+        expect(DiscoveryCacheEntry::fromDecoded($decoded))
             ->because('an explicit null dependency content hash is malformed')
             ->toBeNull();
     }

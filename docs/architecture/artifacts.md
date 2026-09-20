@@ -7,10 +7,13 @@ frames.
 ## Run directories
 
 Each run has a possible public output directory. It also has a private staging
-directory in the system temporary directory. The orchestrator gives both paths
-to workers in the assignment. Greenlight creates staging when a test or plugin
-adds the first attachment. It creates the public directory only when the run
-publishes an attachment.
+directory below the configured temporary storage directory. Greenlight uses the
+system temporary directory by default. Artifact directory configuration
+controls the public output directory independently.
+
+The orchestrator gives both paths to workers in the assignment. Greenlight
+creates staging when a test or plugin adds the first attachment. It creates the
+public directory only when the run publishes an attachment.
 
 When a test or plugin adds an attachment, Greenlight copies it into staging.
 Greenlight serializes structured values at this time. Later source changes
@@ -28,17 +31,46 @@ to a temporary file beside the destination. It then renames the file into place
 atomically. The public `TestResult` contains the published metadata without the
 storage key.
 
-The terminal result retains attachments from failed attempts across retries. A
-successful attempt retains only attachments with the `always` value. A sealed
-attempt cannot receive more attachments. This seal does not apply retention.
+By default, the terminal result retains attachments from earlier retry attempts.
+It also retains attachments when the final outcome is failed or errored, or a
+plugin changed an earlier failed or errored outcome.
+
+For a passed or skipped result without such a transformation, the final attempt
+retains only attachments with the `always` value. An `AttachmentRetentionDecider`
+plugin can change these decisions. A sealed attempt cannot receive more
+attachments. This seal does not apply retention.
 
 The publication process decides retention after all result changes. These
 changes include retries, teardown, plugin transformations, and result policy.
 When the process discards an attachment, it deletes the staged content and
 releases its run quota.
 
-Greenlight leaves completed output in place. Cleanup and retention belong to
-the user or CI system.
+Greenlight leaves completed output in place unless configuration enables run
+retention. Automatic retention runs after normal run completion. The
+`artifacts:prune` command supports explicit maintenance and dry-run output.
+
+Each public run directory contains versioned ownership metadata and a lifecycle
+lock. Active processes hold the lock. An unlocked active record identifies an
+incomplete run that can be recovered.
+
+A completed record contains the completion time and an exact file manifest.
+The manifest has each relative path, byte count, and SHA-256 digest. Greenlight
+does not prune a directory when its content does not match the manifest.
+
+Pruning uses one lock in the canonical artifact parent. It claims a selected
+run with an atomic rename before deletion. Concurrent Greenlight processes can
+safely apply the same policy.
+
+Age has first precedence, then count, then total bytes. Each limit selects the
+oldest eligible completed run first. Completion time and run ID give the stable
+order. A future completion time is not old for the age policy.
+
+The current automatic run is not eligible. Unknown, active, incomplete,
+changed, malformed, and future-version directories are not eligible. A
+directory with a symbolic link is not eligible.
+
+Retention failures are advisory. They do not change a test result or run exit
+code. A failure that prevents publication of the current run remains fatal.
 
 ## Crash recovery
 
@@ -76,6 +108,9 @@ Destination and recovery paths **MUST** stay below their configured roots.
 Attachment files and internal metadata use private permissions on platforms
 that support these permissions.
 
+Pruning **MUST** keep the configured parent. It **MUST NOT** follow a symbolic
+link or delete content outside the canonical parent.
+
 The storage layer does not redact content. Tests and plugins **MUST** remove
 secrets before they add data as an attachment.
 
@@ -85,6 +120,9 @@ The public interface contains `Attachments`, `Attachment`, `AttachmentKind`,
 and `AttachmentRetention`. Storage keys are internal. Classes that control
 staging, publication, and recovery are also internal.
 
-JSONL versions 2 and 3 require `attachments` on `TestResult` and
+JSONL version 1 requires `attachments` on `TestResult` and
 `artifactsDirectory` on `RunStarted`. The worker protocol is internal and
 versioned separately.
+
+CI platform retention remains authoritative after artifact upload. Local
+Greenlight retention only controls files on the runner filesystem.

@@ -39,7 +39,7 @@ final readonly class RunFinished implements WireEvent
         }
 
         if (!\is_finite($occurredAt)) {
-            throw new \InvalidArgumentException('Event timestamp MUST be finite.');
+            throw new \InvalidArgumentException('Use a finite event timestamp.');
         }
 
         $this->runId = $runId;

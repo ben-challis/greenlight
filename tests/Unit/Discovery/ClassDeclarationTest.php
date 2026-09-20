@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Discovery;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\ClassDeclaration;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ClassDeclarationTest
 {
@@ -16,10 +17,10 @@ final class ClassDeclarationTest
         $global = new ClassDeclaration('', 'GlobalTest', 'class');
         $namespaced = new ClassDeclaration('Example\Tests', 'NamespacedTest', 'class');
 
-        Expect::that($global->fqcn())
+        expect($global->fqcn())
             ->because('the fully qualified name handles global and named namespaces')
             ->toBe('GlobalTest');
-        Expect::that($namespaced->fqcn())
+        expect($namespaced->fqcn())
             ->toBe('Example\Tests\NamespacedTest');
     }
 }

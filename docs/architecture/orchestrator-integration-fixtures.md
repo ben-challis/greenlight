@@ -1,8 +1,8 @@
 # Orchestrator-owned integration fixtures
 
-Greenlight provisions external test infrastructure in the orchestrator. It
-sends each worker only the connection data for that worker's channel and tears
-the infrastructure down when the run ends.
+Greenlight provisions external test infrastructure in the run coordinator. It
+gives each worker the shared resources and the resources for that worker's
+channel. It runs registered cleanup callbacks when the run ends.
 
 ## Ownership and lifetime
 
@@ -13,10 +13,11 @@ execution adapter.
 
 The provider instance belongs to the orchestrator. If the same plugin class has
 worker capabilities, those capabilities use a separate instance in each
-worker. Plugin properties do not cross this seam. The provider MUST use
+worker. Plugin properties do not cross this seam. Use
 `IntegrationFixtureContext::expose()` to transfer supported fixture data.
 
-Greenlight provisions one fixture graph per selected run. Each repeat iteration
+Greenlight provisions one fixture graph per nonempty selected run. An empty plan
+emits run lifecycle events without fixture provisioning. Each repeat iteration
 and watch rerun gets a fresh graph. CI shards provision independently because
 Greenlight does not coordinate them across machines.
 
@@ -32,6 +33,15 @@ before it provisions anything, then provisions dependencies first.
 Fixture IDs are non-empty UTF-8 strings. They cannot use integer strings
 because PHP converts those map keys to integers.
 
+`IntegrationFixtureContext::configuredWorkers()` returns the worker limit for
+the selected execution adapter. In-process execution returns `1`, including a
+fallback from process-pool execution.
+
+`IntegrationFixtureContext::channels()` returns the consecutive channel numbers
+that the selected plan can use. Selected work and resource capacity can reduce
+the number of channels below the limit. Create overlays only for these numbers.
+Replacement workers reuse released numbers.
+
 Call `IntegrationFixtureContext::defer()` as soon as the provisioner acquires a
 resource. The callback will then run even if the rest of the provisioner fails.
 Greenlight runs cleanup callbacks in reverse registration order.
@@ -43,21 +53,24 @@ channel's overlay before it sends them to a worker.
 ## Resource transport
 
 `FixtureResource` accepts JSON-safe nulls, booleans, finite numbers, UTF-8
-strings, lists, and maps. Greenlight rejects a complete channel payload larger
-than 1 MiB.
+strings, lists, and maps. Map keys must be non-empty UTF-8 strings. Values can
+contain up to 16 nested lists or maps below the top-level map. Greenlight
+rejects a complete channel payload larger than 1 MiB.
 
 Store credentials in the separate secrets map. Worker code receives each secret
 as a `SensitiveValue` and must call `reveal()` to read it. Object dumps and
 exports redact the value.
 
-Greenlight sends resources through the authenticated local worker protocol. It
-does not put them in environment variables, command arguments, stdout, or
-stderr. A worker receives only its own channel overlay.
+In a process-pool run, Greenlight sends resources through the authenticated
+local worker protocol. It does not put them in environment variables, command
+arguments, stdout, or stderr. A worker receives only its own channel overlay.
+In-process execution uses the shared resources and the overlay for channel `1`
+directly.
 
 ## Worker bootstrap
 
 After a worker sends `hello`, the orchestrator replies with a `bootstrap`
-message that contains the channel, config path, and resources. The worker loads
+message that contains the channel, configuration path, and resources. The worker loads
 its plugin definitions and creates its worker-side instances. It calls
 `WorkerBootstrapSubscriber`, builds the harness service scopes, and then replies
 with `ready`.
@@ -83,7 +96,9 @@ Provisioning, bootstrap, worker, protocol, reporter, and test failures also
 trigger teardown. Greenlight runs every registered callback even if one throws.
 A teardown failure fails the run but does not replace an earlier failure.
 
-When the orchestrator receives its first SIGINT or SIGTERM, it drains workers
-before teardown. SIGKILL, a second signal, process loss, and machine loss cannot
-run process-local callbacks. Protect resources from those cases with leases,
-expiry times, or an external reaper.
+With `ext-pcntl` available, the orchestrator drains workers before teardown
+after its first SIGINT or SIGTERM. Without PCNTL, the operating system's
+default immediate termination behavior can prevent teardown callbacks. SIGKILL,
+a second signal, process loss, and machine loss also cannot run process-local
+callbacks. Protect resources from these cases with leases, expiry times, or an
+external reaper.

@@ -9,8 +9,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Bootstrap;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\IntegrationResources;
+
+use function Greenlight\expect;
 
 final class OptionalStringWireTest
 {
@@ -25,7 +26,7 @@ final class OptionalStringWireTest
 
         $assign = Assign::fromWire($payload);
 
-        Expect::that($assign->coverageDriver)
+        expect($assign->coverageDriver)
             ->because('optional assignment coverage drivers MUST be null or non-empty')
             ->toBe($expected);
     }
@@ -41,7 +42,7 @@ final class OptionalStringWireTest
 
         $bootstrap = Bootstrap::fromWire($payload);
 
-        Expect::that($bootstrap->configFile)
+        expect($bootstrap->configFile)
             ->because('optional bootstrap configuration files MUST be null or non-empty')
             ->toBe($expected);
     }

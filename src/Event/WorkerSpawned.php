@@ -27,15 +27,15 @@ final readonly class WorkerSpawned implements WireEvent
         public float $occurredAt,
     ) {
         if ($workerId === '') {
-            throw new \InvalidArgumentException('Worker ID MUST NOT be empty.');
+            throw new \InvalidArgumentException('Worker ID cannot be empty.');
         }
 
         if ($pid < 1) {
-            throw new \InvalidArgumentException('Worker PID MUST be greater than zero.');
+            throw new \InvalidArgumentException('Use a worker PID greater than zero.');
         }
 
         if (!\is_finite($occurredAt)) {
-            throw new \InvalidArgumentException('Event timestamp MUST be finite.');
+            throw new \InvalidArgumentException('Use a finite event timestamp.');
         }
 
         $this->workerId = $workerId;

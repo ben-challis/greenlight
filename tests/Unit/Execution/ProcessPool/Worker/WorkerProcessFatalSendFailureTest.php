@@ -7,12 +7,14 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Worker;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Execution\ProcessPool\Worker\WorkerProcess;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class WorkerProcessFatalSendFailureTest
 {
@@ -157,13 +159,13 @@ final readonly class WorkerProcessFatalSendFailureTest
         }
 
         $this->environment->set('GREENLIGHT_CHANNEL', '1');
-        $workerExit = new WorkerProcess()->run($address, 'worker-under-test', 'token');
+        $workerResult = new WorkerProcess()->run($address, 'worker-under-test', 'token');
         $serverResult = $server->wait(3.0);
 
-        Expect::that($workerExit)
+        expect($workerResult)
             ->because('a failed final report MUST not escape the worker process')
-            ->toBe(1);
-        Expect::that($serverResult->exitCode)
+            ->toEqual(CommandResult::failure());
+        expect($serverResult->exitCode)
             ->because('the protocol fixture MUST reset the channel before it releases the assignment failure')
             ->toBe(0);
     }

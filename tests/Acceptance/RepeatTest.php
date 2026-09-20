@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Greenlight\Tests\Support\ProcessResult;
+
+use function Greenlight\expect;
 
 final readonly class RepeatTest
 {
@@ -21,8 +22,8 @@ final readonly class RepeatTest
     {
         $project = $this->writeProject(passing: true);
         $result = $this->run($project, [], '--repeat=3');
-        Expect::that($result->exitCode)->because('repeat runs the plan the requested number of times')->toBe(0);
-        Expect::that($result->output())
+        expect($result->exitCode)->because('repeat runs the plan the requested number of times')->toBe(0);
+        expect($result->output())
             ->because('repeat runs the plan the requested number of times')
             ->toContain('Repeat: iteration 1 of 3')
             ->toContain('Repeat: iteration 2 of 3')
@@ -35,8 +36,8 @@ final readonly class RepeatTest
     {
         $project = $this->writeProject(passing: false);
         $result = $this->run($project, [], '--repeat=2');
-        Expect::that($result->exitCode)->because('repeat reports every failing iteration')->toBe(1);
-        Expect::that($result->output())
+        expect($result->exitCode)->because('repeat reports every failing iteration')->toBe(1);
+        expect($result->output())
             ->because('repeat reports every failing iteration')
             ->toContain('Repeat: iteration 2 of 2')
             ->toContain('Repeat: failed iterations: 1, 2');
@@ -48,8 +49,8 @@ final readonly class RepeatTest
         $project = $this->writeFlakyProject();
         $state = $project->path('repeat-state');
         $result = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--repeat-until-failure');
-        Expect::that($result->exitCode)->because('repeat until failure stops at the first failing iteration')->toBe(1);
-        Expect::that($result->output())
+        expect($result->exitCode)->because('repeat until failure stops at the first failing iteration')->toBe(1);
+        expect($result->output())
             ->because('repeat until failure stops at the first failing iteration')
             ->toContain('Repeat: iteration 3 of at most 100')
             ->toContain('Repeat: failed iterations: 3')
@@ -62,12 +63,12 @@ final readonly class RepeatTest
         $project = $this->writeFlakyProject();
         $state = $project->path('repeat-state');
         $result = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--repeat-until-failure');
-        Expect::that($result->exitCode)->because('failed reruns every test that flaked during repeat')->toBe(1);
+        expect($result->exitCode)->because('failed reruns every test that flaked during repeat')->toBe(1);
         // The recorded state MUST keep the intermittent failure after earlier
         // iterations pass. Thus, --failed runs only that test again.
         $result = $this->run($project, ['GREENLIGHT_REPEAT_STATE' => $state], '--failed');
-        Expect::that($result->exitCode)->because('failed reruns every test that flaked during repeat')->toBe(1);
-        Expect::that($result->output())
+        expect($result->exitCode)->because('failed reruns every test that flaked during repeat')->toBe(1);
+        expect($result->output())
             ->because('failed reruns every test that flaked during repeat')
             ->toContain('failsOnTheThirdRun')
             ->toContain('1 test');
@@ -81,14 +82,14 @@ final readonly class RepeatTest
         $environment = ['GREENLIGHT_REPEAT_STATE' => $state];
 
         $result = $this->run($project, $environment, '--repeat=3');
-        Expect::that($result->exitCode)->because('repeat collects failures from different iterations')->toBe(1);
-        Expect::that($result->output())
+        expect($result->exitCode)->because('repeat collects failures from different iterations')->toBe(1);
+        expect($result->output())
             ->because('repeat collects failures from different iterations')
             ->toContain('Repeat: failed iterations: 1, 2');
 
         $result = $this->run($project, $environment, '--failed');
-        Expect::that($result->exitCode)->because('failed reruns failures from different repeat iterations')->toBe(0);
-        Expect::that($result->output())
+        expect($result->exitCode)->because('failed reruns failures from different repeat iterations')->toBe(0);
+        expect($result->output())
             ->because('failed reruns failures from different repeat iterations')
             ->toContain('2 tests, 2 passed');
     }
@@ -98,9 +99,9 @@ final readonly class RepeatTest
     {
         $project = $this->writeProject(passing: true);
         $result = $this->run($project, [], '--repeat=2', '--filter=firstProbe');
-        Expect::that($result->exitCode)->because('repeat composes with filter')->toBe(0);
-        Expect::that($result->output())->because('repeat composes with filter')->toContain('Repeat: 2 iterations, all passed');
-        Expect::that(\substr_count($result->output(), '1 test, 1 passed'))->because('repeat composes with filter')->toBe(2);
+        expect($result->exitCode)->because('repeat composes with filter')->toBe(0);
+        expect($result->output())->because('repeat composes with filter')->toContain('Repeat: 2 iterations, all passed');
+        expect(\substr_count($result->output(), '1 test, 1 passed'))->because('repeat composes with filter')->toBe(2);
     }
 
     #[Test]
@@ -110,8 +111,8 @@ final readonly class RepeatTest
         $project = $this->writeProject(passing: true);
         $result = $this->run($project, [], '--watch', $repeatOption);
 
-        Expect::that($result->exitCode)->because('watch cannot be combined with repeat')->toBe(64);
-        Expect::that($result->output())->because('watch cannot be combined with repeat')->toContain('Do not use --watch with');
+        expect($result->exitCode)->because('watch cannot be combined with repeat')->toBe(64);
+        expect($result->output())->because('watch cannot be combined with repeat')->toContain('Do not use --watch with');
     }
 
     /**

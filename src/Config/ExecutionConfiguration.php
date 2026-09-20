@@ -17,7 +17,7 @@ final readonly class ExecutionConfiguration
 {
     /**
      * @param list<PluginDefinition> $plugins
-     * @param positive-int|null $stopAfterFailures A null value runs all tests regardless of failures.
+     * @param positive-int|null $stopAfterFailures A null value does not stop the run for failed or errored tests.
      */
     public function __construct(
         public array $plugins,

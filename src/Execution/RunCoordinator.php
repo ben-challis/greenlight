@@ -19,6 +19,7 @@ use Greenlight\Event\RunFinished;
 use Greenlight\Event\RunStarted;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Plugin\OrchestratorPluginRuntime;
+use Greenlight\Execution\Plugin\PluginRuntimeError;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
 use Greenlight\IntegrationFixture\IntegrationFixtureManager;
 use Greenlight\Reporting\ReportGenerationFailed;
@@ -58,11 +59,17 @@ final readonly class RunCoordinator
         $seed = $configuration->order->seed;
         $classSeconds = $configuration->order->isRandomized() ? [] : $classSeconds;
         $storage = StorageLayout::resolve($configuration->storage, $this->workingDirectory);
-        $plan = PlanOrder::schedule(
-            $this->sharded($this->discover($selection, $directories, $seed, $storage), $selection),
-            $priorityClasses,
-            $classSeconds,
+        $plan = $this->sharded($this->discover($selection, $directories, $seed, $storage), $selection);
+        $orchestratorPlugins = OrchestratorPluginRuntime::fromDefinitions(
+            $configuration->execution->plugins,
+            $sink,
+            [new PlanOrder($priorityClasses, $classSeconds)],
         );
+        try {
+            $plan = $orchestratorPlugins->transformTestPlan($plan);
+        } catch (PluginRuntimeError $failure) {
+            throw ExecutionFailed::plugin($failure);
+        }
         $topology = $execution->topology($plan, $classSeconds);
         $testCoverageStore?->registerPlan($plan);
         $runId = \bin2hex(\random_bytes(8));
@@ -72,13 +79,10 @@ final readonly class RunCoordinator
             $this->workingDirectory,
             $runId,
             temporaryDirectory: $storage->temporaryDirectory,
+            retainAttachment: $orchestratorPlugins->retainAttachment(...),
         );
 
         try {
-            $orchestratorPlugins = OrchestratorPluginRuntime::fromDefinitions(
-                $configuration->execution->plugins,
-                $sink,
-            );
             $sink = $orchestratorPlugins;
 
             if (\count($plan) === 0) {
@@ -92,6 +96,8 @@ final readonly class RunCoordinator
                 $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
                 $summary = new ResultSummary();
                 $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
+
+                $artifacts->complete();
 
                 return new RunResult($summary, 0, $durationSeconds, $seed, runId: $runId);
             }
@@ -156,6 +162,8 @@ final readonly class RunCoordinator
             if ($cleanupFailures !== []) {
                 throw IntegrationFixtureError::cleanup($cleanupFailures);
             }
+
+            $artifacts->complete();
 
             return $result;
         } finally {

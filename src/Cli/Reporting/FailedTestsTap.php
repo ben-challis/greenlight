@@ -11,18 +11,23 @@ use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestFinished;
 
 /**
- * Records failed test IDs and class durations while it forwards the stream.
+ * Records failed test IDs, class durations, and retried passes while it
+ * forwards the stream.
  *
  * emit() sends each event to the inner sink. It records the test IDs of failed
  * and errored tests. It also records each test-class duration.
  *
  * failedTests() and classSeconds() supply run state. --failed, failed-first
- * order, and longest-first order use this state.
+ * order, and longest-first order use this state. retriedPasses() supplies the
+ * run policy.
  *
  * @internal
  */
 final class FailedTestsTap implements EventSink
 {
+    /** @var non-negative-int */
+    private int $retriedPasses = 0;
+
     /**
      * @var array<non-empty-string, true>
      */
@@ -57,6 +62,10 @@ final class FailedTestsTap implements EventSink
                 if ($id !== '') {
                     $this->failedTests[$id] = true;
                 }
+            } elseif ($event->result->outcome->value === 'passed' && $event->result->attempts > 1) {
+                $this->retriedPasses = $this->retriedPasses === \PHP_INT_MAX
+                    ? \PHP_INT_MAX
+                    : $this->retriedPasses + 1;
             }
         }
 
@@ -103,5 +112,11 @@ final class FailedTestsTap implements EventSink
     public function classSeconds(): array
     {
         return $this->classSeconds;
+    }
+
+    /** @return non-negative-int */
+    public function retriedPasses(): int
+    {
+        return $this->retriedPasses;
     }
 }

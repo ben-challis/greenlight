@@ -1,8 +1,13 @@
 # Worker lifecycle and wire protocol
 
 Greenlight's orchestrator and workers exchange framed JSON messages over a
-local socket. The protocol is internal and may change between releases. Its
-details are useful when debugging parallel runs.
+local socket. The protocol is internal and can change between releases. Use
+these details to diagnose parallel runs.
+
+This page describes the process pool. With one configured or detected worker,
+the CLI uses an in-process adapter. It also selects that adapter when the
+worker entry point is unavailable. That adapter has no worker sockets,
+worker-process isolation, or separate process to enforce hard timeouts.
 
 ## Transport ownership
 
@@ -39,10 +44,10 @@ connects as a client.
 Each message is a length-prefixed JSON frame: a 4-byte big-endian length
 followed by the JSON body. Frames are capped at 8 MiB. Greenlight rejects
 oversized or malformed frames as protocol errors. The JSON envelope contains a
-protocol version (`v`, currently `4`), a type tag, and the payload. Greenlight
+protocol version (`v`, currently `1`), a type tag, and the payload. Greenlight
 also rejects unknown versions and tags.
 
-The [version 4 schema](../../resources/schema/worker-protocol-v4.schema.json)
+The [version 1 schema](../../resources/schema/worker-protocol-v1.schema.json)
 specifies each envelope and payload that Greenlight sends.
 
 The socket carries all protocol data. The native adapter closes worker stdin
@@ -57,7 +62,7 @@ Ten message types cross the socket:
 | Tag | Direction | Payload |
 | --- | --- | --- |
 | `hello` | worker to orchestrator | worker ID, shared token, process ID |
-| `bootstrap` | orchestrator to worker | stable channel, config file path, that channel's integration resources |
+| `bootstrap` | orchestrator to worker | stable channel, optional configuration file path, channel resources, optional generated code directory, optional temporary directory, optional result policy |
 | `ready` | worker to orchestrator | bootstrap acknowledgement |
 | `assign` | orchestrator to worker | a plan slice (test classes to run), remaining failure allowance, coverage settings, per-test coverage flag, leak detection flag, result policy, artifact session and limits |
 | `event` | worker to orchestrator | one test event: class started, test started, test finished, class finished |
@@ -97,7 +102,7 @@ sequenceDiagram
 
     O->>W: proc_open(address, workerId, token)<br/>env: GREENLIGHT_CHANNEL=n
     W->>O: hello (workerId, token, pid)
-    O->>W: bootstrap (channel, config, resources)
+    O->>W: bootstrap (channel, configuration path, resources,<br/>generated code path, temporary path, policy)
     W->>W: load plugins, run worker bootstrap,<br/>build harness service scopes
     W->>O: ready
     Note over O,W: assignment can begin after ready;<br/>subscriber mode waits for all initial workers
@@ -107,10 +112,17 @@ sequenceDiagram
             Note over O,W: worker stays connected; no frame is sent
         end
         O->>W: assign (plan slice, budgets, coverage)
-        loop each test in the slice
+        loop each test class in the plan slice
             W->>O: event (TestClassStarted)
-            W->>O: event (TestStarted)
-            W->>O: event (TestFinished)
+            loop each selected test or data set in the class
+                W->>O: event (TestStarted)
+                opt test execution starts
+                    loop each attempt
+                        W->>O: attempt-started (test ID, attempt number)
+                    end
+                end
+                W->>O: event (TestFinished)
+            end
             W->>O: event (TestClassFinished)
         end
         W->>O: done (summary, peak memory, coverage, leaks)
@@ -151,12 +163,15 @@ mode, the initial ready barrier prevents tests from starting while another
 initial worker is still bootstrapping. A replacement worker created after a
 crash needs to complete only its own bootstrap in both modes.
 
-The initial pool does not exceed the configured worker count. Greenlight also
-uses a safe resource-capacity bound. It starts fewer initial workers when the
-queued scheduling units and their resource limits prove that more workers
-cannot run concurrently. This bound does not remove achievable concurrency.
+The initial worker target does not exceed the configured worker count.
+Greenlight also uses a safe resource-capacity bound. It starts fewer initial
+workers when the queued scheduling units and their resource limits prove that
+more workers cannot run concurrently. This bound does not remove achievable
+concurrency.
 
-Workers build their plugin instances and harness registries during `bootstrap`.
+Workers reload plugin definitions from the configuration file during `bootstrap`.
+They then build their plugin instances and harness registries.
+
 They reuse them for later assignments. One physical worker constructs each
 configured worker-side plugin one time. A replacement worker constructs new
 instances. Per-worker harness services therefore live for the physical worker's
@@ -192,11 +207,14 @@ their lifecycle does not change for a split class.
 A split class cannot use a per-class harness service. A service request causes
 a contained test error with corrective guidance.
 
-Data providers run during discovery. A worker also runs the applicable
-provider when it resolves arguments for a split entry.
+Data providers run during discovery. When a worker resolves data-set arguments,
+it expands the applicable provider for the first entry of that test method. It
+caches the expanded rows in the class context. This behavior applies to split
+and non-split entries.
 
-The provider MUST be pure and deterministic. The execution-plan keys detect a
-provider result that changes between discovery and execution.
+The provider MUST be pure and deterministic. The planned key selects one
+argument list. Greenlight reports an error if that key is absent. It does not
+compare argument values or reject additional keys.
 
 When a previous run supplies class durations, the orchestrator can put adjacent
 small classes in one assignment. Each batch has a maximum predicted duration of
@@ -305,20 +323,27 @@ stateDiagram-v2
 ### Crashes
 
 If a worker dies mid-assignment, the orchestrator reports its in-flight test as
-errored and attaches the tail of the worker's stderr. It returns the rest of the
+errored and includes the tail of its combined stdout and stderr diagnostics.
+It returns the rest of the
 assignment to the queue. It does not re-queue the crashed test because a test
 that kills its process would kill each replacement in turn.
 
 ### Timeouts
 
-The orchestrator enforces each test timeout with a grace window of twice the
-budget plus two seconds. The worker may be too stuck to enforce the timeout
-itself. When the grace window expires, the orchestrator kills the process with
-SIGKILL and handles it as a crash. It reports the test as timed out.
+The orchestrator enforces a hard timeout of twice the configured test budget
+plus two seconds. When the limit expires, the orchestrator kills the process
+with SIGKILL. It reports the test as failed with a timeout diagnostic.
+
+The worker checks each attempt against the configured test budget after teardown.
+This check changes only a passed result to failed. It cannot interrupt blocked
+code. An in-process run has this check but no separate orchestrator process to
+enforce the hard timeout.
 
 The worker also gives `eventually()` and `consistently()` the current attempt's
 monotonic deadline. Their polling stops at that deadline, but a probe can still
 block. The orchestrator's grace window remains the hard limit.
+
+Each valid attempt-start message resets the orchestrator's grace window.
 
 ### Fatal errors
 
@@ -343,16 +368,21 @@ exceeds that budget, the orchestrator fails the run with a diagnostic.
 
 ### Signals
 
-When the orchestrator receives its first SIGINT or SIGTERM, it drains workers,
-emits the partial result, and then tears down integration fixtures. Workers
-ignore terminal SIGINT so the orchestrator controls that sequence. A test that
-is polling can finish like any other test in flight. A second signal restores
-the operating system's default immediate termination behavior.
+With `ext-pcntl` available, the orchestrator drains workers after its first
+SIGINT or SIGTERM. It emits the partial result and then tears down integration
+fixtures. Workers ignore terminal SIGINT so the orchestrator controls that
+sequence. A test that is polling can finish like any other test in flight. A
+second signal restores the operating system's default immediate termination
+behavior.
+
+Without PCNTL, Greenlight cannot install these signal handlers. The operating
+system's default immediate termination behavior can prevent partial results
+and teardown callbacks.
 
 ## Isolated tests
 
 The orchestrator queues `#[Isolated]` entries separately. Only a fresh worker
-may take an isolated entry, and only after the pooled queue is empty. After
+can take an isolated entry, and only after the pooled queue is empty. After
 `done`, the orchestrator sends `drain` and lets the process exit instead of
 returning it to the pool. Any global state changed by the test dies with the
 worker. An isolated entry still waits for its required resources.
@@ -375,14 +405,24 @@ always uses worker processes. Greenlight does not use Fibers for this feature.
 ## Channel numbers
 
 Every worker receives a channel number in the `GREENLIGHT_CHANNEL` environment
-variable. The channel pool runs from `1` to the configured worker count. The
-allocator gives out the lowest free number and returns it to the pool when a
-worker retires, so a replacement inherits a released slot.
+variable. The channel pool runs from `1` through the initial worker target.
+Queue size and resource capacity can reduce this target below the configured
+worker count.
 
-At most `workerCount` channels are live at once, and concurrent tests never
-share one. Per-channel databases, port ranges, and temporary directories can
-therefore use the number safely. The [README](../../README.md) describes the
-user-facing contract.
+`IntegrationFixtureContext::configuredWorkers()` returns the worker limit for
+the selected execution adapter. It returns `1` for in-process execution.
+`IntegrationFixtureContext::channels()` returns the consecutive channel numbers
+that this selected plan can use.
+
+The allocator gives out the lowest free number and returns it when a worker
+retires. A replacement can use a released channel.
+
+At most the initial worker target channels are live at once. Concurrent tests
+in one run never share a channel. Different runs can use the same channel
+numbers. If runs can overlap, give each run separate resources.
+Per-channel databases, port ranges, and temporary directories can then use
+the number safely. The
+[README](../../README.md) describes the user-facing contract.
 
 Integration fixtures use the same channel pool. Greenlight merges shared values
 with the allocated channel overlay before bootstrap, so a worker never receives

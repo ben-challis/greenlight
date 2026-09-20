@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Cli\Output;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class TerminalRowsResolverUnavailableExecTest
 {
@@ -31,13 +32,13 @@ final readonly class TerminalRowsResolverUnavailableExecTest
             ['LINES' => ''],
         );
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('an unavailable terminal probe MUST not fail row resolution')
             ->toBe(0);
-        Expect::that($result->stdout)
+        expect($result->stdout)
             ->because('an unavailable terminal probe MUST use the default row count')
             ->toBe('24');
-        Expect::that($result->stderr)
+        expect($result->stderr)
             ->toBe('');
     }
 }

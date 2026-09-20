@@ -16,7 +16,8 @@ use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Fatal;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class MessageTagsTest
 {
@@ -28,7 +29,7 @@ final class MessageTagsTest
     #[DataSet('publishedMessageTags')]
     public function publishedMessageTagsRemainStable(string $message, string $tag): void
     {
-        Expect::that($message::tag())
+        expect($message::tag())
             ->because('published worker-protocol message tags MUST remain stable')
             ->toBe($tag);
     }
@@ -51,10 +52,10 @@ final class MessageTagsTest
     #[Test]
     public function envelopeVersionAndShapeRemainStable(): void
     {
-        Expect::that(MessageRegistry::envelope(new Drain()))
+        expect(MessageRegistry::envelope(new Drain()))
             ->because('the published worker-protocol envelope MUST remain compatible')
             ->toBe([
-                'v' => 4,
+                'v' => 1,
                 't' => 'drain',
                 'p' => [],
             ]);

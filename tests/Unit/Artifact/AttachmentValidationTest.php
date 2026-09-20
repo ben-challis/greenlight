@@ -8,7 +8,8 @@ use Greenlight\Artifact\Attachment;
 use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class AttachmentValidationTest
 {
@@ -22,7 +23,7 @@ final class AttachmentValidationTest
         int $attempt,
         string $path,
     ): void {
-        Expect::that(static function () use ($name, $mediaType, $sizeBytes, $sha256, $attempt, $path): void {
+        expect()->calling(static function () use ($name, $mediaType, $sizeBytes, $sha256, $attempt, $path): void {
             new Attachment(
                 $name,
                 AttachmentKind::Text,

@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Test\DataSet;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\DataSet\DataSetError;
 use Greenlight\Test\DataSet\DataSetExpander;
+
+use function Greenlight\expect;
 
 final readonly class DataSetProviderErrorTest
 {
@@ -16,7 +17,7 @@ final readonly class DataSetProviderErrorTest
     {
         $testMethod = __FUNCTION__;
 
-        Expect::that(static fn(): array => new DataSetExpander()->rowsFor(
+        expect()->calling(static fn(): array => new DataSetExpander()->rowsFor(
             new \ReflectionClass(self::class),
             $testMethod,
             'rowsThatThrowDataSetError',
@@ -26,15 +27,15 @@ final readonly class DataSetProviderErrorTest
             ->toThrow(static function (DataSetError $error): void {
                 $cause = $error->getPrevious();
 
-                Expect::that($error->getMessage())->toBe(
+                expect($error->getMessage())->toBe(
                     'Data-set provider ' . self::class . '::rowsThatThrowDataSetError() threw '
                     . DataSetError::class . ': Data-set provider MisleadingProvider::rows() produced no data sets. '
                     . 'Produce at least one data set.',
                 );
-                Expect::that($cause)
+                expect($cause)
                     ->because('the provider wrapper MUST retain the exception from user code')
                     ->toBeInstanceOf(DataSetError::class);
-                Expect::that($cause->getMessage())->toBe(
+                expect($cause->getMessage())->toBe(
                     'Data-set provider MisleadingProvider::rows() produced no data sets. Produce at least one data set.',
                 );
             });

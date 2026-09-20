@@ -3,10 +3,10 @@
 The [Laravel](https://laravel.com/) bridge supplies Laravel container services
 and built-in Greenlight harness services to test constructors.
 
-The bridge boots a fresh application for each test that uses it. Register the
-plugin to activate the bridge. The bridge uses the Laravel package that the
-application provides. Greenlight does not declare a runtime dependency on
-Laravel.
+By default, the bridge boots a fresh application for each test attempt that
+uses it. Register the plugin to activate the bridge. The bridge uses the
+Laravel package that the application provides. Greenlight does not declare a
+runtime dependency on Laravel.
 
 ## Setup
 
@@ -33,10 +33,33 @@ new LaravelPlugin(static fn(): Application => Application::configure(basePath: _
     ->create());
 ```
 
+For a custom factory, return an application that binds
+`Illuminate\Contracts\Console\Kernel` to an implementation of that interface.
+`Application::configure(...)->create()` registers this binding.
+
+### Test environment
+
 The plugin sets `APP_ENV` while the application is active. The default value is
-`testing`. Pass `env:` to select another environment. Laravel loads `.env`
-without a change to variables that already exist, so the plugin value wins.
-When a `.env.testing` file exists, Laravel prefers it over `.env`.
+`testing`. Pass `env:` to select another environment.
+
+Without cached configuration, Laravel prefers `.env.testing` over `.env` for
+the default environment. Existing process variables take precedence over file
+values, including the `APP_ENV` value that the plugin sets.
+
+Greenlight does not read `phpunit.xml`. Put test database, cache, and session
+settings in `.env.testing` or the process environment.
+
+Before the test run, clear Laravel's cached configuration from the application
+root:
+
+```sh
+php artisan config:clear
+```
+
+Cached configuration bypasses environment file loading. It can retain an old
+application environment and database settings, including a channel-specific
+database name. The plugin does not clear this cache. See Laravel's
+[test environment guidance](https://laravel.com/docs/13.x/testing#environment).
 
 The plugin restores the previous `APP_ENV` value after it discards the
 application. If you disable refreshes, the selected value stays active for the
@@ -63,9 +86,10 @@ final class RegistrationTest
 }
 ```
 
-Greenlight first resolves constructor parameters from its harness. It then uses
-the Laravel container. Thus, `Doubles`, `TestChannel`, and provider services
-take precedence over container services.
+Without an explicit service source, Greenlight first resolves constructor
+parameters from its harness. It then uses the Laravel container. Thus,
+`Doubles`, `TestChannel`, and provider services take precedence over container
+services.
 
 When neither side can resolve a type, the test fails and reports both misses.
 
@@ -94,6 +118,18 @@ public function __construct(
 Greenlight still checks the parameter type. If the named service is not an
 instance of the declared type, the test fails and does not receive the object.
 
+### Select a service source
+
+Pass `source: 'app'` to `LaravelPlugin` to name this plugin instance. Use
+`#[Service(source: 'app')]` to request a service by type from this source.
+Use `#[Service('cache.store', source: 'app')]` to select an explicit ID in its
+container.
+
+An explicit source takes precedence over global harness services. A missing
+service fails without a request to another source. Use the same source
+attribute to select this plugin's `Application` harness service. See
+[service sources](plugins.md#servicesource) for naming and resolution rules.
+
 ### The application itself
 
 Greenlight supplies `Illuminate\Contracts\Foundation\Application` as a harness
@@ -112,9 +148,9 @@ application in its own container.
 
 ## State between tests
 
-The bridge discards the application after each test. Configuration changes,
-facade roots, singleton state, and container registrations cannot reach the
-next test.
+By default, the bridge discards the application after each test attempt.
+Configuration changes, facade roots, singleton state, and container
+registrations cannot reach the next attempt.
 
 This scope is smaller than the isolation in Laravel's `TestCase`. Laravel's
 test harness resets framework static state for its helpers and fakes. The
@@ -141,9 +177,9 @@ The bridge does not isolate databases or other external services.
 Workers run tests at the same time. Split shared external resources for each
 worker. Alternatively, protect them with a concurrency limit.
 
-Greenlight sets `GREENLIGHT_CHANNEL` in every worker process. It is a stable
-number from 1 through the worker count, and no two concurrent tests use the same
-channel. Use it in normal Laravel configuration to key shared resources:
+Greenlight sets `GREENLIGHT_CHANNEL` in every worker process. Its value is a
+stable number from 1 through the worker count. Within one run, concurrent tests
+use different channels. Use it in Laravel configuration to name resources:
 
 <!-- php-example {"mode":"display","reason":"Shows one entry from a larger PHP configuration array."} -->
 ```php
@@ -153,6 +189,9 @@ channel. Use it in normal Laravel configuration to key shared resources:
 
 The same pattern works for cache prefixes, storage paths, queue names, and
 similar resources.
+
+Separate runs and CI shards reuse channel numbers. Add a resource prefix for
+each concurrent run that uses the same external service.
 
 The application must create and migrate databases for each channel. Use a loop
 in the test bootstrap, a Makefile target, or another project-level setup step.
@@ -174,9 +213,9 @@ return GreenlightConfig::create()
     ->resourceLimit('payments-sandbox', 2);
 ```
 
-The limit controls how many classes that require this resource can run. It does
-not choose a service instance, and it does not coordinate another Greenlight
-process or CI shard. See [configuration](configuration.md) for the complete
+The limit controls how many assignments that require this resource can run. It
+does not choose a service instance or coordinate another Greenlight process or
+CI shard. See [configuration](configuration.md) for the complete
 resource rules.
 
 ## Doubles and the container

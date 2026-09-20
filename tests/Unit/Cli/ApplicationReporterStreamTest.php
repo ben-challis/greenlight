@@ -6,12 +6,13 @@ namespace Greenlight\Tests\Unit\Cli;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Application;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final readonly class ApplicationReporterStreamTest
 {
@@ -43,14 +44,14 @@ final readonly class ApplicationReporterStreamTest
         $output = \stream_get_contents($stdout);
         $errors = \stream_get_contents($stderr);
 
-        Expect::that($exit)
+        expect($exit)
             ->because('a run through configured streams MUST preserve the reporter exit code')
             ->toBe(0);
-        Expect::that($output)
+        expect($output)
             ->because('the configured output stream MUST receive the complete run report')
             ->toContain('Greenlight ' . Application::VERSION)
             ->toContain('1 test, 1 passed');
-        Expect::that($errors)
+        expect($errors)
             ->toBe('');
     }
 
@@ -78,14 +79,13 @@ final readonly class ApplicationReporterStreamTest
         $output = \stream_get_contents($stdout);
         $errors = \stream_get_contents($stderr);
 
-        Expect::that($exit)
+        expect($exit)
             ->toBe(0);
-        Expect::that($output)
+        expect($output)
             ->because('the ANSI flag uses color without cursor control')
             ->toContain("\x1b[32m")
-            ->not()
-            ->toContain("\x1b[0J");
-        Expect::that($errors)
+            ->not()->toContain("\x1b[0J");
+        expect($errors)
             ->toBe('');
     }
 }

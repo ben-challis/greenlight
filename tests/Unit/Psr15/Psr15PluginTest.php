@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Psr15;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Psr15\HttpHarness;
@@ -17,6 +16,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
+use function Greenlight\expect;
+
 final class Psr15PluginTest
 {
     #[Test]
@@ -24,8 +25,8 @@ final class Psr15PluginTest
     {
         $definition = new Psr15Plugin($this->handler())->services()[0];
 
-        Expect::that($definition->type)->toBe(HttpHarness::class);
-        Expect::that($definition->scope)->toBe(Scope::PerTest);
+        expect($definition->type)->toBe(HttpHarness::class);
+        expect($definition->scope)->toBe(Scope::PerTest);
     }
 
     #[Test]
@@ -52,7 +53,7 @@ final class Psr15PluginTest
         $scopes->resolve(HttpHarness::class, self::class)->send(new ServerRequest([], [], '/second', 'GET'));
         $scopes->closeTest();
 
-        Expect::that($created)->toBe(2);
+        expect($created)->toBe(2);
     }
 
     #[Test]
@@ -84,9 +85,9 @@ final class Psr15PluginTest
         $second->send(new ServerRequest([], [], '/second', 'GET'));
         $scopes->closeTest();
 
-        Expect::that($second)->toBe($first);
-        Expect::that($created)->toBe(1);
-        Expect::that($scopes->closeWorker())->toBe([]);
+        expect($second)->toBe($first);
+        expect($created)->toBe(1);
+        expect($scopes->closeWorker())->toBe([]);
     }
 
     #[Test]
@@ -104,8 +105,8 @@ final class Psr15PluginTest
         $scopes->openTest();
         $scopes->resolve(HttpHarness::class, self::class)->send(new ServerRequest([], [], '/status', 'GET'));
 
-        Expect::that($scopes->closeTest())->toBe([]);
-        Expect::that($released)->toBe($handler);
+        expect($scopes->closeTest())->toBe([]);
+        expect($released)->toBe($handler);
     }
 
     #[Test]
@@ -124,9 +125,9 @@ final class Psr15PluginTest
 
         $failures = $scopes->closeTest();
 
-        Expect::that($failures)->toHaveCount(1);
-        Expect::that($failures[0])->toBeInstanceOf(Psr15Error::class);
-        Expect::that($failures[0]->getPrevious())->toBe($cause);
+        expect($failures)->toHaveCount(1);
+        expect($failures[0])->toBeInstanceOf(Psr15Error::class);
+        expect($failures[0]->getPrevious())->toBe($cause);
     }
 
     private function handler(): RequestHandlerInterface

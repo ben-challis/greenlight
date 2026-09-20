@@ -42,32 +42,45 @@ handler from the factory.
 
 [Mezzio](https://docs.mezzio.dev/mezzio/) is a framework for PSR-15 middleware
 applications. A Mezzio `Application` implements `RequestHandlerInterface`.
-Return the application from the factory:
+Create `bootstrap/http.php` for the factory in the setup example. Load the
+container, middleware pipeline, and routes, then return the application:
 
 <!-- php-example {"example":"psr15-example-02","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Mezzio\Application;
+use Mezzio\MiddlewareFactory;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
-return static function (): RequestHandlerInterface {
-    /** @var ContainerInterface $container */
-    $container = require __DIR__ . '/config/container.php';
-    $application = $container->get(Application::class);
+/** @var ContainerInterface $container */
+$container = require __DIR__ . '/../config/container.php';
+$application = $container->get(Application::class);
+$middlewareFactory = $container->get(MiddlewareFactory::class);
 
-    if (!$application instanceof RequestHandlerInterface) {
-        throw new \RuntimeException('The application service is not a PSR-15 request handler.');
-    }
+if (!$application instanceof Application) {
+    throw new \RuntimeException('The application service is not a Mezzio application.');
+}
 
-    return $application;
-};
+if (!$middlewareFactory instanceof MiddlewareFactory) {
+    throw new \RuntimeException('The middleware factory service has an incorrect type.');
+}
+
+(require __DIR__ . '/../config/pipeline.php')($application, $middlewareFactory, $container);
+(require __DIR__ . '/../config/routes.php')($application, $middlewareFactory, $container);
+
+return $application;
 ```
 
-This factory uses the PSR-11 container to get the Mezzio request handler.
+The Mezzio skeleton keeps pipeline and route setup outside the container.
+Without these steps, the handler cannot dispatch application routes. See the
+[Mezzio quick start](https://docs.mezzio.dev/mezzio/v3/getting-started/quick-start/).
+
+This bootstrap file returns the handler that the plugin factory expects.
 `Psr15Plugin` does not supply container services to test constructors.
 
 If tests need application services, also register the
-[PSR-11 bridge](psr11.md).
+[PSR-11 bridge](psr11.md). The two plugins call separate factories. Registration
+alone does not make them share a container. A service from the PSR-11 factory
+can therefore be a different instance from the service that handles a request.
 
 ## Send requests
 
@@ -95,8 +108,8 @@ final readonly class StatusTest
 
         $response = $this->http->send($request);
 
-        Expect::that($response->getStatusCode())->toBe(200);
-        Expect::that((string) $response->getBody())->toBe('{"status":"ready"}');
+        Expect::value($response->getStatusCode())->toBe(200);
+        Expect::value((string) $response->getBody())->toBe('{"status":"ready"}');
     }
 }
 ```
@@ -113,6 +126,11 @@ test a new handler.
 
 If the handler keeps no test state, pass it directly. Each harness then uses
 the same handler object.
+
+If you also configure a release callback, Greenlight passes this shared
+handler to the callback when each active harness scope closes. A later scope
+can use the same handler again. Use a factory if the release callback makes
+the handler unusable.
 
 Use a release callback when the handler owns resources:
 
@@ -131,8 +149,10 @@ new Psr15Plugin(
 Greenlight calls the callback only if the harness has an active handler. It
 calls the callback when the configured service scope closes.
 
-The callback runs once for each active handler. If the callback throws,
-Greenlight reports a test error and keeps the throwable as its cause.
+The callback runs once when each active harness closes. With the default
+per-test scope, a callback failure gives an otherwise passed test an error.
+With per-worker scope, the failure makes the worker run unsuccessful.
+Greenlight keeps the throwable as the cause.
 
 ### Worker lifetime
 
@@ -164,5 +184,7 @@ The PSR-15 harness reports:
 A request failure identifies the handler, HTTP method, and URI path. The
 diagnostic omits the query because it can contain sensitive values.
 
-Each harness error keeps the original throwable as its cause. Greenlight also
-reports the application stack trace.
+When an application callback throws, the harness error keeps that throwable
+as its cause. Greenlight also reports its application stack trace. Errors such
+as an invalid handler or a closed harness have no original application
+throwable.

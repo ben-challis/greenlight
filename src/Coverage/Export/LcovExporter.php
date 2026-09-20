@@ -25,11 +25,11 @@ final readonly class LcovExporter implements CoverageExporter
 
         foreach ($map->files() as $path => $file) {
             if (\str_contains($path, "\0")) {
-                throw new \InvalidArgumentException('LCOV file paths MUST NOT contain null bytes.');
+                throw new \InvalidArgumentException('LCOV file paths cannot contain null bytes.');
             }
 
             if (\strpbrk($path, "\r\n") !== false) {
-                throw new \InvalidArgumentException('LCOV file paths MUST NOT contain line breaks.');
+                throw new \InvalidArgumentException('LCOV file paths cannot contain line breaks.');
             }
 
             $out .= 'SF:' . $path . "\n";

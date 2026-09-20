@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanExpectationTypeSpecifyingExtensionTest
@@ -63,49 +64,47 @@ final readonly class PhpStanExpectationTypeSpecifyingExtensionTest
                 int|string $string,
                 bool $true,
             ): void {
-                Expect::that($array)->toBeArray();
+                Expect::value($array)->toBeArray();
                 acceptArray($array);
 
-                Expect::that($bool)->toBeBool();
+                Expect::value($bool)->toBeBool();
                 acceptBool($bool);
 
-                Expect::that($callable)->toBeCallable();
+                Expect::value($callable)->toBeCallable();
                 acceptCallable($callable);
 
-                Expect::that($false)->not()->toBeTrue();
+                Expect::value($false)->not()->toBeTrue();
                 acceptFalse($false);
 
-                Expect::that($float)->toBeFloat();
+                Expect::value($float)->toBeFloat();
                 acceptFloat($float);
 
-                Expect::that($int)->toBeInt();
+                Expect::value($int)->toBeInt();
                 acceptInt($int);
 
-                Expect::that($instance)->toBeInstanceOf(NarrowedSecond::class);
+                Expect::value($instance)->toBeInstanceOf(NarrowedSecond::class);
                 acceptSecond($instance);
 
-                Expect::that($iterable)->toBeIterable();
+                Expect::value($iterable)->toBeIterable();
                 acceptIterable($iterable);
 
-                Expect::that($nullableString)
+                Expect::value($nullableString)
                     ->because('the value MUST not be null')
-                    ->not()
-                    ->toBeNull();
+                    ->not()->toBeNull();
                 acceptString($nullableString);
 
-                Expect::that($null)->toBeNull();
+                Expect::value($null)->toBeNull();
                 acceptNull($null);
 
-                Expect::that($object)
+                Expect::value($object)
                     ->because('the first type MUST be absent')
-                    ->not()
-                    ->toBeInstanceOf(NarrowedFirst::class);
+                    ->not()->toBeInstanceOf(NarrowedFirst::class);
                 acceptSecond($object);
 
-                Expect::that($string)->because('the value MUST be text')->toBeString();
+                Expect::value($string)->because('the value MUST be text')->toBeString();
                 acceptString($string);
 
-                Expect::that($true)->not()->toBeFalse();
+                Expect::value($true)->not()->toBeFalse();
                 acceptTrue($true);
             }
             PHP,
@@ -120,23 +119,23 @@ final readonly class PhpStanExpectationTypeSpecifyingExtensionTest
 
             function greenlightUnsupportedExpectationNarrowingProbe(?string $stored, ?string $temporal): void
             {
-                $expectation = Expect::that($stored);
+                $expectation = Expect::value($stored);
                 $expectation->not()->toBeNull();
                 acceptNarrowedString($stored);
 
-                Expect::eventually(static fn(): ?string => $temporal)->within(1.0)->not()->toBeNull();
+                Expect::calling(static fn(): ?string => $temporal)->returnValue()->eventually()->within(1.0)->not()->toBeNull();
                 acceptNarrowedString($temporal);
             }
             PHP,
         );
 
-        Expect::that($probe->exitCode)
+        expect($probe->exitCode)
             ->because('PHPStan keeps unsafe stored and temporal subjects nullable')
             ->toBe(1);
-        Expect::that($probe->goodPassed)
+        expect($probe->goodPassed)
             ->because('PHPStan messages: ' . $probe->messages())
             ->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(2);
-        Expect::that($probe->messages())->toContain('expects string, string|null given');
+        expect(\count($probe->errors))->toBe(2);
+        expect($probe->messages())->toContain('expects string, string|null given');
     }
 }

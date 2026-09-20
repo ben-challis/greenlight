@@ -33,10 +33,7 @@ final class IntegrationFixtureManager
 
         foreach ($fixtureDefinitions as $definition) {
             if (isset($definitions[$definition->id])) {
-                throw new IntegrationFixtureError(\sprintf(
-                    'Integration fixture "%s" is declared more than once.',
-                    $definition->id,
-                ));
+                throw IntegrationFixtureError::duplicateDefinition($definition->id);
             }
 
             $definitions[$definition->id] = $definition;
@@ -124,18 +121,15 @@ final class IntegrationFixtureManager
 
             $cycle = \array_reverse($reversedCycle);
 
-            throw new IntegrationFixtureError('Integration fixture dependency cycle: ' . \implode(' -> ', $cycle) . '.');
+            throw IntegrationFixtureError::dependencyCycle($cycle);
         }
 
         $state[$definition->id] = 1;
         $path[] = $definition->id;
 
         foreach ($definition->dependsOn as $dependencyId) {
-            $dependency = $definitions[$dependencyId] ?? throw new IntegrationFixtureError(\sprintf(
-                'Integration fixture "%s" depends on missing fixture "%s".',
-                $definition->id,
-                $dependencyId,
-            ));
+            $dependency = $definitions[$dependencyId]
+                ?? throw IntegrationFixtureError::missingDependency($definition->id, $dependencyId);
 
             self::visit($dependency, $definitions, $state, $path, $ordered);
         }

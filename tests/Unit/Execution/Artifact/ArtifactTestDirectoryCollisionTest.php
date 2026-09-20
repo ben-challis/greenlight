@@ -8,12 +8,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactTestDirectoryCollisionTest
 {
@@ -51,17 +52,16 @@ final readonly class ArtifactTestDirectoryCollisionTest
             attachments: $secondAttempt->seal(),
         ));
 
-        Expect::that($first->attachments)
+        expect($first->attachments)
             ->because('test IDs with the same filesystem slug MUST keep distinct evidence')
             ->toHaveCount(1);
-        Expect::that($second->attachments)
+        expect($second->attachments)
             ->toHaveCount(1);
-        Expect::that($first->attachments[0]->path)
-            ->not()
-            ->toBe($second->attachments[0]->path);
-        Expect::that((string) \file_get_contents($first->attachments[0]->path))
+        expect($first->attachments[0]->path)
+            ->not()->toBe($second->attachments[0]->path);
+        expect((string) \file_get_contents($first->attachments[0]->path))
             ->toBe('spaced data-set key');
-        Expect::that((string) \file_get_contents($second->attachments[0]->path))
+        expect((string) \file_get_contents($second->attachments[0]->path))
             ->toBe('hyphenated data-set key');
     }
 }

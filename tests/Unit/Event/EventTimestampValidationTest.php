@@ -14,11 +14,12 @@ use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\TestStarted;
 use Greenlight\Event\WorkerSpawned;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class EventTimestampValidationTest
 {
@@ -29,11 +30,11 @@ final readonly class EventTimestampValidationTest
     #[DataSet('eventFactories')]
     public function directConstructionRejectsNonfiniteTimestamps(\Closure $create): void
     {
-        Expect::that(static fn(): Event => $create(\INF))
+        expect()->calling(static fn(): Event => $create(\INF))
             ->because('direct and wire event construction MUST enforce the same timestamp invariant')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Event timestamp MUST be finite.',
+                message: 'Use a finite event timestamp.',
             );
     }
 

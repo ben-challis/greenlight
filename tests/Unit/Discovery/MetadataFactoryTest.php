@@ -8,7 +8,6 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\MetadataFactory;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\DiscoveryAttributeArgumentsInvalid\WrongCaptureTypeTest;
 use Greenlight\Tests\Fixture\DiscoveryAttributeArgumentsInvalid\WrongGroupTypeTest;
 use Greenlight\Tests\Fixture\DiscoveryInvalidMethods\AbstractMethodTest;
@@ -17,6 +16,8 @@ use Greenlight\Tests\Fixture\DiscoveryInvalidMethods\StaticMethodTest;
 use Greenlight\Tests\Fixture\DiscoveryParallelConflict\ClassIsolatedTest;
 use Greenlight\Tests\Fixture\DiscoveryParallelConflict\MethodIsolatedTest;
 
+use function Greenlight\expect;
+
 final class MetadataFactoryTest
 {
     #[Test]
@@ -24,16 +25,16 @@ final class MetadataFactoryTest
     {
         $class = $this->wrongCaptureTypeClass();
 
-        Expect::that(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
+        expect()->calling(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
             ->because('discovery wraps invalid attribute arguments with their location')
             ->toThrow(
                 static function (DiscoveryError $error) use ($class): void {
-                    Expect::that($error->getMessage())->toMatch(
+                    expect($error->getMessage())->toMatch(
                         '/^Attribute on '
                         . \preg_quote($class . '::neverDiscovered()', '/')
                         . ' is invalid:/',
                     );
-                    Expect::that($error->getPrevious())
+                    expect($error->getPrevious())
                         ->because('the discovery error preserves the invalid attribute cause')
                         ->toBeInstanceOf(\TypeError::class);
                 },
@@ -45,16 +46,16 @@ final class MetadataFactoryTest
     {
         $class = $this->wrongGroupTypeClass();
 
-        Expect::that(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
+        expect()->calling(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
             ->because('discovery wraps invalid group arguments with their method location')
             ->toThrow(
                 static function (DiscoveryError $error) use ($class): void {
-                    Expect::that($error->getMessage())->toMatch(
+                    expect($error->getMessage())->toMatch(
                         '/^Attribute on '
                         . \preg_quote($class . '::neverDiscovered()', '/')
                         . ' is invalid:/',
                     );
-                    Expect::that($error->getPrevious())
+                    expect($error->getPrevious())
                         ->because('the discovery error preserves the invalid group cause')
                         ->toBeInstanceOf(\TypeError::class);
                 },
@@ -68,7 +69,7 @@ final class MetadataFactoryTest
     #[DataSet('invalidMethods')]
     public function rejectsTestMethodsThatCannotRun(string $class, string $reason): void
     {
-        Expect::that(
+        expect()->calling(
             static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)),
         )
             ->because('discovery MUST reject a test method that cannot run')
@@ -101,7 +102,7 @@ final class MetadataFactoryTest
     #[DataSet('parallelIsolationConflicts')]
     public function rejectsParallelClassesWithIsolation(string $class): void
     {
-        Expect::that(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
+        expect()->calling(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
             ->because('parallel class splitting and process isolation are incompatible')
             ->toThrow(
                 DiscoveryError::class,

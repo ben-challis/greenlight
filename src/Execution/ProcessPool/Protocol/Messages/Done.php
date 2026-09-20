@@ -38,7 +38,7 @@ final readonly class Done implements Message
     ) {
         if ($peakMemoryBytes < 0) {
             throw new \InvalidArgumentException(\sprintf(
-                'Done message peak memory MUST NOT be negative. Actual value: %d.',
+                'Done message peak memory cannot be negative. Actual value: %d.',
                 $peakMemoryBytes,
             ));
         }

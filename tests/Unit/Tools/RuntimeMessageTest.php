@@ -5,54 +5,14 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Tools;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class RuntimeMessageTest
 {
     public function __construct(private TemporaryDirectory $tempDirectory) {}
-
-    #[Test]
-    public function coverageGateReportsAMissingExportExactly(): void
-    {
-        [$root, $script] = $this->toolSandbox('coverage-missing', 'coverage-gate.php');
-        $summary = $root . '/summary.md';
-        $result = PhpSubprocess::run(
-            $root,
-            [$script],
-            ['GITHUB_STEP_SUMMARY' => $summary],
-        );
-
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stderr)->toContain(
-            \sprintf(
-                'Greenlight did not find the coverage export at %s/build/coverage/coverage.json. Run `composer tests:coverage` first.',
-                (string) \realpath($root),
-            ),
-        );
-        Expect::that((string) \file_get_contents($summary))->toBe(
-            "## Code coverage\n\n"
-                . "**Coverage unavailable.** Greenlight did not produce the coverage export.\n\n",
-        );
-    }
-
-    #[Test]
-    public function coverageGateReportsASummaryWriteFailureExactly(): void
-    {
-        [$root, $script] = $this->toolSandbox('coverage-summary-write', 'coverage-gate.php');
-        $summaryDirectory = $this->tempDirectory->subdirectory('coverage-summary-write/summary');
-        $result = PhpSubprocess::run(
-            $root,
-            [$script],
-            ['GITHUB_STEP_SUMMARY' => $summaryDirectory],
-        );
-
-        Expect::that($result->exitCode)->toBe(1);
-        Expect::that($result->stderr)->toContain(
-            'Warning: Greenlight did not write the GitHub Actions job summary.',
-        );
-    }
 
     #[Test]
     public function phpStanExtractionReportsMissingAndExtractedSourcesExactly(): void
@@ -60,8 +20,8 @@ final readonly class RuntimeMessageTest
         [$missingRoot, $missingScript] = $this->toolSandbox('phpstan-missing', 'extract-phpstan-api.php');
         $missing = PhpSubprocess::run($missingRoot, [$missingScript]);
 
-        Expect::that($missing->exitCode)->toBe(0);
-        Expect::that($missing->stdout)->toBe(
+        expect($missing->exitCode)->toBe(0);
+        expect($missing->stdout)->toBe(
             'The tool cannot extract the PHPStan API stubs because phpstan.phar is not installed.',
         );
 
@@ -85,19 +45,19 @@ final readonly class RuntimeMessageTest
             ],
         );
 
-        Expect::that($builder->exitCode)->toBe(0);
+        expect($builder->exitCode)->toBe(0);
 
         $success = PhpSubprocess::run($successRoot, [$successScript]);
         $target = \realpath($successRoot) . '/.phpstan-api-stubs';
 
-        Expect::that($success->exitCode)->toBe(0);
-        Expect::that($success->stdout)->toBe(
+        expect($success->exitCode)->toBe(0);
+        expect($success->stdout)->toBe(
             \sprintf(
                 'Greenlight extracted the PHPStan API sources to %s. Editors can index these sources.',
                 $target,
             ),
         );
-        Expect::that(\is_file($target . '/src/Fixture.php'))->toBeTrue();
+        expect(\is_file($target . '/src/Fixture.php'))->toBeTrue();
     }
 
     #[Test]
@@ -117,8 +77,8 @@ final readonly class RuntimeMessageTest
             '--root=' . $root,
         ]);
 
-        Expect::that($sentence->exitCode)->toBe(1);
-        Expect::that($sentence->stdout)->toContain(
+        expect($sentence->exitCode)->toBe(1);
+        expect($sentence->stdout)->toContain(
             'sample.md:3: sentence-length: Write no more than 25 words in a descriptive sentence. Found 27 words.',
         );
 
@@ -130,8 +90,8 @@ final readonly class RuntimeMessageTest
             '--baseline-dir=' . $root . '/baseline',
         ]);
 
-        Expect::that($removedOption->exitCode)->toBe(1);
-        Expect::that($removedOption->stderr)->toContain('Unknown prose-check option "--baseline-dir=');
+        expect($removedOption->exitCode)->toBe(1);
+        expect($removedOption->stderr)->toContain('Unknown prose-check option "--baseline-dir=');
     }
 
     #[Test]
@@ -140,8 +100,8 @@ final readonly class RuntimeMessageTest
         [$missingRoot, $missingScript] = $this->toolSandbox('memory-missing', 'memory-gate.php');
         $missing = PhpSubprocess::run($missingRoot, [$missingScript]);
 
-        Expect::that($missing->exitCode)->toBe(1);
-        Expect::that($missing->stderr)->toContain(
+        expect($missing->exitCode)->toBe(1);
+        expect($missing->stderr)->toContain(
             'The memory probe wrote no samples. The run did not reach the sample points.',
         );
 
@@ -164,11 +124,35 @@ final readonly class RuntimeMessageTest
 
         $success = PhpSubprocess::run($successRoot, [$successScript]);
 
-        Expect::that($success->exitCode)->toBe(0);
-        Expect::that($success->stdout)->toContain(
+        expect($success->exitCode)->toBe(0);
+        expect($success->stdout)->toContain(
             'Memory after 2000 tests: 1.00 MiB. Memory after 10000 tests: 1.50 MiB. '
                 . 'Drift: +524288 bytes. Limit: 1048576 bytes.',
         );
+    }
+
+    #[Test]
+    public function memoryGateRejectsAFailedRunThatWritesCompleteSamples(): void
+    {
+        [$root, $script] = $this->toolSandbox('memory-run-failure', 'memory-gate.php');
+        $bin = $this->tempDirectory->subdirectory('memory-run-failure/bin');
+        \file_put_contents($bin . '/greenlight', <<<'PHP'
+        <?php
+
+        file_put_contents(getcwd() . '/samples.json', json_encode(['2000' => 1_048_576, '10000' => 1_048_576]));
+        file_put_contents(__DIR__ . '/run-directory', getcwd());
+        fwrite(STDERR, "Synthetic test run failed.\n");
+        exit(17);
+        PHP);
+
+        $result = PhpSubprocess::run($root, [$script]);
+
+        expect($result->exitCode)->toBe(1);
+        expect($result->stdout)
+            ->toContain('Synthetic test run failed.')
+            ->not()->toContain('Flat-memory gate passed.');
+        expect($result->stderr)->toContain('The generated test run failed with exit code 17.');
+        expect(\is_dir((string) \file_get_contents($bin . '/run-directory')))->toBeFalse();
     }
 
     #[Test]
@@ -183,8 +167,8 @@ final readonly class RuntimeMessageTest
             $script,
         ]);
 
-        Expect::that($result->exitCode)->toBe(255);
-        Expect::that($result->stderr)->toContain('Greenlight did not create directory "')
+        expect($result->exitCode)->toBe(255);
+        expect($result->stderr)->toContain('Greenlight did not create directory "')
             ->toContain('/suite".');
     }
 
@@ -203,8 +187,8 @@ final readonly class RuntimeMessageTest
             '--runs=1',
         ]);
 
-        Expect::that($directoryFailure->exitCode)->toBe(1);
-        Expect::that($directoryFailure->stderr)->toContain(
+        expect($directoryFailure->exitCode)->toBe(1);
+        expect($directoryFailure->stderr)->toContain(
             'Greenlight did not create the benchmark project directory.',
         );
 
@@ -231,8 +215,8 @@ final readonly class RuntimeMessageTest
             ['PATH' => $fakeBin . \PATH_SEPARATOR . (\is_string($path) ? $path : '')],
         );
 
-        Expect::that($composerFailure->exitCode)->toBe(1);
-        Expect::that($composerFailure->stderr)->toContain(
+        expect($composerFailure->exitCode)->toBe(1);
+        expect($composerFailure->stderr)->toContain(
             "Composer did not install the comparison tools:\nfixture composer failure",
         );
     }

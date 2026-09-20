@@ -29,12 +29,12 @@ export const docSections = [
       {
         id: 'github-actions',
         title: 'GitHub Actions',
-        description: 'This guide explains how to reuse Greenlight run state between GitHub Actions runs.',
+        description: 'This guide explains how to run Greenlight and publish test results, attachments, run state, and coverage in GitHub Actions.',
       },
       {
         id: 'gitlab-ci',
         title: 'GitLab CI/CD',
-        description: 'This guide explains how to publish Greenlight test results, attachments, and coverage in GitLab.',
+        description: 'This guide explains how to run Greenlight and publish test results, attachments, and coverage in GitLab.',
       },
       {
         id: 'attributes',
@@ -69,7 +69,7 @@ export const docSections = [
       {
         id: 'laravel',
         title: 'Laravel',
-        description: 'This guide explains how tests receive container services from a fresh Laravel application.',
+        description: 'This guide explains how tests receive Laravel container services and configure application refresh.',
       },
       {
         id: 'hyperf',
@@ -125,6 +125,11 @@ export const docSections = [
         id: 'api-artifacts',
         title: 'Artifact API',
         description: 'This reference lists attachment values, retention rules, and attachment operations.',
+      },
+      {
+        id: 'api-coverage',
+        title: 'Coverage API',
+        description: 'This reference lists coverage maps and per-file line coverage values.',
       },
       {
         id: 'api-events',

@@ -15,10 +15,38 @@ The parallel runner uses core stream sockets and `proc_open`. Coverage requires
 If PHP disables a process or stream function that the parallel runner requires,
 Greenlight uses an in-process sequential run.
 
+An in-process run cannot give `#[Isolated]` tests a dedicated process.
+
 Install Greenlight as a development dependency:
 
 ```sh
 composer require --dev greenlight/greenlight
+```
+
+## Configure the Composer autoloader
+
+Add these keys to the project `composer.json` file:
+
+```json
+{
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\Tests\\": "tests/"
+        }
+    }
+}
+```
+
+Create the source and test directories. Then update the Composer autoloader:
+
+```sh
+mkdir -p src tests
+composer dump-autoload
 ```
 
 ## Create the configuration file
@@ -58,8 +86,15 @@ The longer form can make a new project easier to understand. See the
 
 Tests are PHP classes. Add `#[Test]` to each test method.
 
+Greenlight scans the configured paths for files whose names end in `Test.php`.
+The class short name must match the file name. Composer must be able to
+autoload the class from its namespace.
+
+For example, `tests/GreeterTest.php` must declare the class
+`App\Tests\GreeterTest` with the mappings in this guide.
+
 Greenlight does not require a `TestCase` base class or a test method name
-pattern. Start each expectation with `Expect::that()`.
+pattern. Start each expectation with `Expect::value()`.
 
 Constructor injection supplies stateful test services when a test requests
 them.
@@ -112,7 +147,7 @@ final class GreeterTest
     {
         $greeter = new Greeter();
 
-        Expect::that($greeter->greet('Ada'))->toBe('Hello, Ada!');
+        Expect::value($greeter->greet('Ada'))->toBe('Hello, Ada!');
     }
 
     #[Test]
@@ -120,7 +155,7 @@ final class GreeterTest
     {
         $greeter = new Greeter();
 
-        Expect::that(
+        Expect::calling(
             static fn (): string => $greeter->greet(''),
         )->toThrow(\InvalidArgumentException::class, matching: '/empty/');
     }
@@ -129,9 +164,7 @@ final class GreeterTest
 
 Save the file as `tests/GreeterTest.php`.
 
-Map `App` to `src/` in Composer. Map `App\Tests` to `tests/`.
-
-`Expect::that()` starts a matcher chain for a value. A failed matcher throws
+`Expect::value()` starts a matcher chain for a value. A failed matcher throws
 immediately and includes a clear difference when applicable.
 
 The [expectations reference](expectations.md) describes each matcher, negation,
@@ -159,7 +192,10 @@ Use these commands for common tasks:
 * `vendor/bin/greenlight run --group=slow` selects tests with `#[Group('slow')]`.
 * `vendor/bin/greenlight run --exclude-group=slow` excludes that group.
 * `vendor/bin/greenlight run --list-tests` prints the selected tests.
-* `vendor/bin/greenlight run --bail` stops after the first failure.
+* `vendor/bin/greenlight run --bail` stops new work after the first failed or errored test.
+
+With `--bail`, active assignments can finish after the limit. The final failure
+count can therefore exceed one.
 
 The `--exclude-class`, `--exclude-method`, and `--exclude-path` flags also
 exclude tests. Exclusion rules take priority over inclusion rules.
@@ -189,10 +225,12 @@ command for each required report.
 ## Read the output
 
 Greenlight uses the `tty` reporter on an interactive terminal. This reporter
-shows live progress with ANSI color and prints failure differences immediately.
+shows live progress with ANSI color. At the end of the run, it prints problem
+details and differences before the summary.
 
 Greenlight uses the `plain` reporter when standard output is not a TTY. This
-reporter prints one line for each event and does not print escape codes.
+reporter prints the run start, one line for each completed test, problem
+details, and the final summary. It does not print escape codes.
 
 Select a reporter with `--reporter`:
 
@@ -249,14 +287,31 @@ Watch mode combines rapid save events. The default delay is 200 ms.
 
 Use the `watch()` configuration builder to change this delay.
 
+The builder can also watch non-PHP inputs:
+
+<!-- php-example {"example":"getting-started-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
+->watch(fn ($watch) => $watch
+    ->paths('templates', 'config')
+    ->include('**/*.twig', '**/*.yaml')
+    ->exclude('build/**', 'coverage/**'))
+```
+
+Relative paths and patterns use the command working directory. Exclusions have
+precedence and can prevent runs that generated artifacts would cause.
+
 ## Configure workers
 
 Tests run in parallel worker processes by default.
 
-`--workers=auto` uses one worker for each CPU core. This value is the default.
+`--workers=auto` uses one worker for each detected CPU core. This value is the
+default. If CPU detection fails, Greenlight uses four workers.
 
 `--workers=4` specifies four workers. `--workers=1` uses one in-process runner.
 The last mode is usually the simplest choice for debug work.
+
+Do not use `--workers=1` when a test depends on `#[Isolated]` for process-global
+state cleanup.
 
 A worker remains active until it has no more tests or the worker fails.
 This behavior makes memory growth and state leaks visible in the suite.
@@ -292,8 +347,11 @@ final class OrderRepositoryTest
 }
 ```
 
-Concurrent tests never share a channel. Thus, databases such as `app_test_1`
-and `app_test_2` do not conflict.
+Concurrent tests within one run never share a channel. Thus, databases such as
+`app_test_1` and `app_test_2` do not conflict within that run.
+
+Separate runs and CI shards reuse channel numbers. Add a separate resource
+prefix for each concurrent run that uses the same database server.
 
 Use `#[RequiresResource]` when several workers use one dependency with limited
 capacity:
@@ -312,7 +370,7 @@ return GreenlightConfig::create()
 ```
 
 Other workers can run tests that do not require `payments-sandbox`. Without a
-configured limit, only one class can use the resource.
+configured limit, only one assignment can use the resource at a time.
 
 A resource limit controls capacity. It does not select a sandbox, database, or
 account for a test.
@@ -367,7 +425,7 @@ final class ExporterTest
 
         new Exporter()->run();
 
-        Expect::that(\file_exists($this->tmp->path() . '/export.csv'))->toBeTrue();
+        Expect::value(\file_exists($this->tmp->path() . '/export.csv'))->toBeTrue();
     }
 }
 ```
@@ -403,19 +461,25 @@ final readonly class ServerTest
 Greenlight runs cleanup callbacks once in reverse registration order. It runs
 them after `After` hooks and before per-test sandbox disposal.
 
-A callback failure does not prevent the remaining callbacks. A cleanup failure
-errors a passed or skipped test. An earlier test failure or error remains
-primary.
+A callback failure does not prevent the remaining callbacks. For a passed or
+skipped test, the first cleanup failure determines the new outcome. An
+`ExpectationFailed` changes the outcome to failed. Another throwable changes
+it to errored. An earlier test failure or error remains primary.
 
 ## Exit codes
 
-Greenlight uses three exit codes:
+Greenlight uses these exit codes:
 
 * `0` means that the run succeeded.
 * `1` means that the run failed or found no tests.
 * `64` means that the command has a usage error.
+* `128 + signal number` means that a signal interrupted the run.
+
+For example, SIGINT returns `130` and SIGTERM returns `143`. See
+[interruption](configuration.md#interruption) for the graceful shutdown rules.
 
 Exit code `1` includes test failures, test errors, invalid configuration,
-discovery errors, coverage export errors, and detected leaks.
+discovery errors, coverage gate failures, coverage export errors, and detected
+leaks.
 
 Greenlight treats a run without tests as a configuration problem.

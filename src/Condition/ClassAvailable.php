@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Condition;
 
+/** Passes when `class_exists()` finds the named class, with autoloading enabled. */
 final readonly class ClassAvailable implements Condition
 {
     /**
@@ -15,12 +16,14 @@ final readonly class ClassAvailable implements Condition
     private string $class;
 
     /**
+     * @param non-empty-string $class
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(string $class)
     {
         if ($class === '') {
-            throw new \InvalidArgumentException('Class name MUST NOT be empty.');
+            throw new \InvalidArgumentException('Class name cannot be empty.');
         }
 
         $this->class = $class;

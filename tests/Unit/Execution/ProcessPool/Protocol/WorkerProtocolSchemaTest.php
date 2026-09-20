@@ -28,7 +28,6 @@ use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Fatal;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
-use Greenlight\Expect\Expect;
 use Greenlight\IntegrationFixture\FixtureResource;
 use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Internal\Event\EventCodec;
@@ -53,6 +52,8 @@ use Greenlight\Test\TestId;
 use Greenlight\Tests\Unit\Reporting\CannedStream;
 use JsonSchema\Validator;
 
+use function Greenlight\expect;
+
 final class WorkerProtocolSchemaTest
 {
     #[Test]
@@ -61,15 +62,15 @@ final class WorkerProtocolSchemaTest
         $messages = $this->messages();
         $classes = \array_map(static fn(Message $message): string => $message::class, $messages);
 
-        Expect::that($classes)
+        expect($classes)
             ->because('each registered message MUST have a schema test value')
             ->toBe(MessageRegistry::all());
-        Expect::that($this->messageSchemaTags())
+        expect($this->messageSchemaTags())
             ->because('each registered message MUST have an explicit schema')
             ->toBe(\array_keys(MessageRegistry::all()));
 
         foreach ($messages as $tag => $message) {
-            Expect::that($this->validationErrors($this->encodedEnvelope($message)))
+            expect($this->validationErrors($this->encodedEnvelope($message)))
                 ->because(\sprintf('the "%s" message validates against the worker protocol schema', $tag))
                 ->toBe([]);
         }
@@ -85,15 +86,15 @@ final class WorkerProtocolSchemaTest
             $events[$tagged['event']] = $event;
         }
 
-        Expect::that(\array_keys($events))
+        expect(\array_keys($events))
             ->because('each registered event MUST have a schema test value')
             ->toEqualCanonicalizing(\array_keys(EventCodec::tags()));
-        Expect::that($this->eventSchemaTags())
+        expect($this->eventSchemaTags())
             ->because('each registered event MUST have an explicit worker protocol schema')
             ->toBe(\array_keys(EventCodec::tags()));
 
         foreach ($events as $tag => $event) {
-            Expect::that($this->validationErrors($this->encodedEnvelope(new EventEnvelope($event))))
+            expect($this->validationErrors($this->encodedEnvelope(new EventEnvelope($event))))
                 ->because(\sprintf('the "%s" event payload validates against the worker protocol schema', $tag))
                 ->toBe([]);
         }
@@ -102,6 +103,9 @@ final class WorkerProtocolSchemaTest
     #[Test]
     public function compatiblePayloadsWithoutNewOptionalFieldsValidateAgainstTheSchema(): void
     {
+        $bootstrapPayload = $this->withoutPaths($this->messages()['bootstrap']->toWire(), [
+            ['policy'],
+        ]);
         $assignPayload = $this->withoutPaths($this->messages()['assign']->toWire(), [
             ['artifactSession'],
             ['artifactConfiguration'],
@@ -114,10 +118,13 @@ final class WorkerProtocolSchemaTest
             ['data', 'result', 'attachments'],
         ]);
 
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 4, 't' => 'assign', 'p' => $assignPayload])))
+        expect($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'bootstrap', 'p' => $bootstrapPayload])))
+            ->because('the schema MUST accept compatible bootstrap payloads')
+            ->toBe([]);
+        expect($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'assign', 'p' => $assignPayload])))
             ->because('the schema MUST accept compatible assignment payloads')
             ->toBe([]);
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 4, 't' => 'event', 'p' => $eventPayload])))
+        expect($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'event', 'p' => $eventPayload])))
             ->because('the schema MUST accept compatible test result payloads')
             ->toBe([]);
     }
@@ -128,10 +135,55 @@ final class WorkerProtocolSchemaTest
         $payload = $this->messages()['assign']->toWire();
         $payload['futureProtocolField'] = true;
 
-        Expect::that($this->validationErrors($this->asJsonObject(['v' => 4, 't' => 'assign', 'p' => $payload])))
+        expect($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'assign', 'p' => $payload])))
             ->because('a protocol change MUST update the schema')
-            ->not()
-            ->toBe([]);
+            ->not()->toBe([]);
+    }
+
+    #[Test]
+    public function aStagedAttachmentWithoutAStorageKeyIsRejected(): void
+    {
+        $payload = $this->withoutPaths($this->messages()['event']->toWire(), [
+            ['data', 'result', 'attachments', 0, 'storageKey'],
+        ]);
+
+        expect($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'event', 'p' => $payload])))
+            ->because('the worker schema requires the attachment storage key')
+            ->not()->toBe([]);
+    }
+
+    #[Test]
+    public function emptyMapKeysAreRejected(): void
+    {
+        /** @var array{resources: array{fixtures: array<string, mixed>}} $bootstrapPayload */
+        $bootstrapPayload = $this->messages()['bootstrap']->toWire();
+        $bootstrapPayload['resources']['fixtures'][''] = $bootstrapPayload['resources']['fixtures']['postgres'];
+
+        /** @var array{coverage: array{files: array<string, mixed>}} $donePayload */
+        $donePayload = $this->messages()['done']->toWire();
+        $donePayload['coverage']['files'][''] = [[1], []];
+
+        expect($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'bootstrap', 'p' => $bootstrapPayload])))
+            ->because('the schema MUST reject an empty fixture ID')
+            ->not()->toBe([]);
+        expect($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'done', 'p' => $donePayload])))
+            ->because('the schema MUST reject an empty coverage path')
+            ->not()->toBe([]);
+    }
+
+    #[Test]
+    public function anExternalDataProviderWithoutAMethodIsRejected(): void
+    {
+        /** @var array{slice: array{entries: non-empty-list<array{definition: array{dataProvider: mixed}}>}} $payload */
+        $payload = $this->messages()['assign']->toWire();
+        $payload['slice']['entries'][0]['definition']['dataProvider'] = [
+            'method' => null,
+            'class' => 'App\SharedRows',
+        ];
+
+        expect($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'assign', 'p' => $payload])))
+            ->because('the schema MUST match the data-provider decoder contract')
+            ->not()->toBe([]);
     }
 
     /**
@@ -218,6 +270,13 @@ final class WorkerProtocolSchemaTest
                         ['password' => 'test-secret'],
                     ),
                 ]),
+                policy: new ResultPolicy(
+                    failOnDeprecation: true,
+                    failOnNotice: true,
+                    failOnWarning: true,
+                    ignoreDeprecations: ['known deprecation*'],
+                    failOnRisky: true,
+                ),
             ),
             'ready' => new Ready(),
             'assign' => new Assign(
@@ -393,7 +452,7 @@ final class WorkerProtocolSchemaTest
 
     private function schemaPath(): string
     {
-        return \dirname(__DIR__, 5) . '/resources/schema/worker-protocol-v4.schema.json';
+        return \dirname(__DIR__, 5) . '/resources/schema/worker-protocol-v1.schema.json';
     }
 
     /**

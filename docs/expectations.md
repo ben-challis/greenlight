@@ -1,18 +1,98 @@
 # Expectations
 
-A Greenlight expectation starts with a subject value. It applies one or more
-typed matchers to that value:
+Use `Expect::value()` to check a value. Use `Expect::calling()` to check a call.
+A value expectation applies one or more typed matchers to its subject:
 
 <!-- php-example {"example":"expectations-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Expect\Expect;
 
-Expect::that($order->status())->toBe(OrderStatus::Paid);
+Expect::value($order->status())->toBe(OrderStatus::Paid);
 ```
 
 A matcher throws immediately if it does not pass. Greenlight reports the source
 location. It also reports expected and actual values when the matcher supplies
 them.
+
+## Function syntax
+
+You can use `Greenlight\expect()` instead of the `Expect` class for value and call expectations:
+
+<!-- php-example {"example":"expectations-function","file":"snippet.php","mode":"file","tools":["phpstan","rector"]} -->
+```php
+use function Greenlight\expect;
+
+expect('paid')->toBe('paid');
+expect()->calling(static fn(): int => 2 + 2)->toReturn(4);
+```
+
+The runner loads the function before configuration and test discovery. It is
+available in test-file declarations, data providers, test methods, worker
+processes, and watch runs. Composer autoload alone does not load it.
+
+Outside the runner, load the helper explicitly after the Composer autoloader:
+
+<!-- php-example {"mode":"display","reason":"The installed package path depends on the consuming project."} -->
+```php
+require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/vendor/greenlight/greenlight/src/Expect/functions.php';
+```
+
+`expect($value)` has the same generic return type and matchers as
+`Expect::value($value)`. It never executes a callable subject. This rule also
+applies to callable strings, arrays, and objects. `expect(null)` checks a null
+value.
+
+With no argument, `expect()` returns an `ExpectationBuilder`. Use its
+`calling($callback)` method for call assertions and temporal probes. This
+method has the same behavior as `Expect::calling($callback)`. It does not
+execute the call.
+
+Editors can index the helper source and its generic PHPDoc. The
+[PHPStan extension](phpstan.md#setup) registers that source for static analysis.
+Without the extension, add the file to PHPStan's `scanFiles`:
+
+```neon
+parameters:
+    scanFiles:
+        - vendor/greenlight/greenlight/src/Expect/functions.php
+```
+
+The generic conditional return type distinguishes no argument from explicit
+null and other known value types. For broad subject types such as `mixed` or
+`object`, PHPStan needs the extension to distinguish a value from the internal
+default-argument marker. Without the extension, use `Expect::value()` for
+those subjects.
+
+## Calls and return values
+
+`calling()` accepts a callable with no required arguments. It does not execute
+the callable until the first matcher. `toReturn()` compares the return value
+with `===`:
+
+<!-- php-example {"example":"expectations-call-return","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
+Expect::calling(fn() => $calculator->total())->toReturn(19.99);
+```
+
+Use `returnValue()` for other value matchers:
+
+<!-- php-example {"example":"expectations-return-projection","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
+Expect::calling(fn() => $repository->find($id))
+    ->returnValue()
+    ->toBeInstanceOf(Order::class);
+```
+
+`returnValue()` does not execute the callable. Immediate matchers in the same
+call chain share one captured outcome. The outcome preserves the return value
+or the exact throwable object. An unexpected throwable propagates from a
+return-value matcher.
+
+`value()` never invokes a callable subject. Use it to check callback identity
+or the callable type. Value expectations do not expose `toThrow()`.
+Call expectations expose `toThrow()`, `toReturn()`, and `returnValue()`.
+Native PHP declarations keep these method sets separate.
 
 ## Matcher chains
 
@@ -20,7 +100,7 @@ Matchers in a chain use the same subject:
 
 <!-- php-example {"example":"expectations-example-02","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::that($response->body())
+Expect::value($response->body())
     ->toBeString()
     ->toMatchJson('{"accepted":true}');
 ```
@@ -31,29 +111,34 @@ Start a separate expectation for each subject.
 
 <!-- php-example {"example":"expectations-example-03","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::that($errors)
+Expect::value($errors)
     ->not()->toBeEmpty()
     ->toHaveCount(1);
 ```
 
-`because()` adds a reason to the next matcher only:
+`because()` adds a reason to all subsequent matchers in the chain.
+Another `because()` call replaces the reason:
 
 <!-- php-example {"example":"expectations-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::that($order->isOpen())
-    ->because('a refund requires an open order')
-    ->toBeTrue();
+Expect::value($responseBody)
+    ->because('successful payments require payment and receipt references')
+    ->toHaveKey('payment_id')
+    ->toHaveKey('receipt_url')
+    ->because('payment responses must not expose card details')
+    ->not()->toHaveKey('card_number')
+    ->not()->toHaveKey('cvv');
 ```
 
-When the matcher fails, the failure message puts the reason after the word
-`because`:
+The first reason applies to both required keys. The second reason applies to
+both excluded keys. If a matcher fails, its failure message includes the current
+reason after the word `because`.
 
-```text
-Expected false to be true because a refund requires an open order.
-```
-
-The reason must not be empty. Temporal expectation chains also accept
-`because()`.
+Greenlight applies PHP's `trim()` to the reason. The result must not be empty.
+The reason also applies after `returnValue()` and after a temporal matcher
+returns an immediate expectation. It does not apply to a separate expectation
+created inside a callback. Use a new `expect()` chain for assertions that do
+not need the reason. `not()` still negates only the next matcher.
 
 ## Matcher reference
 
@@ -63,7 +148,7 @@ The reason must not be empty. Temporal expectation chains also accept
   identical with `===`.
 * `toEqual(mixed $expected)` passes when the values are deeply equal.
 * `toEqualCanonicalizing(mixed $expected)` passes when the values are deeply
-  equal after the matcher recursively ignores list order.
+  equal after the matcher recursively ignores list order in array values.
 * `toBeOneOf(mixed ...$options)` passes when the subject is identical to one
   option.
 * `toBeIn(iterable $haystack)` passes when the subject is identical to an item
@@ -77,8 +162,15 @@ includes private properties.
 Object comparisons distinguish shared objects from equal copies. They also
 require equal cycle shapes.
 
+Both equality matchers report unsupported cyclic array traversal with
+`InvalidArgumentException`. Compare selected acyclic values instead.
+Object cycles and shared references to acyclic arrays remain supported.
+
 Enum cases compare by identity.
 `DateTimeInterface` values compare by instant at microsecond precision.
+
+Canonicalizing equality does not inspect object properties. Thus, a list in an
+object property keeps its order.
 
 ### Type predicates
 
@@ -103,12 +195,14 @@ Enum cases compare by identity.
   the given count.
 * `toBeEmpty()` checks that a string, countable, or traversable subject contains
   nothing.
-* `toHaveLength(int $length)` checks the character length of a string or the
-  count of a countable subject.
+* `toHaveLength(int $length)` checks the code-point count of a valid UTF-8
+  string. If UTF-8 validation fails, it checks the byte count. It uses `count()`
+  for an array or `Countable` subject.
 * `toHaveKey(int|string $key)` checks that an array or `ArrayAccess` subject
   contains the key.
 * `toContainSubset(array $subset)` checks that an array contains every subset
-  key with a deeply equal value.
+  key. Nested arrays are also partial subsets, so the related subject arrays
+  can contain extra keys. Non-array values use the `toEqual()` rules.
 * `toMatch(string $pattern)` checks that a string matches the regular
   expression.
 * `toStartWith(string $prefix)` checks that a string starts with the prefix.
@@ -138,13 +232,25 @@ structures with `toEqual()` semantics. JSON object key order does not matter.
 
 ### Exceptions
 
-`toThrow()` invokes a callable subject and checks the throwable type:
+`toThrow()` checks the throwable from a call:
 
 <!-- php-example {"example":"expectations-example-05","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::that(fn() => $service->load('missing'))
+Expect::calling(fn() => $service->load('missing'))
     ->toThrow(NotFound::class);
 ```
+
+With no argument, `toThrow()` accepts any Throwable. Use `not()->toThrow()`
+to require a call that does not throw:
+
+<!-- php-example {"example":"expectations-no-throw","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
+Expect::calling($callback)->not()->toThrow();
+```
+
+`not()->toThrow(NotFound::class)` also passes when the call throws a different
+type. A constrained negative checks the constraint, not the absence of all
+throwables.
 
 Pass a Throwable instance to require the callable to throw that exact object:
 
@@ -152,7 +258,7 @@ Pass a Throwable instance to require the callable to throw that exact object:
 ```php
 $failure = new DomainException('Order is closed.');
 
-Expect::that(fn() => throw $failure)
+Expect::calling(fn() => throw $failure)
     ->toThrow($failure);
 ```
 
@@ -160,12 +266,12 @@ Constrain the message by exact value or regular expression:
 
 <!-- php-example {"example":"expectations-example-07","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::that($callback)->toThrow(
+Expect::calling($callback)->toThrow(
     DomainException::class,
     message: 'Order is closed.',
 );
 
-Expect::that($callback)->toThrow(
+Expect::calling($callback)->toThrow(
     DomainException::class,
     matching: '/closed/i',
 );
@@ -180,10 +286,10 @@ throwable. Greenlight runs it only after the throwable type matches:
 
 <!-- php-example {"example":"expectations-example-08","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::that(fn() => $fixtureManager->start())
+Expect::calling(fn() => $fixtureManager->start())
     ->toThrow(
         static function (IntegrationFixtureError $error): void {
-            Expect::that($error->getPrevious())
+            Expect::value($error->getPrevious())
                 ->toBeInstanceOf(LengthException::class);
         },
     );
@@ -205,12 +311,12 @@ instance. It passes when the callable throws the specified object.
 
 ## Asynchronous state
 
-`Expect::eventually()` calls a probe immediately. It then polls until its
-matcher passes or `within()` expires:
+`eventually()` repeats a call until its matcher passes or `within()` expires.
+The first matcher starts the calls:
 
 <!-- php-example {"example":"expectations-example-09","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::eventually(fn() => $repository->find($id))
+Expect::calling(fn() => $repository->find($id))->returnValue()->eventually()
     ->pollEvery(0.100)
     ->within(5.0)
     ->toEqual($expected);
@@ -221,7 +327,7 @@ The default poll interval is 25 ms. A probe exception stops the polls unless
 
 <!-- php-example {"example":"expectations-example-10","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::eventually(fn() => $client->fetch($id))
+Expect::calling(fn() => $client->fetch($id))->returnValue()->eventually()
     ->retryOnException(NotFoundYet::class)
     ->within(2.0)
     ->toBeInstanceOf(Response::class);
@@ -229,22 +335,43 @@ Expect::eventually(fn() => $client->fetch($id))
 
 `retryOnException()` accepts `Exception` subclasses, but not `Error` types.
 
-`Expect::consistently()` requires the first probe result to match, then checks
+`consistently()` requires the first probe result to match, then checks
 for the full duration:
 
 <!-- php-example {"example":"expectations-example-11","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::consistently(fn() => $outbox->messagesFor($id))
+Expect::calling(fn() => $outbox->messagesFor($id))->returnValue()->consistently()
     ->pollEvery(0.050)
     ->for(0.5)
     ->toHaveCount(1);
 ```
 
+For exception checks, put the time controls directly after `calling()`:
+
+<!-- php-example {"example":"expectations-eventual-throw","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
+Expect::calling(fn() => $client->fetch($id))
+    ->eventually()
+    ->within(2.0)
+    ->toThrow(Gone::class);
+```
+
+Each poll executes the call once. Exception matchers inspect the captured
+throwable and do not require `retryOnException()`. Direct temporal call chains
+also accept `toReturn()` for strict return-value equality.
+
+A successful temporal matcher retains the final outcome. Further matchers in
+that chain check this outcome without another call or poll. For example,
+`toBeArray()->toHaveKey('id')` polls only until `toBeArray()` passes.
+
 For both temporal chains, `pollEvery()` accepts a finite duration of at least
 0.001 seconds. `within()` and `for()` accept finite durations greater than zero.
 
-Each temporal matcher counts as one expectation. The test timeout limits its
-duration. The worker timeout remains the hard limit for a blocked probe.
+Each temporal matcher counts as one expectation. Temporal matchers check the
+test-attempt deadline between probe calls. These checks cannot interrupt a
+blocked probe. With process-pool execution, the orchestrator can stop the
+worker after the timeout grace period. In-process execution has no such
+protection. See [timeouts](attributes.md#timeout).
 
 ## Explicit failures
 

@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanDoublesCallRuleTest
@@ -63,14 +64,13 @@ final readonly class PhpStanDoublesCallRuleTest
             PHP,
         );
 
-        Expect::that($probe->exitCode)
+        expect($probe->exitCode)
             ->because('PHPStan rejects method names that the doubled type does not contain')
             ->toBe(1);
-        Expect::that($probe->goodPassed)->toBeTrue();
-        Expect::that(\count($probe->errors))->toBe(2);
-        Expect::that($probe->messages())
-            ->toContain('callsTo() cannot inspect "notifiy()" on doubled type "BadSpyNotifier"');
-        Expect::that($probe->messages())
+        expect($probe->goodPassed)->toBeTrue();
+        expect(\count($probe->errors))->toBe(2);
+        expect($probe->messages())
+            ->toContain('callsTo() cannot inspect "notifiy()" on doubled type "BadSpyNotifier"')
             ->toContain('callsTo() cannot inspect "flush()" on doubled type "BadSpyNotifier"');
     }
 }

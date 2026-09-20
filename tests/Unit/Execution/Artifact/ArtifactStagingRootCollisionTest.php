@@ -11,8 +11,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactSession;
 use Greenlight\Execution\Artifact\ArtifactStore;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactStagingRootCollisionTest
 {
@@ -42,23 +43,23 @@ final readonly class ArtifactStagingRootCollisionTest
             $configuration,
         );
 
-        Expect::that($stage)
+        expect()->calling($stage)
             ->because('a non-directory staging parent MUST block attachments')
             ->toThrow(
                 AttachmentError::class,
                 matching: '/^Failed to create attachment staging directory/',
             );
-        Expect::that((string) \file_get_contents($blocker))
+        expect((string) \file_get_contents($blocker))
             ->because('a rejected staging root MUST preserve the existing entry')
             ->toBe('occupied');
-        Expect::that(\is_dir($staging))
+        expect(\is_dir($staging))
             ->because('a rejected staging root MUST not create a directory')
             ->toBeFalse();
 
         \unlink($blocker);
         \mkdir($blocker);
 
-        Expect::that($stage()->name)
+        expect($stage()->name)
             ->because('staging MUST succeed after the parent becomes a directory')
             ->toBe('evidence.txt');
     }

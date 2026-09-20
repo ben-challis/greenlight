@@ -403,6 +403,7 @@ final class Orchestrator
                 $this->configuration->integrationFixtures->forChannel($handle->channelNumber),
                 $this->configuration->generatedCodeDirectory,
                 $this->configuration->temporaryDirectory,
+                $this->configuration->policy,
             ));
         } catch (ProtocolError) {
             $this->containCrash($handle, $sink, 'the worker exited before receiving bootstrap data');
@@ -467,7 +468,7 @@ final class Orchestrator
                 // Crash detection processes a worker that is already gone.
             }
 
-            $handle->requestStop();
+            $handle->requestStop($this->monotonicTime());
 
             return;
         }
@@ -561,7 +562,7 @@ final class Orchestrator
                     // The worker is already gone after Done. No drain is necessary.
                 }
 
-                $handle->requestStop();
+                $handle->requestStop($this->monotonicTime());
 
                 return;
             }
@@ -599,8 +600,8 @@ final class Orchestrator
 
         foreach ($this->handles as $handle) {
             if ($handle->isActive() && $handle->ready && $handle->assigned === null) {
-                // Every initial worker is fresh, so once pooled work is gone
-                // it may take an isolated unit.
+                // Each initial worker is fresh. It can take an isolated unit
+                // after the pooled queue is empty.
                 $this->assignNext($handle, $sink);
             }
         }
@@ -621,6 +622,7 @@ final class Orchestrator
         if ($event instanceof TestStarted) {
             $handle->inFlight = $event->id;
             $handle->inFlightSince = $this->monotonicTime();
+            $handle->inFlightAttemptSince = $handle->inFlightSince;
             $handle->inFlightAttempt = 0;
         }
 
@@ -637,8 +639,14 @@ final class Orchestrator
 
         $sink->emit($event);
 
-        if ($event instanceof TestFinished
-            && $this->configuration->stopAfterFailures !== null
+        if ($event instanceof TestFinished) {
+            $this->enforceFailureLimit();
+        }
+    }
+
+    private function enforceFailureLimit(): void
+    {
+        if ($this->configuration->stopAfterFailures !== null
             && !$this->draining
             && $this->summary->failed + $this->summary->errored >= $this->configuration->stopAfterFailures
         ) {
@@ -668,6 +676,7 @@ final class Orchestrator
         }
 
         $handle->inFlightAttempt = $message->attempt;
+        $handle->inFlightAttemptSince = $this->monotonicTime();
     }
 
     /**
@@ -699,7 +708,7 @@ final class Orchestrator
                     // Crash detection processes a worker that is already gone.
                 }
 
-                $handle->requestStop();
+                $handle->requestStop($this->monotonicTime());
             }
         }
     }
@@ -749,7 +758,7 @@ final class Orchestrator
             }
 
             if ($handle->inFlight === null) {
-                if ($handle->assigned === null && $handle->ready) {
+                if ($handle->assigned === null && $handle->ready && !$handle->stopRequested) {
                     // The scheduler keeps this connected worker idle until a
                     // resource lease is available.
                     continue;
@@ -782,7 +791,7 @@ final class Orchestrator
                 continue;
             }
 
-            $deadline = $handle->inFlightSince + $budget * self::TIMEOUT_GRACE_FACTOR + self::TIMEOUT_GRACE_FLAT_SECONDS;
+            $deadline = $handle->inFlightAttemptSince + $budget * self::TIMEOUT_GRACE_FACTOR + self::TIMEOUT_GRACE_FLAT_SECONDS;
 
             if ($this->monotonicTime() > $deadline) {
                 $this->containTimeout($handle, $sink, $budget);
@@ -865,6 +874,7 @@ final class Orchestrator
         unset($this->entriesById[(string) $result->id]);
         $this->summary = $this->summary->add($result->outcome);
         $sink->emit(new TestFinished($result, \microtime(true)));
+        $this->enforceFailureLimit();
     }
 
     private function retireFailedWorker(WorkerState $handle, bool $kill = false): void

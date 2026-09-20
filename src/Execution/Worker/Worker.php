@@ -18,7 +18,6 @@ use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Result\Outcome;
-use Greenlight\Result\ResultPolicy;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
@@ -30,7 +29,7 @@ use Greenlight\Test\TestId;
  *
  * run() stops early in these conditions:
  *
- * - The run reaches the failure limit.
+ * - The run reaches the failed-or-errored test limit.
  * - The orchestrator requests a drain between tests.
  *
  * run() reports incomplete entries in plan order.
@@ -47,7 +46,6 @@ final readonly class Worker
         private ?WorkerPluginRuntime $plugins = null,
         private ?LeakDetector $leakDetector = null,
         private string $workerId = '',
-        private ?ResultPolicy $policy = null,
         private ?ArtifactStore $artifactStore = null,
     ) {}
 
@@ -75,93 +73,106 @@ final readonly class Worker
         $scopes ??= new HarnessScopes($this->definitions);
         $summary = new ResultSummary();
         $drained = false;
-        $stopped = false;
         $remaining = [];
         $leaks = [];
 
-        foreach ($plan->entriesByClass() as $class => $entries) {
-            if ($stopped) {
-                $remaining = [...$remaining, ...\array_map(static fn(PlanEntry $entry): TestId => $entry->id, $entries)];
+        try {
+            foreach ($plan->entriesByClass() as $class => $entries) {
+                if ($drained) {
+                    $remaining = [...$remaining, ...\array_map(static fn(PlanEntry $entry): TestId => $entry->id, $entries)];
 
-                continue;
-            }
-
-            $isolated = \count($entries) === 1 && $entries[0]->definition->scheduling->isolated;
-            $sink->emit(new TestClassStarted($class, \microtime(true), $this->workerId, $isolated));
-            $scopes->openClass(allowPerClassServices: !$entries[0]->definition->scheduling->allowParallel);
-            $lastIndex = \count($entries) - 1;
-
-            $context = null;
-            $executor = null;
-
-            foreach ($entries as $index => $entry) {
-                $sink->emit(new TestStarted($entry->id, \microtime(true)));
-                $perTestCoverage?->start();
-
-                try {
-                    $context ??= ClassContext::for($class);
-                    $executor ??= new TestExecutor(
-                        $scopes,
-                        $context,
-                        $plugins,
-                        $this->leakDetector,
-                        $this->policy,
-                        $this->artifactStore,
-                        $attemptStarted,
-                    );
-                    $result = $executor->execute($entry);
-                } catch (\Throwable $threw) {
-                    $result = new TestResult(
-                        $entry->id,
-                        Outcome::Errored,
-                        0.0,
-                        0,
-                        error: ThrowableDetail::fromThrowable($threw),
-                    );
+                    continue;
                 }
 
-                $candidateSummary = $summary->add($result->outcome);
-                $failureLimitReached = $stopAfterFailures !== null
-                    && $candidateSummary->failed + $candidateSummary->errored >= $stopAfterFailures;
-                $drainReached = $drainRequested instanceof \Closure && $drainRequested();
+                $isolated = \count($entries) === 1 && $entries[0]->definition->scheduling->isolated;
+                $sink->emit(new TestClassStarted($class, \microtime(true), $this->workerId, $isolated));
+                $scopes->openClass(allowPerClassServices: !$entries[0]->definition->scheduling->allowParallel);
+                $lastIndex = \count($entries) - 1;
 
-                if ($index === $lastIndex || $failureLimitReached || $drainReached) {
-                    $result = HarnessServiceDisposal::applyToTest($result, $scopes->closeClass());
-                }
+                $context = null;
+                $executor = null;
 
-                if ($perTestCoverage instanceof CoverageCollector) {
-                    $testCoverageSink?->record($entry->id, $perTestCoverage->stop());
-                }
+                foreach ($entries as $index => $entry) {
+                    $sink->emit(new TestStarted($entry->id, \microtime(true)));
+                    $perTestCoverage?->start();
 
-                $summary = $summary->add($result->outcome);
-                $sink->emit(new TestFinished($result, \microtime(true)));
-
-                if ($this->leakDetector instanceof LeakDetector) {
-                    $leaks = [...$leaks, ...$this->leakDetector->sweep()];
-                }
-
-                $stopReached = match (true) {
-                    $stopAfterFailures !== null && $summary->failed + $summary->errored >= $stopAfterFailures => 'bail',
-                    $drainReached => 'drain',
-                    default => null,
-                };
-
-                if ($stopReached !== null) {
-                    $stopped = true;
-                    $drained = true;
-
-                    if ($index !== $lastIndex) {
-                        $remaining = \array_map(
-                            static fn(PlanEntry $unexecuted): TestId => $unexecuted->id,
-                            \array_slice($entries, $index + 1),
+                    try {
+                        $context ??= ClassContext::for($class);
+                        $executor ??= new TestExecutor(
+                            $scopes,
+                            $context,
+                            $plugins,
+                            $this->leakDetector,
+                            $this->artifactStore,
+                            $attemptStarted,
+                        );
+                        $result = $executor->execute($entry);
+                    } catch (\Throwable $threw) {
+                        $result = new TestResult(
+                            $entry->id,
+                            Outcome::Errored,
+                            0.0,
+                            0,
+                            error: ThrowableDetail::fromThrowable($threw),
                         );
                     }
 
-                    break;
+                    $result = $plugins->terminalResult($entry->definition, $result);
+
+                    $candidateSummary = $summary->add($result->outcome);
+                    $failureLimitReached = $stopAfterFailures !== null
+                        && $candidateSummary->failed + $candidateSummary->errored >= $stopAfterFailures;
+                    $drainReached = $drainRequested instanceof \Closure && $drainRequested();
+
+                    if ($index === $lastIndex || $failureLimitReached || $drainReached) {
+                        $result = HarnessServiceDisposal::applyToTest($result, $scopes->closeClass());
+                    }
+
+                    if ($perTestCoverage instanceof CoverageCollector) {
+                        $testCoverageSink?->record($entry->id, $perTestCoverage->stop());
+                    }
+
+                    $summary = $summary->add($result->outcome);
+                    $sink->emit(new TestFinished($result, \microtime(true)));
+
+                    if ($this->leakDetector instanceof LeakDetector) {
+                        $leaks = [...$leaks, ...$this->leakDetector->sweep()];
+                    }
+
+                    $stopReached = match (true) {
+                        $stopAfterFailures !== null && $summary->failed + $summary->errored >= $stopAfterFailures => 'bail',
+                        $drainReached => 'drain',
+                        default => null,
+                    };
+
+                    if ($stopReached !== null) {
+                        $drained = true;
+
+                        if ($index !== $lastIndex) {
+                            $remaining = \array_map(
+                                static fn(PlanEntry $unexecuted): TestId => $unexecuted->id,
+                                \array_slice($entries, $index + 1),
+                            );
+                        }
+
+                        break;
+                    }
                 }
+
+                $sink->emit(new TestClassFinished($class, \microtime(true), $this->workerId));
+            }
+        } catch (\Throwable $primary) {
+            $failures = $scopes->closeClass();
+
+            if ($ownScopes) {
+                $failures = [...$failures, ...$scopes->closeWorker()];
             }
 
-            $sink->emit(new TestClassFinished($class, \microtime(true), $this->workerId));
+            if ($failures !== []) {
+                throw WorkerError::afterHarnessServiceDisposal($primary, $failures);
+            }
+
+            throw $primary;
         }
 
         $outcome = new WorkerRunOutcome($summary, $remaining, $drained, $leaks);

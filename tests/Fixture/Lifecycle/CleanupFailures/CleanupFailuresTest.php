@@ -7,8 +7,10 @@ namespace Greenlight\Tests\Fixture\Lifecycle\CleanupFailures;
 use Greenlight\Attribute\Test;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\SkipTest;
-use Greenlight\Expect\Expect;
+
 use Greenlight\Tests\Fixture\Lifecycle\TraceLog;
+
+use function Greenlight\expect;
 
 final readonly class CleanupFailuresTest
 {
@@ -50,7 +52,7 @@ final readonly class CleanupFailuresTest
     public function passesBeforeCleanupExpectationFails(): void
     {
         $this->cleanup->defer(static function (): void {
-            Expect::that('actual')->toBe('expected');
+            expect('actual')->toBe('expected');
         });
     }
 }

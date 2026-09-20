@@ -1,0 +1,490 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Greenlight\Tests\Unit\Doubles;
+
+use Greenlight\Attribute\DataSet;
+use Greenlight\Attribute\Test;
+use Greenlight\Doubles\AllOf;
+use Greenlight\Doubles\Argument;
+use Greenlight\Doubles\ArgumentType;
+use Greenlight\Doubles\IntersectionTypeMatcher;
+use Greenlight\Doubles\InvalidDoubleUsage;
+use Greenlight\Doubles\UnionTypeMatcher;
+
+use function Greenlight\expect;
+
+final class ArgumentTypeTest
+{
+    #[Test]
+    #[DataSet('nativeTypes')]
+    public function reflectedTypesAcceptTheirNativeValues(
+        string $method,
+        mixed $accepted,
+        mixed $rejected,
+        bool $mustReject,
+    ): void {
+        $type = $this->parameterType($method);
+
+        expect($type->accepts($accepted))
+            ->because($method . ' MUST accept its compatible value')
+            ->toBeTrue();
+
+        if ($mustReject) {
+            expect($type->accepts($rejected))
+                ->because($method . ' MUST reject its incompatible value')
+                ->toBeFalse();
+        }
+    }
+
+    /** @return iterable<string, array{string, mixed, mixed, bool}> */
+    public static function nativeTypes(): iterable
+    {
+        yield 'mixed' => ['mixedType', 1, null, false];
+        yield 'null' => ['nullType', null, false, true];
+        yield 'true' => ['trueType', true, false, true];
+        yield 'false' => ['falseType', false, true, true];
+        yield 'bool' => ['boolType', true, 1, true];
+        yield 'int' => ['intType', 1, 1.0, true];
+        yield 'float' => ['floatType', 1.0, 1, true];
+        yield 'string' => ['stringType', 'value', 1, true];
+        yield 'array' => ['arrayType', [], new \stdClass(), true];
+        yield 'object' => ['objectType', new \stdClass(), [], true];
+        yield 'callable' => ['callableType', static fn(): null => null, 1, true];
+        yield 'iterable' => ['iterableType', [], 1, true];
+        yield 'class' => ['classType', new \DateTimeImmutable(), new \stdClass(), true];
+        yield 'enum' => ['enumType', ArgumentTypeEnum::Value, 'value', true];
+    }
+
+    #[Test]
+    public function reflectedTypesPreserveNullableUnionIntersectionAndRelativeTypes(): void
+    {
+        $nullable = $this->parameterType('nullableType');
+        $combined = $this->parameterType('combinedType');
+        $self = $this->parameterType('selfType');
+        $parent = $this->parameterType('parentType', ArgumentTypeChild::class);
+        $static = $this->returnType('staticType', ArgumentTypeChild::class);
+
+        expect($nullable->accepts(null))->toBeTrue();
+        expect($nullable->describe())->toBe('string|null');
+        expect($combined->accepts(new \ArrayObject()))->toBeTrue();
+        expect($combined->accepts('value'))->toBeTrue();
+        expect($combined->accepts(null))->toBeTrue();
+        expect($combined->accepts(new \stdClass()))->toBeFalse();
+        expect($combined->describe())->toBe('(IteratorAggregate&Countable)|string|null');
+        expect($self->accepts(new ArgumentTypeFixture()))->toBeTrue();
+        expect($self->describe())->toBe(ArgumentTypeFixture::class);
+        expect($parent->accepts(new ArgumentTypeParent()))->toBeTrue();
+        expect($parent->describe())->toBe(ArgumentTypeParent::class);
+        expect($static->describe())->toBe(ArgumentTypeChild::class);
+    }
+
+    #[Test]
+    public function namedTypeFactoriesKeepOnlySoundKnownBounds(): void
+    {
+        expect(ArgumentType::fromTypeName('\\' . \DateTimeInterface::class)?->describe())
+            ->toBe(\DateTimeInterface::class);
+        expect(ArgumentType::fromTypeName(ArgumentTypeEnum::class)?->describe())
+            ->toBe(ArgumentTypeEnum::class);
+        expect(ArgumentType::fromTypeName('unknown type'))->toBeNull();
+        expect(ArgumentType::fromIntersectionTypeNames(['unknown type']))->toBeNull();
+        expect(ArgumentType::fromIntersectionTypeNames(['int', 'unknown type'])?->describe())
+            ->toBe('int');
+        expect(ArgumentType::fromUnionTypeNames(['int', 'unknown type']))->toBeNull();
+        expect(ArgumentType::fromUnionTypeNames(['int', 'string'])?->describe())
+            ->toBe('int|string');
+    }
+
+    #[Test]
+    #[DataSet('typeOverlaps')]
+    public function overlapDetectsPossibleSharedValues(string $left, string $right, bool $expected): void
+    {
+        expect($this->parameterType($left)->overlaps($this->parameterType($right)))
+            ->because($left . ' and ' . $right . ' MUST have the specified overlap')
+            ->toBe($expected);
+    }
+
+    /** @return iterable<string, array{string, string, bool}> */
+    public static function typeOverlaps(): iterable
+    {
+        yield 'same type' => ['intType', 'intType', true];
+        yield 'mixed and scalar' => ['mixedType', 'intType', true];
+        yield 'bool and true' => ['boolType', 'trueType', true];
+        yield 'class hierarchy' => ['childClassType', 'parentClassType', true];
+        yield 'implemented interface' => ['implementerType', 'firstInterfaceType', true];
+        yield 'two interfaces' => ['firstInterfaceType', 'secondInterfaceType', true];
+        yield 'interface and open class' => ['firstInterfaceType', 'openClassType', true];
+        yield 'open class and interface' => ['openClassType', 'firstInterfaceType', true];
+        yield 'interface and closed class' => ['firstInterfaceType', 'closedClassType', false];
+        yield 'closed class and interface' => ['closedClassType', 'firstInterfaceType', false];
+        yield 'unrelated classes' => ['openClassType', 'parentClassType', false];
+        yield 'object and class' => ['objectType', 'closedClassType', true];
+        yield 'class and object' => ['closedClassType', 'objectType', true];
+        yield 'callable and invokable class' => ['callableType', 'invokableType', true];
+        yield 'invokable class and callable' => ['invokableType', 'callableType', true];
+        yield 'callable and open class' => ['callableType', 'openClassType', true];
+        yield 'callable and closed class' => ['callableType', 'closedClassType', false];
+        yield 'iterable and iterable class' => ['iterableType', 'iterableClassType', true];
+        yield 'iterable class and iterable' => ['iterableClassType', 'iterableType', true];
+        yield 'iterable and open class' => ['iterableType', 'openClassType', true];
+        yield 'iterable and closed class' => ['iterableType', 'closedClassType', false];
+        yield 'callable and string' => ['callableType', 'stringType', true];
+        yield 'iterable and array' => ['iterableType', 'arrayType', true];
+        yield 'callable and iterable' => ['callableType', 'iterableType', true];
+        yield 'disjoint scalars' => ['intType', 'stringType', false];
+    }
+
+    #[Test]
+    public function matcherCompositionsExposeTheirKnownAcceptedTypes(): void
+    {
+        $untyped = new AllOf([Argument::any(), Argument::any()]);
+        $intersection = new IntersectionTypeMatcher(['int', 'unknown type']);
+        $unknownIntersection = new IntersectionTypeMatcher(['first unknown', 'second unknown']);
+        $union = new UnionTypeMatcher(['int', 'string']);
+        $unknownUnion = new UnionTypeMatcher(['int', 'unknown type']);
+
+        expect($untyped->argumentType())->toBeNull();
+        expect($intersection->argumentType()?->describe())->toBe('int');
+        expect($unknownIntersection->argumentType())->toBeNull();
+        expect($union->argumentType()?->describe())->toBe('int|string');
+        expect($unknownUnion->argumentType())->toBeNull();
+    }
+
+    #[Test]
+    public function parentTypeRequiresItsDeclaringClassContext(): void
+    {
+        $type = new ArgumentTypeParentNamedType();
+
+        expect()->calling(static fn(): ArgumentType => ArgumentType::fromReflection($type))
+            ->toThrow(
+                InvalidDoubleUsage::class,
+                message: 'Closure uses the parent type but has no parent class.',
+            );
+        expect()->calling(static fn(): ArgumentType => ArgumentType::fromReflection(
+            $type,
+            self::reflectionClass(\stdClass::class),
+        ))->toThrow(
+            InvalidDoubleUsage::class,
+            message: 'stdClass uses the parent type but has no parent class.',
+        );
+    }
+
+    #[Test]
+    public function unsupportedReflectionTypesAreRejected(): void
+    {
+        expect()->calling(static fn(): ArgumentType => ArgumentType::fromReflection(
+            new ArgumentTypeUnsupportedReflectionType(),
+        ))->toThrow(
+            InvalidDoubleUsage::class,
+            message: 'Unsupported reflection type ' . ArgumentTypeUnsupportedReflectionType::class . '.',
+        );
+        expect()->calling(static fn(): ArgumentType => ArgumentType::fromReflection(
+            new ArgumentTypeEmptyNamedType(),
+        ))->toThrow(
+            InvalidDoubleUsage::class,
+            message: 'Unsupported reflection type ' . ArgumentTypeEmptyNamedType::class . '.',
+        );
+    }
+
+    #[Test]
+    public function unresolvedClassTypesRemainConservative(): void
+    {
+        $unresolved = ArgumentType::fromReflection(new ArgumentTypeUnresolvedNamedType());
+
+        expect($unresolved->overlaps($this->parameterType('closedClassType')))->toBeTrue();
+        expect($this->parameterType('callableType')->overlaps($unresolved))->toBeTrue();
+        expect($this->parameterType('iterableType')->overlaps($unresolved))->toBeTrue();
+    }
+
+    /**
+     * @param class-string $class
+     * @throws InvalidDoubleUsage
+     */
+    private function parameterType(string $method, string $class = ArgumentTypeFixture::class): ArgumentType
+    {
+        $reflection = new \ReflectionMethod($class, $method);
+        $type = $reflection->getParameters()[0]->getType();
+
+        if (!$type instanceof \ReflectionType) {
+            throw new \LogicException('The test type parameter must have a type.');
+        }
+
+        return ArgumentType::fromReflection($type, $reflection->getDeclaringClass());
+    }
+
+    /**
+     * @param class-string $class
+     * @throws InvalidDoubleUsage
+     */
+    private function returnType(string $method, string $class): ArgumentType
+    {
+        $reflection = new \ReflectionMethod($class, $method);
+        $type = $reflection->getReturnType();
+
+        if (!$type instanceof \ReflectionType) {
+            throw new \LogicException('The test method must have a return type.');
+        }
+
+        return ArgumentType::fromReflection($type, $reflection->getDeclaringClass());
+    }
+
+    /**
+     * @param class-string<object> $class
+     * @return \ReflectionClass<object>
+     */
+    private static function reflectionClass(string $class): \ReflectionClass
+    {
+        return new \ReflectionClass($class);
+    }
+}
+
+final class ArgumentTypeFixture
+{
+    public static function mixedType(mixed $value): void
+    {
+        unset($value);
+    }
+
+    public static function nullType(null $value): void
+    {
+        unset($value);
+    }
+
+    public static function trueType(true $value): void
+    {
+        unset($value);
+    }
+
+    public static function falseType(false $value): void
+    {
+        unset($value);
+    }
+
+    public static function boolType(bool $value): void
+    {
+        unset($value);
+    }
+
+    public static function intType(int $value): void
+    {
+        unset($value);
+    }
+
+    public static function floatType(float $value): void
+    {
+        unset($value);
+    }
+
+    public static function stringType(string $value): void
+    {
+        unset($value);
+    }
+
+    /** @param array<array-key, mixed> $value */
+    public static function arrayType(array $value): void
+    {
+        unset($value);
+    }
+
+    public static function objectType(object $value): void
+    {
+        unset($value);
+    }
+
+    /** @param callable(): mixed $value */
+    public static function callableType(callable $value): void
+    {
+        unset($value);
+    }
+
+    /** @param iterable<mixed, mixed> $value */
+    public static function iterableType(iterable $value): void
+    {
+        unset($value);
+    }
+
+    public static function classType(\DateTimeInterface $value): void
+    {
+        unset($value);
+    }
+
+    public static function enumType(ArgumentTypeEnum $value): void
+    {
+        unset($value);
+    }
+
+    public static function nullableType(?string $value): void
+    {
+        unset($value);
+    }
+
+    /** @param (\IteratorAggregate<mixed, mixed>&\Countable)|string|null $value */
+    public static function combinedType((\IteratorAggregate&\Countable)|string|null $value): void
+    {
+        unset($value);
+    }
+
+    public static function selfType(self $value): void
+    {
+        unset($value);
+    }
+
+    public static function firstInterfaceType(ArgumentTypeFirstInterface $value): void
+    {
+        unset($value);
+    }
+
+    public static function secondInterfaceType(ArgumentTypeSecondInterface $value): void
+    {
+        unset($value);
+    }
+
+    public static function openClassType(ArgumentTypeOpenClass $value): void
+    {
+        unset($value);
+    }
+
+    public static function closedClassType(ArgumentTypeClosedClass $value): void
+    {
+        unset($value);
+    }
+
+    public static function parentClassType(ArgumentTypeParent $value): void
+    {
+        unset($value);
+    }
+
+    public static function childClassType(ArgumentTypeChild $value): void
+    {
+        unset($value);
+    }
+
+    public static function implementerType(ArgumentTypeImplementer $value): void
+    {
+        unset($value);
+    }
+
+    public static function invokableType(ArgumentTypeInvokable $value): void
+    {
+        unset($value);
+    }
+
+    public static function iterableClassType(ArgumentTypeIterable $value): void
+    {
+        unset($value);
+    }
+}
+
+interface ArgumentTypeFirstInterface {}
+
+interface ArgumentTypeSecondInterface {}
+
+class ArgumentTypeOpenClass {}
+
+final class ArgumentTypeClosedClass {}
+
+class ArgumentTypeParent {}
+
+final class ArgumentTypeChild extends ArgumentTypeParent
+{
+    public static function parentType(parent $value): void {}
+
+    public static function staticType(): static
+    {
+        return new self();
+    }
+}
+
+final class ArgumentTypeImplementer implements ArgumentTypeFirstInterface {}
+
+final class ArgumentTypeInvokable
+{
+    public function __invoke(): void {}
+}
+
+/** @implements \IteratorAggregate<never, never> */
+final class ArgumentTypeIterable implements \IteratorAggregate
+{
+    /** @return \Traversable<never, never> */
+    public function getIterator(): \Traversable
+    {
+        yield from [];
+    }
+}
+
+enum ArgumentTypeEnum
+{
+    case Value;
+}
+
+final class ArgumentTypeUnsupportedReflectionType extends \ReflectionType {}
+
+final class ArgumentTypeEmptyNamedType extends \ReflectionNamedType
+{
+    public function getName(): string
+    {
+        return '';
+    }
+
+    public function isBuiltin(): bool
+    {
+        return false;
+    }
+
+    public function allowsNull(): bool
+    {
+        return false;
+    }
+
+    public function __toString(): string
+    {
+        return '';
+    }
+}
+
+final class ArgumentTypeUnresolvedNamedType extends \ReflectionNamedType
+{
+    public function getName(): string
+    {
+        return 'UnresolvedClass';
+    }
+
+    public function isBuiltin(): bool
+    {
+        return false;
+    }
+
+    public function allowsNull(): bool
+    {
+        return false;
+    }
+
+    public function __toString(): string
+    {
+        return 'UnresolvedClass';
+    }
+}
+
+final class ArgumentTypeParentNamedType extends \ReflectionNamedType
+{
+    public function getName(): string
+    {
+        return 'parent';
+    }
+
+    public function isBuiltin(): bool
+    {
+        return false;
+    }
+
+    public function allowsNull(): bool
+    {
+        return false;
+    }
+
+    public function __toString(): string
+    {
+        return 'parent';
+    }
+}

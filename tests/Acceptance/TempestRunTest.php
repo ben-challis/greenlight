@@ -7,11 +7,12 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
 use Tempest\Core\FrameworkKernel;
+
+use function Greenlight\expect;
 
 #[SkipUnless(ClassAvailable::class, FrameworkKernel::class)]
 final readonly class TempestRunTest
@@ -24,13 +25,13 @@ final readonly class TempestRunTest
         $project = $this->writeProject();
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=plain']);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because(\sprintf(
                 "the Tempest acceptance project MUST complete. Output:\n%s",
                 $result->output(),
             ))
             ->toBe(0);
-        Expect::that($result->output())->toContain('2 tests, 2 passed');
+        expect($result->output())->toContain('2 tests, 2 passed');
     }
 
     private function writeProject(): AcceptanceProject
@@ -86,6 +87,27 @@ final readonly class TempestRunTest
                 public function greet(string $name): string
                 {
                     return $this->config->prefix . ', ' . $name . '!';
+                }
+            }
+            PHP);
+
+        $project->writeFile('app/ArchiveGreetingInitializer.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace TempestProbe;
+
+            use Tempest\Container\Container;
+            use Tempest\Container\Initializer;
+            use Tempest\Container\Singleton;
+
+            final readonly class ArchiveGreetingInitializer implements Initializer
+            {
+                #[Singleton(tag: 'archive')]
+                public function initialize(Container $container): GreetingConfig
+                {
+                    return new GreetingConfig('Hello from archive');
                 }
             }
             PHP);
@@ -161,12 +183,14 @@ final readonly class TempestRunTest
             namespace TempestProbe;
 
             use Greenlight\Attribute\Test;
-            use Greenlight\Expect\Expect;
+            use Greenlight\Harness\Service;
             use Tempest\Container\Container;
             use Tempest\Core\Environment;
             use Tempest\Core\Kernel;
             use Tempest\Http\Method;
             use Tempest\Http\Request;
+
+            use function Greenlight\expect;
 
             final class TempestApplicationTest
             {
@@ -177,6 +201,8 @@ final readonly class TempestRunTest
                     private readonly Kernel $kernel,
                     private readonly Container $container,
                     private readonly Request $request,
+                    private readonly GreetingConfig $defaultGreeting,
+                    #[Service('archive')] private readonly GreetingConfig $serviceGreeting,
                 ) {}
 
                 #[Test]
@@ -184,21 +210,23 @@ final readonly class TempestRunTest
                 {
                     $this->counter->record();
 
-                    Expect::that($this->greeter->greet('Ada'))->toBe('Hello from testing, Ada!');
-                    Expect::that($this->environment)->toBe(Environment::TESTING);
-                    Expect::that($this->container->get(Greeter::class))->toBe($this->greeter);
-                    Expect::that($this->kernel->internalStorage)->toContain('/.tempest/greenlight/1');
-                    Expect::that($this->request->method)->toBe(Method::GET);
-                    Expect::that($this->request->uri)->toBe('/');
-                    Expect::that($this->counter->count())->toBe(1);
+                    expect($this->greeter->greet('Ada'))->toBe('Hello from testing, Ada!');
+                    expect($this->environment)->toBe(Environment::TESTING);
+                    expect($this->container->get(Greeter::class))->toBe($this->greeter);
+                    expect($this->kernel->internalStorage)->toContain('/.tempest/greenlight/1');
+                    expect($this->request->method)->toBe(Method::GET);
+                    expect($this->request->uri)->toBe('/');
+                    expect($this->counter->count())->toBe(1);
+                    expect($this->defaultGreeting->prefix)->toBe('Hello from testing');
+                    expect($this->serviceGreeting->prefix)->toBe('Hello from archive');
                 }
 
                 #[Test]
                 public function shutdownAndContainerResetIsolateTheNextTest(): void
                 {
-                    Expect::that($this->counter->count())->toBe(0);
-                    Expect::that(VisitCounter::$resets)->toBe(1);
-                    Expect::that(LifecycleObserver::$shutdowns)->toBe(1);
+                    expect($this->counter->count())->toBe(0);
+                    expect(VisitCounter::$resets)->toBe(1);
+                    expect(LifecycleObserver::$shutdowns)->toBe(1);
                 }
             }
             PHP);
@@ -213,6 +241,7 @@ final readonly class TempestRunTest
 
             require_once __DIR__ . '/app/GreetingConfig.php';
             require_once __DIR__ . '/app/Greeter.php';
+            require_once __DIR__ . '/app/ArchiveGreetingInitializer.php';
             require_once __DIR__ . '/app/VisitCounter.php';
             require_once __DIR__ . '/app/LifecycleObserver.php';
             require_once __DIR__ . '/tests/TempestApplicationTest.php';

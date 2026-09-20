@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Coverage\Collection;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ExtensionLoaded;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final class XdebugDriverIniFallbackTest
 {
@@ -33,11 +34,11 @@ final class XdebugDriverIniFallbackTest
                 PHP,
         ]);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('the isolated Xdebug availability probe MUST exit successfully')
             ->toBe(0);
 
-        Expect::that($result->stdout)
+        expect($result->stdout)
             ->because('Xdebug availability MUST fall back to the configured INI mode')
             ->toBe("disabled\navailable");
     }

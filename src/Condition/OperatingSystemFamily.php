@@ -13,12 +13,14 @@ final readonly class OperatingSystemFamily implements Condition
     private string $family;
 
     /**
+     * @param non-empty-string $family
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(string $family)
     {
         if ($family === '') {
-            throw new \InvalidArgumentException('Operating system family MUST NOT be empty.');
+            throw new \InvalidArgumentException('Operating system family cannot be empty.');
         }
 
         $this->family = $family;

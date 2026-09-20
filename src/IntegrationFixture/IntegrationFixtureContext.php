@@ -16,6 +16,9 @@ interface IntegrationFixtureContext
     public function runId(): string;
 
     /**
+     * Returns the worker limit for the selected execution adapter.
+     * In-process execution returns one, including a fallback from process-pool execution.
+     *
      * @return positive-int
      */
     public function configuredWorkers(): int;
@@ -32,6 +35,12 @@ interface IntegrationFixtureContext
      */
     public function shard(): ?array;
 
+    /**
+     * Gets the shared resource or the resource for one channel.
+     *
+     * @throws \LogicException when the fixture does not declare the dependency
+     * @throws \OutOfBoundsException when the channel is not part of this run
+     */
     public function dependency(string $id, ?int $channel = null): FixtureResource;
 
     /**
@@ -46,6 +55,8 @@ interface IntegrationFixtureContext
      * Publishes shared data plus optional channel-specific overlays.
      *
      * @param array<int, FixtureResource> $channels keyed by channel number
+     * @throws \InvalidArgumentException when a channel is not part of this run
+     * @throws \LogicException when the provisioner publishes resources more than once
      */
     public function expose(FixtureResource $shared, array $channels = []): void;
 }

@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\PhpStan;
 
-use Greenlight\Expect\ConsistentlyExpectation;
-use Greenlight\Expect\EventuallyExpectation;
-use Greenlight\Expect\Expectation;
+use Greenlight\Expect\CallExpectation;
+use Greenlight\Expect\TemporalCallExpectation;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\MethodCall;
@@ -36,13 +35,13 @@ final class ToThrowConstraintRule implements Rule
     #[\Override]
     public function processNode(Node $node, Scope $scope): array
     {
-        if (!$node->name instanceof Identifier || $node->name->toString() !== 'toThrow') {
+        if (!$node->name instanceof Identifier || \strtolower($node->name->toString()) !== 'tothrow') {
             return [];
         }
 
         $receiver = $scope->getType($node->var);
         $supported = \array_any(
-            [Expectation::class, EventuallyExpectation::class, ConsistentlyExpectation::class],
+            [CallExpectation::class, TemporalCallExpectation::class],
             static fn(string $class): bool => new ObjectType($class)->isSuperTypeOf($receiver)->yes(),
         );
 

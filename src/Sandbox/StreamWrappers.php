@@ -16,8 +16,10 @@ final class StreamWrappers implements Disposable
     private array $schemes = [];
 
     /**
+     * @param non-empty-string $scheme
      * @param class-string $wrapper
      *
+     * @throws \InvalidArgumentException if the scheme is empty
      * @throws StreamWrapperError
      */
     public function register(string $scheme, string $wrapper): void

@@ -5,6 +5,10 @@ declare(strict_types=1);
 
 namespace Greenlight;
 
+use Greenlight\Cli\Application;
+use Greenlight\Cli\ExitCode;
+use Greenlight\Plugin\CommandResult;
+
 // @phpstan-ignore smaller.alwaysFalse (The executable validates the PHP version at run time before it loads Composer.)
 if (\PHP_VERSION_ID < 80400) {
     \fwrite(\STDERR, \sprintf(
@@ -42,7 +46,7 @@ $workingDirectory = \getcwd();
 if ($workingDirectory === false) {
     \fwrite(\STDERR, "Could not determine the current working directory.\n");
 
-    exit(1);
+    exit(ExitCode::fromCommandResult(CommandResult::failure())->value());
 }
 
 /** @var list<string> $arguments */
@@ -57,4 +61,4 @@ if (\is_array($serverArguments)) {
     }
 }
 
-exit(\Greenlight\Cli\Application::forStreams()->run($arguments, $workingDirectory, __FILE__));
+exit(Application::forStreams()->run($arguments, $workingDirectory, __FILE__));

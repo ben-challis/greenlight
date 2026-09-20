@@ -7,10 +7,11 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\AllowParallel;
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Rector\PhpUnitToGreenlightRector;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\RectorProbe;
+
+use function Greenlight\expect;
 
 #[AllowParallel]
 #[RequiresResource('analysis-process')]
@@ -159,15 +160,121 @@ final readonly class RectorMigrationRunTest
 
     PHP_WRAP;
 
+    private const string INLINE_ROWS = <<<'PHP_WRAP'
+    <?php
+
+    declare(strict_types=1);
+
+    namespace App\Tests;
+
+    use PHPUnit\Framework\Attributes\TestWith;
+    use PHPUnit\Framework\TestCase;
+
+    final class ProbeTest extends TestCase
+    {
+        #[TestWith([1])]
+        #[TestWith([2])]
+        public function testRows(int $value): void
+        {
+            $this->assertGreaterThan(0, $value);
+        }
+    }
+
+    PHP_WRAP;
+
+    private const string SUPPORTED_ASSERTIONS = <<<'PHP_WRAP'
+    <?php
+
+    declare(strict_types=1);
+
+    namespace App\Tests;
+
+    use PHPUnit\Framework\TestCase;
+
+    final class ProbeTest extends TestCase
+    {
+        public function testAssertions(): void
+        {
+            $this->assertSame(1, 1);
+            $this->assertNotSame(1, '1');
+            $this->assertEquals(['a' => 1], ['a' => 1]);
+            $this->assertNotEquals(['a' => 1], ['a' => 2]);
+            $this->assertEqualsCanonicalizing([1, 2], [2, 1]);
+            $this->assertNotEqualsCanonicalizing([1, 2], [1, 3]);
+            $this->assertEqualsWithDelta(0.3, 0.1 + 0.2, 0.001);
+            $this->assertTrue(true);
+            $this->assertNotTrue(1);
+            $this->assertFalse(false);
+            $this->assertNotFalse(0);
+            $this->assertNull(null);
+            $this->assertNotNull(false);
+            $this->assertInstanceOf(\stdClass::class, new \stdClass());
+            $this->assertNotInstanceOf(\stdClass::class, new \ArrayObject());
+            $this->assertCount(2, [1, 2]);
+            $this->assertNotCount(1, [1, 2]);
+            $this->assertGreaterThan(1, 2);
+            $this->assertGreaterThanOrEqual(2, 2);
+            $this->assertLessThan(2, 1);
+            $this->assertLessThanOrEqual(1, 1);
+            $this->assertIsArray([]);
+            $this->assertIsNotArray(new \ArrayObject());
+            $this->assertIsString('');
+            $this->assertIsNotString(1);
+            $this->assertIsInt(1);
+            $this->assertIsNotInt(1.0);
+            $this->assertIsFloat(1.0);
+            $this->assertIsNotFloat(1);
+            $this->assertIsBool(true);
+            $this->assertIsNotBool(1);
+            $this->assertIsCallable(static fn(): null => null);
+            $this->assertIsNotCallable(null);
+            $this->assertIsIterable([]);
+            $this->assertIsNotIterable(1);
+            $this->assertContains(1, [1]);
+            $this->assertNotContains(2, [1]);
+            $this->assertStringContainsString('ell', 'hello');
+            $this->assertStringNotContainsString('bye', 'hello');
+            $this->assertArrayHasKey('a', ['a' => 1]);
+            $this->assertArrayNotHasKey('b', ['a' => 1]);
+            $this->assertMatchesRegularExpression('/ell/', 'hello');
+            $this->assertDoesNotMatchRegularExpression('/bye/', 'hello');
+            $this->assertStringStartsWith('hel', 'hello');
+            $this->assertStringStartsNotWith('bye', 'hello');
+            $this->assertStringEndsWith('llo', 'hello');
+            $this->assertStringEndsNotWith('bye', 'hello');
+            $this->assertJson('{"a":1}');
+            $this->assertJsonStringEqualsJsonString('{"a":1}', '{"a":1}');
+        }
+    }
+
+    PHP_WRAP;
+
     public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
-    public function convertsAPhpUnitClassAndTheResultRunsGreen(): void
+    public function convertsSupportedPhpUnitClassesAndTheResultsRunGreen(): void
     {
-        $probe = RectorProbe::convert($this->tempDirectory, self::CONVERTIBLE, name: 'converts');
+        $probes = RectorProbe::convertBatch(
+            $this->tempDirectory,
+            [
+                'class conversion' => self::CONVERTIBLE,
+                'exception message pattern' => self::MATCHED_EXCEPTION,
+                'inline data rows' => self::INLINE_ROWS,
+                'supported assertions' => self::SUPPORTED_ASSERTIONS,
+            ],
+            name: 'supported-migrations',
+        );
 
-        Expect::that($probe->changed)->toBeTrue();
-        Expect::that($probe->code)->not()->toContain('extends TestCase')
+        $this->assertClassConversion($probes['class conversion']);
+        $this->assertExceptionMessagePattern($probes['exception message pattern']);
+        $this->assertInlineDataRows($probes['inline data rows']);
+        $this->assertSupportedAssertions($probes['supported assertions']);
+    }
+
+    private function assertClassConversion(RectorProbe $probe): void
+    {
+        expect($probe->changed)->toBeTrue();
+        expect($probe->code)->not()->toContain('extends TestCase')
             ->toContain('#[\Greenlight\Attribute\Test]')
             ->toContain('#[\Greenlight\Attribute\Before]')
             ->toContain("#[\Greenlight\Attribute\Group('pricing')]")
@@ -176,10 +283,10 @@ final readonly class RectorMigrationRunTest
             ->toContain("#[\Greenlight\Attribute\SkipUnless(\Greenlight\Condition\ExtensionLoaded::class, 'spl')]")
             ->toContain('#[\Greenlight\Attribute\Isolated]')
             ->toContain('#[\Greenlight\Attribute\NoExpectations]')
-            ->toContain("\Greenlight\Expect\Expect::that('19.98')->toBe('19.98');")
-            ->toContain('\Greenlight\Expect\Expect::that($this->rates)->not()->toBeNull();')
-            ->toContain('\Greenlight\Expect\Expect::that(0.1 + 0.2)->toBeWithin(0.001, 0.3);')
-            ->toContain("\Greenlight\Expect\Expect::that(fn() => \$this->divide(-1))->toThrow(\InvalidArgumentException::class, matching: '/negative/');")
+            ->toContain("\Greenlight\Expect\Expect::value('19.98')->toBe('19.98');")
+            ->toContain('\Greenlight\Expect\Expect::value($this->rates)->not()->toBeNull();')
+            ->toContain('\Greenlight\Expect\Expect::value(0.1 + 0.2)->toBeWithin(0.001, 0.3);')
+            ->toContain("\Greenlight\Expect\Expect::calling(fn() => \$this->divide(-1))->toThrow(\InvalidArgumentException::class, matching: '/negative/');")
             ->toContain("throw new \Greenlight\Test\SkipTest('no smtp server');")
             ->toContain("\Greenlight\Expect\Fail::because('unsupported platform');")
             ->not()->toContain('#[CoversClass')
@@ -187,20 +294,17 @@ final readonly class RectorMigrationRunTest
 
         $run = $probe->runConvertedTests();
 
-        Expect::that($run->exitCode)->toBe(0);
-        Expect::that($run->stdout)->toContain('7 tests, 6 passed, 1 skipped')
+        expect($run->exitCode)->toBe(0);
+        expect($run->stdout)->toContain('7 tests, 6 passed, 1 skipped')
             ->toContain('no smtp server');
     }
 
-    #[Test]
-    public function preservesExceptionMessagePatternsAndTheResultRunsGreen(): void
+    private function assertExceptionMessagePattern(RectorProbe $probe): void
     {
-        $probe = RectorProbe::convert($this->tempDirectory, self::MATCHED_EXCEPTION, name: 'exception-message-pattern');
-
-        Expect::that($probe->changed)
+        expect($probe->changed)
             ->because('the exception test MUST be convertible')
             ->toBeTrue();
-        Expect::that($probe->code)
+        expect($probe->code)
             ->because('the PHPUnit message pattern MUST remain the Greenlight matcher pattern')
             ->toContain(
                 "->toThrow(\\RuntimeException::class, matching: '/code=\\d+/');",
@@ -208,10 +312,10 @@ final readonly class RectorMigrationRunTest
 
         $run = $probe->runConvertedTests();
 
-        Expect::that($run->exitCode)
+        expect($run->exitCode)
             ->because('the converted exception matcher MUST preserve runtime behavior')
             ->toBe(0);
-        Expect::that($run->stdout)
+        expect($run->stdout)
             ->toContain('1 test, 1 passed');
     }
 
@@ -554,133 +658,33 @@ final readonly class RectorMigrationRunTest
             name: 'drops-messages',
         );
 
-        Expect::that($probe->changed)->toBeTrue();
-        Expect::that($probe->code)->toContain("\Greenlight\Expect\Expect::that('a')->toBe('a');")
+        expect($probe->changed)->toBeTrue();
+        expect($probe->code)->toContain("\Greenlight\Expect\Expect::value('a')->toBe('a');")
             ->not()->toContain('values must match');
     }
 
-    #[Test]
-    public function preservesEachInlineDataRow(): void
+    private function assertInlineDataRows(RectorProbe $probe): void
     {
-        $probe = RectorProbe::convert(
-            $this->tempDirectory,
-            <<<'PHP_WRAP'
-            <?php
-
-            declare(strict_types=1);
-
-            namespace App\Tests;
-
-            use PHPUnit\Framework\Attributes\TestWith;
-            use PHPUnit\Framework\TestCase;
-
-            final class ProbeTest extends TestCase
-            {
-                #[TestWith([1])]
-                #[TestWith([2])]
-                public function testRows(int $value): void
-                {
-                    $this->assertGreaterThan(0, $value);
-                }
-            }
-
-            PHP_WRAP,
-            name: 'inline-rows',
-        );
-
-        Expect::that($probe->changed)->toBeTrue();
-        Expect::that(\substr_count($probe->code, '#[\Greenlight\Attribute\DataRow'))->toBe(2);
-        Expect::that($probe->code)->toContain('#[\Greenlight\Attribute\DataRow([1])]')
+        expect($probe->changed)->toBeTrue();
+        expect(\substr_count($probe->code, '#[\Greenlight\Attribute\DataRow'))->toBe(2);
+        expect($probe->code)->toContain('#[\Greenlight\Attribute\DataRow([1])]')
             ->toContain('#[\Greenlight\Attribute\DataRow([2])]');
 
         $run = $probe->runConvertedTests();
 
-        Expect::that($run->exitCode)->toBe(0);
-        Expect::that($run->stdout)->toContain('2 tests, 2 passed');
+        expect($run->exitCode)->toBe(0);
+        expect($run->stdout)->toContain('2 tests, 2 passed');
     }
 
-    #[Test]
-    public function convertsEverySupportedAssertionAndTheResultRunsGreen(): void
+    private function assertSupportedAssertions(RectorProbe $probe): void
     {
-        $probe = RectorProbe::convert(
-            $this->tempDirectory,
-            <<<'PHP_WRAP'
-            <?php
-
-            declare(strict_types=1);
-
-            namespace App\Tests;
-
-            use PHPUnit\Framework\TestCase;
-
-            final class ProbeTest extends TestCase
-            {
-                public function testAssertions(): void
-                {
-                    $this->assertSame(1, 1);
-                    $this->assertNotSame(1, '1');
-                    $this->assertEquals(['a' => 1], ['a' => 1]);
-                    $this->assertNotEquals(['a' => 1], ['a' => 2]);
-                    $this->assertEqualsCanonicalizing([1, 2], [2, 1]);
-                    $this->assertNotEqualsCanonicalizing([1, 2], [1, 3]);
-                    $this->assertEqualsWithDelta(0.3, 0.1 + 0.2, 0.001);
-                    $this->assertTrue(true);
-                    $this->assertNotTrue(1);
-                    $this->assertFalse(false);
-                    $this->assertNotFalse(0);
-                    $this->assertNull(null);
-                    $this->assertNotNull(false);
-                    $this->assertInstanceOf(\stdClass::class, new \stdClass());
-                    $this->assertNotInstanceOf(\stdClass::class, new \ArrayObject());
-                    $this->assertCount(2, [1, 2]);
-                    $this->assertNotCount(1, [1, 2]);
-                    $this->assertGreaterThan(1, 2);
-                    $this->assertGreaterThanOrEqual(2, 2);
-                    $this->assertLessThan(2, 1);
-                    $this->assertLessThanOrEqual(1, 1);
-                    $this->assertIsArray([]);
-                    $this->assertIsNotArray(new \ArrayObject());
-                    $this->assertIsString('');
-                    $this->assertIsNotString(1);
-                    $this->assertIsInt(1);
-                    $this->assertIsNotInt(1.0);
-                    $this->assertIsFloat(1.0);
-                    $this->assertIsNotFloat(1);
-                    $this->assertIsBool(true);
-                    $this->assertIsNotBool(1);
-                    $this->assertIsCallable(static fn(): null => null);
-                    $this->assertIsNotCallable(null);
-                    $this->assertIsIterable([]);
-                    $this->assertIsNotIterable(1);
-                    $this->assertContains(1, [1]);
-                    $this->assertNotContains(2, [1]);
-                    $this->assertStringContainsString('ell', 'hello');
-                    $this->assertStringNotContainsString('bye', 'hello');
-                    $this->assertArrayHasKey('a', ['a' => 1]);
-                    $this->assertArrayNotHasKey('b', ['a' => 1]);
-                    $this->assertMatchesRegularExpression('/ell/', 'hello');
-                    $this->assertDoesNotMatchRegularExpression('/bye/', 'hello');
-                    $this->assertStringStartsWith('hel', 'hello');
-                    $this->assertStringStartsNotWith('bye', 'hello');
-                    $this->assertStringEndsWith('llo', 'hello');
-                    $this->assertStringEndsNotWith('bye', 'hello');
-                    $this->assertJson('{"a":1}');
-                    $this->assertJsonStringEqualsJsonString('{"a":1}', '{"a":1}');
-                }
-            }
-
-            PHP_WRAP,
-            name: 'assertions',
-        );
-
-        Expect::that($probe->changed)->toBeTrue();
-        Expect::that($probe->code)->not()->toContain('->assert')
+        expect($probe->changed)->toBeTrue();
+        expect($probe->code)->not()->toContain('->assert')
             ->not()->toContain('::assert');
 
         $run = $probe->runConvertedTests();
 
-        Expect::that($run->exitCode)->toBe(0);
-        Expect::that($run->stdout)->toContain('1 test, 1 passed');
+        expect($run->exitCode)->toBe(0);
+        expect($run->stdout)->toContain('1 test, 1 passed');
     }
-
 }

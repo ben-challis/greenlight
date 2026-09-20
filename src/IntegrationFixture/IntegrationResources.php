@@ -11,14 +11,15 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
 /**
  * The integration fixtures visible to one worker channel.
  *
- * A worker receives shared data merged with only its own channel data. It
- * cannot inspect credentials allocated to another concurrent lane.
+ * A worker receives shared data merged with only its own channel data.
+ * This object does not contain data allocated only to other channels.
  * Fixture IDs must remain string keys in PHP maps.
  */
 final readonly class IntegrationResources
 {
     /**
      * @param array<non-empty-string, FixtureResource> $fixtures
+     * @throws \InvalidArgumentException when a key or value is invalid
      */
     public function __construct(private array $fixtures = [])
     {
@@ -49,6 +50,9 @@ final readonly class IntegrationResources
         return isset($this->fixtures[$id]);
     }
 
+    /**
+     * @throws \OutOfBoundsException when the fixture is not available
+     */
     public function fixture(string $id): FixtureResource
     {
         return $this->fixtures[$id] ?? throw new \OutOfBoundsException(\sprintf(

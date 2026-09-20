@@ -57,9 +57,10 @@ final class RegistrationTest
 }
 ```
 
-Greenlight first resolves constructor parameters from its harness. It then uses
-the Symfony container. Thus, `Doubles`, `TestChannel`, and provider services
-take precedence over container services.
+Without an explicit service source, Greenlight first resolves constructor
+parameters from its harness. It then uses the Symfony container. Thus,
+`Doubles`, `TestChannel`, and provider services take precedence over container
+services.
 
 When neither side can resolve a type, the test fails and reports both misses.
 
@@ -89,6 +90,18 @@ public function __construct(
 Greenlight still checks the parameter type. If the named service is not an
 instance of the declared type, the test fails and does not receive the object.
 
+### Select a service source
+
+Pass `source: 'app'` to `SymfonyPlugin` to name this plugin instance. Use
+`#[Service(source: 'app')]` to request a service by type from this source.
+Use `#[Service('mailer.transports.async', source: 'app')]` to select an explicit
+ID in its container.
+
+An explicit source takes precedence over global harness services. A missing
+service fails without a request to another source. Use the same source
+attribute to select this plugin's `KernelInterface` harness service. See
+[service sources](plugins.md#servicesource) for naming and resolution rules.
+
 ### The kernel itself
 
 Greenlight supplies `KernelInterface` as a per-worker harness service. Tests can
@@ -111,7 +124,9 @@ mechanism Symfony uses between requests. The resetter resets services with the
 each stateful service that must keep tests isolated.
 
 The bridge captures and checks the resetter when the kernel boots. If service
-resets are active without a container resetter, every test fails.
+resets are active without a container resetter, each test that requests the
+kernel or a container service has an error. Tests that use only other harness
+services do not boot the kernel.
 
 For a container that has no stateful services, pass `resetBetweenTests: false`
 to the plugin. This value disables the resetter requirement. Do not use this
@@ -125,9 +140,9 @@ The bridge does not isolate databases or other external services.
 Workers run tests at the same time. Split shared external resources for each
 worker. Alternatively, protect them with a concurrency limit.
 
-Greenlight sets `GREENLIGHT_CHANNEL` in every worker process. It is a stable
-number from 1 through the worker count, and no two concurrent tests use the same
-channel. Use it in normal Symfony configuration to key shared resources:
+Greenlight sets `GREENLIGHT_CHANNEL` in every worker process. Its value is a
+stable number from 1 through the worker count. Within one run, concurrent tests
+use different channels. Use it in Symfony configuration to name resources:
 
 ```yaml
 # config/packages/test/doctrine.yaml
@@ -136,11 +151,18 @@ doctrine:
         dbname: 'app_test_%env(default:fallback_channel:GREENLIGHT_CHANNEL)%'
 
 parameters:
-    env(fallback_channel): '1'
+    fallback_channel: '1'
 ```
+
+The `default:` processor reads the `fallback_channel` container parameter when
+`GREENLIGHT_CHANNEL` is absent. See the Symfony
+[environment variable processors](https://symfony.com/doc/current/configuration/env_var_processors.html).
 
 The same pattern works for cache directories, upload paths, message transport
 names, and similar resources.
+
+Separate runs and CI shards reuse channel numbers. Add a resource prefix for
+each concurrent run that uses the same external service.
 
 The application must create and migrate databases for each channel. Use a loop
 in the test bootstrap, a Makefile target, or another project-level setup step.

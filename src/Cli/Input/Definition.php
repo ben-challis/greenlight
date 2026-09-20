@@ -19,15 +19,18 @@ final readonly class Definition
     /** @var array<non-empty-string, non-empty-string> */
     public const array COMMAND_DESCRIPTIONS = [
         'run' => 'Find and run tests (default)',
-        'list-tests' => 'List each found test ID, one per line',
+        'list-tests' => 'List selected test IDs and the total test count',
+        'coverage:merge' => 'Merge coverage JSON exports',
         'coverage:diff' => 'Compare two coverage JSON exports',
         'profile:report' => 'Create a run profile from a saved JSONL stream',
+        'artifacts:prune' => 'Apply configured artifact retention',
         'ide-helper' => 'Write the IDE autocomplete helper for extension matchers',
         'completion' => 'Print a shell completion script to standard output',
     ];
 
     /** @var array<non-empty-string, list<non-empty-string>> */
     public const array COMPLETION_VALUES = [
+        'format' => ['text', 'json'],
         'reporter' => self::BUILT_IN_REPORTERS,
         'workers' => ['auto'],
     ];
@@ -37,13 +40,21 @@ final readonly class Definition
 
         Usage:
           greenlight [command] [options]
+          Supply option values with =, for example --workers=4.
+          Quote values that contain * or ? to prevent shell expansion.
 
         Commands:
           run            Find and run tests (default)
-          list-tests     List each found test ID, one per line
-          coverage:diff  Compare two coverage JSON exports. Fail if total coverage
-                         decreases or a line becomes newly uncovered.
+          list-tests     List selected test IDs and the total test count.
+                         Use --format=json for a machine-readable test manifest.
+          coverage:merge Merge coverage JSON exports. Supply at least two --input
+                         options and at least one --export option.
+          coverage:diff  Compare two coverage JSON exports. Fail if coverage across
+                         files in both maps decreases or a line becomes newly uncovered.
+                         Removed files do not cause a regression.
           profile:report Create a run profile from a saved JSONL stream (--input)
+          artifacts:prune Apply configured retention to completed artifact runs.
+                         Use --dry-run to list selected runs without deletion.
           ide-helper     Write the IDE autocomplete helper for extension matchers
                          (--output, default _greenlight_ide_helper.php)
           completion     Print a shell completion script for bash, zsh, or fish
@@ -52,39 +63,52 @@ final readonly class Definition
 
         Options:
           --config=<path>    Use this configuration file instead of ./greenlight.php
-          --workers=<n|auto> Set the worker process count
+          --workers=<n|auto> Set the maximum worker count. The built-in default is auto.
+                             auto uses the detected CPU count. A count of 1 runs
+                             tests in the command process without process isolation.
           --resource-limit=<name>=<n>
                              Set a named resource limit. You can repeat this option.
-          --bail[=<n>]       Stop after <n> failures (default 1)
+          --bail[=<n>]       Stop new work after <n> failed or errored tests.
+                             Without <n>, this option uses a limit of 1.
+                             Active assignments can finish after the limit.
           --suite=<name>     Select a named suite. You can repeat this option.
           --suite-tag=<tag>  Select suites with this tag. You can repeat this option.
-          --group=<name>     Run only this group. You can repeat this option.
-          --filter=<pattern> Run only tests with a matching test ID. Use a
-                             substring or a full match with * wildcards.
+          --group=<name>     Run tests in any selected group. Names are case-sensitive.
                              You can repeat this option.
-          --test-id=<id>     Run only this exact test ID. You can repeat this option.
+          --filter=<pattern> Run only tests with a matching test ID. Use a
+                             substring or a full match with * and ? wildcards.
+                             Matching is case-insensitive.
+                             You can repeat this option.
+          --test-id=<id>     Select this exact, case-sensitive test ID.
+                             You can repeat this option. Test IDs can match any
+                             --filter or --test-id value.
           --test-id-file=<path>
                              Read exact test IDs from a newline-delimited file.
                              You can repeat this option.
           --exclude-group=<name>     Skip tests in this group. You can repeat this option.
           --exclude-class=<pattern>  Skip classes that match this pattern.
-                             Matching is case-sensitive. Use a substring or * wildcards.
+                             Matching is case-sensitive. Use a substring or
+                             a full match with * and ? wildcards.
                              You can repeat this option.
           --exclude-method=<pattern> Skip methods that match this pattern.
-                             Matching is case-sensitive. Use a substring or * wildcards.
+                             Matching is case-sensitive. Use a substring or
+                             a full match with * and ? wildcards.
                              You can repeat this option.
-          --exclude-path=<prefix>    Skip test files under this path prefix.
+          --exclude-path=<prefix>    Skip test files whose paths start with this prefix.
+                             A prefix can match similarly named files or directories.
                              Greenlight resolves relative prefixes against the
                              working directory. You can repeat this option.
           --failed           Run only tests that failed or had an error in the previous run
           --list-tests       Print the selected test IDs. Do not run the tests.
+          --format=<format>  Set list-tests output to text or json (default text)
           --list-groups      Print each selected group and its test count
           --list-suites      Print the configured suites
           --repeat=<n>       Run the selected tests n times in separate runs.
                              A failed iteration fails the command.
           --repeat-until-failure  Repeat until an iteration fails, up to
                              --repeat times (default at most 100)
-                             Do not use repeat modes with JUnit output or coverage.
+                             Do not use repeat modes with JUnit output, coverage,
+                             or --watch.
           --shard=<n>/<m>    Run shard n of m. Shards are disjoint and contain
                              whole classes. They are stable across machines and
                              need no coordination.
@@ -106,19 +130,50 @@ final readonly class Definition
           --detect-leaks     Verify collection of each test instance. Leaks fail the run.
           --verbose          Print a permanent line per completed class in
                              interactive output
-          --ansi             Enable colors in append-only reporter output.
+          --ansi             Enable colors in help and append-only reporter output.
+                             A nonempty NO_COLOR value and --no-ansi take priority.
           --no-ansi          Disable colors and the live progress window.
                              Use plain append-only output.
-          --fail-on-deprecation  Fail passed tests that captured a deprecation
+          --fail-on-deprecation  Fail passed tests that captured a deprecation.
+                             Configured deprecation ignore patterns still apply.
           --fail-on-notice   Fail passed tests that captured a notice
           --fail-on-warning  Fail passed tests that captured a warning
-          --fail-on-risky    Fail passed tests that verified no expectations
+          --fail-on-risky    Fail passed tests that verified no expectations,
+                             except tests marked #[NoExpectations].
           --fail-on-skipped  Fail the run if its final summary contains a skipped test
+          --fail-on-retried-pass
+                             Fail the run if a test passes after retry
           --profile          Add a run profile after the summary. It contains worker
                              utilization, boot latency, makespan spread, and slow classes.
                              It also extends the slow-test list.
-          --dry-run          Print a run-settings summary without test discovery
-                             or execution.
+          --minimum-coverage=<percentage>
+                             Fail if total line coverage is below this percentage.
+          --maximum-uncovered-lines=<n>
+                             Fail if more than n executable lines are uncovered.
+          --require-coverage-driver
+                             Fail if no configured coverage driver is available.
+          --input=<path>     Read an input file. Repeat for coverage:merge.
+          --output=<path>    Set the ide-helper output file
+                             (default _greenlight_ide_helper.php).
+          --export=<format>=<path>
+                             Write merged coverage. Repeat for more formats.
+                             Formats: json, lcov, clover, cobertura, html.
+          --input-root=<path>
+                             Set one coverage:merge source root per --input.
+                             Use with --project-root.
+          --project-root=<path>
+                             Set the project root for merged coverage paths.
+                             Use with --input-root for each input.
+          --baseline=<path>  Read the baseline coverage JSON for coverage:diff.
+          --current=<path>   Read the current coverage JSON for coverage:diff.
+          --baseline-root=<path>
+                             Set the baseline project root for coverage:diff.
+                             Use with --current-root.
+          --current-root=<path>
+                             Set the current project root for coverage:diff.
+                             Use with --baseline-root.
+          --dry-run          For run, print settings without test discovery or execution.
+                             For artifacts:prune, list selected runs without deletion.
           -h, --help         Show this help
           -V, --version      Show the version
 
@@ -148,20 +203,28 @@ final readonly class Definition
             new OptionSpec('exclude-method', OptionValue::Required, repeatable: true),
             new OptionSpec('exclude-path', OptionValue::Required, repeatable: true),
             new OptionSpec('list-tests'), new OptionSpec('list-groups'), new OptionSpec('list-suites'),
+            new OptionSpec('format', OptionValue::Required),
             new OptionSpec('repeat', OptionValue::Required), new OptionSpec('repeat-until-failure'),
             new OptionSpec('failed'), new OptionSpec('shard', OptionValue::Required),
             new OptionSpec('fail-on-deprecation'), new OptionSpec('fail-on-notice'), new OptionSpec('fail-on-warning'),
-            new OptionSpec('fail-on-risky'), new OptionSpec('fail-on-skipped'),
+            new OptionSpec('fail-on-risky'), new OptionSpec('fail-on-skipped'), new OptionSpec('fail-on-retried-pass'),
             new OptionSpec('seed', OptionValue::Required),
             new OptionSpec('reporter', OptionValue::Required, repeatable: true),
             new OptionSpec('artifacts-dir', OptionValue::Required),
             new OptionSpec('coverage-map', OptionValue::Required),
             new OptionSpec('coverage-include', OptionValue::Required, repeatable: true),
             new OptionSpec('no-coverage'),
+            new OptionSpec('minimum-coverage', OptionValue::Required),
+            new OptionSpec('maximum-uncovered-lines', OptionValue::Required),
+            new OptionSpec('require-coverage-driver'),
             new OptionSpec('baseline', OptionValue::Required), new OptionSpec('current', OptionValue::Required),
+            new OptionSpec('baseline-root', OptionValue::Required), new OptionSpec('current-root', OptionValue::Required),
+            new OptionSpec('input-root', OptionValue::Required, repeatable: true),
+            new OptionSpec('project-root', OptionValue::Required),
+            new OptionSpec('export', OptionValue::Required, repeatable: true),
             new OptionSpec('watch'), new OptionSpec('detect-leaks'), new OptionSpec('dry-run'),
             new OptionSpec('ansi'), new OptionSpec('no-ansi'), new OptionSpec('verbose'), new OptionSpec('profile'),
-            new OptionSpec('input', OptionValue::Required), new OptionSpec('output', OptionValue::Required),
+            new OptionSpec('input', OptionValue::Required, repeatable: true), new OptionSpec('output', OptionValue::Required),
             new OptionSpec('help', short: 'h'), new OptionSpec('version', short: 'V'),
         ];
     }

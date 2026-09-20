@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Cli\Input;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Input\CliError;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class CliErrorTest
 {
@@ -18,7 +19,7 @@ final class CliErrorTest
     #[DataSet('errors')]
     public function errorsGiveExactGuidance(\Closure $create, string $message): void
     {
-        Expect::that($create()->getMessage())
+        expect($create()->getMessage())
             ->because('each CLI error MUST give exact guidance')
             ->toBe($message);
     }

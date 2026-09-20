@@ -42,14 +42,14 @@ final class MetadataFactory
     public function forClass(\ReflectionClass $class): array
     {
         $className = $class->getName();
-        $classGroups = $this->groupNames($class, $className);
+        $classGroups = $this->attributeNames($class, Group::class, $className);
         $classSkip = $this->attributeInstance($class, Skip::class, $className);
         $classSkipUnless = $this->attributeInstance($class, SkipUnless::class, $className);
         $classRetry = $this->attributeInstance($class, Retry::class, $className);
         $classTimeout = $this->attributeInstance($class, Timeout::class, $className);
         $classIsolated = $class->getAttributes(Isolated::class) !== [];
         $classAllowsParallel = $class->getAttributes(AllowParallel::class) !== [];
-        $classResources = $this->resourceNames($class, $className);
+        $classResources = $this->attributeNames($class, RequiresResource::class, $className);
 
         if ($classAllowsParallel && $classIsolated) {
             throw DiscoveryError::incompatibleAttributes($className, 'AllowParallel', 'Isolated');
@@ -83,8 +83,8 @@ final class MetadataFactory
             $retry = $this->attributeInstance($method, Retry::class, $where) ?? $classRetry;
             $timeout = $this->attributeInstance($method, Timeout::class, $where) ?? $classTimeout;
             $dataSet = $this->attributeInstance($method, DataSet::class, $where);
-            $groups = \array_values(\array_unique([...$classGroups, ...$this->groupNames($method, $where)]));
-            $resources = \array_values(\array_unique([...$classResources, ...$this->resourceNames($method, $where)]));
+            $groups = \array_values(\array_unique([...$classGroups, ...$this->attributeNames($method, Group::class, $where)]));
+            $resources = \array_values(\array_unique([...$classResources, ...$this->attributeNames($method, RequiresResource::class, $where)]));
 
             if ($classAllowsParallel && $method->getAttributes(Isolated::class) !== []) {
                 throw DiscoveryError::incompatibleAttributes($className, 'AllowParallel', 'Isolated');
@@ -151,36 +151,16 @@ final class MetadataFactory
 
     /**
      * @param \ReflectionClass<object>|\ReflectionMethod $reflector
+     * @param class-string<Group>|class-string<RequiresResource> $attributeClass
      *
      * @return list<non-empty-string>
      * @throws DiscoveryError
      */
-    private function groupNames(\ReflectionClass|\ReflectionMethod $reflector, string $where): array
+    private function attributeNames(\ReflectionClass|\ReflectionMethod $reflector, string $attributeClass, string $where): array
     {
         $names = [];
 
-        foreach ($reflector->getAttributes(Group::class) as $attribute) {
-            $names[] = ErrorTrap::run(
-                static fn() => $attribute->newInstance(),
-                wrap: static fn(\Throwable $error): DiscoveryError =>
-                    DiscoveryError::invalidAttribute($where, $error),
-            )->name;
-        }
-
-        return $names;
-    }
-
-    /**
-     * @param \ReflectionClass<object>|\ReflectionMethod $reflector
-     *
-     * @return list<non-empty-string>
-     * @throws DiscoveryError
-     */
-    private function resourceNames(\ReflectionClass|\ReflectionMethod $reflector, string $where): array
-    {
-        $names = [];
-
-        foreach ($reflector->getAttributes(RequiresResource::class) as $attribute) {
+        foreach ($reflector->getAttributes($attributeClass) as $attribute) {
             $names[] = ErrorTrap::run(
                 static fn() => $attribute->newInstance(),
                 wrap: static fn(\Throwable $error): DiscoveryError =>

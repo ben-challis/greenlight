@@ -2,7 +2,9 @@
 
 The `Greenlight\` Composer namespace makes implementation classes available to
 the PHP autoload mechanism. This availability is not a compatibility promise.
-Only documented interfaces and versioned formats have compatibility promises.
+Only surfaces that the contract-level table identifies as public have
+compatibility promises. Documentation or a version field does not make an
+internal surface public.
 
 ## Contract levels
 
@@ -11,6 +13,7 @@ Only documented interfaces and versioned formats have compatibility promises.
 | Documented attributes, configuration builders, expectations, fixtures, doubles, attachments, conditions, and plugin interfaces | Public PHP interface |
 | Documented CLI commands, options, exit meanings, and configuration-file shape | Public command interface |
 | JSONL reporter | Public, versioned data interface |
+| Test discovery manifest | Public, versioned data interface |
 | Coverage JSON export | Public, versioned data interface |
 | JUnit, TeamCity, and GitHub output | External integration interfaces |
 | Classes or members marked `@internal` | Internal implementation |
@@ -155,9 +158,9 @@ that end with a newline.
 
 ## Coverage JSON changes
 
-Coverage JSON version 1 **MAY** receive optional top-level or per-file fields.
-Readers **MUST** ignore unknown keys. They **MUST** calculate derived totals
-from `covered` and `uncovered`.
+Coverage JSON version 1 **MAY** receive optional fields at the top level, in
+`totals`, or in each file entry. Readers **MUST** ignore unknown keys. They
+**MUST** calculate derived totals from `covered` and `uncovered`.
 
 A change to path semantics or a line-status definition requires a new version.
 A change to a required field or a field type also requires a new version. For
@@ -169,6 +172,7 @@ These public formats intentionally report absolute paths:
 
 - Coverage JSON keys
 - Failure and diagnostic source locations in JSONL
+- Test discovery manifest source locations
 - Published attachment paths and the run artifact directory
 
 Absolute paths help users find files on the source machine. These paths also
@@ -176,7 +180,13 @@ contain machine-local data. Coverage baselines compare a file only when
 its absolute keys match.
 
 Different checkout roots, containers, or worktrees need the same mounted path.
-As an alternative, normalize both reports before you compare them.
+As an alternative, use `coverage:diff` with `--baseline-root` and
+`--current-root`. This command option normalizes paths for one comparison. It
+does not change the coverage JSON version 1 contract.
+
+For coverage from multiple roots, use `coverage:merge` with one `--input-root`
+for each input and one `--project-root`. This operation writes absolute paths
+below the selected output root.
 
 Paths can disclose the workspace layout. Give machine-readable reports the same
 access controls as logs and test evidence.

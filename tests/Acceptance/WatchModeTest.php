@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\AcceptanceProject;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class WatchModeTest
 {
@@ -33,14 +34,14 @@ final readonly class WatchModeTest
         $this->cleanup->defer($process->terminate(...));
 
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
-        Expect::that($output)->toContain('1 test, 1 passed');
+        expect($output)->toContain('1 test, 1 passed');
 
         // Append a comment to make a synthetic change. The size changes, but
         // the modification time can remain equal.
         $project->writeFile('tests/WatchProbeTest.php', $original . "// touched\n");
 
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
-        Expect::that($output)->toContain('Detected changes')
+        expect($output)->toContain('Detected changes')
             ->toContain('1 test, 1 passed');
 
         $process->write('q');
@@ -49,10 +50,10 @@ final readonly class WatchModeTest
         $cleaned = \file($project->path('markers/cleaned.log'), \FILE_IGNORE_NEW_LINES);
         $constructed = \file($project->path('markers/constructed.log'), \FILE_IGNORE_NEW_LINES);
 
-        Expect::that($result->exitCode)->toBe(0);
-        Expect::that(\is_array($provisioned) ? $provisioned : [])->toHaveCount(2);
-        Expect::that(\is_array($cleaned) ? $cleaned : [])->toBe(['cleaned', 'cleaned']);
-        Expect::that(\is_array($constructed) ? $constructed : [])
+        expect($result->exitCode)->toBe(0);
+        expect(\is_array($provisioned) ? $provisioned : [])->toHaveCount(2);
+        expect(\is_array($cleaned) ? $cleaned : [])->toBe(['cleaned', 'cleaned']);
+        expect(\is_array($constructed) ? $constructed : [])
             ->because('each watch run MUST construct a new orchestrator instance and worker instance')
             ->toHaveCount(4);
     }
@@ -70,14 +71,14 @@ final readonly class WatchModeTest
 
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-        Expect::that($output)
+        expect($output)
             ->because('watch mode starts when PHP disables shell_exec')
             ->toContain('1 test, 1 passed');
 
         $process->write('q');
         $result = $process->wait(10.0);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('watch mode exits cleanly when PHP disables shell_exec')
             ->toBe(0);
     }
@@ -97,14 +98,14 @@ final readonly class WatchModeTest
         $process->write('q');
         $result = $process->wait(10.0);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('watch mode MUST remain interactive after a fixture cleanup failure')
             ->toBe(0);
-        Expect::that($result->output())
+        expect($result->output())
             ->because('watch mode MUST report integration fixture cleanup failures')
             ->toContain('Integration fixture teardown failed.')
             ->toContain('intentional fixture cleanup failure');
-        Expect::that($this->matches($project->path('markers/resource-*')))
+        expect($this->matches($project->path('markers/resource-*')))
             ->because('watch mode MUST remove orchestrator-owned resources after cleanup failures')
             ->toBe([]);
     }
@@ -122,14 +123,14 @@ final readonly class WatchModeTest
 
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-        Expect::that($output)
+        expect($output)
             ->because('watch mode MUST complete its initial coverage run')
             ->toContain('1 test, 1 passed');
 
         $project->writeFile('source/Observed.php', "<?php\n// changed\n");
         $output = $process->readStdoutUntil('Waiting for changes', 20.0);
 
-        Expect::that($output)
+        expect($output)
             ->because('watch mode MUST observe configured coverage include paths')
             ->toContain('Detected changes')
             ->toContain('1 test, 1 passed');
@@ -137,14 +138,51 @@ final readonly class WatchModeTest
         $process->write('q');
         $result = $process->wait(10.0);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('watch mode exits cleanly after a coverage source change')
             ->toBe(0);
     }
 
+    #[Test]
+    public function configuredNonPhpInputsTriggerRunsAndExclusionsPreventArtifactLoops(): void
+    {
+        $project = $this->writeProject(additionalWatchInputs: true);
+        $process = GreenlightCli::start(
+            $project->directory,
+            ['run', '--watch', '--reporter=plain', '--no-ansi'],
+        );
+        $this->cleanup->defer($process->terminate(...));
+        $process->readStdoutUntil('Waiting for changes', 20.0);
+
+        $project->writeFile('templates/page.twig', 'changed template');
+        $templateOutput = $process->readStdoutUntil('Waiting for changes', 20.0);
+
+        expect($templateOutput)
+            ->because('a configured template input MUST trigger a watch run')
+            ->toContain('Detected changes in 1 file.')
+            ->toContain('1 test, 1 passed');
+
+        $project->writeFile('build/report.json', '{"changed":true}');
+        \usleep(300_000);
+        $project->writeFile('config/settings.yaml', 'changed: true');
+        $configurationOutput = $process->readStdoutUntil('Waiting for changes', 20.0);
+
+        expect($configurationOutput)
+            ->because('an excluded artifact MUST not enter the next change batch')
+            ->toContain('Detected changes in 1 file.')
+            ->toContain('1 test, 1 passed');
+
+        $process->write('q');
+        expect($process->wait(10.0)->exitCode)->toBe(0);
+        $provisioned = \file($project->path('markers/provisioned.log'), \FILE_IGNORE_NEW_LINES);
+        expect(\is_array($provisioned) ? $provisioned : [])
+            ->because('the excluded artifact MUST not start a watch run')
+            ->toHaveCount(3);
+    }
     private function writeProject(
         bool $watchCoverageSource = false,
         bool $failCleanup = false,
+        bool $additionalWatchInputs = false,
     ): AcceptanceProject {
         $project = AcceptanceProject::create($this->tempDirectory, 'watch');
         $project->writeFile('markers/.gitkeep', '');
@@ -170,6 +208,11 @@ final readonly class WatchModeTest
             : '';
         $markerDirectory = \var_export($project->path('markers'), true);
         $failCleanupValue = $failCleanup ? 'true' : 'false';
+        $watchInputs = $additionalWatchInputs
+            ? "\n        ->paths('templates', 'config/settings.yaml', 'build')"
+                . "\n        ->include('**/*.twig', '**/*.yaml', '**/*.json')"
+                . "\n        ->exclude('build/**')"
+            : '';
         $project->writeFile('greenlight.php', \sprintf(
             <<<'PHP'
             <?php
@@ -184,15 +227,22 @@ final readonly class WatchModeTest
             return GreenlightConfig::create()
                 ->paths([__DIR__ . '/tests'])
                 ->workers(1)%s
-                ->watch(fn($watch) => $watch->debounceMilliseconds(50))
+                ->watch(fn($watch) => $watch->debounceMilliseconds(50)%s)
                 ->plugins(
                     static fn(): IntegrationProbePlugin => new IntegrationProbePlugin(%s, failCleanup: %s),
                 );
             PHP,
             $coverage,
+            $watchInputs,
             $markerDirectory,
             $failCleanupValue,
         ));
+
+        if ($additionalWatchInputs) {
+            $project->writeFile('templates/page.twig', 'initial template');
+            $project->writeFile('config/settings.yaml', 'initial: true');
+            $project->writeFile('build/report.json', '{"initial":true}');
+        }
 
         return $project;
     }

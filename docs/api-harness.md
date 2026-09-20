@@ -35,7 +35,7 @@ Namespace: `Greenlight\Harness`
 
 Defines the lifetime of a harness service.
 
-PerWorker matches the physical worker lifetime.
+`PerWorker` matches the physical worker lifetime.
 
 ```php
 enum Scope: string
@@ -71,46 +71,59 @@ case PerWorker = 'per-worker';
 
 Namespace: `Greenlight\Harness`
 
-Selects a container service ID that differs from the parameter type. The
-resolved service must have the declared type.
+Selects a service ID or a named source for a constructor parameter. Each
+bridge translates the ID into its container lookup, or uses the default
+lookup if the ID is absent. The service must have the declared type.
 
 ```php
 #[\Attribute(\Attribute::TARGET_PARAMETER)]
 final readonly class Service
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L12)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L13)
 
 ### `$id`
 
 ```php
-public string $id;
+public ?string $id;
 ```
 
 PHPDoc:
 
-- `@var non-empty-string`
+- `@var non-empty-string|null`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L16)
+
+### `$source`
+
+```php
+public ?string $source;
+```
+
+PHPDoc:
+
+- `@var non-empty-string|null`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L19)
 
 ### `__construct()`
 
 ```php
-public function __construct(string $id)
+public function __construct(?string $id = null, ?string $source = null)
 ```
 
 PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L18)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/Service.php#L22)
 
 ## `ServiceDefinition`
 
 Namespace: `Greenlight\Harness`
 
 Defines one harness service. It contains the exact injected type, service
-scope, and factory.
+scope, factory, and optional source name.
 
 ```php
 final readonly class ServiceDefinition
@@ -130,13 +143,25 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L16)
 
+### `$source`
+
+```php
+public ?string $source;
+```
+
+PHPDoc:
+
+- `@var non-empty-string|null`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L19)
+
 ### `$scope`
 
 ```php
 public Scope $scope
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L31)
 
 ### `$factory`
 
@@ -144,7 +169,7 @@ public Scope $scope
 public \Closure $factory
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L32)
 
 ### `__construct()`
 
@@ -153,6 +178,7 @@ public function __construct(
     string $type,
     public Scope $scope,
     public \Closure $factory,
+    ?string $source = null,
 )
 ```
 
@@ -163,7 +189,7 @@ PHPDoc:
 - `@param \Closure(): T $factory`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceDefinition.php#L29)
 
 ## `ServiceResolutionFailed`
 
@@ -183,9 +209,12 @@ This type does not declare public members.
 
 Namespace: `Greenlight\Harness`
 
-Greenlight calls service resolvers in registration order. A null result asks
-Greenlight to call the next resolver. An object must have the requested
-type. A `ServiceResolutionFailed` exception stops resolution.
+Greenlight calls service resolvers with lower priorities first. Equal
+priorities use registration order. A terminal resolver runs after all other
+resolvers, regardless of priority.
+
+A null result asks Greenlight to call the next resolver. An object must have
+the requested type. A `ServiceResolutionFailed` exception stops resolution.
 
 Objects from a service resolver do not belong to a harness service scope.
 Greenlight does not dispose them. The source of an object controls its
@@ -195,7 +224,7 @@ lifetime.
 interface ServiceResolver
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L19)
 
 ### `resolve()`
 
@@ -209,7 +238,32 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed when the resolver handles the request but cannot supply a valid service`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L26)
+
+## `ServiceSource`
+
+Namespace: `Greenlight\Harness`
+
+Names one source of harness definitions or resolved services. Source names
+are case-sensitive. A null name keeps the source unnamed.
+
+```php
+interface ServiceSource
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceSource.php#L11)
+
+### `source()`
+
+```php
+public function source(): ?string;
+```
+
+PHPDoc:
+
+- `@return non-empty-string|null`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceSource.php#L14)
 
 ## `TerminalServiceResolver`
 
@@ -218,14 +272,13 @@ Namespace: `Greenlight\Harness`
 Identifies a resolver that handles every request. Greenlight places one
 terminal resolver after all fallback-capable resolvers.
 
-A terminal resolver MUST return an object or throw
-`ServiceResolutionFailed`.
+A terminal resolver returns an object or throws `ServiceResolutionFailed`.
 
 ```php
 interface TerminalServiceResolver extends ServiceResolver
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/TerminalServiceResolver.php#L14)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/TerminalServiceResolver.php#L13)
 
 ### `resolve()`
 
@@ -239,4 +292,4 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed when the resolver handles the request but cannot supply a valid service`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Harness/ServiceResolver.php#L26)

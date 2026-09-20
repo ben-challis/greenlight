@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Cli\Signal;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Signal\SignalHandlers;
-use Greenlight\Expect\Expect;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Tests\Fixture\Cli\Signal\RecordingSignalOperations;
+
+use function Greenlight\expect;
 
 final class SignalHandlersTest
 {
@@ -24,17 +25,16 @@ final class SignalHandlersTest
 
         $handler = $operations->registrations[$index]['handler'] ?? null;
 
-        Expect::that($handler)
+        expect($handler)
             ->because('Each supported signal MUST get a callable first handler.')
             ->toBeCallable();
 
         $handler($signal);
 
-        Expect::that($shutdown->requested())
+        expect($shutdown->requested())
             ->because('each supported signal MUST request graceful shutdown on first delivery')
             ->toBeTrue();
-        Expect::that($shutdown->exitCode())
-            ->toBe(128 + $signal);
+        expect($shutdown->signal())->toBe($signal);
     }
 
     #[Test]
@@ -45,13 +45,13 @@ final class SignalHandlersTest
 
         SignalHandlers::install($shutdown, $operations);
 
-        Expect::that($operations->asyncEnabled)
+        expect($operations->asyncEnabled)
             ->because('unavailable signal operations do not enable asynchronous signals')
             ->toBeFalse();
-        Expect::that($operations->registrations)
+        expect($operations->registrations)
             ->because('unavailable signal operations do not register handlers')
             ->toBe([]);
-        Expect::that($shutdown->requested())->toBeFalse();
+        expect($shutdown->requested())->toBeFalse();
     }
 
     #[Test]
@@ -62,29 +62,29 @@ final class SignalHandlersTest
 
         SignalHandlers::install($shutdown, $operations);
 
-        Expect::that($operations->asyncEnabled)
+        expect($operations->asyncEnabled)
             ->because('available signal operations enable asynchronous signals')
             ->toBeTrue();
-        Expect::that(\array_column($operations->registrations, 'signal'))
+        expect(\array_column($operations->registrations, 'signal'))
             ->because('SIGINT and SIGTERM handlers are registered')
             ->toBe([\SIGINT, \SIGTERM]);
 
         $handler = $operations->registrations[0]['handler'] ?? null;
 
-        Expect::that($handler)
+        expect($handler)
             ->because('SignalHandlers MUST register a callable for SIGINT.')
             ->toBeCallable();
 
         $handler(\SIGTERM);
 
-        Expect::that($shutdown->requested())
+        expect($shutdown->requested())
             ->because('the first signal requests graceful shutdown')
             ->toBeTrue();
-        Expect::that($shutdown->exitCode())->toBe(128 + \SIGTERM);
-        Expect::that($operations->registrations[2] ?? null)
+        expect($shutdown->signal())->toBe(\SIGTERM);
+        expect($operations->registrations[2] ?? null)
             ->because('the first signal restores the default SIGINT handler')
             ->toBe(['signal' => \SIGINT, 'handler' => \SIG_DFL]);
-        Expect::that($operations->registrations[3] ?? null)
+        expect($operations->registrations[3] ?? null)
             ->because('the first signal restores the default SIGTERM handler')
             ->toBe(['signal' => \SIGTERM, 'handler' => \SIG_DFL]);
     }

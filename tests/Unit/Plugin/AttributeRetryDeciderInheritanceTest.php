@@ -6,11 +6,12 @@ namespace Greenlight\Tests\Unit\Plugin;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\Plugin\AttributeRetryDecider;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Test\RetryPolicy;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final class AttributeRetryDeciderInheritanceTest
 {
@@ -25,7 +26,7 @@ final class AttributeRetryDeciderInheritanceTest
             0,
         );
 
-        Expect::that(new AttributeRetryDecider()->shouldRetry(
+        expect(new AttributeRetryDecider()->shouldRetry(
             $policy,
             $result,
             1,

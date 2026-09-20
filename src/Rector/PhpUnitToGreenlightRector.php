@@ -19,6 +19,7 @@ use Greenlight\Test\SkipTest;
 use PhpParser\Modifiers;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
+use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Attribute;
 use PhpParser\Node\AttributeGroup;
 use PhpParser\Node\Expr;
@@ -55,8 +56,8 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 {
     /**
      * Configuration key: remove PHPUnit failure-message arguments. Without
-     * this option, a custom message rejects the class. Greenlight
-     * expectations carry no custom message.
+     * this option, a custom message rejects the class. A manual migration can
+     * preserve the message with `because()`.
      */
     public const string DROP_ASSERTION_MESSAGES = 'drop_assertion_messages';
 
@@ -109,6 +110,8 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
     /**
      * @param mixed[] $configuration
+     *
+     * @throws \InvalidArgumentException if a key is unknown or `drop_assertion_messages` is not a boolean
      */
     public function configure(array $configuration): void
     {
@@ -155,7 +158,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
                         #[\Greenlight\Attribute\Test]
                         public function testFormatsTotals(): void
                         {
-                            \Greenlight\Expect\Expect::that(Price::fromString('9.99')->times(2)->format())->toBe('19.98');
+                            \Greenlight\Expect\Expect::value(Price::fromString('9.99')->times(2)->format())->toBe('19.98');
                         }
                     }
                     CODE_SAMPLE,
@@ -791,7 +794,8 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
                 return false;
             }
 
-            return \count($arguments) === $conversion->arity || $this->dropAssertionMessages;
+            return (\count($arguments) === $conversion->arity || $this->dropAssertionMessages)
+                && $this->argumentOrderConverts($conversion, $arguments);
         }
 
         if ($name === self::FAIL) {
@@ -807,7 +811,10 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         if ($name === self::MARK_TEST_SKIPPED) {
             $arguments = $this->positionalArgs($call->args);
 
-            return $arguments !== null && \count($arguments) <= 1;
+            return $arguments !== null && \count($arguments) <= 1
+                && ($arguments === []
+                    || $arguments[0]->value instanceof String_
+                    || $this->getType($arguments[0]->value)->isNonEmptyString()->yes());
         }
 
         if (\in_array($name, self::EXPECT_EXCEPTION_METHODS, true) || $name === self::EXPECT_NO_ASSERTIONS) {
@@ -815,6 +822,73 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         }
 
         return false;
+    }
+
+    /**
+     * @param list<Arg> $arguments
+     */
+    private function argumentOrderConverts(AssertionConversion $conversion, array $arguments): bool
+    {
+        $order = [$conversion->subject, ...$conversion->matcherArguments];
+
+        foreach ($order as $position => $index) {
+            foreach (\array_slice($order, $position + 1) as $laterIndex) {
+                if ($index < $laterIndex) {
+                    continue;
+                }
+
+                $first = $arguments[$index]->value;
+                $second = $arguments[$laterIndex]->value;
+
+                if ($this->isLiteralValue($first) || $this->isLiteralValue($second)) {
+                    continue;
+                }
+
+                if ($first instanceof Variable && \is_string($first->name)
+                    && $second instanceof Variable && \is_string($second->name)
+                ) {
+                    continue;
+                }
+
+                // Calls and property hooks can change the other argument.
+                // Keep the PHPUnit class when their order cannot stay safe.
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function isLiteralValue(Expr $expression): bool
+    {
+        if ($expression instanceof String_ || $expression instanceof Node\Scalar\Int_
+            || $expression instanceof Node\Scalar\Float_ || $expression instanceof Node\Scalar\MagicConst
+        ) {
+            return true;
+        }
+
+        if ($expression instanceof Expr\ConstFetch) {
+            return \in_array($expression->name->toLowerString(), ['true', 'false', 'null'], true);
+        }
+
+        if ($expression instanceof ClassConstFetch) {
+            return $expression->class instanceof Name
+                && $expression->name instanceof Identifier
+                && $expression->name->toLowerString() === 'class';
+        }
+
+        if ($expression instanceof Expr\UnaryMinus || $expression instanceof Expr\UnaryPlus) {
+            return $this->isLiteralValue($expression->expr);
+        }
+
+        if (!$expression instanceof Expr\Array_) {
+            return false;
+        }
+
+        return \array_all($expression->items, fn(?ArrayItem $item): bool => $item instanceof ArrayItem
+            && !$item->byRef && !$item->unpack
+            && (!$item->key instanceof Expr || $this->isLiteralValue($item->key))
+            && $this->isLiteralValue($item->value));
     }
 
     private function isSelfReceiver(MethodCall|StaticCall $call): bool
@@ -886,7 +960,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     }
 
     /**
-     * @param array<Arg|Node\VariadicPlaceholder> $args
+     * @param array<Node> $args
      *
      * @return list<Arg>|null Null if an argument is named, unpacked, or a
      *                        first-class callable placeholder
@@ -1100,7 +1174,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         }
 
         $expectation = new MethodCall(
-            new StaticCall(new FullyQualified(Expect::class), 'that', [new Arg($subject)]),
+            new StaticCall(new FullyQualified(Expect::class), 'calling', [new Arg($subject)]),
             'toThrow',
             $toThrowArgs,
         );
@@ -1162,7 +1236,9 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
         if ($allowInstanceApi && $name === self::MARK_TEST_SKIPPED) {
             // SkipTest requires a non-empty reason. The PHPUnit argument is optional.
-            $reason = $arguments === [] ? [new Arg(new String_('Skipped.'))] : $arguments;
+            $emptyReason = $arguments === []
+                || ($arguments[0]->value instanceof String_ && $arguments[0]->value->value === '');
+            $reason = $emptyReason ? [new Arg(new String_('Skipped.'))] : $arguments;
 
             return new Throw_(new New_(new FullyQualified(SkipTest::class), $reason));
         }
@@ -1177,7 +1253,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     {
         $chain = new StaticCall(
             new FullyQualified(Expect::class),
-            'that',
+            'value',
             [new Arg($arguments[$conversion->subject]->value)],
         );
 

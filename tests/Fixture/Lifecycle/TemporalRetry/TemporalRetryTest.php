@@ -7,7 +7,9 @@ namespace Greenlight\Tests\Fixture\Lifecycle\TemporalRetry;
 use Greenlight\Attribute\Retry;
 use Greenlight\Attribute\Test;
 use Greenlight\Attribute\Timeout;
-use Greenlight\Expect\Expect;
+
+
+use function Greenlight\expect;
 
 final class TemporalRetryTest
 {
@@ -20,7 +22,7 @@ final class TemporalRetryTest
     {
         ++self::$attempts;
 
-        Expect::eventually(static fn(): int => self::$attempts)
+        expect()->calling(static fn(): int => self::$attempts)->returnValue()->eventually()
             ->pollEvery(0.001)
             ->within(0.010)
             ->toBe(2);

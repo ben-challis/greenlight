@@ -7,9 +7,10 @@ namespace Greenlight\Tests\Unit\Laravel;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Condition\ClassAvailable;
-use Greenlight\Expect\Expect;
 use Greenlight\Laravel\LaravelStateResetter;
 use Illuminate\Support\Lottery;
+
+use function Greenlight\expect;
 
 #[SkipUnless(ClassAvailable::class, Lottery::class)]
 final class LaravelLotteryStateResetTest
@@ -20,13 +21,13 @@ final class LaravelLotteryStateResetTest
         Lottery::alwaysWin();
 
         try {
-            Expect::that(Lottery::odds(0, 1)->choose())
+            expect(Lottery::odds(0, 1)->choose())
                 ->because('a forced Laravel lottery MUST win before the reset')
                 ->toBeTrue();
 
             LaravelStateResetter::reset();
 
-            Expect::that(Lottery::odds(0, 1)->choose())
+            expect(Lottery::odds(0, 1)->choose())
                 ->because('a reset MUST restore normal Laravel lottery results')
                 ->toBeFalse();
         } finally {

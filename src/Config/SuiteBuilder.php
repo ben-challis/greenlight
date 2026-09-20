@@ -33,11 +33,11 @@ final class SuiteBuilder
 
         foreach ($paths as $path) {
             if ($path === '') {
-                throw new InvalidConfiguration(\sprintf('Suite "%s" was given an empty path.', $this->name));
+                throw InvalidConfiguration::emptySuitePath($this->name);
             }
 
             if (\str_contains($path, "\0")) {
-                throw new InvalidConfiguration(\sprintf('Suite "%s" paths cannot contain a null byte.', $this->name));
+                throw InvalidConfiguration::suitePathContainsNullByte($this->name);
             }
 
             $validated[] = $path;
@@ -59,7 +59,7 @@ final class SuiteBuilder
 
         foreach ($tags as $tag) {
             if ($tag === '') {
-                throw new InvalidConfiguration(\sprintf('Suite "%s" was given an empty tag.', $this->name));
+                throw InvalidConfiguration::emptySuiteTag($this->name);
             }
 
             $validated[] = $tag;
@@ -78,10 +78,7 @@ final class SuiteBuilder
     public function toConfiguration(): SuiteConfiguration
     {
         if ($this->paths === []) {
-            throw new InvalidConfiguration(\sprintf(
-                'Suite "%s" has no paths. Call in() with at least one directory inside its configurator.',
-                $this->name,
-            ));
+            throw InvalidConfiguration::missingSuitePaths($this->name);
         }
 
         return new SuiteConfiguration($this->name, $this->paths, $this->tags);

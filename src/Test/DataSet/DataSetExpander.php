@@ -8,12 +8,12 @@ use Greenlight\Attribute\DataRow;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
- * Invokes a #[DataSet] provider when Greenlight makes the execution plan.
+ * Expands #[DataSet] providers during discovery and worker execution.
  * It makes one stable string key for each data set.
  *
- * Discovery executes only data providers. Providers MUST be pure. For the
- * same inputs, a provider MUST supply the same data. A provider MUST NOT
- * change external state. Each provider has a time limit.
+ * Keep data providers pure. Return the same data for the same inputs.
+ * Do not change external state. Greenlight checks the time budget between
+ * rows and after iteration. The budget cannot interrupt a blocked provider.
  *
  * Greenlight does not change a printable string key. It converts an integer
  * key to "#<value>". For an empty or nonprintable string key, it uses the
@@ -157,7 +157,7 @@ final readonly class DataSetExpander
         }
 
         if (!\is_iterable($result)) {
-            throw DataSetError::providerNotIterable($providerClassName, $provider, \get_debug_type($result));
+            throw DataSetError::providerNotIterable($providerClassName, $provider, $result);
         }
 
         $dataSets = [];
@@ -215,7 +215,7 @@ final readonly class DataSetExpander
         }
 
         if (!\is_string($key)) {
-            throw DataSetError::providerKeyInvalid($class, $provider, \get_debug_type($key));
+            throw DataSetError::providerKeyInvalid($class, $provider, $key);
         }
 
         if ($key !== '' && \preg_match('/^\P{C}+\z/u', $key) === 1) {

@@ -6,6 +6,7 @@ namespace Greenlight\Condition;
 
 use Greenlight\Internal\Process\EnvironmentVariableName;
 
+/** Passes when `getenv()` finds the variable, including an empty string value. */
 final readonly class EnvironmentVariableSet implements Condition
 {
     /**
@@ -14,6 +15,8 @@ final readonly class EnvironmentVariableSet implements Condition
     private string $name;
 
     /**
+     * @param non-empty-string $name
+     *
      * @throws \InvalidArgumentException
      */
     public function __construct(string $name)

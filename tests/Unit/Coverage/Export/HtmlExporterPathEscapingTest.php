@@ -8,7 +8,8 @@ use Greenlight\Attribute\Test;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Export\HtmlExporter;
 use Greenlight\Coverage\FileCoverage;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class HtmlExporterPathEscapingTest
 {
@@ -23,16 +24,14 @@ final readonly class HtmlExporterPathEscapingTest
         $index = $pages[HtmlExporter::INDEX_FILE_NAME];
         $file = $pages[HtmlExporter::pageName($path)];
 
-        Expect::that($index)
+        expect($index)
             ->because('coverage file paths MUST remain text in the HTML index')
             ->toContain('>' . $escaped . '</a>')
-            ->not()
-            ->toContain('<script>coverage</script>');
-        Expect::that($file)
+            ->not()->toContain('<script>coverage</script>');
+        expect($file)
             ->because('coverage file paths MUST remain text in the HTML file page')
             ->toContain('<title>' . $escaped . '</title>')
             ->toContain('<h1>' . $escaped . '</h1>')
-            ->not()
-            ->toContain('<script>coverage</script>');
+            ->not()->toContain('<script>coverage</script>');
     }
 }

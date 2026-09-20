@@ -10,7 +10,7 @@ use Greenlight\Test\ExpectationCounter;
 
 /**
  * Polls the probe until its matcher passes or the deadline expires.
- * Use `Expect::eventually()` and `within()` to create this object.
+ * Use `Expect::calling(...)->returnValue()->eventually()` and `within()` to create this object.
  *
  * @template T
  *
@@ -27,7 +27,7 @@ final class EventuallyExpectation extends TemporalExpectation
      */
     private function __construct(
         \Closure $probe,
-        PollingClock $clock,
+        Clock $clock,
         ?float $attemptDeadline,
         float $intervalSeconds,
         private readonly float $withinSeconds,
@@ -46,7 +46,7 @@ final class EventuallyExpectation extends TemporalExpectation
     }
 
     /**
-     * @internal Use Expect::eventually() and within() instead.
+     * @internal Use Expect::calling(...)->returnValue()->eventually() and within() instead.
      *
      * @template TProbe
      *
@@ -58,7 +58,7 @@ final class EventuallyExpectation extends TemporalExpectation
      */
     public static function create(
         \Closure $probe,
-        PollingClock $clock,
+        Clock $clock,
         ?float $attemptDeadline,
         float $intervalSeconds,
         float $withinSeconds,
@@ -79,10 +79,10 @@ final class EventuallyExpectation extends TemporalExpectation
     }
 
     /**
-     * @param \Closure(Expectation<T>): Expectation<T> $matcher
+     * @param \Closure(MatcherEvaluation<T>): MatcherEvaluation<T> $matcher
      * @param non-empty-string|null $reason
      *
-     * @return Expectation<T>
+     * @return MatcherEvaluation<T>
      *
      * @throws ExpectationFailed
      */
@@ -92,7 +92,7 @@ final class EventuallyExpectation extends TemporalExpectation
         bool $negated,
         ?string $reason,
         ?SourceLocation $location,
-    ): Expectation {
+    ): MatcherEvaluation {
         $startedAt = $this->clock->now();
         $requestedDeadline = $startedAt + $this->withinSeconds;
         $deadline = $this->attemptDeadline === null

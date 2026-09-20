@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class ToBeInDuplicateKeyTest
 {
@@ -17,7 +18,7 @@ final readonly class ToBeInDuplicateKeyTest
             yield 'shared' => 'second';
         };
 
-        Expect::that('first')
+        expect('first')
             ->because('toBeIn() MUST inspect every traversable value regardless of its key')
             ->toBeIn($values());
     }

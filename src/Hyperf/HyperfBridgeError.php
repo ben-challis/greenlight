@@ -26,12 +26,12 @@ final class HyperfBridgeError extends ServiceResolutionFailed
         ));
     }
 
-    public static function basePathConflict(string $configured, string $defined): self
+    public static function basePathConflict(string $configured, mixed $defined): self
     {
         return new self(\sprintf(
             'HyperfPlugin uses base path "%s", but BASE_PATH is already "%s". Use one Hyperf application in each worker.',
             $configured,
-            $defined,
+            \is_string($defined) ? $defined : \get_debug_type($defined),
         ));
     }
 
@@ -96,12 +96,12 @@ final class HyperfBridgeError extends ServiceResolutionFailed
         ));
     }
 
-    public static function notAContainer(string $path, string $actual): self
+    public static function notAContainer(string $path, mixed $actual): self
     {
         return new self(\sprintf(
             'The Hyperf container file "%s" returned "%s". It must return a Psr\\Container\\ContainerInterface instance.',
             $path,
-            $actual,
+            \get_debug_type($actual),
         ));
     }
 
@@ -112,11 +112,11 @@ final class HyperfBridgeError extends ServiceResolutionFailed
         );
     }
 
-    public static function applicationUnavailable(string $actual): self
+    public static function applicationUnavailable(mixed $actual): self
     {
         return new self(\sprintf(
             'The Hyperf application binding returned "%s". The binding must return an application object.',
-            $actual,
+            \get_debug_type($actual),
         ));
     }
 
@@ -155,12 +155,12 @@ final class HyperfBridgeError extends ServiceResolutionFailed
         ));
     }
 
-    public static function serviceTypeMismatch(string $id, string $type, string $actual): self
+    public static function serviceTypeMismatch(string $id, string $type, mixed $actual): self
     {
         return new self(\sprintf(
             'The Hyperf service "%s" has type "%s". The parameter requires type "%s".',
             $id,
-            $actual,
+            \get_debug_type($actual),
             $type,
         ));
     }

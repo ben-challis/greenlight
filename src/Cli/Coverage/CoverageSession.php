@@ -19,8 +19,6 @@ final class CoverageSession
 {
     private ?CoverageCollector $collector = null;
 
-    private bool $collecting = false;
-
     private ?SharedCoverageDirectory $shared = null;
 
     private function __construct() {}
@@ -42,20 +40,20 @@ final class CoverageSession
         try {
             if ($collectProcess) {
                 $unavailable = null;
-                $session->collector = CoverageCollector::create(
+                $collector = CoverageCollector::create(
                     $settings,
                     static function (string $reason) use (&$unavailable): void {
                         $unavailable = $reason;
                     },
                 );
 
-                if ($settings->perTest && !$session->collector instanceof CoverageCollector) {
+                if ($settings->perTest && !$collector instanceof CoverageCollector) {
                     throw CoverageError::requiredDriverUnavailable($unavailable ?? 'no coverage driver is available');
                 }
 
-                if ($session->collector instanceof CoverageCollector) {
-                    $session->collector->start();
-                    $session->collecting = true;
+                if ($collector instanceof CoverageCollector) {
+                    $collector->start();
+                    $session->collector = $collector;
                 }
             }
 
@@ -71,11 +69,12 @@ final class CoverageSession
 
     public function finish(?CoverageMap $coverage): ?CoverageMap
     {
-        if ($this->collecting) {
-            $this->collecting = false;
-            $collected = $this->collector?->stop();
+        if ($this->collector instanceof CoverageCollector) {
+            $collector = $this->collector;
+            $this->collector = null;
+            $collected = $collector->stop();
 
-            if ($collected instanceof CoverageMap && !$collected->isEmpty()) {
+            if (!$collected->isEmpty()) {
                 $coverage = $coverage instanceof CoverageMap ? $coverage->merge($collected) : $collected;
             }
         }
@@ -95,13 +94,14 @@ final class CoverageSession
 
     public function close(): void
     {
-        if ($this->collecting) {
-            $this->collecting = false;
+        if ($this->collector instanceof CoverageCollector) {
+            $collector = $this->collector;
+            $this->collector = null;
 
             try {
-                $this->collector?->stop();
+                $collector->stop();
             } catch (\Throwable) {
-                // A cleanup failure MUST not replace the run failure.
+                // Preserve the run failure if cleanup also fails.
             }
         }
 
@@ -112,7 +112,7 @@ final class CoverageSession
             try {
                 $shared->drain();
             } catch (\Throwable) {
-                // A cleanup failure MUST not replace the run failure.
+                // Preserve the run failure if cleanup also fails.
             }
         }
     }

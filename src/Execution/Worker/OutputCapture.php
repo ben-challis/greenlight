@@ -15,10 +15,8 @@ use Greenlight\Result\DiagnosticSeverity;
  * Direct writes to stream resources bypass output capture. Examples include
  * fwrite(STDERR, ...) and fwrite(STDOUT, ...).
  *
- * If output is too long, Greenlight keeps the first part. This part usually
- * contains useful error information. The final part frequently contains
- * repeated information. Greenlight removes a partial multibyte character at
- * the size limit.
+ * If output is too long, Greenlight keeps the first part and records truncation.
+ * Greenlight removes a partial multibyte character at the size limit.
  *
  * @internal
  */
@@ -115,23 +113,36 @@ final class OutputCapture
 
         $level = $this->bufferLevel;
         $this->bufferLevel = null;
+        $failure = null;
 
-        while (\ob_get_level() > $level) {
-            $previousLevel = \ob_get_level();
-            $removed = ErrorTrap::run(static fn() => \ob_end_flush());
+        try {
+            while (\ob_get_level() > $level) {
+                $previousLevel = \ob_get_level();
 
-            if (!$removed || \ob_get_level() >= $previousLevel) {
+                try {
+                    $removed = ErrorTrap::run(static fn() => \ob_end_flush());
+                } catch (\Throwable $error) {
+                    $failure ??= $error;
+                    $removed = \ob_get_level() < $previousLevel;
+                }
+
+                if (!$removed || \ob_get_level() >= $previousLevel) {
+                    throw $failure ?? CaptureError::nestedBufferCannotBeRemoved();
+                }
+            }
+
+            if ($failure instanceof \Throwable) {
+                throw $failure;
+            }
+        } finally {
+            try {
+                if (!$this->bufferClosed && \ob_get_level() === $level) {
+                    \ob_end_clean();
+                }
+            } finally {
                 $this->restoreErrorHandler();
-
-                throw CaptureError::nestedBufferCannotBeRemoved();
             }
         }
-
-        if (!$this->bufferClosed && \ob_get_level() === $level) {
-            \ob_end_clean();
-        }
-
-        $this->restoreErrorHandler();
 
         $scrubbedStdout = Utf8::scrub($this->stdout);
         $boundedStdout = Utf8::headBytes($scrubbedStdout, $this->maxStdoutBytes);
@@ -153,8 +164,8 @@ final class OutputCapture
 
     /**
      * Keeps the first part within the size limit. It returns an empty string to
-     * stop propagation. This callback MUST NOT throw because an output-handler
-     * exception is fatal.
+     * stop propagation. Do not throw from this callback.
+     * An output-handler exception is fatal.
      */
     private function appendChunk(string $chunk): string
     {
@@ -162,15 +173,16 @@ final class OutputCapture
             return '';
         }
 
-        $combined = $this->stdout . $chunk;
-
-        if (\strlen($combined) <= $this->maxStdoutBytes) {
-            $this->stdout = $combined;
+        if (\strlen($chunk) <= $this->maxStdoutBytes - \strlen($this->stdout)) {
+            $this->stdout .= $chunk;
 
             return '';
         }
 
-        $this->stdout = Utf8::headBytes($combined, $this->maxStdoutBytes);
+        // Four invalid bytes can become one three-byte replacement character.
+        // Retain enough raw bytes to fill the limit and complete a cut character.
+        $prefix = \substr($chunk, 0, 2 * $this->maxStdoutBytes + 3);
+        $this->stdout = Utf8::headBytes($this->stdout . $prefix, $this->maxStdoutBytes);
         $this->stdoutTruncated = true;
 
         return '';

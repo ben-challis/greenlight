@@ -7,7 +7,8 @@ namespace Greenlight\Reporting;
 /**
  * Duration colors change at one second and five seconds.
  *
- * Without ANSI support, every method returns its text unchanged.
+ * Without ANSI support, text methods return their input unchanged.
+ * duration() formats seconds with three decimal places and an "s" suffix.
  *
  * @internal
  */
@@ -37,6 +38,16 @@ final readonly class Style
     public function dim(string $text): string
     {
         return $this->paint($text, '2');
+    }
+
+    public function heading(string $text): string
+    {
+        return $this->paint($text, '1;33');
+    }
+
+    public function label(string $text): string
+    {
+        return $this->paint($text, '36');
     }
 
     public function duration(float $seconds): string

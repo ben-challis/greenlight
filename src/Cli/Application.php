@@ -4,27 +4,27 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli;
 
-use Greenlight\Cli\Command\CommandDispatcher;
+use Greenlight\Cli\Command\WatchRunCommand;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Cli\Plugin\CommandDispatcher;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\Relay\SubprocessCoverage;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\ProcessPool\Worker\WorkerProcess;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
+use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\ReportGenerationFailed;
 use Greenlight\Reporting\StreamOutput;
 
 /**
- * Uses exit code 0 for success. Uses 1 for a test or run failure. Uses 64 for
- * invalid command-line use.
+ * Uses exit code 0 for success. Uses 1 for a test or run failure.
+ * Uses 64 for invalid command-line use. Interruption uses 128 plus the signal.
  *
  * @internal
  */
 final readonly class Application
 {
-    public const string VERSION = '0.0.0'; // x-release-please-version
-
-    private const int EXIT_USAGE = 64;
+    public const string VERSION = '0.3.0'; // x-release-please-version
 
     private function __construct(private Console $console) {}
 
@@ -60,6 +60,14 @@ final readonly class Application
      */
     public function run(array $argv, string $workingDirectory, ?string $binPath = null): int
     {
+        require_once __DIR__ . '/../Expect/functions.php';
+
+        if (($argv[0] ?? null) === '__watch-run') {
+            $result = new WatchRunCommand($this->console)->run(\array_slice($argv, 1), $workingDirectory, $binPath);
+
+            return ExitCode::fromCommandResult($result)->value();
+        }
+
         // The orchestrator starts this internal worker entry. It does not use
         // the normal parser. No documentation or compatibility guarantee
         // applies to it.
@@ -67,24 +75,26 @@ final readonly class Application
             if (\count($argv) !== 4 || $argv[1] === '' || $argv[2] === '' || $argv[3] === '') {
                 $this->console->err("__worker requires <address> <workerId> <token>.\n");
 
-                return self::EXIT_USAGE;
+                return ExitCode::fromCommandResult(CommandResult::usage())->value();
             }
 
-            return new WorkerProcess()->run($argv[1], $argv[2], $argv[3]);
+            $result = new WorkerProcess(isolateProcessGroup: true)->run($argv[1], $argv[2], $argv[3]);
+
+            return ExitCode::fromCommandResult($result)->value();
         }
 
         // A run with coverage exports the relay variables to each child
         // process. A CLI process that inherits them reports its coverage
         // through the shared directory.
         $dump = SubprocessCoverage::begin();
-        $dispatch = fn(): int => new CommandDispatcher($this->console, self::VERSION)->dispatch($argv, $workingDirectory, $binPath);
+        $dispatch = fn(): CommandResult => new CommandDispatcher($this->console, self::VERSION)->dispatch($argv, $workingDirectory, $binPath);
 
         if (!$dump instanceof SubprocessCoverage) {
-            return $dispatch();
+            return ExitCode::fromCommandResult($dispatch())->value();
         }
 
         try {
-            return $dispatch();
+            return ExitCode::fromCommandResult($dispatch())->value();
         } finally {
             $dump->write();
         }

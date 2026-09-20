@@ -9,8 +9,9 @@ use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Orchestrator\DispatchDecision;
 use Greenlight\Execution\ProcessPool\Orchestrator\DispatchKind;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceLease;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\SchedulingFixture;
+
+use function Greenlight\expect;
 
 final readonly class DispatchDecisionTest
 {
@@ -20,10 +21,10 @@ final readonly class DispatchDecisionTest
         $lease = new ResourceLease(41, SchedulingFixture::unit('Acme\\ExampleTest'));
         $decision = DispatchDecision::assign($lease);
 
-        Expect::that($decision->kind)
+        expect($decision->kind)
             ->because('an assignment MUST use the assign decision kind')
             ->toBe(DispatchKind::Assign);
-        Expect::that($decision->lease)
+        expect($decision->lease)
             ->because('an assignment MUST carry the exact resource lease')
             ->toBe($lease);
     }
@@ -38,10 +39,10 @@ final readonly class DispatchDecisionTest
             default => throw new \LogicException(\sprintf('Unknown decision factory "%s".', $factory)),
         };
 
-        Expect::that($decision->kind)
+        expect($decision->kind)
             ->because('a non-assignment decision MUST use its requested decision kind')
             ->toBe($kind);
-        Expect::that($decision->lease)
+        expect($decision->lease)
             ->because('a non-assignment decision MUST NOT carry a resource lease')
             ->toBeNull();
     }

@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\RectorProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class RectorExceptionMessageDelimiterTest
@@ -43,10 +44,10 @@ final readonly class RectorExceptionMessageDelimiterTest
             name: 'exception-message-delimiter',
         );
 
-        Expect::that($probe->changed)
+        expect($probe->changed)
             ->because('the exception expectation MUST be convertible')
             ->toBeTrue();
-        Expect::that($probe->code)
+        expect($probe->code)
             ->because('the generated matcher MUST escape its slash delimiter')
             ->toContain(
                 "->toThrow(\\RuntimeException::class, matching: '/path \\/tmp/');",

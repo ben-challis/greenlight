@@ -8,7 +8,8 @@ use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final readonly class TestClassEventValidationTest
 {
@@ -19,11 +20,11 @@ final readonly class TestClassEventValidationTest
     #[DataSet('classEvents')]
     public function rejectsAnEmptyClassName(string $eventClass): void
     {
-        Expect::that(static fn(): TestClassStarted|TestClassFinished => new $eventClass('', 1.0))
+        expect()->calling(static fn(): TestClassStarted|TestClassFinished => new $eventClass('', 1.0))
             ->because('a test-class lifecycle event MUST identify its class')
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'Test class name MUST NOT be empty.',
+                message: 'Test class name cannot be empty.',
             );
     }
 

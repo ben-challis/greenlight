@@ -16,7 +16,7 @@ final class UnavailableContainer implements ContainerInterface
     /** @throws UnavailableContainerError */
     public function get(string $id): never
     {
-        throw new UnavailableContainerError();
+        throw UnavailableContainerError::outsideTestAttempt();
     }
 
     public function has(string $id): bool

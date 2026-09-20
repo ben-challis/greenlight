@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Unit\PhpStan;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\PhpStan\ExtensionMatcherParameter;
 use PHPStan\Type\VerbosityLevel;
+
+use function Greenlight\expect;
 
 final class ExtensionMatcherParameterTest
 {
@@ -24,18 +25,18 @@ final class ExtensionMatcherParameterTest
         $reflection = new \ReflectionMethod(self::class, $method)->getParameters()[0];
         $parameter = new ExtensionMatcherParameter($reflection);
 
-        Expect::that($parameter->getName())
+        expect($parameter->getName())
             ->because('extension matcher parameters MUST preserve their reflected signature')
             ->toBe($name);
-        Expect::that($parameter->isOptional())
+        expect($parameter->isOptional())
             ->toBe($optional);
-        Expect::that($parameter->isVariadic())
+        expect($parameter->isVariadic())
             ->toBe($variadic);
-        Expect::that($parameter->getType()->describe(VerbosityLevel::typeOnly()))
+        expect($parameter->getType()->describe(VerbosityLevel::typeOnly()))
             ->toBe($type);
-        Expect::that($parameter->passedByReference()->no())
+        expect($parameter->passedByReference()->no())
             ->toBeTrue();
-        Expect::that($parameter->getDefaultValue())
+        expect($parameter->getDefaultValue())
             ->toBeNull();
     }
 

@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Tools;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
+
+use function Greenlight\expect;
 
 require_once __DIR__ . '/../../../tools/benchmark.php';
 
@@ -27,10 +28,11 @@ final readonly class BenchmarkTest
             'seed' => '-17',
             'pause-ms' => '250',
             'format' => 'json',
+            'output' => '/tmp/benchmark.json',
             'with-comparisons' => false,
         ]);
 
-        Expect::that($options)->toBe([
+        expect($options)->toBe([
             'shapes' => ['many-isolated'],
             'scale' => 2,
             'workers' => 3,
@@ -39,6 +41,7 @@ final readonly class BenchmarkTest
             'seed' => -17,
             'pauseMs' => 250,
             'format' => 'json',
+            'output' => '/tmp/benchmark.json',
             'withComparisons' => true,
         ]);
     }
@@ -49,11 +52,11 @@ final readonly class BenchmarkTest
         $configurationIds = ['parallel', 'one', 'phpunit', 'paratest', 'pest', 'pest-parallel'];
         $schedule = \benchmarkSchedule($configurationIds, 12, 731, 'many-fast:sample');
 
-        Expect::that($schedule)->because('the same seed MUST reproduce the configuration order')
+        expect($schedule)->because('the same seed MUST reproduce the configuration order')
             ->toBe(\benchmarkSchedule($configurationIds, 12, 731, 'many-fast:sample'));
-        Expect::that($schedule[1])->because('the second round MUST reverse the first round')
+        expect($schedule[1])->because('the second round MUST reverse the first round')
             ->toBe(\array_reverse($schedule[0]));
-        Expect::that($schedule[3])->because('the fourth round MUST reverse the third round')
+        expect($schedule[3])->because('the fourth round MUST reverse the third round')
             ->toBe(\array_reverse($schedule[2]));
 
         foreach ($schedule as $order) {
@@ -61,7 +64,7 @@ final readonly class BenchmarkTest
             $expected = $configurationIds;
             \sort($expected);
 
-            Expect::that($order)->because('each round MUST contain each configuration once')->toBe($expected);
+            expect($order)->because('each round MUST contain each configuration once')->toBe($expected);
         }
 
         foreach ($configurationIds as $configurationId) {
@@ -72,7 +75,7 @@ final readonly class BenchmarkTest
                     $schedule,
                     static fn(array $order): bool => $order[$position] === $configurationId,
                 ));
-                Expect::that($positionCount)
+                expect($positionCount)
                     ->because('the default sample count MUST put each configuration in each position twice')
                     ->toBe(2);
             }
@@ -82,7 +85,7 @@ final readonly class BenchmarkTest
     #[Test]
     public function distributionReportsRobustLocationAndVariationStatistics(): void
     {
-        Expect::that(\benchmarkDistribution([9.0, 1.0, 5.0, 3.0]))->toBe([
+        expect(\benchmarkDistribution([9.0, 1.0, 5.0, 3.0]))->toBe([
             'firstQuartile' => 2.0,
             'median' => 4.0,
             'thirdQuartile' => 7.0,
@@ -95,7 +98,7 @@ final readonly class BenchmarkTest
     #[DataSet('invalidOptions')]
     public function rejectsInvalidBenchmarkOptions(array $options, string $message): void
     {
-        Expect::that(static fn() => \benchmarkParseOptions($options))
+        expect()->calling(static fn() => \benchmarkParseOptions($options))
             ->toThrow(\InvalidArgumentException::class, message: $message);
     }
 
@@ -106,7 +109,7 @@ final readonly class BenchmarkTest
     {
         yield 'unknown shape' => [
             ['shape' => 'unknown'],
-            'Unknown benchmark shape "unknown". Use one of: many-fast, few-slow, giant-dataset, mixed, many-isolated, resource-constrained, skewed-bootstrap, chatty-diagnostics, coverage-heavy.',
+            'Unknown benchmark shape "unknown". Use one of: minimal, many-fast, few-slow, cpu-bound, giant-dataset, mixed, many-isolated, resource-constrained, skewed-bootstrap, chatty-diagnostics, coverage-heavy.',
         ];
         yield 'invalid run count' => [
             ['runs' => '0'],
@@ -132,6 +135,10 @@ final readonly class BenchmarkTest
             ['pause-ms' => '60001'],
             'Option --pause-ms must be at most 60000, got 60001.',
         ];
+        yield 'empty output path' => [
+            ['output' => ''],
+            'Option --output must specify a JSON file path.',
+        ];
     }
 
     #[Test]
@@ -140,10 +147,10 @@ final readonly class BenchmarkTest
     {
         $project = $this->tempDirectory->path() . '/benchmark-' . $shape;
 
-        Expect::that(\benchmarkGenerateShape($shape, 1, $project))
+        expect(\benchmarkGenerateShape($shape, 1, $project))
             ->because('each specialized benchmark shape MUST contain tests')
             ->toBeGreaterThan(0);
-        Expect::that((string) \file_get_contents($project . '/' . $relativeFile))
+        expect((string) \file_get_contents($project . '/' . $relativeFile))
             ->toContain($expectedText);
     }
 
@@ -164,14 +171,120 @@ final readonly class BenchmarkTest
     {
         $configurations = \benchmarkConfigurations('many-fast', '/tmp/project', '/tmp/root', 4, true);
 
-        Expect::that($configurations)->toHaveKey('pest');
-        Expect::that($configurations)->toHaveKey('pest-parallel');
-        Expect::that($configurations['phpunit']['command'])->toContain('--cache-directory=.benchmark-cache/phpunit');
-        Expect::that($configurations['paratest']['command'])->toContain('--cache-directory=.benchmark-cache/paratest');
-        Expect::that($configurations['pest']['command'])->toContain('--configuration=pest.xml');
-        Expect::that($configurations['pest']['command'])->toContain('--cache-directory=.benchmark-cache/pest');
-        Expect::that($configurations['pest-parallel']['command'])->toContain('--parallel --processes=4');
-        Expect::that($configurations['pest-parallel']['command'])->toContain('--cache-directory=.benchmark-cache/pest-parallel');
+        expect($configurations)
+            ->toHaveKey('pest')
+            ->toHaveKey('pest-parallel');
+        expect($configurations['phpunit']['command'])->toContain('--cache-directory=.benchmark-cache/phpunit');
+        expect($configurations['paratest']['command'])->toContain('--cache-directory=.benchmark-cache/paratest');
+        expect($configurations['pest']['command'])
+            ->toContain('--configuration=pest.xml')
+            ->toContain('--cache-directory=.benchmark-cache/pest');
+        expect($configurations['pest-parallel']['command'])
+            ->toContain('--parallel --processes=4')
+            ->toContain('--cache-directory=.benchmark-cache/pest-parallel');
+    }
+
+    #[Test]
+    public function oneWorkerDoesNotCreateDuplicateGreenlightMeasurements(): void
+    {
+        $configurations = \benchmarkConfigurations('many-isolated', '/tmp/project', '/tmp/root', 1, false);
+
+        expect(\array_keys($configurations))->toBe(['greenlight-one']);
+        expect($configurations['greenlight-one']['executionMode'])->toBe('in-process');
+        expect(\benchmarkConfigurations('many-isolated', '/tmp/project', '/tmp/root', 4, false)['greenlight-parallel']['executionMode'])
+            ->toBe('fresh-process-per-test');
+    }
+
+    #[Test]
+    public function detectsUnbalancedSamplePositions(): void
+    {
+        $ids = ['one', 'four', 'phpunit', 'paratest', 'pest', 'pest-parallel'];
+
+        expect(\benchmarkScheduleIsBalanced(\benchmarkSchedule($ids, 12, 731, 'sample')))->toBeTrue();
+        expect(\benchmarkScheduleIsBalanced(\benchmarkSchedule($ids, 5, 731, 'sample')))->toBeFalse();
+        expect(\benchmarkScheduleIsBalanced(\benchmarkSchedule(['one'], 1, 731, 'sample')))->toBeTrue();
+        expect(\benchmarkScheduleIsBalanced([]))->toBeFalse();
+    }
+
+    #[Test]
+    public function outputFileCannotReplaceAnExistingResult(): void
+    {
+        $path = $this->tempDirectory->path() . '/existing.json';
+        \file_put_contents($path, 'previous result');
+
+        expect()->calling(static fn() => \benchmarkOpenOutput($path))->toThrow(\RuntimeException::class);
+        expect(\file_get_contents($path))->toBe('previous result');
+    }
+
+    #[Test]
+    public function jsonFileRetainsSamplesAndCaveatsAlongsideTheTable(): void
+    {
+        $path = $this->tempDirectory->path() . '/report.json';
+        $output = \benchmarkOpenOutput($path);
+        $options = \benchmarkParseOptions(['shape' => 'many-isolated', 'output' => $path, 'runs' => '5']);
+        $rows = [];
+
+        foreach (\benchmarkConfigurations('many-isolated', '/tmp/project', '/tmp/root', 4, false) as $id => $configuration) {
+            $rows[] = [
+                'shape' => 'many-isolated',
+                'tests' => 40,
+                'configurationId' => $id,
+                ...$configuration,
+                'samplesSeconds' => [0.1, 0.2, 0.3, 0.4, 0.5],
+                ...\benchmarkDistribution([0.1, 0.2, 0.3, 0.4, 0.5]),
+            ];
+        }
+
+        \ob_start();
+
+        try {
+            \benchmarkReport($options, $rows, \dirname(__DIR__, 3), [], $output);
+            $table = (string) \ob_get_contents();
+        } finally {
+            \ob_end_clean();
+
+            if (\is_resource($output)) {
+                \fclose($output);
+            }
+        }
+
+        $json = (string) \file_get_contents($path);
+        $report = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
+
+        if (!\is_array($report)) {
+            throw new \RuntimeException('The benchmark report must decode to an array.');
+        }
+
+        expect($report['results'] ?? null)->toBe($rows);
+        expect($json)
+            ->toContain('"schemaVersion": 1')
+            ->toContain('"schedules":')
+            ->toContain('unbalanced sample order')
+            ->toContain('does not provide process isolation');
+        expect($table)
+            ->toContain('execution mode')
+            ->toContain('fresh-process-per-test')
+            ->toContain('JSON report: ' . $path);
+    }
+
+    #[Test]
+    #[DataSet('newCommonShapes')]
+    public function newCommonShapesExecuteAllGeneratedTests(string $shape, int $tests): void
+    {
+        $project = $this->tempDirectory->path() . '/benchmark-' . $shape;
+        expect(\benchmarkGenerateShape($shape, 1, $project))->toBe($tests);
+        expect(\benchmarkHasComparisonFixture($shape))->toBeTrue();
+
+        foreach (\benchmarkConfigurations($shape, $project, \dirname(__DIR__, 3), 2, false) as $id => $configuration) {
+            \benchmarkVerifyConfiguration($configuration['command'], $tests, $project, $id);
+        }
+    }
+
+    /** @return iterable<string, array{string, int}> */
+    public static function newCommonShapes(): iterable
+    {
+        yield 'minimal suite' => ['minimal', 1];
+        yield 'CPU work' => ['cpu-bound', 8];
     }
 
     #[Test]
@@ -191,7 +304,7 @@ final readonly class BenchmarkTest
             ];
             PHP);
 
-        Expect::that(\benchmarkInstalledPackages($project))->toBe([
+        expect(\benchmarkInstalledPackages($project))->toBe([
             'vendor/alpha' => '1.0.0',
             'vendor/zeta' => '2.0.0',
         ]);

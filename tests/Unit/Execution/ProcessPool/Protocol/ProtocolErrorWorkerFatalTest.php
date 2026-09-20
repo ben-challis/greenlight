@@ -6,7 +6,8 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Protocol;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ProtocolErrorWorkerFatalTest
 {
@@ -20,7 +21,7 @@ final class ProtocolErrorWorkerFatalTest
             17,
         );
 
-        Expect::that($error->getMessage())
+        expect($error->getMessage())
             ->because(
                 'a fatal worker error MUST identify its worker, message, and source location',
             )

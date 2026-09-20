@@ -9,11 +9,12 @@ use Greenlight\Attribute\Timeout;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerHandle;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerLifecycle;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Tests\Support\ConnectedStreamPair;
 use Greenlight\Tests\Support\PhpSubprocess;
+
+use function Greenlight\expect;
 
 final readonly class WorkerHandleRetirementTest
 {
@@ -22,41 +23,70 @@ final readonly class WorkerHandleRetirementTest
     public function retirementReturnsBeforeTheWorkerExitsAndKeepsDiagnosticsSafe(): void
     {
         [$handle, $process, $pipes, $sockets] = $this->handle(
-            'fwrite(STDOUT, "before\\n"); fflush(STDOUT); usleep(100000); '
-            . 'fwrite(STDERR, "after\\n"); fflush(STDERR); usleep(1000000);',
+            <<<'PHP'
+            fwrite(STDOUT, "ready\n");
+            fflush(STDOUT);
+            fgets(STDIN);
+            fwrite(STDERR, "after\n");
+            fflush(STDERR);
+            fwrite(STDOUT, "written\n");
+            fflush(STDOUT);
+            fgets(STDIN);
+            PHP,
         );
 
         try {
             \stream_set_timeout($pipes[1], 2);
-            Expect::that(\fgets($pipes[1]))
+            expect(\fgets($pipes[1]))
                 ->because('the process fixture MUST start before retirement')
-                ->toBe("before\n");
-            $before = \hrtime(true) / 1_000_000_000;
-            $handle->retire($before, 0.3);
-            $after = \hrtime(true) / 1_000_000_000;
+                ->toBe("ready\n");
+            $handle->retire(100.0, 1.0);
 
-            Expect::that($after - $before)
-                ->because('retirement MUST return without waiting for worker exit')
-                ->toBeLessThan(0.1);
-            Expect::that($handle->lifecycle)
+            expect($handle->isRunning())
+                ->because('retirement MUST return while the worker still waits for input')
+                ->toBeTrue();
+            expect($handle->lifecycle)
                 ->toBe(WorkerLifecycle::Retiring);
-            Expect::that($handle->channel?->isEof())
+            expect($handle->channel?->isEof())
                 ->because('retirement MUST close the protocol channel immediately')
                 ->toBeTrue();
 
+            expect(\fwrite($pipes[0], "continue\n"))->toBe(9);
+            \fflush($pipes[0]);
+            \stream_set_blocking($pipes[1], true);
+            expect(\fgets($pipes[1]))
+                ->because('the worker MUST confirm its diagnostic write before the reaper advances')
+                ->toBe("written\n");
+
+            expect($handle->reap(100.999))->toBeFalse();
+            expect($handle->lifecycle)
+                ->because('the reaper MUST preserve a worker before its graceful deadline')
+                ->toBe(WorkerLifecycle::Retiring);
+            expect($handle->diagnostics)
+                ->because('retirement MUST continue to drain diagnostics before the deadline')
+                ->toBe("after\n");
+
+            expect($handle->reap(101.0))->toBeFalse();
+            expect($handle->lifecycle)
+                ->because('the reaper MUST kill the worker at the exact graceful deadline')
+                ->toBe(WorkerLifecycle::Killing);
+
             $deadline = \microtime(true) + 2.0;
 
-            while (!$handle->reap(\hrtime(true) / 1_000_000_000) && \microtime(true) < $deadline) {
-                \usleep(10_000);
+            while (!$handle->reap(102.0) && \microtime(true) < $deadline) {
+                $read = [$pipes[1]];
+                $write = null;
+                $except = null;
+                \stream_select($read, $write, $except, 0, 100_000);
             }
 
-            Expect::that($handle->lifecycle)
+            expect($handle->lifecycle)
                 ->because('the reaper MUST kill and collect a worker after its graceful deadline')
                 ->toBe(WorkerLifecycle::Reaped);
-            Expect::that($handle->diagnostics)
+            expect($handle->diagnostics)
                 ->because('retirement MUST continue to drain standard output and standard error')
                 ->toBe("after\n");
-            Expect::that(\is_resource($process))
+            expect(\is_resource($process))
                 ->because('a reaped worker MUST not retain its process handle')
                 ->toBeFalse();
         } finally {
@@ -84,8 +114,6 @@ final readonly class WorkerHandleRetirementTest
             Fail::because('Expected the worker process fixture to start.');
         }
 
-        \fclose($pipes[0]);
-        unset($pipes[0]);
         $sockets = ConnectedStreamPair::open();
         $handle = new WorkerHandle('worker-1', 1, $process, $pipes[1], $pipes[2]);
         $handle->channel = new SocketChannel($sockets[0]);

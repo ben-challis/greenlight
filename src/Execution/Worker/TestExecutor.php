@@ -17,12 +17,12 @@ use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Harness\HarnessScopes;
+use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\UnresolvableService;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
-use Greenlight\Result\ResultPolicy;
 use Greenlight\Result\TestResult;
 use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\Cleanup;
@@ -49,9 +49,9 @@ use Greenlight\Test\TestId;
  *
  * An `After` hook runs if constructor injection created a test instance. It
  * runs even when a previous test-body operation did not complete.
- * `applyAfterSubscribers()` preserves the test identity. It validates each
- * outcome change against the transformation log. Greenlight removes each
- * reference to the test instance when the attempt ends.
+ * The plugin runtime preserves the test identity when it applies `afterTest()`
+ * results. It validates each outcome change against the transformation log.
+ * The executor releases its test-instance references when the attempt ends.
  *
  * @internal
  */
@@ -65,7 +65,6 @@ final readonly class TestExecutor
         private ClassContext $context,
         private WorkerPluginRuntime $plugins,
         private ?LeakDetector $leakDetector = null,
-        private ?ResultPolicy $policy = null,
         private ?ArtifactStore $artifactStore = null,
         private ?\Closure $attemptStarted = null,
     ) {}
@@ -116,7 +115,7 @@ final readonly class TestExecutor
             }
 
             try {
-                [$result, $cause, $attachments] = $this->runTestAttempt(
+                [$result, $cause, $attachments] = $this->plugins->runTestAttempt(
                     fn(): array => $this->attempt($entry, $attempt, $artifactBudget),
                 );
             } catch (\Throwable $threw) {
@@ -136,44 +135,23 @@ final readonly class TestExecutor
                 $result = $result->withAttachments($attachments->collected());
             }
 
-            if ($result->outcome->isSuccessful()) {
-                $result = $this->policy?->apply($result) ?? $result;
-                $sealed = $attachments?->seal() ?? [];
+            $retry = false;
 
-                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
-            }
-
-            try {
-                $retry = $this->plugins->shouldRetry($definition->retry, $result, $attempt, $cause);
-            } catch (\Throwable $threw) {
-                $result = $result->erroredBy(ThrowableDetail::fromThrowable($threw));
-                $sealed = $attachments?->seal() ?? [];
-
-                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
+            if (!$result->outcome->isSuccessful()) {
+                try {
+                    $retry = $this->plugins->shouldRetry($definition->retry, $result, $attempt, $cause);
+                } catch (\Throwable $threw) {
+                    $result = $result->erroredBy(ThrowableDetail::fromThrowable($threw));
+                }
             }
 
             $sealed = $attachments?->seal() ?? [];
+            $retainedAttachments = [...$retainedAttachments, ...$sealed];
 
             if (!$retry) {
-                $result = $this->policy?->apply($result) ?? $result;
-
-                return $result->withAttachments([...$retainedAttachments, ...$sealed]);
+                return $result->withAttachments($retainedAttachments);
             }
-
-            $retainedAttachments = [...$retainedAttachments, ...$sealed];
         } while (true);
-    }
-
-    /**
-     * @template T
-     *
-     * @param \Closure(): T $attempt
-     *
-     * @return T
-     */
-    private function runTestAttempt(\Closure $attempt): mixed
-    {
-        return $this->plugins->runTestAttempt($attempt);
     }
 
     /**
@@ -258,7 +236,13 @@ final readonly class TestExecutor
                 } catch (\Throwable $threw) {
                     if (!$cause instanceof \Throwable) {
                         $cause = $threw;
-                        $error = ThrowableDetail::fromThrowable($threw);
+                        $skipReason = null;
+
+                        if ($threw instanceof ExpectationFailed) {
+                            $failures = $threw->details;
+                        } else {
+                            $error = ThrowableDetail::fromThrowable($threw);
+                        }
                     }
                 }
             }
@@ -390,22 +374,27 @@ final readonly class TestExecutor
             /** @var class-string $serviceType */
             $serviceType = $type->getName();
 
-            if ($serviceType === Attachments::class) {
+            $attributes = \array_map(
+                static fn(\ReflectionAttribute $attribute): object => $attribute->newInstance(),
+                $parameter->getAttributes(),
+            );
+            $hasSource = \array_any(
+                $attributes,
+                static fn(object $attribute): bool => $attribute instanceof Service && $attribute->source !== null,
+            );
+
+            if ($serviceType === Attachments::class && !$hasSource) {
                 $arguments[] = $attachments;
 
                 continue;
             }
 
-            if ($serviceType === Cleanup::class) {
+            if ($serviceType === Cleanup::class && !$hasSource) {
                 $arguments[] = $cleanup;
 
                 continue;
             }
 
-            $attributes = \array_map(
-                static fn(\ReflectionAttribute $attribute): object => $attribute->newInstance(),
-                $parameter->getAttributes(),
-            );
             $arguments[] = $this->scopes->resolve($serviceType, $class, $attributes);
         }
 

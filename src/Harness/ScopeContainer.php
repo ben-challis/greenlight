@@ -18,23 +18,27 @@ namespace Greenlight\Harness;
 final class ScopeContainer
 {
     /**
-     * @var array<class-string, object>
+     * @var array<string, array<class-string, object>>
      */
     private array $services = [];
+
+    /** @var list<object> */
+    private array $initializedServices = [];
 
     /**
      * @throws UnresolvableService
      */
     public function get(ServiceDefinition $definition): object
     {
-        $existing = $this->services[$definition->type] ?? null;
+        $source = $definition->source ?? '';
+        $existing = $this->services[$source][$definition->type] ?? null;
 
         if ($existing !== null) {
             return $existing;
         }
 
         $service = $this->instantiate($definition);
-        $this->services[$definition->type] = $service;
+        $this->services[$source][$definition->type] = $service;
 
         return $service;
     }
@@ -49,7 +53,7 @@ final class ScopeContainer
     {
         $failures = [];
 
-        foreach (\array_reverse($this->services) as $service) {
+        while (($service = \array_pop($this->initializedServices)) !== null) {
             $reflection = new \ReflectionClass($service);
 
             if ($reflection->isUninitializedLazyObject($service)) {
@@ -78,26 +82,32 @@ final class ScopeContainer
     private function instantiate(ServiceDefinition $definition): object
     {
         $reflection = new \ReflectionClass($definition->type);
-        $factory = static function () use ($definition): object {
+        $initializedServices = &$this->initializedServices;
+        $factory = static function () use ($definition, &$initializedServices): object {
             $service = ($definition->factory)();
 
             if (!$service instanceof $definition->type) {
                 throw UnresolvableService::factoryTypeMismatch(
                     $definition->type,
-                    \get_debug_type($service),
+                    $service,
                 );
             }
+
+            $initializedServices[] = $service;
 
             return $service;
         };
 
         try {
-            return $reflection->newLazyProxy($factory);
+            $proxy = $reflection->newLazyProxy($factory);
         } catch (\ReflectionException|\Error) {
             // Greenlight constructs a class immediately if PHP cannot create a
             // lazy proxy for it. The factory has not run, so this catch does
             // not hide a factory error.
             return $factory();
         }
+
+        // PHP does not make stateless classes lazy and does not call their initializer.
+        return $reflection->isUninitializedLazyObject($proxy) ? $proxy : $factory();
     }
 }

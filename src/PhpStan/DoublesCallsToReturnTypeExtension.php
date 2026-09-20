@@ -7,7 +7,6 @@ namespace Greenlight\PhpStan;
 use Greenlight\Doubles\Doubles;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\MethodCall;
-use PhpParser\Node\Identifier;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\MethodReflection;
 use PHPStan\Type\Accessory\AccessoryArrayListType;
@@ -40,8 +39,8 @@ final readonly class DoublesCallsToReturnTypeExtension implements DynamicMethodR
     #[\Override]
     public function getTypeFromMethodCall(MethodReflection $methodReflection, MethodCall $methodCall, Scope $scope): ?Type
     {
-        $double = $this->argument($methodCall, 'double', 0);
-        $method = $this->argument($methodCall, 'method', 1);
+        $double = MethodCallArguments::find($methodCall, 'double', 0);
+        $method = MethodCallArguments::find($methodCall, 'method', 1);
 
         if (!$double instanceof Arg || !$method instanceof Arg) {
             return null;
@@ -92,32 +91,5 @@ final readonly class DoublesCallsToReturnTypeExtension implements DynamicMethodR
         );
 
         return TypeCombinator::intersect($calls, new AccessoryArrayListType());
-    }
-
-    private function argument(MethodCall $call, string $name, int $position): ?Arg
-    {
-        $nextPosition = 0;
-
-        foreach ($call->getArgs() as $argument) {
-            if ($argument->unpack) {
-                continue;
-            }
-
-            if ($argument->name instanceof Identifier) {
-                if ($argument->name->toString() === $name) {
-                    return $argument;
-                }
-
-                continue;
-            }
-
-            if ($nextPosition === $position) {
-                return $argument;
-            }
-
-            ++$nextPosition;
-        }
-
-        return null;
     }
 }

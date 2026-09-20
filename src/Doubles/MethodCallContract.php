@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Doubles;
 
 /**
- * Defines the permitted argument count for one doubled method.
+ * Defines the permitted arguments for one doubled method.
  *
  * @internal
  *
@@ -17,12 +17,14 @@ final readonly class MethodCallContract
     /**
      * @param class-string<TTarget> $type
      * @param TMethod $requestedMethod
+     * @param list<\ReflectionParameter> $parameters
      */
     private function __construct(
         public string $type,
         public string $method,
         private int $requiredArguments,
         private ?int $maximumArguments,
+        private array $parameters,
         public string $requestedMethod,
     ) {}
 
@@ -56,6 +58,7 @@ final readonly class MethodCallContract
             $reflection->getName(),
             $reflection->getNumberOfRequiredParameters(),
             $reflection->isVariadic() ? null : $reflection->getNumberOfParameters(),
+            \array_values($reflection->getParameters()),
             $method,
         );
     }
@@ -82,6 +85,46 @@ final readonly class MethodCallContract
                 $this->requestedMethod,
                 $count,
                 $this->maximumArguments,
+            );
+        }
+    }
+
+    /**
+     * @param list<mixed> $arguments
+     * @throws InvalidDoubleUsage
+     */
+    public function assertPlannedArguments(string $selector, array $arguments): void
+    {
+        $this->assertPlannedArgumentCount($selector, \count($arguments));
+
+        foreach ($arguments as $position => $argument) {
+            if (!$argument instanceof TypedArgumentMatcher) {
+                continue;
+            }
+
+            $argumentType = $argument->argumentType();
+
+            $parameter = $this->parameters[\min($position, \count($this->parameters) - 1)];
+            $reflectionType = $parameter->getType();
+
+            if ($reflectionType === null) {
+                continue;
+            }
+
+            $parameterType = ArgumentType::fromReflection($reflectionType, $parameter->getDeclaringClass());
+
+            if ($argumentType?->overlaps($parameterType) !== false) {
+                continue;
+            }
+
+            throw InvalidDoubleUsage::incompatiblePlannedArgumentMatcher(
+                $selector,
+                $this->type,
+                $this->requestedMethod,
+                $position + 1,
+                $argumentType->describe(),
+                $parameter->getName(),
+                $parameterType->describe(),
             );
         }
     }

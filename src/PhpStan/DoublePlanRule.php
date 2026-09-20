@@ -239,7 +239,7 @@ final readonly class DoublePlanRule implements Rule
             return [];
         }
 
-        $count = $this->argument($call, 'count', 0);
+        $count = MethodCallArguments::find($call, 'count', 0);
 
         if (!$count instanceof Node\Arg) {
             return [];
@@ -294,7 +294,7 @@ final readonly class DoublePlanRule implements Rule
         }
 
         if ($selector === 'andReturnsUsing') {
-            $answer = $this->argument($call, 'answer', 0);
+            $answer = MethodCallArguments::find($call, 'answer', 0);
 
             if (!$answer instanceof Node\Arg) {
                 return [];
@@ -371,7 +371,7 @@ final readonly class DoublePlanRule implements Rule
         }
 
         [$target, $method, $acceptor] = $selected;
-        $positionArgument = $this->argument($call, 'position', 0);
+        $positionArgument = MethodCallArguments::find($call, 'position', 0);
         $positions = $positionArgument instanceof Node\Arg
             ? $scope->getType($positionArgument->value)->getConstantScalarValues()
             : [0];
@@ -452,33 +452,6 @@ final readonly class DoublePlanRule implements Rule
         $acceptor = $this->singleAcceptor($target->getNativeMethod($method)->getVariants());
 
         return $acceptor instanceof ParametersAcceptor ? [$target, $method, $acceptor] : null;
-    }
-
-    private function argument(MethodCall $call, string $name, int $position): ?Node\Arg
-    {
-        $nextPosition = 0;
-
-        foreach ($call->getArgs() as $argument) {
-            if ($argument->unpack) {
-                continue;
-            }
-
-            if ($argument->name instanceof Identifier) {
-                if ($argument->name->toString() === $name) {
-                    return $argument;
-                }
-
-                continue;
-            }
-
-            if ($nextPosition === $position) {
-                return $argument;
-            }
-
-            ++$nextPosition;
-        }
-
-        return null;
     }
 
     /**

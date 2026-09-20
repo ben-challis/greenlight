@@ -35,6 +35,30 @@ public function afterTest(TestContext $context, TestResult $result): TestResult;
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/AfterTestSubscriber.php#L23)
 
+## `AttachmentRetentionDecider`
+
+Namespace: `Greenlight\Plugin`
+
+Changes the publication decision for one completed test attachment.
+
+```php
+interface AttachmentRetentionDecider extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/AttachmentRetentionDecider.php#L11)
+
+### `retainAttachment()`
+
+```php
+public function retainAttachment(
+    TestResult $result,
+    Attachment $attachment,
+    bool $retain,
+): bool;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/AttachmentRetentionDecider.php#L13)
+
 ## `BeforeTestSubscriber`
 
 Namespace: `Greenlight\Plugin`
@@ -66,6 +90,216 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/BeforeTestSubscriber.php#L24)
 
+## `CommandDefinition`
+
+Namespace: `Greenlight\Plugin`
+
+Defines one named command-line command.
+
+```php
+final readonly class CommandDefinition
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L8)
+
+### `$name`
+
+```php
+public string $name;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L11)
+
+### `$description`
+
+```php
+public string $description;
+```
+
+PHPDoc:
+
+- `@var non-empty-string`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L14)
+
+### `__construct()`
+
+```php
+public function __construct(
+    string $name,
+    string $description,
+    private \Closure $handler,
+)
+```
+
+PHPDoc:
+
+- `@param \Closure(CommandInvocation): CommandResult $handler`
+- `@throws \InvalidArgumentException`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandDefinition.php#L23)
+
+## `CommandInvocation`
+
+Namespace: `Greenlight\Plugin`
+
+Contains the input and output channels for one plugin command invocation.
+
+```php
+final readonly class CommandInvocation
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L8)
+
+### `$command`
+
+```php
+public string $command
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L17)
+
+### `$arguments`
+
+```php
+public array $arguments
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L18)
+
+### `$workingDirectory`
+
+```php
+public string $workingDirectory
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L19)
+
+### `$binaryPath`
+
+```php
+public ?string $binaryPath
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L20)
+
+### `write()`
+
+Write exact text to standard output.
+
+```php
+public function write(string $text): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L27)
+
+### `writeError()`
+
+Write exact text to standard error.
+
+```php
+public function writeError(string $text): void
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandInvocation.php#L33)
+
+## `CommandProvider`
+
+Namespace: `Greenlight\Plugin`
+
+Supplies named command-line commands.
+
+```php
+interface CommandProvider extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandProvider.php#L8)
+
+### `commands()`
+
+```php
+public function commands(): array;
+```
+
+PHPDoc:
+
+- `@return list<CommandDefinition>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandProvider.php#L11)
+
+## `CommandResult`
+
+Namespace: `Greenlight\Plugin`
+
+Contains the result that a Greenlight command returns.
+An interrupted result contains a signal number from 1 through 127.
+
+```php
+final readonly class CommandResult
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandResult.php#L11)
+
+### `success()`
+
+```php
+public static function success(): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandResult.php#L19)
+
+### `failure()`
+
+```php
+public static function failure(): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandResult.php#L24)
+
+### `usage()`
+
+```php
+public static function usage(): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandResult.php#L29)
+
+### `interrupted()`
+
+```php
+public static function interrupted(int $signal): self
+```
+
+PHPDoc:
+
+- `@throws \InvalidArgumentException if the signal is outside 1 through 127`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CommandResult.php#L39)
+
+## `CoverageMapTransformer`
+
+Namespace: `Greenlight\Plugin`
+
+Changes the merged coverage map before Greenlight exports it.
+
+```php
+interface CoverageMapTransformer extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CoverageMapTransformer.php#L10)
+
+### `transformCoverageMap()`
+
+```php
+public function transformCoverageMap(CoverageMap $coverage): CoverageMap;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/CoverageMapTransformer.php#L12)
+
 ## `HarnessProvider`
 
 Namespace: `Greenlight\Plugin`
@@ -73,13 +307,14 @@ Namespace: `Greenlight\Plugin`
 Adds harness services to the worker registry.
 
 Greenlight adds built-in services before `services()` results. A duplicate
-type causes a configuration error.
+type in the same source causes a configuration error. Unnamed definitions
+share one source. Different named sources can define the same type.
 
 ```php
 interface HarnessProvider extends Plugin
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/HarnessProvider.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/HarnessProvider.php#L16)
 
 ### `services()`
 
@@ -91,7 +326,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/HarnessProvider.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/HarnessProvider.php#L21)
 
 ## `IntegrationFixtureProvider`
 
@@ -123,16 +358,14 @@ Namespace: `Greenlight\Plugin`
 
 Identifies an object as a Greenlight plugin.
 
-Plugins implement one or more capability interfaces such as
-`WorkerRuntimeRunner`, `TestAttemptRunner`, `BeforeTestSubscriber`,
-`AfterTestSubscriber`, `RunLifecycleSubscriber`, `RetryDecider`,
-`HarnessProvider`, `ReporterProvider`, or `ExpectationExtension`.
+Plugins implement one or more capability interfaces. The plugin guide lists
+each command, orchestrator, and worker capability.
 
 ```php
 interface Plugin
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Plugin.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/Plugin.php#L13)
 
 This type does not declare public members.
 
@@ -194,10 +427,14 @@ PHPDoc:
 
 Namespace: `Greenlight\Plugin`
 
-A worker calls a retry decider after each unsuccessful attempt.
+A worker checks retry deciders after each failed or errored attempt.
+Greenlight runs lower priorities first and uses registration order for equal
+priorities. It stops at the first decider that returns true.
 
 A `true` result starts a new attempt with a new test instance and a new
 service scope.
+A false result permits the next decider to check the attempt. It does not
+prevent another decider, including the built-in retry policy, from retrying.
 
 `shouldRetry()` receives the retry policy, result, attempt number, and
 optional cause. It does not receive `TestContext` because the attempt is
@@ -207,7 +444,7 @@ complete.
 interface RetryDecider extends Plugin
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RetryDecider.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RetryDecider.php#L24)
 
 ### `shouldRetry()`
 
@@ -215,7 +452,36 @@ interface RetryDecider extends Plugin
 public function shouldRetry(RetryPolicy $policy, TestResult $result, int $attempt, ?\Throwable $cause): bool;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RetryDecider.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RetryDecider.php#L26)
+
+## `RunAcceptancePolicy`
+
+Namespace: `Greenlight\Plugin`
+
+Evaluates an otherwise successful run without changing test outcomes.
+
+Greenlight calls each policy one time after reporters finish. It runs lower
+priorities first and uses registration order for equal priorities. Return
+null to accept the run. Return a non-empty failure message to reject it.
+Greenlight runs all policies and reports all rejection messages.
+
+```php
+interface RunAcceptancePolicy extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunAcceptancePolicy.php#L17)
+
+### `failureMessage()`
+
+```php
+public function failureMessage(ResultSummary $summary, int $retriedPasses): ?string;
+```
+
+PHPDoc:
+
+- `@param non-negative-int $retriedPasses`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunAcceptancePolicy.php#L20)
 
 ## `RunLifecycleSubscriber`
 
@@ -240,6 +506,36 @@ public function onRunEvent(Event $event): void;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/RunLifecycleSubscriber.php#L18)
+
+## `TerminalResultTransformer`
+
+Namespace: `Greenlight\Plugin`
+
+Transforms a test result after retries and test-scope teardown complete.
+
+Greenlight runs lower priorities first. It uses registration order for
+equal priorities. Greenlight calls each transformer one time for each
+executed test, before the worker finalizes the class scope and publishes the
+result.
+
+A plugin can return the same result or a replacement. Preserve the test
+identity. Use `TestResult::withOutcome()` for outcome changes so that the
+result records their source. Greenlight contains transformer failures and
+continues with the remaining transformers.
+
+```php
+interface TerminalResultTransformer extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TerminalResultTransformer.php#L23)
+
+### `transformTerminalResult()`
+
+```php
+public function transformTerminalResult(TestDefinition $definition, TestResult $result): TestResult;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TerminalResultTransformer.php#L25)
 
 ## `TestAttemptRunner`
 
@@ -271,9 +567,10 @@ PHPDoc:
 
 Namespace: `Greenlight\Plugin`
 
-`service()` is available during `beforeTest()` and the test. The per-test
-service scope closes before `afterTest()`, so `service()` throws during
-`afterTest()`.
+Supplies the test instance, identity, attachments, and service access to plugins.
+
+The per-test service scope closes before `afterTest()`. A `service()` call
+for a per-test service then throws. Other service scopes remain available.
 
 ```php
 final readonly class TestContext
@@ -342,7 +639,90 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws SkipTest`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestContext.php#L58)
+
+## `TestPlan`
+
+Namespace: `Greenlight\Plugin`
+
+Contains the selected tests for one run in execution order.
+Each test ID occurs once. Tests from each class form one consecutive block.
+
+```php
+final readonly class TestPlan
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlan.php#L13)
+
+### `$tests`
+
+```php
+public array $tests
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlan.php#L20)
+
+### `withTests()`
+
+Returns a plan with replacement test selection and order.
+Keep each test ID unique and each class in one consecutive block.
+
+```php
+public function withTests(array $tests): self
+```
+
+PHPDoc:
+
+- `@param list<TestId> $tests`
+- `@throws \InvalidArgumentException if a test ID repeats or a class occurs in separate blocks`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlan.php#L62)
+
+## `TestPlanTransformer`
+
+Namespace: `Greenlight\Plugin`
+
+Removes or reorders selected tests before a run starts.
+Each replacement can contain only tests from the plan the plugin receives.
+A later transformer cannot restore a test that an earlier transformer removed.
+
+```php
+interface TestPlanTransformer extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlanTransformer.php#L12)
+
+### `transformTestPlan()`
+
+```php
+public function transformTestPlan(TestPlan $plan): TestPlan;
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/TestPlanTransformer.php#L14)
+
+## `WatchSource`
+
+Namespace: `Greenlight\Plugin`
+
+Reports changes that cause a watch-mode rerun.
+
+```php
+interface WatchSource extends Plugin
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WatchSource.php#L8)
+
+### `poll()`
+
+```php
+public function poll(): array;
+```
+
+PHPDoc:
+
+- `@return list<non-empty-string> changed paths or trigger labels since the previous poll`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Plugin/WatchSource.php#L13)
 
 ## `WorkerBootstrapContext`
 

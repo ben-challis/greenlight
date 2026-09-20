@@ -46,14 +46,14 @@ final class WorkerError extends \RuntimeException
      * @param class-string $class
      * @param non-empty-string $method
      */
-    public static function invalidDataSet(string $key, string $class, string $method, string $actualType): self
+    public static function invalidDataSet(string $key, string $class, string $method, mixed $actual): self
     {
         return new self(\sprintf(
             'Data set "%s" of "%s::%s()" requires an argument array. Actual type: %s.',
             $key,
             $class,
             $method,
-            $actualType,
+            \get_debug_type($actual),
         ));
     }
 

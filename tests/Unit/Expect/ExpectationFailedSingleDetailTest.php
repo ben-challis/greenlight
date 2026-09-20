@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\SourceLocation;
+
+use function Greenlight\expect;
 
 final class ExpectationFailedSingleDetailTest
 {
@@ -22,12 +23,12 @@ final class ExpectationFailedSingleDetailTest
 
         $failure = ExpectationFailed::fromDetails([$detail]);
 
-        Expect::that($failure->getMessage())
+        expect($failure->getMessage())
             ->because('one detail MUST use the singular diagnostic')
             ->toBe('Expected values to match. (at /tests/ExampleTest.php:12)');
-        Expect::that($failure->details)
+        expect($failure->details)
             ->toBe([$detail]);
-        Expect::that($failure->detail())
+        expect($failure->detail())
             ->toBe($detail);
     }
 }

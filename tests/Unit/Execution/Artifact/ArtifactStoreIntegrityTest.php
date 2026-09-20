@@ -11,12 +11,13 @@ use Greenlight\Attribute\Test;
 use Greenlight\Config\ArtifactConfiguration;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
-use Greenlight\Expect\Expect;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\TestId;
+
+use function Greenlight\expect;
 
 final readonly class ArtifactStoreIntegrityTest
 {
@@ -38,7 +39,7 @@ final readonly class ArtifactStoreIntegrityTest
         $attachments->text('evidence.txt', 'body');
         $worker = ArtifactStore::fromSession($owner->session(), $configuration);
 
-        Expect::that(static fn(): TestResult => $worker->publish(new TestResult(
+        expect()->calling(static fn(): TestResult => $worker->publish(new TestResult(
             $id,
             Outcome::Failed,
             0.1,
@@ -67,8 +68,52 @@ final readonly class ArtifactStoreIntegrityTest
 
         $worker->cleanup();
 
-        Expect::that(\is_dir($stagingDirectory))
+        expect(\is_dir($stagingDirectory))
             ->because('only the orchestrator-owned store MAY remove shared staging')
+            ->toBeTrue();
+    }
+
+    #[Test]
+    public function workerSideCompletionDoesNotOwnRunRetention(): void
+    {
+        $root = $this->tempDirectory->subdirectory('worker-completion');
+        $configuration = new ArtifactConfiguration($root);
+        $owner = ArtifactStore::open($configuration, $root, 'run-worker-completion');
+        $this->cleanup->defer($owner->cleanup(...));
+        $worker = ArtifactStore::fromSession($owner->session(), $configuration);
+
+        $report = $worker->complete();
+
+        expect($report->items)->toBe([]);
+        expect($report->warnings)->toBe([]);
+    }
+
+    #[Test]
+    public function invalidCompletionMetadataMakesRetentionAdvisory(): void
+    {
+        $root = $this->tempDirectory->subdirectory('invalid-completion-metadata');
+        $configuration = new ArtifactConfiguration($root, maxCompletedRuns: 1);
+        $store = ArtifactStore::open($configuration, $root, 'run-invalid-completion');
+        $this->cleanup->defer($store->cleanup(...));
+        $id = new TestId('Example\\EvidenceTest', 'fails');
+        $attachments = $store->forAttempt($id, 1, new TestArtifactBudget());
+        $attachments->text('evidence.txt', 'body');
+        $store->publish(new TestResult(
+            $id,
+            Outcome::Failed,
+            0.1,
+            0,
+            attachments: $attachments->seal(),
+        ));
+        \file_put_contents($store->publicDirectory() . '/.greenlight-run.json', '{}');
+
+        $report = $store->complete();
+
+        expect($report->warnings)->toBe([
+            'Greenlight did not complete artifact run metadata. This run is not eligible for pruning.',
+        ]);
+        expect(\is_dir($store->publicDirectory()))
+            ->because('an incomplete ownership record MUST keep the current run directory')
             ->toBeTrue();
     }
 
@@ -90,7 +135,7 @@ final readonly class ArtifactStoreIntegrityTest
             storageKey: '../escaped.txt',
         );
 
-        Expect::that(static fn(): TestResult => $store->publish(new TestResult(
+        expect()->calling(static fn(): TestResult => $store->publish(new TestResult(
             $id,
             Outcome::Failed,
             0.1,
@@ -102,7 +147,7 @@ final readonly class ArtifactStoreIntegrityTest
                 AttachmentError::class,
                 message: 'Attachment metadata contains an unsafe storage key.',
             );
-        Expect::that(\file_exists($root . '/escaped.txt'))
+        expect(\file_exists($root . '/escaped.txt'))
             ->toBeFalse();
     }
 }

@@ -6,10 +6,11 @@ namespace Greenlight\Tests\Unit\Sandbox;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Sandbox\TemporaryDirectoryError;
+
+use function Greenlight\expect;
 
 final class TemporaryDirectorySubdirectoryLinkTest
 {
@@ -37,7 +38,7 @@ final class TemporaryDirectorySubdirectoryLinkTest
         }
 
         try {
-            Expect::that(static fn(): string => $directory->subdirectory($name))
+            expect()->calling(static fn(): string => $directory->subdirectory($name))
                 ->because('a subdirectory MUST remain inside its temp directory')
                 ->toThrow(
                     TemporaryDirectoryError::class,
@@ -47,10 +48,10 @@ final class TemporaryDirectorySubdirectoryLinkTest
                     ),
                 );
 
-            Expect::that(\file_get_contents($sentinel))
+            expect(\file_get_contents($sentinel))
                 ->because('a rejected symbolic link MUST leave its target unchanged')
                 ->toBe('keep');
-            Expect::that(\is_dir($targetPath . '/created'))
+            expect(\is_dir($targetPath . '/created'))
                 ->toBeFalse();
         } finally {
             $directory->dispose();

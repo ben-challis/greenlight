@@ -8,31 +8,42 @@ text, bytes, or files that already exist.
 
 Ask for `Greenlight\Artifact\Attachments` through constructor injection:
 
-<!-- php-example {"example":"attachments-example-01","file":"snippet.php","mode":"file","tools":["rector"]} -->
+<!-- php-example {"example":"attachments-example-01","file":"snippet.php","mode":"file","tools":["phpstan","rector"]} -->
 ```php
+use Greenlight\Attribute\NoExpectations;
 use Greenlight\Attribute\Test;
-use Greenlight\Artifact\AttachmentRetention;
 use Greenlight\Artifact\Attachments;
+use Greenlight\Sandbox\TemporaryDirectory;
 
-final readonly class CheckoutTest
+final readonly class DiagnosticAttachmentsTest
 {
-    public function __construct(private Attachments $attachments) {}
+    public function __construct(
+        private Attachments $attachments,
+        private TemporaryDirectory $temporary,
+    ) {}
 
     #[Test]
-    public function submitsAnOrder(): void
+    #[NoExpectations]
+    public function recordsDiagnosticData(): void
     {
-        $response = $this->client->post('/orders');
-
         $this->attachments->value('response.json', [
-            'status' => $response->status(),
-            'headers' => $response->headers(),
+            'status' => 202,
+            'requestId' => 'request-123',
         ]);
-        $this->attachments->text('subprocess.log', $this->process->output());
-        $this->attachments->bytes('trace.bin', $this->trace);
-        $this->attachments->file('screenshot.png', $this->screenshotPath);
+        $this->attachments->text('application.log', 'Order accepted.');
+        $this->attachments->bytes('trace.bin', "\x00\x01");
+
+        $source = $this->temporary->path() . '/export.csv';
+        \file_put_contents($source, "id,status\n123,accepted\n");
+        $this->attachments->file('export.csv', $source);
     }
 }
 ```
+
+This example uses fixed diagnostic values. Replace them with values from the
+system under test. The test has no expectations because it only demonstrates
+attachment creation. The default retention policy discards these attachments
+when the test passes.
 
 `value()` encodes its value as JSON. `text()` and `bytes()` accept an optional
 media type. `file()` copies a regular file and detects its media type when
@@ -45,13 +56,18 @@ Greenlight copies the content before the method returns. You can remove a
 temporary source file after `file()` returns. Later changes to a value or file
 do not change the attachment.
 
-Greenlight retains attachments when the attempt fails or has an error. This
-rule includes a successful attempt that a result policy changes to another
-outcome. To retain an attachment from a successful attempt, set its retention to
-`AttachmentRetention::Always`:
+By default, Greenlight retains attachments when the final result fails or has
+an error. It also retains them when the transformation log contains an earlier
+failed or errored outcome. A change to passed or skipped therefore preserves
+failure evidence.
 
-<!-- php-example {"example":"attachments-example-02","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+To retain an attachment from a result without failure evidence, set its
+retention to `AttachmentRetention::Always`:
+
+<!-- php-example {"example":"attachments-example-02","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
+use Greenlight\Artifact\AttachmentRetention;
+
 $attachments->text(
     'timing.txt',
     $timing,
@@ -61,8 +77,8 @@ $attachments->text(
 
 Each retry has separate attachments. Attachments from failed attempts stay on
 the final result even if a later attempt passes. The `attempt` field identifies
-the source attempt for each attachment. Greenlight discards attachments from
-the successful attempt unless their retention is `always`.
+the source attempt for each attachment. For the final attempt, the retention
+rules above apply to the final result and its transformation log.
 
 ## Output directory
 
@@ -73,6 +89,7 @@ create an empty directory. Change the parent directory in `greenlight.php`:
 <!-- php-example {"example":"attachments-example-03","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
 use Greenlight\Config\ArtifactBuilder;
+use Greenlight\Config\GreenlightConfig;
 
 return GreenlightConfig::create()
     ->artifacts(fn (ArtifactBuilder $artifacts) => $artifacts
@@ -85,8 +102,26 @@ Use `--artifacts-dir` to override it for one run:
 vendor/bin/greenlight run --artifacts-dir=build/ci-evidence
 ```
 
-Greenlight does not delete completed run directories. For local runs, remove
-these directories. In CI, use the artifact retention settings.
+By default, Greenlight does not remove completed run directories. Configure
+one or more limits to remove old directories after a run completes:
+
+<!-- php-example {"example":"attachments-example-04","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Config\ArtifactBuilder;
+use Greenlight\Config\GreenlightConfig;
+
+return GreenlightConfig::create()
+    ->artifacts(fn (ArtifactBuilder $artifacts) => $artifacts
+        ->maxCompletedRuns(20)
+        ->maxCompletedRunAge(7 * 24 * 60 * 60)
+        ->maxRetainedSize('2G'));
+```
+
+The age value is in seconds. Greenlight applies age, count, and byte limits in
+that order. Each limit removes the oldest eligible completed run first.
+
+Use `greenlight artifacts:prune --dry-run` to examine the configured policy.
+Use the command without `--dry-run` to apply the policy.
 
 ## Metadata and names
 
@@ -94,8 +129,9 @@ Each attachment records its name, kind, media type, byte size, SHA-256 digest,
 attempt number, retention policy, and published path. The metadata does not
 include the original source path or the attachment content.
 
-Attachment names are labels, not paths. They cannot contain directory
-separators or control characters. They cannot equal `.` or `..`. Repeated names
+Use a non-empty label for each attachment name. Use valid UTF-8 and no more
+than 120 bytes. Names cannot contain directory separators or control characters.
+They cannot equal `.` or `..`. Repeated names
 within one attempt receive `-2`, `-3`, and later suffixes in their published
 filenames. Their logical names remain unchanged in the result metadata.
 
@@ -107,6 +143,11 @@ Source files must be regular files, not symlinks. Greenlight verifies that a
 source does not change during the copy operation. Published paths stay in the
 configured run directory. Greenlight creates artifact files with private
 permissions on supported platforms.
+
+Each run directory contains versioned ownership metadata and a lifecycle lock.
+Greenlight prunes only completed directories with an exact content manifest.
+It does not prune active, incomplete, changed, unknown, or symbolic-link
+directories. Cleanup claims use atomic directory renames and a parent lock.
 
 Greenlight does not inspect or redact attachment content. Before you attach a
 value or file, remove secrets and personal data.
@@ -133,6 +174,9 @@ apply across parallel workers. Per-test limits include all attempts, even when
 Greenlight discards some attachments later. Greenlight releases run quota when
 it discards an attachment.
 
+Completed run limits are independent of attachment limits. The completed run
+defaults are unbounded. Retention failures do not fail a test run.
+
 ## Plugins
 
 `$context->attachments` gives the same attempt-owned object to
@@ -157,3 +201,6 @@ schema](architecture/jsonl.md).
 
 For other CI systems, use a post-test step that always runs. Upload the reported
 run directory from this step.
+
+CI platform retention remains authoritative after upload. Greenlight retention
+controls only the runner filesystem.

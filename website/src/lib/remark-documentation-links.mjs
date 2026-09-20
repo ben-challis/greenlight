@@ -19,6 +19,10 @@ export function rewriteDocumentationLinks(options = {}) {
         return;
       }
 
+      if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(node.url)) {
+        return;
+      }
+
       const match = node.url.match(/^([^?#]+)\.md([?#].*)?$/);
 
       if (!match) {

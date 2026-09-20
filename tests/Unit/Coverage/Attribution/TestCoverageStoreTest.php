@@ -10,10 +10,11 @@ use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\TestDefinition;
 use JsonSchema\Validator;
+
+use function Greenlight\expect;
 
 final readonly class TestCoverageStoreTest
 {
@@ -58,7 +59,7 @@ final readonly class TestCoverageStoreTest
             $decoded = \json_decode($line, false, flags: \JSON_THROW_ON_ERROR);
             $validator = new Validator();
             $validator->validate($decoded, $schema);
-            Expect::that($validator->isValid())->because('each per-test coverage record MUST match version 1')->toBeTrue();
+            expect($validator->isValid())->because('each per-test coverage record MUST match version 1')->toBeTrue();
 
             $record = \json_decode($line, true, flags: \JSON_THROW_ON_ERROR);
 
@@ -70,7 +71,7 @@ final readonly class TestCoverageStoreTest
             $types[] = $record['type'];
         }
 
-        Expect::that($types)->toContain('meta')
+        expect($types)->toContain('meta')
             ->toContain('test')
             ->toContain('coverage')
             ->toContain('source')
@@ -80,10 +81,10 @@ final readonly class TestCoverageStoreTest
         $unattributed = \array_values(\array_filter($records, static fn(array $record): bool => $record['type'] === 'unattributed'));
         $coverage = \array_values(\array_filter($records, static fn(array $record): bool => $record['type'] === 'coverage'));
 
-        Expect::that($tests)->toHaveCount(2);
-        Expect::that($tests[1]['renderedId'])->toBe('Example\SubjectTest::second[row one]');
-        Expect::that($coverage[0]['lines'])->toBe([2]);
-        Expect::that($unattributed[0]['lines'])->toBe([6]);
+        expect($tests)->toHaveCount(2);
+        expect($tests[1]['renderedId'])->toBe('Example\SubjectTest::second[row one]');
+        expect($coverage[0]['lines'])->toBe([2]);
+        expect($unattributed[0]['lines'])->toBe([6]);
     }
 
     #[Test]
@@ -92,7 +93,7 @@ final readonly class TestCoverageStoreTest
         $directory = $this->temporaryDirectory->path() . '/runtime/coverage';
         $store = TestCoverageStore::open($directory);
 
-        Expect::that(\is_dir($directory))->toBeTrue();
+        expect(\is_dir($directory))->toBeTrue();
 
         $store->close();
     }

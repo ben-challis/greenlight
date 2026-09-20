@@ -5,8 +5,8 @@ plugin to `GreenlightConfig::plugins()` in `greenlight.php`. Give each factory
 its concrete plugin class as the return type. Return a new instance each time
 Greenlight calls the factory.
 
-Plugin capabilities run either in the orchestrator or in workers. Each
-capability section below names its side.
+Plugin capabilities run in the command process, the orchestrator, or workers.
+Each capability section below names its owner.
 
 <!-- php-example {"example":"plugins-example-01","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
@@ -22,11 +22,15 @@ return GreenlightConfig::create()
 
 Greenlight creates plugin instances only for an owner that uses one of their
 capabilities. It creates one command-owned instance for each factory that
-has `ReporterProvider`. It creates one run-owned orchestrator instance for each
-factory that has a run capability. It creates one worker instance for each
-factory that has a worker capability and for each physical worker.
+has `CommandProvider`, `ReporterProvider`, `WatchSource`,
+`CoverageMapTransformer`, or `RunAcceptancePolicy`. Command dispatch,
+reporter setup, watch polling, coverage completion, and run policy evaluation
+own separate instances. It creates one
+run-owned orchestrator instance for each factory that has a run capability. It
+creates one worker instance for each factory that has a worker capability and
+for each physical worker.
 
-A plugin that has capabilities on both sides gets one instance on each side.
+A plugin with several owners gets a separate instance for each owner.
 The instances are separate with one in-process worker and with parallel
 workers. Capabilities with the same owner and lifetime use the same instance.
 A plugin that has `ReporterProvider` and a run capability gets separate command
@@ -45,6 +49,85 @@ A `WorkerBootstrapSubscriber` can also read the resources and configure other
 worker capabilities on its worker-local instance.
 
 ## Capability interfaces
+
+### CommandProvider
+
+Command-side.
+
+A `CommandProvider` adds named commands. Each `CommandDefinition` contains a
+name, a single-line description, and an invocation handler.
+
+<!-- php-example {"example":"plugins-example-command-provider","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Config\GreenlightConfig;
+use Greenlight\Plugin\CommandDefinition;
+use Greenlight\Plugin\CommandInvocation;
+use Greenlight\Plugin\CommandProvider;
+use Greenlight\Plugin\CommandResult;
+
+final class CompanyCommands implements CommandProvider
+{
+    public function commands(): array
+    {
+        return [new CommandDefinition(
+            'company:hello',
+            'Print a company greeting',
+            static function (CommandInvocation $invocation): CommandResult {
+                $name = $invocation->arguments[0] ?? 'team';
+                $invocation->write("Hello, {$name}.\n");
+
+                return CommandResult::success();
+            },
+        )];
+    }
+}
+
+return GreenlightConfig::create()
+    ->plugins(static fn(): CompanyCommands => new CompanyCommands());
+```
+
+Run the configured command by name:
+
+```sh
+vendor/bin/greenlight company:hello Ben
+```
+
+Greenlight removes the command name from `CommandInvocation::$arguments`. It
+keeps all other tokens in their input order. A plugin command owns the syntax
+and validation of these arguments.
+
+Use `write()` for standard output. Use `writeError()` for standard error.
+Return a `CommandResult` from the handler. Use `success()`, `failure()`, or
+`usage()` to describe a completed command. Use `interrupted()` with the signal
+number that stopped a command. If the handler throws, Greenlight reports a
+command error and returns exit code 1.
+
+Built-in and configured names share one registry. A duplicate name stops
+command dispatch. Greenlight creates the provider only when it resolves a
+configured command. Configured commands do not change the bundled help text or
+completion scripts.
+
+### WatchSource
+
+Command-side.
+
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
+```php
+public function poll(): array;
+```
+
+A `WatchSource` reports changed paths or trigger labels that cause a watch-mode
+rerun. Greenlight polls configured sources with its built-in PHP file source.
+Return an empty list when no change occurred. Greenlight removes duplicate
+strings before it notifies the watch loop.
+
+The source instance belongs to one `--watch` command. It can keep a snapshot or
+cursor between polls. Typically, its first poll establishes the initial state
+and returns an empty list. A source can poll an external change feed, a
+generated file index, or another application-specific signal.
+
+If source creation or polling fails, Greenlight names the plugin, stops watch
+mode, restores terminal input, and returns exit code 1.
 
 ### ReporterProvider
 
@@ -105,9 +188,9 @@ final event, or after a contained run error.
 If a provider or factory throws, Greenlight reports the name and stops the
 command. An invalid factory result also stops the command before test execution.
 
-If a reporter cannot render or deliver its output, it MUST throw
-`ReportGenerationFailed::because()`. The reason MUST NOT be empty. If an
-original error is available, pass it as the second argument. For example, use
+If a reporter cannot render or deliver its output, throw
+`ReportGenerationFailed::because()`. Supply a nonempty reason. If an original
+error is available, pass it as the second argument. For example, use
 `ReportGenerationFailed::because('the custom template is invalid', $error)`.
 
 Greenlight propagates this error and stops the command. Later reporters do not
@@ -115,6 +198,149 @@ receive the event or finish signal from that callback.
 
 Shell completions suggest the built-in names. A configured name remains valid
 when it does not occur in the suggestions.
+
+### TestPlanTransformer
+
+Orchestrator-side.
+
+A `TestPlanTransformer` can remove selected tests or change their execution
+order. Greenlight applies these transformers after discovery, sharding, and
+its failed-first and longest-first ordering. It applies them before fixture
+provisioning, worker startup, or the `RunStarted` event.
+
+<!-- php-example {"example":"plugins-example-test-plan-transformer","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Config\GreenlightConfig;
+use Greenlight\Plugin\TestPlan;
+use Greenlight\Plugin\TestPlanTransformer;
+use Greenlight\Test\TestId;
+
+final class ExcludeSlowTests implements TestPlanTransformer
+{
+    public function transformTestPlan(TestPlan $plan): TestPlan
+    {
+        return $plan->withTests(array_values(array_filter(
+            $plan->tests,
+            static fn (TestId $test): bool => !str_ends_with($test->class, 'SlowTest'),
+        )));
+    }
+}
+
+return GreenlightConfig::create()
+    ->plugins(static fn(): ExcludeSlowTests => new ExcludeSlowTests());
+```
+
+`TestPlan::$tests` contains `TestId` values in execution order. Use
+`withTests()` to return a replacement. A transformer can remove tests and
+reorder complete class blocks. Do not add tests, duplicate tests, or split one
+class across separate blocks. An invalid replacement or a transformer error
+stops the run.
+
+Transformers use normal plugin priority order. Greenlight runs its bundled
+ordering transformer first. Equal-priority configured transformers keep their
+configuration order. Repeat iterations and watch reruns get new plugin
+instances and new input plans. Listing and dry-run commands do not apply plan
+transformers.
+
+### CoverageMapTransformer
+
+Command-side, for a completed standard run with coverage enabled.
+
+A `CoverageMapTransformer` changes merged coverage before Greenlight writes
+coverage reports or checks thresholds. Greenlight first removes lines that
+have coverage-ignore markers. It then applies configured transformers in
+plugin priority and configuration order.
+
+<!-- php-example {"example":"plugins-example-coverage-transformer","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Config\GreenlightConfig;
+use Greenlight\Coverage\CoverageMap;
+use Greenlight\Coverage\FileCoverage;
+use Greenlight\Plugin\CoverageMapTransformer;
+
+final class SourceCoverageOnly implements CoverageMapTransformer
+{
+    public function transformCoverageMap(CoverageMap $coverage): CoverageMap
+    {
+        return new CoverageMap(array_values(array_filter(
+            $coverage->files(),
+            static fn (FileCoverage $file): bool => str_contains($file->file, '/src/'),
+        )));
+    }
+}
+
+return GreenlightConfig::create()
+    ->plugins(static fn(): SourceCoverageOnly => new SourceCoverageOnly());
+```
+
+The transformer receives a `CoverageMap` with sorted `FileCoverage` values.
+Return a `CoverageMap`. A transformer or plugin-factory error stops coverage
+completion and the command fails. Watch reruns do not write coverage and do not
+apply these transformers.
+
+### AttachmentRetentionDecider
+
+Orchestrator-side.
+
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
+```php
+public function retainAttachment(TestResult $result, Attachment $attachment, bool $retain): bool;
+```
+
+An `AttachmentRetentionDecider` changes whether Greenlight publishes one
+completed test attachment. Greenlight first applies the retention selected by
+the test. `Always` retains the attachment. `OnFailure` retains it for a failed
+or errored result, an earlier attempt, or a transformation from failed or
+errored. A final passed or skipped outcome does not erase failure evidence
+from the transformation log.
+
+Each configured decider receives that current decision and returns the next
+decision. Thus, a decider can retain evidence that the built-in rule would
+discard, or discard evidence that the built-in rule would retain. The final
+decision applies before Greenlight publishes the file and emits
+`TestFinished`.
+
+The decider receives attachment metadata. It does not receive attachment
+content. If it throws, Greenlight names the plugin, fails the run, and retains
+the error as the cause.
+
+### RunAcceptancePolicy
+
+Command-side, once for each completed standard, repeat, or watch run.
+
+A `RunAcceptancePolicy` can reject a run that has no failed or errored test
+outcomes. It receives the final `ResultSummary` and the number of tests that
+passed after a retry. Return `null` to accept the run. Return a non-empty
+failure message to reject it. The policy does not change test outcomes or
+reporter data.
+
+<!-- php-example {"example":"plugins-example-run-acceptance-policy","file":"snippet.php","mode":"file","tools":["rector"]} -->
+```php
+use Greenlight\Config\GreenlightConfig;
+use Greenlight\Plugin\RunAcceptancePolicy;
+use Greenlight\Result\ResultSummary;
+
+final readonly class RequireNoSkippedTests implements RunAcceptancePolicy
+{
+    public function failureMessage(ResultSummary $summary, int $retriedPasses): ?string
+    {
+        return $summary->skipped > 0
+            ? sprintf('The run skipped %d tests.', $summary->skipped)
+            : null;
+    }
+}
+
+return GreenlightConfig::create()
+    ->plugins(static fn(): RequireNoSkippedTests => new RequireNoSkippedTests());
+```
+
+Greenlight runs the bundled `failOnSkipped()` and `failOnRetriedPass()` policy
+first. It then runs configured policies in plugin priority and configuration
+order. Greenlight runs all policies and reports all rejection messages. It
+does not call acceptance policies when a test outcome already failed the run.
+
+If policy creation or evaluation fails, or a policy returns an empty message,
+Greenlight names the plugin and stops the command.
 
 ### IntegrationFixtureProvider
 
@@ -287,7 +513,7 @@ final class BrokerPlugin implements WorkerBootstrapSubscriber, HarnessProvider
 ```
 
 `WorkerBootstrapContext` contains the `workerId`, `TestChannel`, and
-`IntegrationResources`. Subscribers may implement `Prioritized`. Lower values
+`IntegrationResources`. Subscribers can implement `Prioritized`. Lower values
 run first. An exception fails the run before tests begin.
 
 ### WorkerRuntimeRunner
@@ -375,7 +601,9 @@ includes an attachment after a failure inspection in `afterTest()`. The usual
 retention and size limits apply. See [attachments](attachments.md).
 
 The `service()` method is available during `beforeTest()` and the test. The
-per-test scope closes before `afterTest()`, so `service()` throws in that hook.
+per-test scope closes before `afterTest()`. A request for a per-test service
+then throws. Per-class and per-worker services remain available. Fallback
+resolvers can also supply services if their own lifecycle permits it.
 
 ### TestAttemptRunner
 
@@ -421,6 +649,29 @@ content.
 
 The built-in `#[Retry]` attribute uses this interface.
 
+### TerminalResultTransformer
+
+Worker-side.
+
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
+```php
+public function transformTerminalResult(TestDefinition $definition, TestResult $result): TestResult;
+```
+
+Greenlight calls a terminal-result transformer one time after the last attempt.
+The test scope has closed. The worker has not yet closed the class scope or
+published `TestFinished`.
+
+The transformer receives the test definition and the result that remains after
+retries. Return the same result or a replacement. Preserve the test identity.
+Use `TestResult::withOutcome()` for each outcome change.
+
+Greenlight runs all terminal-result transformers. If a transformer throws,
+Greenlight records the failure on the result and continues with the remaining
+transformers.
+
+The built-in diagnostic and risky-test policies use this interface.
+
 ### RunLifecycleSubscriber
 
 Orchestrator-side.
@@ -435,10 +686,12 @@ stream contains run, worker, class, and test events.
 
 Run subscribers cannot change results across the process boundary. Integration
 fixture provisioning completes before `RunStarted`.
-`RunFinished` is delivered before fixture teardown begins. If a run subscriber
-throws, the run fails and fixtures are still torn down.
+Greenlight sends `RunFinished` before fixture teardown begins. If a run
+subscriber throws, the run fails and Greenlight still runs fixture teardown.
 
 ### HarnessProvider
+
+Worker-side.
 
 <!-- php-example {"example":"plugins-example-11","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
@@ -458,7 +711,7 @@ final class DatabaseProvider implements HarnessProvider
 
 Harness providers supply services to test constructors.
 
-Services can be scoped as `PerTest`, `PerClass`, or `PerWorker`.
+Give each service a `PerTest`, `PerClass`, or `PerWorker` scope.
 `PerWorker` means the physical worker lifetime. It does not mean the
 orchestrator-owned integration fixture lifetime. Services are lazy. Greenlight
 constructs a service only when a test uses it.
@@ -481,7 +734,7 @@ failure and adds each disposal failure to the diagnostic.
 
 ### ServiceResolver
 
-In `Greenlight\Harness`.
+In `Greenlight\Harness`. Worker-side.
 
 <!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
 ```php
@@ -490,15 +743,25 @@ public function resolve(string $type, array $attributes): ?object;
 
 A service resolver is a fallback source for a constructor parameter type.
 
-Registered harness services always take precedence. If no service matches,
-Greenlight calls resolvers in registration order. Each call receives the
-declared parameter type and the attribute instances.
+Without an explicit service source, global harness services take precedence.
+Greenlight then checks named harness services. One matching definition supplies
+the parameter. Multiple matching definitions cause an ambiguity error.
+
+If no harness service matches, Greenlight calls resolvers in registration
+order. This includes named resolvers. Each call receives the declared parameter
+type and the attribute instances.
+
+The `#[Service]` ID selects a service within its source. Each bridge translates
+this selection into its container lookup. Tempest uses the ID as a tag with
+the declared type. The PSR-11, Symfony, Laravel, and Hyperf bridges use the ID
+as a container key. Each bridge checks the returned service against the
+declared parameter type.
 
 Return `null` when the resolver does not support the type. Greenlight then
 calls the next resolver.
 
-Return the service object when the resolver supplies it. The service MUST have
-the requested type.
+Return the service object when the resolver supplies it. Use the requested type
+for the service.
 
 Throw `ServiceResolutionFailed` when the resolver handles the request but
 cannot supply a valid service. Greenlight stops the resolver chain and exposes
@@ -510,7 +773,7 @@ result. A container operation failure is also a failed result.
 
 Implement `TerminalServiceResolver` when a resolver handles every request.
 Greenlight places one terminal resolver after all fallback-capable resolvers.
-A terminal resolver MUST NOT return `null`. Greenlight rejects a resolver
+Do not return `null` from a terminal resolver. Greenlight rejects a resolver
 chain that has an item after a terminal resolver.
 
 The resolver owns each object that it returns. Harness scopes do not track or
@@ -520,9 +783,57 @@ The framework bridges use these interfaces to inject container services. See
 [Symfony applications](symfony.md), [Laravel applications](laravel.md), and
 [Tempest applications](tempest.md).
 
+### ServiceSource
+
+In `Greenlight\Harness`. Worker-side.
+
+Implement `ServiceSource` with `HarnessProvider`, `ServiceResolver`, or both to
+name a plugin instance:
+
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
+```php
+public function source(): ?string;
+```
+
+Return `null` for an unnamed instance. Otherwise, return a nonempty name that
+is unique among plugin instances. Names are case sensitive. The name `"0"` is
+valid.
+
+Greenlight assigns the plugin source to its harness service definitions. A
+direct `ServiceDefinition` can also declare `source:`:
+
+<!-- php-example {"example":"plugins-example-15","file":"snippet.php","mode":"statements","tools":["rector"]} -->
+```php
+new ServiceDefinition(
+    TestDatabase::class,
+    Scope::PerWorker,
+    static fn() => TestDatabase::migrate(),
+    source: 'billing',
+);
+```
+
+Use `#[Service(source: 'billing')]` to request the declared parameter type from
+that source. Greenlight checks only its harness definitions and resolver. The
+source takes precedence over a global harness definition for the same type.
+
+Use `#[Service('users.repository', source: 'billing')]` to request an explicit
+ID from that source's resolver. An explicit ID does not select a harness
+definition.
+
+An unknown source, absent service, or incorrect service type causes
+`ServiceResolutionFailed`. Greenlight does not try another source after an
+explicit source request.
+
+Without `source:`, `#[Service('id')]` retains the normal harness and resolver
+order. An explicit ID does not select a plugin instance. The first applicable
+resolver can supply the service or fail the request.
+
+The Symfony, Laravel, Hyperf, PSR-11, and Tempest plugins accept `source:` in
+their constructors. See the [multiple PSR-11 containers example](psr11.md#multiple-containers).
+
 ### ExpectationExtension
 
-In `Greenlight\Expect`.
+In `Greenlight\Expect`. Worker-side during test execution.
 
 <!-- php-example {"example":"plugins-example-13","file":"snippet.php","mode":"file","tools":["rector"]} -->
 ```php
@@ -542,7 +853,7 @@ Call extension matchers through the expectation chain:
 
 <!-- php-example {"example":"plugins-example-14","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::that($id)->toBeValidUuid();
+Expect::value($id)->toBeValidUuid();
 ```
 
 Extension matchers support `not()` and cannot replace native matchers.
@@ -588,7 +899,7 @@ indexers do not run PHPStan plugins.
 Run `vendor/bin/greenlight ide-helper` to generate
 `_greenlight_ide_helper.php`. No process executes this file. It declares a
 duplicate expectation chain with `@method` annotations for each configured
-matcher. It also adds native matcher annotations to the temporal declaration.
+matcher. Native immediate and temporal matchers use their PHP declarations.
 PhpStorm and Intelephense merge the duplicate declaration. Thus, native and
 configured matchers have their real signatures in IDE completion.
 
@@ -622,13 +933,19 @@ reads the priority one time for each owner-local plugin instance.
 
 Priority applies to these capabilities:
 
+* `AttachmentRetentionDecider`
 * `IntegrationFixtureProvider`
+* `TestPlanTransformer`
 * `WorkerBootstrapSubscriber`
 * `WorkerRuntimeRunner`
 * `TestAttemptRunner`
 * `BeforeTestSubscriber`
 * `AfterTestSubscriber`
 * `RetryDecider`
+* `TerminalResultTransformer`
+* `CoverageMapTransformer`
+* `RunAcceptancePolicy`
+* `WatchSource`
 * `RunLifecycleSubscriber`
 * `HarnessProvider`
 * `ServiceResolver`
@@ -649,6 +966,9 @@ implement both capabilities run their callbacks in the exact reverse order.
 Greenlight runs all after-test subscribers. It also runs them when a
 before-test subscriber stops the attempt.
 
-Greenlight reports all plugin failures. A worker-side failure causes an error
-for the affected test and names the plugin. An orchestrator-side failure causes
-the run to fail.
+Greenlight reports plugin failures at the affected lifecycle boundary.
+A command-side or orchestrator-side failure fails the run or command.
+A test-attempt failure gives the affected test an error and names the plugin.
+Worker bootstrap and runtime failures stop the worker. They do not always
+have an active test to receive an error. Each capability section describes
+its error behavior.

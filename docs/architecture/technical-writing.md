@@ -1,7 +1,8 @@
 # Technical writing
 
-Greenlight technical prose follows ASD-STE100 Simplified Technical English,
-Issue 9, dated January 15, 2025.
+Greenlight uses Simplified Technical English principles to make technical prose
+clear and consistent. ASD-STE100 Issue 9 is a reference for this policy.
+This policy does not certify that project prose complies with the standard.
 
 This policy applies to repository-owned technical prose:
 
@@ -23,7 +24,7 @@ The checker also examines structured text fields, script strings and comments,
 and PHP strings that resemble messages. It examines extensionless PHP command
 entry points. It checks multiline PHPDoc tag descriptions, visible Markdown
 link labels, and website accessibility attributes. It applies only mandatory
-rules to PHPDoc tag descriptions and human-readable strings. Review all strings
+rules to PHPDoc tag descriptions and PHP message strings. Review all strings
 manually because code literals can resemble prose.
 
 ## Writing rules
@@ -56,13 +57,16 @@ and proper names also count as one word.
 
 ## Normative requirements
 
-Architecture rules use the uppercase control terms **MUST**, **MUST NOT**,
+Formal specifications and protocol requirements use the uppercase control terms **MUST**, **MUST NOT**,
 **SHOULD**, **SHOULD NOT**, and **MAY**. These terms preserve distinct
 requirement levels and are explicit project exceptions.
 
-Use these terms only in normative rules. Do not replace one control term with
-another during a language rewrite. Such a replacement can change a
-requirement.
+Preserve these terms in formal rules and exact quotations. Do not replace one
+control term with another during a language rewrite. This can change a requirement.
+
+In user-facing prose, use direct instructions for requirements. Use explicit
+recommendations for preferred actions and `can` for options. Preserve the
+requirement level when you rewrite a sentence.
 
 Do not use lowercase modal `should` or `may` in other technical prose. Rewrite
 the sentence with an approved construction.
@@ -143,6 +147,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | harness service | Technical noun | An object that the harness supplies to a test constructor |
 | Hyperf bridge | Technical noun | The component that connects the Greenlight harness to a Hyperf application, container, and coroutine runtime |
 | integration fixture | Technical noun | External infrastructure that the orchestrator owns for one run |
+| instability | Technical noun | Test behavior that can produce different outcomes without a relevant code change |
 | hook | Technical noun | A method or subscriber callback that runs before or after a test |
 | interaction | Technical noun | One call from code under test to a double |
 | Laravel bridge | Technical noun | The component that connects the Greenlight harness to a Laravel application and container |
@@ -176,7 +181,9 @@ and meaning. Use the singular form unless the context requires a plural.
 | resource lease | Technical noun | A temporary grant of resource capacity to one scheduling unit |
 | resource limit | Technical noun | A limit on concurrent access to a named resource |
 | result policy | Technical noun | A rule that can change a test result after execution |
-| retention | Technical noun | The rule that determines if Greenlight publishes an attachment |
+| retention | Technical noun | A rule that determines if Greenlight publishes an attachment or keeps a completed run directory |
+| retried pass | Technical noun | A successful terminal result that used more than one test attempt |
+| run acceptance policy | Technical noun | A command-side plugin that can reject an otherwise successful run without changing test outcomes |
 | retry decider | Technical noun | A plugin that determines if Greenlight starts another test attempt |
 | risky test | Technical noun | A passed test that verifies no expectations and has no `#[NoExpectations]` attribute |
 | run | Technical noun | One execution of a selected test suite |
@@ -193,6 +200,7 @@ and meaning. Use the singular form unless the context requires a plural.
 | service provider | Technical noun | A Laravel class that registers services in the Laravel container |
 | service resolver | Technical noun | A fallback component that supplies constructor arguments by type |
 | service scope | Technical noun | The lifetime and ownership boundary of a harness service |
+| service source | Technical noun | A named provider or resolver that supplies a requested harness or container service |
 | scheduling unit | Technical noun | One test class or isolated test that the orchestrator can assign to a worker |
 | seed | Technical noun | An integer that reproduces randomized test-class order |
 | shard | Technical noun | One disjoint class-based part of an execution plan |

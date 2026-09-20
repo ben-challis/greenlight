@@ -7,15 +7,16 @@ namespace Greenlight\Tests\Unit\Doubles;
 use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\MockPlan;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Fixture\Doubles\Calculator;
+
+use function Greenlight\expect;
 
 final class ZeroCardinalityTest
 {
     #[Test]
     public function anUncalledZeroCardinalityExpectationPassesVerification(): void
     {
-        Expect::that(static function (): void {
+        expect()->calling(static function (): void {
             $doubles = new Doubles();
             $doubles->mock(Calculator::class, static function (MockPlan $plan): void {
                 $plan->expects('add')->times(0);
@@ -24,7 +25,6 @@ final class ZeroCardinalityTest
             $doubles->dispose();
         })
             ->because('times(0) MUST permit an uncalled expectation')
-            ->not()
-            ->toThrow(\Throwable::class);
+            ->not()->toThrow(\Throwable::class);
     }
 }

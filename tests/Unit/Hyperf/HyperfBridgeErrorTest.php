@@ -6,8 +6,9 @@ namespace Greenlight\Tests\Unit\Hyperf;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Hyperf\HyperfBridgeError;
+
+use function Greenlight\expect;
 
 final readonly class HyperfBridgeErrorTest
 {
@@ -16,7 +17,7 @@ final readonly class HyperfBridgeErrorTest
     #[DataSet('diagnostics')]
     public function factoriesPreserveActionableDiagnostics(\Closure $factory, string $message): void
     {
-        Expect::that($factory()->getMessage())->toBe($message);
+        expect($factory()->getMessage())->toBe($message);
     }
 
     /** @return iterable<string, array{\Closure(): HyperfBridgeError, string}> */
@@ -29,6 +30,10 @@ final readonly class HyperfBridgeErrorTest
         yield 'conflicting base path' => [
             static fn(): HyperfBridgeError => HyperfBridgeError::basePathConflict('/app', '/other'),
             'HyperfPlugin uses base path "/app", but BASE_PATH is already "/other". Use one Hyperf application in each worker.',
+        ];
+        yield 'invalid base path type' => [
+            static fn(): HyperfBridgeError => HyperfBridgeError::basePathConflict('/app', null),
+            'HyperfPlugin uses base path "/app", but BASE_PATH is already "null". Use one Hyperf application in each worker.',
         ];
         yield 'missing container file' => [
             static fn(): HyperfBridgeError => HyperfBridgeError::containerFileMissing('/app/config/container.php'),
@@ -63,15 +68,15 @@ final readonly class HyperfBridgeErrorTest
             'HyperfPlugin cannot lock "/app/runtime/container/greenlight.scan.lock" for the class scan.',
         ];
         yield 'invalid container' => [
-            static fn(): HyperfBridgeError => HyperfBridgeError::notAContainer('/app/config/container.php', 'string'),
-            'The Hyperf container file "/app/config/container.php" returned "string". It must return a Psr\\Container\\ContainerInterface instance.',
+            static fn(): HyperfBridgeError => HyperfBridgeError::notAContainer('/app/config/container.php', false),
+            'The Hyperf container file "/app/config/container.php" returned "bool". It must return a Psr\\Container\\ContainerInterface instance.',
         ];
         yield 'reused container' => [
             HyperfBridgeError::reusedContainer(...),
             'The Hyperf container file returned the previous test container. It must create a new container for each test.',
         ];
         yield 'invalid application' => [
-            static fn(): HyperfBridgeError => HyperfBridgeError::applicationUnavailable('null'),
+            static fn(): HyperfBridgeError => HyperfBridgeError::applicationUnavailable(null),
             'The Hyperf application binding returned "null". The binding must return an application object.',
         ];
         yield 'coroutine start failure' => [
@@ -95,7 +100,7 @@ final readonly class HyperfBridgeErrorTest
             'The Hyperf container has no service "clock" for type "DateTimeInterface". Check the service ID.',
         ];
         yield 'service type mismatch' => [
-            static fn(): HyperfBridgeError => HyperfBridgeError::serviceTypeMismatch('clock', \DateTimeInterface::class, 'stdClass'),
+            static fn(): HyperfBridgeError => HyperfBridgeError::serviceTypeMismatch('clock', \DateTimeInterface::class, new \stdClass()),
             'The Hyperf service "clock" has type "stdClass". The parameter requires type "DateTimeInterface".',
         ];
     }

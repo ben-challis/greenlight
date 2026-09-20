@@ -32,7 +32,7 @@ jobs:
             README.md
             CONTRIBUTING.md
             SECURITY.md
-            'docs/**/*.md'
-            'website/src/**/*.astro'
+            docs/**/*.md
+            website/src/**/*.astro
         env:
           GITHUB_TOKEN: "${{ github.token }}"

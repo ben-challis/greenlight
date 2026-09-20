@@ -7,7 +7,8 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Protocol;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
-use Greenlight\Expect\Expect;
+
+use function Greenlight\expect;
 
 final class ProtocolErrorEmptyDiagnosticsTest
 {
@@ -18,10 +19,9 @@ final class ProtocolErrorEmptyDiagnosticsTest
     #[DataSet('errorsWithoutDiagnostics')]
     public function emptyDiagnosticsDoNotAddAWorkerOutputSection(\Closure $error): void
     {
-        Expect::that($error()->getMessage())
+        expect($error()->getMessage())
             ->because('an empty diagnostic stream MUST NOT add a misleading worker output section')
-            ->not()
-            ->toContain("\nWorker output:\n");
+            ->not()->toContain("\nWorker output:\n");
     }
 
     /**

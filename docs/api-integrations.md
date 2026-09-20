@@ -46,14 +46,17 @@ Initializes the Hyperf class loader once in each worker. It creates a
 coroutine context for each test attempt.
 
 The default worker container lifetime matches a long-running Hyperf worker.
-`#[Service]` selects an explicit container ID. Isolate external test
+`#[Service]` selects a container ID or a named source. Isolate external test
 resources by `GREENLIGHT_CHANNEL`.
 
+Requires `hyperf/framework` and `hyperf/di` 3.2. It also requires Swoole 5
+or later and the pcntl extension. It does not support Swow.
+
 ```php
-final class HyperfPlugin implements HarnessProvider, ServiceResolver, TestAttemptRunner, WorkerBootstrapSubscriber, WorkerRuntimeRunner
+final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSource, TestAttemptRunner, WorkerBootstrapSubscriber, WorkerRuntimeRunner
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L40)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L44)
 
 ### `__construct()`
 
@@ -64,6 +67,7 @@ public function __construct(
     private readonly ?\Closure $reset = null,
     private readonly ?\Closure $dispose = null,
     private readonly ?int $hookFlags = null,
+    ?string $source = null,
 )
 ```
 
@@ -71,13 +75,21 @@ PHPDoc:
 
 - `@param null|\Closure(ContainerInterface): void $reset Resets project-owned request state after each test attempt. The callback runs inside the test coroutine.`
 - `@param null|\Closure(ContainerInterface): void $dispose Releases project-owned resources when the selected container lifetime ends. The callback runs inside a coroutine.`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L63)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L71)
+
+### `source()`
+
+```php
+public function source(): ?string
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L89)
 
 ### `services()`
 
 ```php
-[\Override]
 public function services(): array
 ```
 
@@ -85,12 +97,11 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L75)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L96)
 
 ### `resolve()`
 
 ```php
-[\Override]
 public function resolve(string $type, array $attributes): ?object
 ```
 
@@ -100,12 +111,11 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L88)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L109)
 
 ### `onWorkerBootstrap()`
 
 ```php
-[\Override]
 public function onWorkerBootstrap(WorkerBootstrapContext $context): void
 ```
 
@@ -113,12 +123,11 @@ PHPDoc:
 
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L125)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L148)
 
 ### `runWorker()`
 
 ```php
-[\Override]
 public function runWorker(\Closure $worker): mixed
 ```
 
@@ -129,12 +138,11 @@ PHPDoc:
 - `@return T`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L182)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L205)
 
 ### `runTestAttempt()`
 
 ```php
-[\Override]
 public function runTestAttempt(\Closure $attempt): mixed
 ```
 
@@ -145,21 +153,23 @@ PHPDoc:
 - `@return T`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L226)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Hyperf/HyperfPlugin.php#L227)
 
 ## `LaravelPlugin`
 
 Namespace: `Greenlight\Laravel`
 
-Boots one Laravel application lazily for a test and resolves bound services.
-`#[Service]` selects an explicit binding ID. Isolate external test resources
+Boots a Laravel application on first use and resolves bound services.
+By default, Greenlight releases the application after each test attempt.
+
+`#[Service]` selects a binding ID or a named source. Isolate external test resources
 by `GREENLIGHT_CHANNEL`.
 
 ```php
-final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
+final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver, ServiceSource
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L30)
 
 ### `__construct()`
 
@@ -168,21 +178,30 @@ public function __construct(
     string|\Closure $application,
     private readonly string $env = 'testing',
     private readonly bool $refreshBetweenTests = true,
+    ?string $source = null,
 )
 ```
 
 PHPDoc:
 
-- `@param string|\Closure(): Application $application A path to the file that returns the application, usually bootstrap/app.php, or a closure returning the application when exotic construction is needed.`
+- `@param string|\Closure(): Application $application A path to a file that returns the application, usually bootstrap/app.php. For other application setup, pass a closure that returns the application.`
 - `@param non-empty-string $env`
-- `@param bool $refreshBetweenTests Set to false only when no service carries state; tests on one worker then share one unreset application for the worker lifetime.`
+- `@param bool $refreshBetweenTests Set to false only when no service keeps state between tests. Tests on one worker then share one application without resets.`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L53)
+
+### `source()`
+
+```php
+public function source(): ?string
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L84)
 
 ### `services()`
 
 ```php
-[\Override]
 public function services(): array
 ```
 
@@ -190,12 +209,11 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L74)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L93)
 
 ### `resolve()`
 
 ```php
-[\Override]
 public function resolve(string $type, array $attributes): ?object
 ```
 
@@ -205,16 +223,15 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L91)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L110)
 
 ### `afterTest()`
 
 ```php
-[\Override]
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L127)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L148)
 
 ## `Psr11Plugin`
 
@@ -223,14 +240,14 @@ Namespace: `Greenlight\Psr11`
 Creates a PSR-11 container lazily and resolves its services. By default, the
 plugin discards the container after each test that uses it.
 
-`#[Service]` selects an explicit ID. Isolate external test resources by
+`#[Service]` selects a service ID or a named source. Isolate external test resources by
 `GREENLIGHT_CHANNEL`.
 
 ```php
-final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
+final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver, ServiceSource
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L26)
 
 ### `__construct()`
 
@@ -239,6 +256,7 @@ public function __construct(
     private readonly \Closure $factory,
     private readonly bool $refreshBetweenTests = true,
     private readonly ?\Closure $reset = null,
+    ?string $source = null,
 )
 ```
 
@@ -247,13 +265,21 @@ PHPDoc:
 - `@param \Closure():ContainerInterface $factory A factory that returns the application container.`
 - `@param bool $refreshBetweenTests Set to false only when the reset callback removes all container state, or when services do not keep state.`
 - `@param (\Closure(ContainerInterface): void)|null $reset An optional callback that resets the active container after each test.`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L38)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L43)
+
+### `source()`
+
+```php
+public function source(): ?string
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L57)
 
 ### `services()`
 
 ```php
-[\Override]
 public function services(): array
 ```
 
@@ -261,12 +287,11 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L47)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L66)
 
 ### `resolve()`
 
 ```php
-[\Override]
 public function resolve(string $type, array $attributes): ?object
 ```
 
@@ -276,12 +301,11 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L93)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L112)
 
 ### `afterTest()`
 
 ```php
-[\Override]
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
@@ -289,20 +313,22 @@ PHPDoc:
 
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L140)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L159)
 
 ## `HttpHarness`
 
 Namespace: `Greenlight\Psr15`
 
 Sends PSR-7 server requests directly to one PSR-15 request handler.
-The optional release callback closes handler state when the harness scope closes.
+If a factory supplies the handler, the first request creates it.
+
+Disposal calls the optional release callback only if a handler exists.
 
 ```php
 final class HttpHarness implements Disposable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L18)
 
 ### `__construct()`
 
@@ -318,7 +344,7 @@ PHPDoc:
 - `@param RequestHandlerInterface|\Closure(): RequestHandlerInterface $handler`
 - `@param null|\Closure(RequestHandlerInterface): void $release`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L29)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L31)
 
 ### `send()`
 
@@ -330,12 +356,11 @@ PHPDoc:
 
 - `@throws Psr15Error`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L46)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L48)
 
 ### `dispose()`
 
 ```php
-[\Override]
 public function dispose(): void
 ```
 
@@ -343,7 +368,7 @@ PHPDoc:
 
 - `@throws Psr15Error`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L71)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/HttpHarness.php#L74)
 
 ## `Psr15Error`
 
@@ -363,15 +388,15 @@ final class Psr15Error extends \RuntimeException
 public static function factoryFailed(\Throwable $cause): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L10)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L15)
 
 ### `invalidHandler()`
 
 ```php
-public static function invalidHandler(string $type): self
+public static function invalidHandler(mixed $handler): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L20)
 
 ### `requestFailed()`
 
@@ -379,20 +404,20 @@ public static function invalidHandler(string $type): self
 public static function requestFailed(
     string $method,
     string $path,
-    string $handler,
+    mixed $handler,
     \Throwable $cause,
 ): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L28)
 
 ### `releaseFailed()`
 
 ```php
-public static function releaseFailed(string $handler, \Throwable $cause): self
+public static function releaseFailed(mixed $handler, \Throwable $cause): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L42)
 
 ### `disposed()`
 
@@ -400,20 +425,23 @@ public static function releaseFailed(string $handler, \Throwable $cause): self
 public static function disposed(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L45)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Error.php#L50)
 
 ## `Psr15Plugin`
 
 Namespace: `Greenlight\Psr15`
 
-Supplies one HTTP harness in the configured service scope. A handler factory
-with the per-test scope gives each test a new application handler.
+Supplies one HTTP harness in the configured service scope.
+Each harness calls its handler factory on the first request.
+
+For a new application handler in each test attempt, use the per-test scope.
+Supply a factory that creates a new handler each time.
 
 ```php
 final readonly class Psr15Plugin implements HarnessProvider
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L16)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L19)
 
 ### `__construct()`
 
@@ -430,12 +458,11 @@ PHPDoc:
 - `@param RequestHandlerInterface|\Closure(): RequestHandlerInterface $handler A handler or a factory that returns a handler.`
 - `@param null|\Closure(RequestHandlerInterface): void $release A callback that releases the active handler when its scope closes.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L30)
 
 ### `services()`
 
 ```php
-[\Override]
 public function services(): array
 ```
 
@@ -443,7 +470,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L40)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr15/Psr15Plugin.php#L44)
 
 ## `PhpUnitToGreenlightRector`
 
@@ -458,19 +485,19 @@ equivalent. It does not change other classes.
 final class PhpUnitToGreenlightRector extends AbstractRector implements ConfigurableRectorInterface, DocumentedRuleInterface
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L54)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L55)
 
 ### `DROP_ASSERTION_MESSAGES`
 
 Configuration key: remove PHPUnit failure-message arguments. Without
-this option, a custom message rejects the class. Greenlight
-expectations carry no custom message.
+this option, a custom message rejects the class. A manual migration can
+preserve the message with `because()`.
 
 ```php
 public const string DROP_ASSERTION_MESSAGES = 'drop_assertion_messages';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L61)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L62)
 
 ### `configure()`
 
@@ -481,8 +508,9 @@ public function configure(array $configuration): void
 PHPDoc:
 
 - `@param mixed[] $configuration`
+- `@throws \InvalidArgumentException if a key is unknown or \`drop_assertion_messages\` is not a boolean`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L113)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L116)
 
 ### `getRuleDefinition()`
 
@@ -490,7 +518,7 @@ PHPDoc:
 public function getRuleDefinition(): RuleDefinition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L137)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L140)
 
 ### `getNodeTypes()`
 
@@ -502,7 +530,7 @@ PHPDoc:
 
 - `@return array<class-string<Node>>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L171)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L174)
 
 ### `refactor()`
 
@@ -510,7 +538,7 @@ PHPDoc:
 public function refactor(Node $node): ?Node
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L176)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L179)
 
 ## `SymfonyPlugin`
 
@@ -523,14 +551,14 @@ The container must expose Symfony's test container. If the configuration
 does not disable resets, the container must expose `services_resetter`. If a
 service keeps state between tests, do not disable resets.
 
-`#[Service]` selects an explicit ID instead of a type-based search. Isolate
-external resources with `GREENLIGHT_CHANNEL`.
+`#[Service]` selects a service ID or a named source. Isolate external
+resources with `GREENLIGHT_CHANNEL`.
 
 ```php
-final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver
+final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver, ServiceSource
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L32)
 
 ### `__construct()`
 
@@ -540,6 +568,7 @@ public function __construct(
     string $env = 'test',
     bool $debug = false,
     private readonly bool $resetBetweenTests = true,
+    ?string $source = null,
 )
 ```
 
@@ -547,14 +576,22 @@ PHPDoc:
 
 - `@param class-string<KernelInterface>|\Closure(): KernelInterface $kernel A kernel class name that Greenlight constructs as new $kernel($env, $debug), or a closure that constructs the kernel. Use a closure for other constructor requirements.`
 - `@param non-empty-string $env`
-- `@param bool $resetBetweenTests For a container without stateful services, use false to disable resets. Tests on one worker then share all service instances.`
+- `@param bool $resetBetweenTests For a container without stateful services, use false to disable resets. Tests on one worker then reuse the container without resets. Symfony service configuration determines which instances are shared.`
+- `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L54)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L60)
+
+### `source()`
+
+```php
+public function source(): ?string
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L84)
 
 ### `services()`
 
 ```php
-[\Override]
 public function services(): array
 ```
 
@@ -562,12 +599,11 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L74)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L93)
 
 ### `resolve()`
 
 ```php
-[\Override]
 public function resolve(string $type, array $attributes): ?object
 ```
 
@@ -577,16 +613,15 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L87)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L106)
 
 ### `afterTest()`
 
 ```php
-[\Override]
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L123)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L144)
 
 ## `TempestPlugin`
 
@@ -596,15 +631,15 @@ Boots one Tempest long-running kernel for each worker. Tempest discovery,
 configuration, container reset, deferred tasks, and shutdown events stay
 under kernel control.
 
-The bridge uses the `testing` environment by default. Native `#[Tag]`
-attributes select tagged Tempest bindings. Isolate external test resources
-by `GREENLIGHT_CHANNEL`.
+The bridge uses the `testing` environment by default. `#[Service]` selects
+a tagged Tempest binding.
+Isolate external test resources by `GREENLIGHT_CHANNEL`.
 
 ```php
-final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, TerminalServiceResolver, WorkerBootstrapSubscriber
+final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, ServiceSource, TerminalServiceResolver, WorkerBootstrapSubscriber
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L38)
 
 ### `__construct()`
 
@@ -613,6 +648,7 @@ public function __construct(
     private readonly string $root,
     private readonly string $environment = 'testing',
     private readonly array $discoveryLocations = [],
+    ?string $source = null,
 )
 ```
 
@@ -622,21 +658,27 @@ PHPDoc:
 - `@param list<DiscoveryLocation> $discoveryLocations Additional locations for Tempest discovery.`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L54)
+
+### `source()`
+
+```php
+public function source(): ?string
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L76)
 
 ### `onWorkerBootstrap()`
 
 ```php
-[\Override]
 public function onWorkerBootstrap(WorkerBootstrapContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L82)
 
 ### `services()`
 
 ```php
-[\Override]
 public function services(): array
 ```
 
@@ -644,12 +686,11 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L73)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L91)
 
 ### `resolve()`
 
 ```php
-[\Override]
 public function resolve(string $type, array $attributes): object
 ```
 
@@ -659,21 +700,19 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L87)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L105)
 
 ### `beforeTest()`
 
 ```php
-[\Override]
 public function beforeTest(TestContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L113)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L131)
 
 ### `afterTest()`
 
 ```php
-[\Override]
 public function afterTest(TestContext $context, TestResult $result): TestResult
 ```
 
@@ -681,4 +720,4 @@ PHPDoc:
 
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L126)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L144)

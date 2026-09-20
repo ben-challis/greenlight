@@ -26,7 +26,7 @@ final class ReportGenerationFailed extends \RuntimeException
         $reason = \trim($reason);
 
         if ($reason === '') {
-            throw new \InvalidArgumentException('Report generation failure reason MUST NOT be empty.');
+            throw new \InvalidArgumentException('Report generation failure reason cannot be empty.');
         }
 
         return new self(\sprintf(

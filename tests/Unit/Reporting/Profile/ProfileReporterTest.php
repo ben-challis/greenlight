@@ -10,10 +10,11 @@ use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\WorkerSpawned;
-use Greenlight\Expect\Expect;
 use Greenlight\Reporting\Profile\ProfileReporter;
 use Greenlight\Result\ResultSummary;
 use Greenlight\Tests\Unit\Reporting\BufferOutput;
+
+use function Greenlight\expect;
 
 final class ProfileReporterTest
 {
@@ -34,13 +35,13 @@ final class ProfileReporterTest
             $reporter->onEvent($event);
         }
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('profile events MUST remain buffered until reporter completion')
             ->toBe('');
 
         $reporter->finish();
 
-        Expect::that($output->buffer())
+        expect($output->buffer())
             ->because('reporter completion MUST write the aggregated run profile')
             ->toBe(
                 "\nProfile:\n"

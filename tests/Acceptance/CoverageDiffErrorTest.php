@@ -6,10 +6,14 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
+use Greenlight\Coverage\CoverageMap;
+use Greenlight\Coverage\FileCoverage;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\AcceptanceProject;
+use Greenlight\Tests\Support\CoverageJson;
 use Greenlight\Tests\Support\GreenlightCli;
+
+use function Greenlight\expect;
 
 final readonly class CoverageDiffErrorTest
 {
@@ -29,10 +33,10 @@ final readonly class CoverageDiffErrorTest
             '--current=current.json',
         ]);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('missing coverage exports name their role')
             ->toBe(1);
-        Expect::that($result->output())
+        expect($result->output())
             ->toContain(\sprintf(
                 'Greenlight could not read the %s coverage export at "%s.json"',
                 $missingLabel,
@@ -67,10 +71,10 @@ final readonly class CoverageDiffErrorTest
             '--current=current.json',
         ]);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('malformed coverage exports name their role')
             ->toBe(1);
-        Expect::that($result->output())
+        expect($result->output())
             ->toContain(\sprintf(
                 'The %s file is not a valid coverage export: '
                 . 'Coverage JSON document is invalid: use an object for "files".',
@@ -95,16 +99,117 @@ final readonly class CoverageDiffErrorTest
             '--current=current.json',
         ]);
 
-        Expect::that($result->exitCode)
+        expect($result->exitCode)
             ->because('empty readable exports are malformed instead of unreadable')
             ->toBe(1);
-        Expect::that($result->output())
+        expect($result->output())
             ->toContain(\sprintf(
                 'The %s file is not a valid coverage export: '
                 . 'Coverage JSON document is invalid: Syntax error',
                 $invalidLabel,
             ))
             ->not()->toContain('could not read');
+    }
+
+    #[Test]
+    #[DataSet('invalidExportLabels')]
+    public function relativeCoveragePathsNameTheirRole(string $invalidLabel): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'coverage-diff-relative-' . $invalidLabel);
+        $valid = '{"v":1,"files":{}}';
+        $invalid = '{"v":1,"files":{"src/A.php":{"covered":[1],"uncovered":[]}}}';
+
+        foreach (['baseline', 'current'] as $label) {
+            $project->writeFile($label . '.json', $label === $invalidLabel ? $invalid : $valid);
+        }
+
+        $result = GreenlightCli::run($project->directory, [
+            'coverage:diff',
+            '--baseline=baseline.json',
+            '--current=current.json',
+        ]);
+
+        expect($result->exitCode)
+            ->because('relative coverage paths name their role')
+            ->toBe(1);
+        expect($result->output())
+            ->toContain(\sprintf(
+                'The %s file is not a valid coverage export: '
+                . 'Coverage JSON requires an absolute file path. Received "src/A.php".',
+                $invalidLabel,
+            ));
+    }
+
+    #[Test]
+    public function projectRootOptionsMustBeUsedTogether(): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'coverage-diff-one-root');
+        $project->writeFile('baseline.json', '{"v":1,"files":{}}');
+        $project->writeFile('current.json', '{"v":1,"files":{}}');
+
+        $result = GreenlightCli::run($project->directory, [
+            'coverage:diff',
+            '--baseline=baseline.json',
+            '--current=current.json',
+            '--baseline-root=/old/project',
+        ]);
+
+        expect($result->exitCode)
+            ->because('one project root cannot define both path mappings')
+            ->toBe(64);
+        expect($result->output())
+            ->toContain('Use --baseline-root=<path> and --current-root=<path> together.');
+    }
+
+    #[Test]
+    public function projectRootMustContainEveryCoveragePath(): void
+    {
+        $directory = $this->tempDirectory->subdirectory('coverage-diff-outside-root');
+        CoverageJson::write(
+            $directory . '/baseline.json',
+            new CoverageMap([
+                new FileCoverage('/dependency/A.php', [1], []),
+            ]),
+        );
+        CoverageJson::write(
+            $directory . '/current.json',
+            new CoverageMap(),
+        );
+
+        $result = GreenlightCli::run($directory, [
+            'coverage:diff',
+            '--baseline=baseline.json',
+            '--current=current.json',
+            '--baseline-root=/project',
+            '--current-root=/project',
+        ]);
+
+        expect($result->exitCode)
+            ->because('partial root normalization MUST fail')
+            ->toBe(1);
+        expect($result->output())
+            ->toContain('Coverage path "/dependency/A.php" is not below project root "/project".');
+    }
+
+    #[Test]
+    public function invalidCoverageGateIsAUsageError(): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'coverage-diff-invalid-gate');
+        $project->writeFile('baseline.json', '{"v":1,"files":{}}');
+        $project->writeFile('current.json', '{"v":1,"files":{}}');
+
+        $result = GreenlightCli::run($project->directory, [
+            'coverage:diff',
+            '--baseline=baseline.json',
+            '--current=current.json',
+            '--minimum-coverage=100.01',
+        ]);
+
+        expect($result->exitCode)
+            ->because('coverage:diff MUST validate its coverage-gate options')
+            ->toBe(64);
+        expect($result->output())
+            ->toContain('--minimum-coverage requires a percentage from 0 through 100');
     }
 
     /**

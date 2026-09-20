@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ScopeContainer;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Tests\Fixture\Harness\LazyFactoryProbe;
+
+use function Greenlight\expect;
 
 final class ScopeContainerLazyFactoryTest
 {
@@ -29,18 +30,18 @@ final class ScopeContainerLazyFactoryTest
             },
         ));
 
-        Expect::that($service)
+        expect($service)
             ->because('ScopeContainer::get() MUST return LazyFactoryProbe.')
             ->toBeInstanceOf(LazyFactoryProbe::class);
 
-        Expect::that($factoryCalls)
+        expect($factoryCalls)
             ->because('ScopeContainer::get() MUST NOT invoke a lazy factory')
             ->toBe(0);
 
-        Expect::that(static fn() => $service->value())
+        expect()->calling(static fn() => $service->value())
             ->because('the lazy factory failure MUST propagate from the first service use')
             ->toThrow($failure);
-        Expect::that($factoryCalls)
+        expect($factoryCalls)
             ->toBe(1);
     }
 }

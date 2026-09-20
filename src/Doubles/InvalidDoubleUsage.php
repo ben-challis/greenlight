@@ -6,7 +6,7 @@ namespace Greenlight\Doubles;
 
 /**
  * Identifies incorrect use of the doubles API. Examples include an
- * unsupported type or a method that Doubles cannot intercept. Other examples
+ * unsupported type or a method that `Doubles` cannot intercept. Other examples
  * are a prohibited interaction or a return value without a configured
  * result.
  *
@@ -102,7 +102,7 @@ final class InvalidDoubleUsage extends \LogicException
 
     public static function cannotDoubleReadonly(string $type): self
     {
-        return new self(\sprintf('%s is a readonly class. Doubles v1 does not support readonly classes. Use an interface instead.', $type));
+        return new self(\sprintf('%s is a readonly class. Doubles does not support readonly classes. Use an interface instead.', $type));
     }
 
     public static function cannotDoubleFinal(string $type): self
@@ -149,6 +149,26 @@ final class InvalidDoubleUsage extends \LogicException
     {
         return new self(\sprintf(
             'Doubles cannot reproduce the object default of parameter $%s from %s::%s() in a proxy. Use an interface without object defaults instead.',
+            $parameter,
+            $class,
+            $method,
+        ));
+    }
+
+    public static function objectDefaultSourceUnavailable(string $parameter, string $class, string $method): self
+    {
+        return new self(\sprintf(
+            'Doubles cannot read the object default of parameter "$%s" from "%s::%s()". Declare the method on a separate line in a readable PHP file.',
+            $parameter,
+            $class,
+            $method,
+        ));
+    }
+
+    public static function objectDefaultScopeUnavailable(string $parameter, string $class, string $method): self
+    {
+        return new self(\sprintf(
+            'Doubles cannot access the object default of parameter "$%s" from "%s::%s()" in a proxy. Use a public constructor and accessible constants.',
             $parameter,
             $class,
             $method,
@@ -231,6 +251,30 @@ final class InvalidDoubleUsage extends \LogicException
             $type,
             $method,
             self::argumentCount($maximum),
+        ));
+    }
+
+    /**
+     * @param class-string $type
+     */
+    public static function incompatiblePlannedArgumentMatcher(
+        string $selector,
+        string $type,
+        string $method,
+        int $position,
+        string $matcherType,
+        string $parameter,
+        string $parameterType,
+    ): self {
+        return new self(\sprintf(
+            'The matcher in %s() argument %d accepts "%s", but parameter "$%s" of "%s::%s()" requires "%s".',
+            $selector,
+            $position,
+            $matcherType,
+            $parameter,
+            $type,
+            $method,
+            $parameterType,
         ));
     }
 

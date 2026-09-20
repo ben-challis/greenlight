@@ -9,9 +9,10 @@ use Greenlight\Event\TestClassStarted;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
 use Greenlight\Execution\ProcessPool\Worker\SocketEventSink;
-use Greenlight\Expect\Expect;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\ConnectedStreamPair;
+
+use function Greenlight\expect;
 
 final readonly class SocketEventSinkTest
 {
@@ -31,11 +32,11 @@ final readonly class SocketEventSinkTest
         $sink->emit($event);
         $message = $receiver->poll();
 
-        Expect::that($message)
+        expect($message)
             ->because('SocketEventSink MUST send EventEnvelope.')
             ->toBeInstanceOf(EventEnvelope::class);
 
-        Expect::that($message->event)
+        expect($message->event)
             ->because('the worker event sink MUST transport the emitted event')
             ->toEqual($event);
     }
