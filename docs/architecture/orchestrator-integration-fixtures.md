@@ -1,8 +1,8 @@
 # Orchestrator-owned integration fixtures
 
-Greenlight provisions external test infrastructure in the orchestrator. It
-sends each worker only the connection data for that worker's channel.
-It removes the infrastructure when the run ends.
+Greenlight provisions external test infrastructure in the run coordinator. It
+gives each worker the shared resources and the resources for that worker's
+channel. It runs registered cleanup callbacks when the run ends.
 
 ## Ownership and lifetime
 
@@ -33,11 +33,14 @@ before it provisions anything, then provisions dependencies first.
 Fixture IDs are non-empty UTF-8 strings. They cannot use integer strings
 because PHP converts those map keys to integers.
 
-`IntegrationFixtureContext::configuredWorkers()` returns the configured worker
-ceiling. `IntegrationFixtureContext::channels()` returns the consecutive channel
-numbers that the selected plan can use. Selected work and resource capacity can
-reduce the number of channels below the ceiling. Create overlays only for these
-numbers. Replacement workers reuse released numbers.
+`IntegrationFixtureContext::configuredWorkers()` returns the worker limit for
+the selected execution adapter. In-process execution returns `1`, including a
+fallback from process-pool execution.
+
+`IntegrationFixtureContext::channels()` returns the consecutive channel numbers
+that the selected plan can use. Selected work and resource capacity can reduce
+the number of channels below the limit. Create overlays only for these numbers.
+Replacement workers reuse released numbers.
 
 Call `IntegrationFixtureContext::defer()` as soon as the provisioner acquires a
 resource. The callback will then run even if the rest of the provisioner fails.
@@ -58,9 +61,11 @@ Store credentials in the separate secrets map. Worker code receives each secret
 as a `SensitiveValue` and must call `reveal()` to read it. Object dumps and
 exports redact the value.
 
-Greenlight sends resources through the authenticated local worker protocol. It
-does not put them in environment variables, command arguments, stdout, or
-stderr. A worker receives only its own channel overlay.
+In a process-pool run, Greenlight sends resources through the authenticated
+local worker protocol. It does not put them in environment variables, command
+arguments, stdout, or stderr. A worker receives only its own channel overlay.
+In-process execution uses the shared resources and the overlay for channel `1`
+directly.
 
 ## Worker bootstrap
 

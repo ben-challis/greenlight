@@ -121,20 +121,18 @@ Another `because()` call replaces the reason:
 
 <!-- php-example {"example":"expectations-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::value('ready')
-    ->because('the worker must be ready')
-    ->toBeString()
-    ->toStartWith('rea')
-    ->because('the protocol requires an exact status')
-    ->toBe('ready');
+Expect::value($responseBody)
+    ->because('successful payments require payment and receipt references')
+    ->toHaveKey('payment_id')
+    ->toHaveKey('receipt_url')
+    ->because('payment responses must not expose card details')
+    ->not()->toHaveKey('card_number')
+    ->not()->toHaveKey('cvv');
 ```
 
-When the matcher fails, the failure message puts the reason after the word
-`because`:
-
-```text
-Expected 'pending' to be 'ready' because the protocol requires an exact status.
-```
+The first reason applies to both required keys. The second reason applies to
+both excluded keys. If a matcher fails, its failure message includes the current
+reason after the word `because`.
 
 Greenlight applies PHP's `trim()` to the reason. The result must not be empty.
 The reason also applies after `returnValue()` and after a temporal matcher
@@ -163,6 +161,10 @@ includes private properties.
 
 Object comparisons distinguish shared objects from equal copies. They also
 require equal cycle shapes.
+
+Both equality matchers report unsupported cyclic array traversal with
+`InvalidArgumentException`. Compare selected acyclic values instead.
+Object cycles and shared references to acyclic arrays remain supported.
 
 Enum cases compare by identity.
 `DateTimeInterface` values compare by instant at microsecond precision.
