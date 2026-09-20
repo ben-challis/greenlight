@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\ExpectationRuntime;
-use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+use Greenlight\Tests\Fixture\Expect\FakeClock;
 
 use function Greenlight\expect;
 
@@ -15,7 +15,7 @@ final readonly class TemporalRetryCompositionTest
     #[Test]
     public function repeatedRetryConfigurationAccumulatesExceptionTypes(): void
     {
-        $clock = new FakePollingClock();
+        $clock = new FakeClock();
         $calls = 0;
         $responses = [
             new \RuntimeException('first transient failure'),

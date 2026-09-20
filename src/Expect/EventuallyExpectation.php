@@ -27,7 +27,7 @@ final class EventuallyExpectation extends TemporalExpectation
      */
     private function __construct(
         \Closure $probe,
-        PollingClock $clock,
+        Clock $clock,
         ?float $attemptDeadline,
         float $intervalSeconds,
         private readonly float $withinSeconds,
@@ -58,7 +58,7 @@ final class EventuallyExpectation extends TemporalExpectation
      */
     public static function create(
         \Closure $probe,
-        PollingClock $clock,
+        Clock $clock,
         ?float $attemptDeadline,
         float $intervalSeconds,
         float $withinSeconds,

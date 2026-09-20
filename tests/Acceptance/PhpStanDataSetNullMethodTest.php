@@ -6,9 +6,10 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\RequiresResource;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\PhpStanProbe;
+
+use function Greenlight\expect;
 
 #[RequiresResource('analysis-process')]
 final readonly class PhpStanDataSetNullMethodTest
@@ -90,9 +91,9 @@ final readonly class PhpStanDataSetNullMethodTest
             PHP,
         );
 
-        Expect::that($probe->goodErrors)->toBe([]);
-        Expect::that($probe->exitCode)->toBe(1);
-        Expect::that($probe->errors)->toBe([
+        expect($probe->goodErrors)->toBe([]);
+        expect($probe->exitCode)->toBe(1);
+        expect($probe->errors)->toBe([
             'Data provider rows() row argument #1 for incompatibleRow() has type int, but the parameter requires string.',
         ]);
     }

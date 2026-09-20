@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Unit\Expect;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\ExpectationRuntime;
-use Greenlight\Tests\Fixture\Expect\FakePollingClock;
+use Greenlight\Tests\Fixture\Expect\FakeClock;
 
 use function Greenlight\expect;
 
@@ -18,7 +18,7 @@ final readonly class TemporalRetryInheritanceTest
         $calls = 0;
 
         ExpectationRuntime::withClock(
-            new FakePollingClock(),
+            new FakeClock(),
             static function () use (&$calls): void {
                 expect()->calling(static function () use (&$calls): string {
                     if (++$calls === 1) {

@@ -30,6 +30,22 @@ final readonly class ExpectFunctionTest
     }
 
     #[Test]
+    public function callsWithoutArgumentsReuseTheBuilder(): void
+    {
+        expect(expect())->toBe(expect());
+    }
+
+    #[Test]
+    public function theSharedBuilderCreatesIndependentCallExpectations(): void
+    {
+        $first = expect()->calling(static fn(): int => 1);
+        $second = expect()->calling(static fn(): int => 2);
+
+        $first->toReturn(1);
+        $second->toReturn(2);
+    }
+
+    #[Test]
     public function theBuilderSelectsALazyCallWithOneCapturedOutcome(): void
     {
         $calls = 0;

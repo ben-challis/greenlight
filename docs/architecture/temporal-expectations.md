@@ -35,8 +35,14 @@ another invocation.
 
 ## Poll operation
 
-The poll operation uses a monotonic clock. `SystemPollingClock` reads
-`hrtime(true)` and waits with `usleep()`. Unit tests use `FakePollingClock`.
+The poll operation uses a monotonic clock. `SystemClock` reads
+`hrtime(true)` and waits with `usleep()`. Unit tests use `FakeClock`.
+
+`Clock::sleep()` waits until the full requested duration has elapsed.
+`SystemClock` limits each native sleep call to one second. It checks
+monotonic time after each call and repeats the wait for the remaining duration.
+This also handles native calls that return early. The caller does not need
+to repeat `sleep()`.
 
 The default poll interval is 25ms. `pollEvery()` accepts finite intervals of at
 least 1ms. A duration for `within()` or `for()` **MUST** be finite and more
