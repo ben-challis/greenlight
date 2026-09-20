@@ -116,24 +116,31 @@ Expect::value($errors)
     ->toHaveCount(1);
 ```
 
-`because()` adds a reason to the next matcher only:
+`because()` adds a reason to all subsequent matchers in the chain.
+Another `because()` call replaces the reason:
 
 <!-- php-example {"example":"expectations-example-04","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
-Expect::value($order->isOpen())
-    ->because('a refund requires an open order')
-    ->toBeTrue();
+Expect::value('ready')
+    ->because('the worker must be ready')
+    ->toBeString()
+    ->toStartWith('rea')
+    ->because('the protocol requires an exact status')
+    ->toBe('ready');
 ```
 
 When the matcher fails, the failure message puts the reason after the word
 `because`:
 
 ```text
-Expected false to be true because a refund requires an open order.
+Expected 'pending' to be 'ready' because the protocol requires an exact status.
 ```
 
 Greenlight applies PHP's `trim()` to the reason. The result must not be empty.
-Temporal expectation chains also accept `because()`.
+The reason also applies after `returnValue()` and after a temporal matcher
+returns an immediate expectation. It does not apply to a separate expectation
+created inside a callback. Use a new `expect()` chain for assertions that do
+not need the reason. `not()` still negates only the next matcher.
 
 ## Matcher reference
 

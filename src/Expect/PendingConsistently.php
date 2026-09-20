@@ -130,7 +130,6 @@ final class PendingConsistently
         }
 
         $this->negated = false;
-        $this->reason = null;
 
         return $expectation;
     }
