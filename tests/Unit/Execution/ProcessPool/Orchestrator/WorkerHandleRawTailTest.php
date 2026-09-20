@@ -7,8 +7,9 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerHandle;
-use Greenlight\Expect\Expect;
 use Greenlight\Tests\Support\MemoryStream;
+
+use function Greenlight\expect;
 
 final readonly class WorkerHandleRawTailTest
 {
@@ -24,9 +25,9 @@ final readonly class WorkerHandleRawTailTest
             $handle = new WorkerHandle('worker-1', 1, $process, $stdout, $stderr);
             $handle->drainPipes();
 
-            Expect::that($handle->diagnostics)->toBe($expected);
+            expect($handle->diagnostics)->toBe($expected);
             $handle->drainPipes();
-            Expect::that($handle->diagnostics)->toBe($expected);
+            expect($handle->diagnostics)->toBe($expected);
         } finally {
             MemoryStream::close($process, $stdout, $stderr);
         }
@@ -61,7 +62,7 @@ final readonly class WorkerHandleRawTailTest
             $handle->drainPipes();
 
             $suffix = "error end\u{FFFD}";
-            Expect::that($handle->diagnostics)->toBe(\str_repeat('y', 65_536 - \strlen($suffix)) . $suffix);
+            expect($handle->diagnostics)->toBe(\str_repeat('y', 65_536 - \strlen($suffix)) . $suffix);
         } finally {
             MemoryStream::close($process, $stdout, $stderr);
         }

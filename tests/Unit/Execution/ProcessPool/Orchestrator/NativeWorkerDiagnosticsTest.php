@@ -65,8 +65,8 @@ final readonly class NativeWorkerDiagnosticsTest
                 }
             } while (!$quietDisconnected && \hrtime(true) < $deadline);
 
-            Expect::that($quietDisconnected)->toBeTrue();
-            Expect::that($transport->diagnostics('noisy'))
+            expect($quietDisconnected)->toBeTrue();
+            expect($transport->diagnostics('noisy'))
                 ->because('the quiet worker must disconnect before the noisy writer stops')
                 ->not()->toContain('noisy output finished');
         } finally {
@@ -125,6 +125,6 @@ final readonly class NativeWorkerDiagnosticsTest
             \usleep(1000);
         } while (\hrtime(true) < $deadline);
 
-        Expect::that($diagnostics)->toContain($marker);
+        expect($diagnostics)->toContain($marker);
     }
 }
