@@ -41,12 +41,10 @@ final readonly class GeneratedCoveragePathTest
 
         expect($generatedFile)
             ->because('The coverage export MUST contain generated/RuntimeSource.php.')
-            ->not()
-            ->toBeNull();
+            ->not()->toBeNull();
         expect($generatedFile->coveredLines)
             ->because('the generated source MUST contain covered lines')
-            ->not()
-            ->toHaveCount(0);
+            ->not()->toHaveCount(0);
     }
 
     private function writeProject(): AcceptanceProject

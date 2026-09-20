@@ -63,7 +63,6 @@ final readonly class RectorTicketGroupTest
             ->toBe(0);
         expect($run->stdout)
             ->toContain('1 test, 1 passed')
-            ->not()
-            ->toContain('2 tests');
+            ->not()->toContain('2 tests');
     }
 }

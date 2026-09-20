@@ -136,8 +136,7 @@ final class WorkerProtocolSchemaTest
 
         expect($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'assign', 'p' => $payload])))
             ->because('a protocol change MUST update the schema')
-            ->not()
-            ->toBe([]);
+            ->not()->toBe([]);
     }
 
     #[Test]
@@ -149,8 +148,7 @@ final class WorkerProtocolSchemaTest
 
         expect($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'event', 'p' => $payload])))
             ->because('the worker schema requires the attachment storage key')
-            ->not()
-            ->toBe([]);
+            ->not()->toBe([]);
     }
 
     #[Test]
@@ -166,12 +164,10 @@ final class WorkerProtocolSchemaTest
 
         expect($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'bootstrap', 'p' => $bootstrapPayload])))
             ->because('the schema MUST reject an empty fixture ID')
-            ->not()
-            ->toBe([]);
+            ->not()->toBe([]);
         expect($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'done', 'p' => $donePayload])))
             ->because('the schema MUST reject an empty coverage path')
-            ->not()
-            ->toBe([]);
+            ->not()->toBe([]);
     }
 
     #[Test]
@@ -186,8 +182,7 @@ final class WorkerProtocolSchemaTest
 
         expect($this->validationErrors($this->asJsonObject(['v' => 1, 't' => 'assign', 'p' => $payload])))
             ->because('the schema MUST match the data-provider decoder contract')
-            ->not()
-            ->toBe([]);
+            ->not()->toBe([]);
     }
 
     /**

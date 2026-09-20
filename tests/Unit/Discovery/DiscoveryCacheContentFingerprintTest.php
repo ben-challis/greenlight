@@ -128,8 +128,7 @@ final readonly class DiscoveryCacheContentFingerprintTest
                 ->toBeTrue();
             expect(DiscoveryCache::forDirectories([$directory])->lookup($source))
                 ->because('unchanged provider content MUST keep the cached plan entry')
-                ->not()
-                ->toBeNull();
+                ->not()->toBeNull();
 
             \file_put_contents($provider, \str_replace('alpha', 'bravo', $providerSource));
 

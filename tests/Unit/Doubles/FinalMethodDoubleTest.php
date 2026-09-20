@@ -23,7 +23,6 @@ final readonly class FinalMethodDoubleTest
             $double->finalMethod();
         })
             ->because('a class double MUST keep its original final methods')
-            ->not()
-            ->toThrow(\Throwable::class);
+            ->not()->toThrow(\Throwable::class);
     }
 }

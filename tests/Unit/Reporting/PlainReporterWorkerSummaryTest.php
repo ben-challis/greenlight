@@ -38,8 +38,7 @@ final class PlainReporterWorkerSummaryTest
 
         expect($output->buffer())
             ->because('an in-process run MUST NOT report a spawned worker')
-            ->not()
-            ->toContain('Workers:');
+            ->not()->toContain('Workers:');
     }
 
 }

@@ -20,8 +20,7 @@ final readonly class PluginLifecycleTest
 
         expect(PluginLifecycle::context())
             ->because('each plugin test MUST receive independent lifecycle state')
-            ->not()
-            ->toBe($context);
+            ->not()->toBe($context);
         expect($context->id->equals($result->id))
             ->because('the shared context and result MUST identify the same test')
             ->toBeTrue();

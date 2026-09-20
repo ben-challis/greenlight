@@ -111,8 +111,7 @@ final class CompletionScriptsTest
             expect($scripts->render($shell))
                 ->because('fish MUST register an optional-value flag without requiring its argument')
                 ->toContain("complete -c greenlight -l bail\n")
-                ->not()
-                ->toContain('complete -c greenlight -l bail -r');
+                ->not()->toContain('complete -c greenlight -l bail -r');
 
             return;
         }

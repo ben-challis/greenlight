@@ -40,8 +40,7 @@ final readonly class ApplicationStreamOutputTest
         $partial = ErrorTrap::run(static fn() => \fopen(self::SCHEME . '://partial', 'wb'));
         expect($partial)
             ->because('Greenlight MUST open the partial-write CLI test stream.')
-            ->not()
-            ->toBeFalse();
+            ->not()->toBeFalse();
         $this->cleanup->defer(static fn(): bool => \fclose($partial));
 
         $other = MemoryStream::open();

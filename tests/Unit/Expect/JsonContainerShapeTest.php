@@ -43,13 +43,10 @@ final class JsonContainerShapeTest
     {
         expect('{"\u0000name":{}}')
             ->toMatchJson('{"\u0000name":{}}')
-            ->not()
-            ->toMatchJson('{"\u0000name":[]}');
+            ->not()->toMatchJson('{"\u0000name":[]}');
         expect('{"\u0000name":1}')
-            ->not()
-            ->toMatchJson('{"name":1}')
-            ->not()
-            ->toMatchJson('{"_\u0000name":1}');
+            ->not()->toMatchJson('{"name":1}')
+            ->not()->toMatchJson('{"_\u0000name":1}');
     }
 
     #[Test]

@@ -136,8 +136,7 @@ final readonly class ExcludeSelectionTest
             ->toBe(0);
         expect($result->output())
             ->because('a restricted exclusion prefix MUST not leak engine diagnostics')
-            ->not()
-            ->toContain('open_basedir restriction in effect');
+            ->not()->toContain('open_basedir restriction in effect');
     }
 
     #[Test]
@@ -190,8 +189,7 @@ final readonly class ExcludeSelectionTest
             ->because('the discovery failure remains the command error')
             ->toContain('Discovery directory')
             ->toContain('missing-tests')
-            ->not()
-            ->toContain('did not match a discovered test file');
+            ->not()->toContain('did not match a discovered test file');
     }
 
     #[Test]
@@ -203,8 +201,7 @@ final readonly class ExcludeSelectionTest
         expect($result->exitCode)->because('exclude path does not warn when the prefix matches a test file')->toBe(0);
         expect($result->output())
             ->because('exclude path does not warn when the prefix matches a test file')
-            ->not()
-            ->toContain('did not match a discovered test file');
+            ->not()->toContain('did not match a discovered test file');
     }
 
     /**

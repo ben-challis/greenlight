@@ -140,8 +140,7 @@ final readonly class TemporalExpectationTest
                 })->returnValue()->eventually()
                     ->pollEvery(0.010)
                     ->within(0.100)
-                    ->not()
-                    ->toBe('busy');
+                    ->not()->toBe('busy');
             },
         );
 

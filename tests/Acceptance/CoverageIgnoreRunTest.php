@@ -41,8 +41,7 @@ final readonly class CoverageIgnoreRunTest
 
         expect($gadget)
             ->because('The coverage export MUST contain CoverageIgnoreLib/Gadget.php.')
-            ->not()
-            ->toBeNull();
+            ->not()->toBeNull();
         expect($gadget->uncoveredLines)->toBe([]);
         expect($gadget->coveredLines)->not()->toHaveCount(0);
     }

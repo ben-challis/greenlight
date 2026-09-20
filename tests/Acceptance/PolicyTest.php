@@ -59,10 +59,8 @@ final readonly class PolicyTest
             ->toContain('Risky tests: 1')
             ->toContain('These tests passed without a verified expectation.')
             ->toContain('RiskyProbeTest::assertsNothing')
-            ->not()
-            ->toContain('optedOut')
-            ->not()
-            ->toContain('mocksOnly');
+            ->not()->toContain('optedOut')
+            ->not()->toContain('mocksOnly');
 
         // Only the mock verification adds to the count. Tests without an
         // expectation add nothing.

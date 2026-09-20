@@ -104,10 +104,8 @@ final readonly class TestManifestTest
         expect($parallel['allowParallel'] ?? null)->toBeTrue();
         expect($first->stdout)
             ->because('the manifest MUST omit private skip metadata')
-            ->not()
-            ->toContain('skip-secret')
-            ->not()
-            ->toContain('condition-secret');
+            ->not()->toContain('skip-secret')
+            ->not()->toContain('condition-secret');
 
         $validator = new Validator();
         $schemaDocument = \json_decode($first->stdout, flags: \JSON_THROW_ON_ERROR);

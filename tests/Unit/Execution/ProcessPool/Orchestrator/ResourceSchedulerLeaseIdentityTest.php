@@ -31,8 +31,7 @@ final readonly class ResourceSchedulerLeaseIdentityTest
 
         expect()->calling(static fn() => $scheduler->release($lease))
             ->because('rejecting a forged lease MUST preserve the real lease')
-            ->not()
-            ->toThrow(\Throwable::class);
+            ->not()->toThrow(\Throwable::class);
 
         expect(SchedulingFixture::assignedLease($scheduler)->unit)
             ->because('the real lease MUST release its resource slot')

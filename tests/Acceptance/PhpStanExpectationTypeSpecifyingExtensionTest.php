@@ -90,8 +90,7 @@ final readonly class PhpStanExpectationTypeSpecifyingExtensionTest
 
                 Expect::value($nullableString)
                     ->because('the value MUST not be null')
-                    ->not()
-                    ->toBeNull();
+                    ->not()->toBeNull();
                 acceptString($nullableString);
 
                 Expect::value($null)->toBeNull();
@@ -99,8 +98,7 @@ final readonly class PhpStanExpectationTypeSpecifyingExtensionTest
 
                 Expect::value($object)
                     ->because('the first type MUST be absent')
-                    ->not()
-                    ->toBeInstanceOf(NarrowedFirst::class);
+                    ->not()->toBeInstanceOf(NarrowedFirst::class);
                 acceptSecond($object);
 
                 Expect::value($string)->because('the value MUST be text')->toBeString();

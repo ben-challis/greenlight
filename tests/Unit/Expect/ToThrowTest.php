@@ -195,13 +195,11 @@ final class ToThrowTest
         $failure = new \DomainException('boom');
 
         expect()->calling(static fn() => throw new \DomainException('boom'))
-            ->not()
-            ->toThrow($failure);
+            ->not()->toThrow($failure);
 
         $detail = FailureProbe::detailOf(
             static fn() => expect()->calling(static fn() => throw $failure)
-                ->not()
-                ->toThrow($failure),
+                ->not()->toThrow($failure),
         );
 
         expect($detail->message)->toBe(
@@ -214,8 +212,7 @@ final class ToThrowTest
     public function notToThrowPassesWhenTheThrowableCallbackExpectationFails(): void
     {
         expect()->calling(static fn() => throw new \DomainException('boom'))
-            ->not()
-            ->toThrow(
+            ->not()->toThrow(
                 static function (\DomainException $error): void {
                     expect($error->getMessage())->toBe('different');
                 },
@@ -227,8 +224,7 @@ final class ToThrowTest
     {
         $detail = FailureProbe::detailOf(
             static fn() => expect()->calling(static fn() => throw new \DomainException('boom'))
-                ->not()
-                ->toThrow(
+                ->not()->toThrow(
                     static function (\DomainException $error): void {
                         expect($error->getMessage())->toBe('boom');
                     },

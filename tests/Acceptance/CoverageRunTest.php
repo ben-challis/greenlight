@@ -196,8 +196,7 @@ final readonly class CoverageRunTest
             ->because('the configured XML exporter MUST write a coverage document')
             ->toBe('coverage');
         expect($children)
-            ->not()
-            ->toBe([]);
+            ->not()->toBe([]);
     }
 
     /**
@@ -222,8 +221,7 @@ final readonly class CoverageRunTest
         expect($result->output())
             ->toContain('Greenlight could not write the coverage export to')
             ->toContain('coverage-out/coverage.json')
-            ->not()
-            ->toContain('json → coverage-out/coverage.json');
+            ->not()->toContain('json → coverage-out/coverage.json');
     }
 
     #[Test]
@@ -304,8 +302,7 @@ final readonly class CoverageRunTest
         expect($result->output())
             ->toContain('Greenlight could not write the coverage export to')
             ->toContain('coverage-out/coverage.unknown/index.html')
-            ->not()
-            ->toContain('html → coverage-out/coverage.unknown');
+            ->not()->toContain('html → coverage-out/coverage.unknown');
     }
 
     #[Test]
@@ -348,8 +345,7 @@ final readonly class CoverageRunTest
 
         expect($mathFile)
             ->because('Baseline export has no entry for CoverageLib/Math.php.')
-            ->not()
-            ->toBeNull();
+            ->not()->toBeNull();
 
         $before = $decoded['files'][$mathFile];
 

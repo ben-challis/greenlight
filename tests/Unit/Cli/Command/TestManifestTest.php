@@ -105,11 +105,8 @@ final class TestManifestTest
         $json = \json_encode($document, \JSON_THROW_ON_ERROR);
         expect($json)
             ->because('the public manifest MUST omit skip reasons and condition arguments')
-            ->not()
-            ->toContain('private skip reason')
-            ->not()
-            ->toContain('PRIVATE_NAME')
-            ->not()
-            ->toContain('private value');
+            ->not()->toContain('private skip reason')
+            ->not()->toContain('PRIVATE_NAME')
+            ->not()->toContain('private value');
     }
 }

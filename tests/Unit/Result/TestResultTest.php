@@ -95,8 +95,7 @@ final class TestResultTest
             ]);
         expect($restored->output)
             ->because('captured output and truncation state survive the wire')
-            ->not()
-            ->toBeNull();
+            ->not()->toBeNull();
         expect($restored->output->stdout)
             ->because('captured output and truncation state survive the wire')
             ->toBe("first line\nsecond line");

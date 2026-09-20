@@ -48,12 +48,10 @@ final readonly class ParallelShardRunTest
             ->toBe(0);
         expect($firstIds)
             ->because('parallel shard one MUST contain tests')
-            ->not()
-            ->toHaveCount(0);
+            ->not()->toHaveCount(0);
         expect($secondIds)
             ->because('parallel shard two MUST contain tests')
-            ->not()
-            ->toHaveCount(0);
+            ->not()->toHaveCount(0);
         expect(\array_intersect($firstIds, $secondIds))
             ->because('parallel shards MUST NOT execute the same test')
             ->toBe([]);

@@ -24,8 +24,7 @@ final readonly class CyclicEqualityTopologyTest
 
         expect($selfCycle)
             ->because('deep equality MUST preserve cyclic object relationships')
-            ->not()
-            ->toEqual($first);
+            ->not()->toEqual($first);
     }
 
     #[Test]
@@ -37,8 +36,7 @@ final readonly class CyclicEqualityTopologyTest
 
         expect($left)
             ->because('deep equality MUST distinguish sharing one object from duplicating its state')
-            ->not()
-            ->toEqual($right);
+            ->not()->toEqual($right);
     }
 
     #[Test]
@@ -50,7 +48,6 @@ final readonly class CyclicEqualityTopologyTest
 
         expect($left)
             ->because('deep equality MUST distinguish duplicating state from sharing one object')
-            ->not()
-            ->toEqual($right);
+            ->not()->toEqual($right);
     }
 }

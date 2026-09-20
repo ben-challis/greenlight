@@ -69,8 +69,7 @@ final class AttachmentReporterTest
             ->toBe(1);
         expect($output->buffer())
             ->because('reporters MUST NOT inline attachment content')
-            ->not()
-            ->toContain('secret response body');
+            ->not()->toContain('secret response body');
     }
 
     #[Test]

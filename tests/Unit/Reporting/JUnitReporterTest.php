@@ -180,12 +180,10 @@ final class JUnitReporterTest
 
         expect(SimpleXml::attributes($cases[0]))
             ->because('an unavailable test class MUST omit the optional source file')
-            ->not()
-            ->toHaveKey('file');
+            ->not()->toHaveKey('file');
         expect(SimpleXml::attributes($cases[1]))
             ->because('an unavailable test method MUST omit the optional source file')
-            ->not()
-            ->toHaveKey('file');
+            ->not()->toHaveKey('file');
     }
 
     #[Test]

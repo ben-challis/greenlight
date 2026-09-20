@@ -78,8 +78,7 @@ final class WorkerPluginRuntimeTest
         expect($mixedInstances)->toHaveCount(2);
         expect($mixedInstances[1])
             ->because('mixed-capability plugins MUST use a separate instance on each side')
-            ->not()
-            ->toBe($mixedInstances[0]);
+            ->not()->toBe($mixedInstances[0]);
         expect($sink->events)->toBe([$event]);
     }
 

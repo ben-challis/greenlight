@@ -84,8 +84,7 @@ final readonly class ApplicationReporterStreamTest
         expect($output)
             ->because('the ANSI flag uses color without cursor control')
             ->toContain("\x1b[32m")
-            ->not()
-            ->toContain("\x1b[0J");
+            ->not()->toContain("\x1b[0J");
         expect($errors)
             ->toBe('');
     }

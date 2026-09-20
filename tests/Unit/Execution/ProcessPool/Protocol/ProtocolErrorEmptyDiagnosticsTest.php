@@ -21,8 +21,7 @@ final class ProtocolErrorEmptyDiagnosticsTest
     {
         expect($error()->getMessage())
             ->because('an empty diagnostic stream MUST NOT add a misleading worker output section')
-            ->not()
-            ->toContain("\nWorker output:\n");
+            ->not()->toContain("\nWorker output:\n");
     }
 
     /**

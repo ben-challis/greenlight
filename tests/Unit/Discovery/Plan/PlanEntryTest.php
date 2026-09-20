@@ -35,8 +35,7 @@ final readonly class PlanEntryTest
             ->because('the plan wire payload MUST include data-set identity')
             ->toHaveKey('dataSetKey')
             ->because('the plan wire payload MUST not include a derived test ID')
-            ->not()
-            ->toHaveKey('id');
+            ->not()->toHaveKey('id');
         expect(PlanEntry::fromWire($payload)->id->equals($entry->id))
             ->because('the derived test ID MUST survive the plan wire')
             ->toBeTrue();

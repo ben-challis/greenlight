@@ -109,8 +109,7 @@ final class ProfileAggregatorTest
             ->toContain("    Resource capacity: 1.000s total\n")
             ->toContain("    No queued work: 0.200s total\n")
             ->toContain("  Retirement request to exit observed: 0.200s average (2 workers)\n")
-            ->not()
-            ->toContain('Boot latency:');
+            ->not()->toContain('Boot latency:');
     }
 
     #[Test]
@@ -236,8 +235,7 @@ final class ProfileAggregatorTest
             ->toContain('Workers: 2 requested, 2 spawned')
             ->because('an idle worker has no class statistics to report')
             ->toContain("\n  active        1  0.500s")
-            ->not()
-            ->toContain("\n  idle");
+            ->not()->toContain("\n  idle");
     }
 
     /**
@@ -259,8 +257,7 @@ final class ProfileAggregatorTest
             ->because('a missing worker period MUST NOT invent a utilization percentage')
             ->toContain("\n  Worker  Classes    Busy  Util\n")
             ->toContain($expectedRow . "\n")
-            ->not()
-            ->toContain('%');
+            ->not()->toContain('%');
     }
 
     /**

@@ -33,7 +33,6 @@ final readonly class HtmlExporterEmptySourceTest
         expect($page)
             ->because('an empty source MUST retain a valid empty source block')
             ->toContain("<pre>\n</pre>")
-            ->not()
-            ->toContain('<span class="cov"><span class="num">1</span></span>');
+            ->not()->toContain('<span class="cov"><span class="num">1</span></span>');
     }
 }
