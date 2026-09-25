@@ -790,16 +790,16 @@
         },
         {
             "name": "ergebnis/composer-normalize",
-            "version": "2.53.0",
+            "version": "2.54.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ergebnis/composer-normalize.git",
-                "reference": "f6592a43065f558322d2f1418f68a7bb8f009ed1"
+                "reference": "6a247926bc4e85b06bb12fa23d9593bc973be8d9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ergebnis/composer-normalize/zipball/f6592a43065f558322d2f1418f68a7bb8f009ed1",
-                "reference": "f6592a43065f558322d2f1418f68a7bb8f009ed1",
+                "url": "https://api.github.com/repos/ergebnis/composer-normalize/zipball/6a247926bc4e85b06bb12fa23d9593bc973be8d9",
+                "reference": "6a247926bc4e85b06bb12fa23d9593bc973be8d9",
                 "shasum": ""
             },
             "require": {
@@ -811,14 +811,14 @@
                 "ext-json": "*",
                 "justinrainbow/json-schema": "^5.2.12 || ^6.0.0",
                 "localheinz/diff": "^1.3.0",
-                "php": "~7.4.0 || ~8.0.0 || ~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0"
+                "php": "~7.4.0 || ~8.0.0 || ~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0 || ~8.6.0"
             },
             "require-dev": {
                 "composer/composer": "^2.10.3",
                 "ergebnis/license": "^2.7.0",
                 "ergebnis/php-cs-fixer-config": "^6.63.2",
                 "ergebnis/phpstan-rules": "^2.13.1",
-                "ergebnis/phpunit-slow-test-detector": "^2.24.0",
+                "ergebnis/phpunit-slow-test-detector": "^2.25.0",
                 "ergebnis/rector-rules": "^1.18.3",
                 "fakerphp/faker": "^1.24.1",
                 "phpstan/extension-installer": "^1.4.3",
@@ -827,14 +827,14 @@
                 "phpstan/phpstan-phpunit": "^2.0.18",
                 "phpstan/phpstan-strict-rules": "^2.0.12",
                 "phpunit/phpunit": "^9.6.33",
-                "rector/rector": "^2.6.6",
+                "rector/rector": "^2.6.7",
                 "symfony/filesystem": "^5.4.41"
             },
             "type": "composer-plugin",
             "extra": {
                 "class": "Ergebnis\\Composer\\Normalize\\NormalizePlugin",
                 "branch-alias": {
-                    "dev-main": "2.53-dev"
+                    "dev-main": "2.54-dev"
                 },
                 "plugin-optional": true,
                 "composer-normalize": {
@@ -871,7 +871,7 @@
                 "security": "https://github.com/ergebnis/composer-normalize/blob/main/.github/SECURITY.md",
                 "source": "https://github.com/ergebnis/composer-normalize"
             },
-            "time": "2026-09-09T20:41:58+00:00"
+            "time": "2026-09-24T19:41:19+00:00"
         },
         {
             "name": "ergebnis/json",
@@ -1965,16 +1965,16 @@
         },
         {
             "name": "justinrainbow/json-schema",
-            "version": "6.12.0",
+            "version": "6.13.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jsonrainbow/json-schema.git",
-                "reference": "8ef236a1a37df364b518b7411a4b5bb95b040d79"
+                "reference": "30de5e9b3fa04253af272a7d932a38cd026c311b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jsonrainbow/json-schema/zipball/8ef236a1a37df364b518b7411a4b5bb95b040d79",
-                "reference": "8ef236a1a37df364b518b7411a4b5bb95b040d79",
+                "url": "https://api.github.com/repos/jsonrainbow/json-schema/zipball/30de5e9b3fa04253af272a7d932a38cd026c311b",
+                "reference": "30de5e9b3fa04253af272a7d932a38cd026c311b",
                 "shasum": ""
             },
             "require": {
@@ -2024,9 +2024,9 @@
             ],
             "support": {
                 "issues": "https://github.com/jsonrainbow/json-schema/issues",
-                "source": "https://github.com/jsonrainbow/json-schema/tree/6.12.0"
+                "source": "https://github.com/jsonrainbow/json-schema/tree/6.13.0"
             },
-            "time": "2026-09-04T12:54:20+00:00"
+            "time": "2026-09-23T19:46:42+00:00"
         },
         {
             "name": "laminas/laminas-diactoros",
@@ -2383,20 +2383,20 @@
         },
         {
             "name": "laravel/framework",
-            "version": "v13.32.0",
+            "version": "v13.33.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/framework.git",
-                "reference": "cdd8b33c246719acdd118c705ce8c7ab5ef48a96"
+                "reference": "91188a17ceaa3dbace6e8a5f7abd0d042e466359"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/framework/zipball/cdd8b33c246719acdd118c705ce8c7ab5ef48a96",
-                "reference": "cdd8b33c246719acdd118c705ce8c7ab5ef48a96",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/91188a17ceaa3dbace6e8a5f7abd0d042e466359",
+                "reference": "91188a17ceaa3dbace6e8a5f7abd0d042e466359",
                 "shasum": ""
             },
             "require": {
-                "brick/math": "^0.14.2 || ^0.15 || ^0.16 || ^0.17 || ^0.18 || ^0.19",
+                "brick/math": "^0.14.2 || ^0.15 || ^0.16 || ^0.17 || ^0.18 || ^0.19 || ^0.20 || ^1.0",
                 "composer-runtime-api": "^2.2",
                 "doctrine/inflector": "^2.0.5",
                 "dragonmantank/cron-expression": "^3.4",
@@ -2610,7 +2610,7 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2026-09-15T14:55:30+00:00"
+            "time": "2026-09-22T14:12:33+00:00"
         },
         {
             "name": "laravel/prompts",
@@ -4310,16 +4310,16 @@
         },
         {
             "name": "php-cs-fixer/shim",
-            "version": "v3.95.26",
+            "version": "v3.95.27",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHP-CS-Fixer/shim.git",
-                "reference": "4ba5a03ada8949d9173dccf5c92e185e1bb0572d"
+                "reference": "cba177ed1173161a9e46d46c7bf3cf614ce66277"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHP-CS-Fixer/shim/zipball/4ba5a03ada8949d9173dccf5c92e185e1bb0572d",
-                "reference": "4ba5a03ada8949d9173dccf5c92e185e1bb0572d",
+                "url": "https://api.github.com/repos/PHP-CS-Fixer/shim/zipball/cba177ed1173161a9e46d46c7bf3cf614ce66277",
+                "reference": "cba177ed1173161a9e46d46c7bf3cf614ce66277",
                 "shasum": ""
             },
             "require": {
@@ -4356,7 +4356,7 @@
             "description": "A tool to automatically fix PHP code style",
             "support": {
                 "issues": "https://github.com/PHP-CS-Fixer/shim/issues",
-                "source": "https://github.com/PHP-CS-Fixer/shim/tree/v3.95.26"
+                "source": "https://github.com/PHP-CS-Fixer/shim/tree/v3.95.27"
             },
             "funding": [
                 {
@@ -4364,7 +4364,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-19T19:04:59+00:00"
+            "time": "2026-09-22T09:55:22+00:00"
         },
         {
             "name": "php-parallel-lint/php-parallel-lint",
@@ -4715,11 +4715,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.2.14",
+            "version": "2.2.16",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/9c672e7a8e791dfc3d30e55f683e73fc0b63a3ac",
-                "reference": "9c672e7a8e791dfc3d30e55f683e73fc0b63a3ac",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/46a6d9060e5a7763adfcc21ebcb8b504ebdbcb92",
+                "reference": "46a6d9060e5a7763adfcc21ebcb8b504ebdbcb92",
                 "shasum": ""
             },
             "require": {
@@ -4775,7 +4775,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-12T21:39:33+00:00"
+            "time": "2026-09-25T09:31:51+00:00"
         },
         {
             "name": "phpstan/phpstan-deprecation-rules",
