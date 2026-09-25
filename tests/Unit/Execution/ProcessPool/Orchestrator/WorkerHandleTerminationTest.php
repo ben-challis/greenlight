@@ -66,9 +66,9 @@ final readonly class WorkerHandleTerminationTest
             expect($channel->isEof())
                 ->because('worker termination MUST close its protocol channel')
                 ->toBeTrue();
-            expect(\is_resource($process))
+            expect(\get_resource_type($process))
                 ->because('worker termination MUST close its process handle')
-                ->toBeFalse();
+                ->toBe('Unknown');
         } finally {
             $resources = $pipes;
 

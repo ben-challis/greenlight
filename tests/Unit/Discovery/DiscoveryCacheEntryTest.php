@@ -94,36 +94,34 @@ final class DiscoveryCacheEntryTest
             ],
         ];
 
-        yield 'invalid top-level field' => [[...$valid, 'mtime' => '100']];
+        yield 'invalid top-level field' => [\array_replace($valid, ['mtime' => '100'])];
 
-        yield 'invalid content hash' => [[...$valid, 'contentHash' => \str_repeat('g', 40)]];
+        yield 'invalid content hash' => [\array_replace($valid, ['contentHash' => \str_repeat('g', 40)])];
 
-        yield 'content hash with trailing newline' => [[
-            ...$valid,
+        yield 'content hash with trailing newline' => [\array_replace($valid, [
             'contentHash' => \str_repeat('a', 40) . "\n",
-        ]];
+        ])];
 
-        yield 'entry is not a map' => [[...$valid, 'entries' => ['not a map']]];
+        yield 'entry is not a map' => [\array_replace($valid, ['entries' => ['not a map']])];
 
-        yield 'entries are not a list' => [[...$valid, 'entries' => [
+        yield 'entries are not a list' => [\array_replace($valid, ['entries' => [
             'first' => ['class' => 'Example\\Test'],
-        ]]];
+        ]])];
 
-        yield 'entry key is not a string' => [[...$valid, 'entries' => [[0 => 'value']]]];
+        yield 'entry key is not a string' => [\array_replace($valid, ['entries' => [[0 => 'value']]])];
 
-        yield 'dependencies are not a map' => [[...$valid, 'dependencies' => 'not a map']];
+        yield 'dependencies are not a map' => [\array_replace($valid, ['dependencies' => 'not a map'])];
 
-        yield 'dependency path is not a string' => [[...$valid, 'dependencies' => [
+        yield 'dependency path is not a string' => [\array_replace($valid, ['dependencies' => [
             0 => ['mtime' => 300, 'size' => 400],
             '/project/tests/Provider.php' => ['mtime' => 300, 'size' => 400],
-        ]]];
+        ]])];
 
-        yield 'dependency path is empty' => [[...$valid, 'dependencies' => ['' => ['mtime' => 300, 'size' => 400]]]];
+        yield 'dependency path is empty' => [\array_replace($valid, ['dependencies' => ['' => ['mtime' => 300, 'size' => 400]]])];
 
-        yield 'dependency stat is invalid' => [[...$valid, 'dependencies' => ['/project/tests/Provider.php' => ['mtime' => '300', 'size' => 400]]]];
+        yield 'dependency stat is invalid' => [\array_replace($valid, ['dependencies' => ['/project/tests/Provider.php' => ['mtime' => '300', 'size' => 400]]])];
 
-        yield 'dependency content hash is invalid' => [[
-            ...$valid,
+        yield 'dependency content hash is invalid' => [\array_replace($valid, [
             'dependencies' => [
                 '/project/tests/Provider.php' => [
                     'mtime' => 300,
@@ -131,10 +129,9 @@ final class DiscoveryCacheEntryTest
                     'contentHash' => \str_repeat('g', 40),
                 ],
             ],
-        ]];
+        ])];
 
-        yield 'dependency content hash has trailing newline' => [[
-            ...$valid,
+        yield 'dependency content hash has trailing newline' => [\array_replace($valid, [
             'dependencies' => [
                 '/project/tests/Provider.php' => [
                     'mtime' => 300,
@@ -142,6 +139,6 @@ final class DiscoveryCacheEntryTest
                     'contentHash' => \str_repeat('b', 40) . "\n",
                 ],
             ],
-        ]];
+        ])];
     }
 }
