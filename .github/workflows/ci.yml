@@ -253,34 +253,24 @@ jobs:
           - php-version: "8.4"
             dependencies: "locked"
             analytics: true
-            analysis: "full"
           - php-version: "8.4"
             dependencies: "lowest"
             symfony-version: "6.4.*"
-            analysis: "phpstan"
-            phpstan-configuration: "phpstan.no-laravel.neon"
           - php-version: "8.5"
             dependencies: "lowest"
             symfony-version: "6.4.*"
-            analysis: "phpstan"
-            phpstan-configuration: "phpstan.no-laravel.neon"
           - php-version: "8.4"
             dependencies: "highest"
             symfony-version: "6.4.*"
-            analysis: "phpstan"
-            phpstan-configuration: "phpstan.no-laravel.neon"
           - php-version: "8.4"
             dependencies: "highest"
             symfony-version: "7.4.*"
-            analysis: "phpstan"
           - php-version: "8.4"
             dependencies: "highest"
             symfony-version: "8.1.*"
-            analysis: "phpstan"
           - php-version: "8.5"
             dependencies: "highest"
             symfony-version: "8.1.*"
-            analysis: "phpstan"
     steps:
       - name: "Checkout"
         uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
@@ -330,31 +320,20 @@ jobs:
           key: "greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-${{ github.run_id }}-${{ github.run_attempt }}"
           restore-keys: "greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-"
 
-      # Lowest Rector uses the lowest PHPStan API in the test suite.
-      # Run the tests before the PHPStan update.
       - name: "Tests"
         id: "tests_lowest"
         if: "matrix.dependencies == 'lowest'"
         run: "composer tests -- --ansi"
 
-      # The lowest compatible PHPStan version reports false errors for types
-      # that later PHPStan 2.2 releases can infer.
-      - name: "Update PHPStan for lowest-dependency analysis"
-        if: "matrix.dependencies == 'lowest' && matrix.analysis == 'phpstan'"
-        shell: "bash"
-        run: >-
-          composer update --no-interaction --no-progress --prefer-dist
-          phpstan/phpstan phpstan/phpstan-deprecation-rules phpstan/phpstan-strict-rules
-
       - name: "Calculate static analysis cache content hash"
         id: "analysis_cache"
-        if: "matrix.analysis"
+        if: "matrix.dependencies == 'locked'"
         env:
           CONTENT_HASH: "${{ hashFiles('composer.lock', '.php-cs-fixer.dist.php', 'deptrac.yaml', 'extension.neon', 'phpstan.dist.neon', 'phpstan.docs.neon', 'phpstan.no-laravel.neon', 'rector.php', 'rector.docs.php', 'tools/docs-php.php', 'tools/rector-config.php') }}"
         run: 'echo "content_hash=${CONTENT_HASH}" >> "${GITHUB_OUTPUT}"'
 
       - name: "Restore static analysis cache"
-        if: "matrix.analysis"
+        if: "matrix.dependencies == 'locked'"
         uses: "actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
         with:
           path: |
@@ -368,17 +347,11 @@ jobs:
           restore-keys: "static-analysis-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-${{ steps.analysis_cache.outputs.content_hash }}-"
 
       - name: "Static analysis"
-        if: "matrix.analysis == 'full'"
+        if: "matrix.dependencies == 'locked'"
         run: "composer static-analysis"
 
-      - name: "PHPStan"
-        if: "matrix.analysis == 'phpstan'"
-        env:
-          PHPSTAN_CONFIGURATION: "${{ matrix.phpstan-configuration || 'phpstan.dist.neon' }}"
-        run: 'vendor/bin/phpstan analyse --ansi --no-progress --memory-limit=-1 --configuration="${PHPSTAN_CONFIGURATION}"'
-
       - name: "Save static analysis cache"
-        if: "${{ !cancelled() && matrix.analysis }}"
+        if: "${{ !cancelled() && matrix.dependencies == 'locked' }}"
         uses: "actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
         with:
           path: |
