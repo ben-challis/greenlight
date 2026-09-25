@@ -61,9 +61,9 @@ final readonly class EnvironmentBackupTest
             $backup->restore();
 
             expect(\getenv($name))->toBeFalse();
-            expect(\array_key_exists($name, $_ENV))->toBeTrue();
+            expect($_ENV)->toHaveKey($name);
             expect($_ENV[$name])->toBeNull();
-            expect(\array_key_exists($name, $_SERVER))->toBeTrue();
+            expect($_SERVER)->toHaveKey($name);
             expect($_SERVER[$name])->toBeFalse();
         } finally {
             \putenv($name);
