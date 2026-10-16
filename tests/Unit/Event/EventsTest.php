@@ -190,8 +190,7 @@ final class EventsTest
     {
         $event = new RunStarted('run-1', 1, 1, 123.5);
 
-        // @phpstan-ignore property.notFound (PHP 8.3 has no interface properties. Each event class declares occurredAt.), return.type (The property read has no type.)
-        $readThroughInterface = static fn(Event $e): float => $e->occurredAt;
+        $readThroughInterface = static fn(Event $e): float => $e->occurredAt();
 
         expect($readThroughInterface($event))->because('events expose occurred at through the interface')->toBe(123.5);
     }

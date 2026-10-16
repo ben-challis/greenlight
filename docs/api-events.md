@@ -18,12 +18,12 @@ interface Event
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/Event.php#L8)
 
-### `$occurredAt`
+### `occurredAt()`
 
 Returns a Unix timestamp with microsecond precision.
 
 ```php
-public float $occurredAt { get; }
+public function occurredAt(): float;
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/Event.php#L13)
@@ -100,6 +100,14 @@ PHPDoc:
 - `@throws \InvalidArgumentException`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L22)
+
+### `occurredAt()`
+
+```php
+public function occurredAt(): float
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunFinished.php#L49)
 
 ## `RunStarted`
 
@@ -181,6 +189,14 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunStarted.php#L29)
 
+### `occurredAt()`
+
+```php
+public function occurredAt(): float
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/RunStarted.php#L64)
+
 ## `TestClassFinished`
 
 Namespace: `Greenlight\Event`
@@ -235,6 +251,14 @@ PHPDoc:
 - `@throws \InvalidArgumentException`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassFinished.php#L22)
+
+### `occurredAt()`
+
+```php
+public function occurredAt(): float
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassFinished.php#L39)
 
 ## `TestClassStarted`
 
@@ -300,6 +324,14 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassStarted.php#L22)
 
+### `occurredAt()`
+
+```php
+public function occurredAt(): float
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestClassStarted.php#L40)
+
 ## `TestFinished`
 
 Namespace: `Greenlight\Event`
@@ -338,6 +370,14 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L15)
 
+### `occurredAt()`
+
+```php
+public function occurredAt(): float
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestFinished.php#L23)
+
 ## `TestStarted`
 
 Namespace: `Greenlight\Event`
@@ -375,6 +415,14 @@ PHPDoc:
 - `@throws \InvalidArgumentException if $occurredAt is not finite`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L15)
+
+### `occurredAt()`
+
+```php
+public function occurredAt(): float
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/TestStarted.php#L23)
 
 ## `WorkerSpawned`
 
@@ -433,6 +481,14 @@ PHPDoc:
 - `@throws \InvalidArgumentException`
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerSpawned.php#L24)
+
+### `occurredAt()`
+
+```php
+public function occurredAt(): float
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/WorkerSpawned.php#L46)
 
 ## `WorkerTiming`
 

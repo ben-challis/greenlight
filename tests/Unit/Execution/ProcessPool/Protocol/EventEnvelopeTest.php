@@ -30,7 +30,11 @@ final class EventEnvelopeTest
     public function anUnmappedEventClassIsAProtocolError(): void
     {
         $event = new class implements Event, Fake {
-            public float $occurredAt = 1.0;
+            #[\Override]
+            public function occurredAt(): float
+            {
+                return 1.0;
+            }
         };
 
         expect()->calling(static fn(): array => (new EventEnvelope($event))->toWire())

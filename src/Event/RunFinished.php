@@ -45,6 +45,12 @@ final readonly class RunFinished implements WireEvent
         $this->runId = $runId;
     }
 
+    #[\Override]
+    public function occurredAt(): float
+    {
+        return $this->occurredAt;
+    }
+
     /** @internal */
     #[\Override]
     public function toWire(): array

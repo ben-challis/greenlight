@@ -47,8 +47,7 @@ final class EventCodecTest
             $decoded = EventCodec::fromTagged(EventCodec::toTagged($event));
 
             expect($decoded::class)->toBe($event::class);
-            // @phpstan-ignore property.notFound (PHP 8.3 has no interface properties. Each event class declares occurredAt.), property.notFound (PHP 8.3 has no interface properties. Each event class declares occurredAt.), argument.type (The property read has no type.)
-            expect($decoded->occurredAt)->toBe($event->occurredAt);
+            expect($decoded->occurredAt())->toBe($event->occurredAt());
         }
     }
 
@@ -71,8 +70,7 @@ final class EventCodecTest
         ));
 
         expect($event::class)->toBe(RunStarted::class);
-        // @phpstan-ignore property.notFound (PHP 8.3 has no interface properties. Each event class declares occurredAt.), argument.type (The property read has no type.)
-        expect($event->occurredAt)->toBe(1.0);
+        expect($event->occurredAt())->toBe(1.0);
     }
 
     #[Test]
@@ -146,7 +144,11 @@ final class EventCodecTest
     public function unmappedEventsAreRejectedByTheCodec(): void
     {
         $event = new class implements Event, Fake {
-            public float $occurredAt = 1.0;
+            #[\Override]
+            public function occurredAt(): float
+            {
+                return 1.0;
+            }
         };
 
         expect()->calling(static fn(): array => EventCodec::toTagged($event))
@@ -160,7 +162,11 @@ final class EventCodecTest
     public function unmappedWireEventsAreRejectedByTheCodec(): void
     {
         $event = new class implements WireEvent, Fake {
-            public float $occurredAt = 1.0;
+            #[\Override]
+            public function occurredAt(): float
+            {
+                return 1.0;
+            }
 
             #[\Override]
             public function toWire(): array
