@@ -116,12 +116,12 @@ final class ProtocolTest
             'data set one',
         );
 
-        $assign = Assign::fromWire(new Assign(
+        $assign = Assign::fromWire((new Assign(
             new ExecutionPlan([$entry], 42),
             artifactSession: new ArtifactSession('/tmp/staging', 'build/artifacts/run-1'),
             artifactConfiguration: new ArtifactConfiguration(maxRunAttachments: 123),
             stopAfterFailures: 2,
-        )->toWire());
+        ))->toWire());
 
         expect($assign->slice->seed)->because('assign carries the plan intact')->toBe(42);
         expect($assign->artifactSession?->stagingDirectory)->toBe('/tmp/staging');
@@ -136,10 +136,10 @@ final class ProtocolTest
     #[Test]
     public function assignDropsOnlyEmptyCoverageIncludePathsFromTheWire(): void
     {
-        $payload = new Assign(
+        $payload = (new Assign(
             new ExecutionPlan([]),
             coverageInclude: ['/app/src'],
-        )->toWire();
+        ))->toWire();
         $payload['coverageInclude'] = ['', '0', '/app/src', ''];
         $assign = Assign::fromWire($payload);
 
@@ -151,7 +151,7 @@ final class ProtocolTest
     #[Test]
     public function legacyAssignmentPayloadsDefaultArtifactFields(): void
     {
-        $payload = new Assign(new ExecutionPlan([]))->toWire();
+        $payload = (new Assign(new ExecutionPlan([])))->toWire();
         unset($payload['artifactSession'], $payload['artifactConfiguration'], $payload['stopAfterFailures']);
 
         $assign = Assign::fromWire($payload);
@@ -170,7 +170,7 @@ final class ProtocolTest
     #[Test]
     public function legacyBootstrapPayloadsDefaultTheResultPolicy(): void
     {
-        $payload = new Bootstrap(1, null, new IntegrationResources())->toWire();
+        $payload = (new Bootstrap(1, null, new IntegrationResources()))->toWire();
         unset($payload['policy']);
 
         expect(Bootstrap::fromWire($payload)->policy)

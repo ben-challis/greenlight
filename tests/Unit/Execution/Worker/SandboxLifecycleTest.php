@@ -33,10 +33,10 @@ final readonly class SandboxLifecycleTest
         }
 
         $directory = FixturePath::get('Lifecycle/HarnessSandboxes');
-        $plan = new TestDiscoverer()->discover([$directory]);
+        $plan = (new TestDiscoverer())->discover([$directory]);
         $sink = new CollectingEventSink();
 
-        $outcome = new Worker(new StandardHarnessPlugin()->services())
+        $outcome = (new Worker((new StandardHarnessPlugin())->services()))
             ->run($plan, $sink);
 
         $tempPath = null;

@@ -17,12 +17,12 @@ final readonly class TestResultNullExpectationsWireTest
     #[Test]
     public function explicitNullExpectationCountIsRejected(): void
     {
-        $payload = new TestResult(
+        $payload = (new TestResult(
             new TestId('App\ExampleTest', 'passes'),
             Outcome::Passed,
             0.1,
             0,
-        )->toWire();
+        ))->toWire();
         $payload['expectations'] = null;
 
         expect()->calling(static fn(): TestResult => TestResult::fromWire($payload))

@@ -18,7 +18,7 @@ final readonly class StreamWrappersTest
     public function registrationRejectsAnEmptyScheme(): void
     {
         expect()->calling(static function (): void {
-            new StreamWrappers()->register('', UnselectableStream::class); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+            (new StreamWrappers())->register('', UnselectableStream::class); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         })->toThrow(
             \InvalidArgumentException::class,
             message: 'Stream wrapper scheme cannot be empty.',
@@ -76,7 +76,7 @@ final readonly class StreamWrappersTest
 
         try {
             expect()->calling(static function (): void {
-                new StreamWrappers()->register(
+                (new StreamWrappers())->register(
                     'greenlight-sandbox-autoload',
                     AutoloadableStream::class,
                 );

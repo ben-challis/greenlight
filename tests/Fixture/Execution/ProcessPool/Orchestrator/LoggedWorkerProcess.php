@@ -30,7 +30,7 @@ final readonly class LoggedWorkerProcess implements Fake
             self::record('exit-end', $workerId);
         });
 
-        return ExitCode::fromCommandResult(new WorkerProcess()->run($address, $workerId, $token))->value();
+        return ExitCode::fromCommandResult((new WorkerProcess())->run($address, $workerId, $token))->value();
     }
 
     private static function record(string $phase, string $workerId): void

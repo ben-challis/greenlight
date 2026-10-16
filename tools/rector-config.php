@@ -36,6 +36,6 @@ function greenlightRectorConfig(
             __DIR__ . '/../tests/Fixture',
             StringClassNameToClassConstantRector::class => [__DIR__ . '/../src/Rector'],
         ])
-        ->withPhpSets(php84: true)
+        ->withPhpSets(php83: true)
         ->withPreparedSets(deadCode: true, codeQuality: true);
 }

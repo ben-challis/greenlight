@@ -37,7 +37,7 @@ final readonly class JsonExporterCompatibilityTest
             JSON);
 
         $exported = \json_decode(
-            new JsonExporter()->export($map)[JsonExporter::FILE_NAME],
+            (new JsonExporter())->export($map)[JsonExporter::FILE_NAME],
             true,
             512,
             \JSON_THROW_ON_ERROR,

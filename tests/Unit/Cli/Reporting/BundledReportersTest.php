@@ -24,12 +24,12 @@ final readonly class BundledReportersTest
     #[Test]
     public function suppliesEachBundledReporterThroughThePluginCapability(): void
     {
-        $definitions = new BundledReporters(
+        $definitions = (new BundledReporters(
             new TerminalCapabilities(false, false),
             new RunHeader('1.0.0'),
             new ParsedArguments(null, []),
             24,
-        )->reporters();
+        ))->reporters();
         $output = new BufferOutput();
         $reporters = [];
 

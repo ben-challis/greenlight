@@ -59,6 +59,6 @@ final class ResultSummaryWireTest
      */
     private function payload(): array
     {
-        return new ResultSummary(passed: 1, failed: 2, errored: 3, skipped: 4)->toWire();
+        return (new ResultSummary(passed: 1, failed: 2, errored: 3, skipped: 4))->toWire();
     }
 }

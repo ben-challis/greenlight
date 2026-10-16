@@ -13,6 +13,7 @@ use Greenlight\Expect\PendingConsistentlyCall;
 use Greenlight\Expect\PendingEventually;
 use Greenlight\Expect\PendingEventuallyCall;
 use Greenlight\Expect\TemporalExpectation;
+use Greenlight\Internal\Php\Arrays;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\MethodCall;
@@ -191,9 +192,9 @@ final class FloatArgumentRule implements Rule
      */
     private function supports(Type $receiver, array $constraint): bool
     {
-        return \array_any(
+        return Arrays::any(
             $constraint['receivers'],
-            static fn(string $class): bool => new ObjectType($class)->isSuperTypeOf($receiver)->yes(),
+            static fn(string $class): bool => (new ObjectType($class))->isSuperTypeOf($receiver)->yes(),
         );
     }
 

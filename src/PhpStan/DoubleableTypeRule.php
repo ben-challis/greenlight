@@ -39,7 +39,7 @@ final readonly class DoubleableTypeRule implements Rule
             return [];
         }
 
-        if (!new ObjectType(Doubles::class)->isSuperTypeOf($scope->getType($node->var))->yes()) {
+        if (!(new ObjectType(Doubles::class))->isSuperTypeOf($scope->getType($node->var))->yes()) {
             return [];
         }
 

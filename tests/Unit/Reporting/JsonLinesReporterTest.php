@@ -70,6 +70,7 @@ final class JsonLinesReporterTest
             $restored = EventCodec::decodeJsonLine($line);
 
             expect($restored::class)->toBe($events[$index]::class);
+            // @phpstan-ignore property.notFound (PHP 8.3 has no interface properties. Each event class declares occurredAt.), property.notFound (PHP 8.3 has no interface properties. Each event class declares occurredAt.), argument.type (The property read has no type.)
             expect($restored->occurredAt)->toBe($events[$index]->occurredAt);
         }
     }

@@ -145,7 +145,7 @@ final readonly class WorkerProcess
 
                 $pluginDefinitions = $message->configFile === null
                     ? []
-                    : new ConfigLoader()->loadFile($message->configFile)->build()->execution->plugins;
+                    : (new ConfigLoader())->loadFile($message->configFile)->build()->execution->plugins;
                 $bootstrap = new WorkerBootstrapContext(
                     $workerId,
                     new TestChannel($message->channel),
@@ -260,13 +260,13 @@ final readonly class WorkerProcess
 
             $leakDetector = $message->detectLeaks ? new LeakDetector() : null;
 
-            $outcome = new Worker(
+            $outcome = (new Worker(
                 [],
                 $plugins,
                 $leakDetector,
                 $workerId,
                 $artifactStore,
-            )->run(
+            ))->run(
                 $message->slice,
                 new SocketEventSink($channel),
                 $message->stopAfterFailures,

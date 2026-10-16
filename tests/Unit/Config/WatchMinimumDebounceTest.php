@@ -14,7 +14,7 @@ final class WatchMinimumDebounceTest
     #[Test]
     public function oneMillisecondIsAValidDebounce(): void
     {
-        $configuration = new WatchBuilder()
+        $configuration = (new WatchBuilder())
             ->debounceMilliseconds(1)
             ->toConfiguration();
 

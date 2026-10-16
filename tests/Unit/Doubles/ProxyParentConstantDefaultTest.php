@@ -24,7 +24,7 @@ final readonly class ProxyParentConstantDefaultTest
         $double = $doubles->mock(ParentConstantDefault::class, static function (MockPlan $plan): void {
             $plan->expects('mode')->once()->andReturns('answered');
         });
-        $parameter = new \ReflectionMethod($double, 'mode')->getParameters()[0];
+        $parameter = (new \ReflectionMethod($double, 'mode'))->getParameters()[0];
 
         try {
             $answer = $double->mode();

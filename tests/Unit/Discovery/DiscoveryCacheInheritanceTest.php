@@ -38,7 +38,7 @@ final readonly class DiscoveryCacheInheritanceTest
                     require __DIR__ . "/" . substr($class, strlen($prefix)) . ".php";
                 }
             });
-            $plan = new \Greenlight\Discovery\TestDiscoverer()->discover(
+            $plan = (new \Greenlight\Discovery\TestDiscoverer())->discover(
                 [__DIR__],
                 cache: \Greenlight\Discovery\DiscoveryCache::forDirectories([__DIR__], __DIR__),
             );

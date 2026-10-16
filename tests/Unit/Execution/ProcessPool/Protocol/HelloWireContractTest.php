@@ -14,7 +14,7 @@ final readonly class HelloWireContractTest
     #[Test]
     public function workerIntroductionKeepsItsExactWireValues(): void
     {
-        expect(new Hello('worker-7', 'run-token', 321)->toWire())
+        expect((new Hello('worker-7', 'run-token', 321))->toWire())
             ->because('a worker introduction MUST keep its identity, token, and process ID')
             ->toBe([
                 'workerId' => 'worker-7',

@@ -35,7 +35,7 @@ final class CpuCores
     {
         if (\class_exists(CpuCoreCounter::class)) {
             try {
-                return ErrorTrap::run(static fn() => new CpuCoreCounter()->getCount());
+                return ErrorTrap::run(static fn() => (new CpuCoreCounter())->getCount());
             } catch (NumberOfCpuCoreNotFound) {
             }
         }

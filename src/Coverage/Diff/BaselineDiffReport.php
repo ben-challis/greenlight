@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Coverage\Diff;
 
+use Greenlight\Internal\Php\Arrays;
+
 /**
  * Contains changed, added, and removed files from a baseline comparison.
  * Unchanged files appear only when the caller supplies them directly.
@@ -35,6 +37,6 @@ final readonly class BaselineDiffReport
         if ($this->sharedCurrentPercentage < $this->sharedBaselinePercentage) {
             return true;
         }
-        return \array_any($this->fileDeltas, static fn(FileDelta $delta): bool => $delta->newlyUncoveredLines !== []);
+        return Arrays::any($this->fileDeltas, static fn(FileDelta $delta): bool => $delta->newlyUncoveredLines !== []);
     }
 }

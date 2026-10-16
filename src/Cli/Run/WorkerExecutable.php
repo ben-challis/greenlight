@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Run;
 
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
@@ -26,7 +27,7 @@ final class WorkerExecutable
     /** @return non-empty-string|false */
     public static function resolve(?string $binPath): string|false
     {
-        if ($binPath === null || !\array_all(self::REQUIRED_FUNCTIONS, static fn(string $function): bool => \function_exists($function))) {
+        if ($binPath === null || !Arrays::all(self::REQUIRED_FUNCTIONS, static fn(string $function): bool => \function_exists($function))) {
             return false;
         }
 

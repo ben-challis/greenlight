@@ -61,13 +61,13 @@ final readonly class WatchRunCommand
                 $classes[] = $class;
             }
 
-            $arguments = new Definition()->parser()->parse(\array_slice($argv, 1));
-            $configuration = new ConfigurationLoader()->load($arguments, $workingDirectory);
+            $arguments = (new Definition())->parser()->parse(\array_slice($argv, 1));
+            $configuration = (new ConfigurationLoader())->load($arguments, $workingDirectory);
             $resolved = $configuration->resolved;
             $storage = StorageLayout::resolve($resolved->storage, $workingDirectory, $resolved->suiteSelection->stateIdentity());
             $shutdown = new GracefulShutdown();
             SignalHandlers::install($shutdown);
-            new RunSession(
+            (new RunSession(
                 $this->console,
                 $arguments,
                 $configuration,
@@ -76,7 +76,7 @@ final readonly class WatchRunCommand
                 $shutdown,
                 $resolved->selection,
                 RunState::forFile($storage->runStateFile),
-            )->watchAttempt(new JsonLinesReporter(new StreamOutput($events)), $classes);
+            ))->watchAttempt(new JsonLinesReporter(new StreamOutput($events)), $classes);
 
             return CommandResult::success();
         } catch (ConfigFileError $failure) {

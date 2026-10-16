@@ -18,7 +18,7 @@ final class DriverSelectorTest
     #[Test]
     public function emptyCandidateListYieldsNoDriverAndAReason(): void
     {
-        $selection = new DriverSelector([])->select();
+        $selection = (new DriverSelector([]))->select();
 
         expect($selection->driver)->because('empty candidate list yields no driver and a reason')->toBeNull();
         expect($selection->reason)->toBe('No coverage driver is configured.');
@@ -27,7 +27,7 @@ final class DriverSelectorTest
     #[Test]
     public function anAvailableCandidateIsSelectedWithNoReason(): void
     {
-        $selection = new DriverSelector([UnavailableFakeDriver::class, AvailableFakeDriver::class])->select();
+        $selection = (new DriverSelector([UnavailableFakeDriver::class, AvailableFakeDriver::class]))->select();
 
         expect($selection->driver)->because('an available candidate is selected with no reason')->toBeInstanceOf(AvailableFakeDriver::class);
         expect($selection->reason)->toBeNull();
@@ -36,7 +36,7 @@ final class DriverSelectorTest
     #[Test]
     public function firstAvailableCandidateWins(): void
     {
-        $selection = new DriverSelector([RecordingFakeDriver::class, AvailableFakeDriver::class])->select();
+        $selection = (new DriverSelector([RecordingFakeDriver::class, AvailableFakeDriver::class]))->select();
 
         expect($selection->driver)
             ->because('candidate order determines coverage-driver preference')
@@ -48,7 +48,7 @@ final class DriverSelectorTest
     #[Test]
     public function noAvailableCandidateYieldsNoDriverAndANamedReason(): void
     {
-        $selection = new DriverSelector([UnavailableFakeDriver::class])->select();
+        $selection = (new DriverSelector([UnavailableFakeDriver::class]))->select();
 
         expect($selection->driver)->because('no available candidate yields no driver and a named reason')->toBeNull();
         expect($selection->reason)->toBe(
@@ -62,7 +62,7 @@ final class DriverSelectorTest
     {
         // Installed extensions determine the actual candidate. The tests with
         // fake coverage drivers check both paths with deterministic results.
-        $selection = new DriverSelector()->select();
+        $selection = (new DriverSelector())->select();
 
         if ($selection->driver instanceof CoverageDriver) {
             expect($selection->reason)->toBeNull();

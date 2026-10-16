@@ -450,7 +450,7 @@ final readonly class PluginTest
     private function runSuite(string $fixture, array $plugins): array
     {
         $directory = FixturePath::get($fixture);
-        $plan = new TestDiscoverer()->discover([$directory]);
+        $plan = (new TestDiscoverer())->discover([$directory]);
         $sink = new CollectingEventSink();
         $bootstrap = new WorkerBootstrapContext('test-worker', new TestChannel(1), new IntegrationResources());
         $runtime = WorkerPluginRuntime::fromPlugins($plugins, [
@@ -462,7 +462,7 @@ final readonly class PluginTest
         );
         $outcome = HarnessServiceDisposal::runAndClose(
             $scopes,
-            static fn() => new Worker([], $runtime)->run($plan, $sink, scopes: $scopes),
+            static fn() => (new Worker([], $runtime))->run($plan, $sink, scopes: $scopes),
         );
 
         return [$outcome->summary, $sink->results()];

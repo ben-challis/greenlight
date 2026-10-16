@@ -134,7 +134,7 @@ final class EventsTest
         ]);
         $finishedRun = RunFinished::fromWire([
             'runId' => 'run-1',
-            'summary' => new ResultSummary()->toWire(),
+            'summary' => (new ResultSummary())->toWire(),
             'durationSeconds' => 1.0,
             'occurredAt' => 1_780_000_001.0,
         ]);
@@ -173,7 +173,7 @@ final class EventsTest
     #[Test]
     public function runFinishedCarriesSummarySemantics(): void
     {
-        $summary = new ResultSummary()
+        $summary = (new ResultSummary())
             ->add(Outcome::Passed)
             ->add(Outcome::Passed)
             ->add(Outcome::Failed)
@@ -182,7 +182,7 @@ final class EventsTest
         expect($summary->total())->because('run finished carries summary semantics')->toBe(4);
         expect($summary->passed)->because('run finished carries summary semantics')->toBe(2);
         expect($summary->isSuccessful())->because('run finished carries summary semantics')->toBeFalse();
-        expect(new ResultSummary(passed: 1, skipped: 2)->isSuccessful())->because('run finished carries summary semantics')->toBeTrue();
+        expect((new ResultSummary(passed: 1, skipped: 2))->isSuccessful())->because('run finished carries summary semantics')->toBeTrue();
     }
 
     #[Test]
@@ -190,6 +190,7 @@ final class EventsTest
     {
         $event = new RunStarted('run-1', 1, 1, 123.5);
 
+        // @phpstan-ignore property.notFound (PHP 8.3 has no interface properties. Each event class declares occurredAt.), return.type (The property read has no type.)
         $readThroughInterface = static fn(Event $e): float => $e->occurredAt;
 
         expect($readThroughInterface($event))->because('events expose occurred at through the interface')->toBe(123.5);

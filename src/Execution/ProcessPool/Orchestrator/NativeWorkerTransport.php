@@ -7,6 +7,7 @@ namespace Greenlight\Execution\ProcessPool\Orchestrator;
 use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
 use Greenlight\Execution\ProcessPool\Protocol\SocketChannel;
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 
@@ -272,7 +273,7 @@ final class NativeWorkerTransport implements WorkerTransport
 
     private function hasRetiringWorkers(): bool
     {
-        return \array_any(
+        return Arrays::any(
             $this->workers,
             static fn(WorkerHandle $handle): bool => $handle->isRetiring(),
         );

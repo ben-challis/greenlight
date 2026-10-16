@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Expect;
 
+use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
+use Greenlight\Condition\PhpVersionAtLeast;
 use Greenlight\Expect\ValueRenderer;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Fixture\Expect\Credentials;
@@ -40,7 +42,7 @@ final readonly class ValueRendererTest
     #[Test]
     public function escapesControlCharactersInStrings(): void
     {
-        $rendered = new ValueRenderer()->render("backslash\\ newline\ncarriage\r tab\t nul\0");
+        $rendered = (new ValueRenderer())->render("backslash\\ newline\ncarriage\r tab\t nul\0");
 
         expect($rendered)
             ->because('diagnostic strings escape every control character onto one line')
@@ -50,7 +52,7 @@ final readonly class ValueRendererTest
     #[Test]
     public function escapesRemainingUnicodeControlCharactersInStrings(): void
     {
-        $rendered = new ValueRenderer()->render("\u{0001}\u{001B}\u{007F}\u{0085}");
+        $rendered = (new ValueRenderer())->render("\u{0001}\u{001B}\u{007F}\u{0085}");
 
         expect($rendered)
             ->because('diagnostic strings MUST NOT preserve terminal or line control characters')
@@ -60,7 +62,7 @@ final readonly class ValueRendererTest
     #[Test]
     public function escapesTheStringDelimiter(): void
     {
-        expect(new ValueRenderer()->render("can't"))
+        expect((new ValueRenderer())->render("can't"))
             ->because('rendered string delimiters MUST remain unambiguous')
             ->toBe("'can\\'t'");
     }
@@ -68,7 +70,7 @@ final readonly class ValueRendererTest
     #[Test]
     public function truncatesLongStrings(): void
     {
-        $rendered = new ValueRenderer()->render(\str_repeat('x', 500));
+        $rendered = (new ValueRenderer())->render(\str_repeat('x', 500));
 
         expect($rendered)->because('truncates long strings')->toEndWith("...' (truncated from 500 characters)");
         expect(\strlen($rendered))->because('truncates long strings')->toBeLessThan(200);
@@ -77,7 +79,7 @@ final readonly class ValueRendererTest
     #[Test]
     public function truncatesUnicodeStringsByCodePoint(): void
     {
-        $rendered = new ValueRenderer()->render(\str_repeat('é', 121));
+        $rendered = (new ValueRenderer())->render(\str_repeat('é', 121));
 
         expect($rendered)
             ->because('diagnostic truncation MUST preserve complete Unicode characters')
@@ -89,7 +91,7 @@ final readonly class ValueRendererTest
     #[Test]
     public function truncationDoesNotSplitAnEscapedCharacter(): void
     {
-        $rendered = new ValueRenderer()->render(\str_repeat('a', 119) . "\ntail");
+        $rendered = (new ValueRenderer())->render(\str_repeat('a', 119) . "\ntail");
 
         expect($rendered)
             ->because('diagnostic truncation MUST keep escape sequences complete')
@@ -113,7 +115,7 @@ final readonly class ValueRendererTest
     #[Test]
     public function rendersEnums(): void
     {
-        expect(new ValueRenderer()->render(Signal::Green))->because('renders enums')->toBe(Signal::class . '::Green');
+        expect((new ValueRenderer())->render(Signal::Green))->because('renders enums')->toBe(Signal::class . '::Green');
     }
 
     #[Test]
@@ -121,14 +123,14 @@ final readonly class ValueRendererTest
     {
         $date = new \DateTimeImmutable('2024-01-02T03:04:05.123456+00:00');
 
-        expect(new ValueRenderer()->render($date))->because('renders date times')
+        expect((new ValueRenderer())->render($date))->because('renders date times')
             ->toBe('DateTimeImmutable(2024-01-02T03:04:05.123456+00:00)');
     }
 
     #[Test]
     public function rendersPlainObjectsByReflection(): void
     {
-        $rendered = new ValueRenderer()->render(new Credentials('ben', 'secret'));
+        $rendered = (new ValueRenderer())->render(new Credentials('ben', 'secret'));
 
         expect($rendered)->because('renders plain objects by reflection')->toBe(Credentials::class . " {user: 'ben', password: 'secret'}");
     }
@@ -136,15 +138,16 @@ final readonly class ValueRendererTest
     #[Test]
     public function marksUninitializedProperties(): void
     {
-        $rendered = new ValueRenderer()->render(new LateInit());
+        $rendered = (new ValueRenderer())->render(new LateInit());
 
         expect($rendered)->because('marks uninitialized properties')->toBe(LateInit::class . ' {value: (uninitialized)}');
     }
 
     #[Test]
+    #[SkipUnless(PhpVersionAtLeast::class, '8.4')]
     public function rendersHookedPropertiesWithoutInvokingUserCode(): void
     {
-        expect(new ValueRenderer()->render(new HookedProperties()))
+        expect((new ValueRenderer())->render(new HookedProperties()))
             ->because('failure rendering MUST NOT invoke property hooks')
             ->toBe(HookedProperties::class . " {backed: 'stored', virtual: (virtual)}");
     }
@@ -154,7 +157,7 @@ final readonly class ValueRendererTest
     {
         $inner = new Holder(new Holder(new Holder(new Holder(null))));
 
-        expect(new ValueRenderer()->render($inner))->because('limits object nesting depth')->toBe(
+        expect((new ValueRenderer())->render($inner))->because('limits object nesting depth')->toBe(
             Holder::class . ' {inner: '
             . Holder::class . ' {inner: '
             . Holder::class . ' {inner: '
@@ -176,7 +179,7 @@ final readonly class ValueRendererTest
     #[Test]
     public function scrubsInvalidUtf8(): void
     {
-        $rendered = new ValueRenderer()->render("bad \xB1\x31 bytes");
+        $rendered = (new ValueRenderer())->render("bad \xB1\x31 bytes");
 
         expect($rendered)
             ->because('scrubs invalid UTF-8')

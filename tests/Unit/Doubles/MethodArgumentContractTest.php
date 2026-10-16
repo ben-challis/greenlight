@@ -79,7 +79,7 @@ final readonly class MethodArgumentContractTest
             $plan->expects('returnsVoid')->never();
         });
 
-        expect()->calling(static fn(): mixed => new \ReflectionMethod($wide, 'returnsVoid')->invokeArgs($wide, [1]))
+        expect()->calling(static fn(): mixed => (new \ReflectionMethod($wide, 'returnsVoid'))->invokeArgs($wide, [1]))
             ->toThrow(
                 InvalidDoubleUsage::class,
                 '/accepts at most 0 arguments/',

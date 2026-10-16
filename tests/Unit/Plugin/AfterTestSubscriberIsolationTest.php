@@ -55,11 +55,11 @@ final readonly class AfterTestSubscriberIsolationTest
             }
         };
         $directory = FixturePath::get('Lifecycle/Order');
-        $plan = new TestDiscoverer()->discover([$directory]);
+        $plan = (new TestDiscoverer())->discover([$directory]);
         $sink = new CollectingEventSink();
         $plugins = WorkerPluginRuntime::fromPlugins([$observer, $broken]);
 
-        new Worker(new StandardHarnessPlugin()->services(), $plugins)->run($plan, $sink);
+        (new Worker((new StandardHarnessPlugin())->services(), $plugins))->run($plan, $sink);
 
         expect($calls->getArrayCopy())
             ->because('an afterTest() failure MUST NOT stop later subscribers')

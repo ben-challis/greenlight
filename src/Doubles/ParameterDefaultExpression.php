@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Doubles;
 
+use Greenlight\Internal\Php\Arrays;
+
 /**
  * Copies object default expressions without running their constructors.
  * Names and magic constants retain their declaration context in the proxy.
@@ -23,7 +25,7 @@ final readonly class ParameterDefaultExpression
         $separator = \strpos($description, ' = ');
 
         if (!$requireSource && ($separator === false
-            || !\array_any(\PhpToken::tokenize('<?php ' . \substr($description, $separator + 3)), static fn(\PhpToken $token): bool => $token->is(\T_NEW)))
+            || !Arrays::any(\PhpToken::tokenize('<?php ' . \substr($description, $separator + 3)), static fn(\PhpToken $token): bool => $token->is(\T_NEW)))
         ) {
             return null;
         }
@@ -80,7 +82,7 @@ final readonly class ParameterDefaultExpression
                 $replacements[$token->pos] = '\\' . $class;
 
                 if ($previous?->is(\T_NEW) === true && \class_exists($class, false)) {
-                    $constructor = new \ReflectionClass($class)->getConstructor();
+                    $constructor = (new \ReflectionClass($class))->getConstructor();
 
                     if ($constructor?->isPrivate() === true) {
                         throw InvalidDoubleUsage::objectDefaultScopeUnavailable($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
@@ -90,13 +92,13 @@ final readonly class ParameterDefaultExpression
                 $member = $significant[$index + 2] ?? null;
 
                 if ($next?->is(\T_DOUBLE_COLON) === true && $member?->is('{') === true && \class_exists($class, false)
-                    && new \ReflectionClass($class)->getReflectionConstants(\ReflectionClassConstant::IS_PRIVATE) !== []
+                    && (new \ReflectionClass($class))->getReflectionConstants(\ReflectionClassConstant::IS_PRIVATE) !== []
                 ) {
                     throw InvalidDoubleUsage::objectDefaultScopeUnavailable($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
                 }
 
                 if ($next?->is(\T_DOUBLE_COLON) === true && $member?->is(\T_STRING) === true && \class_exists($class, false)) {
-                    $constant = new \ReflectionClass($class)->getReflectionConstant($member->text);
+                    $constant = (new \ReflectionClass($class))->getReflectionConstant($member->text);
 
                     if ($constant instanceof \ReflectionClassConstant && $constant->isPrivate()) {
                         $value = $constant->getValue();
@@ -196,7 +198,7 @@ final readonly class ParameterDefaultExpression
     public static function containsObject(mixed $value): bool
     {
         if (\is_array($value)) {
-            return \array_any($value, self::containsObject(...));
+            return Arrays::any($value, self::containsObject(...));
         }
 
         return \is_object($value) && !$value instanceof \UnitEnum;

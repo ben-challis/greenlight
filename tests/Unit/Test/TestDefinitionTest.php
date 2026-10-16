@@ -49,11 +49,11 @@ final class TestDefinitionTest
         $definition = new TestDefinition('App\FooTest', 'bar');
 
         expect($definition->groups)->toBe([]);
-        expect($definition->skip->toWire())->toBe(new SkipPolicy()->toWire());
-        expect($definition->retry->toWire())->toBe(new RetryPolicy()->toWire());
-        expect($definition->dataProvider->toWire())->toBe(new DataProvider()->toWire());
-        expect($definition->execution->toWire())->toBe(new ExecutionPolicy()->toWire());
-        expect($definition->scheduling->toWire())->toBe(new SchedulingPolicy()->toWire());
+        expect($definition->skip->toWire())->toBe((new SkipPolicy())->toWire());
+        expect($definition->retry->toWire())->toBe((new RetryPolicy())->toWire());
+        expect($definition->dataProvider->toWire())->toBe((new DataProvider())->toWire());
+        expect($definition->execution->toWire())->toBe((new ExecutionPolicy())->toWire());
+        expect($definition->scheduling->toWire())->toBe((new SchedulingPolicy())->toWire());
     }
 
     #[Test]
@@ -63,7 +63,7 @@ final class TestDefinitionTest
             ->because('a direct definition MUST reject an empty group')
             ->toThrow(\InvalidArgumentException::class, message: 'Group names cannot be empty.');
 
-        $payload = new TestDefinition('App\FooTest', 'bar', ['ok'])->toWire();
+        $payload = (new TestDefinition('App\FooTest', 'bar', ['ok']))->toWire();
         $payload['groups'] = ['ok', ''];
 
         expect()->calling(static fn(): TestDefinition => TestDefinition::fromWire($payload))

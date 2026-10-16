@@ -40,7 +40,7 @@ final readonly class DoublesCallRule implements Rule
 
         $receiver = $scope->getType($node->var);
 
-        if (!new ObjectType(Doubles::class)->isSuperTypeOf($receiver)->yes()) {
+        if (!(new ObjectType(Doubles::class))->isSuperTypeOf($receiver)->yes()) {
             return [];
         }
 

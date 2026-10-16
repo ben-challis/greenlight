@@ -21,7 +21,7 @@ final class OptionalStringWireTest
         string $wireValue,
         ?string $expected,
     ): void {
-        $payload = new Assign(new ExecutionPlan([]))->toWire();
+        $payload = (new Assign(new ExecutionPlan([])))->toWire();
         $payload['coverageDriver'] = $wireValue;
 
         $assign = Assign::fromWire($payload);
@@ -37,7 +37,7 @@ final class OptionalStringWireTest
         string $wireValue,
         ?string $expected,
     ): void {
-        $payload = new Bootstrap(1, null, new IntegrationResources([]))->toWire();
+        $payload = (new Bootstrap(1, null, new IntegrationResources([])))->toWire();
         $payload['configFile'] = $wireValue;
 
         $bootstrap = Bootstrap::fromWire($payload);

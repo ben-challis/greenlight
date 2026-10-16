@@ -38,13 +38,13 @@ final class WatchLoopIdleTest
         $clock = new FakeWatchClock();
         $runs = 0;
 
-        new WatchLoop(
+        (new WatchLoop(
             $detector,
             new Debouncer(0.0),
             $keys,
             $clock,
             static function (string $text): void {},
-        )->run(static function (array $priorityClasses) use (&$runs): array {
+        ))->run(static function (array $priorityClasses) use (&$runs): array {
             ++$runs;
 
             return [];

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Coverage\Collection;
 
+use Greenlight\Internal\Php\Arrays;
+
 /**
  * Selects included directories when Greenlight converts raw driver output to a CoverageMap.
  *
@@ -48,6 +50,6 @@ final readonly class PathFilter
         if ($this->prefixes === []) {
             return true;
         }
-        return \array_any($this->prefixes, static fn(string $prefix): bool => \str_starts_with($file, $prefix));
+        return Arrays::any($this->prefixes, static fn(string $prefix): bool => \str_starts_with($file, $prefix));
     }
 }

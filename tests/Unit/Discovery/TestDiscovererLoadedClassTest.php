@@ -57,7 +57,7 @@ final readonly class TestDiscovererLoadedClassTest
         $this->autoloaders->register($loader);
 
         expect()->calling(
-            static fn(): ExecutionPlan => new TestDiscoverer()->discover([$expectedDirectory]),
+            static fn(): ExecutionPlan => (new TestDiscoverer())->discover([$expectedDirectory]),
         )->because('discovery MUST reject class paths that it cannot resolve')->toThrow(
             DiscoveryError::class,
             message: \sprintf(
@@ -100,7 +100,7 @@ final readonly class TestDiscovererLoadedClassTest
         $this->autoloaders->register($loader);
 
         expect()->calling(
-            static fn(): ExecutionPlan => new TestDiscoverer()->discover([$expectedDirectory]),
+            static fn(): ExecutionPlan => (new TestDiscoverer())->discover([$expectedDirectory]),
         )->because('discovery MUST reject a class that the autoloader loaded from another file')->toThrow(
             DiscoveryError::class,
             message: \sprintf(

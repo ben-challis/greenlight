@@ -17,7 +17,7 @@ final readonly class DataSetProviderErrorTest
     {
         $testMethod = __FUNCTION__;
 
-        expect()->calling(static fn(): array => new DataSetExpander()->rowsFor(
+        expect()->calling(static fn(): array => (new DataSetExpander())->rowsFor(
             new \ReflectionClass(self::class),
             $testMethod,
             'rowsThatThrowDataSetError',

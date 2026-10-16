@@ -6,6 +6,7 @@ namespace Greenlight\PhpStan;
 
 use Greenlight\Expect\CallExpectation;
 use Greenlight\Expect\TemporalCallExpectation;
+use Greenlight\Internal\Php\Arrays;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\MethodCall;
@@ -43,9 +44,9 @@ final class ToThrowCallbackRule implements Rule
         }
 
         $receiver = $scope->getType($node->var);
-        $supported = \array_any(
+        $supported = Arrays::any(
             [CallExpectation::class, TemporalCallExpectation::class],
-            static fn(string $class): bool => new ObjectType($class)->isSuperTypeOf($receiver)->yes(),
+            static fn(string $class): bool => (new ObjectType($class))->isSuperTypeOf($receiver)->yes(),
         );
 
         if (!$supported) {

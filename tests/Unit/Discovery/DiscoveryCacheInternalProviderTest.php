@@ -50,7 +50,7 @@ final readonly class DiscoveryCacheInternalProviderTest
             $cache = DiscoveryCache::forDirectories([$directory]);
             $cache->store($source, [$entry]);
 
-            expect(new \ReflectionMethod($providerClass, 'listAbbreviations')->getFileName())
+            expect((new \ReflectionMethod($providerClass, 'listAbbreviations'))->getFileName())
                 ->because('the inherited provider method belongs to the PHP runtime')
                 ->toBeFalse();
             expect($cache->persist())

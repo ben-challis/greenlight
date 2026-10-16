@@ -33,7 +33,7 @@ final class EventEnvelopeTest
             public float $occurredAt = 1.0;
         };
 
-        expect()->calling(static fn(): array => new EventEnvelope($event)->toWire())
+        expect()->calling(static fn(): array => (new EventEnvelope($event))->toWire())
             ->toThrow(
                 ProtocolError::class,
                 message: \sprintf('Unknown event type "%s".', $event::class),

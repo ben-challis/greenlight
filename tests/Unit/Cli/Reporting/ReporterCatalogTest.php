@@ -81,7 +81,7 @@ final class ReporterCatalogTest
     #[Test]
     public function invalidFactoryResultsIdentifyTheSelectedName(): void
     {
-        $definition = new \ReflectionClass(ReporterDefinition::class)->newInstance(
+        $definition = (new \ReflectionClass(ReporterDefinition::class))->newInstance(
             'invalid',
             static fn(): object => new \stdClass(),
         );

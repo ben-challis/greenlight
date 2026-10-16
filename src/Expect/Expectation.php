@@ -74,7 +74,7 @@ class Expectation
     public function because(string $reason): static
     {
         // Validate the reason before a lazy value is read.
-        new MatcherEvaluation(null, $this->renderer)->because($reason);
+        (new MatcherEvaluation(null, $this->renderer))->because($reason);
         $this->reason = $reason;
 
         return $this;

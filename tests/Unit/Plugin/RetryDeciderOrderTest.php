@@ -62,11 +62,11 @@ final readonly class RetryDeciderOrderTest
             }
         };
         $directory = FixturePath::get('RunFailingSuite');
-        $plan = new TestDiscoverer()->discover([$directory]);
+        $plan = (new TestDiscoverer())->discover([$directory]);
         $sink = new CollectingEventSink();
         $plugins = WorkerPluginRuntime::fromPlugins([$first, $second]);
 
-        new Worker(new StandardHarnessPlugin()->services(), $plugins)->run($plan, $sink);
+        (new Worker((new StandardHarnessPlugin())->services(), $plugins))->run($plan, $sink);
 
         expect($calls->getArrayCopy())
             ->because('retry deciders MUST stop after acceptance and continue after decline')

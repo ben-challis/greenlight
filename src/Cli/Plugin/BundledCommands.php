@@ -58,7 +58,7 @@ final readonly class BundledCommands implements CommandProvider
 
     private function completion(CommandInvocation $invocation): CommandResult
     {
-        return new CompletionCommand($this->console, $this->definition)->run($invocation->arguments);
+        return (new CompletionCommand($this->console, $this->definition))->run($invocation->arguments);
     }
 
     /**
@@ -77,7 +77,7 @@ final readonly class BundledCommands implements CommandProvider
 
         if ($arguments->has('help')) {
             $style = $this->console->stdoutStyle($arguments->has('no-ansi'), $arguments->has('ansi'));
-            $this->console->out(new HelpFormatter($style)->format(Definition::HELP) . "\n");
+            $this->console->out((new HelpFormatter($style))->format(Definition::HELP) . "\n");
 
             return CommandResult::success();
         }
@@ -107,20 +107,20 @@ final readonly class BundledCommands implements CommandProvider
                 && !$arguments->has('dry-run')
                 && ($arguments->has('list-tests') || $arguments->has('list-groups') || $arguments->has('list-suites')))
         ) {
-            return new ListCommand($this->console)->run($arguments, $invocation->workingDirectory);
+            return (new ListCommand($this->console))->run($arguments, $invocation->workingDirectory);
         }
 
         return match ($command) {
-            'run' => new RunCommand($this->console, $this->version)->run(
+            'run' => (new RunCommand($this->console, $this->version))->run(
                 $arguments,
                 $invocation->workingDirectory,
                 $invocation->binaryPath,
             ),
-            'coverage:merge' => new CoverageMergeCommand($this->console)->run($arguments, $invocation->workingDirectory),
-            'coverage:diff' => new CoverageDiffCommand($this->console)->run($arguments, $invocation->workingDirectory),
-            'profile:report' => new ProfileReportCommand($this->console)->run($arguments, $invocation->workingDirectory),
-            'artifacts:prune' => new ArtifactsPruneCommand($this->console)->run($arguments, $invocation->workingDirectory),
-            'ide-helper' => new IdeHelperCommand($this->console)->run($arguments, $invocation->workingDirectory),
+            'coverage:merge' => (new CoverageMergeCommand($this->console))->run($arguments, $invocation->workingDirectory),
+            'coverage:diff' => (new CoverageDiffCommand($this->console))->run($arguments, $invocation->workingDirectory),
+            'profile:report' => (new ProfileReportCommand($this->console))->run($arguments, $invocation->workingDirectory),
+            'artifacts:prune' => (new ArtifactsPruneCommand($this->console))->run($arguments, $invocation->workingDirectory),
+            'ide-helper' => (new IdeHelperCommand($this->console))->run($arguments, $invocation->workingDirectory),
             default => throw new \LogicException(\sprintf('Bundled command "%s" has no handler.', $command)),
         };
     }

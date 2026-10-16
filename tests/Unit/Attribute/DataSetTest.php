@@ -19,7 +19,7 @@ final class DataSetTest
         string $message,
     ): void {
         expect()->calling(
-            static fn(): object => new \ReflectionClass(DataSet::class)->newInstance($provider, $method),
+            static fn(): object => (new \ReflectionClass(DataSet::class))->newInstance($provider, $method),
         )
             ->because('data set provider identifiers MUST be non-empty')
             ->toThrow(\InvalidArgumentException::class, message: $message);

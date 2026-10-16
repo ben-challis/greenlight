@@ -19,6 +19,6 @@ final readonly class EqualsMatcher implements ArgumentMatcher
 
     public function describe(): string
     {
-        return \sprintf('equals(%s)', new ValueRenderer()->render($this->value));
+        return \sprintf('equals(%s)', (new ValueRenderer())->render($this->value));
     }
 }

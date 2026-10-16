@@ -32,13 +32,13 @@ final readonly class ArtifactTransformedOutcomeRetentionTest
         $id = new TestId('Example\EvidenceTest', 'quarantinedFailure');
         $attempt = $store->forAttempt($id, 1, new TestArtifactBudget());
         $attempt->text('failure.txt', 'original failure evidence');
-        $result = new TestResult(
+        $result = (new TestResult(
             $id,
             Outcome::Failed,
             0.1,
             0,
             attachments: $attempt->seal(),
-        )->withOutcome(Outcome::Passed, 'quarantine-plugin');
+        ))->withOutcome(Outcome::Passed, 'quarantine-plugin');
 
         $published = $store->publish($result);
 
@@ -60,13 +60,13 @@ final readonly class ArtifactTransformedOutcomeRetentionTest
         $id = new TestId('Example\EvidenceTest', 'quarantinedPass');
         $attempt = $store->forAttempt($id, 1, new TestArtifactBudget());
         $attempt->text('passing.txt', 'successful evidence');
-        $result = new TestResult(
+        $result = (new TestResult(
             $id,
             Outcome::Passed,
             0.1,
             0,
             attachments: $attempt->seal(),
-        )->withOutcome(Outcome::Skipped, 'quarantine-plugin');
+        ))->withOutcome(Outcome::Skipped, 'quarantine-plugin');
 
         $published = $store->publish($result);
 

@@ -47,6 +47,7 @@ final class EventCodecTest
             $decoded = EventCodec::fromTagged(EventCodec::toTagged($event));
 
             expect($decoded::class)->toBe($event::class);
+            // @phpstan-ignore property.notFound (PHP 8.3 has no interface properties. Each event class declares occurredAt.), property.notFound (PHP 8.3 has no interface properties. Each event class declares occurredAt.), argument.type (The property read has no type.)
             expect($decoded->occurredAt)->toBe($event->occurredAt);
         }
     }
@@ -70,6 +71,7 @@ final class EventCodecTest
         ));
 
         expect($event::class)->toBe(RunStarted::class);
+        // @phpstan-ignore property.notFound (PHP 8.3 has no interface properties. Each event class declares occurredAt.), argument.type (The property read has no type.)
         expect($event->occurredAt)->toBe(1.0);
     }
 

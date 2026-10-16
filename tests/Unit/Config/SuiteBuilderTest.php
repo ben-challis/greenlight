@@ -16,7 +16,7 @@ final class SuiteBuilderTest
     #[Test]
     public function repeatedCallsAccumulatePathsAndTagsInDeclarationOrder(): void
     {
-        $suite = new SuiteBuilder('integration')
+        $suite = (new SuiteBuilder('integration'))
             ->in('tests/Integration')
             ->in('tests/Browser', 'tests/Smoke')
             ->tag('io')
@@ -34,7 +34,7 @@ final class SuiteBuilderTest
     #[Test]
     public function rejectedVariadicCallsDoNotPartiallyChangeTheBuilder(): void
     {
-        $builder = new SuiteBuilder('integration')
+        $builder = (new SuiteBuilder('integration'))
             ->in('tests/Existing')
             ->tag('existing');
 
@@ -77,7 +77,7 @@ final class SuiteBuilderTest
     #[DataSet('zeroStringValues')]
     public function preservesZeroStringsInBuiltConfiguration(array $paths, array $tags): void
     {
-        $suite = new SuiteBuilder('suite')
+        $suite = (new SuiteBuilder('suite'))
             ->in(...$paths)
             ->tag(...$tags)
             ->toConfiguration();

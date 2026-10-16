@@ -14,7 +14,7 @@ final class ArtifactBuilderMinimumCountsTest
     #[Test]
     public function oneAttachmentIsAValidSafetyLimit(): void
     {
-        $configuration = new ArtifactBuilder()
+        $configuration = (new ArtifactBuilder())
             ->maxAttachmentsPerTest(1)
             ->maxRunAttachments(1)
             ->toConfiguration();

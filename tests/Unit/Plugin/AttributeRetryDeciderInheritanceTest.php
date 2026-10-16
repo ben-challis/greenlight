@@ -26,7 +26,7 @@ final class AttributeRetryDeciderInheritanceTest
             0,
         );
 
-        expect(new AttributeRetryDecider()->shouldRetry(
+        expect((new AttributeRetryDecider())->shouldRetry(
             $policy,
             $result,
             1,

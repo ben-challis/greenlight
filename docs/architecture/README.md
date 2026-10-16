@@ -168,7 +168,7 @@ class order. The orchestrator receives duration data but does not save it.
 
 ## Architectural invariants
 
-- PHP 8.4 or later and zero runtime package dependencies.
+- PHP 8.3 or later and zero runtime package dependencies.
 - Discovery occurs before execution. Workers consume plans and do not scan the
   file system.
 - The run coordinator owns `RunStarted` and `RunFinished` for each execution

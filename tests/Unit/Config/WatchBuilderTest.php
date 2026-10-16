@@ -16,8 +16,8 @@ final class WatchBuilderTest
     #[Test]
     public function buildsTheDefaultAndConfiguredDebounce(): void
     {
-        $default = new WatchBuilder()->toConfiguration();
-        $configured = new WatchBuilder()->debounceMilliseconds(750)->toConfiguration();
+        $default = (new WatchBuilder())->toConfiguration();
+        $configured = (new WatchBuilder())->debounceMilliseconds(750)->toConfiguration();
 
         expect($default->debounceMilliseconds)
             ->because('watch mode MUST have a stable default debounce')
@@ -31,7 +31,7 @@ final class WatchBuilderTest
     #[Test]
     public function accumulatesWatchInputsPatternsAndAFileLimit(): void
     {
-        $configuration = new WatchBuilder()
+        $configuration = (new WatchBuilder())
             ->paths('templates', 'config/app.yaml')
             ->paths('migrations')
             ->include('**/*.twig', '**/*.yaml')
@@ -49,35 +49,35 @@ final class WatchBuilderTest
     #[Test]
     public function rejectsAnEmptyWatchPath(): void
     {
-        expect()->calling(static fn(): WatchBuilder => new WatchBuilder()->paths(''))
+        expect()->calling(static fn(): WatchBuilder => (new WatchBuilder())->paths(''))
             ->toThrow(InvalidConfiguration::class, message: 'Watch paths cannot contain an empty string.');
     }
 
     #[Test]
     public function rejectsAnEmptyIncludePattern(): void
     {
-        expect()->calling(static fn(): WatchBuilder => new WatchBuilder()->include(''))
+        expect()->calling(static fn(): WatchBuilder => (new WatchBuilder())->include(''))
             ->toThrow(InvalidConfiguration::class, message: 'Watch include patterns cannot contain an empty string.');
     }
 
     #[Test]
     public function rejectsAnEmptyExcludePattern(): void
     {
-        expect()->calling(static fn(): WatchBuilder => new WatchBuilder()->exclude(''))
+        expect()->calling(static fn(): WatchBuilder => (new WatchBuilder())->exclude(''))
             ->toThrow(InvalidConfiguration::class, message: 'Watch exclude patterns cannot contain an empty string.');
     }
 
     #[Test]
     public function rejectsANullByteInAWatchPath(): void
     {
-        expect()->calling(static fn(): WatchBuilder => new WatchBuilder()->paths("templates\0private"))
+        expect()->calling(static fn(): WatchBuilder => (new WatchBuilder())->paths("templates\0private"))
             ->toThrow(InvalidConfiguration::class, message: 'Watch paths cannot contain a null byte.');
     }
 
     #[Test]
     public function rejectsANonPositiveFileLimit(): void
     {
-        expect()->calling(static fn(): WatchBuilder => new WatchBuilder()->maximumFiles(0))
+        expect()->calling(static fn(): WatchBuilder => (new WatchBuilder())->maximumFiles(0))
             ->toThrow(InvalidConfiguration::class, message: 'The watch file limit must be at least 1, got 0.');
     }
 
@@ -86,7 +86,7 @@ final class WatchBuilderTest
     public function theDebounceMustBePositive(int $milliseconds): void
     {
         expect()->calling(static function () use ($milliseconds): void {
-            new WatchBuilder()->debounceMilliseconds($milliseconds); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+            (new WatchBuilder())->debounceMilliseconds($milliseconds); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         })
             ->because('the watch debounce must be positive')
             ->toThrow(
