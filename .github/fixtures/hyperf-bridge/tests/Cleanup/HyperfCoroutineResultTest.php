@@ -45,15 +45,9 @@ final readonly class HyperfCoroutineResultTest
     {
         $plugin = $this->plugin($lifetime);
         $failure = new \RuntimeException('The coroutine failed.');
-        $caught = null;
 
-        try {
-            $plugin->runWorker(static fn(): mixed => $plugin->runTestAttempt(static fn(): never => throw $failure));
-        } catch (\Throwable $threw) {
-            $caught = $threw;
-        }
-
-        expect($caught)->toBe($failure);
+        expect()->calling(static fn(): mixed => $plugin->runWorker(static fn(): mixed => $plugin->runTestAttempt(static fn(): never => throw $failure)))
+            ->toThrow($failure);
     }
 
     #[Test]
@@ -72,16 +66,10 @@ final readonly class HyperfCoroutineResultTest
             },
         );
         $plugin->onWorkerBootstrap(new WorkerBootstrapContext('cleanup-result-probe', new TestChannel(1), IntegrationResources::empty()));
-        $caught = null;
 
-        try {
-            $plugin->runWorker(static fn(): mixed => $plugin->runTestAttempt(static fn(): never => throw $failure));
-        } catch (\Throwable $threw) {
-            $caught = $threw;
-        }
-
+        expect()->calling(static fn(): mixed => $plugin->runWorker(static fn(): mixed => $plugin->runTestAttempt(static fn(): never => throw $failure)))
+            ->toThrow($failure);
         expect($disposedInCoroutine)->toBeTrue();
-        expect($caught)->toBe($failure);
     }
 
     /** @return iterable<string, array{ContainerLifetime}> */
