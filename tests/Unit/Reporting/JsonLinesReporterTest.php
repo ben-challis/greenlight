@@ -111,7 +111,7 @@ final class JsonLinesReporterTest
     {
         $reporter = new JsonLinesReporter(new BufferOutput());
 
-        $event = new class implements Event {
+        $event = new class implements Event { // @phpstan-ignore class.disallowedSubtype (deliberately unsupported: tests the rejection of an unknown event type)
             #[\Override]
             public function occurredAt(): float
             {
