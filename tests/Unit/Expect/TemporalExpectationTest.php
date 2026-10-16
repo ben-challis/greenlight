@@ -106,7 +106,7 @@ final readonly class TemporalExpectationTest
         $detail = FailureProbe::detailOf(static function () use ($clock, &$value): void {
             ExpectationRuntime::withClock(
                 $clock,
-                static fn() => expect()->calling(static function () use (&$value): int {
+                static fn() => expect()->calling(static function () use (&$value): int { // @phpstan-ignore argument.type (PHPStan infers T from the narrowed body type of a closure with by-reference captures.)
                     return ++$value;
                 })->returnValue()->eventually()
                     ->pollEvery(0.010)
@@ -389,7 +389,7 @@ final readonly class TemporalExpectationTest
 
         ExpectationRuntime::withClock(
             $clock,
-            static fn() => expect()->calling(static function () use (&$subjects): int {
+            static fn() => expect()->calling(static function () use (&$subjects): int { // @phpstan-ignore argument.type (PHPStan infers T from the narrowed body type of a closure with by-reference captures.)
                 return \array_shift($subjects) ?? 2;
             })->returnValue()->eventually()
                 ->within(0.100)

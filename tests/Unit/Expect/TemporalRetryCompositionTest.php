@@ -24,7 +24,7 @@ final readonly class TemporalRetryCompositionTest
         ];
 
         ExpectationRuntime::withClock($clock, static function () use (&$calls, &$responses): void {
-            expect()->calling(static function () use (&$calls, &$responses): string {
+            expect()->calling(static function () use (&$calls, &$responses): string { // @phpstan-ignore argument.type (PHPStan infers T from the narrowed body type of a closure with by-reference captures.)
                 ++$calls;
                 $response = \array_shift($responses);
 

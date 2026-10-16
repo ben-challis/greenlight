@@ -19,7 +19,7 @@ final class ScopedMatcherExtension extends MatcherSubject implements Expectation
     #[\Override]
     public function matchers(): array
     {
-        return [
+        return [ // @phpstan-ignore return.type (PHPStan resolves parent as self when the same method also has a self closure parameter.)
             'toAcceptSelf' => static fn(self $subject): bool => true,
             'toAcceptParent' => static fn(parent $subject): bool => true,
             'toAcceptSelfArgument' => static fn(mixed $subject, self $other): bool => true,
