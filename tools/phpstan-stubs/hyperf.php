@@ -62,7 +62,7 @@ class Coroutine
  * @param callable(): void $callbacks
  * @phpstan-impure
  */
-function run(callable $callbacks, int $flags): bool
+function run(callable $callbacks, int $flags): bool // @phpstan-ignore function.unusedParameter (The stub mirrors the Hyperf signature.)
 {
     $callbacks();
 

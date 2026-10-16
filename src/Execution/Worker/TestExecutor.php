@@ -171,13 +171,11 @@ final readonly class TestExecutor
         $cause = null;
         $error = null;
         $skipReason = null;
-        $captured = null;
         $context = null;
         $capture = $execution->capture ? new OutputCapture() : null;
         $stagedAttachments = $this->artifactStore?->forAttempt($entry->id, $attempt, $artifactBudget);
         $attachments = $stagedAttachments ?? new UnavailableAttachments();
         $cleanup = new Cleanup();
-        $disposalFailures = [];
         $memoryBefore = \memory_get_usage(true);
         $startedAt = \hrtime(true);
         $capture?->start();
@@ -190,7 +188,7 @@ final readonly class TestExecutor
         try {
             $instance = $this->instantiate($definition->class, $attachments, $cleanup);
             $context = new TestContext($instance, $entry->id, $definition, $this->scopes, $attachments);
-            $instance = null;
+            unset($instance);
 
             try {
                 $this->plugins->beforeTest($context);

@@ -22,7 +22,7 @@ final readonly class ProxyStaticReturnTest
 
         $double = $this->doubles->mock(Wide::class, static function (MockPlan $plan) use (&$double): void {
             $plan->expects('returnsStatic')->andReturnsUsing(static function () use (&$double): ?Wide {
-                return $double;
+                return $double; // @phpstan-ignore return.type (PHPStan types the by-reference capture from the native mock() return type.)
             });
         });
 

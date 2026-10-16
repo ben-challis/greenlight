@@ -30,7 +30,7 @@ final readonly class CoverageMap
 
         foreach ($files as $file) {
             $existing = $byPath[$file->file] ?? null;
-            $byPath[$file->file] = $existing === null ? $file : $existing->merge($file);
+            $byPath[$file->file] = $existing?->merge($file) ?? $file;
         }
 
         \ksort($byPath, \SORT_STRING);
