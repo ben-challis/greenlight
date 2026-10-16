@@ -10,6 +10,8 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
  * Supplies the payload values that the internal event codec reads and writes.
  *
  * @internal
+ *
+ * @phpstan-sealed RunStarted|RunFinished|TestClassStarted|TestClassFinished|TestStarted|TestFinished|WorkerSpawned
  */
 interface WireEvent extends Event
 {
