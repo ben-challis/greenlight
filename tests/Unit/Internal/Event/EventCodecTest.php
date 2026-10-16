@@ -143,7 +143,7 @@ final class EventCodecTest
     #[Test]
     public function unmappedEventsAreRejectedByTheCodec(): void
     {
-        $event = new class implements Event, Fake {
+        $event = new class implements Event, Fake { // @phpstan-ignore class.disallowedSubtype (deliberately unsupported: tests the rejection of an unknown event type)
             public float $occurredAt = 1.0;
         };
 
@@ -157,7 +157,7 @@ final class EventCodecTest
     #[Test]
     public function unmappedWireEventsAreRejectedByTheCodec(): void
     {
-        $event = new class implements WireEvent, Fake {
+        $event = new class implements WireEvent, Fake { // @phpstan-ignore class.disallowedSubtype (deliberately unsupported: tests the rejection of an unknown event type)
             public float $occurredAt = 1.0;
 
             #[\Override]

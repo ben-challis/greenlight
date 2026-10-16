@@ -12,11 +12,16 @@ Namespace: `Greenlight\Event`
 
 Defines an event that can occur in the run lifecycle.
 
+Greenlight creates every event. Plugins and reporters receive events and
+read them. Do not implement this interface: the worker protocol, the event
+codec, and the JSONL reporter reject an event type that Greenlight does not
+define.
+
 ```php
 interface Event
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/Event.php#L8)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/Event.php#L17)
 
 ### `$occurredAt`
 
@@ -26,7 +31,7 @@ Returns a Unix timestamp with microsecond precision.
 public float $occurredAt { get; }
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/Event.php#L13)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Event/Event.php#L22)
 
 ## `RunFinished`
 
