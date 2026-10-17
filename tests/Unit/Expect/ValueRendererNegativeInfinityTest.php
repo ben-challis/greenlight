@@ -14,7 +14,7 @@ final class ValueRendererNegativeInfinityTest
     #[Test]
     public function negativeInfinityKeepsItsSign(): void
     {
-        expect(new ValueRenderer()->render(-\INF))
+        expect((new ValueRenderer())->render(-\INF))
             ->because('negative infinity MUST retain its sign in failure diagnostics')
             ->toBe('-INF');
     }

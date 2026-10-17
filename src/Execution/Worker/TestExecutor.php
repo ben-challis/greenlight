@@ -20,6 +20,7 @@ use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\UnresolvableService;
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
@@ -376,7 +377,7 @@ final readonly class TestExecutor
                 static fn(\ReflectionAttribute $attribute): object => $attribute->newInstance(),
                 $parameter->getAttributes(),
             );
-            $hasSource = \array_any(
+            $hasSource = Arrays::any(
                 $attributes,
                 static fn(object $attribute): bool => $attribute instanceof Service && $attribute->source !== null,
             );

@@ -55,7 +55,7 @@ final readonly class WorkerProcessTest
 
             $address = 'unix://' . $this->tempDirectory->path() . '/missing-worker.sock';
 
-            expect(new WorkerProcess()->run($address, 'worker-under-test', 'token'))
+            expect((new WorkerProcess())->run($address, 'worker-under-test', 'token'))
                 ->because('a connection failure MUST return control to the calling process')
                 ->toEqual(CommandResult::failure());
             expect(\pcntl_signal_get_handler(\SIGINT))
@@ -126,7 +126,7 @@ final readonly class WorkerProcessTest
         }
 
         $this->environment->set('GREENLIGHT_CHANNEL', '1');
-        $workerResult = new WorkerProcess()->run($address, 'worker-under-test', 'token');
+        $workerResult = (new WorkerProcess())->run($address, 'worker-under-test', 'token');
         $serverResult = $server->wait(2.0);
 
         expect($workerResult)
@@ -370,7 +370,7 @@ final readonly class WorkerProcessTest
         }
 
         $this->environment->set('GREENLIGHT_CHANNEL', $environmentChannel);
-        $workerResult = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
+        $workerResult = (new WorkerProcess(0.01))->run($address, 'worker-under-test', 'token');
         $serverResult = $server->wait(2.0);
 
         return [$workerResult, $serverResult->exitCode];

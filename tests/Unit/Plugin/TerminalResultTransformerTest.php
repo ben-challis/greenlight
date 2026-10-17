@@ -59,11 +59,11 @@ final readonly class TerminalResultTransformerTest
                     : $result;
             }
         };
-        $plan = new TestDiscoverer()->discover([FixturePath::get('RunFailingSuite')]);
+        $plan = (new TestDiscoverer())->discover([FixturePath::get('RunFailingSuite')]);
         $sink = new CollectingEventSink();
         $runtime = WorkerPluginRuntime::fromPlugins([$plugin]);
 
-        new Worker(new StandardHarnessPlugin()->services(), $runtime)->run($plan, $sink);
+        (new Worker((new StandardHarnessPlugin())->services(), $runtime))->run($plan, $sink);
 
         expect($calls->getArrayCopy())
             ->because('a terminal transformer MUST receive only the result that remains after retries')

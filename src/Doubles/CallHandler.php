@@ -136,7 +136,7 @@ final readonly class CallHandler
      */
     private function returnsNothing(object $double, string $method): bool
     {
-        $type = new \ReflectionMethod($double, $method)->getReturnType();
+        $type = (new \ReflectionMethod($double, $method))->getReturnType();
 
         if ($type === null) {
             return true;

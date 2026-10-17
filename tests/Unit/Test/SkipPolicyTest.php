@@ -35,7 +35,7 @@ final class SkipPolicyTest
                 message: 'Skip condition arguments must be scalars or null, got array.',
             );
 
-        $payload = new SkipPolicy()->toWire();
+        $payload = (new SkipPolicy())->toWire();
         $payload['arguments'] = ['named' => 'value'];
 
         expect()->calling(static fn(): SkipPolicy => SkipPolicy::fromWire($payload))
@@ -51,7 +51,7 @@ final class SkipPolicyTest
             ->because('direct skip arguments MUST contain finite floats')
             ->toThrow(\InvalidArgumentException::class);
 
-        $payload = new SkipPolicy()->toWire();
+        $payload = (new SkipPolicy())->toWire();
         $payload['arguments'] = [$argument];
 
         expect()->calling(static fn(): SkipPolicy => SkipPolicy::fromWire($payload))

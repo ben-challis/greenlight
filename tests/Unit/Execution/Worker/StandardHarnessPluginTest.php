@@ -20,7 +20,7 @@ final readonly class StandardHarnessPluginTest
     #[Test]
     public function standardServicesStayBeforeUserPluginServices(): void
     {
-        expect(new StandardHarnessPlugin()->priority())->toBe(\PHP_INT_MIN);
+        expect((new StandardHarnessPlugin())->priority())->toBe(\PHP_INT_MIN);
     }
 
     #[Test]
@@ -33,7 +33,7 @@ final readonly class StandardHarnessPluginTest
             $this->environment->set('GREENLIGHT_CHANNEL', $raw);
         }
 
-        $scopes = new HarnessScopes(new StandardHarnessPlugin()->services());
+        $scopes = new HarnessScopes((new StandardHarnessPlugin())->services());
 
         try {
             $channel = $scopes->resolve(TestChannel::class, self::class);
@@ -50,7 +50,7 @@ final readonly class StandardHarnessPluginTest
     public function anExplicitWorkerChannelOverridesTheProcessEnvironment(): void
     {
         $this->environment->set('GREENLIGHT_CHANNEL', '2');
-        $scopes = new HarnessScopes(new StandardHarnessPlugin(channel: new TestChannel(3))->services());
+        $scopes = new HarnessScopes((new StandardHarnessPlugin(channel: new TestChannel(3)))->services());
 
         try {
             $channel = $scopes->resolve(TestChannel::class, self::class);

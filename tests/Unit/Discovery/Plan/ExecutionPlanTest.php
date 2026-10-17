@@ -87,14 +87,14 @@ final class ExecutionPlanTest
     #[Test]
     public function missingWireKeysFailLoudly(): void
     {
-        $payload = new ExecutionPlan([PlanEntryFixture::create('App\FooTest', 'a')])->toWire();
+        $payload = (new ExecutionPlan([PlanEntryFixture::create('App\FooTest', 'a')]))->toWire();
         unset($payload['seed']);
 
         expect()->calling(
             static fn(): ExecutionPlan => ExecutionPlan::fromWire($payload),
         )->because('missing wire keys cause an error')->toThrow(InvalidWirePayload::class);
 
-        $payload = new ExecutionPlan([PlanEntryFixture::create('App\FooTest', 'a')])->toWire();
+        $payload = (new ExecutionPlan([PlanEntryFixture::create('App\FooTest', 'a')]))->toWire();
         unset($payload['entries']);
 
         expect()->calling(

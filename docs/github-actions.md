@@ -150,7 +150,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php: ['8.4', '8.5']
+        php: ['8.3', '8.4', '8.5']
     steps:
       - uses: actions/checkout@v7
 

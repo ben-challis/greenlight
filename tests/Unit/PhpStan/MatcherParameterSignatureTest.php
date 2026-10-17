@@ -18,7 +18,7 @@ final class MatcherParameterSignatureTest
     #[DataSet('parameterSignatures')]
     public function rendersOptionalAndVariadicParameters(string $method, string $expected): void
     {
-        $parameter = new \ReflectionMethod(self::class, $method)->getParameters()[0];
+        $parameter = (new \ReflectionMethod(self::class, $method))->getParameters()[0];
 
         expect(MatcherMap::parameterSignature($parameter, 'null'))
             ->because('generated matcher signatures MUST distinguish optional and variadic parameters')

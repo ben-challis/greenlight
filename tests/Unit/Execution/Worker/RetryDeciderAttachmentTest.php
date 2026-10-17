@@ -55,11 +55,11 @@ final readonly class RetryDeciderAttachmentTest
         ]);
         $sink = new CollectingEventSink();
 
-        new Worker(
+        (new Worker(
             [],
             WorkerPluginRuntime::fromPlugins([$decider]),
             artifactStore: $store,
-        )->run($plan, $sink);
+        ))->run($plan, $sink);
 
         expect($decider->results)
             ->because('a retry decider MUST receive the unsuccessful attempt result')

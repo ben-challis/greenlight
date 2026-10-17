@@ -19,6 +19,12 @@ final readonly class TestStarted implements WireEvent
         }
     }
 
+    #[\Override]
+    public function occurredAt(): float
+    {
+        return $this->occurredAt;
+    }
+
     /** @internal */
     #[\Override]
     public function toWire(): array

@@ -106,7 +106,7 @@ final class OrchestratorTest
 
                 require %s;
 
-                exit(ExitCode::fromCommandResult(new WorkerProcess()->run($address, $workerId, $token))->value());
+                exit(ExitCode::fromCommandResult((new WorkerProcess())->run($address, $workerId, $token))->value());
                 PHP,
             \var_export($root . '/vendor/autoload.php', true),
         );

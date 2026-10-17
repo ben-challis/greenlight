@@ -347,7 +347,7 @@ final readonly class OutputCaptureTest
     #[Test]
     public function stoppingWithoutStartingThrows(): void
     {
-        expect()->calling(static fn(): mixed => new OutputCapture()->stop())->because('stop() without start() throws')
+        expect()->calling(static fn(): mixed => (new OutputCapture())->stop())->because('stop() without start() throws')
             ->toThrow(CaptureError::class, '/not active.*start\(\)/');
     }
 

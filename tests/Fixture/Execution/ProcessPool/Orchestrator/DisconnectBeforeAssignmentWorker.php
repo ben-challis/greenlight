@@ -20,7 +20,7 @@ final readonly class DisconnectBeforeAssignmentWorker implements Fake
     public static function run(string $address, string $workerId, string $token): int
     {
         if ($workerId !== 'w-1') {
-            return ExitCode::fromCommandResult(new WorkerProcess()->run($address, $workerId, $token))->value();
+            return ExitCode::fromCommandResult((new WorkerProcess())->run($address, $workerId, $token))->value();
         }
 
         $stream = \stream_socket_client($address);

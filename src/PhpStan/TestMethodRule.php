@@ -7,6 +7,7 @@ namespace Greenlight\PhpStan;
 use Greenlight\Attribute\DataRow;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
+use Greenlight\Internal\Php\Arrays;
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\InClassMethodNode;
@@ -102,7 +103,7 @@ final class TestMethodRule implements Rule
 
     private function hasRequiredParameter(Node\Stmt\ClassMethod $method): bool
     {
-        return \array_any(
+        return Arrays::any(
             $method->params,
             static fn(Node\Param $parameter): bool => !$parameter->default instanceof Node\Expr && !$parameter->variadic,
         );

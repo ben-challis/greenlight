@@ -222,7 +222,7 @@ final readonly class TestDiscoverer
                 throw DiscoveryError::classNotAutoloadable($file, $fqcn);
             }
 
-            $actualFile = new \ReflectionClass($fqcn)->getFileName();
+            $actualFile = (new \ReflectionClass($fqcn))->getFileName();
             [$resolvedActualFile, $resolvedExpectedFile] = ErrorTrap::run(
                 static fn() => [
                     $actualFile === false ? false : \realpath($actualFile),

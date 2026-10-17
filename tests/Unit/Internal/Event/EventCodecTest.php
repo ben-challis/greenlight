@@ -47,7 +47,7 @@ final class EventCodecTest
             $decoded = EventCodec::fromTagged(EventCodec::toTagged($event));
 
             expect($decoded::class)->toBe($event::class);
-            expect($decoded->occurredAt)->toBe($event->occurredAt);
+            expect($decoded->occurredAt())->toBe($event->occurredAt());
         }
     }
 
@@ -70,7 +70,7 @@ final class EventCodecTest
         ));
 
         expect($event::class)->toBe(RunStarted::class);
-        expect($event->occurredAt)->toBe(1.0);
+        expect($event->occurredAt())->toBe(1.0);
     }
 
     #[Test]
@@ -144,7 +144,11 @@ final class EventCodecTest
     public function unmappedEventsAreRejectedByTheCodec(): void
     {
         $event = new class implements Event, Fake { // @phpstan-ignore class.disallowedSubtype (deliberately unsupported: tests the rejection of an unknown event type)
-            public float $occurredAt = 1.0;
+            #[\Override]
+            public function occurredAt(): float
+            {
+                return 1.0;
+            }
         };
 
         expect()->calling(static fn(): array => EventCodec::toTagged($event))
@@ -158,7 +162,11 @@ final class EventCodecTest
     public function unmappedWireEventsAreRejectedByTheCodec(): void
     {
         $event = new class implements WireEvent, Fake { // @phpstan-ignore class.disallowedSubtype (deliberately unsupported: tests the rejection of an unknown event type)
-            public float $occurredAt = 1.0;
+            #[\Override]
+            public function occurredAt(): float
+            {
+                return 1.0;
+            }
 
             #[\Override]
             public function toWire(): array

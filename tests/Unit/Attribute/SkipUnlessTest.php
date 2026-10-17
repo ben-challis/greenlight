@@ -19,7 +19,7 @@ final class SkipUnlessTest
     public function invalidConditionClassesAreRejected(string $condition): void
     {
         expect()->calling(
-            static fn(): object => new \ReflectionClass(SkipUnless::class)->newInstance($condition),
+            static fn(): object => (new \ReflectionClass(SkipUnless::class))->newInstance($condition),
         )
             ->because('a skip condition MUST name an instantiable Condition class')
             ->toThrow(

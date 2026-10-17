@@ -70,7 +70,7 @@ final readonly class SubprocessCoverage
         }
 
         $pid = \getmypid();
-        $export = new JsonExporter()->export($map);
+        $export = (new JsonExporter())->export($map);
         $file = \sprintf(
             '%s/%d-%s.json',
             \rtrim($this->directory, '/'),

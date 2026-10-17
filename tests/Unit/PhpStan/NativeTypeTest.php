@@ -19,7 +19,7 @@ final class NativeTypeTest extends MatcherSubject
     #[DataSet('nativeTypes')]
     public function reflectedNativeTypesMapToPhpStanTypes(string $method, string $expected): void
     {
-        $type = new \ReflectionMethod(self::class, $method)->getParameters()[0]->getType();
+        $type = (new \ReflectionMethod(self::class, $method))->getParameters()[0]->getType();
 
         expect(NativeType::fromReflection($type)->describe(VerbosityLevel::typeOnly()))
             ->because('reflected native types map to their PHPStan equivalents')
@@ -31,7 +31,7 @@ final class NativeTypeTest extends MatcherSubject
     #[DataSet('objectTypes')]
     public function reflectedObjectTypesKeepTheirRequiredClasses(string $method, array $expected): void
     {
-        $type = new \ReflectionMethod(self::class, $method)->getParameters()[0]->getType();
+        $type = (new \ReflectionMethod(self::class, $method))->getParameters()[0]->getType();
         $mapped = NativeType::fromReflection($type);
 
         expect($mapped->isObject()->yes())
@@ -46,7 +46,7 @@ final class NativeTypeTest extends MatcherSubject
     #[DataSet('literalBooleanTypes')]
     public function reflectedLiteralBooleansRemainBooleanTypes(string $method, bool $expected): void
     {
-        $type = new \ReflectionMethod(self::class, $method)->getParameters()[0]->getType();
+        $type = (new \ReflectionMethod(self::class, $method))->getParameters()[0]->getType();
         $mapped = NativeType::fromReflection($type);
 
         expect($mapped::class)
@@ -63,8 +63,8 @@ final class NativeTypeTest extends MatcherSubject
         $parentClosure = static fn(parent $subject): bool => true;
         $staticClosure = static fn(): static => throw new \LogicException('Not called.');
 
-        $selfParameter = new \ReflectionFunction($selfClosure)->getParameters()[0];
-        $parentParameter = new \ReflectionFunction($parentClosure)->getParameters()[0];
+        $selfParameter = (new \ReflectionFunction($selfClosure))->getParameters()[0];
+        $parentParameter = (new \ReflectionFunction($parentClosure))->getParameters()[0];
         $staticReflection = new \ReflectionFunction($staticClosure);
 
         expect(NativeType::fromParameter($selfParameter)->getObjectClassNames())

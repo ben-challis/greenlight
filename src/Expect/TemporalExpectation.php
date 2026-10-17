@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\SourceLocation;
 use Greenlight\Test\ExpectationCounter;
@@ -191,7 +192,7 @@ abstract class TemporalExpectation
         try {
             $subject = ($this->probe)();
         } catch (\Exception $exception) {
-            if (!\array_any(
+            if (!Arrays::any(
                 $retryOnExceptions,
                 static fn(string $type): bool => $exception instanceof $type,
             )) {

@@ -48,7 +48,7 @@ final readonly class RunCommand
     public function run(ParsedArguments $arguments, string $workingDirectory, ?string $binPath): CommandResult
     {
         try {
-            $configuration = new ConfigurationLoader()->load($arguments, $workingDirectory);
+            $configuration = (new ConfigurationLoader())->load($arguments, $workingDirectory);
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
 
@@ -121,7 +121,7 @@ final readonly class RunCommand
             SignalHandlers::install($shutdown);
 
             if ($arguments->has('watch')) {
-                return new WatchRuns($this->console)->run($arguments, $workingDirectory, $workerBin, $configuration, $shutdown, $reporterCatalog, $reporterOutputs, $reporter);
+                return (new WatchRuns($this->console))->run($arguments, $workingDirectory, $workerBin, $configuration, $shutdown, $reporterCatalog, $reporterOutputs, $reporter);
             }
 
             $storage = StorageLayout::resolve(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Result;
 
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Internal\Text\Wildcard;
 use Greenlight\Internal\Wire\Wire;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
@@ -109,7 +110,7 @@ final readonly class ResultPolicy
 
     private function ignored(string $message): bool
     {
-        return \array_any(
+        return Arrays::any(
             $this->ignoreDeprecations,
             static fn(string $pattern): bool => Wildcard::matches($message, $pattern, caseInsensitive: true),
         );

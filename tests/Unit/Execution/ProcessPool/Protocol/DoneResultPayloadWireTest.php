@@ -16,7 +16,7 @@ final readonly class DoneResultPayloadWireTest
     public function accumulatedCoverageAndLeaksSurviveTheWire(): void
     {
         $payload = [
-            'summary' => new ResultSummary(passed: 1)->toWire(),
+            'summary' => (new ResultSummary(passed: 1))->toWire(),
             'peakMemoryBytes' => 4096,
             'coverage' => [
                 'files' => [

@@ -135,7 +135,7 @@ final readonly class WorkerArtifactSessionTest
         }
 
         $this->environment->set('GREENLIGHT_CHANNEL', '1');
-        $workerResult = new WorkerProcess(0.01)->run($address, 'worker-under-test', 'token');
+        $workerResult = (new WorkerProcess(0.01))->run($address, 'worker-under-test', 'token');
         $serverExit = $server->wait(2.0)->exitCode;
 
         expect($workerResult)

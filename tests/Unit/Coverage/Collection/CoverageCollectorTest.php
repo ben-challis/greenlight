@@ -115,8 +115,8 @@ final class CoverageCollectorTest
         );
 
         if (!$expected::isAvailable()) {
-            $expectedName = new \ReflectionClass($expected)->getShortName();
-            $otherName = new \ReflectionClass($other)->getShortName();
+            $expectedName = (new \ReflectionClass($expected))->getShortName();
+            $otherName = (new \ReflectionClass($other))->getShortName();
 
             expect($reason)
                 ->because(\sprintf('Unavailable %s coverage MUST report a reason.', $setting))
@@ -135,7 +135,7 @@ final class CoverageCollectorTest
             ->because(\sprintf('Available %s coverage MUST create a collector.', $setting))
             ->toBeInstanceOf(CoverageCollector::class);
 
-        $driver = new \ReflectionProperty(CoverageCollector::class, 'driver')->getValue($collector);
+        $driver = (new \ReflectionProperty(CoverageCollector::class, 'driver'))->getValue($collector);
 
         expect($driver)
             ->because($setting . ' selects only its configured coverage driver')

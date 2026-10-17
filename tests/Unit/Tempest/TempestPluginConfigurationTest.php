@@ -20,8 +20,8 @@ final readonly class TempestPluginConfigurationTest
     #[Test]
     public function exposesTheConfiguredSource(): void
     {
-        expect(new TempestPlugin('/project')->source())->toBeNull();
-        expect(new TempestPlugin('/project', source: 'application')->source())->toBe('application');
+        expect((new TempestPlugin('/project'))->source())->toBeNull();
+        expect((new TempestPlugin('/project', source: 'application'))->source())->toBe('application');
     }
 
     #[Test]
@@ -34,7 +34,7 @@ final readonly class TempestPluginConfigurationTest
     #[Test]
     public function exposesTheKernelAndContainerAsPerWorkerServices(): void
     {
-        $definitions = new TempestPlugin('/project')->services();
+        $definitions = (new TempestPlugin('/project'))->services();
 
         expect($definitions)->toHaveCount(2);
         expect($definitions[0]->type)->toBe(Kernel::class);

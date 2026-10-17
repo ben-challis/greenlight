@@ -29,7 +29,7 @@ final readonly class ArtifactCopyReadFailureTest
         UnreadableCopySourceStream::reset();
         $destination = $this->tempDirectory->path() . '/destination.txt';
 
-        expect()->calling(static fn() => new NativeFileCopier()->copy(
+        expect()->calling(static fn() => (new NativeFileCopier())->copy(
             self::SCHEME . '://source',
             $destination,
         ))

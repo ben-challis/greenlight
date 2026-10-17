@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Doubles;
 
+use Greenlight\Internal\Php\Arrays;
+
 /**
  * Represents the values that a typed argument matcher can accept.
  *
@@ -134,9 +136,9 @@ final readonly class ArgumentType
 
     public function accepts(mixed $value): bool
     {
-        return \array_any(
+        return Arrays::any(
             $this->alternatives,
-            static fn(array $alternative): bool => \array_all(
+            static fn(array $alternative): bool => Arrays::all(
                 $alternative,
                 static fn(string $type): bool => self::acceptsNamed($value, $type),
             ),
@@ -287,9 +289,9 @@ final readonly class ArgumentType
         $pair = [$left, $right];
 
         return (\in_array('callable', $pair, true)
-                && \array_any(['string', 'array', 'object', 'iterable'], static fn(string $type): bool => \in_array($type, $pair, true)))
+                && Arrays::any(['string', 'array', 'object', 'iterable'], static fn(string $type): bool => \in_array($type, $pair, true)))
             || (\in_array('iterable', $pair, true)
-                && \array_any(['array', 'object', 'callable'], static fn(string $type): bool => \in_array($type, $pair, true)));
+                && Arrays::any(['array', 'object', 'callable'], static fn(string $type): bool => \in_array($type, $pair, true)));
     }
 
     private function isClassType(string $type): bool

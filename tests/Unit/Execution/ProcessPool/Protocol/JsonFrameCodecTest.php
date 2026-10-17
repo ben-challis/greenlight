@@ -59,7 +59,7 @@ final readonly class JsonFrameCodecTest
         $stream = MemoryStream::open();
         $this->cleanup->defer(static fn() => MemoryStream::close($stream));
 
-        expect()->calling(static fn(): string => new JsonFrameCodec()->encode(['stream' => $stream]))
+        expect()->calling(static fn(): string => (new JsonFrameCodec())->encode(['stream' => $stream]))
             ->because('unsupported JSON values produce a protocol error')
             ->toThrow(
                 ProtocolError::class,
@@ -122,7 +122,7 @@ final readonly class JsonFrameCodecTest
     #[Test]
     public function whitespaceWrappedEmptyJsonObjectRemainsAValidMap(): void
     {
-        expect(new JsonFrameCodec()->decode("\n \t{}\r\n"))
+        expect((new JsonFrameCodec())->decode("\n \t{}\r\n"))
             ->because('JSON whitespace MUST NOT make an empty object look like a list')
             ->toBe([]);
     }

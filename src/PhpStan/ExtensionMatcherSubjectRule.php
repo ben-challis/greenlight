@@ -78,11 +78,11 @@ final readonly class ExtensionMatcherSubjectRule implements Rule
 
     private function subjectType(Type $receiver): ?Type
     {
-        if (new ObjectType(Expectation::class)->isSuperTypeOf($receiver)->yes()) {
+        if ((new ObjectType(Expectation::class))->isSuperTypeOf($receiver)->yes()) {
             return $receiver->getTemplateType(Expectation::class, 'T');
         }
 
-        if (new ObjectType(TemporalExpectation::class)->isSuperTypeOf($receiver)->yes()) {
+        if ((new ObjectType(TemporalExpectation::class))->isSuperTypeOf($receiver)->yes()) {
             return $receiver->getTemplateType(TemporalExpectation::class, 'T');
         }
 

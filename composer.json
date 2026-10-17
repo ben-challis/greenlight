@@ -1,6 +1,6 @@
 {
     "name": "greenlight/greenlight",
-    "description": "A test framework for PHP 8.4+ with typed attributes, parallel execution, flat memory use, and lifecycle-safe test doubles.",
+    "description": "A test framework for PHP 8.3+ with typed attributes, parallel execution, flat memory use, and lifecycle-safe test doubles.",
     "license": "MIT",
     "type": "library",
     "version": "0.3.0",
@@ -13,7 +13,7 @@
     ],
     "homepage": "https://ben-challis.github.io/greenlight/",
     "require": {
-        "php": ">=8.4"
+        "php": ">=8.3"
     },
     "require-dev": {
         "deptrac/deptrac": "^4.0",

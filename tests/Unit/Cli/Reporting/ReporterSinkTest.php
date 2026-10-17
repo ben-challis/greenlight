@@ -33,7 +33,7 @@ final class ReporterSinkTest
         };
         $event = new RunStarted('run-1', 1, 1, 1.0);
 
-        new ReporterSink($reporter)->emit($event);
+        (new ReporterSink($reporter))->emit($event);
 
         expect($reporter->received)
             ->because('the reporter sink MUST preserve event identity')

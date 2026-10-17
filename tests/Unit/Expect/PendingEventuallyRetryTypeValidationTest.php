@@ -15,7 +15,7 @@ final class PendingEventuallyRetryTypeValidationTest
     public function invalidRetryTypesIdentifyTheTypeAndRequirement(): void
     {
         expect()->calling(static function (): void {
-            new \ReflectionMethod(PendingEventually::class, 'retryOnException')
+            (new \ReflectionMethod(PendingEventually::class, 'retryOnException'))
                 ->invoke(expect()->calling(static fn(): int => 1)->returnValue()->eventually(), \Error::class);
         })
             ->because('an invalid retry type MUST identify the type and the Exception requirement')

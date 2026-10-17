@@ -18,7 +18,7 @@ final class DataSetNormalizedKeyCollisionTest
     {
         $reflection = new \ReflectionClass(NormalizedDuplicateKeysTest::class);
 
-        expect()->calling(static fn(): array => new DataSetExpander()->rowsFor(
+        expect()->calling(static fn(): array => (new DataSetExpander())->rowsFor(
             $reflection,
             'needsData',
             'rows',

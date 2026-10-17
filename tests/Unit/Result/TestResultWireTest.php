@@ -68,11 +68,11 @@ final class TestResultWireTest
      */
     private function payload(): array
     {
-        return new TestResult(
+        return (new TestResult(
             new TestId('App\ExampleTest', 'checksValue'),
             Outcome::Passed,
             0.1,
             0,
-        )->toWire();
+        ))->toWire();
     }
 }

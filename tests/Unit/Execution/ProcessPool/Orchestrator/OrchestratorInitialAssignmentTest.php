@@ -11,6 +11,7 @@ use Greenlight\Event\WorkerSpawned;
 use Greenlight\Event\WorkerTiming;
 use Greenlight\Execution\ProcessPool\Orchestrator\InitialWorkerAssignment;
 use Greenlight\Execution\ProcessPool\Orchestrator\Orchestrator;
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\NativeOrchestrator;
@@ -35,7 +36,7 @@ final readonly class OrchestratorInitialAssignmentTest
         $firstWorker = $this->assignments($directory, 'w-1');
         $secondWorker = $this->assignments($directory, 'w-2');
         $slowReadyAt = (float) \file_get_contents($directory . '/slow-ready');
-        $firstWorkerTiming = \array_find(
+        $firstWorkerTiming = Arrays::find(
             $orchestrator->workerTimings(),
             static fn(WorkerTiming $timing): bool => $timing->workerId === 'w-1',
         );

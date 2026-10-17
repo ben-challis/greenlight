@@ -176,7 +176,7 @@ final readonly class RunSession
         }
         $coverageConfig = $resolved->coverage;
         if ($coverageConfig instanceof CoverageConfiguration
-            && !new CoverageWriter($this->console, $this->coverageOutputOnStderr)->write(
+            && !(new CoverageWriter($this->console, $this->coverageOutputOnStderr))->write(
                 $coverageConfig,
                 $coverage,
                 $this->workingDirectory,
@@ -243,7 +243,7 @@ final readonly class RunSession
     {
         $resolved = $this->configuration->resolved;
 
-        return new RunCoordinator($this->workingDirectory)->run(
+        return (new RunCoordinator($this->workingDirectory))->run(
             $resolved,
             $this->selection,
             $this->configuration->directories,

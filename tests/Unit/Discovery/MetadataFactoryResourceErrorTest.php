@@ -18,7 +18,7 @@ final readonly class MetadataFactoryResourceErrorTest
     {
         $class = $this->fixtureClass();
 
-        expect()->calling(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
+        expect()->calling(static fn(): array => (new MetadataFactory())->forClass(new \ReflectionClass($class)))
             ->because('discovery MUST wrap an invalid resource attribute with its method location')
             ->toThrow(
                 static function (DiscoveryError $error) use ($class): void {

@@ -8,6 +8,7 @@ use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Expect\Expectation;
 use Greenlight\Expect\TemporalExpectation;
+use Greenlight\Internal\Php\Arrays;
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Identifier;
@@ -65,7 +66,7 @@ final readonly class ExtensionMatcherReturnRule implements Rule
     private static function isCompatibleReturn(\ReflectionType $type): bool
     {
         if ($type instanceof \ReflectionUnionType || $type instanceof \ReflectionIntersectionType) {
-            return \array_all($type->getTypes(), self::isCompatibleReturn(...));
+            return Arrays::all($type->getTypes(), self::isCompatibleReturn(...));
         }
 
         return $type instanceof \ReflectionNamedType
@@ -77,8 +78,8 @@ final readonly class ExtensionMatcherReturnRule implements Rule
     {
         $receiver = $scope->getType($call->var);
 
-        return new ObjectType(Expectation::class)->isSuperTypeOf($receiver)->yes()
-            || new ObjectType(TemporalExpectation::class)->isSuperTypeOf($receiver)->yes();
+        return (new ObjectType(Expectation::class))->isSuperTypeOf($receiver)->yes()
+            || (new ObjectType(TemporalExpectation::class))->isSuperTypeOf($receiver)->yes();
     }
 
     private function error(string $matcher, string $returnType, int $line): IdentifierRuleError
