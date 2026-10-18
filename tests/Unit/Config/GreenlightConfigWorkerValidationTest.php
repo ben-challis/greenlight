@@ -39,7 +39,7 @@ final class GreenlightConfigWorkerValidationTest
 
         yield 'unsupported worker count string' => [
             static function (): void {
-                new \ReflectionMethod(GreenlightConfig::class, 'workers')
+                (new \ReflectionMethod(GreenlightConfig::class, 'workers'))
                     ->invoke(GreenlightConfig::create(), 'several');
             },
             'Worker count must be a positive integer or "auto", got "several".',

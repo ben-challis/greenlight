@@ -35,7 +35,7 @@ final readonly class ArtifactCopyFlushFailureTest
 
         UnflushableStream::reset();
 
-        expect()->calling(static fn() => new NativeFileCopier()->copy(
+        expect()->calling(static fn() => (new NativeFileCopier())->copy(
             $source,
             self::SCHEME . '://destination',
         ))

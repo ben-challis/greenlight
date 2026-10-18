@@ -93,7 +93,7 @@ final class ClassContext
     public function argumentsFor(?string $provider, ?string $providerClass, string $testMethod, string $key): array
     {
         if (!\array_key_exists($testMethod, $this->dataSets)) {
-            $this->dataSets[$testMethod] = new DataSetExpander()->rowsFor(
+            $this->dataSets[$testMethod] = (new DataSetExpander())->rowsFor(
                 $this->reflection,
                 $testMethod,
                 $provider,

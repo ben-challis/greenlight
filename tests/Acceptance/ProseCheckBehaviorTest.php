@@ -774,7 +774,7 @@ final readonly class ProseCheckBehaviorTest
 
     private function write(string $root, string $relativePath, string $contents): void
     {
-        new ProjectFiles($root)->write($relativePath, $contents);
+        (new ProjectFiles($root))->write($relativePath, $contents);
     }
 
     private function run(string $command, string $root): ProcessResult

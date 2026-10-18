@@ -10,9 +10,9 @@ use Greenlight\Cli\ExitCode;
 use Greenlight\Plugin\CommandResult;
 
 // @phpstan-ignore smaller.alwaysFalse (The executable validates the PHP version at run time before it loads Composer.)
-if (\PHP_VERSION_ID < 80400) {
+if (\PHP_VERSION_ID < 80300) {
     \fwrite(\STDERR, \sprintf(
-        "Greenlight requires PHP 8.4 or later. The current PHP version is %s.\n",
+        "Greenlight requires PHP 8.3 or later. The current PHP version is %s.\n",
         \PHP_VERSION,
     ));
 

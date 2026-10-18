@@ -33,7 +33,7 @@ final class CoverageJson
 
     public static function write(string $path, CoverageMap $map): void
     {
-        $documents = new JsonExporter()->export($map);
+        $documents = (new JsonExporter())->export($map);
         $json = $documents[JsonExporter::FILE_NAME];
         $written = ErrorTrap::run(
             static fn() => \file_put_contents($path, $json),

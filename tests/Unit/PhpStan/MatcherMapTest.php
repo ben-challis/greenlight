@@ -100,7 +100,7 @@ final class MatcherMapTest
     #[DataSet('matcherTypes')]
     public function matcherTypesRenderForGeneratedSignatures(string $method, string $expected): void
     {
-        $parameter = new \ReflectionMethod(MatcherTypeShapes::class, $method)->getParameters()[0];
+        $parameter = (new \ReflectionMethod(MatcherTypeShapes::class, $method))->getParameters()[0];
 
         expect(MatcherMap::typeName($parameter->getType()))
             ->because('matcher types render for generated signatures')

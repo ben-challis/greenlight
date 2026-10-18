@@ -19,5 +19,5 @@ interface Event
     /**
      * Returns a Unix timestamp with microsecond precision.
      */
-    public float $occurredAt { get; }
+    public function occurredAt(): float;
 }

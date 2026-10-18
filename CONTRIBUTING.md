@@ -4,8 +4,9 @@ Thank you for your interest in Greenlight. These rules apply to every change.
 
 ## Requirements
 
-Greenlight requires PHP 8.4 or later. The documentation checks require Node.js
-24 or later and npm.
+Greenlight supports PHP 8.3 or later. Development requires PHP 8.4 or later,
+because the locked development dependencies require it. The documentation
+checks require Node.js 24 or later and npm.
 
 From the repository root, run `composer install` to install the PHP development
 dependencies.

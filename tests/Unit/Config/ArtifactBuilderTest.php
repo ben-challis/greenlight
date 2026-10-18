@@ -16,7 +16,7 @@ final class ArtifactBuilderTest
     #[Test]
     public function retainsAZeroArtifactDirectory(): void
     {
-        $configuration = new ArtifactBuilder()
+        $configuration = (new ArtifactBuilder())
             ->directory('0')
             ->toConfiguration();
 
@@ -28,7 +28,7 @@ final class ArtifactBuilderTest
     #[Test]
     public function retentionIsUnboundedUntilAUserConfiguresIt(): void
     {
-        $configuration = new ArtifactBuilder()->toConfiguration();
+        $configuration = (new ArtifactBuilder())->toConfiguration();
 
         expect($configuration->maxCompletedRuns)->toBe(null);
         expect($configuration->maxCompletedRunAgeSeconds)->toBe(null);
@@ -39,7 +39,7 @@ final class ArtifactBuilderTest
     #[Test]
     public function buildsEachCompletedRunRetentionLimit(): void
     {
-        $configuration = new ArtifactBuilder()
+        $configuration = (new ArtifactBuilder())
             ->maxCompletedRuns(4)
             ->maxCompletedRunAge(3_600)
             ->maxRetainedSize('2M')

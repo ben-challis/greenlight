@@ -105,7 +105,7 @@ final readonly class CommandDispatcher
      */
     private function catalog(array $plugins): CommandCatalog
     {
-        $definitions = new BundledCommands($this->console, $this->version, $this->definition)->commands();
+        $definitions = (new BundledCommands($this->console, $this->version, $this->definition))->commands();
 
         foreach ($plugins as $pluginDefinition) {
             if (!$pluginDefinition->supports(CommandProvider::class)) {

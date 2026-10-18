@@ -15,9 +15,9 @@ final readonly class RawCoverageMapTest
     #[Test]
     public function conversionSplitsStatusesAndDropsDeadCode(): void
     {
-        $map = new RawCoverage([
+        $map = (new RawCoverage([
             '/src/A.php' => [3 => 1, 4 => -1, 5 => -2, 6 => 7],
-        ])->toMap();
+        ]))->toMap();
 
         $file = $map->files()['/src/A.php'];
 
@@ -41,7 +41,7 @@ final readonly class RawCoverageMapTest
     #[Test]
     public function conversionDropsFilesWithNoExecutableLines(): void
     {
-        $map = new RawCoverage(['/src/A.php' => [3 => -2]])->toMap();
+        $map = (new RawCoverage(['/src/A.php' => [3 => -2]]))->toMap();
 
         expect($map->isEmpty())->because('conversion drops files with no executable lines')->toBeTrue();
     }
@@ -49,9 +49,9 @@ final readonly class RawCoverageMapTest
     #[Test]
     public function conversionDropsInvalidLineNumbers(): void
     {
-        $map = new RawCoverage([
+        $map = (new RawCoverage([
             '/src/A.php' => [-1 => 1, 0 => -1, 1 => 1],
-        ])->toMap();
+        ]))->toMap();
 
         expect($map->files()['/src/A.php']->coveredLines)
             ->because('raw coverage drops non-positive line numbers')
@@ -62,10 +62,10 @@ final readonly class RawCoverageMapTest
     #[Test]
     public function conversionDropsUnusableDriverEntries(): void
     {
-        $map = new RawCoverage([
+        $map = (new RawCoverage([
             '' => [1 => 1],
             '/src/A.php' => [1 => 0, 2 => -2, 3 => 1, 4 => -1],
-        ])->toMap();
+        ]))->toMap();
 
         expect($map->toWire())
             ->because('raw coverage MUST keep only usable paths and documented driver statuses')

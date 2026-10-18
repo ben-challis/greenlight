@@ -33,7 +33,7 @@ final class ExecutionPolicyTest
             ->because('a direct execution policy MUST require a positive finite timeout')
             ->toThrow(\InvalidArgumentException::class);
 
-        $payload = new ExecutionPolicy()->toWire();
+        $payload = (new ExecutionPolicy())->toWire();
         $payload['timeoutSeconds'] = $seconds;
 
         expect()->calling(static fn(): ExecutionPolicy => ExecutionPolicy::fromWire($payload))

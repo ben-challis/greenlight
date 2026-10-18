@@ -60,12 +60,12 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
         ExecutionPlan $plan,
         array $classSeconds,
     ): ExecutionTopology {
-        [$pooled, $isolated] = new Distributor()->units($plan, $classSeconds, $this->workerCount);
-        $fixtureChannels = new ResourceScheduler(
+        [$pooled, $isolated] = (new Distributor())->units($plan, $classSeconds, $this->workerCount);
+        $fixtureChannels = (new ResourceScheduler(
             $pooled,
             $isolated,
             $this->workers->resourceLimits,
-        )->initialWorkerTarget($this->workerCount);
+        ))->initialWorkerTarget($this->workerCount);
 
         return new ExecutionTopology($this->workerCount, $fixtureChannels);
     }

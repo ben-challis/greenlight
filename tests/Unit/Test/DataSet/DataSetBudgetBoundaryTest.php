@@ -18,7 +18,7 @@ final readonly class DataSetBudgetBoundaryTest
     {
         $deadline = 5_000_000_000;
         $clock = new FakeMonotonicClock(0, $deadline, $deadline, $deadline);
-        $rows = new DataSetExpander($clock)->rowsFor(
+        $rows = (new DataSetExpander($clock))->rowsFor(
             new \ReflectionClass(ProviderKeysTest::class),
             'withStringKeys',
             'stringKeys',
@@ -37,7 +37,7 @@ final readonly class DataSetBudgetBoundaryTest
     public function aLargeFiniteBudgetDoesNotOverflowTheDeadline(): void
     {
         $clock = new FakeMonotonicClock(10, 11, 12, 13);
-        $rows = new DataSetExpander($clock)->rowsFor(
+        $rows = (new DataSetExpander($clock))->rowsFor(
             new \ReflectionClass(ProviderKeysTest::class),
             'withStringKeys',
             'stringKeys',

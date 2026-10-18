@@ -23,7 +23,7 @@ final readonly class ProxyGlobalConstantDefaultTest
         $double = $doubles->mock(GlobalConstantDefault::class, static function (MockPlan $plan): void {
             $plan->expects('limit')->once()->andReturns(42);
         });
-        $parameter = new \ReflectionMethod($double, 'limit')->getParameters()[0];
+        $parameter = (new \ReflectionMethod($double, 'limit'))->getParameters()[0];
 
         try {
             $answer = $double->limit();

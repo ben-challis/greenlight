@@ -19,7 +19,7 @@ final readonly class ProxyPrivateConstantDefaultTest
     #[Test]
     public function privateSelfDefaultsAllowOmittedArguments(): void
     {
-        expect(new PrivateConstantDefault()->mode())->toBe('fast');
+        expect((new PrivateConstantDefault())->mode())->toBe('fast');
         $double = $this->doubles->mock(PrivateConstantDefault::class, static function (MockPlan $plan): void {
             $plan->expects('mode')->once()->andReturns('answered');
         });
@@ -30,7 +30,7 @@ final readonly class ProxyPrivateConstantDefaultTest
     #[Test]
     public function privateQualifiedDefaultsAllowOmittedArguments(): void
     {
-        expect(new PrivateConstantDefault()->options())->toBe(['mode' => 'fast']);
+        expect((new PrivateConstantDefault())->options())->toBe(['mode' => 'fast']);
         $double = $this->doubles->mock(PrivateConstantDefault::class, static function (MockPlan $plan): void {
             $plan->expects('options')->once()->andReturns(['mode' => 'answered']);
         });
@@ -41,7 +41,7 @@ final readonly class ProxyPrivateConstantDefaultTest
     #[Test]
     public function inheritedMethodsKeepTheirPrivateDefaults(): void
     {
-        expect(new InheritedPrivateConstantDefault()->mode())->toBe('fast');
+        expect((new InheritedPrivateConstantDefault())->mode())->toBe('fast');
         $double = $this->doubles->mock(InheritedPrivateConstantDefault::class, static function (MockPlan $plan): void {
             $plan->expects('mode')->once()->andReturns('answered');
         });

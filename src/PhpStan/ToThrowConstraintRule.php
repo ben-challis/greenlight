@@ -6,6 +6,7 @@ namespace Greenlight\PhpStan;
 
 use Greenlight\Expect\CallExpectation;
 use Greenlight\Expect\TemporalCallExpectation;
+use Greenlight\Internal\Php\Arrays;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\MethodCall;
@@ -40,9 +41,9 @@ final class ToThrowConstraintRule implements Rule
         }
 
         $receiver = $scope->getType($node->var);
-        $supported = \array_any(
+        $supported = Arrays::any(
             [CallExpectation::class, TemporalCallExpectation::class],
-            static fn(string $class): bool => new ObjectType($class)->isSuperTypeOf($receiver)->yes(),
+            static fn(string $class): bool => (new ObjectType($class))->isSuperTypeOf($receiver)->yes(),
         );
 
         if (!$supported) {
@@ -51,7 +52,7 @@ final class ToThrowConstraintRule implements Rule
 
         foreach ($this->constraintStates($node, $scope) as $state) {
             if ($state['throwable'] instanceof Type
-                && new ObjectType(\Closure::class)->isSuperTypeOf($state['throwable'])->yes()
+                && (new ObjectType(\Closure::class))->isSuperTypeOf($state['throwable'])->yes()
                 && (($state['matching'] instanceof Type && !$state['matching']->isNull()->yes())
                     || ($state['message'] instanceof Type && !$state['message']->isNull()->yes()))
             ) {
@@ -59,7 +60,7 @@ final class ToThrowConstraintRule implements Rule
             }
 
             if ($state['throwable'] instanceof Type
-                && new ObjectType(\Throwable::class)->isSuperTypeOf($state['throwable'])->yes()
+                && (new ObjectType(\Throwable::class))->isSuperTypeOf($state['throwable'])->yes()
                 && (($state['matching'] instanceof Type && !$state['matching']->isNull()->yes())
                     || ($state['message'] instanceof Type && !$state['message']->isNull()->yes()))
             ) {

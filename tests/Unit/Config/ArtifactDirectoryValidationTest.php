@@ -15,7 +15,7 @@ final class ArtifactDirectoryValidationTest
     #[Test]
     public function nullBytesAreRejectedAtTheConfigurationBoundary(): void
     {
-        expect()->calling(static fn(): ArtifactBuilder => new ArtifactBuilder()->directory("artifacts\0hidden"))
+        expect()->calling(static fn(): ArtifactBuilder => (new ArtifactBuilder())->directory("artifacts\0hidden"))
             ->because('artifact directories MUST be valid file-system paths')
             ->toThrow(
                 InvalidConfiguration::class,

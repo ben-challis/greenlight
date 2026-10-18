@@ -63,7 +63,7 @@ final readonly class HyperfScanDirectoryRaceTest
             $plugin = new \Greenlight\Hyperf\HyperfPlugin('concurrent-directory://application');
 
             try {
-                new \ReflectionMethod($plugin, 'initializeClassLoader')->invoke($plugin, 'concurrent-directory://application');
+                (new \ReflectionMethod($plugin, 'initializeClassLoader'))->invoke($plugin, 'concurrent-directory://application');
             } catch (\Greenlight\Hyperf\HyperfBridgeError $error) {
                 echo $error->getMessage();
                 exit(1);

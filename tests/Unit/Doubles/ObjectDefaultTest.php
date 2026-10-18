@@ -28,7 +28,7 @@ final readonly class ObjectDefaultTest
         $double->run();
 
         expect($this->doubles->callsTo($double, 'run'))->toBe([[]]);
-        expect(new \ReflectionMethod($double, 'run')->getParameters()[0]->getDefaultValue())
+        expect((new \ReflectionMethod($double, 'run'))->getParameters()[0]->getDefaultValue())
             ->toBeInstanceOf(\stdClass::class);
     }
 
@@ -83,8 +83,8 @@ final readonly class ObjectDefaultTest
     public function objectDefaultsPreserveImportsAndNamedConstructorArguments(): void
     {
         $double = $this->doubles->spy(ImportedDefaults::class);
-        $original = new \ReflectionMethod(ImportedDefaults::class, 'run')->getParameters()[0]->getDefaultValue();
-        $generated = new \ReflectionMethod($double, 'run')->getParameters()[0]->getDefaultValue();
+        $original = (new \ReflectionMethod(ImportedDefaults::class, 'run'))->getParameters()[0]->getDefaultValue();
+        $generated = (new \ReflectionMethod($double, 'run'))->getParameters()[0]->getDefaultValue();
 
         $double->run(marker: 'named');
 
@@ -96,8 +96,8 @@ final readonly class ObjectDefaultTest
     public function arraysPreserveNestedObjectsEnumsAndStringBytes(): void
     {
         $double = $this->doubles->spy(ImportedDefaults::class);
-        $original = new \ReflectionMethod(ImportedDefaults::class, 'nested')->getParameters()[0]->getDefaultValue();
-        $generated = new \ReflectionMethod($double, 'nested')->getParameters()[0]->getDefaultValue();
+        $original = (new \ReflectionMethod(ImportedDefaults::class, 'nested'))->getParameters()[0]->getDefaultValue();
+        $generated = (new \ReflectionMethod($double, 'nested'))->getParameters()[0]->getDefaultValue();
 
         $double->nested(marker: 'nested');
 
@@ -109,8 +109,8 @@ final readonly class ObjectDefaultTest
     public function classDefaultsResolvePrivateSelfAndParentConstants(): void
     {
         $double = $this->doubles->spy(ContextDefaults::class);
-        $original = new \ReflectionMethod(ContextDefaults::class, 'run')->getParameters()[0]->getDefaultValue();
-        $generated = new \ReflectionMethod($double, 'run')->getParameters()[0]->getDefaultValue();
+        $original = (new \ReflectionMethod(ContextDefaults::class, 'run'))->getParameters()[0]->getDefaultValue();
+        $generated = (new \ReflectionMethod($double, 'run'))->getParameters()[0]->getDefaultValue();
 
         $double->run(marker: 'class');
 
@@ -122,8 +122,8 @@ final readonly class ObjectDefaultTest
     public function inheritedMethodsKeepTheirOriginalClassContext(): void
     {
         $double = $this->doubles->spy(ContextDefaults::class);
-        $original = new \ReflectionMethod(ContextDefaults::class, 'inherited')->getParameters()[0]->getDefaultValue();
-        $generated = new \ReflectionMethod($double, 'inherited')->getParameters()[0]->getDefaultValue();
+        $original = (new \ReflectionMethod(ContextDefaults::class, 'inherited'))->getParameters()[0]->getDefaultValue();
+        $generated = (new \ReflectionMethod($double, 'inherited'))->getParameters()[0]->getDefaultValue();
 
         $double->inherited(marker: 'parent');
 
@@ -135,8 +135,8 @@ final readonly class ObjectDefaultTest
     public function traitAliasesKeepTheOriginalImportsAndMagicConstants(): void
     {
         $double = $this->doubles->spy(TraitConsumer::class);
-        $original = new \ReflectionMethod(TraitConsumer::class, 'aliasDefault')->getParameters()[0]->getDefaultValue();
-        $generated = new \ReflectionMethod($double, 'aliasDefault')->getParameters()[0]->getDefaultValue();
+        $original = (new \ReflectionMethod(TraitConsumer::class, 'aliasDefault'))->getParameters()[0]->getDefaultValue();
+        $generated = (new \ReflectionMethod($double, 'aliasDefault'))->getParameters()[0]->getDefaultValue();
 
         $double->aliasDefault(marker: 'trait');
 
@@ -148,8 +148,8 @@ final readonly class ObjectDefaultTest
     public function arraysRetainTheIdentityOfObjectConstants(): void
     {
         $double = $this->doubles->spy(ConstantObjectDefaults::class);
-        $original = new \ReflectionMethod(ConstantObjectDefaults::class, 'nested')->getParameters()[0]->getDefaultValue();
-        $generated = new \ReflectionMethod($double, 'nested')->getParameters()[0]->getDefaultValue();
+        $original = (new \ReflectionMethod(ConstantObjectDefaults::class, 'nested'))->getParameters()[0]->getDefaultValue();
+        $generated = (new \ReflectionMethod($double, 'nested'))->getParameters()[0]->getDefaultValue();
 
         $double->nested(marker: 'shared');
 
@@ -161,8 +161,8 @@ final readonly class ObjectDefaultTest
     public function globalConstantDefaultsRetainTheirObjectIdentity(): void
     {
         $double = $this->doubles->spy(ConstantObjectDefaults::class);
-        $original = new \ReflectionMethod(ConstantObjectDefaults::class, 'globalConstant')->getParameters()[0]->getDefaultValue();
-        $generated = new \ReflectionMethod($double, 'globalConstant')->getParameters()[0]->getDefaultValue();
+        $original = (new \ReflectionMethod(ConstantObjectDefaults::class, 'globalConstant'))->getParameters()[0]->getDefaultValue();
+        $generated = (new \ReflectionMethod($double, 'globalConstant'))->getParameters()[0]->getDefaultValue();
 
         $double->globalConstant(marker: 'global');
 
@@ -174,8 +174,8 @@ final readonly class ObjectDefaultTest
     public function publicConstantDefaultsRetainTheirObjectIdentity(): void
     {
         $double = $this->doubles->spy(ConstantObjectDefaults::class);
-        $original = new \ReflectionMethod(ConstantObjectDefaults::class, 'publicConstant')->getParameters()[0]->getDefaultValue();
-        $generated = new \ReflectionMethod($double, 'publicConstant')->getParameters()[0]->getDefaultValue();
+        $original = (new \ReflectionMethod(ConstantObjectDefaults::class, 'publicConstant'))->getParameters()[0]->getDefaultValue();
+        $generated = (new \ReflectionMethod($double, 'publicConstant'))->getParameters()[0]->getDefaultValue();
 
         $double->publicConstant(marker: 'public');
 

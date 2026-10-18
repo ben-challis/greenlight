@@ -7,6 +7,7 @@ namespace Greenlight\PhpStan;
 use Greenlight\Doubles\ArgumentMatcher;
 use Greenlight\Doubles\MethodExpectation;
 use Greenlight\Doubles\MockPlan;
+use Greenlight\Internal\Php\Arrays;
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Identifier;
@@ -70,7 +71,7 @@ final readonly class DoublePlanRule implements Rule
     {
         $receiver = $scope->getType($call->var);
 
-        if (!new ObjectType(MockPlan::class)->isSuperTypeOf($receiver)->yes()) {
+        if (!(new ObjectType(MockPlan::class))->isSuperTypeOf($receiver)->yes()) {
             return [];
         }
 
@@ -117,7 +118,7 @@ final readonly class DoublePlanRule implements Rule
     {
         $selected = $this->selectedMethod($scope->getType($call->var));
 
-        if ($selected === null || \array_any($call->getArgs(), static fn(Node\Arg $argument): bool => $argument->unpack)) {
+        if ($selected === null || Arrays::any($call->getArgs(), static fn(Node\Arg $argument): bool => $argument->unpack)) {
             return [];
         }
 
@@ -424,7 +425,7 @@ final readonly class DoublePlanRule implements Rule
 
     private function isMethodExpectation(Type $receiver): bool
     {
-        return new ObjectType(MethodExpectation::class)->isSuperTypeOf($receiver)->yes();
+        return (new ObjectType(MethodExpectation::class))->isSuperTypeOf($receiver)->yes();
     }
 
     /**

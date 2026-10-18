@@ -44,7 +44,7 @@ final class DataSetExpansionTest
     {
         $directory = FixturePath::get($fixture);
 
-        return static fn(): ExecutionPlan => new TestDiscoverer($budgetSeconds)->discover([$directory]);
+        return static fn(): ExecutionPlan => (new TestDiscoverer($budgetSeconds))->discover([$directory]);
     }
 
     private static function dataSetCause(DiscoveryError $error): DataSetError
@@ -61,7 +61,7 @@ final class DataSetExpansionTest
     #[Test]
     public function printableStringKeysAreUsedAsIs(): void
     {
-        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryDataSets')]);
+        $plan = (new TestDiscoverer())->discover([FixturePath::get('DiscoveryDataSets')]);
 
         expect($this->keysFor($plan, 'withStringKeys'))->because('printable string keys are used as is')->toBe(['first case', 'second case']);
     }
@@ -69,7 +69,7 @@ final class DataSetExpansionTest
     #[Test]
     public function integerKeysBecomeOrdinalStrings(): void
     {
-        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryDataSets')]);
+        $plan = (new TestDiscoverer())->discover([FixturePath::get('DiscoveryDataSets')]);
 
         expect($this->keysFor($plan, 'withIntegerKeys'))->because('integer keys become ordinal strings')->toBe(['#0', '#1', '#2']);
     }
@@ -77,7 +77,7 @@ final class DataSetExpansionTest
     #[Test]
     public function nonPrintableAndEmptyKeysBecomeStableHashPrefixes(): void
     {
-        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryDataSets')]);
+        $plan = (new TestDiscoverer())->discover([FixturePath::get('DiscoveryDataSets')]);
 
         $expected = [
             \substr(\hash('sha256', "tab\tseparated"), 0, 8),
@@ -91,7 +91,7 @@ final class DataSetExpansionTest
     #[Test]
     public function aTrailingNewlineKeyBecomesAStableHashPrefix(): void
     {
-        $rows = new DataSetExpander()->rowsFor(
+        $rows = (new DataSetExpander())->rowsFor(
             new \ReflectionClass(self::class),
             __FUNCTION__,
             'trailingNewlineKey',
@@ -134,7 +134,7 @@ final class DataSetExpansionTest
     #[Test]
     public function expandedIdsRenderWithTheirKeys(): void
     {
-        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryDataSets')]);
+        $plan = (new TestDiscoverer())->discover([FixturePath::get('DiscoveryDataSets')]);
         $rendered = \array_map(static fn(PlanEntry $entry): string => (string) $entry->id, $plan->entries);
 
         expect($rendered)->because('expanded IDs render with their keys')->toContain(
@@ -281,7 +281,7 @@ final class DataSetExpansionTest
     #[Test]
     public function slowProviderPassesUnderAGenerousBudget(): void
     {
-        $plan = new TestDiscoverer(5.0)->discover([FixturePath::get('DiscoveryProviderSlow')]);
+        $plan = (new TestDiscoverer(5.0))->discover([FixturePath::get('DiscoveryProviderSlow')]);
 
         expect($plan->count())->because('slow provider passes under a generous budget')->toBe(3);
     }
@@ -301,7 +301,7 @@ final class DataSetExpansionTest
     public function duplicateKeysAreRejected(): void
     {
         expect()->calling(
-            fn(): ExecutionPlan => new TestDiscoverer()->discover([
+            fn(): ExecutionPlan => (new TestDiscoverer())->discover([
                 FixturePath::get('DiscoveryProviderDuplicate'),
             ]),
         )

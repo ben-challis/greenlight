@@ -175,7 +175,7 @@ final class Orchestrator
             $this->entriesById[(string) $entry->id] = $entry;
         }
 
-        [$pooled, $isolated] = new Distributor()->units($plan, $classSeconds, $workerCount);
+        [$pooled, $isolated] = (new Distributor())->units($plan, $classSeconds, $workerCount);
         $this->scheduler = new ResourceScheduler($pooled, $isolated, $this->configuration->resourceLimits);
 
         if ($this->scheduler->pendingCount() === 0) {

@@ -97,7 +97,7 @@ final readonly class PlanOrder implements Prioritized, TestPlanTransformer
             static fn(PlanEntry $entry) => $entry->id,
             $plan->entries,
         ));
-        $replacement = new self($priorityClasses, $classSeconds)->transformTestPlan($publicPlan);
+        $replacement = (new self($priorityClasses, $classSeconds))->transformTestPlan($publicPlan);
 
         if ($replacement === $publicPlan) {
             return $plan;

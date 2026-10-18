@@ -6,6 +6,7 @@ namespace Greenlight\Cli\Reporting;
 
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Output\TerminalCapabilities;
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Reporting\Reporter;
 
@@ -106,7 +107,7 @@ final readonly class ReporterOutputPlan
      */
     public static function selects(array $values, string $name): bool
     {
-        return \array_any($values, fn($value) => self::parse($value)[0] === $name);
+        return Arrays::any($values, fn($value) => self::parse($value)[0] === $name);
     }
 
     /**
@@ -135,7 +136,7 @@ final readonly class ReporterOutputPlan
 
     public function writesReporterToStandardOutput(string $name): bool
     {
-        return \array_any(
+        return Arrays::any(
             $this->selections,
             fn($selection) => $selection['name'] === $name && $selection['output'] === $this->standardOutput,
         );

@@ -485,7 +485,7 @@ equivalent. It does not change other classes.
 final class PhpUnitToGreenlightRector extends AbstractRector implements ConfigurableRectorInterface, DocumentedRuleInterface
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L55)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L56)
 
 ### `DROP_ASSERTION_MESSAGES`
 
@@ -497,7 +497,7 @@ preserve the message with `because()`.
 public const string DROP_ASSERTION_MESSAGES = 'drop_assertion_messages';
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L63)
 
 ### `configure()`
 
@@ -510,7 +510,7 @@ PHPDoc:
 - `@param mixed[] $configuration`
 - `@throws \InvalidArgumentException if a key is unknown or \`drop_assertion_messages\` is not a boolean`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L116)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L117)
 
 ### `getRuleDefinition()`
 
@@ -518,7 +518,7 @@ PHPDoc:
 public function getRuleDefinition(): RuleDefinition
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L140)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L141)
 
 ### `getNodeTypes()`
 
@@ -530,7 +530,7 @@ PHPDoc:
 
 - `@return array<class-string<Node>>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L174)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L175)
 
 ### `refactor()`
 
@@ -538,7 +538,7 @@ PHPDoc:
 public function refactor(Node $node): ?Node
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L179)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Rector/PhpUnitToGreenlightRector.php#L180)
 
 ## `SymfonyPlugin`
 

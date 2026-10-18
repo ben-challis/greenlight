@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Expect;
 
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /** @internal */
@@ -170,7 +171,7 @@ final class Equality
 
             $nextArrayDepth = $arrayDepth < 0 ? -1 : $arrayDepth + 1;
 
-            return \array_all(
+            return Arrays::all(
                 $a,
                 static function ($value, $key) use ($b, &$leftObjects, &$rightObjects, $nextArrayDepth): bool {
                     return \array_key_exists($key, $b)

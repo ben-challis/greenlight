@@ -65,7 +65,7 @@ final class ExactFrameLimitTest
             ->because('A Unicode frame body at the configured byte limit MUST be complete.')
             ->not()->toBeNull();
 
-        expect(new JsonFrameCodec(self::LIMIT)->decode($decodedBody))
+        expect((new JsonFrameCodec(self::LIMIT))->decode($decodedBody))
             ->because('frame lengths MUST count Unicode bytes, not characters')
             ->toBe($envelope);
         expect($buffer->hasPendingBytes())

@@ -28,7 +28,7 @@ final readonly class ConfigLoaderOpenFailureTest
         expect()->calling(
             static function () use ($file, &$warning): void {
                 ErrorTrap::run(
-                    static fn() => new ConfigLoader()->loadFile($file),
+                    static fn() => (new ConfigLoader())->loadFile($file),
                     $warning,
                 );
             },

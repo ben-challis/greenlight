@@ -21,7 +21,7 @@ final class CoverageGate
     public static function failures(CoverageConfiguration $configuration, CoverageMap $coverage): array
     {
         $failures = [];
-        $percentage = \round($coverage->totalPercentage(), 2, \RoundingMode::HalfAwayFromZero);
+        $percentage = \round($coverage->totalPercentage(), 2, \PHP_ROUND_HALF_UP);
 
         if ($configuration->minimumPercentage !== null && $percentage < $configuration->minimumPercentage) {
             $failures[] = \sprintf(

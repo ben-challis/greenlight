@@ -242,14 +242,22 @@ jobs:
       fail-fast: false
       matrix:
         php-version:
+          - "8.3"
           - "8.4"
           - "8.5"
         dependencies:
           - "lowest"
           - "locked"
+        # The lock file contains development packages that require PHP 8.4.
+        exclude:
+          - php-version: "8.3"
+            dependencies: "locked"
         # "locked" ignores SYMFONY_REQUIRE. The lowest jobs and the Symfony
         # 6.4 job remove Laravel because Laravel 13 requires Symfony >= 7.4.
         include:
+          - php-version: "8.3"
+            dependencies: "highest"
+            symfony-version: "7.4.*"
           - php-version: "8.4"
             dependencies: "locked"
             analytics: true

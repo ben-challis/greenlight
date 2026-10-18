@@ -25,7 +25,7 @@ final class MetadataFactoryTest
     {
         $class = $this->wrongCaptureTypeClass();
 
-        expect()->calling(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
+        expect()->calling(static fn(): array => (new MetadataFactory())->forClass(new \ReflectionClass($class)))
             ->because('discovery wraps invalid attribute arguments with their location')
             ->toThrow(
                 static function (DiscoveryError $error) use ($class): void {
@@ -46,7 +46,7 @@ final class MetadataFactoryTest
     {
         $class = $this->wrongGroupTypeClass();
 
-        expect()->calling(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
+        expect()->calling(static fn(): array => (new MetadataFactory())->forClass(new \ReflectionClass($class)))
             ->because('discovery wraps invalid group arguments with their method location')
             ->toThrow(
                 static function (DiscoveryError $error) use ($class): void {
@@ -70,7 +70,7 @@ final class MetadataFactoryTest
     public function rejectsTestMethodsThatCannotRun(string $class, string $reason): void
     {
         expect()->calling(
-            static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)),
+            static fn(): array => (new MetadataFactory())->forClass(new \ReflectionClass($class)),
         )
             ->because('discovery MUST reject a test method that cannot run')
             ->toThrow(
@@ -102,7 +102,7 @@ final class MetadataFactoryTest
     #[DataSet('parallelIsolationConflicts')]
     public function rejectsParallelClassesWithIsolation(string $class): void
     {
-        expect()->calling(static fn(): array => new MetadataFactory()->forClass(new \ReflectionClass($class)))
+        expect()->calling(static fn(): array => (new MetadataFactory())->forClass(new \ReflectionClass($class)))
             ->because('parallel class splitting and process isolation are incompatible')
             ->toThrow(
                 DiscoveryError::class,

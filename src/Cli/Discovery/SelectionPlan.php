@@ -66,7 +66,7 @@ final class SelectionPlan
         }
 
         $classSeconds = $resolved->order->isRandomized() ? [] : $state->classSeconds();
-        $plan = new SelectionDiscovery($configuration, $workingDirectory)->plan($selection);
+        $plan = (new SelectionDiscovery($configuration, $workingDirectory))->plan($selection);
 
         return PlanOrder::schedule($plan, $priorityClasses, $classSeconds);
     }

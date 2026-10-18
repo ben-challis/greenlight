@@ -17,7 +17,7 @@ final class CoverageBuilderTest
     public function anEmptyIncludePathIsRejected(): void
     {
         expect()->calling(static function (): void {
-            new CoverageBuilder()->include(''); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+            (new CoverageBuilder())->include(''); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         })
             ->because('a coverage include path identifies source to instrument')
             ->toThrow(
@@ -29,7 +29,7 @@ final class CoverageBuilderTest
     #[Test]
     public function aRejectedIncludeCallDoesNotPartiallyChangeTheBuilder(): void
     {
-        $builder = new CoverageBuilder()->include('src');
+        $builder = (new CoverageBuilder())->include('src');
 
         expect()->calling(static fn(): CoverageBuilder => $builder->include('app', '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
             ->because('a rejected include call does not partially change the builder')
@@ -43,7 +43,7 @@ final class CoverageBuilderTest
     #[Test]
     public function aNullByteIncludePathIsRejected(): void
     {
-        expect()->calling(static fn(): CoverageBuilder => new CoverageBuilder()->include("src\0hidden"))
+        expect()->calling(static fn(): CoverageBuilder => (new CoverageBuilder())->include("src\0hidden"))
             ->because('coverage include paths MUST be valid filesystem inputs')
             ->toThrow(
                 InvalidConfiguration::class,
@@ -55,7 +55,7 @@ final class CoverageBuilderTest
     public function anEmptyDriverNameIsRejected(): void
     {
         expect()->calling(static function (): void {
-            new CoverageBuilder()->driver(''); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+            (new CoverageBuilder())->driver(''); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         })
             ->because('a coverage driver needs a selectable name')
             ->toThrow(
@@ -71,7 +71,7 @@ final class CoverageBuilderTest
         expect()->calling(static function () use ($format, $target): void {
             // Reflection bypasses the static non-empty-string types and
             // exercises the runtime guard.
-            new \ReflectionMethod(CoverageBuilder::class, 'export')
+            (new \ReflectionMethod(CoverageBuilder::class, 'export'))
                 ->invoke(new CoverageBuilder(), $format, $target);
         })
             ->because('a coverage export needs a format and target')
@@ -84,7 +84,7 @@ final class CoverageBuilderTest
     #[Test]
     public function preservesZeroStringsAcrossTheBuilderState(): void
     {
-        $configuration = new CoverageBuilder()
+        $configuration = (new CoverageBuilder())
             ->include('0')
             ->driver('0')
             ->export('json', '0')
@@ -106,7 +106,7 @@ final class CoverageBuilderTest
     #[Test]
     public function buildsCoverageGateSettings(): void
     {
-        $configuration = new CoverageBuilder()
+        $configuration = (new CoverageBuilder())
             ->minimumPercentage(95.25)
             ->maximumUncoveredLines(0)
             ->requireDriver()
@@ -127,7 +127,7 @@ final class CoverageBuilderTest
     #[DataSet('invalidMinimumPercentages')]
     public function rejectsInvalidMinimumPercentages(float $percentage, string $message): void
     {
-        expect()->calling(static fn(): CoverageBuilder => new CoverageBuilder()->minimumPercentage($percentage))
+        expect()->calling(static fn(): CoverageBuilder => (new CoverageBuilder())->minimumPercentage($percentage))
             ->because('a coverage percentage gate MUST have an exact supported boundary')
             ->toThrow(InvalidConfiguration::class, message: $message);
     }
@@ -136,7 +136,7 @@ final class CoverageBuilderTest
     public function rejectsANegativeMaximumUncoveredLineCount(): void
     {
         expect()->calling(static function (): void {
-            new CoverageBuilder()->maximumUncoveredLines(-1); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+            (new CoverageBuilder())->maximumUncoveredLines(-1); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         })
             ->because('an uncovered-line maximum cannot be negative')
             ->toThrow(InvalidConfiguration::class, message: 'Maximum uncovered lines cannot be negative.');

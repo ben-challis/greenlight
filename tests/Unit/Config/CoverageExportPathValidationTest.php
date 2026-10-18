@@ -15,7 +15,7 @@ final class CoverageExportPathValidationTest
     #[Test]
     public function nullBytesAreRejectedAtTheConfigurationBoundary(): void
     {
-        expect()->calling(static fn(): CoverageBuilder => new CoverageBuilder()->export('json', "coverage\0hidden.json"))
+        expect()->calling(static fn(): CoverageBuilder => (new CoverageBuilder())->export('json', "coverage\0hidden.json"))
             ->because('coverage export targets MUST be valid file-system paths')
             ->toThrow(
                 InvalidConfiguration::class,

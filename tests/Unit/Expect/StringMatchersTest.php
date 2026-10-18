@@ -50,8 +50,9 @@ final class StringMatchersTest
         expect()->calling(static fn() => expect('abc')->toMatch('not a pattern'))->because('toMatch() rejects invalid patterns') // @phpstan-ignore greenlight.expectationArgument.pattern (deliberately invalid: tests runtime validation)
             ->toThrow(
                 \InvalidArgumentException::class,
-                message: 'The pattern for toMatch() is an invalid regular expression: not a pattern '
-                    . '(preg_match(): Delimiter must not be alphanumeric, backslash, or NUL byte)',
+                // The delimiter diagnostic text differs between PHP versions.
+                matching: '/^The pattern for toMatch\(\) is an invalid regular expression: not a pattern '
+                    . '\(preg_match\(\): Delimiter must not be alphanumeric/',
             );
     }
 

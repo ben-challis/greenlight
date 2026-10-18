@@ -216,7 +216,7 @@ final class Doubles implements Disposable
         }
 
         $proxyClass = $this->generator->proxyClass($type);
-        $double = new \ReflectionClass($proxyClass)->newInstanceWithoutConstructor();
+        $double = (new \ReflectionClass($proxyClass))->newInstanceWithoutConstructor();
 
         \assert($double instanceof GeneratedProxy);
         $double->__greenlightAttachHandler(new CallHandler($state, $this->renderer, $this->doubles, $this->contracts));

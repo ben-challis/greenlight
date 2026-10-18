@@ -6,6 +6,7 @@ namespace Greenlight\Doubles;
 
 use Greenlight\Internal\Filesystem\AtomicFile;
 use Greenlight\Internal\Filesystem\AtomicFileError;
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
@@ -185,7 +186,8 @@ final readonly class ProxyGenerator
     {
         return \array_values(\array_filter(
             $reflection->getProperties(),
-            static fn(\ReflectionProperty $property): bool => $reflection->isInterface() || $property->isAbstract(),
+            // PHP 8.3 has no abstract properties.
+            static fn(\ReflectionProperty $property): bool => $reflection->isInterface() || (\PHP_VERSION_ID >= 80400 && $property->isAbstract()),
         ));
     }
 
@@ -264,7 +266,7 @@ final readonly class ProxyGenerator
             $resultName = '__greenlightResult';
             $parameters = $method->getParameters();
 
-            while (\array_any($parameters, static fn(\ReflectionParameter $parameter): bool => $parameter->name === $resultName)) {
+            while (Arrays::any($parameters, static fn(\ReflectionParameter $parameter): bool => $parameter->name === $resultName)) {
                 $resultName .= '_';
             }
 
@@ -308,7 +310,7 @@ final readonly class ProxyGenerator
     {
         $parameters = $method->getParameters();
 
-        if (!\array_any($parameters, static fn(\ReflectionParameter $parameter): bool => $parameter->isPassedByReference())) {
+        if (!Arrays::any($parameters, static fn(\ReflectionParameter $parameter): bool => $parameter->isPassedByReference())) {
             return '\func_get_args()';
         }
 
@@ -433,7 +435,7 @@ final readonly class ProxyGenerator
                 $owner = \substr($constant, 0, $separator);
 
                 if (\class_exists($owner)) {
-                    $member = new \ReflectionClass($owner)->getReflectionConstant(\substr($constant, $separator + 2));
+                    $member = (new \ReflectionClass($owner))->getReflectionConstant(\substr($constant, $separator + 2));
 
                     if ($member instanceof \ReflectionClassConstant && $member->isPrivate()) {
                         // A child proxy cannot access the parent's private constant.

@@ -25,7 +25,7 @@ final class DistributorTest
             PlanEntryFixture::create('OtherTest', 'pooled'),
         ], 42);
 
-        [$pooled, $isolated] = new Distributor()->units($plan);
+        [$pooled, $isolated] = (new Distributor())->units($plan);
 
         expect($pooled)
             ->because(
@@ -61,7 +61,7 @@ final class DistributorTest
             PlanEntryFixture::create('OtherTest', 'isolated', resources: ['sandbox'], isolated: true),
         ], 42);
 
-        [$pooled, $isolated] = new Distributor()->units($plan);
+        [$pooled, $isolated] = (new Distributor())->units($plan);
 
         expect($pooled)->because('class units hold the union of every entry requirement')->toHaveCount(1);
         expect($pooled[0]->plan->seed)->because('class units hold the union of every entry requirement')->toBe(42);
@@ -82,7 +82,7 @@ final class DistributorTest
             PlanEntryFixture::create('OtherTest', 'alsoStaysTogether'),
         ], 42);
 
-        [$pooled, $isolated] = new Distributor()->units($plan);
+        [$pooled, $isolated] = (new Distributor())->units($plan);
 
         expect(\array_map(
             static fn(SchedulingUnit $unit): array => \array_map(

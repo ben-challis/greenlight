@@ -12,6 +12,7 @@ use Greenlight\Attribute\Skip;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Timeout;
 use Greenlight\Condition\Condition;
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Test\ResourceName;
 use PhpParser\Node;
 use PhpParser\Node\Attribute;
@@ -176,7 +177,7 @@ final readonly class AttributeArgumentRule implements Rule
             if ($type->isScalar()->yes()) {
                 $values = $type->getConstantScalarValues();
 
-                if (!\array_any($values, static fn(mixed $value): bool => \is_float($value) && !\is_finite($value))) {
+                if (!Arrays::any($values, static fn(mixed $value): bool => \is_float($value) && !\is_finite($value))) {
                     continue;
                 }
 
@@ -233,7 +234,7 @@ final readonly class AttributeArgumentRule implements Rule
         $class = $classes[0]->getValue();
 
         return $this->reflectionProvider->hasClass($class)
-            && new ObjectType($parent)->isSuperTypeOf(new ObjectType($class))->yes();
+            && (new ObjectType($parent))->isSuperTypeOf(new ObjectType($class))->yes();
     }
 
     /**
