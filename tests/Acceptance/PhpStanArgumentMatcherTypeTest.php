@@ -69,8 +69,7 @@ final readonly class PhpStanArgumentMatcherTypeTest
                 return Argument::type('int');
             }
 
-            /** @return ArgumentMatcher<int> */
-            function greenlightWrongFallbackArgumentMatcherType(): ArgumentMatcher
+            function greenlightWrongFallbackArgumentMatcherType(): int
             {
                 return Argument::type('resource (stream)');
             }
