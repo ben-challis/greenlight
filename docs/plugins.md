@@ -605,6 +605,28 @@ per-test scope closes before `afterTest()`. A request for a per-test service
 then throws. Per-class and per-worker services remain available. Fallback
 resolvers can also supply services if their own lifecycle permits it.
 
+### TestAttemptEndSubscriber
+
+Worker-side.
+
+<!-- php-example {"mode":"display","reason":"Shows one method signature without its interface declaration."} -->
+```php
+public function testAttemptEnded(TestId $id, TestDefinition $definition): void;
+```
+
+Greenlight calls `testAttemptEnded()` one time for each test attempt that
+starts. Use this capability to release plugin state for each attempt, for
+example a framework application or kernel.
+
+`afterTest()` runs only when a test instance exists. If the test constructor,
+constructor injection, or output capture fails, Greenlight does not call
+`afterTest()`. It always calls `testAttemptEnded()`.
+
+The method runs after all `afterTest()` subscribers and before the retry
+decision. It runs in the `TestAttemptRunner` boundary. A throwable does not
+stop the remaining subscribers. Greenlight adds the failure to the test result
+and names the plugin.
+
 ### TestAttemptRunner
 
 Worker-side.
@@ -615,8 +637,8 @@ public function runTestAttempt(\Closure $attempt): mixed;
 ```
 
 This capability puts one complete attempt in a runtime boundary. The callback
-contains constructor injection, hooks, the test, scope disposal, and
-`afterTest()` subscribers.
+contains constructor injection, hooks, the test, scope disposal, `afterTest()`
+subscribers, and `testAttemptEnded()` subscribers.
 
 Call the callback one time and return its value. Use `finally` to leave the
 runtime boundary when the callback throws.
@@ -941,6 +963,7 @@ Priority applies to these capabilities:
 * `TestAttemptRunner`
 * `BeforeTestSubscriber`
 * `AfterTestSubscriber`
+* `TestAttemptEndSubscriber`
 * `RetryDecider`
 * `TerminalResultTransformer`
 * `CoverageMapTransformer`
@@ -965,6 +988,9 @@ implement both capabilities run their callbacks in the exact reverse order.
 
 Greenlight runs all after-test subscribers. It also runs them when a
 before-test subscriber stops the attempt.
+
+Attempt-end subscribers use the after-test order. They run after all
+after-test subscribers.
 
 Greenlight reports plugin failures at the affected lifecycle boundary.
 A command-side or orchestrator-side failure fails the run or command.
