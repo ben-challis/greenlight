@@ -851,25 +851,25 @@ final readonly class ArtifactRetention
                 if (!$entry instanceof \SplFileInfo || $entry->getPathname() === $metadata) {
                     continue;
                 }
-                if (!$this->removeEntry($entry->getPathname())) {
+                if (!$this->removeEntry($entry->getPathname(), !$entry->isLink() && $entry->isDir())) {
                     return false;
                 }
             }
 
-            return (!ErrorTrap::run(static fn() => \file_exists($metadata)) || $this->removeEntry($metadata))
-                && $this->removeEntry($directory);
+            return (!ErrorTrap::run(static fn() => \file_exists($metadata)) || $this->removeEntry($metadata, false))
+                && $this->removeEntry($directory, true);
         } catch (\Throwable) {
             return false;
         }
     }
 
-    private function removeEntry(string $path): bool
+    private function removeEntry(string $path, bool $directory): bool
     {
         if ($this->removePath instanceof \Closure) {
             return ($this->removePath)($path);
         }
 
-        return !ErrorTrap::run(static fn() => \is_link($path)) && ErrorTrap::run(static fn() => \is_dir($path))
+        return $directory
             ? ErrorTrap::run(static fn() => \rmdir($path))
             : ErrorTrap::run(static fn() => \unlink($path));
     }
