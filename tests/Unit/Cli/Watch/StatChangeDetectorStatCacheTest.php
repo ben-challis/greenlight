@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Cli\Watch;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Watch\StatChangeDetector;
+use Greenlight\Cli\Watch\WatchPathMatcher;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\TemporaryDirectory;
 
@@ -74,10 +75,14 @@ final readonly class StatChangeDetectorStatCacheTest
     public function aSameSecondEditIsDetectedThroughTheRacyRule(): void
     {
         $directory = $this->tempDirectory->subdirectory('stat-cache-racy');
-        \file_put_contents($directory . '/RacyTest.php', '<?php // racy');
+        $source = $directory . '/RacyTest.php';
+        \file_put_contents($source, '<?php // racy');
+        \clearstatcache(true, $source);
+        $mtime = (float) \filemtime($source);
         $contents = ['first content', 'second content'];
         $detector = new StatChangeDetector(
             [$directory],
+            now: static fn(): float => $mtime,
             hashFile: static function (string $path) use (&$contents): string {
                 return \sha1((string) \array_shift($contents));
             },
@@ -88,7 +93,28 @@ final readonly class StatChangeDetectorStatCacheTest
         // second write.
         expect($detector->poll())
             ->because('a file from the current second MUST be compared by content')
-            ->toBe([$directory . '/RacyTest.php']);
+            ->toBe([$source]);
+    }
+
+    #[Test]
+    public function anAdditionalPathInsideAWatchedRootUsesItsOwnFilter(): void
+    {
+        $root = $this->tempDirectory->subdirectory('stat-cache-overlap');
+        $fixtures = $this->tempDirectory->subdirectory('stat-cache-overlap/fixtures');
+        $data = $fixtures . '/data.yaml';
+        \file_put_contents($data, 'value: 1');
+        $detector = new StatChangeDetector(
+            [$root],
+            additionalPaths: [$fixtures],
+            matcher: new WatchPathMatcher($root, ['**/*.yaml'], []),
+        );
+        $detector->poll();
+
+        \file_put_contents($data, 'value: 22');
+
+        expect($detector->poll())
+            ->because('the additional path filter MUST apply inside a directory that a watched root already scanned')
+            ->toBe([$data]);
     }
 
     /**

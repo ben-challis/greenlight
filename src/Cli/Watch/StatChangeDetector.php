@@ -116,12 +116,13 @@ final class StatChangeDetector implements WatchSource
         /** @var array<string, array{string, string|null}> $files */
         $files = [];
         $listings = [];
+        $visited = [];
 
         foreach ($this->directories as $directory) {
             $stat = $this->lstat($directory);
 
             if ($stat !== null && $this->type($stat) === self::TYPE_DIRECTORY) {
-                $this->scanDirectory($directory, $stat, false, $files, $listings);
+                $this->scanDirectory($directory, $stat, false, $files, $listings, $visited);
             }
         }
 
@@ -133,7 +134,7 @@ final class StatChangeDetector implements WatchSource
             }
 
             if ($this->type($stat) === self::TYPE_DIRECTORY) {
-                $this->scanDirectory($path, $stat, true, $files, $listings);
+                $this->scanDirectory($path, $stat, true, $files, $listings, $visited);
             } elseif ($this->type($stat) === self::TYPE_FILE && $this->matcher->includesAdditionalFile($path, true)) {
                 $this->record($path, $stat, $files);
             }
@@ -149,8 +150,16 @@ final class StatChangeDetector implements WatchSource
      * @param array<array-key, int> $stat
      * @param array<string, array{string, string|null}> $files
      * @param array<string, array{string, list<string>}> $listings
+     * @param array<string, true> $visited
      */
-    private function scanDirectory(string $root, array $stat, bool $additional, array &$files, array &$listings): void
+    private function scanDirectory(
+        string $root,
+        array $stat,
+        bool $additional,
+        array &$files,
+        array &$listings,
+        array &$visited,
+    ): void
     {
         /** @var list<array{string, array<array-key, int>}> $pending */
         $pending = [[$root, $stat]];
@@ -158,11 +167,16 @@ final class StatChangeDetector implements WatchSource
         while (($next = \array_pop($pending)) !== null) {
             [$directory, $directoryStat] = $next;
 
-            if (isset($listings[$directory]) || $this->matcher->excludesDirectory($directory)) {
+            // A watched root and an additional path can overlap. Each mode
+            // applies its own file filter, so each mode visits the directory.
+            $visit = $directory . "\0" . ($additional ? 'additional' : 'default');
+
+            if (isset($visited[$visit]) || $this->matcher->excludesDirectory($directory)) {
                 continue;
             }
 
-            $names = $this->entries($directory, $directoryStat);
+            $visited[$visit] = true;
+            $names = $listings[$directory][1] ?? $this->entries($directory, $directoryStat);
 
             if ($names === null) {
                 continue;

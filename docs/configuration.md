@@ -1143,9 +1143,9 @@ Greenlight does not follow symlinks in watched trees.
 A created file reports an addition. A removed file reports a deletion. A
 rename reports one deletion and one addition.
 
-An unreadable or temporarily absent file is not in that poll. If it was in the
-prior poll, Greenlight reports a deletion. It reports an addition when the file
-becomes readable again.
+A temporarily absent file is not in that poll. If it was in the prior poll,
+Greenlight reports a deletion. It reports an addition when the file is back. A
+change of file permissions changes the stat data, so it reports a change.
 
 Large projects increase poll time and thus the interval between polls.
 Increase the watch debounce when frequent save events cause excess scans.
