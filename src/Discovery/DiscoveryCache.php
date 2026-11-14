@@ -24,7 +24,9 @@ use Greenlight\Internal\Php\ErrorTrap;
  * discovery code.
  * Discovery parses the file after a cache miss, stale file, corrupt cache, or
  * identity mismatch.
-
+ *
+ * Each object reads the status of a path one time. The persist() method
+ * writes the file only if the entry set changed.
  *
  * @internal
  */
@@ -44,8 +46,14 @@ final class DiscoveryCache
 
     private bool $loaded = false;
 
+    private bool $changed = false;
+
     private ?string $identity = null;
 
+    /**
+     * @var array<string, array{mtime: int, size: int, contentHash: ?non-empty-string}|null>
+     */
+    private array $stats = [];
 
     private function __construct(private readonly string $file) {}
 
@@ -127,6 +135,8 @@ final class DiscoveryCache
         if ($stat === null) {
             return;
         }
+
+        $this->changed = true;
 
         $this->touched[$file] = new DiscoveryCacheEntry(
             $stat['mtime'],
@@ -233,9 +243,13 @@ final class DiscoveryCache
      */
     private function stat(string $file): ?array
     {
+        if (\array_key_exists($file, $this->stats)) {
+            return $this->stats[$file];
+        }
+
         \clearstatcache(true, $file);
 
-        return ErrorTrap::run(static function () use ($file) {
+        return $this->stats[$file] = ErrorTrap::run(static function () use ($file) {
             $mtime = \filemtime($file);
             $size = \filesize($file);
             $contentHash = \sha1_file($file);
@@ -254,12 +268,17 @@ final class DiscoveryCache
 
     /**
      * Writes entries for files that this discovery reads and removes older entries.
+     * Does nothing if each lookup was a hit for the same set of files.
      *
      * Returns false on write failure.
      */
     public function persist(): bool
     {
         if ($this->touched === []) {
+            return true;
+        }
+
+        if (!$this->changed && \count($this->touched) === \count($this->files)) {
             return true;
         }
 
