@@ -305,7 +305,7 @@ final class Orchestrator
         $count = 0;
 
         foreach ($this->handles as $handle) {
-            if ($handle->isActive() && !$handle->stopRequested && $handle->assigned === null) {
+            if ($handle->canTakeAssignment()) {
                 ++$count;
             }
         }
@@ -374,13 +374,13 @@ final class Orchestrator
                 $handle = $this->handles[$event->workerId] ?? null;
 
                 if ($handle instanceof WorkerState && $handle->isActive()) {
-                    if ($handle->stopRequested && !$handle->assigned instanceof ExecutionPlan) {
+                    if ($handle->isStopRequested() && !$handle->assigned instanceof ExecutionPlan) {
                         $this->finishHandle($handle);
 
                         continue;
                     }
 
-                    $reason = $handle->connected
+                    $reason = $handle->isConnected()
                         ? 'the worker process exited unexpectedly'
                         : 'the worker exited before connecting';
                     $this->containCrash($handle, $sink, $reason);
@@ -412,15 +412,14 @@ final class Orchestrator
 
         $handle = $this->handles[$message->workerId] ?? null;
 
-        if (!$handle instanceof WorkerState || $handle->connected || !$handle->isActive()) {
+        if (!$handle instanceof WorkerState || $handle->isConnected() || !$handle->isActive()) {
             $this->transport->resolveConnection($connectionId, null);
 
             return;
         }
 
         $this->transport->resolveConnection($connectionId, $handle->workerId);
-        $handle->connected = true;
-        $handle->lastProgressAt = $this->monotonicTime();
+        $handle->connect($this->monotonicTime());
         $handle->timing->hello($handle->lastProgressAt);
 
         try {
@@ -463,7 +462,7 @@ final class Orchestrator
      */
     private function assignNext(WorkerState $handle, EventSink $sink): bool
     {
-        if (!$handle->connected || !$handle->ready) {
+        if (!$handle->isConnected() || !$handle->isReady()) {
             return false;
         }
 
@@ -484,7 +483,7 @@ final class Orchestrator
         }
 
         if ($decision->kind === DispatchKind::Drain) {
-            if ($handle->stopRequested) {
+            if ($handle->isStopRequested()) {
                 return false;
             }
 
@@ -551,14 +550,14 @@ final class Orchestrator
         } elseif ($message instanceof AttemptStarted) {
             $this->onAttemptStarted($handle, $message);
         } elseif ($message instanceof Ready) {
-            if ($handle->ready) {
+            if ($handle->isReady()) {
                 throw ProtocolError::malformedFrame(\sprintf(
                     'worker "%s" reported ready more than once',
                     $handle->workerId,
                 ));
             }
 
-            $handle->ready = true;
+            $handle->markReady();
             $readyAt = $this->monotonicTime();
             $handle->timing->ready($readyAt);
 
@@ -615,7 +614,7 @@ final class Orchestrator
         $ready = 0;
 
         foreach ($this->handles as $handle) {
-            if ($handle->isActive() && $handle->ready) {
+            if ($handle->isActive() && $handle->isReady()) {
                 ++$ready;
             }
         }
@@ -627,7 +626,7 @@ final class Orchestrator
         $this->initialBarrierPassed = true;
 
         foreach ($this->handles as $handle) {
-            if ($handle->isActive() && $handle->ready && $handle->assigned === null) {
+            if ($handle->isActive() && $handle->isReady() && $handle->assigned === null) {
                 // Each initial worker is fresh. It can take an isolated unit
                 // after the pooled queue is empty.
                 $this->assignNext($handle, $sink);
@@ -729,7 +728,7 @@ final class Orchestrator
         $this->resourceScheduler()->clearPending();
 
         foreach ($this->handles as $handle) {
-            if ($handle->isActive() && $handle->connected && !$handle->stopRequested) {
+            if ($handle->isActive() && $handle->isConnected() && !$handle->isStopRequested()) {
                 $handle->timing->retirementRequested($this->monotonicTime());
                 try {
                     $this->transport->send($handle->workerId, new Drain());
@@ -752,7 +751,7 @@ final class Orchestrator
                 continue;
             }
 
-            if (!$handle->connected) {
+            if (!$handle->isConnected()) {
                 // This process is alive but did not connect before the
                 // deadline. Crash containment cannot detect an active process.
                 // The hello deadline starts only after connection acceptance.
@@ -787,7 +786,7 @@ final class Orchestrator
             }
 
             if ($handle->inFlight === null) {
-                if ($handle->assigned === null && $handle->ready && !$handle->stopRequested) {
+                if ($handle->isIdle()) {
                     // The scheduler keeps this connected worker idle until a
                     // resource lease is available.
                     continue;
@@ -797,7 +796,7 @@ final class Orchestrator
                 // stop after assignment receipt or between tests without a
                 // test timeout. A replacement worker can stop in the same way.
                 // Fail the run instead of use crash containment.
-                if ($handle->connected
+                if ($handle->isConnected()
                     && $this->monotonicTime() - $handle->lastProgressAt > $this->configuration->progressDeadlineSeconds
                 ) {
                     $diagnostics = $this->transport->diagnostics($handle->workerId);
@@ -1039,8 +1038,9 @@ final class Orchestrator
         $this->retryWaitingWorkers = false;
 
         foreach ($this->handles as $handle) {
-            // A worker that received Drain exits. It cannot take work.
-            if (!$handle->isActive() || !$handle->connected || $handle->stopRequested || $handle->assigned !== null) {
+            // Only an idle worker can take work. A worker in another phase
+            // starts, runs an assignment, or stops.
+            if (!$handle->isIdle()) {
                 continue;
             }
 
@@ -1083,7 +1083,7 @@ final class Orchestrator
             $this->retryWaitingWorkers = true;
         }
 
-        $handle->retiring = true;
+        $handle->retire();
         $this->transport->retire($handle->workerId, $force);
     }
 
