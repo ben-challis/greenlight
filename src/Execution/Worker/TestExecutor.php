@@ -48,6 +48,8 @@ use Greenlight\Test\TestId;
  * `Before` hooks use declaration order. `After` hooks use reverse declaration
  * order.
  *
+ * Output capture includes cleanup callbacks and test-scope teardown.
+ *
  * An `After` hook runs if constructor injection created a test instance. It
  * runs even when a previous test-body operation did not complete.
  * The `afterTest()` subscribers run only if the test instance exists.
@@ -282,8 +284,6 @@ final readonly class TestExecutor
             $error = ThrowableDetail::fromThrowable($threw);
         } finally {
             try {
-                $captured = $capture?->stop();
-            } finally {
                 try {
                     try {
                         $cleanup->close();
@@ -321,6 +321,8 @@ final readonly class TestExecutor
                         ExpectationRuntime::leaveAttempt();
                     }
                 }
+            } finally {
+                $captured = $capture?->stop();
             }
         }
 
