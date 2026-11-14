@@ -18,8 +18,9 @@ use Greenlight\Internal\Php\ErrorTrap;
  * result contains the same lines as driver output for a loaded file. The
  * subprocess does not execute the files.
  *
- * A file that stops the subprocess, for example with a compile error, is
- * not measured. measure() retries the other files of that batch.
+ * A file that does not compile is not measured. If the subprocess stops
+ * before it reports, measure() divides the batch and tries again. If one file
+ * alone stops the subprocess, measure() throws an error that names the file.
  *
  * @internal
  */
@@ -34,10 +35,8 @@ final readonly class CompiledLineProbe implements ExecutableLineProbe
     private const int DRIVER_UNAVAILABLE = 4;
 
     private const string SCRIPT = <<<'PHP'
-        $files = \json_decode((string) \file_get_contents($argv[1]), true);
-        if (!\is_array($files)) {
-            exit(1);
-        }
+        $files = \explode("\0", (string) \file_get_contents($argv[1]));
+        $index = \array_flip($files);
         if (!\function_exists('opcache_compile_file') || !\is_array(\opcache_get_status(false))) {
             exit(3);
         }
@@ -58,8 +57,13 @@ final readonly class CompiledLineProbe implements ExecutableLineProbe
             } catch (\Throwable) {
             }
         }
-        $lines = $argv[2] === 'xdebug' ? \xdebug_get_code_coverage() : \pcov\collect();
-        echo '#greenlight-line-probe#', \json_encode($lines, \JSON_INVALID_UTF8_SUBSTITUTE);
+        $lines = [];
+        foreach ($argv[2] === 'xdebug' ? \xdebug_get_code_coverage() : \pcov\collect() as $path => $statuses) {
+            if (isset($index[$path])) {
+                $lines[$index[$path]] = $statuses;
+            }
+        }
+        echo '#greenlight-line-probe#', \json_encode((object) $lines);
         PHP;
 
     /**
@@ -96,14 +100,14 @@ final readonly class CompiledLineProbe implements ExecutableLineProbe
             return [];
         }
 
-        $measured = $this->run($files);
+        $measured = $this->run($files, $failure);
 
         if ($measured !== null) {
             return $measured;
         }
 
         if (\count($files) === 1) {
-            return [];
+            throw CoverageError::lineProbeFailed(\sprintf('The subprocess stopped while it compiled "%s": %s', $files[0], $failure));
         }
 
         $half = \intdiv(\count($files), 2);
@@ -117,17 +121,20 @@ final readonly class CompiledLineProbe implements ExecutableLineProbe
     /**
      * @param non-empty-list<non-empty-string> $files
      *
+     * @param-out string $failure the reason when the result is null
+     *
      * @return array<string, array<int, int>>|null null when the subprocess stops before it reports
      *
      * @throws CoverageError
      */
-    private function run(array $files): ?array
+    private function run(array $files, ?string &$failure = null): ?array
     {
+        $failure = '';
         $list = $this->temporaryFile('list');
         $errors = $this->temporaryFile('errors');
 
         try {
-            if (ErrorTrap::run(static fn() => \file_put_contents($list, \json_encode($files, \JSON_THROW_ON_ERROR))) === false) {
+            if (ErrorTrap::run(static fn() => \file_put_contents($list, \implode("\0", $files))) === false) {
                 throw CoverageError::lineProbeFailed('Greenlight could not write the file list.');
             }
 
@@ -153,25 +160,25 @@ final readonly class CompiledLineProbe implements ExecutableLineProbe
         }
 
         $position = \strrpos($output, self::MARKER);
+        $decoded = $position === false ? null : \json_decode(\substr($output, $position + \strlen(self::MARKER)), true);
 
-        if ($exitCode !== 0 || $position === false) {
+        if ($exitCode !== 0 || !\is_array($decoded)) {
+            $failure = \sprintf('exit code %d%s', $exitCode, $stderr === '' ? '' : ', ' . $stderr);
+
             return null;
         }
 
-        $decoded = \json_decode(\substr($output, $position + \strlen(self::MARKER)), true);
+        $byPath = [];
 
-        if (!\is_array($decoded)) {
-            return null;
+        foreach ($decoded as $key => $statuses) {
+            if (\is_int($key) && isset($files[$key])) {
+                $byPath[$files[$key]] = $statuses;
+            }
         }
 
-        $requested = \array_fill_keys($files, true);
         $lines = [];
 
-        foreach (new RawCoverage($decoded)->lines as $file => $statuses) {
-            if (!isset($requested[$file])) {
-                continue;
-            }
-
+        foreach (new RawCoverage($byPath)->lines as $file => $statuses) {
             // The subprocess executes no file code, so each line that is not dead code is uncovered.
             $lines[$file] = \array_map(static fn(int $status): int => $status === -2 ? -2 : -1, $statuses);
         }

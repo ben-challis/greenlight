@@ -9,6 +9,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Cli\Coverage\CompiledLineProbe;
 use Greenlight\Condition\ExtensionLoaded;
 use Greenlight\Coverage\Collection\RawCoverage;
+use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Sandbox\TemporaryDirectory;
@@ -65,6 +66,24 @@ final readonly class CompiledLineProbeTest
         expect(\array_keys($map->files()))
             ->because('the probe MUST skip a broken file and measure the other files')
             ->toBe([$this->sample()]);
+    }
+
+    #[Test]
+    public function aFileThatStopsTheSubprocessFailsTheProbe(): void
+    {
+        $failing = $this->temporaryDirectory->path() . '/failing-php';
+        \file_put_contents($failing, "#!/bin/sh\necho 'probe stopped' >&2\nexit 70\n");
+        \chmod($failing, 0o755);
+
+        expect()->calling(fn(): CoverageMap => new CompiledLineProbe('xdebug', $this->temporaryDirectory->path(), $failing)->measure([$this->sample()]))
+            ->because('a file that the probe cannot measure MUST NOT disappear from the report without a message')
+            ->toThrow(
+                CoverageError::class,
+                message: \sprintf(
+                    'Greenlight could not measure the source files that no test loaded. The subprocess stopped while it compiled "%s": exit code 70, probe stopped',
+                    $this->sample(),
+                ),
+            );
     }
 
     /**

@@ -209,8 +209,8 @@ To find the executable lines, Greenlight compiles these files in a PHP
 subprocess with the coverage driver of the run. The subprocess does not execute
 the files. It requires the Zend OPcache extension. If OPcache is not loaded,
 the subprocess loads it with `zend_extension=opcache`. The run fails if the
-subprocess cannot use OPcache or the driver. A file that does not compile is
-not added.
+subprocess cannot use OPcache or the driver. It also fails if the subprocess
+stops while it compiles a file. A file with a syntax error is not added.
 
 If no worker can collect coverage because neither pcov nor Xdebug coverage mode
 is available, Greenlight warns on stderr. That warning does not fail the run by
