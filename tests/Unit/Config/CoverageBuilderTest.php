@@ -65,6 +65,35 @@ final class CoverageBuilderTest
     }
 
     #[Test]
+    #[DataSet('unknownDrivers')]
+    public function anUnknownDriverNameIsRejected(string $driver): void
+    {
+        expect()->calling(static function () use ($driver): void {
+            // Reflection bypasses the static driver type and exercises the runtime guard.
+            new \ReflectionMethod(CoverageBuilder::class, 'driver')->invoke(new CoverageBuilder(), $driver);
+        })
+            ->because('an unknown driver name MUST NOT select automatic driver selection')
+            ->toThrow(
+                InvalidConfiguration::class,
+                message: \sprintf('Coverage driver "%s" is not supported. Use "pcov" or "xdebug".', $driver),
+            );
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function unknownDrivers(): iterable
+    {
+        yield 'upper-case pcov' => ['PCOV'];
+        yield 'upper-case xdebug' => ['Xdebug'];
+        yield 'unknown name' => ['phpdbg'];
+    }
+
+    #[Test]
+    public function aKnownDriverNameIsKept(): void
+    {
+        expect(new CoverageBuilder()->driver('xdebug')->toConfiguration()->driver)->toBe('xdebug');
+    }
+
+    #[Test]
     #[DataSet('invalidExports')]
     public function aCoverageExportNeedsAFormatAndTarget(string $format, string $target): void
     {
@@ -86,16 +115,12 @@ final class CoverageBuilderTest
     {
         $configuration = new CoverageBuilder()
             ->include('0')
-            ->driver('0')
             ->export('json', '0')
             ->toConfiguration();
 
         expect($configuration->includePaths)
             ->because('a zero-string coverage include path is not empty')
             ->toBe(['0']);
-        expect($configuration->driver)
-            ->because('a zero-string coverage driver is not empty')
-            ->toBe('0');
         expect($configuration->exports[0]->format)
             ->toBe('json');
         expect($configuration->exports[0]->target)

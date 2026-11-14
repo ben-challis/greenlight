@@ -168,9 +168,9 @@ Repeated calls to `coverage()` preserve earlier settings.
 
 * `include(string ...$paths): self` adds source directories to measure. Default:
   none. Greenlight warns for a directory that does not exist.
-* `driver(string $driver): self` restricts coverage to `pcov` or `xdebug` when
-  you use that value. Other non-empty values have the default behavior:
-  Greenlight tries pcov, then Xdebug.
+* `driver(string $driver): self` restricts coverage to `pcov` or `xdebug`.
+  The names are case-sensitive. Other values cause an `InvalidConfiguration`
+  error. Omit this call to try pcov, then Xdebug.
 * `requireDriver(bool $required = true): self` fails the run when the selected
   coverage driver is not available. Default: `false`.
 * `minimumPercentage(float $percentage): self` sets the minimum total line
