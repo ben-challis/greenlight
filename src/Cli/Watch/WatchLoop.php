@@ -10,7 +10,8 @@ use Greenlight\Internal\Process\GracefulShutdown;
  * Controls watch mode. It starts with one run and then runs after groups of file changes.
  *
  * run() starts the first run and then polls for changes and keys. Enter starts
- * a complete run immediately. q stops watch mode.
+ * a complete run immediately. q stops watch mode. The loop discards keys that
+ * arrive during a run, except q.
  *
  * Each iteration is a standard run with standard reporter output. The loop
  * only determines when to run. It gives failed classes from the previous
@@ -25,6 +26,10 @@ use Greenlight\Internal\Process\GracefulShutdown;
 final readonly class WatchLoop
 {
     private const float POLL_INTERVAL_SECONDS = 0.1;
+
+    // The idle loop sleeps at least this multiple of the last scan time. A
+    // large tree thus uses at most about one fifth of a core while idle.
+    private const float SCAN_TIME_MULTIPLIER = 4.0;
 
     /**
      * @param \Closure(string): void $out
@@ -49,6 +54,11 @@ final readonly class WatchLoop
         $this->detector->poll();
         $failedClasses = $runOnce([]);
         $iterations = 1;
+
+        if ($this->keys->discardPending()) {
+            return;
+        }
+
         ($this->out)("\nWaiting for changes. Press Enter to rerun the selected tests. Press q to quit.\n");
 
         while ($maxIterations === null || $iterations < $maxIterations) {
@@ -63,7 +73,9 @@ final readonly class WatchLoop
             }
 
             $runNow = $key === "\n";
+            $scanStarted = $this->clock->now();
             $changes = $this->detector->poll();
+            $scanSeconds = $this->clock->now() - $scanStarted;
 
             if ($changes !== []) {
                 $count = \count($changes);
@@ -75,12 +87,18 @@ final readonly class WatchLoop
                 $this->debouncer->reset();
                 $failedClasses = $runOnce($runNow ? [] : $failedClasses);
                 ++$iterations;
+
+                // Keys pressed during the run must not start more runs.
+                if ($this->keys->discardPending()) {
+                    return;
+                }
+
                 ($this->out)("\nWaiting for changes. Press Enter to rerun the selected tests. Press q to quit.\n");
 
                 continue;
             }
 
-            $this->clock->sleep(self::POLL_INTERVAL_SECONDS);
+            $this->clock->sleep(\max(self::POLL_INTERVAL_SECONDS, $scanSeconds * self::SCAN_TIME_MULTIPLIER));
         }
     }
 }

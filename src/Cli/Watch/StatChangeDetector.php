@@ -13,29 +13,53 @@ use Greenlight\Plugin\WatchSource;
  * poll() records the modification time, size, and content hash for each
  * selected file. It reports changed, new, and removed paths.
  *
+ * Content hashes are expensive for a large tree. A poll can reuse the previous
+ * hash when the modification time, size, change time, and inode are the same.
+ * Both times must also be older than the recent-write window. An editor can write
+ * twice in one second with the same size, and a tool can set an old
+ * modification time again. Inside the window, the times cannot show the
+ * second write, so the hash is read again.
+ *
  * The first poll creates the initial record and reports no changes.
  *
  * @internal
  */
 final class StatChangeDetector implements WatchSource
 {
+    private const float RECENT_WRITE_SECONDS = 2.0;
+
     /** @var array<string, string>|null path to fingerprint */
     private ?array $snapshot = null;
 
+    /** @var array<string, array{string, string}> path to stat key and content hash */
+    private array $hashes = [];
+
     private readonly WatchPathMatcher $matcher;
+
+    /** @var \Closure(): float */
+    private readonly \Closure $now;
+
+    /** @var \Closure(string): (string|false) */
+    private readonly \Closure $hashFile;
 
     /**
      * @param list<non-empty-string> $directories
      * @param list<non-empty-string> $additionalPaths
      * @param positive-int $maximumFiles
+     * @param (\Closure(): float)|null $now
+     * @param (\Closure(string): (string|false))|null $hashFile
      */
     public function __construct(
         private readonly array $directories,
         private readonly array $additionalPaths = [],
         ?WatchPathMatcher $matcher = null,
         private readonly int $maximumFiles = 100_000,
+        ?\Closure $now = null,
+        ?\Closure $hashFile = null,
     ) {
         $this->matcher = $matcher ?? new WatchPathMatcher('', [], []);
+        $this->now = $now ?? static fn(): float => \microtime(true);
+        $this->hashFile = $hashFile ?? \sha1_file(...);
     }
 
     #[\Override]
@@ -89,14 +113,18 @@ final class StatChangeDetector implements WatchSource
 
         \ksort($candidates, \SORT_STRING);
         $snapshot = [];
+        $hashes = [];
+        $now = ($this->now)();
 
         foreach (\array_keys($candidates) as $path) {
-            $fingerprint = $this->fingerprint($path);
+            $fingerprint = $this->fingerprint($path, $now, $hashes);
 
             if ($fingerprint !== null) {
                 $snapshot[$path] = $fingerprint;
             }
         }
+
+        $this->hashes = $hashes;
 
         return $snapshot;
     }
@@ -173,7 +201,8 @@ final class StatChangeDetector implements WatchSource
         }
     }
 
-    private function fingerprint(string $path): ?string
+    /** @param array<string, array{string, string}> $hashes */
+    private function fingerprint(string $path, float $now, array &$hashes): ?string
     {
         \clearstatcache(true, $path);
 
@@ -181,17 +210,32 @@ final class StatChangeDetector implements WatchSource
             return null;
         }
 
-        return ErrorTrap::run(static function () use ($path) {
-            $mtime = \filemtime($path);
-            $size = \filesize($path);
-            $contentHash = \sha1_file($path);
+        $stat = ErrorTrap::run(static fn() => \stat($path));
 
-            if (!\is_int($mtime) || !\is_int($size) || !\is_string($contentHash)) {
+        if (!\is_array($stat)) {
+            return null;
+        }
+
+        $mtime = $stat['mtime'];
+        $size = $stat['size'];
+        $statKey = $mtime . ':' . $size . ':' . $stat['ctime'] . ':' . $stat['ino'];
+        $previous = $this->hashes[$path] ?? null;
+
+        $lastWrite = \max($mtime, $stat['ctime']);
+
+        if ($previous !== null && $previous[0] === $statKey && $now - $lastWrite >= self::RECENT_WRITE_SECONDS) {
+            $contentHash = $previous[1];
+        } else {
+            $contentHash = ErrorTrap::run(fn() => ($this->hashFile)($path));
+
+            if (!\is_string($contentHash)) {
                 return null;
             }
+        }
 
-            return $mtime . ':' . $size . ':' . $contentHash;
-        });
+        $hashes[$path] = [$statKey, $contentHash];
+
+        return $mtime . ':' . $size . ':' . $contentHash;
     }
 
     private function isLink(string $path): bool

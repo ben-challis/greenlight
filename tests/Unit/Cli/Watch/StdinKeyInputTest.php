@@ -53,6 +53,7 @@ final class StdinKeyInputTest
 
                 return null;
             },
+            isBlocking: static fn(): bool => false,
         );
 
         expect($blocking)
@@ -89,6 +90,7 @@ final class StdinKeyInputTest
 
                 return null;
             },
+            isBlocking: static fn(): bool => false,
         );
 
         $input->restore();
@@ -114,5 +116,50 @@ final class StdinKeyInputTest
                 \RuntimeException::class,
                 message: 'Greenlight could not make standard input non-blocking.',
             );
+    }
+
+    #[Test]
+    public function restoreSetsTheOriginalBlockingModeExactlyOnce(): void
+    {
+        $blocking = [];
+        $input = new StdinKeyInput(
+            configureBlocking: static function (bool $enabled) use (&$blocking): void {
+                $blocking[] = $enabled;
+            },
+            isTty: static fn(): bool => false,
+            read: static fn(): false => false,
+            isBlocking: static fn(): bool => true,
+        );
+
+        $input->restore();
+        $input->restore();
+
+        expect($blocking)
+            ->because('the shell shares standard input with the next command, so its blocking mode MUST return')
+            ->toBe([false, true]);
+    }
+
+    #[Test]
+    public function discardPendingReadsEveryPendingKeyAndReportsQ(): void
+    {
+        $pending = ['x', "\n", 'q', 'y'];
+        $input = new StdinKeyInput(
+            configureBlocking: static function (bool $enabled): void {},
+            isTty: static fn(): bool => false,
+            read: static function () use (&$pending): string {
+                return \array_shift($pending) ?? '';
+            },
+            isBlocking: static fn(): bool => false,
+        );
+
+        expect($input->discardPending())
+            ->because('q among the discarded keys MUST stop watch mode')
+            ->toBeTrue();
+        expect($pending)
+            ->because('discardPending MUST read every pending key')
+            ->toBe([]);
+        expect($input->discardPending())
+            ->because('no pending keys means no quit request')
+            ->toBeFalse();
     }
 }
