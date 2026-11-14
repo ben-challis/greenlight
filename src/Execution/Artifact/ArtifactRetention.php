@@ -372,7 +372,11 @@ final readonly class ArtifactRetention
                 }
             }
             if ($runId === null) {
-                $warnings[] = \sprintf('Greenlight did not recover the interrupted prune claim "%s".', $name);
+                // The last step of a deletion removes the metadata file. An
+                // empty claim is therefore a deletion that did not finish.
+                $warnings[] = $this->emptyClaim($claim) && $this->removeTree($claim)
+                    ? \sprintf('Greenlight removed the empty interrupted prune claim "%s".', $name)
+                    : \sprintf('Greenlight did not recover the interrupted prune claim "%s".', $name);
                 continue;
             }
 
@@ -400,6 +404,22 @@ final readonly class ArtifactRetention
         }
 
         return $warnings;
+    }
+
+    /**
+     * Tells whether a claim directory contains nothing, or only the run lock
+     * file.
+     */
+    private function emptyClaim(string $claim): bool
+    {
+        if ($this->pathIsLink($claim) || !ErrorTrap::run(static fn() => \is_dir($claim))) {
+            return false;
+        }
+        $names = ErrorTrap::run(static fn() => \scandir($claim));
+
+        return \is_array($names)
+            && \array_diff($names, ['.', '..', self::LOCK_FILE]) === []
+            && !$this->pathIsLink($claim . '/' . self::LOCK_FILE);
     }
 
     /**

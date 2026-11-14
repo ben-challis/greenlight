@@ -56,6 +56,36 @@ final readonly class ArtifactPruneClaimRecoveryTest
     }
 
     #[Test]
+    public function aFailedClaimDeletionKeepsTheClaimForTheNextPrune(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('stale-claim-failed-deletion');
+        $retention = $this->retention($parent, maxCompletedRuns: 10);
+        $retention->prune(now: 100);
+        $this->completedRun($retention, 'run-claimed', 2, 'owned');
+        $claim = $parent . '/.greenlight-prune-' . \str_repeat('e', 24);
+        \rename($parent . '/run-claimed', $claim);
+        \chmod($parent, 0o500);
+
+        try {
+            $failed = $retention->prune(now: 100);
+        } finally {
+            \chmod($parent, 0o700);
+        }
+        $claimAfterFailure = \is_dir($claim);
+        $completed = $retention->prune(now: 100);
+
+        expect($claimAfterFailure)
+            ->because('a deletion that fails MUST keep the claim, not restore a partial run')
+            ->toBeTrue();
+        expect(\file_exists($parent . '/run-claimed'))->toBeFalse();
+        expect($failed->warnings)->toBe([\sprintf('Greenlight did not recover the interrupted prune claim "%s".', \basename($claim))]);
+        expect(\file_exists($claim))
+            ->because('the next prune MUST complete a claim that a failed deletion left')
+            ->toBeFalse();
+        expect($completed->warnings)->toBe([\sprintf('Greenlight removed the empty interrupted prune claim "%s".', \basename($claim))]);
+    }
+
+    #[Test]
     public function aStaleClaimWithChangedContentIsRestored(): void
     {
         $parent = $this->tempDirectory->subdirectory('stale-claim-restore');
