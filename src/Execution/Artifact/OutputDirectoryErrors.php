@@ -13,7 +13,7 @@ use Greenlight\Internal\Filesystem\DirectoryWalkFailure;
  *
  * @internal
  */
-final class OutputDirectoryError
+final class OutputDirectoryErrors
 {
     /** @codeCoverageIgnore */
     private function __construct() {}

@@ -132,7 +132,7 @@ final readonly class ArtifactRetention
             // Restricted filesystem access can hide every ancestor. Creation
             // reports the failure if access stays restricted.
             if ($error->failure !== DirectoryWalkFailure::NoExistingAncestor) {
-                throw OutputDirectoryError::from($error);
+                throw OutputDirectoryErrors::from($error);
             }
         }
         if (ErrorTrap::run(fn() => \is_dir($this->parent))
@@ -996,7 +996,7 @@ final readonly class ArtifactRetention
         try {
             SafeDirectory::create($this->parent);
         } catch (DirectoryWalkError $error) {
-            throw OutputDirectoryError::from($error);
+            throw OutputDirectoryErrors::from($error);
         }
         $canonical = ErrorTrap::run(fn() => \realpath($this->parent));
         if ($canonical === false || $canonical !== $this->parent) {
