@@ -8,14 +8,21 @@ namespace Greenlight\Cli\Input;
  * Gets flag candidates from OptionSpec. Explicit tables contain command names
  * and enum-like values.
  *
+ * With a command option map, each script offers only the flags of the command
+ * on the line. The run options apply when the line has no command word. An
+ * unknown command, such as a plugin command, gets all flags.
+ *
  * @internal
  */
 final readonly class CompletionScripts
 {
+    private const string CASE_END = ';;';
+
     /**
      * @param list<OptionSpec> $specs
+     * @param array<string, list<string>> $commandOptions Option names for each command.
      */
-    public function __construct(private array $specs) {}
+    public function __construct(private array $specs, private array $commandOptions = []) {}
 
     public function render(string $shell): ?string
     {
@@ -68,7 +75,24 @@ final readonly class CompletionScripts
 
                 case "$logical" in
             {{VALUE_CASES}}        -*)
-                        results=( $(compgen -W "{{FLAGS}}" -- "$logical") )
+                        local command=run j word
+                        for (( j = 1; j < i; j++ )); do
+                            word=${COMP_WORDS[j]}
+                            if [[ $word == = ]]; then
+                                (( j++ ))
+                                continue
+                            fi
+                            [[ $word == -* ]] && continue
+                            while [[ ${COMP_WORDS[j+1]-} == : ]]; do
+                                word+=":${COMP_WORDS[j+2]-}"
+                                (( j += 2 ))
+                            done
+                            command=$word
+                            break
+                        done
+                        case "$command" in
+            {{FLAG_CASES}}                *) results=( $(compgen -W "{{FLAGS}}" -- "$logical") ) ;;
+                        esac
                         ;;
                     *)
                         if [[ ${COMP_WORDS[1]-} == completion ]] && (( i == 2 )); then
@@ -91,9 +115,10 @@ final readonly class CompletionScripts
             BASH;
 
         return \str_replace(
-            ['{{VALUE_CASES}}', '{{FLAGS}}', '{{SHELLS}}', '{{COMMANDS}}'],
+            ['{{VALUE_CASES}}', '{{FLAG_CASES}}', '{{FLAGS}}', '{{SHELLS}}', '{{COMMANDS}}'],
             [
                 $valueCases,
+                $this->bashFlagCases(),
                 \implode(' ', [...$this->valueFlagWords(), ...$this->booleanFlagWords()]),
                 \implode(' ', Definition::COMPLETION_SHELLS),
                 \implode(' ', \array_keys(Definition::COMMAND_DESCRIPTIONS)),
@@ -136,8 +161,19 @@ final readonly class CompletionScripts
             _greenlight()
             {
             {{VALUE_BLOCKS}}    if [[ ${words[CURRENT]} == -* ]]; then
-                    compadd -S '' -- {{VALUE_FLAGS}}
-                    compadd -- {{BOOLEAN_FLAGS}}
+                    local command=run word
+                    for word in ${words[2,CURRENT-1]}; do
+                        if [[ $word != -* ]]; then
+                            command=$word
+                            break
+                        fi
+                    done
+                    case $command in
+            {{FLAG_CASES}}            *)
+                            compadd -S '' -- {{VALUE_FLAGS}}
+                            compadd -- {{BOOLEAN_FLAGS}}
+                            ;;
+                    esac
                     return
                 fi
 
@@ -162,9 +198,10 @@ final readonly class CompletionScripts
             ZSH;
 
         return \str_replace(
-            ['{{VALUE_BLOCKS}}', '{{VALUE_FLAGS}}', '{{BOOLEAN_FLAGS}}', '{{SHELLS}}', '{{COMMAND_LINES}}'],
+            ['{{VALUE_BLOCKS}}', '{{FLAG_CASES}}', '{{VALUE_FLAGS}}', '{{BOOLEAN_FLAGS}}', '{{SHELLS}}', '{{COMMAND_LINES}}'],
             [
                 $valueBlocks,
+                $this->zshFlagCases(),
                 \implode(' ', $this->valueFlagWords()),
                 \implode(' ', $this->booleanFlagWords()),
                 \implode(' ', Definition::COMPLETION_SHELLS),
@@ -198,7 +235,7 @@ final readonly class CompletionScripts
         $lines[] = '';
 
         foreach ($this->specs as $spec) {
-            $line = 'complete -c greenlight -l ' . $spec->name;
+            $line = 'complete -c greenlight' . $this->fishCondition($spec->name) . ' -l ' . $spec->name;
 
             if ($spec->short !== null) {
                 $line .= ' -s ' . $spec->short;
@@ -218,14 +255,103 @@ final readonly class CompletionScripts
         return \implode("\n", $lines) . "\n";
     }
 
+    private function bashFlagCases(): string
+    {
+        $cases = '';
+
+        foreach ($this->commandOptions as $command => $names) {
+            $cases .= \sprintf(
+                <<<'BASH'
+                                %s) results=( $(compgen -W "%s" -- "$logical") ) %s
+
+                BASH,
+                $this->casePattern($command),
+                \implode(' ', [...$this->valueFlagWords($names), ...$this->booleanFlagWords($names)]),
+                self::CASE_END,
+            );
+        }
+
+        return $cases;
+    }
+
+    private function zshFlagCases(): string
+    {
+        $cases = '';
+
+        foreach ($this->commandOptions as $command => $names) {
+            $cases .= \sprintf(
+                <<<'ZSH'
+                                %s)
+                                    compadd -S '' -- %s
+                                    compadd -- %s
+                                    %s
+
+                ZSH,
+                $this->casePattern($command),
+                \implode(' ', $this->valueFlagWords($names)),
+                \implode(' ', $this->booleanFlagWords($names)),
+                self::CASE_END,
+            );
+        }
+
+        return $cases;
+    }
+
     /**
+     * Returns a fish condition that is true for each command that accepts
+     * the option. The run options also apply before a command word.
+     */
+    private function fishCondition(string $option): string
+    {
+        if ($this->commandOptions === []) {
+            return '';
+        }
+
+        $commands = [];
+        $all = true;
+
+        foreach ($this->commandOptions as $command => $names) {
+            if (\in_array($option, $names, true)) {
+                $commands[] = $command;
+            } else {
+                $all = false;
+            }
+        }
+
+        if ($all) {
+            return '';
+        }
+
+        $condition = $commands === []
+            ? 'false'
+            : '__fish_seen_subcommand_from ' . \implode(' ', $commands);
+
+        if (\in_array('run', $commands, true)) {
+            $condition = '__fish_use_subcommand; or ' . $condition;
+        }
+
+        return " -n '" . $condition . "'";
+    }
+
+    private function casePattern(string $command): string
+    {
+        return \str_replace(':', '\\:', $command);
+    }
+
+    /**
+     * @param list<string>|null $names
+     *
      * @return list<string>
      */
-    private function valueFlagWords(): array
+    private function valueFlagWords(?array $names = null): array
     {
         $words = [];
 
         foreach ($this->specs as $spec) {
+            if ($names !== null && !\in_array($spec->name, $names, true)) {
+                continue;
+            }
+
             if ($spec->value !== OptionValue::None) {
                 $words[] = '--' . $spec->name . '=';
             }
@@ -235,13 +361,19 @@ final readonly class CompletionScripts
     }
 
     /**
+     * @param list<string>|null $names
+     *
      * @return list<string>
      */
-    private function booleanFlagWords(): array
+    private function booleanFlagWords(?array $names = null): array
     {
         $words = [];
 
         foreach ($this->specs as $spec) {
+            if ($names !== null && !\in_array($spec->name, $names, true)) {
+                continue;
+            }
+
             if ($spec->value === OptionValue::None) {
                 $words[] = '--' . $spec->name;
             }
