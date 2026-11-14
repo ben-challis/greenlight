@@ -28,6 +28,7 @@ final readonly class CoroutineWaitTest
             static function () use (&$now): float {
                 return $now;
             },
+            static fn(): bool => true,
         );
 
         expect($finished)->toBeFalse();
@@ -51,6 +52,7 @@ final readonly class CoroutineWaitTest
             static function () use (&$now): float {
                 return $now;
             },
+            static fn(): bool => true,
         );
 
         expect($finished)->toBeFalse();
@@ -64,6 +66,7 @@ final readonly class CoroutineWaitTest
             static fn(float $timeout): bool => true,
             static fn(): float => 1.0,
             static fn(): float => 0.0,
+            static fn(): bool => true,
         );
 
         expect($finished)->toBeTrue();
@@ -82,6 +85,7 @@ final readonly class CoroutineWaitTest
             },
             static fn(): float => 1.0,
             static fn(): float => 5.0,
+            static fn(): bool => true,
         );
 
         expect($finished)->toBeTrue();
@@ -109,6 +113,7 @@ final readonly class CoroutineWaitTest
             static function () use (&$now): float {
                 return $now;
             },
+            static fn(): bool => true,
         );
 
         expect($finished)->toBeFalse();
@@ -116,7 +121,7 @@ final readonly class CoroutineWaitTest
     }
 
     #[Test]
-    public function withoutADeadlineTheWaitHasNoLimitAfterTheFirstWait(): void
+    public function withoutADeadlineTheWaitHasNoLimitAfterOneWaitInTheAttempt(): void
     {
         $timeouts = [];
 
@@ -128,9 +133,52 @@ final readonly class CoroutineWaitTest
             },
             static fn(): ?float => null,
             static fn(): float => 0.0,
+            static fn(): bool => true,
         );
 
         expect($finished)->toBeTrue();
         expect($timeouts)->toBe([CoroutineWait::FIRST_WAIT_SECONDS, -1.0]);
+    }
+
+    #[Test]
+    public function aSlowSetupKeepsTheWaitBoundedUntilTheAttemptSetsItsDeadline(): void
+    {
+        $now = 0.0;
+        $pops = 0;
+        $started = false;
+        $deadline = null;
+        $timeouts = [];
+
+        $finished = CoroutineWait::await(
+            static function (float $timeout) use (&$now, &$pops, &$started, &$deadline, &$timeouts): bool {
+                $timeouts[] = $timeout;
+                $now += $timeout;
+                ++$pops;
+
+                if ($pops === 3) {
+                    $started = true;
+                    $deadline = $now + 0.5;
+                }
+
+                return false;
+            },
+            static function () use (&$deadline): ?float {
+                return $deadline;
+            },
+            static function () use (&$now): float {
+                return $now;
+            },
+            static function () use (&$started): bool {
+                return $started;
+            },
+        );
+
+        expect($finished)->toBeFalse();
+        expect($timeouts)->toBe([
+            CoroutineWait::FIRST_WAIT_SECONDS,
+            CoroutineWait::FIRST_WAIT_SECONDS,
+            CoroutineWait::FIRST_WAIT_SECONDS,
+            0.5,
+        ]);
     }
 }

@@ -89,7 +89,7 @@ final readonly class HyperfBridgeErrorTest
         ];
         yield 'timed out coroutine' => [
             static fn(): HyperfBridgeError => HyperfBridgeError::coroutineTimedOut(7),
-            'The Hyperf test coroutine 7 did not finish before the test time limit, so Greenlight canceled it. The coroutine is blocked, for example on a channel pop with no producer.',
+            'The Hyperf test coroutine 7 did not finish before the test time limit, so Greenlight canceled it. The coroutine was blocked, for example on a channel pop with no producer.',
         ];
         yield 'missing worker container' => [
             HyperfBridgeError::workerContainerUnavailable(...),

@@ -239,15 +239,14 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
         }
 
         return $this->runRuntime(fn(): mixed => $this->runInCoroutine(
-            function () use ($attempt): mixed {
+            function (): void {
                 $container = $this->createContainer();
                 $this->rejectReusedContainer($container);
                 $this->activeContainer = $container;
                 ApplicationContext::setContainer($container);
                 $this->bootApplication($container);
-
-                return $attempt();
             },
+            $attempt,
             function (): void {
                 $container = $this->activeContainer;
 
@@ -309,11 +308,10 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
             ?? throw HyperfBridgeError::workerContainerUnavailable();
 
         return $this->runInCoroutine(
-            function () use ($attempt, $container): mixed {
+            function () use ($container): void {
                 $this->activeContainer = $container;
-
-                return $attempt();
             },
+            $attempt,
             function () use ($container): void {
                 try {
                     $this->resetContainer($container);
@@ -334,27 +332,33 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
      *
      * @template T
      *
+     * @param \Closure(): void $prepare
      * @param \Closure(): T $attempt
      * @param \Closure(): void $reset
      *
      * @return T
      * @throws ServiceResolutionFailed
      */
-    private function runInCoroutine(\Closure $attempt, \Closure $reset): mixed
+    private function runInCoroutine(\Closure $prepare, \Closure $attempt, \Closure $reset): mixed
     {
         /** @var array{value: T}|array{} $result */
         $result = [];
         $failure = null;
         $cleanup = new CoroutineReset($reset);
+        $start = new CoroutineAttemptStart();
         $finished = new Channel(1);
         $coroutineId = SwooleCoroutine::create(function () use (
+            $prepare,
             $attempt,
+            $start,
             $cleanup,
             $finished,
             &$result,
             &$failure,
         ): void {
             try {
+                $prepare();
+                $start->mark();
                 $result = ['value' => $attempt()];
             } catch (\Throwable $threw) {
                 $failure = $threw;
@@ -375,6 +379,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
                 static fn(float $timeout): bool => $finished->pop($timeout) === true,
                 ExpectationRuntime::deadline(...),
                 static fn(): float => \hrtime(true) / 1_000_000_000,
+                $start->reached(...),
             );
 
             if (!$didFinish) {

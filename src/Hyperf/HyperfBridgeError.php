@@ -139,7 +139,7 @@ final class HyperfBridgeError extends ServiceResolutionFailed
         return new self(
             \sprintf(
                 'The Hyperf test coroutine %d did not finish before the test time limit, so Greenlight '
-                . 'canceled it. The coroutine is blocked, for example on a channel pop with no producer.',
+                . 'canceled it. The coroutine was blocked, for example on a channel pop with no producer.',
                 $coroutineId,
             ),
             $previous,
