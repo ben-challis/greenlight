@@ -12,8 +12,8 @@ use Greenlight\Test\TestId;
  *
  * Greenlight calls `testAttemptEnded()` one time for each attempt that starts.
  * It also calls the method when the test constructor, constructor injection,
- * or output capture fails. In these cases Greenlight has no test instance and
- * does not call `afterTest()`.
+ * or output capture fails. Greenlight does not call `afterTest()` in these
+ * cases.
  *
  * The method runs after all `afterTest()` subscribers and before the retry
  * decision. It runs in the `TestAttemptRunner` boundary.
