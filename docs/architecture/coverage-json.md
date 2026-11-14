@@ -134,7 +134,7 @@ coveredLines / executableLines * 100
 Greenlight rounds the value to two decimal places.
 
 An empty report has `100.0` coverage because there are no executable lines to
-miss.
+miss. A configured coverage gate fails for a report with no executable lines.
 
 ## Merge behavior
 
