@@ -8,6 +8,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Tests\Fixture\Doubles\DebugInfoContract;
 use Greenlight\Tests\Fixture\Doubles\DebugInfoService;
+use Greenlight\Tests\Fixture\Doubles\DebugInfoStateService;
 
 use function Greenlight\expect;
 
@@ -40,6 +41,26 @@ final readonly class ProxyDebugInfoTest
 
         expect($double->__debugInfo())
             ->because('an abstract __debugInfo() MUST NOT need a mock plan')
+            ->toBe([]);
+    }
+
+    #[Test]
+    public function debugOutputSurvivesUninitializedConstructorState(): void
+    {
+        $double = $this->doubles->mock(DebugInfoStateService::class);
+
+        \ob_start();
+
+        try {
+            \var_dump($double);
+        } finally {
+            $output = (string) \ob_get_clean();
+        }
+
+        expect($output)
+            ->because('a double does not run the constructor that sets the state for __debugInfo()')
+            ->toContain('DebugInfoStateService');
+        expect($double->__debugInfo())
             ->toBe([]);
     }
 }
