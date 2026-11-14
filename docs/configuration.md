@@ -199,6 +199,19 @@ Repeated calls to `coverage()` preserve earlier settings.
 When you configure coverage, the run prints the total percentage and writes
 each coverage export.
 
+A coverage driver reports only the files that PHP loads. After the run,
+Greenlight finds each `.php` file in the include paths that no test loaded. It
+adds the executable lines of these files as uncovered lines. Thus, an untested
+file decreases the total percentage. Without include paths, the export contains
+only the files that the driver reports.
+
+To find the executable lines, Greenlight compiles these files in a PHP
+subprocess with the coverage driver of the run. The subprocess does not execute
+the files. It requires the Zend OPcache extension. If OPcache is not loaded,
+the subprocess loads it with `zend_extension=opcache`. The run fails if the
+subprocess cannot use OPcache or the driver. A file that does not compile is
+not added.
+
 If no worker can collect coverage because neither pcov nor Xdebug coverage mode
 is available, Greenlight warns on stderr. That warning does not fail the run by
 itself. `requireDriver()` changes the warning to a run failure.

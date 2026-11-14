@@ -136,6 +136,9 @@ Greenlight rounds the value to two decimal places.
 An empty report has `100.0` coverage because there are no executable lines to
 miss.
 
+A run export contains each `.php` file in the include paths. A file that no
+test loaded has only uncovered lines.
+
 ## Merge behavior
 
 The coverage merge command reads two or more coverage documents:
