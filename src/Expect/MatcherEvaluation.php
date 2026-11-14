@@ -674,7 +674,7 @@ final class MatcherEvaluation
         $this->requireValidPattern($pattern, 'toMatch');
 
         return $this->verify(
-            \preg_match($pattern, $this->stringSubject('toMatch')) === 1,
+            $this->matchesPattern($pattern, $this->stringSubject('toMatch'), 'toMatch'),
             'to match ' . $pattern,
             $pattern,
         );
@@ -859,7 +859,7 @@ final class MatcherEvaluation
             : $thrown instanceof $expectedThrowable;
 
         if ($matched && $matching !== null) {
-            $matched = \preg_match($matching, $thrown->getMessage()) === 1;
+            $matched = $this->matchesPattern($matching, $thrown->getMessage(), 'toThrow');
         } elseif ($matched && $callback instanceof \Closure) {
             try {
                 $result = $this->invokeThrowableCallback($callback, $thrown); // @phpstan-ignore argument.type (Reflection confirms that the callback accepts the matched throwable.)
@@ -1124,6 +1124,29 @@ final class MatcherEvaluation
                 $warning === null ? '' : ' (' . $warning . ')',
             ));
         }
+    }
+
+    /**
+     * Applies a valid pattern. A PCRE run-time error, such as malformed UTF-8
+     * or an exhausted JIT stack, gives no match result. It is a usage failure
+     * so that `not()` cannot make it pass.
+     *
+     * @throws ExpectationFailed
+     */
+    private function matchesPattern(string $pattern, string $subject, string $matcher): bool
+    {
+        $matched = ErrorTrap::run(static fn() => \preg_match($pattern, $subject), $warning);
+
+        if ($matched === false) {
+            $this->usageFailure(\sprintf(
+                '%s() could not apply the pattern %s: %s.',
+                $matcher,
+                $pattern,
+                $warning ?? \preg_last_error_msg(),
+            ));
+        }
+
+        return $matched === 1;
     }
 
     /**
