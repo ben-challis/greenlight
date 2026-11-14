@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Expect;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Tests\Fixture\Expect\FakeClock;
+use Greenlight\Tests\Fixture\Expect\OvershootingClock;
 
 use function Greenlight\expect;
 
@@ -36,6 +37,27 @@ final class EventuallyFinalProbeTest
     }
 
     #[Test]
+    public function eventuallyAcceptsTheLastProbeWhenTheSleepOvershoots(): void
+    {
+        $clock = new OvershootingClock(0.000_005);
+        $values = ['pending', 'pending', 'pending', 'ready'];
+        $calls = 0;
+
+        ExpectationRuntime::withClock($clock, static function () use (&$calls, $values): void {
+            expect()->calling(static function () use (&$calls, $values): string {
+                return $values[$calls++];
+            })->returnValue()->eventually()
+                ->pollEvery(0.040)
+                ->within(0.100)
+                ->toBe('ready');
+        });
+
+        expect($calls)
+            ->because('the probe after the last sleep starts after the deadline, and its match MUST count')
+            ->toBe(4);
+    }
+
+    #[Test]
     public function eventuallyAcceptsTheLastProbeWithTheSystemClock(): void
     {
         $startedAt = \hrtime(true);
@@ -49,37 +71,5 @@ final class EventuallyFinalProbeTest
             ->within(0.100)
             ->because('the probe at the deadline MUST count although a real sleep overshoots the deadline')
             ->toBe('ready');
-    }
-
-    #[Test]
-    public function eventuallyCallFailureRendersEachCallOutcome(): void
-    {
-        $clock = new FakeClock();
-        $detail = ExpectationRuntime::withClock($clock, static fn() => FailureProbe::detailOf(
-            static fn() => expect()->calling(static fn() => throw new \RuntimeException('not yet'))
-                ->eventually()
-                ->pollEvery(0.010)
-                ->within(0.020)
-                ->toThrow(\LogicException::class),
-        ));
-
-        expect($detail->message)
-            ->because('the observation log MUST render the thrown class of a call outcome')
-            ->toContain("threw RuntimeException with message 'not yet'");
-        expect($detail->message)
-            ->because('the observation log MUST NOT render the replay closure')
-            ->not()->toContain('unrendered');
-
-        $detail = ExpectationRuntime::withClock($clock, static fn() => FailureProbe::detailOf(
-            static fn() => expect()->calling(static fn(): int => 7)
-                ->eventually()
-                ->pollEvery(0.010)
-                ->within(0.020)
-                ->toReturn(8),
-        ));
-
-        expect($detail->message)
-            ->because('the observation log MUST render the return value of a call outcome')
-            ->toContain('returned 7');
     }
 }

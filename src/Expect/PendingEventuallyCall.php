@@ -11,7 +11,7 @@ namespace Greenlight\Expect;
  */
 final readonly class PendingEventuallyCall
 {
-    /** @var PendingEventually<CallOutcome<T>> */
+    /** @var PendingEventually<\Closure(): T> */
     private PendingEventually $pending;
 
     /**
@@ -26,7 +26,7 @@ final readonly class PendingEventuallyCall
         private array $extensions,
     ) {
         $this->pending = PendingEventually::create(
-            static fn(): CallOutcome => CallOutcome::capture($call),
+            static fn() => CallOutcome::capture($call)->replay(...),
             ExpectationRuntime::clock(),
             ExpectationRuntime::deadline(),
             $renderer,

@@ -14,7 +14,7 @@ final readonly class TemporalCallExpectation
     /**
      * @internal
      *
-     * @param TemporalExpectation<CallOutcome<T>> $temporal
+     * @param TemporalExpectation<\Closure(): T> $temporal
      * @param list<ExpectationExtension> $extensions
      */
     public function __construct(
@@ -77,15 +77,15 @@ final readonly class TemporalCallExpectation
     }
 
     /**
-     * @param CallOutcome<T> $outcome
+     * @param \Closure(): T $call
      *
      * @return CallExpectation<T>
      *
      * @throws ExpectationFailed
      */
-    private function continueWith(CallOutcome $outcome): CallExpectation
+    private function continueWith(\Closure $call): CallExpectation
     {
-        $expectation = new CallExpectation($outcome->replay(...), $this->renderer, $this->extensions);
+        $expectation = new CallExpectation($call, $this->renderer, $this->extensions);
         $reason = $this->temporal->reason();
 
         if ($reason !== null) {
