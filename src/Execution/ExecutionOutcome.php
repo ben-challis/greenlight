@@ -19,11 +19,13 @@ final readonly class ExecutionOutcome
     /**
      * @param list<TestId> $leaks
      * @param list<WorkerTiming> $workerTimings
+     * @param list<string> $warnings problems that did not stop the run
      */
     public function __construct(
         public ResultSummary $summary,
         public ?CoverageMap $coverage = null,
         public array $leaks = [],
         public array $workerTimings = [],
+        public array $warnings = [],
     ) {}
 }

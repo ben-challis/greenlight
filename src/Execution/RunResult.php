@@ -17,6 +17,7 @@ final readonly class RunResult
      * @param non-negative-int $plannedTests
      * @param list<TestId> $leaks
      * @param bool $emptyShard True when the selected shard has no tests but the unsharded plan has tests.
+     * @param list<string> $warnings problems that did not stop the run
      */
     public function __construct(
         public ResultSummary $summary,
@@ -27,5 +28,6 @@ final readonly class RunResult
         public array $leaks = [],
         public ArtifactMaintenanceReport $artifactMaintenance = new ArtifactMaintenanceReport(),
         public bool $emptyShard = false,
+        public array $warnings = [],
     ) {}
 }

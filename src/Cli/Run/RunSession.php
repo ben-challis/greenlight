@@ -203,6 +203,9 @@ final readonly class RunSession
         ) {
             return CommandResult::failure();
         }
+        foreach ($run->warnings as $warning) {
+            $this->console->err($this->console->stderrStyle($this->arguments->has('no-ansi'))->warn('Warning: ' . $warning) . "\n");
+        }
         if ($run->leaks !== []) {
             $this->console->err(SummaryFormat::leaks($run->leaks, $this->console->stderrStyle($this->arguments->has('no-ansi'))));
 
