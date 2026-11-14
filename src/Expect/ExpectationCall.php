@@ -45,7 +45,7 @@ final readonly class ExpectationCall
             $throwable = self::argument($arguments, 'throwable', 0);
             $matching = self::argument($arguments, 'matching', 1);
             $message = self::argument($arguments, 'message', 2);
-            $error = self::toThrowValidationError($throwable, $matching, $message);
+            $error = ThrowableConstraint::validationError($throwable, $matching, $message);
 
             if ($error !== null) {
                 throw ExpectationFailed::fromDetail(new FailureDetail(
@@ -56,29 +56,6 @@ final readonly class ExpectationCall
         }
 
         return new self($name, $arguments);
-    }
-
-    /**
-     * @return non-empty-string|null
-     */
-    public static function toThrowValidationError(
-        mixed $throwable,
-        mixed $matching,
-        mixed $message,
-    ): ?string {
-        if ($throwable instanceof \Closure && ($matching !== null || $message !== null)) {
-            return 'Do not specify matching: or message: when the throwable is a callback.';
-        }
-
-        if ($throwable instanceof \Throwable && ($matching !== null || $message !== null)) {
-            return 'Do not specify matching: or message: when the throwable argument is a Throwable instance.';
-        }
-
-        if ($matching !== null && $message !== null) {
-            return 'Specify matching: or message: for toThrow(). Do not specify both.';
-        }
-
-        return null;
     }
 
     /**
