@@ -16,6 +16,11 @@ Value expectations do not expose `toThrow()`. `CallOutcome` preserves one
 invocation, including its exact throwable or null return value.
 
 The internal `MatcherEvaluation` applies each matcher and creates diagnostics.
+
+`ThrowableConstraint` validates and applies the `toThrow()` constraint.
+`MatcherModifiers` holds the `not()` and `because()` state. Each stage gives
+the pending negation and the reason to the next stage.
+
 Each poll evaluates one captured subject. The matcher does not increment the
 expectation counter during a poll. The temporal matcher increments it once.
 

@@ -74,7 +74,6 @@ final class ConsistentlyExpectation extends TemporalExpectation
 
     /**
      * @param \Closure(MatcherEvaluation<T>): MatcherEvaluation<T> $matcher
-     * @param non-empty-string|null $reason
      *
      * @return MatcherEvaluation<T>
      *
@@ -83,13 +82,12 @@ final class ConsistentlyExpectation extends TemporalExpectation
     #[\Override]
     protected function waitFor(
         \Closure $matcher,
-        bool $negated,
-        ?string $reason,
+        MatcherModifiers $modifiers,
         ?SourceLocation $location,
     ): MatcherEvaluation {
         $startedAt = $this->clock->now();
         $observations = new ObservationLog($startedAt);
-        $last = $this->observe($matcher, $negated, $reason);
+        $last = $this->observe($matcher, $modifiers);
         $observedAt = $this->clock->now();
         $observations->record($observedAt, $last->rendered);
         ExpectationCounter::increment();
@@ -126,7 +124,7 @@ final class ConsistentlyExpectation extends TemporalExpectation
 
         while (true) {
             $this->sleepUntil(\min($this->clock->now() + $this->intervalSeconds, $deadline));
-            $last = $this->observe($matcher, $negated, $reason);
+            $last = $this->observe($matcher, $modifiers);
             $observedAt = $this->clock->now();
             $observations->record($observedAt, $last->rendered);
 

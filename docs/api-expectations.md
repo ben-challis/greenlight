@@ -33,7 +33,7 @@ PHPDoc:
 
 - `@return self<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L36)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L35)
 
 ### `because()`
 
@@ -50,7 +50,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L53)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L52)
 
 ### `toReturn()`
 
@@ -65,7 +65,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L68)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L66)
 
 ### `returnValue()`
 
@@ -80,7 +80,7 @@ PHPDoc:
 - `@return ReturnValueExpectation<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L82)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L80)
 
 ### `toThrow()`
 
@@ -102,7 +102,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L111)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L101)
 
 ### `eventually()`
 
@@ -115,7 +115,7 @@ PHPDoc:
 - `@return PendingEventuallyCall<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L138)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L120)
 
 ### `consistently()`
 
@@ -128,7 +128,7 @@ PHPDoc:
 - `@return PendingConsistentlyCall<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L160)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/CallExpectation.php#L134)
 
 ## `ConsistentlyExpectation`
 
@@ -630,7 +630,7 @@ Negates the next matcher for every value returned by the probe.
 final public function not(): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L43)
 
 ### `because()`
 
@@ -649,7 +649,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L61)
 
 ### `__call()`
 
@@ -666,7 +666,7 @@ PHPDoc:
 - `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L98)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L88)
 
 ## `EventuallyExpectation`
 
@@ -1168,7 +1168,7 @@ Negates the next matcher for every value returned by the probe.
 final public function not(): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L43)
 
 ### `because()`
 
@@ -1187,7 +1187,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L61)
 
 ### `__call()`
 
@@ -1204,7 +1204,7 @@ PHPDoc:
 - `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L98)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L88)
 
 ## `Expect`
 
@@ -1778,7 +1778,7 @@ PHPDoc:
 public function not(): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L65)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L64)
 
 ### `because()`
 
@@ -1794,7 +1794,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L80)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L79)
 
 ### `__call()`
 
@@ -1809,7 +1809,7 @@ PHPDoc:
 - `@throws \BadMethodCallException`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L97)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L95)
 
 ## `ExpectationBuilder`
 
@@ -1978,7 +1978,7 @@ PHPDoc:
 
 - `@return self<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L18)
 
 ### `because()`
 
@@ -1992,7 +1992,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L32)
 
 ### `pollEvery()`
 
@@ -2005,7 +2005,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws \InvalidArgumentException if the interval is not finite or is less than 0.001 seconds`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L86)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L84)
 
 ### `for()`
 
@@ -2019,7 +2019,7 @@ PHPDoc:
 - `@return ConsistentlyExpectation<T>`
 - `@throws \InvalidArgumentException if the duration is not finite or is not positive`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L106)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingConsistently.php#L104)
 
 ## `PendingConsistentlyCall`
 
@@ -2115,7 +2115,7 @@ PHPDoc:
 
 - `@return self<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L18)
 
 ### `because()`
 
@@ -2129,7 +2129,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L35)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L32)
 
 ### `pollEvery()`
 
@@ -2142,7 +2142,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws \InvalidArgumentException if the interval is not finite or is less than 0.001 seconds`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L91)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L89)
 
 ### `retryOnException()`
 
@@ -2156,7 +2156,7 @@ PHPDoc:
 - `@return self<T>`
 - `@throws \InvalidArgumentException if a type does not extend Exception`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L112)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L110)
 
 ### `within()`
 
@@ -2170,7 +2170,7 @@ PHPDoc:
 - `@return EventuallyExpectation<T>`
 - `@throws \InvalidArgumentException if the duration is not finite or is not positive`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L131)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/PendingEventually.php#L129)
 
 ## `PendingEventuallyCall`
 
@@ -2737,7 +2737,7 @@ PHPDoc:
 public function not(): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L65)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L64)
 
 ### `because()`
 
@@ -2753,7 +2753,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L80)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L79)
 
 ### `__call()`
 
@@ -2768,7 +2768,7 @@ PHPDoc:
 - `@throws \BadMethodCallException`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L97)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L95)
 
 ### `eventually()`
 
@@ -2794,7 +2794,7 @@ PHPDoc:
 - `@return PendingConsistently<T>`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ReturnValueExpectation.php#L66)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/ReturnValueExpectation.php#L58)
 
 ## `TemporalCallExpectation`
 
@@ -3369,7 +3369,7 @@ Negates the next matcher for every value returned by the probe.
 final public function not(): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L43)
 
 ### `because()`
 
@@ -3388,7 +3388,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L61)
 
 ### `__call()`
 
@@ -3405,4 +3405,4 @@ PHPDoc:
 - `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L98)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L88)
