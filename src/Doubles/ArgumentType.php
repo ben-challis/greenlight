@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Doubles;
 
+use Greenlight\Internal\Php\ErrorTrap;
+
 /**
  * Represents the values that a typed argument matcher can accept.
  *
@@ -278,19 +280,22 @@ final readonly class ArgumentType
     private static function callableForProxyOf(mixed $value, string $scope): bool
     {
         $name = null;
-        $check = \Closure::bind(
-            static function (mixed $value) use (&$name): bool {
-                return \is_callable($value, false, $name);
-            },
-            null,
-            $scope,
-        );
+        $check = static function (mixed $value) use (&$name): bool {
+            return \is_callable($value, false, $name);
+        };
 
-        if (!$check instanceof \Closure || !$check($value)) {
+        // An internal class has no protected user methods for the double to
+        // call, and PHP cannot bind a closure to the scope of that class.
+        if (!new \ReflectionClass($scope)->isInternal()) {
+            $bound = ErrorTrap::run(static fn(): mixed => \Closure::bind($check, null, $scope));
+            $check = $bound instanceof \Closure ? $bound : $check;
+        }
+
+        if (!$check($value)) {
             return false;
         }
 
-        $parts = \explode('::', $name, 2);
+        $parts = \explode('::', (string) $name, 2);
 
         if (\count($parts) !== 2 || !\method_exists($parts[0], $parts[1])) {
             return true;
