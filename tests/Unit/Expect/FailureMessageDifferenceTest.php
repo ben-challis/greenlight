@@ -21,6 +21,13 @@ final class FailureMessageDifferenceTest
             ->toBe('0.30000000000000004');
         expect($renderer->render(1e100))->because('an exponent keeps a float marker')->toBe('1.0E+100');
         expect($renderer->render(-2.5e-7))->because('small floats keep their digits')->toBe('-2.5E-7');
+        expect($renderer->render(30.0))->because('whole floats use fixed notation')->toBe('30.0');
+        expect($renderer->render(100.0))->because('whole floats use fixed notation')->toBe('100.0');
+        expect($renderer->render(1500.0))->because('whole floats use fixed notation')->toBe('1500.0');
+        expect($renderer->render(0.0001))->because('small floats use fixed notation')->toBe('0.0001');
+        expect($renderer->render(1e17))->because('large floats use exponent notation')->toBe('1.0E+17');
+        expect($renderer->render(1e-5))->because('tiny floats use exponent notation')->toBe('1.0E-5');
+        expect($renderer->render(-0.0))->because('negative zero keeps its sign')->toBe('-0.0');
 
         $detail = FailureProbe::detailOf(static fn() => expect(0.1 + 0.2)->toBe(0.3));
 

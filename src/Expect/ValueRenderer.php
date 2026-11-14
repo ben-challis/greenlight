@@ -126,7 +126,8 @@ final class ValueRenderer
 
     /**
      * Uses the shortest representation that converts back to the same float.
-     * Thus, 0.1 + 0.2 does not render as 0.3.
+     * Thus, 0.1 + 0.2 does not render as 0.3. Values with a decimal exponent
+     * from -4 to 16 use fixed notation, as `var_export()` does.
      */
     private function renderFloat(float $value): string
     {
@@ -138,23 +139,32 @@ final class ValueRenderer
             return $value > 0.0 ? 'INF' : '-INF';
         }
 
-        $precision = 1;
-
-        while ($precision < 17 && (float) \sprintf('%.' . $precision . 'G', $value) !== $value) {
-            ++$precision;
+        if ($value === 0.0) {
+            return \fdiv(1.0, $value) < 0.0 ? '-0.0' : '0.0';
         }
 
-        $rendered = \sprintf('%.' . $precision . 'G', $value);
+        $digits = 1;
 
-        if (\str_contains($rendered, '.')) {
-            return $rendered;
+        while ($digits < 17 && (float) \sprintf('%.' . ($digits - 1) . 'E', $value) !== $value) {
+            ++$digits;
         }
 
-        if (\str_contains($rendered, 'E')) {
-            return \str_replace('E', '.0E', $rendered);
+        [$mantissa, $exponent] = \explode('E', \sprintf('%.' . ($digits - 1) . 'E', $value));
+        $exponent = (int) $exponent;
+
+        if ($exponent >= -4 && $exponent < 17) {
+            $sign = $value < 0.0 ? '-' : '';
+            $significand = \str_replace(['-', '.'], '', $mantissa);
+
+            return $sign . match (true) {
+                $exponent < 0 => '0.' . \str_repeat('0', -$exponent - 1) . $significand,
+                $exponent >= $digits - 1 => $significand . \str_repeat('0', $exponent - $digits + 1) . '.0',
+                default => \substr($significand, 0, $exponent + 1) . '.' . \substr($significand, $exponent + 1),
+            };
         }
 
-        return $rendered . '.0';
+        return (\str_contains($mantissa, '.') ? $mantissa : $mantissa . '.0')
+            . 'E' . ($exponent < 0 ? '-' : '+') . \abs($exponent);
     }
 
     private function renderString(string $value): string
