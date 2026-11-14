@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Event\TestFinished;
 use Greenlight\Event\TestStarted;
 use Greenlight\Execution\ProcessPool\Orchestrator\InitialWorkerAssignment;
 use Greenlight\Execution\ProcessPool\Orchestrator\Orchestrator;
@@ -17,6 +18,8 @@ use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
 use Greenlight\Internal\Process\GracefulShutdown;
+use Greenlight\Result\Outcome;
+use Greenlight\Result\TestResult;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\PlanEntryFixture;
 use Greenlight\Tests\Support\ReactiveWorkerTransport;
@@ -102,6 +105,54 @@ final readonly class OrchestratorAssignmentGateTest
         expect(\end($secondWorkerAssignments))
             ->because('a worker that finished an assignment MUST NOT wait for the bootstrap of a replacement worker')
             ->toBeLessThan($transport->logIndex('w-3 bootstrap'));
+    }
+
+    #[Test]
+    public function aDrainedWorkerDoesNotReceiveRequeuedWork(): void
+    {
+        $transport = new ReactiveWorkerTransport(
+            ReactiveWorkerTransport::connectAtStart(),
+            static function (ReactiveWorkerTransport $transport, string $workerId, Message $message): void {
+                if ($message instanceof Drain) {
+                    // The drained worker needs time to exit.
+                    $transport->after(10, static fn(ReactiveWorkerTransport $transport) => $transport->disconnect($workerId));
+
+                    return;
+                }
+
+                if ($workerId === 'w-1' && $message instanceof Assign) {
+                    // The first worker finishes one test and crashes during the second.
+                    $entries = $message->slice->entries;
+                    $transport->after(3, static function (ReactiveWorkerTransport $transport) use ($workerId, $entries): void {
+                        $transport->message($workerId, new EventEnvelope(new TestStarted($entries[0]->id, 1.0)));
+                        $transport->message($workerId, new EventEnvelope(new TestFinished(
+                            new TestResult($entries[0]->id, Outcome::Passed, 0.01, 0),
+                            1.01,
+                        )));
+                        $transport->message($workerId, new EventEnvelope(new TestStarted($entries[1]->id, 1.0)));
+                        $transport->disconnect($workerId);
+                    });
+
+                    return;
+                }
+
+                ReactiveWorkerTransport::passingWorkers()($transport, $workerId, $message);
+            },
+        );
+        $plan = new ExecutionPlan([
+            PlanEntryFixture::create('Example\\PooledTest', 'first'),
+            PlanEntryFixture::create('Example\\PooledTest', 'second'),
+            PlanEntryFixture::create('Example\\PooledTest', 'third'),
+            PlanEntryFixture::create('Example\\IsolatedTest', isolated: true),
+        ]);
+
+        $summary = new Orchestrator($transport)->run($plan, new CollectingEventSink(), 2);
+
+        expect($summary->passed)->toBe(3);
+        expect($summary->errored)->toBe(1);
+        expect(\array_keys($transport->log, 'w-2 assign', true))
+            ->because('a worker that received Drain MUST NOT receive the requeued tests')
+            ->toHaveCount(1);
     }
 
     #[Test]
