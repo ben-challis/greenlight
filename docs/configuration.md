@@ -1287,8 +1287,11 @@ Greenlight caches discovery results per file in the configured cache directory.
 By default, it uses the system temporary directory.
 
 The cache identity includes the effective discovery paths, the PHP version, and
-the Greenlight version. Each entry records the path, mtime, size, and content
-hash of the test file. It also records the same data for these files:
+a hash of the Greenlight discovery code. A Greenlight update that changes
+discovery uses a new cache.
+
+Each entry records the path, mtime, size, and content hash of the test file. It
+also records the same data for these files:
 
 * parent classes, traits, and interfaces
 * data provider classes

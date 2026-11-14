@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
-use Composer\InstalledVersions;
 use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Internal\Filesystem\AtomicFile;
 use Greenlight\Internal\Filesystem\AtomicFileError;
@@ -21,7 +20,8 @@ use Greenlight\Internal\Php\ErrorTrap;
  * can change without a change to a tracked file. Entries do not contain filter
  * results. Thus, a filter change does not require another parse operation.
  *
- * The cache identity includes the PHP version and the Greenlight version.
+ * The cache identity includes the PHP version and a hash of the Greenlight
+ * discovery code.
  * Discovery parses the file after a cache miss, stale file, corrupt cache, or
  * identity mismatch.
  *
@@ -47,6 +47,8 @@ final class DiscoveryCache
     private bool $loaded = false;
 
     private bool $changed = false;
+
+    private ?string $identity = null;
 
     /**
      * @var array<string, array{mtime: int, size: int, contentHash: ?non-empty-string}|null>
@@ -353,15 +355,30 @@ final class DiscoveryCache
 
     /**
      * Identifies the PHP and Greenlight builds that wrote the cache. Constant
-     * expressions in attributes can branch on PHP_VERSION_ID, and a Greenlight
-     * update can change discovery metadata.
+     * expressions in attributes can branch on PHP_VERSION_ID. A Greenlight
+     * update can change the metadata that discovery derives. Thus, the
+     * identity includes the content hash of each source file in the
+     * discovery, attribute, and test-definition namespaces.
      */
     private function identity(): string
     {
-        $greenlight = InstalledVersions::isInstalled('greenlight/greenlight')
-            ? (InstalledVersions::getPrettyVersion('greenlight/greenlight') ?? '') . '@' . (InstalledVersions::getReference('greenlight/greenlight') ?? '')
-            : 'unknown';
+        if ($this->identity !== null) {
+            return $this->identity;
+        }
 
-        return \PHP_VERSION . ' ' . $greenlight;
+        $root = \dirname(__DIR__);
+        $sources = [];
+
+        foreach (['Discovery', 'Discovery/Plan', 'Attribute', 'Test', 'Test/DataSet'] as $directory) {
+            $files = \glob($root . '/' . $directory . '/*.php');
+
+            foreach ($files === false ? [] : $files as $source) {
+                $sources[] = \basename(\dirname($source)) . '/' . \basename($source) . ':' . ($this->stat($source)['contentHash'] ?? '');
+            }
+        }
+
+        \sort($sources);
+
+        return $this->identity = \PHP_VERSION . ' ' . \sha1(\implode("\n", $sources));
     }
 }
