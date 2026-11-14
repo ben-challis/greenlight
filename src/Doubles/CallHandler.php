@@ -32,18 +32,23 @@ final readonly class CallHandler
     ) {}
 
     /**
+     * Matching and recording use `$arguments`, which contains the default
+     * value of each omitted optional parameter. An answer callback receives
+     * only `$suppliedArguments`.
+     *
      * @param non-empty-string $method
      * @param array<array-key, mixed> $arguments
+     * @param array<array-key, mixed> $suppliedArguments
      *
      * @throws ExpectationFailed
      * @throws InvalidDoubleUsage
      */
-    public function invoke(object $double, string $method, array $arguments): mixed
+    public function invoke(object $double, string $method, array $arguments, array $suppliedArguments): mixed
     {
         $this->doubles[$double] = $this->state;
 
         $this->contracts->get($this->state->type, $method)
-            ->assertCallArgumentCount(\count($arguments));
+            ->assertCallArgumentCount(\count($suppliedArguments));
 
         $positionalArguments = \array_map(
             static fn(mixed $argument): mixed => $argument,
@@ -53,7 +58,7 @@ final readonly class CallHandler
         $this->state->recordedCalls[$method][] = $positionalArguments;
 
         return match ($this->state->kind) {
-            DoubleKind::Mock => $this->invokeOnMock($double, $method, $arguments, $positionalArguments),
+            DoubleKind::Mock => $this->invokeOnMock($double, $method, $suppliedArguments, $positionalArguments),
             DoubleKind::Stub => throw InvalidDoubleUsage::stubWasCalled($this->state->type, $method),
             DoubleKind::Spy => $this->invokeOnSpy($double, $method),
         };

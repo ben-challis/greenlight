@@ -541,29 +541,13 @@ public static function cannotDoubleTrait(string $type): self
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L113)
 
-### `cannotDoubleInternalInterface()`
-
-```php
-public static function cannotDoubleInternalInterface(string $type, string $internal): self
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L118)
-
-### `cannotDoubleBareTraversable()`
-
-```php
-public static function cannotDoubleBareTraversable(string $type): self
-```
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L128)
-
 ### `notDoubleable()`
 
 ```php
 public static function notDoubleable(string $type): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L137)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L118)
 
 ### `attachHandlerCollision()`
 
@@ -571,7 +555,7 @@ public static function notDoubleable(string $type): self
 public static function attachHandlerCollision(string $class): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L142)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L123)
 
 ### `handlerPropertyCollision()`
 
@@ -579,7 +563,7 @@ public static function attachHandlerCollision(string $class): self
 public static function handlerPropertyCollision(string $class): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L147)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L128)
 
 ### `defaultValueNotReproducible()`
 
@@ -587,7 +571,7 @@ public static function handlerPropertyCollision(string $class): self
 public static function defaultValueNotReproducible(string $parameter, string $class, string $method): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L152)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L133)
 
 ### `defaultConstantUnresolvable()`
 
@@ -595,7 +579,7 @@ public static function defaultValueNotReproducible(string $parameter, string $cl
 public static function defaultConstantUnresolvable(string $parameter): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L162)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L143)
 
 ### `objectDefaultNotReproducible()`
 
@@ -603,7 +587,7 @@ public static function defaultConstantUnresolvable(string $parameter): self
 public static function objectDefaultNotReproducible(string $parameter, string $class, string $method): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L167)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L148)
 
 ### `objectDefaultSourceUnavailable()`
 
@@ -611,7 +595,7 @@ public static function objectDefaultNotReproducible(string $parameter, string $c
 public static function objectDefaultSourceUnavailable(string $parameter, string $class, string $method): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L177)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L158)
 
 ### `objectDefaultScopeUnavailable()`
 
@@ -619,7 +603,7 @@ public static function objectDefaultSourceUnavailable(string $parameter, string 
 public static function objectDefaultScopeUnavailable(string $parameter, string $class, string $method): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L187)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L168)
 
 ### `proxyDirectoryNotCreated()`
 
@@ -627,7 +611,7 @@ public static function objectDefaultScopeUnavailable(string $parameter, string $
 public static function proxyDirectoryNotCreated(string $directory, ?string $reason = null): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L197)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L178)
 
 ### `proxyFileNotWritten()`
 
@@ -635,7 +619,7 @@ public static function proxyDirectoryNotCreated(string $directory, ?string $reas
 public static function proxyFileNotWritten(string $file, \Throwable $cause): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L206)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L187)
 
 ### `proxyFileNotLoaded()`
 
@@ -643,7 +627,7 @@ public static function proxyFileNotWritten(string $file, \Throwable $cause): sel
 public static function proxyFileNotLoaded(string $file, ?\Throwable $cause = null): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L211)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L192)
 
 ### `workingDirectoryUnresolved()`
 
@@ -651,7 +635,7 @@ public static function proxyFileNotLoaded(string $file, ?\Throwable $cause = nul
 public static function workingDirectoryUnresolved(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L216)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L197)
 
 ### `foreignDouble()`
 
@@ -659,7 +643,7 @@ public static function workingDirectoryUnresolved(): self
 public static function foreignDouble(string $class): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L221)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L202)
 
 ### `invalidTimes()`
 
@@ -667,7 +651,7 @@ public static function foreignDouble(string $class): self
 public static function invalidTimes(int $count): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L226)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L207)
 
 ### `invalidAtLeast()`
 
@@ -675,7 +659,7 @@ public static function invalidTimes(int $count): self
 public static function invalidAtLeast(int $count): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L231)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L212)
 
 ### `tooFewPlannedArguments()`
 
@@ -693,7 +677,7 @@ PHPDoc:
 
 - `@param class-string $type`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L239)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L220)
 
 ### `tooManyPlannedArguments()`
 
@@ -711,7 +695,7 @@ PHPDoc:
 
 - `@param class-string $type`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L259)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L240)
 
 ### `incompatiblePlannedArgumentMatcher()`
 
@@ -731,7 +715,7 @@ PHPDoc:
 
 - `@param class-string $type`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L279)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L260)
 
 ### `incompatiblePlannedArgumentValue()`
 
@@ -751,7 +735,7 @@ PHPDoc:
 
 - `@param class-string $type`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L303)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L284)
 
 ### `tooFewCallArguments()`
 
@@ -763,7 +747,7 @@ PHPDoc:
 
 - `@param class-string $type`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L327)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L308)
 
 ### `tooManyCallArguments()`
 
@@ -775,7 +759,7 @@ PHPDoc:
 
 - `@param class-string $type`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L341)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L322)
 
 ### `conflictingAnswers()`
 
@@ -783,7 +767,7 @@ PHPDoc:
 public static function conflictingAnswers(string $method): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L352)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L333)
 
 ### `emptySequence()`
 
@@ -791,7 +775,7 @@ public static function conflictingAnswers(string $method): self
 public static function emptySequence(string $method): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L361)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L342)
 
 ### `sequenceExhausted()`
 
@@ -799,7 +783,7 @@ public static function emptySequence(string $method): self
 public static function sequenceExhausted(string $method, int $count): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L366)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L347)
 
 ### `nothingCaptured()`
 
@@ -807,7 +791,7 @@ public static function sequenceExhausted(string $method, int $count): self
 public static function nothingCaptured(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L375)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L356)
 
 ### `invalidCaptorPosition()`
 
@@ -815,7 +799,7 @@ public static function nothingCaptured(): self
 public static function invalidCaptorPosition(int $position): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L380)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L361)
 
 ### `invalidArgumentType()`
 
@@ -823,7 +807,7 @@ public static function invalidCaptorPosition(int $position): self
 public static function invalidArgumentType(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L385)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L366)
 
 ### `unknownArgumentType()`
 
@@ -831,7 +815,7 @@ public static function invalidArgumentType(): self
 public static function unknownArgumentType(string $factory, string $type): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L390)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L371)
 
 ### `invalidArgumentTypeCombination()`
 
@@ -839,7 +823,7 @@ public static function unknownArgumentType(string $factory, string $type): self
 public static function invalidArgumentTypeCombination(string $factory): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L399)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L380)
 
 ### `compositeArgumentCaptor()`
 
@@ -847,7 +831,7 @@ public static function invalidArgumentTypeCombination(string $factory): self
 public static function compositeArgumentCaptor(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L407)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/InvalidDoubleUsage.php#L388)
 
 ## `MethodExpectation`
 
@@ -865,11 +849,15 @@ Bare argument values use strict comparison (`===`). Use
 that accepts `float` but not `int` becomes a float, as PHP converts the call
 argument.
 
+A plan and a call that omit optional arguments use the declared default
+values. Thus, `with('a')` matches `find('a', 2)` when the second parameter
+has the default `2`. An object default uses deep equality.
+
 ```php
 final class MethodExpectation
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L29)
 
 PHPDoc:
 
@@ -882,7 +870,7 @@ PHPDoc:
 public readonly string $method;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L61)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L65)
 
 ### `withNoArguments()`
 
@@ -892,10 +880,9 @@ public function withNoArguments(): self
 
 PHPDoc:
 
-- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L77)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L80)
 
 ### `with()`
 
@@ -905,10 +892,9 @@ public function with(mixed $first, mixed ...$rest): self
 
 PHPDoc:
 
-- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L86)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L88)
 
 ### `once()`
 
@@ -916,11 +902,7 @@ PHPDoc:
 public function once(): self
 ```
 
-PHPDoc:
-
-- `@return self<TTarget, TMethod>`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L105)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L104)
 
 ### `times()`
 
@@ -930,10 +912,9 @@ public function times(int $count): self
 
 PHPDoc:
 
-- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L117)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L115)
 
 ### `atLeast()`
 
@@ -943,10 +924,9 @@ public function atLeast(int $count): self
 
 PHPDoc:
 
-- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L133)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L130)
 
 ### `never()`
 
@@ -954,11 +934,7 @@ PHPDoc:
 public function never(): self
 ```
 
-PHPDoc:
-
-- `@return self<TTarget, TMethod>`
-
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L148)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L142)
 
 ### `andReturns()`
 
@@ -968,10 +944,9 @@ public function andReturns(mixed $value): self
 
 PHPDoc:
 
-- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L160)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L153)
 
 ### `andReturnsSequence()`
 
@@ -984,10 +959,9 @@ public function andReturnsSequence(mixed ...$values): self
 
 PHPDoc:
 
-- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L176)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L168)
 
 ### `andReturnsUsing()`
 
@@ -1000,10 +974,9 @@ public function andReturnsUsing(\Closure $answer): self
 
 PHPDoc:
 
-- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L197)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L188)
 
 ### `andThrows()`
 
@@ -1013,10 +986,9 @@ public function andThrows(\Throwable $throwable): self
 
 PHPDoc:
 
-- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L210)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L200)
 
 ### `captureArgument()`
 
@@ -1034,7 +1006,7 @@ PHPDoc:
 - `@return ArgumentCaptor<mixed>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L228)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L218)
 
 ## `MockPlan`
 
