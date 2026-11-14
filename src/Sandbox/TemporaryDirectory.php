@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Sandbox;
 
 use Greenlight\Harness\Disposable;
+use Greenlight\Internal\Filesystem\RelativePath;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
@@ -73,14 +74,12 @@ final class TemporaryDirectory implements Disposable
             throw new \InvalidArgumentException('Subdirectory name cannot contain a null byte.');
         }
 
-        if ($name === '' || \str_starts_with($name, '/') || \str_contains($name, '\\')) {
+        if (!RelativePath::isRelative($name)) {
             throw new \InvalidArgumentException(\sprintf('Subdirectory name "%s" must be a relative path.', $name));
         }
 
-        foreach (\explode('/', $name) as $segment) {
-            if (\in_array($segment, ['', '.', '..'], true)) {
-                throw new \InvalidArgumentException(\sprintf('Subdirectory name "%s" must not contain empty or traversal segments.', $name));
-            }
+        if (!RelativePath::hasPlainSegments($name)) {
+            throw new \InvalidArgumentException(\sprintf('Subdirectory name "%s" must not contain empty or traversal segments.', $name));
         }
 
         $root = $this->path();
