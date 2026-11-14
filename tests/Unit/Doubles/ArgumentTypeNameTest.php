@@ -111,4 +111,16 @@ final readonly class ArgumentTypeNameTest
             ->because('PHP converts an integer argument for a float parameter')
             ->toBe(10.0);
     }
+
+    #[Test]
+    public function callableValuesFromThePlanScopeRemainValid(): void
+    {
+        expect()->calling(fn(): object => $this->doubles->mock(TypedArguments::class, static function (MockPlan $plan): void {
+            $plan->expects('run')->with([self::class, 'privateTask'])->never();
+        }))
+            ->because('a private method callable is valid only in the scope of its class, not in the scope of Greenlight')
+            ->not()->toThrow(InvalidDoubleUsage::class);
+    }
+
+    private static function privateTask(): void {}
 }

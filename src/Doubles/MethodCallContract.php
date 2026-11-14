@@ -122,7 +122,7 @@ final readonly class MethodCallContract
 
             $converted = $this->convert($argument, $parameterType);
 
-            if (!$parameterType->accepts($converted)) {
+            if (!$parameterType->mayAccept($converted)) {
                 throw InvalidDoubleUsage::incompatiblePlannedArgumentValue(
                     $selector,
                     $this->type,

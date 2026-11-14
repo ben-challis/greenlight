@@ -162,6 +162,22 @@ final readonly class ArgumentType
         );
     }
 
+    /**
+     * Checks a value without the scope of the caller. A `callable` type
+     * accepts each string and array, because a callable for a private method
+     * is valid only in the scope of its class.
+     */
+    public function mayAccept(mixed $value): bool
+    {
+        return \array_any(
+            $this->alternatives,
+            static fn(array $alternative): bool => \array_all(
+                $alternative,
+                static fn(string $type): bool => self::acceptsNamed($value, $type, scopeFree: true),
+            ),
+        );
+    }
+
     public function overlaps(self $other): bool
     {
         foreach ($this->alternatives as $left) {
@@ -232,7 +248,7 @@ final readonly class ArgumentType
         return $parent->name;
     }
 
-    private static function acceptsNamed(mixed $value, string $type): bool
+    private static function acceptsNamed(mixed $value, string $type, bool $scopeFree = false): bool
     {
         return match ($type) {
             'mixed' => true,
@@ -245,7 +261,7 @@ final readonly class ArgumentType
             'string' => \is_string($value),
             'array' => \is_array($value),
             'object' => \is_object($value),
-            'callable' => \is_callable($value),
+            'callable' => \is_callable($value) || ($scopeFree && (\is_string($value) || \is_array($value))),
             'iterable' => \is_iterable($value),
             default => $value instanceof $type,
         };

@@ -25,7 +25,7 @@ final readonly class TypeMatcher implements TypedArgumentMatcher
 
     public function matches(mixed $value): bool
     {
-        return self::matchesType($value, $this->type);
+        return $this->argumentType?->accepts($value) ?? \get_debug_type($value) === $this->type;
     }
 
     public function describe(): string
@@ -36,11 +36,6 @@ final readonly class TypeMatcher implements TypedArgumentMatcher
     public function argumentType(): ?ArgumentType
     {
         return $this->argumentType;
-    }
-
-    public static function matchesType(mixed $value, string $type): bool
-    {
-        return ArgumentType::fromTypeName($type)?->accepts($value) ?? \get_debug_type($value) === $type;
     }
 
     /**
