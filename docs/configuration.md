@@ -218,6 +218,12 @@ Greenlight writes all configured coverage exports before it evaluates the
 gates. Thus, a failed gate keeps the coverage evidence. A failed gate uses exit
 code `1`.
 
+Greenlight writes the HTML export one page at a time. If an error stops the
+HTML export, the target directory keeps the pages that Greenlight wrote before
+the error. Other files in the directory stay unchanged. Thus, the directory can
+contain a mix of new and old pages. The run reports the error and uses exit code
+`1`.
+
 Reporters continue to report test results. They do not add a coverage-gate
 result to JUnit, JSONL, or other machine formats. Use the process exit code for
 the machine-readable gate result. If JSONL writes to standard output,
