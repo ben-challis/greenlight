@@ -1112,6 +1112,9 @@ and other inputs. It can also exclude generated output from every watched root.
 
 Watch mode does not publish coverage totals or coverage exports.
 
+Do not use `--watch` with `--failed` or with a JUnit reporter. Each iteration
+selects the configured tests again, and a JUnit file holds one run.
+
 In watch mode:
 
 * Enter reruns all selected tests.
