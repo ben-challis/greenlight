@@ -113,6 +113,10 @@ final class ValueRenderer
             return $value::class . '::' . $value->name;
         }
 
+        if ($value instanceof CallOutcome) {
+            return $value->render($this);
+        }
+
         if ($value instanceof \DateTimeInterface) {
             return $value::class . '(' . $value->format('Y-m-d\TH:i:s.uP') . ')';
         }

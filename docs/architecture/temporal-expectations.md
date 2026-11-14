@@ -91,6 +91,9 @@ the active test.
 
 ## Failures
 
+A call expectation polls `CallOutcome` objects. The observation log renders
+each outcome as its return value or its throwable class and message.
+
 `ObservationLog` stores rendered strings instead of every value. It keeps the
 first group and the last three groups. It combines repeated values. It also
 records elapsed time and the number of omitted groups. The rendered log has a
