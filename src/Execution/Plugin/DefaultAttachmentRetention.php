@@ -6,6 +6,7 @@ namespace Greenlight\Execution\Plugin;
 
 use Greenlight\Artifact\Attachment;
 use Greenlight\Artifact\AttachmentRetention;
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Plugin\AttachmentRetentionDecider;
 use Greenlight\Plugin\Prioritized;
 use Greenlight\Result\TestResult;
@@ -29,7 +30,7 @@ final readonly class DefaultAttachmentRetention implements AttachmentRetentionDe
         Attachment $attachment,
         bool $retain,
     ): bool {
-        $problematic = !$result->outcome->isSuccessful() || \array_any(
+        $problematic = !$result->outcome->isSuccessful() || Arrays::any(
             $result->transformations,
             static fn($transformation): bool => !$transformation->from->isSuccessful(),
         );

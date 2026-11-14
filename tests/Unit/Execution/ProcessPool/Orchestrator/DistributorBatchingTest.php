@@ -23,7 +23,7 @@ final readonly class DistributorBatchingTest
             PlanEntryFixture::create('Acme\\GammaTest', resources: ['redis', 'postgres']),
         ]);
 
-        [$pooled, $isolated] = new Distributor()->units($plan, [
+        [$pooled, $isolated] = (new Distributor())->units($plan, [
             'Acme\\AlphaTest' => 0.02,
             'Acme\\BetaTest' => 0.02,
             'Acme\\GammaTest' => 0.02,
@@ -52,7 +52,7 @@ final readonly class DistributorBatchingTest
             PlanEntryFixture::create('Acme\\LargeTest'),
         ]);
 
-        [$pooled] = new Distributor()->units($plan, [
+        [$pooled] = (new Distributor())->units($plan, [
             'Acme\\FreeTest' => 0.001,
             'Acme\\PostgresTest' => 0.001,
             'Acme\\RedisTest' => 0.001,
@@ -79,7 +79,7 @@ final readonly class DistributorBatchingTest
             PlanEntryFixture::create('Acme\\NextTest'),
         ]);
 
-        [$pooled, $isolated] = new Distributor()->units($plan, [
+        [$pooled, $isolated] = (new Distributor())->units($plan, [
             'Acme\\MixedTest' => 0.001,
             'Acme\\NextTest' => 0.001,
         ]);
@@ -104,7 +104,7 @@ final readonly class DistributorBatchingTest
             PlanEntryFixture::create('Acme\\NextTest'),
         ]);
 
-        [$pooled] = new Distributor()->units($plan, [
+        [$pooled] = (new Distributor())->units($plan, [
             'Acme\\ParallelTest' => 0.001,
             'Acme\\NextTest' => 0.001,
         ]);
@@ -126,7 +126,7 @@ final readonly class DistributorBatchingTest
             PlanEntryFixture::create('Acme\\BetaTest'),
         ], seed: 4242);
 
-        [$pooled] = new Distributor()->units($plan, [
+        [$pooled] = (new Distributor())->units($plan, [
             'Acme\\AlphaTest' => 0.001,
             'Acme\\BetaTest' => 0.001,
         ]);
@@ -149,7 +149,7 @@ final readonly class DistributorBatchingTest
             $durations[$class] = 0.0;
         }
 
-        [$pooled] = new Distributor()->units(new ExecutionPlan($entries), $durations, workerCount: 4);
+        [$pooled] = (new Distributor())->units(new ExecutionPlan($entries), $durations, workerCount: 4);
 
         expect($pooled)
             ->because('many fast classes SHOULD need fewer assignments without reducing worker capacity')
@@ -184,7 +184,7 @@ final readonly class DistributorBatchingTest
             $durations[$class] = 0.001;
         }
 
-        [$pooled] = new Distributor()->units(new ExecutionPlan($entries), $durations, workerCount: 4);
+        [$pooled] = (new Distributor())->units(new ExecutionPlan($entries), $durations, workerCount: 4);
 
         expect($this->classShape($pooled))
             ->because('batching MUST preserve worker capacity for each resource-compatible run')

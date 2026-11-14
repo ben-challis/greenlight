@@ -56,10 +56,10 @@ final readonly class AfterHookExpectationTest
     /** @return array<string, TestResult> */
     private function results(): array
     {
-        $plan = new TestDiscoverer()->discover([FixturePath::get('Lifecycle/AfterExpectationFails')]);
+        $plan = (new TestDiscoverer())->discover([FixturePath::get('Lifecycle/AfterExpectationFails')]);
         $sink = new CollectingEventSink();
 
-        new Worker([])->run($plan, $sink);
+        (new Worker([]))->run($plan, $sink);
 
         $results = [];
 

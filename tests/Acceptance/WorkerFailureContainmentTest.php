@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Acceptance;
 use Greenlight\Attribute\Test;
 use Greenlight\Event\TestFinished;
 use Greenlight\Expect\Fail;
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Result\FailureDetail;
 use Greenlight\Result\Outcome;
 use Greenlight\Sandbox\TemporaryDirectory;
@@ -67,7 +68,7 @@ final readonly class WorkerFailureContainmentTest
         $project->configureWithTestFiles(['tests/RetryCrashTest.php'], workers: 2);
 
         $result = GreenlightCli::run($project->directory, ['run', '--reporter=jsonl']);
-        $finished = \array_find(
+        $finished = Arrays::find(
             JsonlEvents::from($result),
             static fn($event): bool => $event instanceof TestFinished,
         );
@@ -88,7 +89,7 @@ final readonly class WorkerFailureContainmentTest
         $result = $this->runIn('HangConfig', ['run', '--workers=2', '--reporter=jsonl']);
         $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
         $events = JsonlEvents::from($result);
-        $finished = \array_find($events, static fn($event): bool => $event instanceof TestFinished);
+        $finished = Arrays::find($events, static fn($event): bool => $event instanceof TestFinished);
 
         expect($finished)
             ->because('The hard timeout did not emit TestFinished.')
@@ -131,7 +132,7 @@ final readonly class WorkerFailureContainmentTest
         $project->configureWithTestFiles(['tests/TimeoutDiagnosticsTest.php'], workers: 2);
 
         $result = GreenlightCli::run($project->directory, ['run', '--workers=2', '--reporter=jsonl']);
-        $finished = \array_find(
+        $finished = Arrays::find(
             JsonlEvents::from($result),
             static fn($event): bool => $event instanceof TestFinished,
         );

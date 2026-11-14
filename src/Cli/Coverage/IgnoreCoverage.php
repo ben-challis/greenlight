@@ -25,6 +25,6 @@ final readonly class IgnoreCoverage implements CoverageMapTransformer, Prioritiz
     #[\Override]
     public function transformCoverageMap(CoverageMap $coverage): CoverageMap
     {
-        return new IgnoreFilter()->apply($coverage);
+        return (new IgnoreFilter())->apply($coverage);
     }
 }

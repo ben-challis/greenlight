@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Doubles;
 
+use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
+use Greenlight\Condition\PhpVersionAtLeast;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Doubles\InvalidDoubleUsage;
 use Greenlight\Doubles\MockPlan;
@@ -137,6 +139,7 @@ final readonly class ProxyGenerationTest
     }
 
     #[Test]
+    #[SkipUnless(PhpVersionAtLeast::class, '8.4')]
     public function interfacePropertiesAreDeclaredOnTheGeneratedProxy(): void
     {
         $double = $this->doubles->stub(PropertyContract::class);
@@ -153,7 +156,7 @@ final readonly class ProxyGenerationTest
         $double = $this->doubles->mock(SelfConstantDefault::class, static function (MockPlan $plan): void {
             $plan->expects('mode')->andReturns('answered');
         });
-        $parameter = new \ReflectionMethod($double, 'mode')->getParameters()[0];
+        $parameter = (new \ReflectionMethod($double, 'mode'))->getParameters()[0];
 
         expect($parameter->getDefaultValue())
             ->because('self constant defaults resolve against the doubled type')

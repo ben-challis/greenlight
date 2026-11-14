@@ -28,8 +28,8 @@ final readonly class Psr11PluginTest
     {
         $factory = static fn(): ContainerInterface => new ArrayContainer([]);
 
-        expect(new Psr11Plugin($factory)->source())->toBeNull();
-        expect(new Psr11Plugin($factory, source: 'application')->source())->toBe('application');
+        expect((new Psr11Plugin($factory))->source())->toBeNull();
+        expect((new Psr11Plugin($factory, source: 'application'))->source())->toBe('application');
     }
 
     #[Test]

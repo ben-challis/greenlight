@@ -46,7 +46,7 @@ final readonly class OrchestratorRetryTimeoutTest
         $transport = new ScriptedWorkerTransport([$messages], pollSeconds: 0.08);
         $sink = new CollectingEventSink();
 
-        $summary = new Orchestrator($transport)->run($this->plan($id), $sink, 1);
+        $summary = (new Orchestrator($transport))->run($this->plan($id), $sink, 1);
 
         expect($summary->passed)->toBe(1);
         expect($summary->failed)->toBe(0);
@@ -66,7 +66,7 @@ final readonly class OrchestratorRetryTimeoutTest
         ]], pollSeconds: 0.08);
         $sink = new CollectingEventSink();
 
-        $summary = new Orchestrator($transport)->run($this->plan($id), $sink, 1);
+        $summary = (new Orchestrator($transport))->run($this->plan($id), $sink, 1);
 
         expect($summary->failed)->toBe(1);
         expect($sink->results()[0]->attempts)->toBe(2);

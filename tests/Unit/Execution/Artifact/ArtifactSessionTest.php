@@ -77,7 +77,7 @@ final readonly class ArtifactSessionTest
         string $field,
         string $value,
     ): void {
-        $payload = new ArtifactSession('/project/.greenlight/staging/run-1', '/project/build/artifacts/run-1')
+        $payload = (new ArtifactSession('/project/.greenlight/staging/run-1', '/project/build/artifacts/run-1'))
             ->toWire();
         $payload[$field] = $value;
 

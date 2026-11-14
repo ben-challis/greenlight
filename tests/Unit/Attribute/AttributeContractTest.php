@@ -19,7 +19,7 @@ final class AttributeContractTest
     #[Test]
     public function skipRejectsAnEmptyReason(): void
     {
-        expect()->calling(static fn(): object => new \ReflectionClass(Skip::class)->newInstance(''))
+        expect()->calling(static fn(): object => (new \ReflectionClass(Skip::class))->newInstance(''))
             ->because('skip reasons cannot be empty')
             ->toThrow(\InvalidArgumentException::class, message: 'Skip reasons cannot be empty.');
     }
@@ -27,7 +27,7 @@ final class AttributeContractTest
     #[Test]
     public function skipPreservesAZeroStringReason(): void
     {
-        expect(new Skip('0')->reason)
+        expect((new Skip('0'))->reason)
             ->because('the skip attribute MUST preserve a zero-string reason')
             ->toBe('0');
     }
@@ -47,7 +47,7 @@ final class AttributeContractTest
     #[Test]
     public function groupRejectsAnEmptyName(): void
     {
-        expect()->calling(static fn(): object => new \ReflectionClass(Group::class)->newInstance(''))
+        expect()->calling(static fn(): object => (new \ReflectionClass(Group::class))->newInstance(''))
             ->because('group names cannot be empty')
             ->toThrow(\InvalidArgumentException::class, message: 'Group names cannot be empty.');
     }
@@ -55,7 +55,7 @@ final class AttributeContractTest
     #[Test]
     public function groupPreservesAZeroStringName(): void
     {
-        expect(new Group('0')->name)
+        expect((new Group('0'))->name)
             ->because('the group attribute MUST preserve a zero-string name')
             ->toBe('0');
     }
@@ -64,7 +64,7 @@ final class AttributeContractTest
     public function resourceRequirementsRejectNonCanonicalNames(): void
     {
         foreach (['', 'Postgres', 'postgres primary', '-postgres'] as $name) {
-            expect()->calling(static fn(): object => new \ReflectionClass(RequiresResource::class)->newInstance($name))
+            expect()->calling(static fn(): object => (new \ReflectionClass(RequiresResource::class))->newInstance($name))
                 ->toThrow(\InvalidArgumentException::class);
         }
     }

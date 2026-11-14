@@ -87,7 +87,7 @@ final class FileCoverageTest
     #[Test]
     public function fileWithoutExecutableLinesCountsAsFullyCovered(): void
     {
-        expect(new FileCoverage('/src/A.php', [], [])->percentage())->because('file without executable lines counts as fully covered')->toBe(100.0);
+        expect((new FileCoverage('/src/A.php', [], []))->percentage())->because('file without executable lines counts as fully covered')->toBe(100.0);
     }
 
     #[Test]

@@ -37,7 +37,7 @@ final readonly class HtmlExporterUnreadableSourceTest
         $map = new CoverageMap([
             new FileCoverage($path, [2], [4]),
         ]);
-        $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($path)];
+        $page = (new HtmlExporter())->export($map)[HtmlExporter::pageName($path)];
 
         expect($page)
             ->because('an unreadable source shows only coverage line numbers')

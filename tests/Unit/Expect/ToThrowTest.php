@@ -240,7 +240,7 @@ final class ToThrowTest
     #[Test]
     public function callingRejectsANonCallableBeforeAMatcher(): void
     {
-        expect()->calling(static fn() => new \ReflectionMethod(Expect::class, 'calling')->invoke(null, 42))
+        expect()->calling(static fn() => (new \ReflectionMethod(Expect::class, 'calling'))->invoke(null, 42))
             ->toThrow(\TypeError::class);
     }
 
@@ -297,7 +297,7 @@ final class ToThrowTest
                     $invoked = true;
                 });
 
-                new \ReflectionMethod($expectation, 'toThrow')->invokeArgs(
+                (new \ReflectionMethod($expectation, 'toThrow'))->invokeArgs(
                     $expectation,
                     [
                         'throwable' => static function (\DomainException $error): void {},
@@ -325,7 +325,7 @@ final class ToThrowTest
                     $invoked = true;
                 });
 
-                new \ReflectionMethod($expectation, 'toThrow')->invokeArgs(
+                (new \ReflectionMethod($expectation, 'toThrow'))->invokeArgs(
                     $expectation,
                     [
                         'throwable' => $failure,
@@ -358,7 +358,7 @@ final class ToThrowTest
                     $invoked = true;
                 });
 
-                new \ReflectionMethod($expectation, 'toThrow')->invokeArgs(
+                (new \ReflectionMethod($expectation, 'toThrow'))->invokeArgs(
                     $expectation,
                     [$throwable],
                 );
@@ -457,7 +457,7 @@ final class ToThrowTest
             static function (): void {
                 $expectation = expect()->calling(static fn() => throw new \DomainException('boom'));
 
-                new \ReflectionMethod($expectation, 'toThrow')->invokeArgs(
+                (new \ReflectionMethod($expectation, 'toThrow'))->invokeArgs(
                     $expectation,
                     [static fn(\DomainException $error) => 1],
                 );

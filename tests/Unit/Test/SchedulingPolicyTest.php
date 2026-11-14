@@ -35,7 +35,7 @@ final readonly class SchedulingPolicyTest
             ->because('a direct scheduling policy MUST require canonical resource names')
             ->toThrow(\InvalidArgumentException::class);
 
-        $payload = new SchedulingPolicy()->toWire();
+        $payload = (new SchedulingPolicy())->toWire();
         $payload['resources'] = ['Postgres'];
 
         expect()->calling(static fn(): SchedulingPolicy => SchedulingPolicy::fromWire($payload))

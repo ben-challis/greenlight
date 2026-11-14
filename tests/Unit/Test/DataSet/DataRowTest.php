@@ -25,7 +25,7 @@ final class DataRowTest
     #[Test]
     public function inlineRowsExpandWithLabelsAndPositions(): void
     {
-        $rows = new DataSetExpander()->rowsFor(new \ReflectionClass(InlineRowsTest::class), 'addsUp', null, 5.0);
+        $rows = (new DataSetExpander())->rowsFor(new \ReflectionClass(InlineRowsTest::class), 'addsUp', null, 5.0);
 
         expect(\array_keys($rows))->because('inline rows expand with labels and positions')->toBe(['small', '#1']);
         expect($rows['small'])->toBe([1, 2, 3]);
@@ -35,7 +35,7 @@ final class DataRowTest
     #[Test]
     public function aZeroStringInlineLabelRemainsThePlanDataSetKey(): void
     {
-        $plan = new TestDiscoverer()->discover(
+        $plan = (new TestDiscoverer())->discover(
             [FixturePath::get('DataRowsZeroLabel')],
             new TestSelection(),
         );
@@ -49,7 +49,7 @@ final class DataRowTest
     #[Test]
     public function aControlCharacterInlineLabelBecomesAStableHashPrefix(): void
     {
-        $rows = new DataSetExpander()->rowsFor(
+        $rows = (new DataSetExpander())->rowsFor(
             new \ReflectionClass(ControlLabelRowTest::class),
             'accepts',
             null,
@@ -64,7 +64,7 @@ final class DataRowTest
     #[Test]
     public function inlineRowsAndProviderRowsShareOneKeySpace(): void
     {
-        $rows = new DataSetExpander()->rowsFor(
+        $rows = (new DataSetExpander())->rowsFor(
             new \ReflectionClass(InlineRowsTest::class),
             'acceptsWord',
             'providedWords',
@@ -80,7 +80,7 @@ final class DataRowTest
         $reflection = new \ReflectionClass(DuplicateRowKeyTest::class);
 
         expect()->calling(
-            static fn(): array => new DataSetExpander()->rowsFor($reflection, 'probe', 'rows', 5.0),
+            static fn(): array => (new DataSetExpander())->rowsFor($reflection, 'probe', 'rows', 5.0),
         )->because('duplicate keys between inline and provider are refused')->toThrow(DataSetError::class, '/twice/');
     }
 
@@ -90,7 +90,7 @@ final class DataRowTest
         $reflection = new \ReflectionClass(DuplicateInlineRowKeyTest::class);
 
         expect()->calling(
-            static fn(): array => new DataSetExpander()->rowsFor($reflection, 'probe', null, 5.0),
+            static fn(): array => (new DataSetExpander())->rowsFor($reflection, 'probe', null, 5.0),
         )
             ->because('duplicate inline data-row keys are refused')
             ->toThrow(
@@ -106,7 +106,7 @@ final class DataRowTest
         $class = EmptyDataRowLabelTest::class;
 
         expect()->calling(
-            static fn(): array => new DataSetExpander()->rowsFor(
+            static fn(): array => (new DataSetExpander())->rowsFor(
                 new \ReflectionClass($class),
                 'neverDiscovered',
                 null,
@@ -126,7 +126,7 @@ final class DataRowTest
     #[Test]
     public function discovererExpandsInlineRowsIntoThePlan(): void
     {
-        $plan = new TestDiscoverer()->discover(
+        $plan = (new TestDiscoverer())->discover(
             [FixturePath::get('DataRows')],
             new TestSelection(include: new TestInclusions(methods: ['addsUp'])),
         );

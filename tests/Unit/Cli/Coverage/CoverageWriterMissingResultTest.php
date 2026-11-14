@@ -42,7 +42,7 @@ final readonly class CoverageWriterMissingResultTest
             },
         );
 
-        $result = new CoverageWriter($console)->write(
+        $result = (new CoverageWriter($console))->write(
             $configuration,
             null,
             '/project',

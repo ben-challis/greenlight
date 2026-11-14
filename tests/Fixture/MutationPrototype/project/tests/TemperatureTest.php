@@ -17,13 +17,13 @@ final class TemperatureTest
     #[Test]
     public function zeroIsFreezing(): void
     {
-        expect(new Temperature()->isFreezing(0.0))->toBeTrue();
+        expect((new Temperature())->isFreezing(0.0))->toBeTrue();
     }
 
     /** @throws ExpectationFailed */
     #[Test]
     public function warmIsNotFreezing(): void
     {
-        expect(new Temperature()->isFreezing(5.0))->toBeFalse();
+        expect((new Temperature())->isFreezing(5.0))->toBeFalse();
     }
 }

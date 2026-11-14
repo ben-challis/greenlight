@@ -102,13 +102,13 @@ final readonly class InProcessExecution implements ExecutionAdapter
                 try {
                     $outcome = $plugins->runWorker(fn() => HarnessServiceDisposal::runAndClose(
                         $scopes,
-                        fn() => new Worker(
+                        fn() => (new Worker(
                             [],
                             $plugins,
                             $this->detectLeaks ? new LeakDetector() : null,
                             'in-process',
                             $context->artifacts,
-                        )->run(
+                        ))->run(
                             $plan,
                             new PublishingEventSink($context->artifacts, $sink),
                             $execution->stopAfterFailures,

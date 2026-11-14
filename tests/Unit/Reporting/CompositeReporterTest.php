@@ -55,7 +55,7 @@ final class CompositeReporterTest
         $plain = new RecordingReporter();
         $live = new RecordingTickingReporter();
 
-        new CompositeReporter([$plain, $live])->tick(1.5);
+        (new CompositeReporter([$plain, $live]))->tick(1.5);
 
         expect($live->ticks)->because('ticks reach only ticking reporters')->toBe([1.5]);
         expect($plain->eventCount)->toBe(0);

@@ -15,7 +15,7 @@ final readonly class ValueRendererStaticPropertyTest
     #[Test]
     public function objectRenderingExcludesStaticProperties(): void
     {
-        expect(new ValueRenderer()->render(new StaticPropertyObject()))
+        expect((new ValueRenderer())->render(new StaticPropertyObject()))
             ->because('object diagnostics MUST contain only instance state')
             ->toBe(StaticPropertyObject::class . ' {local: 2}');
     }

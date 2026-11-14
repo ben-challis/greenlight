@@ -6,6 +6,7 @@ namespace Greenlight\Execution\Artifact;
 
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Config\ArtifactConfiguration;
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
@@ -569,7 +570,7 @@ final readonly class ArtifactRetention
     private static function validatedRelativePath(string $path): ?string
     {
         if ($path === '' || \str_starts_with($path, '/') || \str_contains($path, '\\')
-            || !\array_all(\explode('/', $path), static fn(string $part): bool => !\in_array($part, ['', '.', '..'], true))
+            || !Arrays::all(\explode('/', $path), static fn(string $part): bool => !\in_array($part, ['', '.', '..'], true))
         ) {
             return null;
         }

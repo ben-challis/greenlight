@@ -70,7 +70,7 @@ final class JsonLinesReporterTest
             $restored = EventCodec::decodeJsonLine($line);
 
             expect($restored::class)->toBe($events[$index]::class);
-            expect($restored->occurredAt)->toBe($events[$index]->occurredAt);
+            expect($restored->occurredAt())->toBe($events[$index]->occurredAt());
         }
     }
 
@@ -112,7 +112,11 @@ final class JsonLinesReporterTest
         $reporter = new JsonLinesReporter(new BufferOutput());
 
         $event = new class implements Event { // @phpstan-ignore class.disallowedSubtype (deliberately unsupported: tests the rejection of an unknown event type)
-            public float $occurredAt = 1.0;
+            #[\Override]
+            public function occurredAt(): float
+            {
+                return 1.0;
+            }
         };
 
         expect()->calling(static fn() => $reporter->onEvent($event))

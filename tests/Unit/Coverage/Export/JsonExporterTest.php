@@ -22,7 +22,7 @@ final class JsonExporterTest
             new FileCoverage('/src/A.php', [3, 7], [5]),
         ]);
 
-        $decoded = \json_decode(new JsonExporter()->export($map)[JsonExporter::FILE_NAME], true, 512, \JSON_THROW_ON_ERROR);
+        $decoded = \json_decode((new JsonExporter())->export($map)[JsonExporter::FILE_NAME], true, 512, \JSON_THROW_ON_ERROR);
 
         expect($decoded)->because('document matches the documented schema')->toBe([
             'v' => 1,
@@ -45,7 +45,7 @@ final class JsonExporterTest
     #[Test]
     public function emptyMapEncodesFilesAsAnObject(): void
     {
-        $json = new JsonExporter()->export(CoverageMap::empty())[JsonExporter::FILE_NAME];
+        $json = (new JsonExporter())->export(CoverageMap::empty())[JsonExporter::FILE_NAME];
 
         expect($json)->because('empty map encodes files as an object')->toContain('"files":{}');
     }
@@ -58,7 +58,7 @@ final class JsonExporterTest
             new FileCoverage("/src/\xB2.php", [2], []),
         ]);
 
-        expect()->calling(static fn(): array => new JsonExporter()->export($map))
+        expect()->calling(static fn(): array => (new JsonExporter())->export($map))
             ->because('distinct coverage paths MUST NOT collapse to the same JSON object key')
             ->toThrow(
                 \InvalidArgumentException::class,
@@ -74,7 +74,7 @@ final class JsonExporterTest
             new FileCoverage('/src/B.php', [], [1, 2]),
         ]);
 
-        $restored = JsonExporter::import(new JsonExporter()->export($map)[JsonExporter::FILE_NAME]);
+        $restored = JsonExporter::import((new JsonExporter())->export($map)[JsonExporter::FILE_NAME]);
 
         expect($restored->toWire())->because('import restores the exported coverage map')->toBe($map->toWire());
     }

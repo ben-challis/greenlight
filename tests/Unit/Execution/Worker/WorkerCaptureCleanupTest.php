@@ -57,7 +57,7 @@ final readonly class WorkerCaptureCleanupTest
                 ),
             ];
 
-            new Greenlight\Execution\Worker\Worker($definitions)->run(
+            (new Greenlight\Execution\Worker\Worker($definitions))->run(
                 $plan,
                 new Greenlight\Tests\Support\CollectingEventSink(),
             );

@@ -18,7 +18,7 @@ final class DataSetProviderMethodCaseTest
     #[DataSet('providerNames')]
     public function providerMethodNamesFollowPhpCaseInsensitivity(string $provider): void
     {
-        $rows = new DataSetExpander()->rowsFor(
+        $rows = (new DataSetExpander())->rowsFor(
             new \ReflectionClass(InlineRowsTest::class),
             'acceptsWord',
             $provider,

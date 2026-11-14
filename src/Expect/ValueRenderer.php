@@ -207,14 +207,23 @@ final class ValueRenderer
             }
 
             $renderedValue = match (true) {
-                $property->isVirtual() => '(virtual)',
+                \PHP_VERSION_ID >= 80400 && $property->isVirtual() => '(virtual)',
                 !$property->isInitialized($value) => '(uninitialized)',
-                default => $this->renderValue($property->getRawValue($value), $depth + 1),
+                default => $this->renderValue($this->rawValue($property, $value), $depth + 1),
             };
             $parts[] = $property->getName() . ': ' . $renderedValue;
             ++$rendered;
         }
 
         return $value::class . ' {' . \implode(', ', $parts) . '}';
+    }
+
+    /**
+     * Reads a property without a call to its get hook.
+     */
+    private function rawValue(\ReflectionProperty $property, object $value): mixed
+    {
+        // PHP 8.3 has no property hooks, so getValue() runs no user code there.
+        return \PHP_VERSION_ID >= 80400 ? $property->getRawValue($value) : $property->getValue($value);
     }
 }

@@ -54,8 +54,8 @@ final class LaravelPluginTest
     #[Test]
     public function exposesTheConfiguredSource(): void
     {
-        expect(new LaravelPlugin('/project/bootstrap/app.php')->source())->toBeNull();
-        expect(new LaravelPlugin('/project/bootstrap/app.php', source: 'application')->source())->toBe('application');
+        expect((new LaravelPlugin('/project/bootstrap/app.php'))->source())->toBeNull();
+        expect((new LaravelPlugin('/project/bootstrap/app.php', source: 'application'))->source())->toBe('application');
     }
 
     #[Test]

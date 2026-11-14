@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Documentation\PhpExample;
 
+use Greenlight\Internal\Php\Arrays;
+
 /**
  * Materializes snippets and publishes their deterministic generated workspace.
  *
@@ -185,7 +187,7 @@ final readonly class Workspace
             static fn(string $line): bool => $line !== '',
         );
 
-        return $lines !== [] && \array_all(
+        return $lines !== [] && Arrays::all(
             $lines,
             static fn(string $line): bool => \str_starts_with($line, '#['),
         );

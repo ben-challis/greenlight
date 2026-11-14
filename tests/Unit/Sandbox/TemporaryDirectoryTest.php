@@ -77,7 +77,7 @@ final class TemporaryDirectoryTest
                         require $argv[1];
 
                         try {
-                            new Greenlight\Sandbox\TemporaryDirectory()->path();
+                            (new Greenlight\Sandbox\TemporaryDirectory())->path();
                         } catch (Greenlight\Sandbox\TemporaryDirectoryError $error) {
                             fwrite(STDOUT, $error->getMessage());
                             exit(23);

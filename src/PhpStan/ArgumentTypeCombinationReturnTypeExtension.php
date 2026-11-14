@@ -6,6 +6,7 @@ namespace Greenlight\PhpStan;
 
 use Greenlight\Doubles\Argument;
 use Greenlight\Doubles\ArgumentMatcher;
+use Greenlight\Internal\Php\Arrays;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\StaticCall;
 use PHPStan\Analyser\Scope;
@@ -48,7 +49,7 @@ final class ArgumentTypeCombinationReturnTypeExtension implements DynamicStaticM
         StaticCall $methodCall,
         Scope $scope,
     ): ?Type {
-        if (\array_any($methodCall->getArgs(), static fn(Arg $argument): bool => $argument->unpack)) {
+        if (Arrays::any($methodCall->getArgs(), static fn(Arg $argument): bool => $argument->unpack)) {
             return null;
         }
 

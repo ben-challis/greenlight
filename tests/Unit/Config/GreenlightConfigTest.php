@@ -300,7 +300,7 @@ final class GreenlightConfigTest
     public function invalidPathsGiveExactGuidance(array $paths, string $message): void
     {
         expect()->calling(static function () use ($paths): void {
-            new \ReflectionMethod(GreenlightConfig::class, 'paths')
+            (new \ReflectionMethod(GreenlightConfig::class, 'paths'))
                 ->invoke(GreenlightConfig::create(), $paths);
         })
             ->because('each invalid path shape MUST identify the required fix')
@@ -449,7 +449,7 @@ final class GreenlightConfigTest
         yield 'bad worker string' => [static function (): void {
             // Reflection bypasses the static 'auto'|int type and exercises the
             // runtime guard.
-            new \ReflectionMethod(GreenlightConfig::class, 'workers')
+            (new \ReflectionMethod(GreenlightConfig::class, 'workers'))
                 ->invoke(GreenlightConfig::create(), 'many');
         }];
 

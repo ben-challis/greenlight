@@ -58,11 +58,11 @@ final readonly class TestResultFailureTransitionTest
             ->because('a failure transition MUST append provenance')
             ->toBe([
                 $earlierTransformation->toWire(),
-                new OutcomeTransformation(
+                (new OutcomeTransformation(
                     'result policy',
                     Outcome::Passed,
                     Outcome::Failed,
-                )->toWire(),
+                ))->toWire(),
             ]);
         expect($failed->attempts)
             ->because('a failure transition MUST preserve the attempt count')

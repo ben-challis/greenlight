@@ -33,7 +33,7 @@ final class FilterTest
     #[Test]
     public function emptyFilterAcceptsEverything(): void
     {
-        expect(new TestSelection()->accepts('App\FooTest', 'bar', [], '/src/FooTest.php'))->because('empty filter accepts everything')->toBeTrue();
+        expect((new TestSelection())->accepts('App\FooTest', 'bar', [], '/src/FooTest.php'))->because('empty filter accepts everything')->toBeTrue();
     }
 
     #[Test]
@@ -102,14 +102,14 @@ final class FilterTest
     #[Test]
     public function discovererAppliesGroupFilters(): void
     {
-        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includeGroups: ['slow']));
+        $plan = (new TestDiscoverer())->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includeGroups: ['slow']));
 
         expect($this->ids($plan))->because('discoverer applies group filters')->toBe([
             'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::two',
             'Greenlight\Tests\Fixture\DiscoveryBasic\CharlieTest::crawls',
         ]);
 
-        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], $this->selection(excludeGroups: ['slow']));
+        $plan = (new TestDiscoverer())->discover([FixturePath::get('DiscoveryBasic')], $this->selection(excludeGroups: ['slow']));
 
         expect($this->ids($plan))->because('discoverer applies group filters')->toBe([
             'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one',
@@ -123,11 +123,11 @@ final class FilterTest
     #[Test]
     public function discovererAppliesClassAndMethodFilters(): void
     {
-        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includeClasses: ['BravoTest']));
+        $plan = (new TestDiscoverer())->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includeClasses: ['BravoTest']));
 
         expect($plan->count())->because('discoverer applies class and method filters')->toBe(3);
 
-        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includeMethods: ['alpha']));
+        $plan = (new TestDiscoverer())->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includeMethods: ['alpha']));
 
         expect($this->ids($plan))->because('discoverer applies class and method filters')->toBe(['Greenlight\Tests\Fixture\DiscoveryBasic\BravoTest::alpha']);
     }
@@ -196,7 +196,7 @@ final class FilterTest
     #[Test]
     public function discovererAppliesIdFilters(): void
     {
-        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includeIds: ['bravotest::alpha']));
+        $plan = (new TestDiscoverer())->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includeIds: ['bravotest::alpha']));
 
         expect($this->ids($plan))->because('discoverer applies ID filters')->toBe(['Greenlight\Tests\Fixture\DiscoveryBasic\BravoTest::alpha']);
     }
@@ -207,7 +207,7 @@ final class FilterTest
         $real = \realpath(FixturePath::get('DiscoveryBasic'));
         expect($real)->because('discoverer applies path prefix filters')->toBeString();
 
-        $plan = new TestDiscoverer()->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includePaths: [$real . '/Alpha']));
+        $plan = (new TestDiscoverer())->discover([FixturePath::get('DiscoveryBasic')], $this->selection(includePaths: [$real . '/Alpha']));
 
         expect($this->ids($plan))->because('discoverer applies path prefix filters')->toBe([
             'Greenlight\Tests\Fixture\DiscoveryBasic\AlphaTest::one',

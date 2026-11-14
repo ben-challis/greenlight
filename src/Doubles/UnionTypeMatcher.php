@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Doubles;
 
+use Greenlight\Internal\Php\Arrays;
+
 /** @internal */
 final readonly class UnionTypeMatcher implements TypedArgumentMatcher
 {
@@ -17,7 +19,7 @@ final readonly class UnionTypeMatcher implements TypedArgumentMatcher
 
     public function matches(mixed $value): bool
     {
-        return \array_any(
+        return Arrays::any(
             $this->types,
             static fn(string $type): bool => TypeMatcher::matchesType($value, $type),
         );

@@ -86,14 +86,14 @@ final readonly class XmlExporterPathTest
             new FileCoverage($path, [1], []),
         ]);
 
-        $cloverDocument = new CloverExporter()->export($map)[CloverExporter::FILE_NAME];
+        $cloverDocument = (new CloverExporter())->export($map)[CloverExporter::FILE_NAME];
         $clover = new \SimpleXMLElement($cloverDocument);
         $cloverFiles = SimpleXml::xpath($clover, '/coverage/project/file');
         expect($cloverFiles)
             ->because('the Clover document MUST contain exactly one file')
             ->toHaveCount(1);
 
-        $coberturaDocument = new CoberturaExporter()->export($map)[CoberturaExporter::FILE_NAME];
+        $coberturaDocument = (new CoberturaExporter())->export($map)[CoberturaExporter::FILE_NAME];
         $cobertura = new \SimpleXMLElement($coberturaDocument);
         $coberturaClasses = SimpleXml::xpath($cobertura, '/coverage/packages/package/classes/class');
         expect($coberturaClasses)

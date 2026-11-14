@@ -159,7 +159,7 @@ final readonly class WorkerProcessFatalSendFailureTest
         }
 
         $this->environment->set('GREENLIGHT_CHANNEL', '1');
-        $workerResult = new WorkerProcess()->run($address, 'worker-under-test', 'token');
+        $workerResult = (new WorkerProcess())->run($address, 'worker-under-test', 'token');
         $serverResult = $server->wait(3.0);
 
         expect($workerResult)

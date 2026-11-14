@@ -32,7 +32,7 @@ final readonly class WorkerEventFailureCleanupTest
         TraceLog::drain();
         ServiceProbe::reset();
         $definitions = [new ServiceDefinition(ServiceProbe::class, $scope, static fn(): ServiceProbe => new ServiceProbe())];
-        $plan = new TestDiscoverer()->discover([FixturePath::get('Lifecycle/Services')]);
+        $plan = (new TestDiscoverer())->discover([FixturePath::get('Lifecycle/Services')]);
         $failure = new \RuntimeException('Event delivery failed.');
         $sink = $this->failingSink($failure);
         $worker = new Worker($definitions);
@@ -57,7 +57,7 @@ final readonly class WorkerEventFailureCleanupTest
     public function disposalFailurePreservesTheEventFailure(): void
     {
         $failure = new \RuntimeException('Event delivery failed.');
-        $plan = new TestDiscoverer()->discover([FixturePath::get('HarnessDisposalMatrix')]);
+        $plan = (new TestDiscoverer())->discover([FixturePath::get('HarnessDisposalMatrix')]);
         $worker = new Worker([
             new ServiceDefinition(FailingHarnessService::class, Scope::PerClass, static fn(): FailingHarnessService => new FailingHarnessService()),
         ]);

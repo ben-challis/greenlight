@@ -26,7 +26,7 @@ final readonly class DistributorPartitionTest
             PlanEntryFixture::create('Acme\\BetaTest', 'second'),
         ], seed: 4242);
 
-        [$pooled, $isolated] = new Distributor()->units($plan);
+        [$pooled, $isolated] = (new Distributor())->units($plan);
 
         expect(\array_map($this->unitShape(...), $pooled))
             ->because('pooled distribution MUST preserve every entry, its order, and the plan seed')

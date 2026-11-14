@@ -141,7 +141,7 @@ final class XdebugDriverTest
 
         $driver = new XdebugDriver();
         $driver->start();
-        $sum = new Adder()->add(19, 23);
+        $sum = (new Adder())->add(19, 23);
         $raw = $driver->stop();
 
         $map = $raw->toMap(new PathFilter([$fixtureDir]));

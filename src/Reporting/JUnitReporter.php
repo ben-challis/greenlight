@@ -291,7 +291,7 @@ final class JUnitReporter implements Reporter
         $file = null;
 
         try {
-            $reflected = new \ReflectionMethod($class, $method)->getFileName();
+            $reflected = (new \ReflectionMethod($class, $method))->getFileName();
 
             if ($reflected !== false) {
                 $file = $reflected;

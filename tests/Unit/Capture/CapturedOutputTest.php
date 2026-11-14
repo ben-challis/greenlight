@@ -58,7 +58,7 @@ final class CapturedOutputTest
     #[Test]
     public function anEmptyCaptureRoundTrips(): void
     {
-        $restored = CapturedOutput::fromWire(JsonWire::roundTrip(new CapturedOutput('')->toWire()));
+        $restored = CapturedOutput::fromWire(JsonWire::roundTrip((new CapturedOutput(''))->toWire()));
 
         expect($restored->stdout)->because('wire serialization preserves an empty capture')->toBe('');
         expect($restored->diagnostics)->toBe([]);
@@ -69,7 +69,7 @@ final class CapturedOutputTest
     #[Test]
     public function anUnknownSeverityOnTheWireIsRejected(): void
     {
-        $payload = new Diagnostic(DiagnosticSeverity::Notice, 'm', 'f.php', 1)->toWire();
+        $payload = (new Diagnostic(DiagnosticSeverity::Notice, 'm', 'f.php', 1))->toWire();
         $payload['severity'] = 'fatal';
 
         expect()->calling(static fn(): Diagnostic => Diagnostic::fromWire($payload))->because('an unknown severity on the wire is rejected')

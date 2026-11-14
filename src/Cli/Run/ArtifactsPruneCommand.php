@@ -26,7 +26,7 @@ final readonly class ArtifactsPruneCommand
     public function run(ParsedArguments $arguments, string $workingDirectory): CommandResult
     {
         try {
-            $configuration = new ConfigurationLoader()->load($arguments, $workingDirectory)->resolved->execution->artifacts;
+            $configuration = (new ConfigurationLoader())->load($arguments, $workingDirectory)->resolved->execution->artifacts;
             $maintenance = ArtifactMaintenance::forConfiguration($configuration, $workingDirectory);
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));

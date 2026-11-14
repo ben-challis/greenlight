@@ -87,14 +87,14 @@ final readonly class PhpStanConfigurationBuilderTypeTest
                 GreenlightConfig::create()->randomizeOrder(seed: -1);
                 GreenlightConfig::create()->ignoreDeprecationsMatching('');
 
-                new SuiteBuilder('unit')->in('')->tag('');
-                new CoverageBuilder()->include('')->driver('')->export('', 'report');
-                new CoverageBuilder()->export('xml', 'report.xml');
-                new CoverageBuilder()->minimumPercentage(-0.01);
-                new CoverageBuilder()->minimumPercentage(100.01);
-                new CoverageBuilder()->minimumPercentage(99.999);
-                new CoverageBuilder()->minimumPercentage(\INF);
-                new WatchBuilder()->debounceMilliseconds(0);
+                (new SuiteBuilder('unit'))->in('')->tag('');
+                (new CoverageBuilder())->include('')->driver('')->export('', 'report');
+                (new CoverageBuilder())->export('xml', 'report.xml');
+                (new CoverageBuilder())->minimumPercentage(-0.01);
+                (new CoverageBuilder())->minimumPercentage(100.01);
+                (new CoverageBuilder())->minimumPercentage(99.999);
+                (new CoverageBuilder())->minimumPercentage(\INF);
+                (new WatchBuilder())->debounceMilliseconds(0);
                 new ArtifactBuilder()
                     ->directory('')
                     ->maxAttachmentsPerTest(0)

@@ -31,7 +31,7 @@ final class AttributeMergeTest
         $dir = FixturePath::get('DiscoveryAttributes');
         $map = [];
 
-        foreach (new TestDiscoverer()->discover([$dir])->entries as $entry) {
+        foreach ((new TestDiscoverer())->discover([$dir])->entries as $entry) {
             $map[$entry->id->class . '::' . $entry->id->method] = $entry->definition;
         }
 
@@ -90,7 +90,7 @@ final class AttributeMergeTest
         $dir = FixturePath::get('DiscoveryAttributeArguments');
         $map = [];
 
-        foreach (new TestDiscoverer()->discover([$dir])->entries as $entry) {
+        foreach ((new TestDiscoverer())->discover([$dir])->entries as $entry) {
             $map[$entry->id->method] = $entry->definition;
         }
 
@@ -109,7 +109,7 @@ final class AttributeMergeTest
     {
         $dir = FixturePath::get('DiscoveryAttributeArgumentsInvalid');
 
-        expect()->calling(static fn(): ExecutionPlan => new TestDiscoverer()->discover([$dir]))
+        expect()->calling(static fn(): ExecutionPlan => (new TestDiscoverer())->discover([$dir]))
             ->toThrow(static function (DiscoveryError $error): void {
                 expect($error->getMessage())->toBe(
                     'Attribute on Greenlight\Tests\Fixture\DiscoveryAttributeArgumentsInvalid\NonScalarArgumentTest::neverDiscovered() is invalid: '
@@ -124,7 +124,7 @@ final class AttributeMergeTest
     {
         $dir = FixturePath::get('DiscoveryResourceInvalid');
 
-        expect()->calling(static fn(): ExecutionPlan => new TestDiscoverer()->discover([$dir]))
+        expect()->calling(static fn(): ExecutionPlan => (new TestDiscoverer())->discover([$dir]))
             ->toThrow(static function (DiscoveryError $error): void {
                 expect($error->getMessage())
                     ->toContain('InvalidResourceTest')
@@ -140,7 +140,7 @@ final class AttributeMergeTest
         $dir = FixturePath::get('DiscoveryGroupInvalid');
 
         expect()->calling(
-            static fn(): ExecutionPlan => new TestDiscoverer()->discover([$dir]),
+            static fn(): ExecutionPlan => (new TestDiscoverer())->discover([$dir]),
         )
             ->because('an empty group name cannot enter the execution plan')
             ->toThrow(

@@ -16,7 +16,7 @@ final class SystemWatchClockTest
     public function nowUsesTheMonotonicSystemClock(): void
     {
         $before = \hrtime(true) / 1_000_000_000;
-        $now = new SystemWatchClock()->now();
+        $now = (new SystemWatchClock())->now();
         $after = \hrtime(true) / 1_000_000_000;
 
         expect($now)

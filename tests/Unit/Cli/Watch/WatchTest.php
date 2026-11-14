@@ -144,7 +144,7 @@ final readonly class WatchTest
         $clock = new FakeWatchClock();
         $output = '';
 
-        new WatchLoop(
+        (new WatchLoop(
             $detector,
             new Debouncer(0.0),
             $keys,
@@ -152,7 +152,7 @@ final readonly class WatchTest
             static function (string $text) use (&$output): void {
                 $output .= $text;
             },
-        )->run(static fn(array $priorityClasses): array => [], maxIterations: 2);
+        ))->run(static fn(array $priorityClasses): array => [], maxIterations: 2);
 
         $ready = "\nWaiting for changes. Press Enter to rerun the selected tests. Press q to quit.\n";
 
@@ -197,7 +197,7 @@ final readonly class WatchTest
             }
         };
 
-        new WatchLoop(
+        (new WatchLoop(
             $detector,
             new Debouncer(0.0),
             $keys,
@@ -205,7 +205,7 @@ final readonly class WatchTest
             static function (string $text) use ($record): void {
                 $record('ready');
             },
-        )->run(static function (array $priorityClasses) use ($record): array {
+        ))->run(static function (array $priorityClasses) use ($record): array {
             $record('run');
 
             return [];
@@ -238,14 +238,14 @@ final readonly class WatchTest
         $shutdown = new GracefulShutdown();
         $runs = 0;
 
-        new WatchLoop(
+        (new WatchLoop(
             $detector,
             new Debouncer(0.0),
             $keys,
             new SystemWatchClock(),
             static function (string $text): void {},
             $shutdown,
-        )->run(static function (array $priorityClasses) use (&$runs, $shutdown): array {
+        ))->run(static function (array $priorityClasses) use (&$runs, $shutdown): array {
             ++$runs;
             $shutdown->request(15);
 
@@ -310,9 +310,9 @@ final readonly class WatchTest
         };
 
         $output = '';
-        new WatchLoop($detector, new Debouncer(0.2), $keys, $clock, static function (string $text) use (&$output): void {
+        (new WatchLoop($detector, new Debouncer(0.2), $keys, $clock, static function (string $text) use (&$output): void {
             $output .= $text;
-        })->run($runOnce, maxIterations: 10);
+        }))->run($runOnce, maxIterations: 10);
 
         // The sequence has an initial run and one delayed run for the changes.
         // The delayed run starts with classes that initially failed. Enter

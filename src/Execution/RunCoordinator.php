@@ -176,7 +176,7 @@ final readonly class RunCoordinator
         ?int $seed,
         StorageLayout $storage,
     ): ExecutionPlan {
-        return new TestDiscoverer()->discover(
+        return (new TestDiscoverer())->discover(
             $directories,
             $selection,
             $seed,

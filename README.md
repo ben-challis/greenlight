@@ -3,10 +3,10 @@
 [![CI](https://github.com/ben-challis/greenlight/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/ben-challis/greenlight/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/ben-challis/greenlight/branch/main/graph/badge.svg)](https://app.codecov.io/gh/ben-challis/greenlight)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ben-challis/greenlight/badge)](https://securityscorecards.dev/viewer/?uri=github.com/ben-challis/greenlight)
-[![PHP](https://img.shields.io/badge/PHP-%3E%3D8.4-777BB4?logo=php&logoColor=white)](composer.json)
+[![PHP](https://img.shields.io/badge/PHP-%3E%3D8.3-777BB4?logo=php&logoColor=white)](composer.json)
 [![License](https://img.shields.io/github/license/ben-challis/greenlight)](LICENSE)
 
-**A parallel-first test framework for PHP 8.4 and later.**
+**A parallel-first test framework for PHP 8.3 and later.**
 
 Greenlight runs test classes in parallel by default and has zero runtime
 dependencies. Greenlight discovers tests in the configured paths and sends
@@ -161,7 +161,7 @@ for the complete model.
 
 ## Requirements and limits
 
-Greenlight requires PHP 8.4 or later. The parallel runner uses core stream
+Greenlight requires PHP 8.3 or later. The parallel runner uses core stream
 sockets and `proc_open`.
 
 Coverage requires pcov or Xdebug. Greenlight does not run PHPUnit suites

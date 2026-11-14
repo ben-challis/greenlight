@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Doubles;
 
+use Greenlight\Internal\Php\Arrays;
+
 final class Argument
 {
     /** @codeCoverageIgnore */
@@ -135,7 +137,7 @@ final class Argument
     ): ArgumentMatcher {
         $matchers = [$first, $second, ...\array_values($rest)];
 
-        if (\array_any($matchers, static fn(ArgumentMatcher $matcher): bool => $matcher instanceof ArgumentCaptor)) {
+        if (Arrays::any($matchers, static fn(ArgumentMatcher $matcher): bool => $matcher instanceof ArgumentCaptor)) {
             throw InvalidDoubleUsage::compositeArgumentCaptor();
         }
 

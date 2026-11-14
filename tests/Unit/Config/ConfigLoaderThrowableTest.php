@@ -18,7 +18,7 @@ final readonly class ConfigLoaderThrowableTest
     {
         $directory = FixturePath::get('ConfigFiles/ThrowingError');
 
-        expect()->calling(static fn() => new ConfigLoader()->loadFromDirectory($directory))
+        expect()->calling(static fn() => (new ConfigLoader())->loadFromDirectory($directory))
             ->toThrow(
                 static function (ConfigFileError $error) use ($directory): void {
                     expect($error->getMessage())

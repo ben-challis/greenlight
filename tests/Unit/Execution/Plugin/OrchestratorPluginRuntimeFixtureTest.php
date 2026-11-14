@@ -62,7 +62,7 @@ final readonly class OrchestratorPluginRuntimeFixtureTest
     public function invalidProviderEntriesAreRejectedAtThePluginSeam(): void
     {
         $provider = new FakeIntegrationFixtureProvider([]);
-        new \ReflectionProperty($provider, 'definitions')->setValue($provider, [new \stdClass()]);
+        (new \ReflectionProperty($provider, 'definitions'))->setValue($provider, [new \stdClass()]);
 
         $runtime = OrchestratorPluginRuntime::fromPlugins([$provider], new CollectingEventSink());
 

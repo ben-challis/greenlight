@@ -58,7 +58,7 @@ foreach ([Calculator::class, Wide::class] as $type) {
 
         $rows[] = [
             'type' => $type,
-            'methodCount' => \count(new \ReflectionClass($type)->getMethods()),
+            'methodCount' => \count((new \ReflectionClass($type))->getMethods()),
             'newFactory' => $newFactory,
             'iterations' => $iterations,
             'wallMilliseconds' => $wallSamples,

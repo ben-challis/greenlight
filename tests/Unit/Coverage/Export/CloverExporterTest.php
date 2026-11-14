@@ -22,7 +22,7 @@ final class CloverExporterTest
             new FileCoverage('/src/B.php', [2], []),
         ]);
 
-        $xml = new \SimpleXMLElement(new CloverExporter(1234)->export($map)[CloverExporter::FILE_NAME]);
+        $xml = new \SimpleXMLElement((new CloverExporter(1234))->export($map)[CloverExporter::FILE_NAME]);
 
         expect($this->structure($xml))
             ->because('document carries per file and project statement metrics')
@@ -94,7 +94,7 @@ final class CloverExporterTest
     #[Test]
     public function emptyMapStillProducesAParsableDocument(): void
     {
-        $xml = new \SimpleXMLElement(new CloverExporter()->export(CoverageMap::empty())[CloverExporter::FILE_NAME]);
+        $xml = new \SimpleXMLElement((new CloverExporter())->export(CoverageMap::empty())[CloverExporter::FILE_NAME]);
 
         expect($this->structure($xml))
             ->because('empty map still produces a parsable document')

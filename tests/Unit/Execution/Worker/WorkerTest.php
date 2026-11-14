@@ -48,7 +48,7 @@ final class WorkerTest
         ]);
         $sink = new CollectingEventSink();
 
-        new Worker($this->definitions())->run($plan, $sink);
+        (new Worker($this->definitions()))->run($plan, $sink);
 
         $classEvents = \array_values(\array_filter(
             $sink->events,
@@ -284,7 +284,7 @@ final class WorkerTest
         ]);
         $sink = new CollectingEventSink();
 
-        new Worker($this->definitions())->run($plan, $sink);
+        (new Worker($this->definitions()))->run($plan, $sink);
 
         $result = $sink->results()[0];
 
@@ -304,7 +304,7 @@ final class WorkerTest
         ]);
         $sink = new CollectingEventSink();
 
-        new Worker($this->definitions())->run($plan, $sink);
+        (new Worker($this->definitions()))->run($plan, $sink);
 
         $result = $sink->results()[0];
 
@@ -328,7 +328,7 @@ final class WorkerTest
         ]);
         $sink = new CollectingEventSink();
 
-        $outcome = new Worker($this->definitions())->run($plan, $sink);
+        $outcome = (new Worker($this->definitions()))->run($plan, $sink);
         $result = $sink->results()[0];
 
         expect($outcome->summary->errored)
@@ -406,7 +406,7 @@ final class WorkerTest
         );
         $sink = new CollectingEventSink();
 
-        new Worker($definitions)->run($plan, $sink);
+        (new Worker($definitions))->run($plan, $sink);
 
         $result = $sink->results()[0];
         expect($result->outcome)
@@ -523,10 +523,10 @@ final class WorkerTest
     public function drainRequestStopsBetweenTests(): void
     {
         $directory = FixturePath::get('Lifecycle/Bail');
-        $plan = new TestDiscoverer()->discover([$directory]);
+        $plan = (new TestDiscoverer())->discover([$directory]);
         $sink = new CollectingEventSink();
 
-        $outcome = new Worker($this->definitions())->run(
+        $outcome = (new Worker($this->definitions()))->run(
             $plan,
             $sink,
             drainRequested: static fn(): bool => true,
@@ -542,10 +542,10 @@ final class WorkerTest
         LeakyTest::$retained = [];
 
         $directory = FixturePath::get('LeakSuite');
-        $plan = new TestDiscoverer()->discover([$directory]);
+        $plan = (new TestDiscoverer())->discover([$directory]);
         $sink = new CollectingEventSink();
 
-        $outcome = new Worker($this->definitions(), leakDetector: new LeakDetector())
+        $outcome = (new Worker($this->definitions(), leakDetector: new LeakDetector()))
             ->run($plan, $sink);
 
         $leakedIds = \array_map(static fn($id): string => (string) $id, $outcome->leaks);
@@ -582,10 +582,10 @@ final class WorkerTest
         ?CollectingEventSink $sink = null,
     ): array {
         $directory = FixturePath::get('Lifecycle/' . $case);
-        $plan = new TestDiscoverer()->discover([$directory]);
+        $plan = (new TestDiscoverer())->discover([$directory]);
         $sink ??= new CollectingEventSink();
 
-        $outcome = new Worker($definitions ?? $this->definitions())
+        $outcome = (new Worker($definitions ?? $this->definitions()))
             ->run($plan, $sink, $stopAfterFailures);
 
         return [$outcome->summary, $sink->results()];

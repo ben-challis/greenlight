@@ -15,7 +15,7 @@ final class CollectingEventSink implements EventSink, Fake
     /**
      * @var list<Event>
      */
-    public private(set) array $events = [];
+    public array $events = [];
 
     #[\Override]
     public function emit(Event $event): void
@@ -45,7 +45,7 @@ final class CollectingEventSink implements EventSink, Fake
     public function sequence(): array
     {
         return \array_map(
-            static fn(Event $event): string => new \ReflectionClass($event)->getShortName(),
+            static fn(Event $event): string => (new \ReflectionClass($event))->getShortName(),
             $this->events,
         );
     }

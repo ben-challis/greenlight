@@ -10,6 +10,7 @@ use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Artifact\AttachmentRetention;
 use Greenlight\Artifact\StagedAttachment;
 use Greenlight\Config\ArtifactConfiguration;
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Text\DecimalInteger;
 use Greenlight\Result\TestResult;
@@ -423,7 +424,7 @@ final class ArtifactStore
 
     private function defaultRetention(TestResult $result, Attachment $attachment): bool
     {
-        $problematic = !$result->outcome->isSuccessful() || \array_any(
+        $problematic = !$result->outcome->isSuccessful() || Arrays::any(
             $result->transformations,
             static fn($transformation): bool => !$transformation->from->isSuccessful(),
         );
@@ -855,7 +856,7 @@ final class ArtifactStore
             throw AttachmentError::storage('Attachment metadata contains an unsafe storage key');
         }
 
-        if (!\array_all(
+        if (!Arrays::all(
             \explode('/', $storageKey),
             static fn(string $segment): bool => !\in_array($segment, ['', '.', '..'], true),
         )) {

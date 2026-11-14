@@ -115,7 +115,7 @@ final class TerminalEmulatorTest
     public function unrecognizedEscapeSequencesThrow(): void
     {
         expect()->calling(static function (): void {
-            new TerminalEmulator()->write("\x1b[5B");
+            (new TerminalEmulator())->write("\x1b[5B");
         })->because('unrecognized escape sequences throw')->toThrow(\RuntimeException::class, '/Unrecognized escape sequence/');
     }
 
@@ -123,7 +123,7 @@ final class TerminalEmulatorTest
     public function unterminatedEscapeBytesThrow(): void
     {
         expect()->calling(static function (): void {
-            new TerminalEmulator()->write("plain\x1b");
+            (new TerminalEmulator())->write("plain\x1b");
         })->because('unterminated escape bytes throw')->toThrow(\RuntimeException::class, '/Unrecognized escape sequence/');
     }
 }

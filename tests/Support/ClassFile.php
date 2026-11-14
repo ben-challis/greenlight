@@ -15,7 +15,7 @@ final class ClassFile
      */
     public static function of(string $class): string
     {
-        $file = new \ReflectionClass($class)->getFileName();
+        $file = (new \ReflectionClass($class))->getFileName();
 
         if ($file === false) {
             throw new \RuntimeException(\sprintf('Class "%s" does not have a source file.', $class));

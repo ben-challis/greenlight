@@ -22,7 +22,7 @@ final class ExtensionMatcherParameterTest
         bool $variadic,
         string $type,
     ): void {
-        $reflection = new \ReflectionMethod(self::class, $method)->getParameters()[0];
+        $reflection = (new \ReflectionMethod(self::class, $method))->getParameters()[0];
         $parameter = new ExtensionMatcherParameter($reflection);
 
         expect($parameter->getName())

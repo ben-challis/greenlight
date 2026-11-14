@@ -20,7 +20,7 @@ final readonly class ClassAvailableAutoloadTest
         expect(\class_exists(AutoloadableConditionProbe::class, false))
             ->because('the fixture MUST start unloaded so the test covers autoloading')
             ->toBeFalse();
-        expect(new ClassAvailable(AutoloadableConditionProbe::class)->isSatisfied())
+        expect((new ClassAvailable(AutoloadableConditionProbe::class))->isSatisfied())
             ->because('class availability MUST include classes that the autoloader can load')
             ->toBeTrue();
         expect(\class_exists(AutoloadableConditionProbe::class, false))

@@ -120,7 +120,7 @@ final class TestResultTest
     #[Test]
     public function toleratesPayloadsWithoutNewOptionalFields(): void
     {
-        $payload = new TestResult(new TestId('App\FooTest', 'bar'), Outcome::Passed, 0.1, 0)->toWire();
+        $payload = (new TestResult(new TestId('App\FooTest', 'bar'), Outcome::Passed, 0.1, 0))->toWire();
         unset($payload['expectations']);
         unset($payload['attachments']);
 

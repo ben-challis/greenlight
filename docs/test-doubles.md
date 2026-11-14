@@ -28,7 +28,7 @@ final class CheckoutServiceTest
             },
         );
 
-        $payment = new CheckoutService($gateway)->checkout(1999, 'GBP');
+        $payment = (new CheckoutService($gateway))->checkout(1999, 'GBP');
 
         Expect::value($payment->id)->toBe('payment-123');
     }
@@ -248,7 +248,7 @@ Greenlight does not clone them.
 ```php
 $events = $this->doubles->spy(EventPublisher::class);
 
-new CheckoutService($events)->checkout();
+(new CheckoutService($events))->checkout();
 
 Expect::value(
     $this->doubles->callsTo($events, 'publish'),

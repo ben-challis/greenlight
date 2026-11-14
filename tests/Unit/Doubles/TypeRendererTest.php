@@ -55,7 +55,7 @@ final class TypeRendererTest
             ->because('The null closure MUST expose its declared type.')
             ->toBeInstanceOf(\ReflectionType::class);
 
-        $context = new \ReflectionMethod(TypeRenderingChild::class, 'nullable')->getDeclaringClass();
+        $context = (new \ReflectionMethod(TypeRenderingChild::class, 'nullable'))->getDeclaringClass();
 
         expect(TypeRenderer::render($nullableClass, $context))
             ->because('nullable class names MUST retain valid PHP syntax')

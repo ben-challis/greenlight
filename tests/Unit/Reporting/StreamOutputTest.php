@@ -85,7 +85,7 @@ final readonly class StreamOutputTest
     {
         $stream = $this->openPartialWriteStream('partial');
 
-        new StreamOutput($stream)->write('complete reporter output');
+        (new StreamOutput($stream))->write('complete reporter output');
 
         expect(PartialWriteStream::contents())
             ->because('a short stream write MUST NOT truncate reporter output')

@@ -100,7 +100,7 @@ final class NativeMatcherSubjectRule implements Rule
             ConsistentlyExpectation::class,
             TemporalExpectation::class,
         ] as $class) {
-            if (new ObjectType($class)->isSuperTypeOf($receiver)->yes()) {
+            if ((new ObjectType($class))->isSuperTypeOf($receiver)->yes()) {
                 return $receiver->getTemplateType($class, 'T');
             }
         }
@@ -143,7 +143,7 @@ final class NativeMatcherSubjectRule implements Rule
      */
     private function needleErrors(string $matcher, Type $subject, MethodCall $call, Scope $scope): array
     {
-        if ($matcher !== 'toContain' || !new StringType()->isSuperTypeOf($subject)->yes()) {
+        if ($matcher !== 'toContain' || !(new StringType())->isSuperTypeOf($subject)->yes()) {
             return [];
         }
 
@@ -159,7 +159,7 @@ final class NativeMatcherSubjectRule implements Rule
             $needle = $needle->getIterableValueType();
         }
 
-        if ($needle instanceof ErrorType || $needle instanceof MixedType || !new StringType()->accepts($needle, true)->no()) {
+        if ($needle instanceof ErrorType || $needle instanceof MixedType || !(new StringType())->accepts($needle, true)->no()) {
             return [];
         }
 

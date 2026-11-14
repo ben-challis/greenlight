@@ -42,6 +42,12 @@ final readonly class WorkerSpawned implements WireEvent
         $this->pid = $pid;
     }
 
+    #[\Override]
+    public function occurredAt(): float
+    {
+        return $this->occurredAt;
+    }
+
     /** @internal */
     #[\Override]
     public function toWire(): array

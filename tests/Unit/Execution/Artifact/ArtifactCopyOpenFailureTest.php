@@ -34,7 +34,7 @@ final readonly class ArtifactCopyOpenFailureTest
         $destinationWarning = null;
         expect()->calling(static function () use ($root, &$destinationWarning): void {
             ErrorTrap::run(
-                static fn() => new NativeFileCopier()->copy(
+                static fn() => (new NativeFileCopier())->copy(
                     self::SCHEME . '://source',
                     $root . '/missing/destination.txt',
                 ),
@@ -61,7 +61,7 @@ final readonly class ArtifactCopyOpenFailureTest
         $root = $this->tempDirectory->subdirectory('missing-copy-source');
         $destination = $root . '/destination.txt';
 
-        expect()->calling(static fn() => new NativeFileCopier()->copy(
+        expect()->calling(static fn() => (new NativeFileCopier())->copy(
             $root . '/missing-source.txt',
             $destination,
         ))

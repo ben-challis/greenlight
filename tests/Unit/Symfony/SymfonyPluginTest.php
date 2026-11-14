@@ -29,8 +29,8 @@ final class SymfonyPluginTest
     #[Test]
     public function exposesTheConfiguredSource(): void
     {
-        expect(new SymfonyPlugin(FixtureKernel::class)->source())->toBeNull();
-        expect(new SymfonyPlugin(FixtureKernel::class, source: 'application')->source())->toBe('application');
+        expect((new SymfonyPlugin(FixtureKernel::class))->source())->toBeNull();
+        expect((new SymfonyPlugin(FixtureKernel::class, source: 'application'))->source())->toBe('application');
     }
 
     #[Test]

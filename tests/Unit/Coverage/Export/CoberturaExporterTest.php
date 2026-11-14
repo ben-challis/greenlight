@@ -22,7 +22,7 @@ final class CoberturaExporterTest
             new FileCoverage('/src/B.php', [2], []),
         ]);
 
-        $xml = new \SimpleXMLElement(new CoberturaExporter(1234)->export($map)[CoberturaExporter::FILE_NAME]);
+        $xml = new \SimpleXMLElement((new CoberturaExporter(1234))->export($map)[CoberturaExporter::FILE_NAME]);
 
         expect($this->structure($xml))
             ->because('document carries metrics for every file')
@@ -83,7 +83,7 @@ final class CoberturaExporterTest
     #[Test]
     public function emptyMapStillProducesAParsableDocument(): void
     {
-        $xml = new \SimpleXMLElement(new CoberturaExporter()->export(CoverageMap::empty())[CoberturaExporter::FILE_NAME]);
+        $xml = new \SimpleXMLElement((new CoberturaExporter())->export(CoverageMap::empty())[CoberturaExporter::FILE_NAME]);
 
         expect($this->structure($xml))
             ->because('empty map still produces a parsable document')

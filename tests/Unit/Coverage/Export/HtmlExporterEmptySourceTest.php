@@ -25,7 +25,7 @@ final readonly class HtmlExporterEmptySourceTest
             new FileCoverage($path, [1], []),
         ]);
 
-        $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($path)];
+        $page = (new HtmlExporter())->export($map)[HtmlExporter::pageName($path)];
 
         expect(\is_readable($path))
             ->because('the empty source MUST be readable')

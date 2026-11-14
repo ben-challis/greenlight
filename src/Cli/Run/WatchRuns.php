@@ -69,7 +69,7 @@ final readonly class WatchRuns
         $process = new WatchRunProcess($this->console, $shutdown);
         $runOnce = function (array $priorityClasses) use ($arguments, $reporterCatalog, $reporterOutputs, $process, $workerBin, $workingDirectory, $resolved, &$nextReporter): array {
             $priorityClasses = \array_values(\array_filter($priorityClasses, static fn(mixed $class): bool => \is_string($class) && $class !== ''));
-            $reporter = $nextReporter ?? new ReporterFactory($this->console)->create($arguments, $reporterCatalog, $reporterOutputs);
+            $reporter = $nextReporter ?? (new ReporterFactory($this->console))->create($arguments, $reporterCatalog, $reporterOutputs);
             $nextReporter = null;
 
             return $process->run($workerBin, $arguments, $workingDirectory, $reporter, $priorityClasses, $resolved->order->seed);
@@ -92,7 +92,7 @@ final readonly class WatchRuns
                     maximumFiles: $resolved->watch->maximumFiles,
                 )],
             );
-            new WatchLoop($sources, new Debouncer($resolved->watch->debounceMilliseconds / 1000), $keys, new SystemWatchClock(), $statusOutput, $shutdown)->run($runOnce);
+            (new WatchLoop($sources, new Debouncer($resolved->watch->debounceMilliseconds / 1000), $keys, new SystemWatchClock(), $statusOutput, $shutdown))->run($runOnce);
         } catch (ReporterSetupFailed|RunPolicyError|WatchSourceFailed|WatchRunFailed $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
             return CommandResult::failure();

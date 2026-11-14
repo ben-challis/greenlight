@@ -366,13 +366,13 @@ function proseFiles(string $root): array
 
 function proseIsExcluded(string $relativePath): bool
 {
-    if (\array_any(PROSE_EXCLUDED_DIRECTORIES, fn($directory) => $relativePath === $directory || \str_starts_with($relativePath, $directory . '/'))) {
-        return true;
+    foreach (PROSE_EXCLUDED_DIRECTORIES as $directory) {
+        if ($relativePath === $directory || \str_starts_with($relativePath, $directory . '/')) {
+            return true;
+        }
     }
 
-    $segments = \explode('/', $relativePath);
-
-    return \array_any(PROSE_EXCLUDED_DIRECTORY_NAMES, fn(string $directory): bool => \in_array($directory, $segments, true));
+    return \array_intersect(PROSE_EXCLUDED_DIRECTORY_NAMES, \explode('/', $relativePath)) !== [];
 }
 
 function proseRelativePath(string $root, string $path): string
@@ -1647,10 +1647,13 @@ function proseHasVerbalIngCandidate(string $sentence): bool
         return false;
     }
 
-    return !\array_all(
-        $matches[1],
-        static fn(string $word): bool => \in_array(\strtolower($word), PROSE_ALLOWED_ING_WORDS, true),
-    );
+    foreach ($matches[1] as $word) {
+        if (!\in_array(\strtolower($word), PROSE_ALLOWED_ING_WORDS, true)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function proseLooksLikeInstruction(string $sentence): bool

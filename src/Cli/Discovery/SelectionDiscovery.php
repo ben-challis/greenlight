@@ -11,6 +11,7 @@ use Greenlight\Discovery\DiscoveryError;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanShard;
 use Greenlight\Discovery\TestDiscoverer;
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Test\TestSelection;
 
 /**
@@ -34,7 +35,7 @@ final readonly class SelectionDiscovery
             $this->workingDirectory,
             $resolved->suiteSelection->stateIdentity(),
         );
-        $plan = new TestDiscoverer()->discover(
+        $plan = (new TestDiscoverer())->discover(
             $this->configuration->directories,
             $selection,
             $resolved->order->seed,
@@ -55,14 +56,14 @@ final readonly class SelectionDiscovery
         }
 
         try {
-            $files = new TestDiscoverer()->testFiles($this->configuration->directories);
+            $files = (new TestDiscoverer())->testFiles($this->configuration->directories);
         } catch (DiscoveryError) {
             return [];
         }
 
         $warnings = [];
         foreach ($prefixes as $prefix) {
-            if (!\array_any($files, static fn(string $file): bool => \str_starts_with($file, $prefix))) {
+            if (!Arrays::any($files, static fn(string $file): bool => \str_starts_with($file, $prefix))) {
                 $warnings[] = \sprintf('Warning: --exclude-path "%s" did not match a discovered test file.', $prefix);
             }
         }

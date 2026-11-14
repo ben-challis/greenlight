@@ -476,7 +476,7 @@ final readonly class TemporalExpectationTest
                 message: 'Use a finite polling interval of at least 0.001 seconds.',
             );
         expect()->calling(static function (): void {
-            new \ReflectionMethod(PendingEventually::class, 'retryOnException')
+            (new \ReflectionMethod(PendingEventually::class, 'retryOnException'))
                 ->invoke(expect()->calling(static fn(): int => 1)->returnValue()->eventually(), \Error::class);
         })->because('polling durations and exception types are validated')->toThrow(\InvalidArgumentException::class);
 

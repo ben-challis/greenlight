@@ -22,7 +22,7 @@ final class ParameterDefaultSourceTest
     {
         require_once __DIR__ . '/../../Fixture/ParameterDefaultSource/Contexts.php';
 
-        $source = ParameterDefaultSource::read(new \ReflectionMethod(First\Nested::class, 'run')->getParameters()[1]);
+        $source = ParameterDefaultSource::read((new \ReflectionMethod(First\Nested::class, 'run'))->getParameters()[1]);
 
         expect($source)->toBeArray();
         expect(\implode('', \array_map(static fn(\PhpToken $token): string => $token->text, $source['tokens'])))
@@ -47,7 +47,7 @@ final class ParameterDefaultSourceTest
     {
         require_once __DIR__ . '/../../Fixture/ParameterDefaultSource/Contexts.php';
 
-        $source = ParameterDefaultSource::read(new \ReflectionMethod(First\Child::class, 'alias')->getParameters()[0]);
+        $source = ParameterDefaultSource::read((new \ReflectionMethod(First\Child::class, 'alias'))->getParameters()[0]);
 
         expect($source)->toBeArray();
         expect($source['method'])->toBe('original');
@@ -61,7 +61,7 @@ final class ParameterDefaultSourceTest
     {
         require_once __DIR__ . '/../../Fixture/ParameterDefaultSource/Contexts.php';
 
-        $source = ParameterDefaultSource::read(new \ReflectionMethod(First\OwnerB::class, 'run')->getParameters()[0]);
+        $source = ParameterDefaultSource::read((new \ReflectionMethod(First\OwnerB::class, 'run'))->getParameters()[0]);
 
         expect($source)->toBeArray();
         expect(\implode('', \array_map(static fn(\PhpToken $token): string => $token->text, $source['tokens'])))
@@ -73,7 +73,7 @@ final class ParameterDefaultSourceTest
     {
         require_once __DIR__ . '/../../Fixture/ParameterDefaultSource/Contexts.php';
 
-        $source = ParameterDefaultSource::read(new \ReflectionMethod(Second\Nested::class, 'run')->getParameters()[0]);
+        $source = ParameterDefaultSource::read((new \ReflectionMethod(Second\Nested::class, 'run'))->getParameters()[0]);
 
         expect($source)->toBeArray();
         expect($source['namespace'])->toBe('Greenlight\\Tests\\Fixture\\ParameterDefaultSource\\Second');
@@ -84,7 +84,7 @@ final class ParameterDefaultSourceTest
     #[Test]
     public function internalMethodsHaveNoSourceExpression(): void
     {
-        $parameter = new \ReflectionMethod(\DateTimeImmutable::class, '__construct')->getParameters()[0];
+        $parameter = (new \ReflectionMethod(\DateTimeImmutable::class, '__construct'))->getParameters()[0];
 
         expect(ParameterDefaultSource::read($parameter))->toBeNull();
     }
@@ -94,7 +94,7 @@ final class ParameterDefaultSourceTest
     {
         require_once __DIR__ . '/../../Fixture/ParameterDefaultSource/Contexts.php';
 
-        $parameter = new \ReflectionMethod(Ambiguous\Selected::class, 'run')->getParameters()[0];
+        $parameter = (new \ReflectionMethod(Ambiguous\Selected::class, 'run'))->getParameters()[0];
 
         expect($parameter->getDefaultValue())->toBeInstanceOf(\stdClass::class);
         expect(ParameterDefaultSource::read($parameter))->toBeNull();
@@ -105,7 +105,7 @@ final class ParameterDefaultSourceTest
     {
         require_once __DIR__ . '/../../Fixture/ParameterDefaultSource/Contexts.php';
 
-        $source = ParameterDefaultSource::read(new \ReflectionMethod(Ambiguous\OwnMethod::class, 'run')->getParameters()[0]);
+        $source = ParameterDefaultSource::read((new \ReflectionMethod(Ambiguous\OwnMethod::class, 'run'))->getParameters()[0]);
 
         expect($source)->toBeArray();
         expect(\implode('', \array_map(static fn(\PhpToken $token): string => $token->text, $source['tokens'])))
@@ -118,7 +118,7 @@ final class ParameterDefaultSourceTest
         require_once __DIR__ . '/../../Fixture/ParameterDefaultSource/Contexts.php';
 
         $pair = Ambiguous\anonymousPair();
-        $parameter = new \ReflectionMethod($pair[0], 'run')->getParameters()[0];
+        $parameter = (new \ReflectionMethod($pair[0], 'run'))->getParameters()[0];
 
         expect(ParameterDefaultSource::read($parameter))->toBeNull();
     }

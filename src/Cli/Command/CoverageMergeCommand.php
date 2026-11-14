@@ -151,7 +151,7 @@ final readonly class CoverageMergeCommand
             $arguments->has('ansi'),
         )->color);
 
-        return new CoverageWriter($this->console)->write(
+        return (new CoverageWriter($this->console))->write(
             $configuration,
             $merged,
             $workingDirectory,

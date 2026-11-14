@@ -15,10 +15,10 @@ final class RetryTest
     #[Test]
     public function throwableFiltersDoNotNeedToBeInstantiable(): void
     {
-        expect(new Retry(1, \Throwable::class)->onlyOn)
+        expect((new Retry(1, \Throwable::class))->onlyOn)
             ->because('the Throwable interface is a valid retry type filter')
             ->toBe(\Throwable::class);
-        expect(new Retry(1, AbstractRetryFailure::class)->onlyOn)
+        expect((new Retry(1, AbstractRetryFailure::class))->onlyOn)
             ->because('an abstract throwable is a valid retry type filter')
             ->toBe(AbstractRetryFailure::class);
     }
@@ -28,7 +28,7 @@ final class RetryTest
     public function invalidThrowableTypesAreRejected(string $onlyOn): void
     {
         expect()->calling(
-            static fn(): object => new \ReflectionClass(Retry::class)->newInstance(1, $onlyOn),
+            static fn(): object => (new \ReflectionClass(Retry::class))->newInstance(1, $onlyOn),
         )
             ->because('a retry filter MUST name a Throwable type')
             ->toThrow(

@@ -26,7 +26,7 @@ final readonly class Psr4ViolationTest
     {
         $directory = FixturePath::get($fixture);
 
-        return static fn(): ExecutionPlan => new TestDiscoverer()->discover([$directory]);
+        return static fn(): ExecutionPlan => (new TestDiscoverer())->discover([$directory]);
     }
 
     #[Test]
@@ -93,7 +93,7 @@ final readonly class Psr4ViolationTest
             ->toBeString();
 
         expect()->calling(
-            static fn(): ExecutionPlan => new TestDiscoverer()->discover([$directory]),
+            static fn(): ExecutionPlan => (new TestDiscoverer())->discover([$directory]),
         )
             ->because('an incomplete class declaration is not mistaken for a test class')
             ->toThrow(

@@ -209,7 +209,7 @@ final readonly class HarnessServiceDisposalTest
         $outcome = null;
 
         try {
-            $outcome = new Worker($definitions)->run(
+            $outcome = (new Worker($definitions))->run(
                 new ExecutionPlan($entries),
                 $sink,
                 $stopAfterFailures,

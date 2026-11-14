@@ -15,6 +15,6 @@ final readonly class MathTest
     #[Test]
     public function addsTwoIntegers(): void
     {
-        expect(new Math()->add(2, 3))->toBe(5);
+        expect((new Math())->add(2, 3))->toBe(5);
     }
 }

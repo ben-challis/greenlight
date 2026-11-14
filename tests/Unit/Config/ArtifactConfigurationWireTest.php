@@ -41,7 +41,7 @@ final class ArtifactConfigurationWireTest
     #[Test]
     public function nullByteDirectoriesAreRejectedAtTheWireBoundary(): void
     {
-        $payload = new ArtifactConfiguration()->toWire();
+        $payload = (new ArtifactConfiguration())->toWire();
         $payload['directory'] = "artifacts\0hidden";
 
         expect()->calling(static fn(): ArtifactConfiguration => ArtifactConfiguration::fromWire($payload))
@@ -56,7 +56,7 @@ final class ArtifactConfigurationWireTest
     #[DataSet('nonpositiveLimits')]
     public function nonpositiveArtifactLimitsNormalizeToOne(string $field, int $value): void
     {
-        $payload = new ArtifactConfiguration()->toWire();
+        $payload = (new ArtifactConfiguration())->toWire();
         $payload[$field] = $value;
 
         $restored = ArtifactConfiguration::fromWire(JsonWire::roundTrip($payload));

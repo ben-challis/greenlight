@@ -298,7 +298,7 @@ final class TeamCityReporter implements Reporter
 
         try {
             if (\class_exists($class)) {
-                $reflected = new \ReflectionClass($class)->getFileName();
+                $reflected = (new \ReflectionClass($class))->getFileName();
 
                 if ($reflected !== false) {
                     $file = $reflected;

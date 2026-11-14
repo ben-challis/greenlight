@@ -309,7 +309,7 @@ final class WorkerProtocolSchemaTest
 
     private function encodedEnvelope(Message $message): object
     {
-        $frame = new JsonFrameCodec()->encode(MessageRegistry::envelope($message));
+        $frame = (new JsonFrameCodec())->encode(MessageRegistry::envelope($message));
         $envelope = \json_decode(\substr($frame, 4), flags: \JSON_THROW_ON_ERROR);
 
         if (!\is_object($envelope)) {

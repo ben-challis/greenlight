@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Harness;
 
 use Greenlight\Attribute\DataSet;
+use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
+use Greenlight\Condition\PhpVersionAtLeast;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\ServiceDefinition;
@@ -66,6 +68,7 @@ final class HarnessServiceFactoryContractTest
     }
 
     #[Test]
+    #[SkipUnless(PhpVersionAtLeast::class, '8.4')]
     public function aLazyFactoryMustReturnTheRegisteredTypeWhenInitialized(): void
     {
         $scopes = $this->scopesFor(FactoryContractTarget::class);

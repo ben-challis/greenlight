@@ -20,7 +20,7 @@ final class ConfigLoaderTest
     #[Test]
     public function loadsAValidConfigFileFromADirectory(): void
     {
-        $builder = new ConfigLoader()->loadFromDirectory(self::fixtureDir('Valid'));
+        $builder = (new ConfigLoader())->loadFromDirectory(self::fixtureDir('Valid'));
         $configuration = $builder->build();
 
         expect($configuration->discovery->paths)->because('loads a valid configuration file from a directory')->toBe(['tests/Unit', 'tests/Acceptance']);
@@ -35,7 +35,7 @@ final class ConfigLoaderTest
     {
         $directory = self::fixtureDir('Empty');
 
-        expect()->calling(static fn(): GreenlightConfig => new ConfigLoader()->loadFromDirectory($directory))
+        expect()->calling(static fn(): GreenlightConfig => (new ConfigLoader())->loadFromDirectory($directory))
             ->because('a missing default configuration MUST give both available fixes')
             ->toThrow(
                 ConfigFileError::class,
@@ -52,7 +52,7 @@ final class ConfigLoaderTest
     public function missingExplicitFileIsReported(): void
     {
         expect()->calling(static function (): void {
-            new ConfigLoader()->loadFile(self::fixtureDir('Empty') . '/greenlight.php');
+            (new ConfigLoader())->loadFile(self::fixtureDir('Empty') . '/greenlight.php');
         })->because('missing explicit file is reported')->toThrow(ConfigFileError::class);
     }
 
@@ -96,7 +96,7 @@ final class ConfigLoaderTest
     #[Test]
     public function fileReturningTheWrongTypeIsRejectedWithTheActualType(): void
     {
-        expect()->calling(static fn(): GreenlightConfig => new ConfigLoader()->loadFromDirectory(self::fixtureDir('WrongReturn')))
+        expect()->calling(static fn(): GreenlightConfig => (new ConfigLoader())->loadFromDirectory(self::fixtureDir('WrongReturn')))
             ->toThrow(
                 static function (ConfigFileError $error): void {
                     expect($error->getMessage())
@@ -109,7 +109,7 @@ final class ConfigLoaderTest
     #[Test]
     public function throwingConfigFileIsWrappedWithTheOriginalMessage(): void
     {
-        expect()->calling(static fn(): GreenlightConfig => new ConfigLoader()->loadFromDirectory(self::fixtureDir('Throwing')))
+        expect()->calling(static fn(): GreenlightConfig => (new ConfigLoader())->loadFromDirectory(self::fixtureDir('Throwing')))
             ->toThrow(
                 static function (ConfigFileError $error): void {
                     expect($error->getMessage())

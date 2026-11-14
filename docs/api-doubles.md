@@ -14,7 +14,7 @@ Namespace: `Greenlight\Doubles`
 final class Argument
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L7)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L9)
 
 ### `any()`
 
@@ -24,7 +24,7 @@ This matcher accepts all values in its position.
 public static function any(): ArgumentMatcher
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L17)
 
 ### `type()`
 
@@ -42,7 +42,7 @@ PHPDoc:
 - `@return ( $type is 'array' ? ArgumentMatcher<array<array-key, mixed>> : ( $type is 'bool' ? ArgumentMatcher<bool> : ( $type is 'float' ? ArgumentMatcher<float> : ( $type is 'int' ? ArgumentMatcher<int> : ( $type is 'null' ? ArgumentMatcher<null> : ( $type is 'string' ? ArgumentMatcher<string> : ( $type is class-string ? ArgumentMatcher<new<TType>> : ArgumentMatcher<mixed> ) ) ) ) ) ) )`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L59)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L61)
 
 ### `intersection()`
 
@@ -57,7 +57,7 @@ PHPDoc:
 - `@return ArgumentMatcher<mixed>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L70)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L72)
 
 ### `union()`
 
@@ -72,7 +72,7 @@ PHPDoc:
 - `@return ArgumentMatcher<mixed>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L81)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L83)
 
 ### `predicate()`
 
@@ -91,7 +91,7 @@ PHPDoc:
 - `@return ArgumentMatcher<T>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L98)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L100)
 
 ### `equals()`
 
@@ -108,7 +108,7 @@ PHPDoc:
 - `@param T $value`
 - `@return ArgumentMatcher<T>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L113)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L115)
 
 ### `allOf()`
 
@@ -132,7 +132,7 @@ PHPDoc:
 - `@return ArgumentMatcher<T>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L131)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L133)
 
 ### `captor()`
 
@@ -143,7 +143,7 @@ selects the related expectation for the call.
 public static function captor(): ArgumentCaptor
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L149)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/Argument.php#L151)
 
 ## `ArgumentCaptor`
 

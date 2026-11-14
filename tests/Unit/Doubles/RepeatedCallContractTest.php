@@ -23,7 +23,7 @@ final readonly class RepeatedCallContractTest
         $spy->many('first', 'second');
         $spy->many();
 
-        expect()->calling(static fn(): mixed => new \ReflectionMethod($spy, 'record')->invokeArgs($spy, ['first', 'second']))
+        expect()->calling(static fn(): mixed => (new \ReflectionMethod($spy, 'record'))->invokeArgs($spy, ['first', 'second']))
             ->toThrow(InvalidDoubleUsage::class, '/accepts at most 1 argument/');
 
         $spy->record('last');
@@ -40,7 +40,7 @@ final readonly class RepeatedCallContractTest
         $first->record('first');
         $second->record();
 
-        expect()->calling(static fn(): mixed => new \ReflectionMethod($second, 'record')->invokeArgs($second, ['unexpected']))
+        expect()->calling(static fn(): mixed => (new \ReflectionMethod($second, 'record'))->invokeArgs($second, ['unexpected']))
             ->toThrow(InvalidDoubleUsage::class, '/accepts at most 0 arguments/');
 
         $first->record('last');

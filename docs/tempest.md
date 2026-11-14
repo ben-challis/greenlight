@@ -9,7 +9,7 @@ configuration, deferred tasks, container reset, and shutdown events.
 
 ## Compatibility
 
-Greenlight requires PHP 8.4 or later. Greenlight has no Tempest runtime
+Greenlight requires PHP 8.3 or later. Greenlight has no Tempest runtime
 dependency. The bridge supports Tempest 3.18 and later releases in major
 version 3.
 

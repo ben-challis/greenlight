@@ -23,7 +23,7 @@ final class Psr15PluginTest
     #[Test]
     public function suppliesAPerTestHttpHarnessByDefault(): void
     {
-        $definition = new Psr15Plugin($this->handler())->services()[0];
+        $definition = (new Psr15Plugin($this->handler()))->services()[0];
 
         expect($definition->type)->toBe(HttpHarness::class);
         expect($definition->scope)->toBe(Scope::PerTest);

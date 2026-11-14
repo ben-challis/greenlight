@@ -31,7 +31,7 @@ final readonly class RetryPolicyTest
             ->because('a direct retry policy MUST require a positive count')
             ->toThrow(\InvalidArgumentException::class, message: 'Retry times must be at least 1.');
 
-        $payload = new RetryPolicy()->toWire();
+        $payload = (new RetryPolicy())->toWire();
         $payload['times'] = 0;
 
         expect()->calling(static fn(): RetryPolicy => RetryPolicy::fromWire($payload))

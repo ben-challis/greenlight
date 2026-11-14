@@ -17,8 +17,8 @@ final readonly class HyperfPluginTest
     #[Test]
     public function exposesTheConfiguredSource(): void
     {
-        expect(new HyperfPlugin('/project')->source())->toBeNull();
-        expect(new HyperfPlugin('/project', source: 'application')->source())->toBe('application');
+        expect((new HyperfPlugin('/project'))->source())->toBeNull();
+        expect((new HyperfPlugin('/project', source: 'application'))->source())->toBe('application');
     }
 
     #[Test]
@@ -65,7 +65,7 @@ final readonly class HyperfPluginTest
     private function plugin(array $services): HyperfPlugin
     {
         $plugin = new HyperfPlugin('/project');
-        new \ReflectionProperty($plugin, 'activeContainer')->setValue($plugin, new ArrayContainer($services));
+        (new \ReflectionProperty($plugin, 'activeContainer'))->setValue($plugin, new ArrayContainer($services));
 
         return $plugin;
     }

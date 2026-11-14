@@ -1,13 +1,13 @@
 # Start with Greenlight
 
-Greenlight is an attribute-based test framework for PHP 8.4 and later. It runs
+Greenlight is an attribute-based test framework for PHP 8.3 and later. It runs
 tests in parallel by default.
 
 This guide starts with an empty project and creates a successful test run.
 
 ## Requirements and installation
 
-Greenlight requires PHP 8.4 or later. It does not require a PHP extension.
+Greenlight requires PHP 8.3 or later. It does not require a PHP extension.
 
 The parallel runner uses core stream sockets and `proc_open`. Coverage requires
 `ext-pcov` or Xdebug in coverage mode.
@@ -423,7 +423,7 @@ final class ExporterTest
     {
         $this->env->set('EXPORT_DIR', $this->tmp->path());
 
-        new Exporter()->run();
+        (new Exporter())->run();
 
         Expect::value(\file_exists($this->tmp->path() . '/export.csv'))->toBeTrue();
     }

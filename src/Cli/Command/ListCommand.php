@@ -63,7 +63,7 @@ final readonly class ListCommand
     private function execute(ParsedArguments $arguments, string $workingDirectory, bool $manifest): CommandResult
     {
         try {
-            $loaded = new ConfigurationLoader()->load($arguments, $workingDirectory);
+            $loaded = (new ConfigurationLoader())->load($arguments, $workingDirectory);
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
             return CommandResult::usage();

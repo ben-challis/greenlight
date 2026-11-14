@@ -11,6 +11,7 @@ use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\ServiceSource;
 use Greenlight\Harness\TerminalServiceResolver;
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\BeforeTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
@@ -84,7 +85,7 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
      */
     public static function requiresInitialBootstrapBarrier(array $definitions): bool
     {
-        return \array_any(
+        return Arrays::any(
             $definitions,
             static fn(PluginDefinition $definition): bool => $definition->supports(WorkerBootstrapSubscriber::class),
         );
@@ -253,7 +254,7 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
         int $attempt,
         ?\Throwable $cause,
     ): bool {
-        return \array_any(
+        return Arrays::any(
             $this->ordered(RetryDecider::class),
             static fn(RetryDecider $decider): bool => $decider->shouldRetry($policy, $result, $attempt, $cause),
         );

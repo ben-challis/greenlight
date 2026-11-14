@@ -218,7 +218,7 @@ final class ResultPolicyTest
             ]),
         );
 
-        $result = new ResultPolicy(failOnNotice: true)->apply($before);
+        $result = (new ResultPolicy(failOnNotice: true))->apply($before);
 
         expect($result->outcome)
             ->because('the notice policy does not make warnings fatal')
@@ -242,7 +242,7 @@ final class ResultPolicyTest
             ]),
         );
 
-        $result = new ResultPolicy(failOnWarning: true)->apply($before);
+        $result = (new ResultPolicy(failOnWarning: true))->apply($before);
 
         expect($result->outcome)
             ->because('the warning policy fails a passed test that captures a warning')
@@ -312,7 +312,7 @@ final class ResultPolicyTest
             risky: true,
         );
 
-        $result = new ResultPolicy(failOnRisky: true)->apply($before);
+        $result = (new ResultPolicy(failOnRisky: true))->apply($before);
 
         expect($result->outcome)
             ->because('the risky policy fails a passed result without expectations')

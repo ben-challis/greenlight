@@ -14,7 +14,7 @@ final class WorkerLifecycleWireContractTest
     #[Test]
     public function workerLifecycleEventsKeepTheirPublishedWireSchema(): void
     {
-        expect(new WorkerSpawned('worker-7', 321, 123.5)->toWire())
+        expect((new WorkerSpawned('worker-7', 321, 123.5))->toWire())
             ->because('worker-spawned payloads MUST keep their published field names')
             ->toBe([
                 'workerId' => 'worker-7',

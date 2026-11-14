@@ -9,9 +9,10 @@ namespace Greenlight\Harness;
  *
  * dispose() disposes the services in reverse creation order.
  *
- * If the service class supports a lazy proxy, Greenlight does not construct
- * the service until its first use. Thus, Greenlight does not dispose an
- * unused service.
+ * On PHP 8.4 and later, if the service class supports a lazy proxy,
+ * Greenlight does not construct the service until its first use. Thus,
+ * Greenlight does not dispose an unused service. On PHP 8.3, Greenlight
+ * constructs each service immediately.
  *
  * @internal
  */
@@ -54,9 +55,7 @@ final class ScopeContainer
         $failures = [];
 
         while (($service = \array_pop($this->initializedServices)) !== null) {
-            $reflection = new \ReflectionClass($service);
-
-            if ($reflection->isUninitializedLazyObject($service)) {
+            if (\PHP_VERSION_ID >= 80400 && (new \ReflectionClass($service))->isUninitializedLazyObject($service)) {
                 continue;
             }
 
@@ -97,6 +96,10 @@ final class ScopeContainer
 
             return $service;
         };
+
+        if (\PHP_VERSION_ID < 80400) {
+            return $factory();
+        }
 
         try {
             $proxy = $reflection->newLazyProxy($factory);

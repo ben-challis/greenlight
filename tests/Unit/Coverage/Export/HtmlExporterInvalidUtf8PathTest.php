@@ -17,7 +17,7 @@ final readonly class HtmlExporterInvalidUtf8PathTest
     public function invalidUtf8FilePathsAreScrubbed(): void
     {
         $path = "/src/\xB1.php";
-        $pages = new HtmlExporter()->export(new CoverageMap([
+        $pages = (new HtmlExporter())->export(new CoverageMap([
             new FileCoverage($path, [1], []),
         ]));
 

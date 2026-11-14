@@ -37,7 +37,7 @@ final class HttpHarnessTest
             }
         };
 
-        $result = new HttpHarness($handler)->send($request);
+        $result = (new HttpHarness($handler))->send($request);
 
         expect($handler->received)->toBe($request);
         expect($result)->toBe($response);

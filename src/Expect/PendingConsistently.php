@@ -34,7 +34,7 @@ final class PendingConsistently
      */
     public function because(string $reason): self
     {
-        new MatcherEvaluation(null, $this->renderer)->because($reason);
+        (new MatcherEvaluation(null, $this->renderer))->because($reason);
         $this->reason = $reason;
 
         return $this;

@@ -62,7 +62,7 @@ final class TestManifest
         $file = $method->getFileName();
         $line = $method->getStartLine();
         $classFile = \class_exists($definition->class)
-            ? new \ReflectionClass($definition->class)->getFileName()
+            ? (new \ReflectionClass($definition->class))->getFileName()
             : false;
 
         if (!\is_string($file) || $file === '' || !\is_int($line) || $line < 1) {

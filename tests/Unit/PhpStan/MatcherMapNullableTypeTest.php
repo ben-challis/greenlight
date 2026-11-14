@@ -16,7 +16,7 @@ final class MatcherMapNullableTypeTest
     #[DataSet('nullableNamedTypes')]
     public function nullableNamedTypesRenderForGeneratedSignatures(string $method, string $expected): void
     {
-        $parameter = new \ReflectionMethod(self::class, $method)->getParameters()[0];
+        $parameter = (new \ReflectionMethod(self::class, $method))->getParameters()[0];
 
         expect(MatcherMap::typeName($parameter->getType()))
             ->because('nullable named types MUST render valid generated signatures')

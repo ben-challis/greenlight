@@ -23,7 +23,7 @@ final readonly class HtmlExporterSparseSourceTest
     {
         $path = $this->directory->path() . '/missing.php';
         $map = new CoverageMap([new FileCoverage($path, [2], [$lastLine])]);
-        $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($path)];
+        $page = (new HtmlExporter())->export($map)[HtmlExporter::pageName($path)];
 
         expect($page)
             ->toContain('<span class="cov"><span class="num">2</span></span>')

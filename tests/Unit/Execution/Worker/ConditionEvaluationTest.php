@@ -76,7 +76,7 @@ final readonly class ConditionEvaluationTest
         ]);
         $sink = new CollectingEventSink();
 
-        new Worker([])
+        (new Worker([]))
             ->run($plan, $sink);
 
         $result = $sink->results()[0];
@@ -122,10 +122,10 @@ final readonly class ConditionEvaluationTest
     private function runFixture(string $case): array
     {
         $directory = FixturePath::get('Lifecycle/' . $case);
-        $plan = new TestDiscoverer()->discover([$directory]);
+        $plan = (new TestDiscoverer())->discover([$directory]);
         $sink = new CollectingEventSink();
 
-        $outcome = new Worker([])
+        $outcome = (new Worker([]))
             ->run($plan, $sink);
 
         return [$outcome->summary, $sink->results()];

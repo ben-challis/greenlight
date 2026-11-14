@@ -35,6 +35,12 @@ final readonly class TestClassFinished implements WireEvent
         $this->class = $class;
     }
 
+    #[\Override]
+    public function occurredAt(): float
+    {
+        return $this->occurredAt;
+    }
+
     /** @internal */
     #[\Override]
     public function toWire(): array

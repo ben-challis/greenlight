@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Doubles;
 
+use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
+use Greenlight\Condition\PhpVersionAtLeast;
 use Greenlight\Doubles\Doubles;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Fixture\Doubles\ProtectedPropertyContract;
@@ -16,6 +18,7 @@ final readonly class ProxyProtectedPropertyTest
     public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
+    #[SkipUnless(PhpVersionAtLeast::class, '8.4')]
     public function generatedProxiesPreserveProtectedAbstractProperties(): void
     {
         $doubles = new Doubles($this->tempDirectory->subdirectory('proxies'));

@@ -42,7 +42,7 @@ final readonly class CaptureArgumentReturnTypeExtension implements DynamicMethod
     {
         $receiver = $scope->getType($methodCall->var);
 
-        if (!new ObjectType(MethodExpectation::class)->isSuperTypeOf($receiver)->yes()) {
+        if (!(new ObjectType(MethodExpectation::class))->isSuperTypeOf($receiver)->yes()) {
             return null;
         }
 

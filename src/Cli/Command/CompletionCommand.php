@@ -26,7 +26,7 @@ final readonly class CompletionCommand
             $this->console->err(\sprintf("completion requires a shell argument: %s.\n", \implode(', ', Definition::COMPLETION_SHELLS)));
             return CommandResult::usage();
         }
-        $script = new CompletionScripts($this->definition->options())->render($shell);
+        $script = (new CompletionScripts($this->definition->options()))->render($shell);
         if ($script === null) {
             $this->console->err(\sprintf("Unknown shell \"%s\". Select one of: %s.\n", $shell, \implode(', ', Definition::COMPLETION_SHELLS)));
             return CommandResult::usage();

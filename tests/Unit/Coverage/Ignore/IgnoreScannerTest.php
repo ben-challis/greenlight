@@ -17,13 +17,13 @@ final readonly class IgnoreScannerTest
     #[Test]
     public function unreadableFileYieldsNoIgnoredLines(): void
     {
-        expect(new IgnoreScanner()->ignoredLines('/nonexistent/nope.php'))->because('unreadable file yields no ignored lines')->toBe([]);
+        expect((new IgnoreScanner())->ignoredLines('/nonexistent/nope.php'))->because('unreadable file yields no ignored lines')->toBe([]);
     }
 
     #[Test]
     public function nullByteFilePathYieldsNoIgnoredLines(): void
     {
-        expect(new IgnoreScanner()->ignoredLines("/invalid\0path.php"))
+        expect((new IgnoreScanner())->ignoredLines("/invalid\0path.php"))
             ->because('null byte file path yields no ignored lines')
             ->toBe([]);
     }
@@ -355,7 +355,7 @@ final readonly class IgnoreScannerTest
         $path = $this->tempDirectory->path() . '/fixture.php';
         \file_put_contents($path, $source);
 
-        $lines = \array_keys(new IgnoreScanner()->ignoredLines($path));
+        $lines = \array_keys((new IgnoreScanner())->ignoredLines($path));
         \sort($lines);
 
         return $lines;

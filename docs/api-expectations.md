@@ -630,7 +630,7 @@ Negates the next matcher for every value returned by the probe.
 final public function not(): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L45)
 
 ### `because()`
 
@@ -649,7 +649,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L63)
 
 ### `__call()`
 
@@ -666,7 +666,7 @@ PHPDoc:
 - `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L98)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L99)
 
 ## `EventuallyExpectation`
 
@@ -1168,7 +1168,7 @@ Negates the next matcher for every value returned by the probe.
 final public function not(): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L45)
 
 ### `because()`
 
@@ -1187,7 +1187,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L63)
 
 ### `__call()`
 
@@ -1204,7 +1204,7 @@ PHPDoc:
 - `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L98)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L99)
 
 ## `Expect`
 
@@ -2875,7 +2875,7 @@ consistent expectations.
 abstract class TemporalExpectation
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L18)
 
 PHPDoc:
 
@@ -3363,7 +3363,7 @@ Negates the next matcher for every value returned by the probe.
 final public function not(): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L44)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L45)
 
 ### `because()`
 
@@ -3382,7 +3382,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L62)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L63)
 
 ### `__call()`
 
@@ -3399,4 +3399,4 @@ PHPDoc:
 - `@throws \BadMethodCallException if no native or registered extension matcher has the requested name`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L98)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/TemporalExpectation.php#L99)

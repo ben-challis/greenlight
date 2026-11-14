@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Test;
 
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Internal\Text\Wildcard;
 
 /**
@@ -81,7 +82,7 @@ final readonly class TestSelection
             return true;
         }
 
-        return \array_any($this->include->idPatterns, static fn(string $pattern): bool => Wildcard::matches($renderedId, $pattern, caseInsensitive: true));
+        return Arrays::any($this->include->idPatterns, static fn(string $pattern): bool => Wildcard::matches($renderedId, $pattern, caseInsensitive: true));
     }
 
     /**
@@ -90,18 +91,18 @@ final readonly class TestSelection
      */
     private function anyGroupMatches(array $groups, array $filters): bool
     {
-        return \array_any($filters, static fn(string $filter): bool => \in_array($filter, $groups, true));
+        return Arrays::any($filters, static fn(string $filter): bool => \in_array($filter, $groups, true));
     }
 
     /** @param list<non-empty-string> $filters */
     private function anyNameMatches(string $name, array $filters): bool
     {
-        return \array_any($filters, static fn(string $filter): bool => Wildcard::matches($name, $filter, caseInsensitive: false));
+        return Arrays::any($filters, static fn(string $filter): bool => Wildcard::matches($name, $filter, caseInsensitive: false));
     }
 
     /** @param list<non-empty-string> $prefixes */
     private function anyPrefixMatches(string $path, array $prefixes): bool
     {
-        return \array_any($prefixes, static fn(string $prefix): bool => \str_starts_with($path, $prefix));
+        return Arrays::any($prefixes, static fn(string $prefix): bool => \str_starts_with($path, $prefix));
     }
 }

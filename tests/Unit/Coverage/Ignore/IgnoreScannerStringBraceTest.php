@@ -38,7 +38,7 @@ final readonly class IgnoreScannerStringBraceTest
         \file_put_contents($path, \str_replace('EXPRESSION', $expression, $source));
 
         $map = new CoverageMap([new FileCoverage($path, [], [5, 6, 10])]);
-        $filtered = new IgnoreFilter()->apply($map);
+        $filtered = (new IgnoreFilter())->apply($map);
 
         expect($filtered->files()[$path] ?? null)->toBeInstanceOf(FileCoverage::class);
         expect($filtered->files()[$path]->uncoveredLines)->toBe([10]);

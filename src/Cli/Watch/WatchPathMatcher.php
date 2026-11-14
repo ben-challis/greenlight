@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Watch;
 
+use Greenlight\Internal\Php\Arrays;
+
 /**
  * Matches watch paths with case-sensitive, slash-separated glob patterns.
  *
@@ -125,7 +127,7 @@ final readonly class WatchPathMatcher
         $absolute = $this->normalize($path);
         $relative = $this->relative($absolute);
 
-        return \array_any(
+        return Arrays::any(
             $patterns,
             static fn(array $pattern): bool => \preg_match(
                 $pattern['regex'],

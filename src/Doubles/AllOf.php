@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Doubles;
 
+use Greenlight\Internal\Php\Arrays;
+
 /**
  * Applies a sequence of argument matchers as one constraint.
  *
@@ -39,7 +41,7 @@ final readonly class AllOf implements TypedArgumentMatcher
 
     public function matches(mixed $value): bool
     {
-        return \array_all($this->matchers, static fn(ArgumentMatcher $matcher): bool => $matcher->matches($value));
+        return Arrays::all($this->matchers, static fn(ArgumentMatcher $matcher): bool => $matcher->matches($value));
     }
 
     public function describe(): string

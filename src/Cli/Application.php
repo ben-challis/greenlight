@@ -63,7 +63,7 @@ final readonly class Application
         require_once __DIR__ . '/../Expect/functions.php';
 
         if (($argv[0] ?? null) === '__watch-run') {
-            $result = new WatchRunCommand($this->console)->run(\array_slice($argv, 1), $workingDirectory, $binPath);
+            $result = (new WatchRunCommand($this->console))->run(\array_slice($argv, 1), $workingDirectory, $binPath);
 
             return ExitCode::fromCommandResult($result)->value();
         }
@@ -78,7 +78,7 @@ final readonly class Application
                 return ExitCode::fromCommandResult(CommandResult::usage())->value();
             }
 
-            $result = new WorkerProcess(isolateProcessGroup: true)->run($argv[1], $argv[2], $argv[3]);
+            $result = (new WorkerProcess(isolateProcessGroup: true))->run($argv[1], $argv[2], $argv[3]);
 
             return ExitCode::fromCommandResult($result)->value();
         }
@@ -87,7 +87,7 @@ final readonly class Application
         // process. A CLI process that inherits them reports its coverage
         // through the shared directory.
         $dump = SubprocessCoverage::begin();
-        $dispatch = fn(): CommandResult => new CommandDispatcher($this->console, self::VERSION)->dispatch($argv, $workingDirectory, $binPath);
+        $dispatch = fn(): CommandResult => (new CommandDispatcher($this->console, self::VERSION))->dispatch($argv, $workingDirectory, $binPath);
 
         if (!$dump instanceof SubprocessCoverage) {
             return ExitCode::fromCommandResult($dispatch())->value();

@@ -60,6 +60,12 @@ final readonly class RunStarted implements WireEvent
         $this->workers = $workers;
     }
 
+    #[\Override]
+    public function occurredAt(): float
+    {
+        return $this->occurredAt;
+    }
+
     /** @internal */
     #[\Override]
     public function toWire(): array

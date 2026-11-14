@@ -15,6 +15,7 @@ use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
+use Greenlight\Internal\Php\Arrays;
 use Greenlight\Test\SkipTest;
 use PhpParser\Modifiers;
 use PhpParser\Node;
@@ -885,7 +886,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             return false;
         }
 
-        return \array_all($expression->items, fn(?ArrayItem $item): bool => $item instanceof ArrayItem
+        return Arrays::all($expression->items, fn(?ArrayItem $item): bool => $item instanceof ArrayItem
             && !$item->byRef && !$item->unpack
             && (!$item->key instanceof Expr || $this->isLiteralValue($item->key))
             && $this->isLiteralValue($item->value));

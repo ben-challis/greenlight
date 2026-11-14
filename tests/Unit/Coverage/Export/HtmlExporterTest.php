@@ -27,7 +27,7 @@ final readonly class HtmlExporterTest
             new FileCoverage('/src/B.php', [1], []),
         ]);
 
-        $pages = new HtmlExporter()->export($map);
+        $pages = (new HtmlExporter())->export($map);
 
         expect(\array_keys($pages))->because('produces an index plus one page per file')->toBe([
             HtmlExporter::INDEX_FILE_NAME,
@@ -44,7 +44,7 @@ final readonly class HtmlExporterTest
             new FileCoverage('/src/B.php', [1], [2, 3]),
         ]);
 
-        $index = new HtmlExporter()->export($map)[HtmlExporter::INDEX_FILE_NAME];
+        $index = (new HtmlExporter())->export($map)[HtmlExporter::INDEX_FILE_NAME];
         \preg_match_all('/<tr>.*<\/tr>/', $index, $rows);
 
         expect($rows[0])->because('index lists every file with its percentage and the total')->toBe([
@@ -70,7 +70,7 @@ final readonly class HtmlExporterTest
             new FileCoverage('/src/A.php', [1, 2, 3], [4]),
         ]);
 
-        $index = new HtmlExporter()->export($map)[HtmlExporter::INDEX_FILE_NAME];
+        $index = (new HtmlExporter())->export($map)[HtmlExporter::INDEX_FILE_NAME];
 
         expect($index)->because('index shows summary cards and coverage bars')->toContain('class="cards"')
             ->toContain('Total coverage')
@@ -95,7 +95,7 @@ final readonly class HtmlExporterTest
             ),
         ]);
 
-        $index = new HtmlExporter()->export($map)[HtmlExporter::INDEX_FILE_NAME];
+        $index = (new HtmlExporter())->export($map)[HtmlExporter::INDEX_FILE_NAME];
 
         expect($index)
             ->because('the index MUST tint percentages at the coverage-level boundaries')
@@ -125,7 +125,7 @@ final readonly class HtmlExporterTest
             new FileCoverage('/proj/src/A.php', [1], []),
         ]);
 
-        $pages = new HtmlExporter('/proj')->export($map);
+        $pages = (new HtmlExporter('/proj'))->export($map);
         $index = $pages[HtmlExporter::INDEX_FILE_NAME];
         $filePage = $pages[HtmlExporter::pageName('/proj/src/A.php')];
 
@@ -142,7 +142,7 @@ final readonly class HtmlExporterTest
             new FileCoverage('/elsewhere/src/A.php', [1], []),
         ]);
 
-        $index = new HtmlExporter('/proj')->export($map)[HtmlExporter::INDEX_FILE_NAME];
+        $index = (new HtmlExporter('/proj'))->export($map)[HtmlExporter::INDEX_FILE_NAME];
 
         expect($index)->because('paths outside the project root stay absolute')->toContain('/elsewhere/src/A.php');
     }
@@ -155,7 +155,7 @@ final readonly class HtmlExporterTest
             new FileCoverage($fixture, [Adder::ADD_RETURN_LINE], [Adder::NEVER_RETURN_LINE]),
         ]);
 
-        $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($fixture)];
+        $page = (new HtmlExporter())->export($map)[HtmlExporter::pageName($fixture)];
 
         expect($page)->because('file page colors source lines by coverage status')->toContain('class="cov"')
             ->toContain('class="unc"')
@@ -171,7 +171,7 @@ final readonly class HtmlExporterTest
             new FileCoverage($fixture, [Adder::ADD_RETURN_LINE], []),
         ]);
 
-        $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($fixture)];
+        $page = (new HtmlExporter())->export($map)[HtmlExporter::pageName($fixture)];
 
         expect($page)->because('file page syntax highlights PHP source')->toContain('<span class="tk">return</span>')
             ->toContain('<span class="tk">function</span>')
@@ -194,7 +194,7 @@ final readonly class HtmlExporterTest
             new FileCoverage($fixture, [3], []),
         ]);
 
-        $page = new HtmlExporter()->export($map)[HtmlExporter::pageName($fixture)];
+        $page = (new HtmlExporter())->export($map)[HtmlExporter::pageName($fixture)];
 
         expect($page)
             ->because('PHP string and heredoc tokens are highlighted without becoming HTML')
@@ -211,7 +211,7 @@ final readonly class HtmlExporterTest
             new FileCoverage('/no/such/file.php', [3], [5]),
         ]);
 
-        $page = new HtmlExporter()->export($map)[HtmlExporter::pageName('/no/such/file.php')];
+        $page = (new HtmlExporter())->export($map)[HtmlExporter::pageName('/no/such/file.php')];
 
         expect($page)->because('unreadable source shows only line numbers')->toContain('class="cov"')
             ->toContain('class="unc"')

@@ -31,7 +31,7 @@ final readonly class DataProviderTest
             ->because('a direct external data provider MUST name its method')
             ->toThrow(\InvalidArgumentException::class);
 
-        $payload = new DataProvider()->toWire();
+        $payload = (new DataProvider())->toWire();
         $payload['class'] = 'App\SharedRows';
 
         expect()->calling(static fn(): DataProvider => DataProvider::fromWire($payload))

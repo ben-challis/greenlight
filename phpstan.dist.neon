@@ -52,6 +52,11 @@ parameters:
         - tools/phpstan-stubs/hyperf.php
     excludePaths:
         analyse:
+            # PHP 8.4 property syntax. PHPStan cannot ignore these errors while
+            # the project supports PHP 8.3. The tests that load them skip on PHP 8.3.
+            - tests/Fixture/Doubles/PropertyContract.php
+            - tests/Fixture/Doubles/ProtectedPropertyContract.php
+            - tests/Fixture/Expect/HookedProperties.php
             - tests/Fixture/DataRowsDuplicateInline
             - tests/Fixture/DataRowsInvalid/EmptyDataRowLabelTest.php
             - tests/Fixture/DiscoveryAttributeArgumentsInvalid

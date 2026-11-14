@@ -16,7 +16,7 @@ final readonly class OptionSpecTest
     #[Test]
     public function zeroStringLongNameParsesAsAFlag(): void
     {
-        $arguments = new ArgumentParser([new OptionSpec('0')])->parse(['--0']);
+        $arguments = (new ArgumentParser([new OptionSpec('0')]))->parse(['--0']);
 
         expect($arguments->has('0'))
             ->because('a zero-string long option name is not empty')

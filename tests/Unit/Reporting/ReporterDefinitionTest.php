@@ -40,7 +40,7 @@ final readonly class ReporterDefinitionTest
     {
         $factory = static fn(Output $output): Reporter => new RecordingReporter();
 
-        expect()->calling(static fn(): object => new \ReflectionClass(ReporterDefinition::class)->newInstance('', $factory))
+        expect()->calling(static fn(): object => (new \ReflectionClass(ReporterDefinition::class))->newInstance('', $factory))
             ->toThrow(\InvalidArgumentException::class);
     }
 

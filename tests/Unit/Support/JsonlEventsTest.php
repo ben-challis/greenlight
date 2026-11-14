@@ -91,7 +91,7 @@ final class JsonlEventsTest
     #[Test]
     public function malformedJsonNamesItsStdoutLine(): void
     {
-        $valid = $this->line('worker-spawned', new WorkerSpawned('worker-1', 1, 1.0)->toWire());
+        $valid = $this->line('worker-spawned', (new WorkerSpawned('worker-1', 1, 1.0))->toWire());
         $result = new ProcessResult(0, $valid . "\nnot-json", '');
 
         expect()->calling(static fn(): array => JsonlEvents::from($result))->because('malformed JSON names its stdout line')
