@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Plugin;
 
-use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\InvalidConfiguration;
+use Greenlight\Config\WorkingDirectoryPath;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
@@ -159,7 +159,7 @@ final readonly class CommandDispatcher
         $loader = new ConfigLoader();
 
         if ($configuredPath !== null) {
-            $builder = $loader->loadFile(ConfigurationLoader::absolutePath($configuredPath, $workingDirectory));
+            $builder = $loader->loadFile(WorkingDirectoryPath::resolve($configuredPath, $workingDirectory));
         } else {
             $default = \rtrim($workingDirectory, '/') . '/' . ConfigLoader::FILE_NAME;
 

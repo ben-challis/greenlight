@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Command;
 
-use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\InvalidConfiguration;
+use Greenlight\Config\WorkingDirectoryPath;
 use Greenlight\Internal\Filesystem\AtomicFile;
 use Greenlight\Internal\Filesystem\AtomicFileError;
 use Greenlight\PhpStan\IdeHelper;
@@ -30,7 +30,7 @@ final readonly class IdeHelperCommand
     {
         try {
             $configFile = $arguments->value('config') ?? \rtrim($workingDirectory, '/') . '/' . ConfigLoader::FILE_NAME;
-            $map = MatcherMap::fromConfigFiles([ConfigurationLoader::absolutePath($configFile, $workingDirectory)]);
+            $map = MatcherMap::fromConfigFiles([WorkingDirectoryPath::resolve($configFile, $workingDirectory)]);
         } catch (ConfigFileError|InvalidConfiguration|MatcherMapError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
             return CommandResult::failure();
@@ -40,7 +40,7 @@ final readonly class IdeHelperCommand
             return CommandResult::success();
         }
         $output = $arguments->value('output') ?? '_greenlight_ide_helper.php';
-        $path = ConfigurationLoader::absolutePath($output, $workingDirectory);
+        $path = WorkingDirectoryPath::resolve($output, $workingDirectory);
         try {
             AtomicFile::write($path, IdeHelper::render($map));
         } catch (AtomicFileError $error) {

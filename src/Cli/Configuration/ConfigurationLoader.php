@@ -10,6 +10,7 @@ use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\ResolvedConfiguration;
+use Greenlight\Config\WorkingDirectoryPath;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
@@ -31,7 +32,7 @@ final readonly class ConfigurationLoader
         $configArgument = $arguments->value('config');
 
         if ($configArgument !== null) {
-            $configFile = self::absolutePath($configArgument, $workingDirectory);
+            $configFile = WorkingDirectoryPath::resolve($configArgument, $workingDirectory);
             $builder = $loader->loadFile($configFile);
         } else {
             $configFile = \rtrim($workingDirectory, '/') . '/' . ConfigLoader::FILE_NAME;
@@ -66,7 +67,7 @@ final readonly class ConfigurationLoader
         $resolved = [];
 
         foreach ($prefixes as $prefix) {
-            $absolute = self::absolutePath($prefix, $workingDirectory);
+            $absolute = WorkingDirectoryPath::resolve($prefix, $workingDirectory);
             $real = ErrorTrap::run(static fn() => \realpath($absolute));
             if ($real !== false) {
                 $resolved[] = $real;
@@ -84,7 +85,7 @@ final readonly class ConfigurationLoader
         $paths = $configuration->suiteSelection->paths($configuration->discovery);
         $directories = [];
         foreach ($paths as $path) {
-            $absolute = self::absolutePath($path, $workingDirectory);
+            $absolute = WorkingDirectoryPath::resolve($path, $workingDirectory);
             if ($absolute !== '' && !\in_array($absolute, $directories, true)) {
                 $directories[] = $absolute;
             }
@@ -92,9 +93,13 @@ final readonly class ConfigurationLoader
         return $directories;
     }
 
+    /**
+     * Resolves a path with WorkingDirectoryPath. Use WorkingDirectoryPath for
+     * new code.
+     */
     public static function absolutePath(string $path, string $workingDirectory): string
     {
-        return \str_starts_with($path, '/') ? $path : \rtrim($workingDirectory, '/') . '/' . $path;
+        return WorkingDirectoryPath::resolve($path, $workingDirectory);
     }
 
 }

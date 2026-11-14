@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Run;
 
-use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Configuration\LoadedConfiguration;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
@@ -20,6 +19,7 @@ use Greenlight\Cli\Watch\WatchLoop;
 use Greenlight\Cli\Watch\WatchPathMatcher;
 use Greenlight\Cli\Watch\WatchSourceFailed;
 use Greenlight\Cli\Watch\WatchSourceRuntime;
+use Greenlight\Config\WorkingDirectoryPath;
 use Greenlight\Execution\RunPolicyError;
 use Greenlight\Execution\Worker\LeakDetector;
 use Greenlight\Internal\Process\GracefulShutdown;
@@ -48,14 +48,14 @@ final readonly class WatchRuns
         $directories = $configuration->directories;
         $watched = $directories;
         foreach ($resolved->coverage->includePaths ?? [] as $path) {
-            $absolute = ConfigurationLoader::absolutePath($path, $workingDirectory);
+            $absolute = WorkingDirectoryPath::resolve($path, $workingDirectory);
             if ($absolute !== '' && !\in_array($absolute, $watched, true)) {
                 $watched[] = $absolute;
             }
         }
         $additionalPaths = [];
         foreach ($resolved->watch->paths as $path) {
-            $absolute = ConfigurationLoader::absolutePath($path, $workingDirectory);
+            $absolute = WorkingDirectoryPath::resolve($path, $workingDirectory);
             if ($absolute !== '' && !\in_array($absolute, $additionalPaths, true)) {
                 $additionalPaths[] = $absolute;
             }

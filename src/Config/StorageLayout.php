@@ -70,11 +70,7 @@ final readonly class StorageLayout
 
     private static function absolute(string $directory, string $workingDirectory): string
     {
-        $path = \str_starts_with($directory, '/')
-            ? $directory
-            : \rtrim($workingDirectory, '/') . '/' . $directory;
-
-        $trimmed = \rtrim($path, '/');
+        $trimmed = \rtrim(WorkingDirectoryPath::resolve($directory, $workingDirectory), '/');
 
         return $trimmed === '' ? '/' : $trimmed;
     }
