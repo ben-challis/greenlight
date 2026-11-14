@@ -209,6 +209,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         }
 
         $defined = $this->definedMethods($class);
+        $providers = $this->referencedDataProviders($class);
         $hooks = [];
         $hookOrder = ['before' => [], 'after' => []];
         $tests = [];
@@ -243,6 +244,12 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
             if ($this->hasAttributeNamed($method->attrGroups, 'Override')) {
                 // #[\Override] on anything but a hook points at the removed parent.
+                return null;
+            }
+
+            if ($kind === 'helper' && $this->isStaticTestNamed($method) && !isset($providers[$name])) {
+                // PHPUnit runs a public static test method. A Greenlight
+                // test must not be static, so the method would stop running.
                 return null;
             }
 
@@ -368,6 +375,36 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         }
 
         return [...$templates, ...$attributed] === \array_reverse($declared);
+    }
+
+    private function isStaticTestNamed(ClassMethod $method): bool
+    {
+        return $method->isPublic() && $method->isStatic() && \str_starts_with($method->name->toLowerString(), 'test');
+    }
+
+    /**
+     * @return array<string, true> lowercase names from string `#[DataProvider]` arguments
+     */
+    private function referencedDataProviders(Class_ $class): array
+    {
+        $providers = [];
+
+        foreach ($class->getMethods() as $method) {
+            foreach ($method->attrGroups as $group) {
+                foreach ($group->attrs as $attribute) {
+                    $argument = $attribute->args[0] ?? null;
+
+                    if ($this->getName($attribute->name) === PhpUnitAttributes::NAMESPACE_PREFIX . 'DataProvider'
+                        && $argument instanceof Arg
+                        && $argument->value instanceof String_
+                    ) {
+                        $providers[\strtolower($argument->value->value)] = true;
+                    }
+                }
+            }
+        }
+
+        return $providers;
     }
 
     /**

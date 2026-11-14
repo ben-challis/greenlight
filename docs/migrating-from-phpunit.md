@@ -58,6 +58,7 @@ A class does not convert when it uses:
 * hooks that PHPUnit and Greenlight run in a different order, for example
   two `#[Before]` methods or `setUp()` before a `#[Before]` method
 * a `#[TestWith]` row or a literal data provider row with string keys
+* a public static method with a `test` name prefix that is not a data provider
 * `#[RunClassInSeparateProcess]` or `#[PreserveGlobalState]`
 * other inherited `TestCase` API that the rule cannot prove safe
 
