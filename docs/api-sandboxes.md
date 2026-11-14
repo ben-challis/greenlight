@@ -170,7 +170,7 @@ Disposal removes a symbolic link and leaves its target unchanged.
 final class TemporaryDirectory implements Disposable
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L15)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L16)
 
 ### `__construct()`
 
@@ -182,7 +182,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException If $temporaryRoot contains a null byte.`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L22)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L23)
 
 ### `path()`
 
@@ -194,7 +194,7 @@ PHPDoc:
 
 - `@throws TemporaryDirectoryError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L33)
 
 ### `subdirectory()`
 
@@ -209,7 +209,7 @@ PHPDoc:
 - `@throws \InvalidArgumentException`
 - `@throws TemporaryDirectoryError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L70)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L71)
 
 ### `dispose()`
 
@@ -221,7 +221,7 @@ PHPDoc:
 
 - `@throws TemporaryDirectoryError`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L118)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Sandbox/TemporaryDirectory.php#L117)
 
 ## `TemporaryDirectoryError`
 
