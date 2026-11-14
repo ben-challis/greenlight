@@ -92,7 +92,9 @@ final readonly class ArtifactContentVerificationTest
         expect(\array_map(static fn($item): string => $item->runId, $report->items))
             ->because('a run that fails verification MUST NOT stop the limit from selecting another run')
             ->toBe(['run-middle']);
-        expect($report->warnings)->toBe(['Greenlight did not prune artifact run "run-changed".']);
+        expect($report->warnings)->toBe([
+            'Greenlight did not prune artifact run "run-changed" because its content does not match its completion manifest.',
+        ]);
         expect(\file_get_contents($parent . '/run-changed/evidence.txt'))->toBe('odd');
         expect(\is_dir($parent . '/run-newest'))->toBeTrue();
     }
