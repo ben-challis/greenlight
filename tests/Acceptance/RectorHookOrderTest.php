@@ -51,7 +51,7 @@ final readonly class RectorHookOrderTest
 
         $result = $probe->runConvertedTests();
 
-        expect($result->exitCode)->because($result->stdout . $result->stderr)->toBe(0);
+        expect($result->exitCode)->because("converted tests output:\n" . $result->output())->toBe(0);
     }
 
     /**
