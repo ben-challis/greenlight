@@ -56,7 +56,7 @@ final readonly class ArtifactPruneClaimRecoveryTest
     }
 
     #[Test]
-    public function aFailedClaimDeletionKeepsTheClaimForTheNextPrune(): void
+    public function aClaimThatAFailedRecoveryEmptiedIsRemovedByTheNextPrune(): void
     {
         $parent = $this->tempDirectory->subdirectory('stale-claim-failed-deletion');
         $retention = $this->retention($parent, maxCompletedRuns: 10);
@@ -83,6 +83,91 @@ final readonly class ArtifactPruneClaimRecoveryTest
             ->because('the next prune MUST complete a claim that a failed deletion left')
             ->toBeFalse();
         expect($completed->warnings)->toBe([\sprintf('Greenlight removed the empty interrupted prune claim "%s".', \basename($claim))]);
+    }
+
+    #[Test]
+    public function aClaimWithAnEmptiedDirectoryIsRemoved(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('stale-claim-emptied-directory');
+        $retention = $this->retention($parent, maxCompletedRuns: 10);
+        $handle = $retention->begin('run-nested');
+        \mkdir($handle->directory . '/nested');
+        \file_put_contents($handle->directory . '/nested/first.txt', 'first');
+        \file_put_contents($handle->directory . '/second.txt', 'second');
+        $handle->complete();
+        $claim = $parent . '/.greenlight-prune-' . \str_repeat('f', 24);
+        \rename($parent . '/run-nested', $claim);
+        \unlink($claim . '/nested/first.txt');
+
+        $report = $retention->prune(now: 100);
+
+        expect(\file_exists($parent . '/run-nested'))
+            ->because('a claim that a deletion stopped in before an empty directory MUST NOT return to its run ID')
+            ->toBeFalse();
+        expect(\file_exists($claim))->toBeFalse();
+        expect($report->warnings)->toBe(['Greenlight completed an interrupted prune of artifact run "run-nested".']);
+    }
+
+    #[Test]
+    public function aFailedDeletionKeepsTheClaimForTheNextPrune(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('failed-claim-deletion');
+        $retention = $this->retention($parent, maxCompletedRuns: 1);
+        $this->completedRun($retention, 'run-old', 1, 'old', extraFiles: 2);
+        $this->completedRun($retention, 'run-new', 2, 'new');
+        $removals = 0;
+        $failing = $retention->withPathRemoverForTesting(static function (string $path) use (&$removals): bool {
+            ++$removals;
+
+            return $removals === 1 && \unlink($path);
+        });
+
+        $failed = $failing->prune(now: 100);
+        $claims = $this->claims($parent);
+        $metadataKept = \count($claims) === 1 && \is_file($claims[0] . '/' . ArtifactRetention::METADATA_FILE);
+        $completed = $retention->prune(now: 100);
+
+        expect($claims)
+            ->because('a deletion that fails part way MUST keep the claim')
+            ->toHaveCount(1);
+        expect(\file_exists($parent . '/run-old'))
+            ->because('a partly deleted run MUST NOT return to its run ID')
+            ->toBeFalse();
+        expect($metadataKept)
+            ->because('the metadata file MUST stay until the last step of a deletion')
+            ->toBeTrue();
+        expect($failed->warnings)->toBe(['Greenlight did not prune artifact run "run-old".']);
+        expect($this->claims($parent))->toBe([]);
+        expect($completed->warnings)->toBe(['Greenlight completed an interrupted prune of artifact run "run-old".']);
+        expect(\is_dir($parent . '/run-new'))->toBeTrue();
+    }
+
+    #[Test]
+    public function deletionRemovesTheMetadataFileAfterEveryOtherEntry(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('metadata-removed-last');
+        $retention = $this->retention($parent, maxCompletedRuns: 1);
+        $this->completedRun($retention, 'run-old', 1, 'old', extraFiles: 32);
+        $this->completedRun($retention, 'run-new', 2, 'new');
+        $remainingAtMetadata = null;
+        $recording = $retention->withPathRemoverForTesting(
+            static function (string $path) use (&$remainingAtMetadata): bool {
+                if (\basename($path) === ArtifactRetention::METADATA_FILE) {
+                    $names = \scandir(\dirname($path));
+                    $remainingAtMetadata = \is_array($names) ? \array_values(\array_diff($names, ['.', '..'])) : null;
+                }
+
+                return \is_dir($path) && !\is_link($path) ? \rmdir($path) : \unlink($path);
+            },
+        );
+
+        $report = $recording->prune(now: 100);
+
+        expect($remainingAtMetadata)
+            ->because('a deletion MUST remove every other entry before the metadata file')
+            ->toBe([ArtifactRetention::METADATA_FILE]);
+        expect($report->warnings)->toBe([]);
+        expect(\file_exists($parent . '/run-old'))->toBeFalse();
     }
 
     #[Test]
@@ -122,6 +207,14 @@ final readonly class ArtifactPruneClaimRecoveryTest
         ]);
     }
 
+    /** @return list<string> */
+    private function claims(string $parent): array
+    {
+        $claims = \glob($parent . '/.greenlight-prune-*');
+
+        return \is_array($claims) ? $claims : [];
+    }
+
     private function retention(
         string $parent,
         ?int $maxCompletedRuns = null,
@@ -134,10 +227,18 @@ final readonly class ArtifactPruneClaimRecoveryTest
         ), $parent);
     }
 
-    private function completedRun(ArtifactRetention $retention, string $runId, int $completedAt, string $content): void
-    {
+    private function completedRun(
+        ArtifactRetention $retention,
+        string $runId,
+        int $completedAt,
+        string $content,
+        int $extraFiles = 0,
+    ): void {
         $handle = $retention->begin($runId);
         \file_put_contents($handle->directory . '/evidence.txt', $content);
+        for ($index = 0; $index < $extraFiles; ++$index) {
+            \file_put_contents($handle->directory . '/extra-' . $index . '.txt', $content . $index);
+        }
         $handle->complete();
         $this->rewriteMetadata($handle->directory, ['completedAt' => $completedAt]);
     }

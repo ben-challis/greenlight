@@ -24,11 +24,29 @@ final readonly class ArtifactRetention
     private const string CLAIM_PREFIX = '.greenlight-prune-';
     private const int MAX_METADATA_BYTES = 16 * 1024 * 1024;
 
-    /** @param non-empty-string $parent */
+    /**
+     * @param non-empty-string $parent
+     * @param (\Closure(string): bool)|null $removePath removes one path below a
+     *     claim. Null removes the path with unlink() or rmdir().
+     */
     private function __construct(
         private ArtifactConfiguration $configuration,
         public string $parent,
+        private ?\Closure $removePath = null,
     ) {}
+
+    /**
+     * Returns a copy that removes claim paths through $removePath. Only tests
+     * use this method, to make a deletion fail part way.
+     *
+     * @internal
+     *
+     * @param \Closure(string): bool $removePath
+     */
+    public function withPathRemoverForTesting(\Closure $removePath): self
+    {
+        return new self($this->configuration, $this->parent, $removePath);
+    }
 
     /**
      * Resolves the artifact parent directory.
@@ -447,7 +465,7 @@ final readonly class ArtifactRetention
         }
 
         return \array_all(
-            self::contentManifest($claim),
+            self::contentManifest($claim, $files),
             static fn(array $file, string $path): bool => ($files[$path] ?? null) === $file,
         );
     }
@@ -491,8 +509,20 @@ final readonly class ArtifactRetention
         return \array_values(\array_filter($names, static fn(string $name): bool => $name !== '.' && $name !== '..'));
     }
 
-    /** @return array<non-empty-string, array{bytes: int, sha256: non-empty-string}> */
-    public static function contentManifest(string $directory): array
+    /**
+     * Returns the content files of a run directory with their sizes and
+     * digests.
+     *
+     * Each directory must contain a content file, directly or below it. With
+     * $manifest, a directory that a file of $manifest is below is also valid.
+     * A deletion removes the files of a directory before the directory, so a
+     * partly deleted claim can contain such an empty directory.
+     *
+     * @param array<non-empty-string, array{bytes: int, sha256: non-empty-string}> $manifest
+     *
+     * @return array<non-empty-string, array{bytes: int, sha256: non-empty-string}>
+     */
+    public static function contentManifest(string $directory, array $manifest = []): array
     {
         if (ErrorTrap::run(static fn() => \is_link($directory))
             || !ErrorTrap::run(static fn() => \is_dir($directory))
@@ -538,17 +568,14 @@ final readonly class ArtifactRetention
         }
         \ksort($files);
         $expectedDirectories = [];
-        foreach (\array_keys($files) as $file) {
+        foreach ([...\array_keys($files), ...\array_keys($manifest)] as $file) {
             $parent = \dirname($file);
             while ($parent !== '.') {
                 $expectedDirectories[$parent] = true;
                 $parent = \dirname($parent);
             }
         }
-        \sort($directories);
-        $expected = \array_keys($expectedDirectories);
-        \sort($expected);
-        if ($directories !== $expected) {
+        if (\array_diff($directories, \array_keys($expectedDirectories)) !== []) {
             throw new \RuntimeException('Artifact run content contains an unowned directory.');
         }
 
@@ -824,20 +851,27 @@ final readonly class ArtifactRetention
                 if (!$entry instanceof \SplFileInfo || $entry->getPathname() === $metadata) {
                     continue;
                 }
-                $path = $entry->getPathname();
-                $removed = !$entry->isLink() && $entry->isDir()
-                    ? ErrorTrap::run(static fn() => \rmdir($path))
-                    : ErrorTrap::run(static fn() => \unlink($path));
-                if (!$removed) {
+                if (!$this->removeEntry($entry->getPathname())) {
                     return false;
                 }
             }
 
-            return (!ErrorTrap::run(static fn() => \file_exists($metadata)) || ErrorTrap::run(static fn() => \unlink($metadata)))
-                && ErrorTrap::run(static fn() => \rmdir($directory));
+            return (!ErrorTrap::run(static fn() => \file_exists($metadata)) || $this->removeEntry($metadata))
+                && $this->removeEntry($directory);
         } catch (\Throwable) {
             return false;
         }
+    }
+
+    private function removeEntry(string $path): bool
+    {
+        if ($this->removePath instanceof \Closure) {
+            return ($this->removePath)($path);
+        }
+
+        return !ErrorTrap::run(static fn() => \is_link($path)) && ErrorTrap::run(static fn() => \is_dir($path))
+            ? ErrorTrap::run(static fn() => \rmdir($path))
+            : ErrorTrap::run(static fn() => \unlink($path));
     }
 
     private function treeRemovable(string $directory): bool
