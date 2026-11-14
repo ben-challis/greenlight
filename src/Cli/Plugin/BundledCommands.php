@@ -12,6 +12,7 @@ use Greenlight\Cli\Command\ListCommand;
 use Greenlight\Cli\Command\ProfileReportCommand;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\Definition;
+use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Cli\Output\HelpFormatter;
 use Greenlight\Cli\Run\ArtifactsPruneCommand;
@@ -68,9 +69,15 @@ final readonly class BundledCommands implements CommandProvider
     private function parsedCommand(CommandInvocation $invocation): CommandResult
     {
         try {
-            $arguments = $this->definition->parser()->parse($invocation->argv());
+            $arguments = $this->definition->parser($invocation->command)->parse($invocation->arguments);
+
+            if ($arguments->command !== null) {
+                throw CliError::unexpectedArgument($arguments->command);
+            }
+
+            $arguments = new ParsedArguments($invocation->command, $arguments->options);
         } catch (CliError $error) {
-            $this->console->error($error->getMessage(), \in_array('--no-ansi', $invocation->argv(), true));
+            $this->console->error($error->getMessage(), \in_array('--no-ansi', $invocation->arguments, true));
 
             return CommandResult::usage();
         }

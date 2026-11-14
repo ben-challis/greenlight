@@ -49,7 +49,7 @@ final readonly class CommandErrorsTest
             ->because('a list option MUST not replace an explicit known command')
             ->toBe(64);
         expect($result->stderr)
-            ->toBe('coverage:diff requires --baseline=<path> and --current=<path>.');
+            ->toBe('greenlight: Option --list-tests does not apply to the "coverage:diff" command.');
         expect($result->stdout)->toBe('');
     }
 

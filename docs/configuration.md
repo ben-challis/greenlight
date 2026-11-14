@@ -809,6 +809,11 @@ vendor/bin/greenlight completion fish > ~/.config/fish/completions/greenlight.fi
 
 ## Options
 
+Each command accepts only the options that apply to it. Another option is a
+usage error with exit code `64`. All commands accept `--help`, `--version`,
+`--ansi`, and `--no-ansi`. The `run` and `list-tests` commands accept the
+run, selection, report, and coverage options.
+
 An option that requires a value accepts `--name=value` and `--name value`.
 The word after the option is its value, also when it starts with `-`. An
 option with an optional value, such as `--bail`, accepts only `--name=value`.
