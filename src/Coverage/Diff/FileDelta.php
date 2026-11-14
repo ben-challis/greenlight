@@ -79,10 +79,12 @@ final readonly class FileDelta
     }
 
     /**
-     * Tells if the uncovered-line count of a file in both maps changed.
+     * Tells if the uncovered-line count of a file in the current map changed.
+     * A file that the baseline does not contain starts at zero uncovered lines.
      */
     public function uncoveredLinesChanged(): bool
     {
-        return $this->isShared() && $this->baselineUncoveredLines !== $this->currentUncoveredLines;
+        return $this->currentUncoveredLines !== null
+            && ($this->baselineUncoveredLines ?? 0) !== $this->currentUncoveredLines;
     }
 }

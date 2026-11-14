@@ -114,7 +114,7 @@ final readonly class CoverageDiffCommand
             ),
         );
         foreach ($report->fileDeltas as $delta) {
-            if ($delta->delta() === 0.0 && !$delta->uncoveredLinesChanged()) {
+            if (!$delta->regressed() && $delta->delta() === 0.0 && !$delta->uncoveredLinesChanged()) {
                 continue;
             }
             $line = \sprintf(
