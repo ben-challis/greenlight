@@ -566,7 +566,9 @@ final class ArtifactStore
             }
         }
 
-        $report = $this->retention->prune(protectedRunId: $protectedRunId);
+        // Automatic retention runs after each run. A warning for each skipped
+        // directory would repeat on every run, so only the command reports them.
+        $report = $this->retention->prune(protectedRunId: $protectedRunId, reportSkipped: false);
 
         return new ArtifactPruneReport($report->items, [...$warnings, ...$report->warnings]);
     }
