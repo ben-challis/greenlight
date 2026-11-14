@@ -137,7 +137,7 @@ final readonly class MethodCallContract
             $arguments[$position] = $converted;
         }
 
-        return $arguments;
+        return [...$arguments, ...$this->omittedDefaults(\count($arguments))];
     }
 
     /**
@@ -165,6 +165,35 @@ final readonly class MethodCallContract
             $parameter->getName(),
             $parameterType->describe(),
         );
+    }
+
+    /**
+     * Gets the default values that a call records for omitted optional
+     * parameters. The generated proxy passes each declared parameter.
+     *
+     * @return list<mixed>
+     * @throws InvalidDoubleUsage
+     */
+    private function omittedDefaults(int $supplied): array
+    {
+        $defaults = [];
+
+        foreach (\array_slice($this->parameters, $supplied) as $parameter) {
+            if ($parameter->isVariadic() || !$parameter->isDefaultValueAvailable()) {
+                break;
+            }
+
+            $value = $parameter->getDefaultValue();
+            $type = $parameter->getType();
+
+            if ($type !== null) {
+                $value = $this->convert($value, ArgumentType::fromReflection($type, $parameter->getDeclaringClass()));
+            }
+
+            $defaults[] = ParameterDefaultExpression::containsObject($value) ? new EqualsMatcher($value) : $value;
+        }
+
+        return $defaults;
     }
 
     /**

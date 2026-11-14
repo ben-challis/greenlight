@@ -27,7 +27,9 @@ final readonly class ObjectDefaultTest
 
         $double->run();
 
-        expect($this->doubles->callsTo($double, 'run'))->toBe([[]]);
+        expect($this->doubles->callsTo($double, 'run'))
+            ->because('a call records the default object of an omitted argument')
+            ->toEqual([[new \stdClass()]]);
         expect(new \ReflectionMethod($double, 'run')->getParameters()[0]->getDefaultValue())
             ->toBeInstanceOf(\stdClass::class);
     }
@@ -44,7 +46,7 @@ final readonly class ObjectDefaultTest
         $double->run();
 
         expect(TrackedValue::$constructions)->toBe(1);
-        expect($this->doubles->callsTo($double, 'run'))->toBe([[]]);
+        expect($this->doubles->callsTo($double, 'run'))->toEqual([[new TrackedValue('default'), '']]);
     }
 
     #[Test]
@@ -76,7 +78,7 @@ final readonly class ObjectDefaultTest
         $double->run($value);
 
         expect(TrackedValue::$constructions)->toBe(1);
-        expect($this->doubles->callsTo($double, 'run'))->toBe([[$value]]);
+        expect($this->doubles->callsTo($double, 'run'))->toBe([[$value, '']]);
     }
 
     #[Test]

@@ -19,6 +19,10 @@ use Greenlight\Expect\ValueRenderer;
  * that accepts `float` but not `int` becomes a float, as PHP converts the call
  * argument.
  *
+ * A plan and a call that omit optional arguments use the declared default
+ * values. Thus, `with('a')` matches `find('a', 2)` when the second parameter
+ * has the default `2`. An object default uses deep equality.
+ *
  * @template TTarget of object = object
  * @template TMethod of non-empty-string = non-empty-string
  */
