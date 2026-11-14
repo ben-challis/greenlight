@@ -6,6 +6,10 @@ namespace Greenlight\Execution\Artifact;
 
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Config\ArtifactConfiguration;
+use Greenlight\Internal\Filesystem\DirectoryWalkError;
+use Greenlight\Internal\Filesystem\DirectoryWalkFailure;
+use Greenlight\Internal\Filesystem\RelativePath;
+use Greenlight\Internal\Filesystem\SafeDirectory;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
@@ -104,7 +108,15 @@ final readonly class ArtifactRetention
      */
     public function validateParent(): void
     {
-        $this->walkParent(false);
+        try {
+            SafeDirectory::check($this->parent);
+        } catch (DirectoryWalkError $error) {
+            // Restricted filesystem access can hide every ancestor. Creation
+            // reports the failure if access stays restricted.
+            if ($error->failure !== DirectoryWalkFailure::NoExistingAncestor) {
+                throw OutputDirectoryError::from($error);
+            }
+        }
         if (ErrorTrap::run(fn() => \is_dir($this->parent))
             && ErrorTrap::run(fn() => \realpath($this->parent)) !== $this->parent
         ) {
@@ -801,8 +813,8 @@ final readonly class ArtifactRetention
 
                 throw new \RuntimeException('Artifact run content contains an unsupported filesystem entry.');
             }
-            $relative = self::validatedRelativePath(\substr($entry->getPathname(), \strlen($directory) + 1));
-            if ($relative === null) {
+            $relative = \substr($entry->getPathname(), \strlen($directory) + 1);
+            if (!RelativePath::isSafe($relative)) {
                 throw new \RuntimeException('Artifact run content contains an unsafe path.');
             }
             if (\in_array($relative, [self::METADATA_FILE, self::LOCK_FILE], true)) {
@@ -943,15 +955,14 @@ final readonly class ArtifactRetention
     {
         $files = [];
         foreach ($raw as $path => $metadata) {
-            $validatedPath = \is_string($path) ? self::validatedRelativePath($path) : null;
-            if ($validatedPath === null || !\is_array($metadata)
+            if (!\is_string($path) || !RelativePath::isSafe($path) || !\is_array($metadata)
                 || !\is_int($metadata['bytes'] ?? null) || $metadata['bytes'] < 0
                 || !\is_string($metadata['sha256'] ?? null)
                 || \preg_match('/^[a-f0-9]{64}$/D', $metadata['sha256']) !== 1
             ) {
                 return null;
             }
-            $files[$validatedPath] = ['bytes' => $metadata['bytes'], 'sha256' => $metadata['sha256']];
+            $files[$path] = ['bytes' => $metadata['bytes'], 'sha256' => $metadata['sha256']];
         }
         \ksort($files);
 
@@ -961,57 +972,17 @@ final readonly class ArtifactRetention
     /** @throws AttachmentError */
     private function ensureParent(): string
     {
-        $this->walkParent(true);
+        try {
+            SafeDirectory::create($this->parent);
+        } catch (DirectoryWalkError $error) {
+            throw OutputDirectoryError::from($error);
+        }
         $canonical = ErrorTrap::run(fn() => \realpath($this->parent));
         if ($canonical === false || $canonical !== $this->parent) {
             throw AttachmentError::storage('Artifact parent directory is not canonical');
         }
 
         return $canonical;
-    }
-
-    /**
-     * Checks each missing or existing path from the parent up to its first
-     * existing directory. When $create is true, the method creates each
-     * missing directory.
-     *
-     * @throws AttachmentError
-     */
-    private function walkParent(bool $create): void
-    {
-        $missing = [];
-        $current = $this->parent;
-        while (true) {
-            if (ErrorTrap::run(static fn() => \is_link($current))) {
-                throw AttachmentError::storage('Attachment output directory contains a symbolic link');
-            }
-            if (ErrorTrap::run(static fn() => \is_dir($current))) {
-                break;
-            }
-            if (ErrorTrap::run(static fn() => \file_exists($current))) {
-                throw AttachmentError::storage('Attachment output path contains a non-directory entry');
-            }
-            $missing[] = $current;
-            $parent = \dirname($current);
-            if ($parent === $current) {
-                if (!$create) {
-                    // Restricted filesystem access can hide every ancestor.
-                    // Creation reports the failure if access stays restricted.
-                    return;
-                }
-                throw AttachmentError::storage('Failed to find the artifact output parent');
-            }
-            $current = $parent;
-        }
-
-        if (!$create) {
-            return;
-        }
-        foreach (\array_reverse($missing) as $path) {
-            if (!ErrorTrap::run(static fn() => \mkdir($path, 0o700), $warning)) {
-                throw AttachmentError::storage('Failed to create attachment output directory' . ($warning === null ? '' : ': ' . $warning));
-            }
-        }
     }
 
     /**
@@ -1026,18 +997,6 @@ final readonly class ArtifactRetention
         }
 
         return $runId;
-    }
-
-    /** @return non-empty-string|null */
-    private static function validatedRelativePath(string $path): ?string
-    {
-        if ($path === '' || \str_starts_with($path, '/') || \str_contains($path, '\\')
-            || !\array_all(\explode('/', $path), static fn(string $part): bool => !\in_array($part, ['', '.', '..'], true))
-        ) {
-            return null;
-        }
-
-        return $path;
     }
 
     /** @param array<non-empty-string, array{bytes: int, sha256: non-empty-string}> $files */

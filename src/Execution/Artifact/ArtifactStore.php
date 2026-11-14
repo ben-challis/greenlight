@@ -10,6 +10,9 @@ use Greenlight\Artifact\AttachmentKind;
 use Greenlight\Artifact\AttachmentRetention;
 use Greenlight\Artifact\StagedAttachment;
 use Greenlight\Config\ArtifactConfiguration;
+use Greenlight\Internal\Filesystem\DirectoryWalkError;
+use Greenlight\Internal\Filesystem\RelativePath;
+use Greenlight\Internal\Filesystem\SafeDirectory;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Text\DecimalInteger;
 use Greenlight\Result\TestResult;
@@ -378,14 +381,14 @@ final class ArtifactStore
             if ($this->pathExists($destination)) {
                 throw AttachmentError::storage('An attachment output path already exists');
             }
-            $this->assertOutputPathSafe(\dirname($destination));
+            $this->walkOutput(\dirname($destination), false);
             $this->ensureRunDirectory();
 
             $source = $this->session->stagingDirectory . '/' . $storageKey;
             $parent = \dirname($destination);
             $part = $destination . '.part-' . \bin2hex(\random_bytes(4));
 
-            $this->createDirectorySafely($parent);
+            $this->walkOutput($parent, true);
 
             if ($this->pathExists($destination) || $this->pathExists($part)
             ) {
@@ -857,66 +860,27 @@ final class ArtifactStore
      */
     private function assertSafeStorageKey(string $storageKey): void
     {
-        if ($storageKey === '' || \str_starts_with($storageKey, '/') || \str_contains($storageKey, '\\')) {
-            throw AttachmentError::storage('Attachment metadata contains an unsafe storage key');
-        }
-
-        if (!\array_all(
-            \explode('/', $storageKey),
-            static fn(string $segment): bool => !\in_array($segment, ['', '.', '..'], true),
-        )) {
+        if (!RelativePath::isSafe($storageKey)) {
             throw AttachmentError::storage('Attachment metadata contains an unsafe storage key');
         }
     }
 
     /**
+     * Checks each path from $directory up to the run directory. When $create
+     * is true, the method also creates each missing directory.
+     *
      * @throws AttachmentError
      */
-    private function createDirectorySafely(string $directory): void
+    private function walkOutput(string $directory, bool $create): void
     {
-        $missing = [];
-        $current = $directory;
-        while (\str_starts_with($current . '/', $this->session->publicDirectory . '/')) {
-            if (ErrorTrap::run(static fn() => \is_link($current))) {
-                throw AttachmentError::storage('Attachment output directory contains a symbolic link');
+        try {
+            if ($create) {
+                SafeDirectory::create($directory, $this->session->publicDirectory);
+            } else {
+                SafeDirectory::check($directory, $this->session->publicDirectory);
             }
-            $isDirectory = ErrorTrap::run(static fn() => \is_dir($current));
-            if (ErrorTrap::run(static fn() => \file_exists($current)) && !$isDirectory) {
-                throw AttachmentError::storage('Attachment output path contains a non-directory entry');
-            }
-            if (!$isDirectory) {
-                $missing[] = $current;
-            }
-            if ($current === $this->session->publicDirectory) {
-                break;
-            }
-            $current = \dirname($current);
-        }
-
-        foreach (\array_reverse($missing) as $path) {
-            if (!ErrorTrap::run(static fn() => \mkdir($path, 0o700), $warning)) {
-                throw AttachmentError::storage('Failed to create attachment output directory' . ($warning === null ? '' : ': ' . $warning));
-            }
-        }
-    }
-
-    /** @throws AttachmentError */
-    private function assertOutputPathSafe(string $directory): void
-    {
-        $current = $directory;
-        while (\str_starts_with($current . '/', $this->session->publicDirectory . '/')) {
-            if (ErrorTrap::run(static fn() => \is_link($current))) {
-                throw AttachmentError::storage('Attachment output directory contains a symbolic link');
-            }
-            if (ErrorTrap::run(static fn() => \file_exists($current))
-                && !ErrorTrap::run(static fn() => \is_dir($current))
-            ) {
-                throw AttachmentError::storage('Attachment output path contains a non-directory entry');
-            }
-            if ($current === $this->session->publicDirectory) {
-                break;
-            }
-            $current = \dirname($current);
+        } catch (DirectoryWalkError $error) {
+            throw OutputDirectoryError::from($error);
         }
     }
 
