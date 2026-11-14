@@ -61,6 +61,17 @@ Pruning uses one lock in the canonical artifact parent. It claims a selected
 run with an atomic rename before deletion. Concurrent Greenlight processes can
 safely apply the same policy.
 
+An interrupted prune can leave a `.greenlight-prune-` claim. Before it selects
+runs, each prune examines the claims below the parent. It deletes a claim that
+matches its manifest. It renames another claim back to its run ID, or reports
+it. A dry run reports claims and does not change them. If verification fails
+after a claim, pruning renames the claim back.
+
+If deletion fails, the claim stays, and the next prune completes it. Deletion
+removes the run metadata file last, so a partly deleted claim still names its
+run. An empty claim is a deletion that did not finish, and the next prune
+removes it.
+
 Age has first precedence, then count, then total bytes. Each limit selects the
 oldest eligible completed run first. Completion time and run ID give the stable
 order. A future completion time is not old for the age policy.
