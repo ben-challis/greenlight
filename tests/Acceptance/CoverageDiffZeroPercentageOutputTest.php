@@ -74,10 +74,10 @@ final readonly class CoverageDiffZeroPercentageOutputTest
         );
 
         expect($result->exitCode)
-            ->because('an added file with uncovered lines MUST report a coverage regression')
-            ->toBe(1);
+            ->because('an added file MUST NOT report a coverage regression')
+            ->toBe(0);
         expect($result->stdoutLines())
-            ->because('the output MUST name the added file that causes the regression')
+            ->because('the output MUST list the uncovered lines of an added file')
             ->toBe([
                 'Coverage: baseline 100.00%, current 33.33% (-66.67)',
                 '/project/src/New.php: absent -> 0.00% (+0.00), uncovered lines: 0 -> 2',

@@ -50,9 +50,8 @@ final readonly class Definition
           coverage:merge Merge coverage JSON exports. Supply at least two --input
                          options and at least one --export option.
           coverage:diff  Compare two coverage JSON exports. Fail if a file in both
-                         maps has more uncovered lines or a lower percentage, or if an
-                         added file has uncovered lines. Removed files do not cause a
-                         regression.
+                         maps has more uncovered lines or a lower percentage. Added,
+                         removed, and renamed files do not cause a regression.
           profile:report Create a run profile from a saved JSONL stream (--input)
           artifacts:prune Apply configured retention to completed artifact runs.
                          Use --dry-run to list selected runs without deletion.
