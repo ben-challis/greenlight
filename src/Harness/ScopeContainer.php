@@ -9,9 +9,11 @@ namespace Greenlight\Harness;
  *
  * dispose() disposes the services in reverse creation order.
  *
- * If the service class supports a lazy proxy, Greenlight does not construct
- * the service until its first use. Thus, Greenlight does not dispose an
- * unused service.
+ * If the service type is a final class that supports a lazy proxy, Greenlight
+ * does not construct the service until its first use. Thus, Greenlight does not
+ * dispose an unused service. A factory for a type that is not final can return
+ * a subclass. A proxy of the registered type cannot forward method calls to a
+ * subclass, so Greenlight constructs these services when it resolves them.
  *
  * @internal
  */
@@ -97,6 +99,13 @@ final class ScopeContainer
 
             return $service;
         };
+
+        // A final type guarantees that the proxy and the factory result have
+        // the same class. The proxy then accepts each instance that the
+        // factory records for disposal.
+        if (!$reflection->isFinal()) {
+            return $factory();
+        }
 
         try {
             $proxy = $reflection->newLazyProxy($factory);
