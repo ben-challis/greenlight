@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Reporting;
 
 use Greenlight\Event\Event;
-use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestFinished;
@@ -34,30 +33,23 @@ final class TeamCityReporter implements Reporter
      */
     private array $classFiles = [];
 
-    /**
-     * @var array<non-empty-string, positive-int>
-     */
-    private array $activeClassAssignments = [];
+    private readonly ClassAssignments $classAssignments;
 
-    private ?string $artifactsDirectory = null;
-    private bool $hasAttachments = false;
+    private readonly RetainedArtifacts $retainedArtifacts;
 
-    public function __construct(private readonly Output $output) {}
+    public function __construct(private readonly Output $output)
+    {
+        $this->classAssignments = new ClassAssignments();
+        $this->retainedArtifacts = new RetainedArtifacts();
+    }
 
     #[\Override]
     public function onEvent(Event $event): void
     {
-        if ($event instanceof RunStarted) {
-            $this->artifactsDirectory = $event->artifactsDirectory;
-
-            return;
-        }
+        $this->retainedArtifacts->onEvent($event);
 
         if ($event instanceof TestClassStarted) {
-            $active = $this->activeClassAssignments[$event->class] ?? 0;
-            $this->activeClassAssignments[$event->class] = $active + 1;
-
-            if ($active > 0) {
+            if (!$this->classAssignments->started($event->class)) {
                 return;
             }
 
@@ -77,15 +69,10 @@ final class TeamCityReporter implements Reporter
         }
 
         if ($event instanceof TestClassFinished) {
-            $active = $this->activeClassAssignments[$event->class] ?? 0;
-
-            if ($active > 1) {
-                $this->activeClassAssignments[$event->class] = $active - 1;
-
+            if (!$this->classAssignments->finished($event->class)) {
                 return;
             }
 
-            unset($this->activeClassAssignments[$event->class]);
             $this->message('testSuiteFinished', [
                 'name' => $event->class,
                 'flowId' => $event->class,
@@ -118,10 +105,10 @@ final class TeamCityReporter implements Reporter
     #[\Override]
     public function finish(): void
     {
-        if ($this->hasAttachments && $this->artifactsDirectory !== null) {
-            $this->output->write(
-                "##teamcity[publishArtifacts '" . $this->escape($this->artifactsDirectory) . "']\n",
-            );
+        $directory = $this->retainedArtifacts->directory();
+
+        if ($directory !== null) {
+            $this->output->write("##teamcity[publishArtifacts '" . $this->escape($directory) . "']\n");
         }
     }
 
@@ -132,7 +119,6 @@ final class TeamCityReporter implements Reporter
     {
         $name = (string) $result->id;
         $flowId = $result->id->class;
-        $this->hasAttachments = $this->hasAttachments || $result->attachments !== [];
 
         if ($result->outcome === Outcome::Failed) {
             $this->writeFailed($result, $name, $flowId);

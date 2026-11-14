@@ -5,12 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Reporting;
 
 use Greenlight\Event\Event;
-use Greenlight\Event\RunFinished;
 use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestFinished;
-use Greenlight\Event\WorkerSpawned;
 use Greenlight\Result\Outcome;
-use Greenlight\Result\TestResult;
 
 /**
  * Produces deterministic CI logs without ANSI sequences.
@@ -26,53 +23,26 @@ use Greenlight\Result\TestResult;
  *
  * @internal
  */
-final class PlainReporter implements Reporter
+final readonly class PlainReporter implements Reporter
 {
-    /**
-     * @var list<TestResult>
-     */
-    private array $problems = [];
+    private Style $style;
 
-    /**
-     * @var list<TestSummary>
-     */
-    private array $skipped = [];
-
-    /**
-     * @var list<TestSummary>
-     */
-    private array $retriedPasses = [];
-
-    /**
-     * @var list<non-empty-string>
-     */
-    private array $risky = [];
-
-    private int $workersSpawned = 0;
-
-    /**
-     * @var non-negative-int
-     */
-    private int $expectations = 0;
-
-    private ?RunFinished $runFinished = null;
-
-    private readonly Style $style;
-
-    private readonly SlowTests $slowTests;
+    private RunSummary $summary;
 
     public function __construct(
-        private readonly Output $output,
-        private readonly ?RunHeader $header = null,
+        private Output $output,
+        private ?RunHeader $header = null,
         bool $extendedSlowTests = false,
     ) {
         $this->style = new Style(ansi: false);
-        $this->slowTests = new SlowTests($extendedSlowTests);
+        $this->summary = new RunSummary($this->style, $extendedSlowTests);
     }
 
     #[\Override]
     public function onEvent(Event $event): void
     {
+        $this->summary->onEvent($event);
+
         if ($event instanceof RunStarted) {
             if ($this->header instanceof RunHeader) {
                 $this->output->write($this->header->render($event->workers, $this->style) . "\n");
@@ -89,9 +59,7 @@ final class PlainReporter implements Reporter
         }
 
         if ($event instanceof TestFinished) {
-            $this->slowTests->record($event);
             $result = $event->result;
-            $this->expectations = SaturatingCount::add($this->expectations, $result->expectations);
             $attempts = $result->attempts > 1
                 ? ($result->outcome === Outcome::Passed
                     ? \sprintf(' (passed after %d attempts)', $result->attempts)
@@ -109,72 +77,12 @@ final class PlainReporter implements Reporter
             if ($result->outcome->isSuccessful() && $result->attachments !== []) {
                 $this->output->write(AttachmentFormat::render($result));
             }
-
-            if (!$result->outcome->isSuccessful()) {
-                $this->problems[] = $result;
-            }
-
-            if ($result->outcome === Outcome::Skipped) {
-                $this->skipped[] = new TestSummary($result);
-            }
-
-            if ($result->outcome === Outcome::Passed && $result->attempts > 1) {
-                $this->retriedPasses[] = new TestSummary($result);
-            }
-
-            if ($result->risky && $result->outcome->isSuccessful() && ($id = (string) $result->id) !== '') {
-                $this->risky[] = $id;
-            }
-
-            return;
-        }
-
-        if ($event instanceof WorkerSpawned) {
-            ++$this->workersSpawned;
-
-            return;
-        }
-
-        if ($event instanceof RunFinished) {
-            $this->runFinished = $event;
         }
     }
 
     #[\Override]
     public function finish(): void
     {
-        foreach ($this->problems as $problem) {
-            $this->output->write(\sprintf(
-                "\n%s %s\n%s",
-                ProblemDetails::outcomeLabel($problem),
-                $problem->id,
-                ProblemDetails::render($problem),
-            ));
-        }
-
-        $finished = $this->runFinished;
-
-        if ($finished instanceof RunFinished) {
-            $this->output->write(\sprintf(
-                "\n%s\nTime: %.3fs\n",
-                SummaryFormat::tests($finished->summary, $this->expectations, $this->style, \count($this->retriedPasses)),
-                $finished->durationSeconds,
-            ));
-        }
-
-        $workers = SummaryFormat::workers($this->workersSpawned);
-
-        if ($workers !== null) {
-            $this->output->write($workers . "\n");
-        }
-
-        $this->output->write(SummaryFormat::skipped($this->skipped, $this->style));
-        $this->output->write(SummaryFormat::retriedPasses($this->retriedPasses, $this->style));
-        $this->output->write($this->slowTests->render($this->style));
-
-        if ($this->risky !== []) {
-            $this->output->write(SummaryFormat::risky($this->risky));
-        }
+        $this->output->write($this->summary->problems() . $this->summary->totals() . $this->summary->risky());
     }
-
 }
