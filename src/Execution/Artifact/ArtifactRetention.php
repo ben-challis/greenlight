@@ -344,12 +344,9 @@ final readonly class ArtifactRetention
             ErrorTrap::run(static fn() => \fclose($lock));
         }
 
-        if ($this->removeTree($claim)) {
-            return true;
-        }
-        ErrorTrap::run(static fn() => \rename($claim, $directory));
-
-        return false;
+        // A failed deletion keeps the claim, so that the next prune can
+        // complete it. A partial tree cannot return to its run ID.
+        return $this->removeTree($claim);
     }
 
     /**
@@ -380,12 +377,14 @@ final readonly class ArtifactRetention
             }
 
             try {
-                $record = $this->recordWithoutLock($claim, $runId);
+                $owned = $this->claimWithinManifest($claim, $runId);
             } catch (\Throwable) {
-                $record = null;
+                $owned = false;
             }
-            if ($record instanceof ArtifactRunRecord && $this->treeRemovable($claim) && $this->removeTree($claim)) {
-                $warnings[] = \sprintf('Greenlight completed an interrupted prune of artifact run "%s".', $runId);
+            if ($owned) {
+                $warnings[] = $this->treeRemovable($claim) && $this->removeTree($claim)
+                    ? \sprintf('Greenlight completed an interrupted prune of artifact run "%s".', $runId)
+                    : \sprintf('Greenlight did not recover the interrupted prune claim "%s".', $name);
                 continue;
             }
 
@@ -401,6 +400,36 @@ final readonly class ArtifactRetention
         }
 
         return $warnings;
+    }
+
+    /**
+     * Tells whether each remaining content file of a claim matches its entry
+     * in the completion manifest. A claim that a prune deleted in part
+     * matches, because deletion only removes files. The metadata file stays
+     * until the last step of a deletion.
+     *
+     * @throws \Throwable
+     */
+    private function claimWithinManifest(string $claim, string $runId): bool
+    {
+        $decoded = self::metadataMap($claim);
+        if (($decoded['version'] ?? null) !== self::METADATA_VERSION
+            || ($decoded['owner'] ?? null) !== self::OWNER
+            || ($decoded['runId'] ?? null) !== $runId
+            || ($decoded['state'] ?? null) !== 'completed'
+            || !\is_array($decoded['files'] ?? null)
+        ) {
+            return false;
+        }
+        $files = $this->validatedFiles($decoded['files']);
+        if ($files === null) {
+            return false;
+        }
+
+        return \array_all(
+            self::contentManifest($claim),
+            static fn(array $file, string $path): bool => ($files[$path] ?? null) === $file,
+        );
     }
 
     /**
@@ -770,8 +799,9 @@ final readonly class ArtifactRetention
                 new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
                 \RecursiveIteratorIterator::CHILD_FIRST,
             );
+            $metadata = $directory . '/' . self::METADATA_FILE;
             foreach ($entries as $entry) {
-                if (!$entry instanceof \SplFileInfo) {
+                if (!$entry instanceof \SplFileInfo || $entry->getPathname() === $metadata) {
                     continue;
                 }
                 $path = $entry->getPathname();
@@ -783,7 +813,8 @@ final readonly class ArtifactRetention
                 }
             }
 
-            return ErrorTrap::run(static fn() => \rmdir($directory));
+            return (!ErrorTrap::run(static fn() => \file_exists($metadata)) || ErrorTrap::run(static fn() => \unlink($metadata)))
+                && ErrorTrap::run(static fn() => \rmdir($directory));
         } catch (\Throwable) {
             return false;
         }

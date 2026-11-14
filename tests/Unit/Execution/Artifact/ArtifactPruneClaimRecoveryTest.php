@@ -34,6 +34,28 @@ final readonly class ArtifactPruneClaimRecoveryTest
     }
 
     #[Test]
+    public function aPartlyDeletedClaimIsRemoved(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('stale-claim-partial');
+        $retention = $this->retention($parent, maxCompletedRuns: 10);
+        $handle = $retention->begin('run-partial');
+        \file_put_contents($handle->directory . '/first.txt', 'first');
+        \file_put_contents($handle->directory . '/second.txt', 'second');
+        $handle->complete();
+        $claim = $parent . '/.greenlight-prune-' . \str_repeat('d', 24);
+        \rename($parent . '/run-partial', $claim);
+        \unlink($claim . '/first.txt');
+
+        $report = $retention->prune(now: 100);
+
+        expect(\file_exists($claim))
+            ->because('a prune MUST complete a claim that an earlier prune deleted in part')
+            ->toBeFalse();
+        expect(\file_exists($parent . '/run-partial'))->toBeFalse();
+        expect($report->warnings)->toBe(['Greenlight completed an interrupted prune of artifact run "run-partial".']);
+    }
+
+    #[Test]
     public function aStaleClaimWithChangedContentIsRestored(): void
     {
         $parent = $this->tempDirectory->subdirectory('stale-claim-restore');
