@@ -21,13 +21,32 @@ final readonly class ArtifactRetention
     public const string LOCK_FILE = '.greenlight-run.lock';
 
     private const string PRUNE_LOCK_FILE = '.greenlight-prune.lock';
+    private const string CLAIM_PREFIX = '.greenlight-prune-';
     private const int MAX_METADATA_BYTES = 16 * 1024 * 1024;
 
-    /** @param non-empty-string $parent */
+    /**
+     * @param non-empty-string $parent
+     * @param (\Closure(string): bool)|null $removePath removes one path below a
+     *     claim. Null removes the path with unlink() or rmdir().
+     */
     private function __construct(
         private ArtifactConfiguration $configuration,
         public string $parent,
+        private ?\Closure $removePath = null,
     ) {}
+
+    /**
+     * Returns a copy that removes claim paths through $removePath. Only tests
+     * use this method, to make a deletion fail part way.
+     *
+     * @internal
+     *
+     * @param \Closure(string): bool $removePath
+     */
+    public function withPathRemoverForTesting(\Closure $removePath): self
+    {
+        return new self($this->configuration, $this->parent, $removePath);
+    }
 
     /**
      * Resolves the artifact parent directory.
@@ -223,7 +242,7 @@ final readonly class ArtifactRetention
     private function pruneLocked(string $parent, bool $dryRun, ?string $protectedRunId, int $now): ArtifactPruneReport
     {
         $records = [];
-        $warnings = [];
+        $warnings = $dryRun ? $this->reportClaims($parent) : $this->recoverClaims($parent);
         $iterator = ErrorTrap::run(static fn() => new \FilesystemIterator($parent, \FilesystemIterator::SKIP_DOTS));
         foreach ($iterator as $entry) {
             if (!$entry instanceof \SplFileInfo || $entry->isLink() || !$entry->isDir()) {
@@ -317,7 +336,7 @@ final readonly class ArtifactRetention
             return false;
         }
 
-        $claim = $parent . '/.greenlight-prune-' . \bin2hex(\random_bytes(12));
+        $claim = $parent . '/' . self::CLAIM_PREFIX . \bin2hex(\random_bytes(12));
         try {
             if ($this->pathIsLink($lockPath)
                 || !$this->canonicalDirectory($parent, $parent)
@@ -328,9 +347,13 @@ final readonly class ArtifactRetention
             if (!ErrorTrap::run(static fn() => \rename($directory, $claim))) {
                 return false;
             }
-            $claimed = $this->canonicalDirectory($claim, $claim)
-                ? $this->recordWithoutLock($claim, $record->runId)
-                : null;
+            try {
+                $claimed = $this->canonicalDirectory($claim, $claim)
+                    ? $this->recordWithoutLock($claim, $record->runId)
+                    : null;
+            } catch (\Throwable) {
+                $claimed = null;
+            }
             if (!$claimed instanceof ArtifactRunRecord
                 || $claimed->files !== $record->files
                 || !$this->treeRemovable($claim)
@@ -343,16 +366,167 @@ final readonly class ArtifactRetention
             ErrorTrap::run(static fn() => \fclose($lock));
         }
 
-        if ($this->removeTree($claim)) {
-            return true;
-        }
-        ErrorTrap::run(static fn() => \rename($claim, $directory));
-
-        return false;
+        // A failed deletion keeps the claim, so that the next prune can
+        // complete it. A partial tree cannot return to its run ID.
+        return $this->removeTree($claim);
     }
 
-    /** @return array<non-empty-string, array{bytes: int, sha256: non-empty-string}> */
-    public static function contentManifest(string $directory): array
+    /**
+     * Completes or reverses claims that an interrupted prune left. The caller
+     * holds the prune lock, so no other prune owns these claims.
+     *
+     * @param non-empty-string $parent
+     *
+     * @return list<non-empty-string>
+     */
+    private function recoverClaims(string $parent): array
+    {
+        $warnings = [];
+        foreach ($this->claimNames($parent) as $name) {
+            $claim = $parent . '/' . $name;
+            $runId = null;
+            if (!$this->pathIsLink($claim) && ErrorTrap::run(static fn() => \is_dir($claim))) {
+                try {
+                    $recorded = self::metadataMap($claim)['runId'] ?? null;
+                    $runId = \is_string($recorded) ? $this->validatedRunId($recorded) : null;
+                } catch (\Throwable) {
+                    // A claim without readable metadata stays for manual review.
+                }
+            }
+            if ($runId === null) {
+                // The last step of a deletion removes the metadata file. An
+                // empty claim is therefore a deletion that did not finish.
+                $warnings[] = $this->emptyClaim($claim) && $this->removeTree($claim)
+                    ? \sprintf('Greenlight removed the empty interrupted prune claim "%s".', $name)
+                    : \sprintf('Greenlight did not recover the interrupted prune claim "%s".', $name);
+                continue;
+            }
+
+            try {
+                $owned = $this->claimWithinManifest($claim, $runId);
+            } catch (\Throwable) {
+                $owned = false;
+            }
+            if ($owned) {
+                $warnings[] = $this->treeRemovable($claim) && $this->removeTree($claim)
+                    ? \sprintf('Greenlight completed an interrupted prune of artifact run "%s".', $runId)
+                    : \sprintf('Greenlight did not recover the interrupted prune claim "%s".', $name);
+                continue;
+            }
+
+            $target = $parent . '/' . $runId;
+            if (!ErrorTrap::run(static fn() => \file_exists($target))
+                && !$this->pathIsLink($target)
+                && ErrorTrap::run(static fn() => \rename($claim, $target))
+            ) {
+                $warnings[] = \sprintf('Greenlight restored artifact run "%s" after an interrupted prune.', $runId);
+                continue;
+            }
+            $warnings[] = \sprintf('Greenlight did not recover the interrupted prune claim "%s".', $name);
+        }
+
+        return $warnings;
+    }
+
+    /**
+     * Tells whether a claim directory contains nothing, or only the run lock
+     * file.
+     */
+    private function emptyClaim(string $claim): bool
+    {
+        if ($this->pathIsLink($claim) || !ErrorTrap::run(static fn() => \is_dir($claim))) {
+            return false;
+        }
+        $names = ErrorTrap::run(static fn() => \scandir($claim));
+
+        return \is_array($names)
+            && \array_diff($names, ['.', '..', self::LOCK_FILE]) === []
+            && !$this->pathIsLink($claim . '/' . self::LOCK_FILE);
+    }
+
+    /**
+     * Tells whether each remaining content file of a claim matches its entry
+     * in the completion manifest. A claim that a prune deleted in part
+     * matches, because deletion only removes files. The metadata file stays
+     * until the last step of a deletion.
+     *
+     * @throws \Throwable
+     */
+    private function claimWithinManifest(string $claim, string $runId): bool
+    {
+        $decoded = self::metadataMap($claim);
+        if (($decoded['version'] ?? null) !== self::METADATA_VERSION
+            || ($decoded['owner'] ?? null) !== self::OWNER
+            || ($decoded['runId'] ?? null) !== $runId
+            || ($decoded['state'] ?? null) !== 'completed'
+            || !\is_array($decoded['files'] ?? null)
+        ) {
+            return false;
+        }
+        $files = $this->validatedFiles($decoded['files']);
+        if ($files === null) {
+            return false;
+        }
+
+        return \array_all(
+            self::contentManifest($claim, $files),
+            static fn(array $file, string $path): bool => ($files[$path] ?? null) === $file,
+        );
+    }
+
+    /**
+     * @param non-empty-string $parent
+     *
+     * @return list<non-empty-string>
+     */
+    private function reportClaims(string $parent): array
+    {
+        return \array_map(
+            static fn(string $name): string => \sprintf(
+                'Greenlight found the interrupted prune claim "%s". A prune without the dry-run option recovers it.',
+                $name,
+            ),
+            $this->claimNames($parent),
+        );
+    }
+
+    /** @return list<string> */
+    private function claimNames(string $parent): array
+    {
+        return \array_values(\array_filter(
+            $this->entryNames($parent),
+            static fn(string $name): bool => \preg_match('/^' . \preg_quote(self::CLAIM_PREFIX, '/') . '[a-f0-9]{24}$/D', $name) === 1,
+        ));
+    }
+
+    /**
+     * @return list<string>
+     * @throws \RuntimeException
+     */
+    private function entryNames(string $parent): array
+    {
+        $names = ErrorTrap::run(static fn() => \scandir($parent));
+        if ($names === false) {
+            throw new \RuntimeException('Greenlight did not read the artifact parent.');
+        }
+
+        return \array_values(\array_filter($names, static fn(string $name): bool => $name !== '.' && $name !== '..'));
+    }
+
+    /**
+     * Returns the content files of a run directory with their sizes and
+     * digests.
+     *
+     * Each directory must contain a content file, directly or below it. With
+     * $manifest, a directory that a file of $manifest is below is also valid.
+     * A deletion removes the files of a directory before the directory, so a
+     * partly deleted claim can contain such an empty directory.
+     *
+     * @param array<non-empty-string, array{bytes: int, sha256: non-empty-string}> $manifest
+     *
+     * @return array<non-empty-string, array{bytes: int, sha256: non-empty-string}>
+     */
+    public static function contentManifest(string $directory, array $manifest = []): array
     {
         if (ErrorTrap::run(static fn() => \is_link($directory))
             || !ErrorTrap::run(static fn() => \is_dir($directory))
@@ -398,17 +572,14 @@ final readonly class ArtifactRetention
         }
         \ksort($files);
         $expectedDirectories = [];
-        foreach (\array_keys($files) as $file) {
+        foreach ([...\array_keys($files), ...\array_keys($manifest)] as $file) {
             $parent = \dirname($file);
             while ($parent !== '.') {
                 $expectedDirectories[$parent] = true;
                 $parent = \dirname($parent);
             }
         }
-        \sort($directories);
-        $expected = \array_keys($expectedDirectories);
-        \sort($expected);
-        if ($directories !== $expected) {
+        if (\array_diff($directories, \array_keys($expectedDirectories)) !== []) {
             throw new \RuntimeException('Artifact run content contains an unowned directory.');
         }
 
@@ -679,23 +850,32 @@ final readonly class ArtifactRetention
                 new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
                 \RecursiveIteratorIterator::CHILD_FIRST,
             );
+            $metadata = $directory . '/' . self::METADATA_FILE;
             foreach ($entries as $entry) {
-                if (!$entry instanceof \SplFileInfo) {
+                if (!$entry instanceof \SplFileInfo || $entry->getPathname() === $metadata) {
                     continue;
                 }
-                $path = $entry->getPathname();
-                $removed = !$entry->isLink() && $entry->isDir()
-                    ? ErrorTrap::run(static fn() => \rmdir($path))
-                    : ErrorTrap::run(static fn() => \unlink($path));
-                if (!$removed) {
+                if (!$this->removeEntry($entry->getPathname())) {
                     return false;
                 }
             }
 
-            return ErrorTrap::run(static fn() => \rmdir($directory));
+            return (!ErrorTrap::run(static fn() => \file_exists($metadata)) || $this->removeEntry($metadata))
+                && $this->removeEntry($directory);
         } catch (\Throwable) {
             return false;
         }
+    }
+
+    private function removeEntry(string $path): bool
+    {
+        if ($this->removePath instanceof \Closure) {
+            return ($this->removePath)($path);
+        }
+
+        return !ErrorTrap::run(static fn() => \is_link($path)) && ErrorTrap::run(static fn() => \is_dir($path))
+            ? ErrorTrap::run(static fn() => \rmdir($path))
+            : ErrorTrap::run(static fn() => \unlink($path));
     }
 
     private function treeRemovable(string $directory): bool
