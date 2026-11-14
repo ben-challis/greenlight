@@ -16,6 +16,11 @@ final class CliError extends \RuntimeException
         parent::__construct($message);
     }
 
+    public static function optionNotForCommand(string $name, string $command): self
+    {
+        return new self(\sprintf('Option --%s does not apply to the "%s" command.', $name, $command));
+    }
+
     public static function unknownOption(string $option): self
     {
         return new self(\sprintf('Unknown option "%s". Use greenlight --help to list options.', $option));
@@ -38,7 +43,7 @@ final class CliError extends \RuntimeException
 
     public static function shortOptionRequiresValue(string $short, string $name): self
     {
-        return new self(\sprintf('Option -%s requires a value. Use --%s=<value>.', $short, $name));
+        return new self(\sprintf('Option -%s requires a value. Use --%s=<value> or --%s <value>.', $short, $name, $name));
     }
 
     public static function unexpectedArgument(string $argument): self
