@@ -181,4 +181,41 @@ final class ProtocolError extends WireCommunicationFailed
             $line,
         ), $previous);
     }
+
+    public static function workerReplacementLoop(
+        string $workerId,
+        int $deaths,
+        string $reason,
+        string $diagnostics,
+    ): self {
+        $message = \sprintf(
+            '%d workers in sequence exited before they finished a test. '
+            . 'Last worker "%s": %s. '
+            . 'Greenlight stopped the run because a replacement worker can fail in the same way.',
+            $deaths,
+            $workerId,
+            $reason,
+        );
+
+        if ($diagnostics !== '') {
+            $message .= "\nWorker output:\n" . $diagnostics;
+        }
+
+        return new self($message);
+    }
+
+    public static function workerReportLost(string $workerId, string $diagnostics): self
+    {
+        $message = \sprintf(
+            'Worker "%s" exited after its last test and before it sent its assignment report. '
+            . 'The report contained coverage or leak data. Greenlight stopped the run because this data is incomplete.',
+            $workerId,
+        );
+
+        if ($diagnostics !== '') {
+            $message .= "\nWorker output:\n" . $diagnostics;
+        }
+
+        return new self($message);
+    }
 }
