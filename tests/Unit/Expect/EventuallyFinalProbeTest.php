@@ -36,6 +36,22 @@ final class EventuallyFinalProbeTest
     }
 
     #[Test]
+    public function eventuallyAcceptsTheLastProbeWithTheSystemClock(): void
+    {
+        $startedAt = \hrtime(true);
+
+        expect()->calling(static function () use ($startedAt): string {
+            $elapsed = (\hrtime(true) - $startedAt) / 1e9;
+
+            return $elapsed >= 0.095 ? 'ready' : 'pending';
+        })->returnValue()->eventually()
+            ->pollEvery(0.030)
+            ->within(0.100)
+            ->because('the probe at the deadline MUST count although a real sleep overshoots the deadline')
+            ->toBe('ready');
+    }
+
+    #[Test]
     public function eventuallyCallFailureRendersEachCallOutcome(): void
     {
         $clock = new FakeClock();

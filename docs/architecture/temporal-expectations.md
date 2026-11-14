@@ -52,10 +52,11 @@ Both methods start with an immediate probe call. If the test deadline has
 already expired, `eventually()` fails before that call. Between calls, the
 methods wait for the configured fixed interval. Probe calls never overlap.
 
-`eventually()` sets its deadline before the first call. It accepts a match
-when the probe call starts at or before that deadline. The last probe call
-starts at the deadline and always finishes after it. Thus, a rule that uses the
-finish time cannot accept a match from the last call.
+`eventually()` sets its deadline before the first call. It starts a probe call
+only while time remains, and it accepts a match from each probe call. The last
+probe call is scheduled at the deadline. A real sleep ends after the requested
+time, so that call starts and finishes after the deadline. A rule that uses the
+start or finish time would always reject a match from the last call.
 
 `consistently()` requires its first call to match, starts its
 stability period after that call, and fails on the first mismatch.
