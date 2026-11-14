@@ -367,7 +367,11 @@ final readonly class CoverageRunTest
 
         expect($regressedResult->exitCode)->because('coverage diff fails on regressions and passes when equal')->toBe(1);
         expect($regressedResult->output())->toContain('Coverage regressed against the baseline.')
-            ->toContain('newly uncovered lines: ' . $movedLine);
+            ->toContain(\sprintf(
+                'uncovered lines: %d -> %d',
+                \count($before['uncovered']),
+                \count($before['uncovered']) + 1,
+            ));
     }
 
     /**

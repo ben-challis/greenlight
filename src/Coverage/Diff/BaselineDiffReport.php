@@ -7,8 +7,10 @@ namespace Greenlight\Coverage\Diff;
 /**
  * Contains changed, added, and removed files from a baseline comparison.
  * Unchanged files appear only when the caller supplies them directly.
- * hasRegressions() compares the total coverage of files that are in both maps.
- * Thus, a removed file cannot cause a regression.
+ *
+ * hasRegressions() reports a file in both maps that has more uncovered lines
+ * or a lower percentage. It also reports an added file that has uncovered
+ * lines. A removed file cannot cause a regression.
  *
  * @internal
  */
@@ -21,8 +23,6 @@ final readonly class BaselineDiffReport
         public array $fileDeltas,
         public float $baselinePercentage,
         public float $currentPercentage,
-        private float $sharedBaselinePercentage,
-        private float $sharedCurrentPercentage,
     ) {}
 
     public function totalDelta(): float
@@ -32,9 +32,6 @@ final readonly class BaselineDiffReport
 
     public function hasRegressions(): bool
     {
-        if ($this->sharedCurrentPercentage < $this->sharedBaselinePercentage) {
-            return true;
-        }
-        return \array_any($this->fileDeltas, static fn(FileDelta $delta): bool => $delta->newlyUncoveredLines !== []);
+        return \array_any($this->fileDeltas, static fn(FileDelta $delta): bool => $delta->regressed());
     }
 }
