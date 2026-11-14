@@ -841,7 +841,9 @@ final class MatcherEvaluation
         $matched = $constraint->matches(
             $thrown,
             $this->negated,
-            static fn(string $pattern, string $subject): bool => \preg_match($pattern, $subject) === 1,
+            static fn(string $pattern, string $subject): bool => ErrorTrap::run(
+                static fn() => \preg_match($pattern, $subject),
+            ) === 1,
             $this->usageFailure(...),
         );
 
