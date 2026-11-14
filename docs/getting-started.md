@@ -87,6 +87,8 @@ The longer form can make a new project easier to understand. See the
 Tests are PHP classes. Add `#[Test]` to each test method.
 
 Greenlight scans the configured paths for files whose names end in `Test.php`.
+The scan follows directory symlinks. It reads each real file once.
+
 The class short name must match the file name. Composer must be able to
 autoload the class from its namespace.
 

@@ -309,26 +309,59 @@ final readonly class TestDiscoverer
                 throw DiscoveryError::directoryNotFound($directory);
             }
 
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($real, \FilesystemIterator::SKIP_DOTS),
-            );
-
-            foreach ($iterator as $item) {
-                if (!$item instanceof \SplFileInfo || !$item->isFile()) {
-                    continue;
-                }
-
-                $path = $item->getPathname();
-
-                if ($path !== '' && \str_ends_with($item->getFilename(), 'Test.php')) {
-                    $files[$path] = $path;
-                }
-            }
+            $this->collectTestFiles($real, [$real => true], $files);
         }
 
         $paths = \array_values($files);
         \sort($paths, \SORT_STRING);
 
         return $paths;
+    }
+
+    /**
+     * Walks a directory and follows directory symlinks. A directory whose real
+     * path is also the real path of an ancestor makes a cycle, so the walk
+     * does not enter it. Each real test file occurs once. If a file has more
+     * than one path, the walk keeps the path that sorts first.
+     *
+     * @param array<string, true> $ancestors real paths of this directory and its ancestors
+     * @param array<string, non-empty-string> $files real path to test file path
+     *
+     * @param-out array<string, non-empty-string> $files
+     *
+     * @throws DiscoveryError
+     */
+    private function collectTestFiles(string $directory, array $ancestors, array &$files): void
+    {
+        $names = ErrorTrap::run(static fn() => \scandir($directory, \SCANDIR_SORT_ASCENDING), $warning);
+
+        if ($names === false) {
+            throw DiscoveryError::unreadableDirectory($directory, $warning);
+        }
+
+        foreach ($names as $name) {
+            if ($name === '.' || $name === '..') {
+                continue;
+            }
+
+            $path = $directory . '/' . $name;
+            [$isDirectory, $isFile, $real] = ErrorTrap::run(static fn() => [\is_dir($path), \is_file($path), \realpath($path)]);
+
+            if ($real === false) {
+                continue;
+            }
+
+            if ($isDirectory) {
+                if (!isset($ancestors[$real])) {
+                    $this->collectTestFiles($path, [...$ancestors, $real => true], $files);
+                }
+
+                continue;
+            }
+
+            if ($isFile && \str_ends_with($name, 'Test.php') && (!isset($files[$real]) || \strcmp($path, $files[$real]) < 0)) {
+                $files[$real] = $path;
+            }
+        }
     }
 }
