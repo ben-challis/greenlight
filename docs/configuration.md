@@ -774,7 +774,10 @@ run with content that changed after completion.
 Use `--abandoned-run-age=<seconds>` to also remove incomplete runs. The
 command removes an incomplete run only if no process holds it and if it
 started at least this many seconds ago. This option also applies when you
-configure no retention policy.
+configure no retention policy. The command uses `flock` to find the process
+that holds a run. Run it only where that process shares `flock` with the
+command. Some network filesystems, and a Docker bind mount from a macOS host,
+do not share it.
 
 If you configure no retention policy and do not use `--abandoned-run-age`, the
 command exits successfully and does not remove a directory.
