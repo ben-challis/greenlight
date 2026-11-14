@@ -119,6 +119,17 @@ every attempt for the test.
 Attachment content therefore stays outside the protocol's 8 MiB frame limit.
 Reporters do not load large attachment files.
 
+## Store classes
+
+`ArtifactStore` is the entry point for the run coordinator, the orchestrator,
+and workers. It delegates to these internal classes:
+
+| Class | Responsibility |
+| --- | --- |
+| `StagingArea` | Staging writes, sidecars, attempt markers, crash recovery reads, and staging cleanup. Workers and the orchestrator use it. |
+| `RunQuota` | The locked `.quota` file for run limits. |
+| `ArtifactPublisher` | Publication, recovery, completion, and the run handle. Only the orchestrator has a publisher. |
+
 ## Path safety
 
 Greenlight validates logical names before it uses them as file names. It
