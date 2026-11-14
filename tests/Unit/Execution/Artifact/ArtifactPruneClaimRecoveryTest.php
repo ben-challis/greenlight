@@ -192,6 +192,26 @@ final readonly class ArtifactPruneClaimRecoveryTest
     }
 
     #[Test]
+    public function aStaleClaimWithChangedContentOfTheSameSizeIsRestored(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('stale-claim-same-size');
+        $retention = $this->retention($parent, maxCompletedRuns: 10);
+        $this->completedRun($retention, 'run-claimed', 2, 'owned');
+        \file_put_contents($parent . '/run-claimed/evidence.txt', 'other');
+        $claim = $parent . '/.greenlight-prune-' . \str_repeat('9', 24);
+        \rename($parent . '/run-claimed', $claim);
+
+        $report = $retention->prune(now: 100);
+
+        expect(\file_get_contents($parent . '/run-claimed/evidence.txt'))
+            ->because('a prune MUST compare content digests, not only sizes, before it deletes a claim')
+            ->toBe('other');
+        expect($report->warnings)->toBe([
+            'Greenlight restored artifact run "run-claimed" after an interrupted prune.',
+        ]);
+    }
+
+    #[Test]
     public function aDryRunReportsAStaleClaimWithoutAChange(): void
     {
         $parent = $this->tempDirectory->subdirectory('stale-claim-dry-run');
