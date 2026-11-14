@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Execution\Artifact;
 
 /**
- * Describes one completed artifact run that a retention operation selects.
+ * Describes one artifact run that a retention operation selects.
  *
  * @internal
  */
@@ -14,7 +14,7 @@ final readonly class ArtifactPruneItem
     /**
      * @param non-empty-string $runId
      * @param non-empty-string $directory
-     * @param non-empty-list<'age'|'count'|'size'> $reasons
+     * @param non-empty-list<'abandoned'|'age'|'count'|'size'> $reasons
      */
     public function __construct(
         public string $runId,

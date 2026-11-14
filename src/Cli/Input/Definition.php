@@ -165,6 +165,10 @@ final readonly class Definition
                              Use with --baseline-root.
           --dry-run          For run, print settings without test discovery or execution.
                              For artifacts:prune, list selected runs without deletion.
+          --abandoned-run-age=<seconds>
+                             For artifacts:prune, also remove each incomplete run that
+                             no process holds and that started at least this many
+                             seconds ago.
           -h, --help         Show this help
           -V, --version      Show the version
 
@@ -210,6 +214,7 @@ final readonly class Definition
             new OptionSpec('project-root', OptionValue::Required),
             new OptionSpec('export', OptionValue::Required, repeatable: true),
             new OptionSpec('watch'), new OptionSpec('detect-leaks'), new OptionSpec('dry-run'),
+            new OptionSpec('abandoned-run-age', OptionValue::Required),
             new OptionSpec('ansi'), new OptionSpec('no-ansi'), new OptionSpec('verbose'), new OptionSpec('profile'),
             new OptionSpec('input', OptionValue::Required, repeatable: true), new OptionSpec('output', OptionValue::Required),
             new OptionSpec('help', short: 'h'), new OptionSpec('version', short: 'V'),

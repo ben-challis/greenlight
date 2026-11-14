@@ -89,6 +89,11 @@ contains a warning with the reason for each directory that pruning does not
 select. A run that another process holds gets no warning. Automatic retention
 after a run does not report these warnings.
 
+The `artifacts:prune --abandoned-run-age=<seconds>` option also selects
+incomplete runs. It selects a run only if three conditions are true. No
+process holds the run lock. The ownership metadata is valid. The run started at
+least that many seconds ago. Automatic retention never selects an incomplete run.
+
 Retention failures are advisory. They do not change a test result or run exit
 code. A failure that prevents publication of the current run remains fatal.
 

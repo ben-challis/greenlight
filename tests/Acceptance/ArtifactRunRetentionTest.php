@@ -186,6 +186,49 @@ final readonly class ArtifactRunRetentionTest
         expect($result->stderr)->toBe('');
     }
 
+    #[Test]
+    public function maintenanceCommandPrunesAbandonedRunsOnRequest(): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'artifact-prune-abandoned');
+        $project->writeFile('greenlight.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Config\ArtifactBuilder;
+            use Greenlight\Config\GreenlightConfig;
+
+            return GreenlightConfig::create()
+                ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts
+                    ->directory(__DIR__ . '/artifacts'));
+            PHP);
+        $directory = $project->path('artifacts/run-abandoned');
+        \mkdir($directory, 0o700, true);
+        \file_put_contents($directory . '/evidence.txt', 'owned');
+        \file_put_contents($directory . '/.greenlight-run.lock', '');
+        \file_put_contents($directory . '/.greenlight-run.json', \json_encode([
+            'version' => 1,
+            'owner' => 'greenlight',
+            'runId' => 'run-abandoned',
+            'state' => 'active',
+            'startedAt' => 1,
+        ], \JSON_THROW_ON_ERROR));
+
+        $expected = \realpath($directory);
+        $invalid = GreenlightCli::run($project->directory, ['artifacts:prune', '--abandoned-run-age=0', '--no-ansi']);
+        $dryRun = GreenlightCli::run($project->directory, ['artifacts:prune', '--abandoned-run-age=60', '--dry-run', '--no-ansi']);
+        $prune = GreenlightCli::run($project->directory, ['artifacts:prune', '--abandoned-run-age=60', '--no-ansi']);
+
+        expect($invalid->exitCode)->toBe(64);
+        expect($invalid->stderr)->toContain('Set --abandoned-run-age to a positive number of seconds.');
+        expect($dryRun->stdout)
+            ->because('the explicit option MUST select abandoned runs without a retention policy')
+            ->toContain('Would prune ' . $expected . ' (')
+            ->toContain('abandoned run');
+        expect($prune->exitCode)->toBe(0);
+        expect(\file_exists($directory))->toBeFalse();
+    }
+
     private function writeCompletedRun(string $parent, string $runId, int $completedAt): void
     {
         if (!\is_dir($parent)) {
