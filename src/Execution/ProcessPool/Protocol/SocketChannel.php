@@ -122,9 +122,11 @@ final class SocketChannel
     }
 
     /**
-     * Reads available bytes without a wait.
+     * Reads all available bytes without a wait.
      *
-     * Returns the next complete message or null.
+     * Returns the next complete message or null. Each call reads until it has
+     * a complete frame or the socket has no more bytes. Thus, a null result
+     * means that the peer wrote no more complete frames before this call.
      *
      * @throws ProtocolError
      * @throws WireCommunicationFailed
@@ -137,43 +139,8 @@ final class SocketChannel
             return MessageRegistry::open($this->codec->decode($body));
         }
 
-        if ($this->eof) {
-            if ($this->buffer->hasPendingBytes()) {
-                throw ProtocolError::malformedFrame('peer closed the connection with an incomplete frame');
-            }
-
-            return null;
-        }
-
-        if (!\is_resource($this->stream)) {
-            $this->eof = true;
-
-            return null;
-        }
-
-        \stream_set_blocking($this->stream, false);
-
-        [$bytes, $reachedEof] = ErrorTrap::run(
-            function () {
-                $bytes = \fread($this->stream, 65536);
-
-                return [$bytes, ($bytes === false || $bytes === '') && \feof($this->stream)];
-            },
-            $warning,
-            wrap: static fn(\Throwable $error): ProtocolError =>
-                ProtocolError::streamOperationFailed('read', $error),
-        );
-
-        if ($bytes === false && !$reachedEof) {
-            throw ProtocolError::malformedFrame('peer connection failed during a read', $warning);
-        }
-
-        if (\is_string($bytes) && $bytes !== '') {
-            $this->buffer->feed($bytes);
-        }
-
-        if ($reachedEof) {
-            $this->eof = true;
+        if (!$this->eof) {
+            $this->readAvailable();
         }
 
         $body = $this->buffer->next();
@@ -187,6 +154,54 @@ final class SocketChannel
         }
 
         return MessageRegistry::open($this->codec->decode($body));
+    }
+
+    /**
+     * @throws ProtocolError
+     */
+    private function readAvailable(): void
+    {
+        if (!\is_resource($this->stream)) {
+            $this->eof = true;
+
+            return;
+        }
+
+        \stream_set_blocking($this->stream, false);
+
+        while (true) {
+            [$bytes, $reachedEof] = ErrorTrap::run(
+                function () {
+                    $bytes = \fread($this->stream, 65536);
+
+                    return [$bytes, ($bytes === false || $bytes === '') && \feof($this->stream)];
+                },
+                $warning,
+                wrap: static fn(\Throwable $error): ProtocolError =>
+                    ProtocolError::streamOperationFailed('read', $error),
+            );
+
+            if ($bytes === false && !$reachedEof) {
+                throw ProtocolError::malformedFrame('peer connection failed during a read', $warning);
+            }
+
+            if ($reachedEof) {
+                $this->eof = true;
+
+                return;
+            }
+
+            if (!\is_string($bytes) || $bytes === '') {
+                return;
+            }
+
+            $this->buffer->feed($bytes);
+
+            // Keep memory use near one frame. The next call reads more bytes.
+            if ($this->buffer->hasFrame()) {
+                return;
+            }
+        }
     }
 
     private function monotonicTime(): float
