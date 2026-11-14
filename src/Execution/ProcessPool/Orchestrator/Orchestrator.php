@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Artifact\AttachmentError;
-use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\Event;
@@ -26,15 +25,10 @@ use Greenlight\Execution\ProcessPool\Protocol\Messages\Fatal;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Hello;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
 use Greenlight\Execution\ProcessPool\Protocol\ProtocolError;
-use Greenlight\Execution\Worker\WorkerError;
 use Greenlight\Internal\Text\Utf8;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
-use Greenlight\Result\FailureDetail;
-use Greenlight\Result\Outcome;
 use Greenlight\Result\ResultSummary;
-use Greenlight\Result\TestResult;
-use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\TestId;
 
 /**
@@ -62,9 +56,6 @@ final class Orchestrator
     // the complete run, so it permits longer periods.
     private const float TIMEOUT_GRACE_FACTOR = 2.0;
     private const float TIMEOUT_GRACE_FLAT_SECONDS = 2.0;
-    // Workers that exit before they finish a test usually fail in the same
-    // way again, for example after an exit() in a bootstrap file.
-    private const int UNATTRIBUTED_DEATH_LIMIT = 3;
     private ?ResourceScheduler $scheduler = null;
 
     /**
@@ -95,8 +86,7 @@ final class Orchestrator
 
     private ?InitialAssignmentGate $gate = null;
 
-    /** @var non-negative-int consecutive worker exits without a finished or attributed test */
-    private int $unattributedDeaths = 0;
+    private ?WorkerContainment $containment = null;
 
     public function __construct(
         private readonly WorkerTransport $transport,
@@ -176,6 +166,15 @@ final class Orchestrator
         $this->gate = new InitialAssignmentGate(
             $this->initialWorkerTarget,
             $this->configuration->initialWorkerAssignment,
+        );
+        $this->containment = new WorkerContainment(
+            $this->transport,
+            $this->configuration,
+            $this->ledger,
+            $this->scheduler,
+            $this->retireFailedWorker(...),
+            fn(): bool => $this->draining,
+            $this->enforceFailureLimit(...),
         );
 
         $spawnBudget = new WorkerSpawnBudget(\count($plan->entries), $workerCount);
@@ -341,7 +340,7 @@ final class Orchestrator
                     $reason = $handle->isConnected()
                         ? 'the worker process exited unexpectedly'
                         : 'the worker exited before connecting';
-                    $this->containCrash($handle, $sink, $reason);
+                    $this->containment()->containCrash($handle, $sink, $reason);
                 }
 
                 continue;
@@ -390,7 +389,7 @@ final class Orchestrator
                 $this->configuration->policy,
             ));
         } catch (ProtocolError) {
-            $this->containCrash($handle, $sink, 'the worker exited before receiving bootstrap data');
+            $this->containment()->containCrash($handle, $sink, 'the worker exited before receiving bootstrap data');
         }
     }
 
@@ -489,7 +488,7 @@ final class Orchestrator
             // The worker stopped before it received the assignment. Crash
             // containment puts the complete scheduling unit in the queue for
             // a replacement worker.
-            $this->containCrash($handle, $sink, 'the worker exited before receiving its assignment');
+            $this->containment()->containCrash($handle, $sink, 'the worker exited before receiving its assignment');
         }
 
         return false;
@@ -609,7 +608,7 @@ final class Orchestrator
         }
 
         if ($event instanceof TestFinished) {
-            $this->unattributedDeaths = 0;
+            $this->containment()->recordProgress();
             $handle->inFlight = null;
             $handle->inFlightAttempt = 0;
             $handle->finished[(string) $event->result->id] = true;
@@ -756,145 +755,9 @@ final class Orchestrator
             $deadline = $handle->inFlightAttemptSince + $budget * self::TIMEOUT_GRACE_FACTOR + self::TIMEOUT_GRACE_FLAT_SECONDS;
 
             if ($this->monotonicTime() > $deadline) {
-                $this->containTimeout($handle, $sink, $budget);
+                $this->containment()->containTimeout($handle, $sink, $budget);
             }
         }
-    }
-
-    /**
-     * Kills the worker before it recovers staged attachments. Thus, the
-     * recovery sees all of the evidence that the worker wrote.
-     *
-     * @throws AttachmentError
-     */
-    private function containTimeout(WorkerState $handle, EventSink $sink, float $budget): void
-    {
-        $inFlight = $handle->inFlight;
-        $attempts = $handle->inFlightAttempt;
-        $duration = \max(0.0, $this->monotonicTime() - $handle->inFlightSince);
-        $remainder = $this->retireFailedWorker($handle, true);
-
-        if ($inFlight instanceof TestId) {
-            $this->unattributedDeaths = 0;
-            $message = \sprintf(
-                'The test exceeded its %.3f-second time limit. Greenlight stopped worker "%s" after %.3f seconds.',
-                $budget,
-                $handle->workerId,
-                $duration,
-            );
-            $diagnostics = \trim($this->transport->diagnostics($handle->workerId));
-
-            if ($diagnostics !== '') {
-                $message .= "\nWorker output:\n" . Utf8::tailBytes($diagnostics, 2_048);
-            }
-
-            $this->recordSyntheticResult($sink, new TestResult(
-                $inFlight,
-                Outcome::Failed,
-                $duration,
-                0,
-                failures: [new FailureDetail($message)],
-            ), $attempts);
-        }
-
-        $this->enqueueRemainder($remainder);
-    }
-
-    /**
-     * Fails the active test of a worker that exited, and queues the rest of
-     * its assignment again.
-     *
-     * An exit without an active test can repeat for each replacement worker.
-     * Thus, consecutive exits of this type stop the run at a small limit.
-     *
-     * @throws AttachmentError
-     * @throws ProtocolError
-     */
-    private function containCrash(WorkerState $handle, EventSink $sink, string $reason): void
-    {
-        $inFlight = $handle->inFlight;
-        $attempts = $handle->inFlightAttempt;
-        $reportLost = !$inFlight instanceof TestId
-            && $handle->assigned instanceof ExecutionPlan
-            && $handle->unfinished() === [];
-        $remainder = $this->retireFailedWorker($handle);
-        $diagnostics = \trim($this->transport->diagnostics($handle->workerId));
-
-        if ($inFlight instanceof TestId) {
-            $this->unattributedDeaths = 0;
-            $this->recordSyntheticResult($sink, new TestResult(
-                $inFlight,
-                Outcome::Errored,
-                0.0,
-                0,
-                error: ThrowableDetail::fromThrowable(WorkerError::crashedDuringTest(
-                    $handle->workerId,
-                    $reason,
-                    Utf8::tailBytes($diagnostics, 2_048),
-                )),
-            ), $attempts);
-        } elseif ($reportLost) {
-            $this->recordLostReport($handle, $diagnostics);
-        } elseif (!$this->draining) {
-            ++$this->unattributedDeaths;
-
-            if ($this->unattributedDeaths >= self::UNATTRIBUTED_DEATH_LIMIT) {
-                throw ProtocolError::workerReplacementLoop(
-                    $handle->workerId,
-                    $this->unattributedDeaths,
-                    $reason,
-                    Utf8::tailBytes($diagnostics, 2_048),
-                );
-            }
-        }
-
-        $this->enqueueRemainder($remainder);
-    }
-
-    /**
-     * Handles a worker that exited after its last test and before Done.
-     *
-     * The test results are complete. Coverage and leak data are lost. Thus,
-     * the run fails only when it collects this data.
-     *
-     * @throws ProtocolError
-     */
-    private function recordLostReport(WorkerState $handle, string $diagnostics): void
-    {
-        $diagnostics = Utf8::tailBytes($diagnostics, 2_048);
-
-        if ($this->configuration->coverageSettings instanceof CoverageSettings || $this->configuration->detectLeaks) {
-            throw ProtocolError::workerReportLost($handle->workerId, $diagnostics);
-        }
-
-        $warning = \sprintf(
-            'Worker "%s" exited after its last test and before it sent its assignment report. '
-            . 'All test results of the assignment are complete.',
-            $handle->workerId,
-        );
-
-        if ($diagnostics !== '') {
-            $warning .= "\nWorker output:\n" . $diagnostics;
-        }
-
-        $this->ledger->warn($warning);
-    }
-
-    /**
-     * @param non-negative-int $attempts
-     * @throws AttachmentError
-     */
-    private function recordSyntheticResult(EventSink $sink, TestResult $result, int $attempts): void
-    {
-        $result = $result->withAttempts(\max($result->attempts, $attempts));
-
-        if ($this->configuration->artifactStore instanceof ArtifactStore) {
-            $result = $this->configuration->artifactStore->recover($result);
-        }
-
-        $this->ledger->recordResult($result->id, $result->outcome);
-        $sink->emit(new TestFinished($result, \microtime(true)));
-        $this->enforceFailureLimit();
     }
 
     /**
@@ -909,38 +772,6 @@ final class Orchestrator
         $this->finishHandle($handle, $kill);
 
         return $remainder;
-    }
-
-    /**
-     * @param list<TestId> $ids
-     */
-    private function enqueueRemainder(array $ids): void
-    {
-        if ($ids === [] || $this->draining) {
-            return;
-        }
-
-        $byClass = [];
-
-        foreach ($ids as $id) {
-            $entry = $this->ledger->entry($id);
-
-            if ($entry === null) {
-                continue;
-            }
-
-            if ($entry->definition->scheduling->isolated) {
-                $this->resourceScheduler()->requeue(new SchedulingUnit(new ExecutionPlan([$entry]), true));
-
-                continue;
-            }
-
-            $byClass[$entry->id->class][] = $entry;
-        }
-
-        foreach ($byClass as $entries) {
-            $this->resourceScheduler()->requeue(new SchedulingUnit(new ExecutionPlan($entries), false));
-        }
     }
 
     private function releaseAssignment(WorkerState $handle): void
@@ -991,6 +822,15 @@ final class Orchestrator
         }
 
         return $this->gate;
+    }
+
+    private function containment(): WorkerContainment
+    {
+        if (!$this->containment instanceof WorkerContainment) {
+            throw new \LogicException('Worker containment has not been initialized.');
+        }
+
+        return $this->containment;
     }
 
     private function resourceScheduler(): ResourceScheduler
