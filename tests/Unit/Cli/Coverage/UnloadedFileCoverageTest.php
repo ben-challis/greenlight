@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Coverage\Collection;
+namespace Greenlight\Tests\Unit\Cli\Coverage;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Coverage\Collection\ExecutableLineProbe;
-use Greenlight\Coverage\Collection\UnloadedFileCoverage;
+use Greenlight\Cli\Coverage\ExecutableLineProbe;
+use Greenlight\Cli\Coverage\UnloadedFileCoverage;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;
 use Greenlight\Sandbox\TemporaryDirectory;

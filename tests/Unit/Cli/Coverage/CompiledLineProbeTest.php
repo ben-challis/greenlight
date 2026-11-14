@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Tests\Unit\Coverage\Collection;
+namespace Greenlight\Tests\Unit\Cli\Coverage;
 
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
+use Greenlight\Cli\Coverage\CompiledLineProbe;
 use Greenlight\Condition\ExtensionLoaded;
-use Greenlight\Coverage\Collection\CompiledLineProbe;
 use Greenlight\Coverage\Collection\RawCoverage;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\FileCoverage;

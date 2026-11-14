@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Coverage\Collection;
+namespace Greenlight\Cli\Coverage;
 
+use Greenlight\Coverage\Collection\PathFilter;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Internal\Php\ErrorTrap;

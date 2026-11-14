@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Coverage;
 
-use Greenlight\Coverage\Collection\CompiledLineProbe;
 use Greenlight\Coverage\Collection\CoverageCollector;
 use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Coverage\Collection\Driver\PcovDriver;
 use Greenlight\Coverage\Collection\Driver\XdebugDriver;
-use Greenlight\Coverage\Collection\ExecutableLineProbe;
-use Greenlight\Coverage\Collection\UnloadedFileCoverage;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Relay\SharedCoverageDirectory;
