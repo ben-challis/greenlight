@@ -174,6 +174,17 @@ final readonly class RunSession
 
             return CommandResult::interrupted($interruptSignal);
         }
+        if ($run->emptyShard) {
+            $notice = \sprintf(
+                "Shard %d of %d has no tests. The other shards run all selected tests.\n",
+                $this->selection->shard[0] ?? 1,
+                $this->selection->shard[1] ?? 1,
+            );
+            // The flag is true when a jsonl reporter owns standard output.
+            $this->coverageOutputOnStderr ? $this->console->err($notice) : $this->console->out($notice);
+
+            return CommandResult::success();
+        }
         if ($run->plannedTests === 0) {
             $this->console->err("Greenlight found no tests. Check the configuration, test paths, and filters.\n");
 
