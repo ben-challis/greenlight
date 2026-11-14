@@ -1135,14 +1135,14 @@ final class MatcherEvaluation
      */
     private function matchesPattern(string $pattern, string $subject, string $matcher): bool
     {
-        $matched = \preg_match($pattern, $subject);
+        $matched = ErrorTrap::run(static fn() => \preg_match($pattern, $subject), $warning);
 
         if ($matched === false) {
             $this->usageFailure(\sprintf(
                 '%s() could not apply the pattern %s: %s.',
                 $matcher,
                 $pattern,
-                \preg_last_error_msg(),
+                $warning ?? \preg_last_error_msg(),
             ));
         }
 
