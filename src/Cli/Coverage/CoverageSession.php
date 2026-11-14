@@ -4,14 +4,23 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Coverage;
 
+use Greenlight\Coverage\Collection\CompiledLineProbe;
 use Greenlight\Coverage\Collection\CoverageCollector;
 use Greenlight\Coverage\Collection\CoverageSettings;
+use Greenlight\Coverage\Collection\Driver\PcovDriver;
+use Greenlight\Coverage\Collection\Driver\XdebugDriver;
+use Greenlight\Coverage\Collection\ExecutableLineProbe;
+use Greenlight\Coverage\Collection\UnloadedFileCoverage;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Relay\SharedCoverageDirectory;
 
 /**
  * Owns and merges the coverage resources for one CLI run.
+ *
+ * finish() adds each source file in the include paths that no test loaded.
+ * These files have only uncovered lines. A probe compiles them in a
+ * subprocess with the coverage driver of the run.
  *
  * @internal
  */
@@ -21,7 +30,11 @@ final class CoverageSession
 
     private ?SharedCoverageDirectory $shared = null;
 
-    private function __construct() {}
+    private function __construct(
+        private readonly ?CoverageSettings $settings = null,
+        private readonly ?string $temporaryDirectory = null,
+        private readonly ?ExecutableLineProbe $probe = null,
+    ) {}
 
     /**
      * @throws CoverageError
@@ -30,8 +43,9 @@ final class CoverageSession
         ?CoverageSettings $settings,
         bool $collectProcess,
         ?string $temporaryDirectory = null,
+        ?ExecutableLineProbe $probe = null,
     ): self {
-        $session = new self();
+        $session = new self($settings, $temporaryDirectory, $probe);
 
         if (!$settings instanceof CoverageSettings) {
             return $session;
@@ -57,6 +71,9 @@ final class CoverageSession
         return $session;
     }
 
+    /**
+     * @throws CoverageError
+     */
     public function finish(?CoverageMap $coverage): ?CoverageMap
     {
         if ($this->collector instanceof CoverageCollector) {
@@ -79,7 +96,28 @@ final class CoverageSession
             }
         }
 
+        if ($coverage instanceof CoverageMap && $this->settings instanceof CoverageSettings && $this->settings->includePaths !== []) {
+            $coverage = new UnloadedFileCoverage($this->probe ?? $this->defaultProbe($this->settings))
+                ->complete($coverage, $this->settings->includePaths);
+        }
+
         return $coverage;
+    }
+
+    /**
+     * @throws CoverageError
+     */
+    private function defaultProbe(CoverageSettings $settings): ExecutableLineProbe
+    {
+        $driver = match (true) {
+            $settings->driver === 'pcov', $settings->driver === 'xdebug' => $settings->driver,
+            PcovDriver::isAvailable() => 'pcov',
+            XdebugDriver::isAvailable() => 'xdebug',
+            default => throw CoverageError::lineProbeFailed('No coverage driver is available in the main process.'),
+        };
+        $directory = $this->temporaryDirectory ?? \sys_get_temp_dir();
+
+        return new CompiledLineProbe($driver, $directory === '' ? '/tmp' : $directory);
     }
 
     public function close(): void

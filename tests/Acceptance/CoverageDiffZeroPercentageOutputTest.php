@@ -46,7 +46,7 @@ final readonly class CoverageDiffZeroPercentageOutputTest
             ->because('a present zero-percent file MUST NOT render as absent')
             ->toBe([
                 'Coverage: baseline 100.00%, current 0.00% (-100.00)',
-                '/project/src/Zero.php: 100.00% -> 0.00% (-100.00), newly uncovered lines: 1',
+                '/project/src/Zero.php: 100.00% -> 0.00% (-100.00), uncovered lines: 0 -> 1',
             ]);
     }
 }

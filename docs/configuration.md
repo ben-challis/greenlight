@@ -167,10 +167,10 @@ Repeated calls to `coverage()` preserve earlier settings.
 `CoverageBuilder` methods:
 
 * `include(string ...$paths): self` adds source directories to measure. Default:
-  none.
-* `driver(string $driver): self` restricts coverage to `pcov` or `xdebug` when
-  you use that value. Other non-empty values have the default behavior:
-  Greenlight tries pcov, then Xdebug.
+  none. Greenlight warns for a directory that does not exist.
+* `driver(string $driver): self` restricts coverage to `pcov` or `xdebug`.
+  Other values cause an `InvalidConfiguration` error. The names are
+  case-sensitive. Omit this call to try pcov, then Xdebug.
 * `requireDriver(bool $required = true): self` fails the run when the selected
   coverage driver is not available. Default: `false`.
 * `minimumPercentage(float $percentage): self` sets the minimum total line
@@ -199,12 +199,28 @@ Repeated calls to `coverage()` preserve earlier settings.
 When you configure coverage, the run prints the total percentage and writes
 each coverage export.
 
+A coverage driver reports only the files that PHP loads. After the run,
+Greenlight finds each `.php` file in the include paths that no test loaded. It
+adds the executable lines of these files as uncovered lines. Thus, an untested
+file decreases the total percentage. Without include paths, the export contains
+only the files that the driver reports.
+
+To find the executable lines, Greenlight compiles these files in a PHP
+subprocess with the coverage driver of the run. The subprocess does not execute
+the files. It requires the Zend OPcache extension. If OPcache is not loaded,
+the subprocess loads it with `zend_extension=opcache`. The run fails if the
+subprocess cannot use OPcache or the driver. A file that does not compile is
+not added.
+
 If no worker can collect coverage because neither pcov nor Xdebug coverage mode
 is available, Greenlight warns on stderr. That warning does not fail the run by
 itself. `requireDriver()` changes the warning to a run failure.
 
 A configured coverage gate also requires coverage. Thus, an unavailable
 coverage driver fails the run when you configure a gate.
+
+A configured gate fails if the coverage contains no executable lines. For
+example, an include path with a spelling error gives no executable lines.
 
 The minimum percentage gate uses the total line coverage. Greenlight rounds
 the calculated percentage to two decimal places before the comparison. It uses
@@ -703,12 +719,23 @@ The command also accepts `--minimum-coverage` and
 `--maximum-uncovered-lines`. These gates apply to the current export. A failed
 gate fails the command when the baseline has no regression.
 
-Exits with code 1 if coverage across files present in both exports decreases.
-It also fails if the current export has a newly uncovered line. This rule also
-applies to added files. A coverage gain elsewhere does not hide that line.
+The command compares each file that is in both exports. It exits with code 1
+if a file has more uncovered lines than in the baseline. It also exits with
+code 1 if the percentage of a file decreases. The command compares percentages
+at two decimal places. A coverage gain in a different file does not hide a
+regression.
 
-Removed files do not cause a regression. The displayed total percentages
-include all files, so their difference alone does not determine the exit code.
+The command compares line counts, not line numbers. An edit that moves lines
+does not cause a regression. The output shows the uncovered-line counts for
+each file that has a changed count.
+
+Added files and removed files do not cause a regression. The command does not
+detect renamed files. A renamed file is a removed file and an added file. Use
+`--minimum-coverage` or `--maximum-uncovered-lines` to limit the coverage of
+added files.
+
+The displayed total percentages include all files, so their difference alone
+does not determine the exit code.
 
 See the [coverage JSON schema](architecture/coverage-json.md) for the required
 format and path rules.

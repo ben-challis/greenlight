@@ -31,6 +31,17 @@ final readonly class CoverageWriter
 
     public function write(CoverageConfiguration $configuration, ?CoverageMap $coverage, string $workingDirectory, Style $style): bool
     {
+        foreach ($configuration->includePaths as $path) {
+            $absolute = ConfigurationLoader::absolutePath($path, $workingDirectory);
+
+            if (!ErrorTrap::run(static fn() => \file_exists($absolute))) {
+                $this->console->err(\sprintf(
+                    "Warning: the coverage include path \"%s\" does not exist. Greenlight measures no files from it.\n",
+                    $path,
+                ));
+            }
+        }
+
         if (!$coverage instanceof CoverageMap) {
             if ($configuration->requiresCoverageResult()) {
                 $this->console->err("Coverage is required, but no worker collected it. Install pcov or enable Xdebug with coverage mode.\n");

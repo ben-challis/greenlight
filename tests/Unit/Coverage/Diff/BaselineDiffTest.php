@@ -44,14 +44,48 @@ final class BaselineDiffTest
     }
 
     #[Test]
-    public function newlyUncoveredLinesAreLinesUncoveredNowButNotBefore(): void
+    public function fileDeltasCountUncoveredLines(): void
     {
         $baseline = new CoverageMap([new FileCoverage('/src/A.php', [1, 2], [9])]);
         $current = new CoverageMap([new FileCoverage('/src/A.php', [1], [2, 5, 9])]);
 
+        $delta = BaselineDiff::between($baseline, $current)->fileDeltas['/src/A.php'];
+
+        expect($delta->baselineUncoveredLines)->because('the delta MUST count baseline uncovered lines')->toBe(1);
+        expect($delta->currentUncoveredLines)->because('the delta MUST count current uncovered lines')->toBe(3);
+        expect($delta->regressed())->toBeTrue();
+    }
+
+    #[Test]
+    public function shiftedLinesWithHigherCoverageAreNotARegression(): void
+    {
+        $baseline = new CoverageMap([new FileCoverage('/src/A.php', [3, 4], [5])]);
+        $current = new CoverageMap([new FileCoverage('/src/A.php', [5, 6, 7], [8])]);
+
         $report = BaselineDiff::between($baseline, $current);
 
-        expect($report->fileDeltas['/src/A.php']->newlyUncoveredLines)->because('newly uncovered lines are lines uncovered now but not before')->toBe([2, 5]);
+        expect($report->fileDeltas['/src/A.php']->currentPercentage)
+            ->because('the shifted file has higher coverage')
+            ->toBe(75.0);
+        expect($report->hasRegressions())
+            ->because('a line shift MUST NOT cause a regression when coverage rises')
+            ->toBeFalse();
+    }
+
+    #[Test]
+    public function aRenamedFileIsNotARegression(): void
+    {
+        $baseline = new CoverageMap([new FileCoverage('/src/Old.php', [1], [2])]);
+        $current = new CoverageMap([new FileCoverage('/src/New.php', [1], [2])]);
+
+        $report = BaselineDiff::between($baseline, $current);
+
+        expect(\array_keys($report->fileDeltas))
+            ->because('a rename MUST appear as a removed file and an added file')
+            ->toBe(['/src/New.php', '/src/Old.php']);
+        expect($report->hasRegressions())
+            ->because('a rename MUST NOT cause a regression')
+            ->toBeFalse();
     }
 
     #[Test]
@@ -65,7 +99,10 @@ final class BaselineDiffTest
         expect(\array_keys($report->fileDeltas))->because('files only in one map appear with a null side')->toBe(['/src/Gone.php', '/src/New.php']);
         expect($report->fileDeltas['/src/Gone.php']->currentPercentage)->toBeNull();
         expect($report->fileDeltas['/src/New.php']->baselinePercentage)->toBeNull();
-        expect($report->fileDeltas['/src/New.php']->newlyUncoveredLines)->toBe([2]);
+        expect($report->fileDeltas['/src/New.php']->currentUncoveredLines)->toBe(1);
+        expect($report->hasRegressions())
+            ->because('an added file MUST NOT cause a regression')
+            ->toBeFalse();
     }
 
     #[Test]
@@ -81,14 +118,14 @@ final class BaselineDiffTest
     }
 
     #[Test]
-    public function anOverallGainDoesNotHideANewlyUncoveredLine(): void
+    public function anOverallGainDoesNotHideAFileRegression(): void
     {
         $baseline = new CoverageMap([
-            new FileCoverage('/src/A.php', [1], [2]),
+            new FileCoverage('/src/A.php', [1, 2], [3]),
         ]);
         $current = new CoverageMap([
-            new FileCoverage('/src/A.php', [2], [1]),
-            new FileCoverage('/src/B.php', [1, 2, 3, 4], []),
+            new FileCoverage('/src/A.php', [1], [2, 3]),
+            new FileCoverage('/src/B.php', [1, 2, 3, 4, 5, 6], []),
         ]);
 
         $report = BaselineDiff::between($baseline, $current);
@@ -96,11 +133,8 @@ final class BaselineDiffTest
         expect($report->totalDelta())
             ->because('the added covered file MUST produce an overall coverage gain')
             ->toBeGreaterThan(0.0);
-        expect($report->fileDeltas['/src/A.php']->newlyUncoveredLines)
-            ->because('the diff MUST preserve the line-level regression')
-            ->toBe([1]);
         expect($report->hasRegressions())
-            ->because('an overall gain MUST NOT hide a newly uncovered line')
+            ->because('an overall gain MUST NOT hide a file regression')
             ->toBeTrue();
     }
 
@@ -116,11 +150,11 @@ final class BaselineDiffTest
 
         $report = BaselineDiff::between($baseline, $current);
 
-        expect($report->fileDeltas['/src/A.php']->newlyUncoveredLines)
-            ->because('the retained file has no newly uncovered line')
-            ->toBe([]);
+        expect($report->fileDeltas['/src/A.php']->uncoveredLinesChanged())
+            ->because('the retained file has the same uncovered-line count')
+            ->toBeFalse();
         expect($report->hasRegressions())
-            ->because('a total coverage decrease in retained files MUST remain a regression')
+            ->because('a percentage decrease in a retained file MUST remain a regression')
             ->toBeTrue();
     }
 }
