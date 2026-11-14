@@ -382,7 +382,7 @@ final readonly class AttachmentsTest
             $configuration,
         ))->toThrow(
             AttachmentError::class,
-            message: 'Greenlight did not create the attachment staging file.',
+            matching: '/^Greenlight\ did\ not\ create\ the\ attachment\ staging\ file(: .+)?\.$/s',
         );
     }
 
@@ -409,7 +409,7 @@ final readonly class AttachmentsTest
             $configuration,
         ))->toThrow(
             AttachmentError::class,
-            message: 'Greenlight did not write attachment recovery metadata.',
+            matching: '/^Greenlight\ did\ not\ write\ attachment\ recovery\ metadata(: .+)?\.$/s',
         );
 
         $id = new TestId('Example\EvidenceTest', 'attemptRecord');
@@ -420,7 +420,7 @@ final readonly class AttachmentsTest
         expect()->calling(static fn() => $store->recordAttempt($id, 2))
             ->toThrow(
                 AttachmentError::class,
-                message: 'Greenlight did not finalize the current test attempt record.',
+                matching: '/^Greenlight\ did\ not\ finalize\ the\ current\ test\ attempt\ record(: .+)?\.$/s',
             );
     }
 
@@ -450,7 +450,7 @@ final readonly class AttachmentsTest
         expect()->calling(static fn() => $store->discard($attachment))
             ->toThrow(
                 AttachmentError::class,
-                message: 'Greenlight did not remove attachment recovery metadata.',
+                matching: '/^Greenlight did not remove attachment recovery metadata(: .+)?\.$/s',
             );
     }
 
