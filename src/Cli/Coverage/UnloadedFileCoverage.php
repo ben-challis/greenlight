@@ -30,10 +30,11 @@ final readonly class UnloadedFileCoverage
 
     /**
      * @param list<non-empty-string> $includePaths absolute paths
+     * @param list<non-empty-string> $excludePaths absolute paths
      *
      * @throws CoverageError
      */
-    public function complete(CoverageMap $map, array $includePaths): CoverageMap
+    public function complete(CoverageMap $map, array $includePaths, array $excludePaths = []): CoverageMap
     {
         if ($includePaths === []) {
             return $map;
@@ -47,7 +48,7 @@ final readonly class UnloadedFileCoverage
 
         $missing = [];
 
-        foreach ($this->sourceFiles($includePaths) as $file) {
+        foreach ($this->sourceFiles($includePaths, $excludePaths) as $file) {
             if (!isset($known[$file])) {
                 $missing[] = $file;
             }
@@ -62,12 +63,13 @@ final readonly class UnloadedFileCoverage
 
     /**
      * @param non-empty-list<non-empty-string> $includePaths
+     * @param list<non-empty-string> $excludePaths
      *
      * @return list<non-empty-string> sorted real paths
      */
-    private function sourceFiles(array $includePaths): array
+    private function sourceFiles(array $includePaths, array $excludePaths): array
     {
-        $filter = new PathFilter($includePaths);
+        $filter = new PathFilter($includePaths, $excludePaths);
         $files = [];
 
         foreach ($includePaths as $path) {

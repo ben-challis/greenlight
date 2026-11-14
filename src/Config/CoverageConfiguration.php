@@ -12,6 +12,7 @@ final readonly class CoverageConfiguration
      * @param non-empty-string|null $driver
      * @param list<CoverageExport> $exports
      * @param int<0, max>|null $maximumUncoveredLines
+     * @param list<non-empty-string> $excludePaths
      */
     public function __construct(
         public array $includePaths,
@@ -20,6 +21,7 @@ final readonly class CoverageConfiguration
         public ?float $minimumPercentage = null,
         public ?int $maximumUncoveredLines = null,
         public bool $requireDriver = false,
+        public array $excludePaths = [],
     ) {}
 
     public function hasGates(): bool
