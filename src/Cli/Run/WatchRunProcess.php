@@ -67,7 +67,8 @@ final readonly class WatchRunProcess
         }
 
         $events = $pipes[3];
-        $pid = \proc_get_status($process)['pid'];
+        $started = ErrorTrap::run(static fn() => \proc_get_status($process));
+        $pid = \is_array($started) ? $started['pid'] : 0;
         $cleanup = $this->emergencyCleanups?->register(static function () use ($process, $pid): void {
             self::forceStop($process, $pid);
         });

@@ -6,6 +6,7 @@ namespace Greenlight\Tests\Acceptance;
 
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Fail;
+use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Test\SkipTest;
@@ -122,7 +123,7 @@ final readonly class SecondSignalTest
     private function killWorkers(string $markerDir): void
     {
         foreach ($this->workerPids($markerDir) as $pid) {
-            \posix_kill($pid, \SIGKILL);
+            ErrorTrap::run(static fn(): bool => \posix_kill($pid, \SIGKILL));
         }
     }
 

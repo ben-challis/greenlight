@@ -355,7 +355,7 @@ deptrac:
     CliReporting: [CliInput, CliOutput, Event, InternalPhp, Plugin, Reporting, ReportingProfile]
     CliPlugin: [CliCommand, CliConfiguration, CliInput, CliOutput, CliRun, Config, Coverage, InternalPhp, InternalWire, Plugin, Reporting]
     CliCoverage: [CliConfiguration, CliOutput, Config, Coverage, CoverageCollection, CoverageExport, CoverageIgnore, CoverageRelay, InternalFilesystem, InternalPhp, Plugin, Reporting]
-    CliSignal: [InternalProcess]
+    CliSignal: [InternalPhp, InternalProcess]
     CliState: [InternalFilesystem, InternalPhp]
     CliWatch: [CliOutput, Event, InternalPhp, InternalProcess, Plugin]
     CliWorkerCapacity: [Attribute, CpuCoreCounter, InternalPhp, InternalText]
