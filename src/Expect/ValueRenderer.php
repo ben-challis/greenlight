@@ -159,10 +159,11 @@ final class ValueRenderer
 
     private function renderString(string $value): string
     {
-        $value = Utf8::scrub($value);
-        [$printable, $consumed] = $this->escapePrefix($value);
+        $bytes = \strlen($value);
+        $prefix = Utf8::scrub($bytes > self::STRING_SCAN_BYTES ? \substr($value, 0, self::STRING_SCAN_BYTES) : $value);
+        [$printable, $consumed] = $this->escapePrefix($prefix);
 
-        if ($consumed === \strlen($value)) {
+        if ($bytes <= self::STRING_SCAN_BYTES && $consumed === \strlen($prefix)) {
             return "'" . $printable . "'";
         }
 
@@ -171,7 +172,7 @@ final class ValueRenderer
         return \sprintf(
             "'%s...' (truncated from %d characters)",
             $printable,
-            $this->codePointLength($value),
+            $this->characterCount($value),
         );
     }
 

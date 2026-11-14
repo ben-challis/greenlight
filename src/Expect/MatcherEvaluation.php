@@ -182,8 +182,8 @@ final class MatcherEvaluation
     {
         return $this->verify(
             Equality::equalsCanonicalizing($this->subject, $expected),
-            'to equal (canonicalizing) ' . $this->renderer->render($expected),
-            $this->renderer->render($expected),
+            fn(): string => 'to equal (canonicalizing) ' . $this->renderer->render($expected),
+            fn(): string => $this->renderer->render($expected),
         );
     }
 
@@ -198,8 +198,8 @@ final class MatcherEvaluation
     {
         return $this->verify(
             \in_array($this->subject, $options, true),
-            'to be one of ' . $this->renderer->render($options),
-            'one of ' . $this->renderer->render($options),
+            fn(): string => 'to be one of ' . $this->renderer->render($options),
+            fn(): string => 'one of ' . $this->renderer->render($options),
         );
     }
 
@@ -220,8 +220,8 @@ final class MatcherEvaluation
 
         return $this->verify(
             \in_array($this->subject, $options, true),
-            'to be in ' . $this->renderer->render($options),
-            'in ' . $this->renderer->render($options),
+            fn(): string => 'to be in ' . $this->renderer->render($options),
+            fn(): string => 'in ' . $this->renderer->render($options),
         );
     }
 
@@ -397,8 +397,8 @@ final class MatcherEvaluation
 
             return $this->verify(
                 \str_contains($this->subject, $needle),
-                'to contain ' . $this->renderer->render($needle),
-                $this->renderer->render($needle),
+                fn(): string => 'to contain ' . $this->renderer->render($needle),
+                fn(): string => $this->renderer->render($needle),
             );
         }
 
@@ -415,8 +415,8 @@ final class MatcherEvaluation
 
             return $this->verify(
                 $found,
-                'to contain ' . $this->renderer->render($needle),
-                $this->renderer->render($needle),
+                fn(): string => 'to contain ' . $this->renderer->render($needle),
+                fn(): string => $this->renderer->render($needle),
             );
         }
 
@@ -451,7 +451,7 @@ final class MatcherEvaluation
             $actualCount === $count,
             \sprintf('to have count %d', $count),
             \sprintf('count %d', $count),
-            \sprintf('%s with count %d', $this->renderer->render($this->subject), $actualCount),
+            fn(): string => \sprintf('%s with count %d', $this->renderer->render($this->subject), $actualCount),
         );
     }
 
@@ -510,7 +510,7 @@ final class MatcherEvaluation
             $actualLength === $length,
             \sprintf('to have length %d', $length),
             \sprintf('length %d', $length),
-            \sprintf('%s (length %d)', $this->renderer->render($this->subject), $actualLength),
+            fn(): string => \sprintf('%s (length %d)', $this->renderer->render($this->subject), $actualLength),
         );
     }
 
@@ -538,8 +538,8 @@ final class MatcherEvaluation
 
         return $this->verify(
             $hasKey,
-            'to have key ' . $this->renderer->render($key),
-            $this->renderer->render($key),
+            fn(): string => 'to have key ' . $this->renderer->render($key),
+            fn(): string => $this->renderer->render($key),
         );
     }
 
@@ -566,17 +566,12 @@ final class MatcherEvaluation
 
         $difference = ArraySubset::firstDifference($subset, $this->subject);
 
-        $description = 'to contain the subset ' . $this->renderer->render($subset);
-
-        if ($difference !== null) {
-            $description .= ' (' . $difference . ')';
-        }
-
         return $this->verify(
             $difference === null,
-            $description,
-            $this->renderer->render($subset),
-            $this->renderer->render($this->subject),
+            fn(): string => 'to contain the subset ' . $this->renderer->render($subset)
+                . ($difference === null ? '' : ' (' . $difference . ')'),
+            fn(): string => $this->renderer->render($subset),
+            fn(): string => $this->renderer->render($this->subject),
         );
     }
 
@@ -589,8 +584,8 @@ final class MatcherEvaluation
     {
         return $this->verify(
             $this->numericSubject('toBeGreaterThan') > $bound,
-            'to be greater than ' . $this->renderer->render($bound),
-            'greater than ' . $this->renderer->render($bound),
+            fn(): string => 'to be greater than ' . $this->renderer->render($bound),
+            fn(): string => 'greater than ' . $this->renderer->render($bound),
         );
     }
 
@@ -603,8 +598,8 @@ final class MatcherEvaluation
     {
         return $this->verify(
             $this->numericSubject('toBeGreaterThanOrEqual') >= $bound,
-            'to be greater than or equal to ' . $this->renderer->render($bound),
-            'greater than or equal to ' . $this->renderer->render($bound),
+            fn(): string => 'to be greater than or equal to ' . $this->renderer->render($bound),
+            fn(): string => 'greater than or equal to ' . $this->renderer->render($bound),
         );
     }
 
@@ -617,8 +612,8 @@ final class MatcherEvaluation
     {
         return $this->verify(
             $this->numericSubject('toBeLessThan') < $bound,
-            'to be less than ' . $this->renderer->render($bound),
-            'less than ' . $this->renderer->render($bound),
+            fn(): string => 'to be less than ' . $this->renderer->render($bound),
+            fn(): string => 'less than ' . $this->renderer->render($bound),
         );
     }
 
@@ -631,8 +626,8 @@ final class MatcherEvaluation
     {
         return $this->verify(
             $this->numericSubject('toBeLessThanOrEqual') <= $bound,
-            'to be less than or equal to ' . $this->renderer->render($bound),
-            'less than or equal to ' . $this->renderer->render($bound),
+            fn(): string => 'to be less than or equal to ' . $this->renderer->render($bound),
+            fn(): string => 'less than or equal to ' . $this->renderer->render($bound),
         );
     }
 
@@ -652,7 +647,7 @@ final class MatcherEvaluation
             $this->usageFailure('toBeWithin() requires a finite tolerance of zero or more.');
         }
 
-        $bounds = \sprintf(
+        $bounds = fn(): string => \sprintf(
             'within %s of %s',
             $this->renderer->render($delta),
             $this->renderer->render($of),
@@ -660,7 +655,7 @@ final class MatcherEvaluation
 
         return $this->verify(
             \is_finite($subject) && $subject >= $of - $delta && $subject <= $of + $delta,
-            'to be ' . $bounds,
+            static fn(): string => 'to be ' . $bounds(),
             $bounds,
         );
     }
@@ -691,8 +686,8 @@ final class MatcherEvaluation
     {
         return $this->verify(
             \str_starts_with($this->stringSubject('toStartWith'), $prefix),
-            'to start with ' . $this->renderer->render($prefix),
-            $this->renderer->render($prefix),
+            fn(): string => 'to start with ' . $this->renderer->render($prefix),
+            fn(): string => $this->renderer->render($prefix),
         );
     }
 
@@ -705,8 +700,8 @@ final class MatcherEvaluation
     {
         return $this->verify(
             \str_ends_with($this->stringSubject('toEndWith'), $suffix),
-            'to end with ' . $this->renderer->render($suffix),
-            $this->renderer->render($suffix),
+            fn(): string => 'to end with ' . $this->renderer->render($suffix),
+            fn(): string => $this->renderer->render($suffix),
         );
     }
 
@@ -747,23 +742,23 @@ final class MatcherEvaluation
             $this->usageFailure('Pass valid JSON as the expected value to toMatchJson().');
         }
 
-        $renderedExpected = $this->renderer->render($expected);
+        $renderedExpected = fn(): string => $this->renderer->render($expected);
 
         try {
             $decodedSubject = $this->decodeJsonForComparison($subject);
         } catch (\JsonException) {
             return $this->verify(
                 false,
-                'to be valid JSON matching ' . $renderedExpected,
+                static fn(): string => 'to be valid JSON matching ' . $renderedExpected(),
                 $renderedExpected,
             );
         }
 
         return $this->verify(
             Equality::equals($decodedSubject, $decodedExpected),
-            'to match the JSON structure ' . $renderedExpected,
+            static fn(): string => 'to match the JSON structure ' . $renderedExpected(),
             $renderedExpected,
-            $this->renderer->render($subject),
+            fn(): string => $this->renderer->render($subject),
         );
     }
 
@@ -782,9 +777,9 @@ final class MatcherEvaluation
 
         return $this->verify(
             $actual === $expected,
-            'to be ' . $this->renderer->render($expected),
-            $this->renderer->render($expected),
-            $this->renderer->render($actual),
+            fn(): string => 'to be ' . $this->renderer->render($expected),
+            fn(): string => $this->renderer->render($expected),
+            fn(): string => $this->renderer->render($actual),
         );
     }
 
@@ -888,19 +883,20 @@ final class MatcherEvaluation
             $matched = $thrown instanceof \Throwable && $thrown->getMessage() === $message;
         }
 
-        $description = $instance instanceof \Throwable
-            ? 'to throw the exact ' . $expectedThrowable . ' instance'
-            : 'to throw ' . $expectedThrowable;
+        $description = function () use ($instance, $expectedThrowable, $matching, $callback, $message): string {
+            $description = $instance instanceof \Throwable
+                ? 'to throw the exact ' . $expectedThrowable . ' instance'
+                : 'to throw ' . $expectedThrowable;
 
-        if ($matching !== null) {
-            $description .= ' with message matching ' . $matching;
-        } elseif ($callback instanceof \Closure) {
-            $description .= ' and satisfy the throwable callback';
-        } elseif ($message !== null) {
-            $description .= ' with message ' . $this->renderer->render($message);
-        }
+            return $description . match (true) {
+                $matching !== null => ' with message matching ' . $matching,
+                $callback instanceof \Closure => ' and satisfy the throwable callback',
+                $message !== null => ' with message ' . $this->renderer->render($message),
+                default => '',
+            };
+        };
 
-        $actual = $thrown instanceof \Throwable
+        $actual = fn(): string => $thrown instanceof \Throwable
             ? \sprintf(
                 'a callable that threw %s with message %s',
                 $thrown::class,
@@ -916,16 +912,26 @@ final class MatcherEvaluation
     }
 
     /**
-     * @param non-empty-string $description Sentence fragment that starts with
-     *   "to". Negation puts "not" before it. A pending `because()` reason
-     *   follows it.
+     * Records one matcher result. The text arguments can be closures. The
+     * method calls them only for a failure, so a passing matcher does not
+     * render values.
+     *
+     * @param non-empty-string|\Closure(): non-empty-string $description
+     *   Sentence fragment that starts with "to". Negation puts "not" before
+     *   it. A pending `because()` reason follows it.
+     * @param string|\Closure(): string|null $expected
+     * @param string|\Closure(): string|null $actual
      *
      * @return self<T>
      *
      * @throws ExpectationFailed
      */
-    private function verify(bool $matched, string $description, ?string $expected = null, ?string $actual = null): self
-    {
+    private function verify(
+        bool $matched,
+        string|\Closure $description,
+        string|\Closure|null $expected = null,
+        string|\Closure|null $actual = null,
+    ): self {
         ExpectationCounter::increment();
         $negated = $this->negated;
         $this->negated = false;
@@ -935,6 +941,9 @@ final class MatcherEvaluation
             return $this;
         }
 
+        $description = $description instanceof \Closure ? $description() : $description;
+        $expected = $expected instanceof \Closure ? $expected() : $expected;
+        $actual = $actual instanceof \Closure ? $actual() : $actual;
         $actual ??= $this->renderer->render($this->subject);
 
         throw ExpectationFailed::fromDetail(new FailureDetail(
@@ -964,14 +973,20 @@ final class MatcherEvaluation
      */
     private function verifyEquality(bool $matched, string $verb, mixed $expected, \Closure $equal): self
     {
-        $rendered = $this->renderer->renderDifference($this->subject, $expected, $equal);
-        $difference = $rendered['difference'] === null ? '' : ' (' . $rendered['difference'] . ')';
+        $rendered = null;
+        $render = function () use (&$rendered, $expected, $equal): array {
+            return $rendered ??= $this->renderer->renderDifference($this->subject, $expected, $equal);
+        };
 
         return $this->verify(
             $matched,
-            $verb . ' ' . $rendered['expected'] . $difference,
-            $rendered['expected'],
-            $rendered['actual'],
+            static function () use ($render, $verb): string {
+                ['expected' => $expected, 'difference' => $difference] = $render();
+
+                return $verb . ' ' . $expected . ($difference === null ? '' : ' (' . $difference . ')');
+            },
+            static fn(): string => $render()['expected'],
+            static fn(): string => $render()['actual'],
         );
     }
 
