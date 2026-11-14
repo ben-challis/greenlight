@@ -190,6 +190,7 @@ PHPDoc:
 
 Selects `pcov` or `xdebug` without fallback to the other driver.
 Omit this call for automatic selection, which tries pcov before Xdebug.
+The names are case-sensitive. Other names cause an error.
 
 ```php
 public function driver(string $driver): self
@@ -197,10 +198,10 @@ public function driver(string $driver): self
 
 PHPDoc:
 
-- `@param non-empty-string $driver`
+- `@param 'pcov'|'xdebug' $driver`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L69)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L70)
 
 ### `minimumPercentage()`
 
@@ -215,7 +216,7 @@ PHPDoc:
 - `@param float $percentage A value from 0 through 100 with at most two decimal places.`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L87)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L92)
 
 ### `maximumUncoveredLines()`
 
@@ -230,7 +231,7 @@ PHPDoc:
 - `@param int<0, max> $lines`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L108)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L113)
 
 ### `requireDriver()`
 
@@ -240,7 +241,7 @@ Fails the run when the selected coverage driver is not available.
 public function requireDriver(bool $required = true): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L120)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L125)
 
 ### `export()`
 
@@ -258,7 +259,7 @@ PHPDoc:
 - `@param non-empty-string $target`
 - `@throws InvalidConfiguration`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L137)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/CoverageBuilder.php#L142)
 
 ## `GreenlightConfig`
 
@@ -626,13 +627,21 @@ public static function emptyCoverageDriver(): self
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L59)
 
+### `unknownCoverageDriver()`
+
+```php
+public static function unknownCoverageDriver(string $driver): self
+```
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L64)
+
 ### `coveragePercentageOutOfRange()`
 
 ```php
 public static function coveragePercentageOutOfRange(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L64)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L69)
 
 ### `coveragePercentageTooPrecise()`
 
@@ -640,7 +649,7 @@ public static function coveragePercentageOutOfRange(): self
 public static function coveragePercentageTooPrecise(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L69)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L74)
 
 ### `negativeUncoveredLineLimit()`
 
@@ -648,7 +657,7 @@ public static function coveragePercentageTooPrecise(): self
 public static function negativeUncoveredLineLimit(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L74)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L79)
 
 ### `emptyCoverageExport()`
 
@@ -656,7 +665,7 @@ public static function negativeUncoveredLineLimit(): self
 public static function emptyCoverageExport(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L79)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L84)
 
 ### `unknownCoverageFormat()`
 
@@ -664,7 +673,7 @@ public static function emptyCoverageExport(): self
 public static function unknownCoverageFormat(string $format): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L84)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L89)
 
 ### `coverageTargetContainsNullByte()`
 
@@ -672,7 +681,7 @@ public static function unknownCoverageFormat(string $format): self
 public static function coverageTargetContainsNullByte(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L94)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L99)
 
 ### `testPathsNotAList()`
 
@@ -680,7 +689,7 @@ public static function coverageTargetContainsNullByte(): self
 public static function testPathsNotAList(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L99)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L104)
 
 ### `testPathNotAString()`
 
@@ -688,7 +697,7 @@ public static function testPathsNotAList(): self
 public static function testPathNotAString(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L104)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L109)
 
 ### `emptyTestPath()`
 
@@ -696,7 +705,7 @@ public static function testPathNotAString(): self
 public static function emptyTestPath(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L109)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L114)
 
 ### `testPathContainsNullByte()`
 
@@ -704,7 +713,7 @@ public static function emptyTestPath(): self
 public static function testPathContainsNullByte(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L114)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L119)
 
 ### `missingTestPaths()`
 
@@ -712,7 +721,7 @@ public static function testPathContainsNullByte(): self
 public static function missingTestPaths(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L119)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L124)
 
 ### `emptySuiteName()`
 
@@ -720,7 +729,7 @@ public static function missingTestPaths(): self
 public static function emptySuiteName(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L124)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L129)
 
 ### `duplicateSuite()`
 
@@ -728,7 +737,7 @@ public static function emptySuiteName(): self
 public static function duplicateSuite(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L129)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L134)
 
 ### `invalidResourceName()`
 
@@ -736,7 +745,7 @@ public static function duplicateSuite(string $name): self
 public static function invalidResourceName(\InvalidArgumentException $previous): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L134)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L139)
 
 ### `invalidResourceLimit()`
 
@@ -744,7 +753,7 @@ public static function invalidResourceName(\InvalidArgumentException $previous):
 public static function invalidResourceLimit(string $name, int $limit): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L139)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L144)
 
 ### `duplicateResourceLimit()`
 
@@ -752,7 +761,7 @@ public static function invalidResourceLimit(string $name, int $limit): self
 public static function duplicateResourceLimit(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L144)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L149)
 
 ### `emptyDeprecationPattern()`
 
@@ -760,7 +769,7 @@ public static function duplicateResourceLimit(string $name): self
 public static function emptyDeprecationPattern(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L149)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L154)
 
 ### `invalidPluginFactory()`
 
@@ -768,7 +777,7 @@ public static function emptyDeprecationPattern(): self
 public static function invalidPluginFactory(\InvalidArgumentException $previous): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L154)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L159)
 
 ### `negativeRandomSeed()`
 
@@ -776,7 +785,7 @@ public static function invalidPluginFactory(\InvalidArgumentException $previous)
 public static function negativeRandomSeed(int $seed): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L159)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L164)
 
 ### `invalidWorkerCountString()`
 
@@ -784,7 +793,7 @@ public static function negativeRandomSeed(int $seed): self
 public static function invalidWorkerCountString(string $count): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L164)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L169)
 
 ### `invalidMemorySizeSyntax()`
 
@@ -792,7 +801,7 @@ public static function invalidWorkerCountString(string $count): self
 public static function invalidMemorySizeSyntax(string $value): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L169)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L174)
 
 ### `memorySizeOverflow()`
 
@@ -800,7 +809,7 @@ public static function invalidMemorySizeSyntax(string $value): self
 public static function memorySizeOverflow(string $value): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L179)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L184)
 
 ### `nonPositiveMemorySize()`
 
@@ -808,7 +817,7 @@ public static function memorySizeOverflow(string $value): self
 public static function nonPositiveMemorySize(string $value): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L184)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L189)
 
 ### `emptyStoragePath()`
 
@@ -816,7 +825,7 @@ public static function nonPositiveMemorySize(string $value): self
 public static function emptyStoragePath(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L189)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L194)
 
 ### `storagePathContainsNullByte()`
 
@@ -824,7 +833,7 @@ public static function emptyStoragePath(string $name): self
 public static function storagePathContainsNullByte(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L194)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L199)
 
 ### `emptySuitePath()`
 
@@ -832,7 +841,7 @@ public static function storagePathContainsNullByte(string $name): self
 public static function emptySuitePath(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L199)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L204)
 
 ### `suitePathContainsNullByte()`
 
@@ -840,7 +849,7 @@ public static function emptySuitePath(string $name): self
 public static function suitePathContainsNullByte(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L204)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L209)
 
 ### `emptySuiteTag()`
 
@@ -848,7 +857,7 @@ public static function suitePathContainsNullByte(string $name): self
 public static function emptySuiteTag(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L209)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L214)
 
 ### `missingSuitePaths()`
 
@@ -856,7 +865,7 @@ public static function emptySuiteTag(string $name): self
 public static function missingSuitePaths(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L214)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L219)
 
 ### `suitePathsNotAList()`
 
@@ -864,7 +873,7 @@ public static function missingSuitePaths(string $name): self
 public static function suitePathsNotAList(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L224)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L229)
 
 ### `suitePathNotAString()`
 
@@ -872,7 +881,7 @@ public static function suitePathsNotAList(string $name): self
 public static function suitePathNotAString(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L229)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L234)
 
 ### `suiteTagsNotAList()`
 
@@ -880,7 +889,7 @@ public static function suitePathNotAString(string $name): self
 public static function suiteTagsNotAList(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L234)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L239)
 
 ### `suiteTagNotAString()`
 
@@ -888,7 +897,7 @@ public static function suiteTagsNotAList(string $name): self
 public static function suiteTagNotAString(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L239)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L244)
 
 ### `invalidWatchDebounce()`
 
@@ -896,7 +905,7 @@ public static function suiteTagNotAString(string $name): self
 public static function invalidWatchDebounce(int $milliseconds): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L244)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L249)
 
 ### `invalidWatchFileLimit()`
 
@@ -904,7 +913,7 @@ public static function invalidWatchDebounce(int $milliseconds): self
 public static function invalidWatchFileLimit(int $maximumFiles): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L249)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L254)
 
 ### `emptyWatchPath()`
 
@@ -912,7 +921,7 @@ public static function invalidWatchFileLimit(int $maximumFiles): self
 public static function emptyWatchPath(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L254)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L259)
 
 ### `watchPathContainsNullByte()`
 
@@ -920,7 +929,7 @@ public static function emptyWatchPath(string $name): self
 public static function watchPathContainsNullByte(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L259)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L264)
 
 ### `watchPathsNotAList()`
 
@@ -928,7 +937,7 @@ public static function watchPathContainsNullByte(string $name): self
 public static function watchPathsNotAList(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L264)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L269)
 
 ### `watchPathNotANonEmptyString()`
 
@@ -936,7 +945,7 @@ public static function watchPathsNotAList(string $name): self
 public static function watchPathNotANonEmptyString(string $name): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L269)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L274)
 
 ### `nonPositiveWorkerCount()`
 
@@ -944,7 +953,7 @@ public static function watchPathNotANonEmptyString(string $name): self
 public static function nonPositiveWorkerCount(int $count): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L274)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Config/InvalidConfiguration.php#L279)
 
 ## `StorageBuilder`
 
