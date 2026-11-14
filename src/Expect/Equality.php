@@ -17,6 +17,8 @@ final class Equality
 
     private const string STATE_HEAP = 'heap';
 
+    private const string STATE_OBJECT_STORAGE = 'object-storage';
+
     private const string STATE_DECLARED_PROPERTIES = 'declared-properties';
 
     /**
@@ -280,6 +282,10 @@ final class Equality
                     'properties' => $properties,
                     'native' => self::serializedState($value),
                 ],
+                self::STATE_OBJECT_STORAGE => [
+                    'properties' => $properties,
+                    'native' => self::storageEntries($value),
+                ],
                 self::STATE_HEAP => [
                     'properties' => $properties,
                     'native' => self::heapElements($value),
@@ -314,6 +320,10 @@ final class Equality
 
         if ($native === [] || \in_array($native[0]->getName(), self::PROPERTY_ONLY_NATIVE_CLASSES, true)) {
             return [self::STATE_PROPERTIES, []];
+        }
+
+        if ($class === \SplObjectStorage::class || $reflection->isSubclassOf(\SplObjectStorage::class)) {
+            return [self::STATE_OBJECT_STORAGE, []];
         }
 
         if ($reflection->isSubclassOf(\SplHeap::class) || $reflection->isSubclassOf(\SplPriorityQueue::class)
@@ -366,6 +376,34 @@ final class Equality
         }
 
         return $state;
+    }
+
+    /**
+     * Returns the object and data pairs in a canonical order. A storage is a
+     * set, so the attach order has no effect on equality.
+     *
+     * @return list<array{object, mixed}>
+     */
+    private static function storageEntries(object $value): array
+    {
+        if (!$value instanceof \SplObjectStorage) {
+            throw new \LogicException('An object storage must extend SplObjectStorage.'); // @codeCoverageIgnore
+        }
+
+        // Iterate a copy, so the iterator position of the original stays.
+        $copy = clone $value;
+        $entries = [];
+        $keys = [];
+
+        foreach ($copy as $object) {
+            $entry = [$object, $copy->getInfo()];
+            $entries[] = $entry;
+            $keys[] = self::sortKey($entry, []);
+        }
+
+        \asort($keys, \SORT_STRING);
+
+        return \array_map(static fn(int $index): array => $entries[$index], \array_keys($keys));
     }
 
     /**

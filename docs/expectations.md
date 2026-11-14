@@ -164,8 +164,11 @@ Many native PHP classes keep their state outside the properties. Examples are
 For a class with a native ancestor, `toEqual()` also compares the native state:
 
 * If the class has a `__serialize()` method, the matcher compares its result.
+* For `SplObjectStorage`, the matcher compares the objects and their data in
+  any attach order.
 * For `SplHeap` and `SplPriorityQueue`, the matcher compares the elements of a
-  copy. The original object keeps its elements.
+  copy in extraction order. The original object keeps its elements. For equal
+  priorities, the extraction order is part of the compared state.
 * If the native classes keep all state in declared properties, as exceptions
   do, the matcher compares only the properties.
 

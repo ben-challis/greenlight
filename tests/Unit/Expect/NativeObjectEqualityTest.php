@@ -39,6 +39,29 @@ final class NativeObjectEqualityTest
     }
 
     #[Test]
+    public function objectStoragesIgnoreTheAttachOrder(): void
+    {
+        $first = new \stdClass();
+        $second = new \stdClass();
+        $left = new \SplObjectStorage();
+        $left[$first] = 1;
+        $left[$second] = 2;
+        $right = new \SplObjectStorage();
+        $right[$second] = 2;
+        $right[$first] = 1;
+
+        expect($left)
+            ->because('an object storage is a set, so the attach order MUST NOT affect equality')
+            ->toEqual($right);
+
+        $right[$first] = 3;
+
+        expect($left)
+            ->because('the data of each object MUST still count')
+            ->not()->toEqual($right);
+    }
+
+    #[Test]
     public function fixedArraysCompareTheirElements(): void
     {
         $this->expectStateComparison(
