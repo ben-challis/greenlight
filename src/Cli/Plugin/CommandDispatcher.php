@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Plugin;
 
-use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\ArgumentScan;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;

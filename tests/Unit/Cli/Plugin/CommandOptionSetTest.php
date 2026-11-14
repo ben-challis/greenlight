@@ -21,7 +21,7 @@ final readonly class CommandOptionSetTest
      */
     #[Test]
     #[DataSet('optionsOfOtherCommands')]
-    public function aCommandRejectsAnOptionThatItDoesNotUse(array $arguments, string $option): void
+    public function aCommandRejectsAnOptionThatItDoesNotUse(array $arguments, string $option, string $command): void
     {
         [$exitCode, $stderr] = $this->run(['--no-ansi', ...$arguments]);
 
@@ -29,17 +29,27 @@ final readonly class CommandOptionSetTest
             ->because('an option of another command is a usage error')
             ->toBe(64);
         expect($stderr)
-            ->toBe(\sprintf("greenlight: Unknown option \"%s\". Use greenlight --help to list options.\n", $option));
+            ->because('the option exists, so the message MUST name the command instead of an unknown option')
+            ->toBe(\sprintf("greenlight: Option %s does not apply to the \"%s\" command.\n", $option, $command));
     }
 
-    /** @return iterable<string, array{list<string>, string}> */
+    /** @return iterable<string, array{list<string>, string, string}> */
     public static function optionsOfOtherCommands(): iterable
     {
-        yield 'coverage:diff with workers' => [['coverage:diff', '--workers=2'], '--workers'];
-        yield 'profile:report with watch' => [['profile:report', '--watch'], '--watch'];
-        yield 'run with baseline' => [['run', '--baseline=a.json'], '--baseline'];
-        yield 'default run with output' => [['--output=helper.php'], '--output'];
-        yield 'ide-helper with reporter' => [['ide-helper', '--reporter=plain'], '--reporter'];
+        yield 'coverage:diff with workers' => [['coverage:diff', '--workers=2'], '--workers', 'coverage:diff'];
+        yield 'profile:report with watch' => [['profile:report', '--watch'], '--watch', 'profile:report'];
+        yield 'run with baseline' => [['run', '--baseline=a.json'], '--baseline', 'run'];
+        yield 'default run with output' => [['--output=helper.php'], '--output', 'run'];
+        yield 'ide-helper with reporter' => [['ide-helper', '--reporter=plain'], '--reporter', 'ide-helper'];
+    }
+
+    #[Test]
+    public function anOptionThatNoCommandDefinesIsStillUnknown(): void
+    {
+        [$exitCode, $stderr] = $this->run(['--no-ansi', 'run', '--nope']);
+
+        expect($exitCode)->toBe(64);
+        expect($stderr)->toBe("greenlight: Unknown option \"--nope\". Use greenlight --help to list options.\n");
     }
 
     #[Test]

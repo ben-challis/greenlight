@@ -7,7 +7,7 @@ namespace Greenlight\Cli\Input;
 /**
  * A small Greenlight argument parser.
  *
- * Long options use --name or --name=value. Short aliases use one letter (-h)
+ * Long options use --name, --name=value, or --name value for a required value. Short aliases use one letter (-h)
  * and do not take values. The first word without a prefix is the command.
  *
  * @internal
@@ -26,11 +26,15 @@ final class ArgumentParser
 
     /**
      * @param list<OptionSpec> $specs
+     * @param list<string> $otherCommandOptions Options of other commands. The parser rejects them with a message that names the command.
      *
      * @throws \InvalidArgumentException when option names or aliases conflict
      */
-    public function __construct(array $specs)
-    {
+    public function __construct(
+        array $specs,
+        private readonly array $otherCommandOptions = [],
+        private readonly ?string $command = null,
+    ) {
         foreach ($specs as $spec) {
             if (isset($this->byName[$spec->name])) {
                 throw new \InvalidArgumentException(\sprintf(
@@ -87,7 +91,7 @@ final class ArgumentParser
                     $value = \substr($body, $separator + 1);
                 }
 
-                $spec = $this->byName[$name] ?? throw CliError::unknownOption('--' . $name);
+                $spec = $this->byName[$name] ?? throw $this->unknown($name);
 
                 if ($value !== null && $spec->value === OptionValue::None) {
                     throw CliError::optionTakesNoValue($name);
@@ -172,6 +176,13 @@ final class ArgumentParser
         }
 
         return new ArgumentScan($command, $commandIndex, $options);
+    }
+
+    private function unknown(string $name): CliError
+    {
+        return $this->command !== null && \in_array($name, $this->otherCommandOptions, true)
+            ? CliError::optionNotForCommand($name, $this->command)
+            : CliError::unknownOption('--' . $name);
     }
 
     /**
