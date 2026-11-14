@@ -6,21 +6,14 @@ namespace Greenlight\Rector;
 
 use Greenlight\Attribute\After;
 use Greenlight\Attribute\Before;
-use Greenlight\Attribute\DataRow;
-use Greenlight\Attribute\DataSet;
-use Greenlight\Attribute\Group;
-use Greenlight\Attribute\Isolated;
 use Greenlight\Attribute\NoExpectations;
-use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use PhpParser\Comment\Doc;
 use PhpParser\Modifiers;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
-use PhpParser\Node\ArrayItem;
 use PhpParser\Node\Attribute;
-use PhpParser\Node\AttributeGroup;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ArrowFunction;
 use PhpParser\Node\Expr\ClassConstFetch;
@@ -74,19 +67,10 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         'onnotsuccessfultest',
     ];
 
-    /**
-     * Converted attributes that Greenlight does not permit more than once.
-     *
-     * @var list<class-string>
-     */
-    private const array SINGLE_GREENLIGHT_ATTRIBUTES = [
-        DataSet::class,
-        Isolated::class,
-        NoExpectations::class,
-        SkipUnless::class,
-    ];
-
     private bool $dropAssertionMessages = false;
+
+    private ?PhpUnitAttributeConverter $attributeConverter = null;
+
 
     private ?OwnCallClassifier $callClassifier = null;
 
@@ -186,12 +170,15 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             return null;
         }
 
-        if (!$this->attributesConvert($class->attrGroups, onClass: true) || $this->hasPhpUnitAnnotation($class)) {
+        $attributes = $this->attributeConverter();
+        $classGroups = $attributes->convertGroups($class->attrGroups, onClass: true, dropOverride: false);
+
+        if ($classGroups === null || $this->hasPhpUnitAnnotation($class)) {
             return null;
         }
 
-        $this->definedMethods($class);
-        $providers = $this->referencedDataProviders($class);
+        $providers = $attributes->referencedDataProviders($class);
+        $attributeGroups = [\spl_object_id($class) => $classGroups];
         $hooks = [];
         $hookOrder = ['before' => [], 'after' => []];
         $tests = [];
@@ -202,11 +189,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         foreach ($class->getMethods() as $method) {
             $name = $method->name->toLowerString();
 
-            if (\in_array($name, self::UNSUPPORTED_TEMPLATE_METHODS, true)) {
-                return null;
-            }
-
-            if (!$this->attributesConvert($method->attrGroups, onClass: false) || $this->hasPhpUnitAnnotation($method)) {
+            if (\in_array($name, self::UNSUPPORTED_TEMPLATE_METHODS, true) || $this->hasPhpUnitAnnotation($method)) {
                 return null;
             }
 
@@ -216,15 +199,26 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
                 return null;
             }
 
-            if ($kind === 'before' || $kind === 'after') {
+            $isHook = $kind === 'before' || $kind === 'after';
+            $groups = $attributes->convertGroups($method->attrGroups, onClass: false, dropOverride: $isHook);
+
+            if ($groups === null) {
+                return null;
+            }
+
+            if ($isHook) {
                 $hooks[$name] = $kind;
                 $hookOrder[$kind][] = $name;
                 $this->sanctionParentHookCalls($method, $sanctioned);
+                $attributeGroups[\spl_object_id($method)] = $attributes->withPrependedAttribute(
+                    $groups,
+                    $kind === 'before' ? Before::class : After::class,
+                );
 
                 continue;
             }
 
-            if ($this->hasAttributeNamed($method->attrGroups, 'Override')) {
+            if ($attributes->hasAttributeNamed($method->attrGroups, 'Override')) {
                 // #[\Override] on anything but a hook points at the removed parent.
                 return null;
             }
@@ -234,6 +228,8 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
                 // test must not be static, so the method would stop running.
                 return null;
             }
+
+            $attributeGroups[\spl_object_id($method)] = $groups;
 
             if ($kind !== 'test') {
                 continue;
@@ -258,7 +254,10 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
             if ($noAssertions) {
                 $noExpectations[] = $name;
+                $groups = $attributes->withPrependedAttribute($groups, NoExpectations::class);
             }
+
+            $attributeGroups[\spl_object_id($method)] = $attributes->withPrependedAttribute($groups, Test::class);
         }
 
         if (!$this->hookOrderConverts($hookOrder['before'], 'before')
@@ -267,30 +266,30 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             return null;
         }
 
-        if (!$this->dataProvidersConvert($class)) {
+        if (!$attributes->dataProvidersConvert($class)) {
             return null;
         }
 
         $calls = $this->planCalls($class, $sanctioned);
 
-        return $calls === null ? null : new ClassPlan($hooks, $tests, $noExpectations, $throwRewrites, $calls);
+        return $calls === null
+            ? null
+            : new ClassPlan($attributeGroups, $hooks, $tests, $noExpectations, $throwRewrites, $calls);
     }
 
     private function convert(Class_ $class, ClassPlan $plan): void
     {
         $class->extends = null;
-        $class->attrGroups = $this->convertAttributeGroups($class->attrGroups, dropOverride: false);
+        $class->attrGroups = $plan->attributeGroups[\spl_object_id($class)];
 
         foreach ($class->getMethods() as $method) {
             $name = $method->name->toLowerString();
-            $hook = $plan->hooks[$name] ?? null;
-            $method->attrGroups = $this->convertAttributeGroups($method->attrGroups, dropOverride: $hook !== null);
+            $method->attrGroups = $plan->attributeGroups[\spl_object_id($method)];
 
-            if ($hook !== null) {
+            if (isset($plan->hooks[$name])) {
                 $method->flags &= ~(Modifiers::PROTECTED | Modifiers::PRIVATE);
                 $method->flags |= Modifiers::PUBLIC;
                 $this->removeParentHookCalls($method);
-                $this->prependAttribute($method, $hook === 'before' ? Before::class : After::class);
             }
 
             if (\in_array($name, $plan->tests, true)) {
@@ -302,10 +301,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
                 if (\in_array($name, $plan->noExpectations, true)) {
                     $this->removeNoAssertionCalls($method);
-                    $this->prependAttribute($method, NoExpectations::class);
                 }
-
-                $this->prependAttribute($method, Test::class);
             }
         }
 
@@ -365,39 +361,14 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     }
 
     /**
-     * @return array<string, true> lowercase names from string `#[DataProvider]` arguments
-     */
-    private function referencedDataProviders(Class_ $class): array
-    {
-        $providers = [];
-
-        foreach ($class->getMethods() as $method) {
-            foreach ($method->attrGroups as $group) {
-                foreach ($group->attrs as $attribute) {
-                    $argument = $attribute->args[0] ?? null;
-
-                    if ($this->getName($attribute->name) === PhpUnitAttributes::NAMESPACE_PREFIX . 'DataProvider'
-                        && $argument instanceof Arg
-                        && $argument->value instanceof String_
-                    ) {
-                        $providers[\strtolower($argument->value->value)] = true;
-                    }
-                }
-            }
-        }
-
-        return $providers;
-    }
-
-    /**
      * @return 'after'|'before'|'helper'|'test'|null
      */
     private function classify(ClassMethod $method): ?string
     {
         $name = $method->name->toLowerString();
-        $isBefore = $name === 'setup' || $this->hasPhpUnitAttribute($method, 'Before');
-        $isAfter = $name === 'teardown' || $this->hasPhpUnitAttribute($method, 'After');
-        $hasTestAttribute = $this->hasPhpUnitAttribute($method, 'Test');
+        $isBefore = $name === 'setup' || $this->attributeConverter()->hasPhpUnitAttribute($method, 'Before');
+        $isAfter = $name === 'teardown' || $this->attributeConverter()->hasPhpUnitAttribute($method, 'After');
+        $hasTestAttribute = $this->attributeConverter()->hasPhpUnitAttribute($method, 'Test');
         $isTestNamed = \str_starts_with($name, 'test');
 
         if ($isBefore || $isAfter) {
@@ -426,243 +397,6 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         }
 
         return 'helper';
-    }
-
-    /**
-     * @param array<AttributeGroup> $attrGroups
-     */
-    private function attributesConvert(array $attrGroups, bool $onClass): bool
-    {
-        $singleAttributes = [];
-
-        foreach ($attrGroups as $group) {
-            foreach ($group->attrs as $attribute) {
-                if (!$this->attributeConverts($attribute, $onClass)) {
-                    return false;
-                }
-
-                $singleAttribute = $this->singleAttributeOutput($attribute);
-
-                if ($singleAttribute === null) {
-                    continue;
-                }
-
-                if (isset($singleAttributes[$singleAttribute])) {
-                    return false;
-                }
-
-                $singleAttributes[$singleAttribute] = true;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Returns the Greenlight attribute when the conversion can emit it only
-     * once on one declaration.
-     *
-     * @return class-string|null
-     */
-    private function singleAttributeOutput(Attribute $attribute): ?string
-    {
-        $resolved = $this->getName($attribute->name);
-
-        if (\in_array($resolved, self::SINGLE_GREENLIGHT_ATTRIBUTES, true)) {
-            return $resolved;
-        }
-
-        if (!\str_starts_with($resolved, PhpUnitAttributes::NAMESPACE_PREFIX)) {
-            return null;
-        }
-
-        $short = \substr($resolved, \strlen(PhpUnitAttributes::NAMESPACE_PREFIX));
-
-        if (isset(PhpUnitAttributes::SKIP_UNLESS_CONDITIONS[$short])) {
-            return SkipUnless::class;
-        }
-
-        $renamed = PhpUnitAttributes::RENAMES[$short] ?? null;
-
-        return \is_string($renamed) && \in_array($renamed, self::SINGLE_GREENLIGHT_ATTRIBUTES, true)
-            ? $renamed
-            : null;
-    }
-
-    private function attributeConverts(Attribute $attribute, bool $onClass): bool
-    {
-        $resolved = $this->getName($attribute->name);
-
-        if (!\str_starts_with($resolved, PhpUnitAttributes::NAMESPACE_PREFIX)) {
-            return true;
-        }
-
-        $short = \substr($resolved, \strlen(PhpUnitAttributes::NAMESPACE_PREFIX));
-
-        if (\in_array($short, PhpUnitAttributes::DROPS, true)) {
-            return true;
-        }
-
-        if (\in_array($short, PhpUnitAttributes::STRUCTURAL, true)) {
-            return !$onClass && $attribute->args === [];
-        }
-
-        $arguments = OwnCallClassifier::positionalArgs($attribute->args);
-
-        if ($short === PhpUnitAttributes::TEST_WITH) {
-            return !$onClass && $this->testWithArgsConvert($attribute);
-        }
-
-        if (isset(PhpUnitAttributes::SIZE_GROUPS[$short])) {
-            return $attribute->args === [];
-        }
-
-        if (isset(PhpUnitAttributes::SKIP_UNLESS_CONDITIONS[$short])) {
-            return $arguments !== null && \count($arguments) === 1;
-        }
-
-        if (isset(PhpUnitAttributes::RENAMES[$short])) {
-            if ($arguments === null) {
-                return false;
-            }
-
-            $arity = match ($short) {
-                'DataProvider', 'Group', 'Ticket' => 1,
-                default => 0,
-            };
-
-            if ($onClass && ($short === 'DoesNotPerformAssertions' || $short === 'DataProvider')) {
-                // NoExpectations and DataSet only target methods.
-                return false;
-            }
-
-            return \count($arguments) === $arity;
-        }
-
-        return false;
-    }
-
-    private function testWithArgsConvert(Attribute $attribute): bool
-    {
-        $count = \count($attribute->args);
-
-        if ($count < 1 || $count > 2) {
-            return false;
-        }
-
-        foreach ($attribute->args as $index => $argument) {
-            if ($argument->unpack) {
-                return false;
-            }
-
-            $named = $argument->name instanceof Identifier ? $argument->name->toString() : null;
-
-            if ($index === 0 && $named !== null) {
-                return false;
-            }
-
-            if ($index === 1 && $named !== null && $named !== 'name') {
-                return false;
-            }
-        }
-
-        return $this->rowKeysConvert($attribute->args[0]->value);
-    }
-
-    /**
-     * Checks each literal row that a data provider returns or yields. A
-     * provider that builds rows another way keeps its rows unchecked.
-     */
-    private function providerRowsConvert(ClassMethod $provider): bool
-    {
-        $finder = new NodeFinder();
-        $stmts = $provider->stmts ?? [];
-        $rows = \array_map(
-            static fn(Expr\Yield_ $yield): ?Expr => $yield->value,
-            $finder->findInstanceOf($stmts, Expr\Yield_::class),
-        );
-        $rowSets = [
-            ...\array_map(
-                static fn(Node\Stmt\Return_ $return): ?Expr => $return->expr,
-                $finder->findInstanceOf($stmts, Node\Stmt\Return_::class),
-            ),
-            ...\array_map(
-                static fn(Expr\YieldFrom $yieldFrom): Expr => $yieldFrom->expr,
-                $finder->findInstanceOf($stmts, Expr\YieldFrom::class),
-            ),
-        ];
-
-        foreach ($rowSets as $rowSet) {
-            if (!$rowSet instanceof Expr\Array_) {
-                continue;
-            }
-
-            foreach ($rowSet->items as $item) {
-                $rows[] = $item?->value;
-            }
-        }
-
-        return \array_all(
-            $rows,
-            fn(?Expr $row): bool => !$row instanceof Expr\Array_ || $this->rowKeysConvert($row),
-        );
-    }
-
-    /**
-     * PHPUnit 11 spreads a data row, so a string key becomes a named
-     * argument. Greenlight passes the row values in order and ignores the
-     * keys. Only integer keys give the same arguments in both.
-     */
-    private function rowKeysConvert(Expr $row): bool
-    {
-        if (!$row instanceof Expr\Array_) {
-            $type = $this->getType($row);
-
-            return $type->isArray()->yes() && $type->getIterableKeyType()->isInteger()->yes();
-        }
-
-        foreach ($row->items as $item) {
-            if (!$item instanceof ArrayItem || $item->unpack) {
-                return false;
-            }
-
-            if ($item->key instanceof Expr && !$item->key instanceof Node\Scalar\Int_) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private function dataProvidersConvert(Class_ $class): bool
-    {
-        foreach ($class->getMethods() as $method) {
-            foreach ($method->attrGroups as $group) {
-                foreach ($group->attrs as $attribute) {
-                    if ($this->getName($attribute->name) !== PhpUnitAttributes::NAMESPACE_PREFIX . 'DataProvider') {
-                        continue;
-                    }
-
-                    $argument = $attribute->args[0] ?? null;
-
-                    if ($argument === null || !$argument->value instanceof String_) {
-                        return false;
-                    }
-
-                    $provider = $class->getMethod($argument->value->value);
-
-                    if (!$provider instanceof ClassMethod || !$provider->isPublic() || !$provider->isStatic()) {
-                        return false;
-                    }
-
-                    if (!$this->providerRowsConvert($provider)) {
-                        return false;
-                    }
-                }
-            }
-        }
-
-        return true;
     }
 
     /**
@@ -819,132 +553,6 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         return $found;
     }
 
-    private function hasPhpUnitAttribute(ClassMethod $method, string $short): bool
-    {
-        return $this->hasAttributeNamed($method->attrGroups, PhpUnitAttributes::NAMESPACE_PREFIX . $short);
-    }
-
-    /**
-     * @param array<AttributeGroup> $attrGroups
-     */
-    private function hasAttributeNamed(array $attrGroups, string $name): bool
-    {
-        foreach ($attrGroups as $group) {
-            foreach ($group->attrs as $attribute) {
-                if ($this->getName($attribute->name) === $name) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param array<AttributeGroup> $attrGroups
-     *
-     * @return list<AttributeGroup>
-     */
-    private function convertAttributeGroups(array $attrGroups, bool $dropOverride): array
-    {
-        $converted = [];
-
-        foreach ($attrGroups as $group) {
-            $kept = [];
-
-            foreach ($group->attrs as $attribute) {
-                $replacement = $this->convertAttribute($attribute, $dropOverride);
-
-                if (!$replacement instanceof Attribute) {
-                    continue;
-                }
-
-                $kept[] = $replacement;
-            }
-
-            if ($kept !== []) {
-                $converted[] = new AttributeGroup($kept);
-            }
-        }
-
-        return $converted;
-    }
-
-    private function convertAttribute(Attribute $attribute, bool $dropOverride): ?Attribute
-    {
-        $resolved = $this->getName($attribute->name);
-
-        if ($dropOverride && $resolved === 'Override') {
-            return null;
-        }
-
-        if (!\str_starts_with($resolved, PhpUnitAttributes::NAMESPACE_PREFIX)) {
-            return $attribute;
-        }
-
-        $short = \substr($resolved, \strlen(PhpUnitAttributes::NAMESPACE_PREFIX));
-
-        if (\in_array($short, PhpUnitAttributes::DROPS, true) || \in_array($short, PhpUnitAttributes::STRUCTURAL, true)) {
-            return null;
-        }
-
-        if ($short === PhpUnitAttributes::TEST_WITH) {
-            return $this->convertTestWith($attribute);
-        }
-
-        if (isset(PhpUnitAttributes::SIZE_GROUPS[$short])) {
-            return new Attribute(
-                new FullyQualified(Group::class),
-                [new Arg(new String_(PhpUnitAttributes::SIZE_GROUPS[$short]))],
-            );
-        }
-
-        if (isset(PhpUnitAttributes::SKIP_UNLESS_CONDITIONS[$short])) {
-            $condition = new ClassConstFetch(
-                new FullyQualified(PhpUnitAttributes::SKIP_UNLESS_CONDITIONS[$short]),
-                'class',
-            );
-
-            return new Attribute(
-                new FullyQualified(SkipUnless::class),
-                [new Arg($condition), $attribute->args[0]],
-            );
-        }
-
-        if (isset(PhpUnitAttributes::RENAMES[$short])) {
-            return new Attribute(new FullyQualified(PhpUnitAttributes::RENAMES[$short]), $attribute->args);
-        }
-
-        return $attribute;
-    }
-
-    private function convertTestWith(Attribute $attribute): Attribute
-    {
-        $arguments = [new Arg($attribute->args[0]->value)];
-        $label = $attribute->args[1] ?? null;
-
-        if ($label instanceof Arg) {
-            $arguments[] = new Arg($label->value, name: new Identifier('label'));
-        }
-
-        return new Attribute(new FullyQualified(DataRow::class), $arguments);
-    }
-
-    /**
-     * @param class-string $attributeClass
-     */
-    private function prependAttribute(ClassMethod $method, string $attributeClass): void
-    {
-        if ($this->hasAttributeNamed($method->attrGroups, $attributeClass)) {
-            return;
-        }
-
-        \array_unshift(
-            $method->attrGroups,
-            new AttributeGroup([new Attribute(new FullyQualified($attributeClass))]),
-        );
-    }
-
     private function removeParentHookCalls(ClassMethod $method): void
     {
         $method->stmts = \array_values(\array_filter(
@@ -1063,5 +671,10 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     private function callClassifier(): OwnCallClassifier
     {
         return $this->callClassifier ??= new OwnCallClassifier($this->nodeNameResolver, $this->nodeTypeResolver);
+    }
+
+    private function attributeConverter(): PhpUnitAttributeConverter
+    {
+        return $this->attributeConverter ??= new PhpUnitAttributeConverter($this->nodeNameResolver, $this->nodeTypeResolver);
     }
 }
