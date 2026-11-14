@@ -34,16 +34,19 @@ final class ArgumentScanTest
         expect($scan->has('plugin-flag'))
             ->because('the scan skips options that a plugin command can define')
             ->toBeFalse();
-        expect($scan->valueOptionBeforeCommand)->toBeNull();
     }
 
     #[Test]
-    public function scanReportsARequiredValueOptionDirectlyBeforeTheCommandWord(): void
+    public function scanReadsTheWordAfterARequiredValueOptionAsItsValue(): void
     {
-        expect(new Definition()->parser()->scan(['--config', 'greenlight.php'])->valueOptionBeforeCommand)
-            ->toBe('config');
-        expect(new Definition()->parser()->scan(['--bail', 'run'])->valueOptionBeforeCommand)
-            ->because('an optional value uses only the equals form, so the next word is a command')
-            ->toBeNull();
+        $scan = new Definition()->parser()->scan(['--config', 'greenlight.php', 'list-tests']);
+
+        expect($scan->value('config'))->toBe('greenlight.php');
+        expect($scan->command)
+            ->because('the value word is not the command word')
+            ->toBe('list-tests');
+        expect(new Definition()->parser()->scan(['--bail', 'run'])->command)
+            ->because('an optional value uses only the equals form, so the next word is the command')
+            ->toBe('run');
     }
 }

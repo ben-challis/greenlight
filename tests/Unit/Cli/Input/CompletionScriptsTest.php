@@ -96,19 +96,7 @@ final class CompletionScriptsTest
 
         expect($scripts->render('fish'))
             ->because('Fish MUST complete the automatic worker count for the workers flag')
-            ->toContain("complete -c greenlight -n 'string match -q -- \"--workers=*\" (commandline -ct)' -l workers -x -a 'auto'");
-    }
-
-    #[Test]
-    public function fishCompletesValueOptionsInTheEqualsForm(): void
-    {
-        $script = (string) $this->scripts()->render('fish');
-
-        expect($script)
-            ->because('fish MUST offer --workers= so that the value is not a separate command word')
-            ->toMatch('/^complete -c greenlight -f -n \'string match -q -- "-\\*" \\(commandline -ct\\)\' -a \'[^\']*--workers= /m')
-            ->because('fish MUST NOT offer the separate-word form of a required-value option')
-            ->not()->toMatch('/^complete -c greenlight -l workers/m');
+            ->toContain("complete -c greenlight -l workers -x -a 'auto'");
     }
 
     #[Test]

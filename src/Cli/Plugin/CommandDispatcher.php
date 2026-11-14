@@ -6,7 +6,6 @@ namespace Greenlight\Cli\Plugin;
 
 use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\ArgumentScan;
-use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Config\ConfigFileError;
@@ -46,14 +45,6 @@ final readonly class CommandDispatcher
     {
         $scan = $this->definition->parser()->scan($argv);
         $noAnsi = $scan->has('no-ansi');
-
-        // In "--workers 4", the 4 is the value that the user meant, not a
-        // command.
-        if ($scan->valueOptionBeforeCommand !== null) {
-            $this->console->error(CliError::optionRequiresValue($scan->valueOptionBeforeCommand)->getMessage(), $noAnsi);
-
-            return CommandResult::usage();
-        }
 
         $command = $scan->command ?? 'run';
         $commandIndex = $scan->commandIndex;

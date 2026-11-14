@@ -790,7 +790,9 @@ usage error with exit code `64`. All commands accept `--help`, `--version`,
 `--ansi`, and `--no-ansi`. The `run` and `list-tests` commands accept the
 run, selection, report, and coverage options.
 
-Give each option value in the `--name=value` form.
+An option that requires a value accepts `--name=value` and `--name value`.
+The word after the option is its value, also when it starts with `-`. An
+option with an optional value, such as `--bail`, accepts only `--name=value`.
 
 ### `--config=<path>`
 
