@@ -16,9 +16,13 @@ final readonly class HyperfBlockedCoroutineRunTest
     public function aBlockedCoroutineFailsAtTheTimeLimitAndTheWorkerContinues(string $lifetime): void
     {
         $root = \dirname(__DIR__, 2);
-        $process = \proc_open(
+        $command = \implode(' ', \array_map(
+            \escapeshellarg(...),
             [\PHP_BINARY, $root . '/vendor/bin/greenlight', 'run', '--config=blocked.php', '--no-ansi', '--reporter=plain'],
-            [0 => ['file', '/dev/null', 'r'], 1 => ['pipe', 'w'], 2 => ['redirect', 1]],
+        ));
+        $process = \proc_open(
+            $command . ' 2>&1',
+            [0 => ['file', '/dev/null', 'r'], 1 => ['pipe', 'w']],
             $pipes,
             $root,
             [...\getenv(), 'GREENLIGHT_HYPERF_CONTAINER_LIFETIME' => $lifetime],
@@ -32,8 +36,8 @@ final readonly class HyperfBlockedCoroutineRunTest
         \fclose($pipes[1]);
         $exitCode = \proc_close($process);
 
-        if (!\is_string($output)) {
-            throw new \RuntimeException('The blocked coroutine run output is not readable.');
+        if (!\is_string($output) || $output === '') {
+            throw new \RuntimeException('The blocked coroutine run did not write output.');
         }
 
         expect(\substr_count($output, 'did not finish before the test time limit'))->because($output)->toBe(2);
