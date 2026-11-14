@@ -232,13 +232,52 @@ final readonly class ArtifactRetention
             }
         }
 
+        $items = [];
+        $excluded = [];
+        $unselectable = $protectedRunId === null ? [] : [$protectedRunId => true];
+        do {
+            $rejected = false;
+            $remaining = \array_values(\array_filter(
+                $records,
+                static fn(ArtifactRunRecord $record): bool => !isset($excluded[$record->runId]),
+            ));
+            foreach ($this->select($remaining, $unselectable, $now) as [$record, $reasons]) {
+                $directory = $parent . '/' . $record->runId;
+                if (!$dryRun && !$this->removeClaimed($parent, $directory, $record)) {
+                    $warnings[] = \sprintf('Greenlight did not prune artifact run "%s".', $record->runId);
+                    // A run that fails verification is not a candidate, as a
+                    // changed run is not. The selection runs again without it.
+                    $excluded[$record->runId] = true;
+                    $rejected = true;
+                    continue;
+                }
+                $excluded[$record->runId] = true;
+                $items[] = new ArtifactPruneItem($record->runId, $directory, $record->bytes, $reasons);
+            }
+        } while ($rejected);
+
+        return new ArtifactPruneReport($items, $warnings, $dryRun);
+    }
+
+    /**
+     * Applies the age, count, and size limits in that order. Each limit
+     * selects the oldest remaining run first. A run in $unselectable is never
+     * selected, but it counts toward the count and size limits.
+     *
+     * @param list<ArtifactRunRecord> $records
+     * @param array<string, true> $unselectable
+     *
+     * @return list<array{ArtifactRunRecord, non-empty-list<'age'|'count'|'size'>}>
+     */
+    private function select(array $records, array $unselectable, int $now): array
+    {
         \usort($records, static fn(ArtifactRunRecord $a, ArtifactRunRecord $b): int => [$a->completedAt, $a->runId] <=> [$b->completedAt, $b->runId]);
         /** @var array<non-empty-string, non-empty-list<'age'|'count'|'size'>> $selected */
         $selected = [];
         $age = $this->configuration->maxCompletedRunAgeSeconds;
         if ($age !== null) {
             foreach ($records as $record) {
-                if ($record->runId !== $protectedRunId && $record->completedAt <= $now && $now - $record->completedAt >= $age) {
+                if (!isset($unselectable[$record->runId]) && $record->completedAt <= $now && $now - $record->completedAt >= $age) {
                     $selected[$record->runId] = ['age'];
                 }
             }
@@ -251,7 +290,7 @@ final readonly class ArtifactRetention
                 if ($remainingCount <= $countLimit) {
                     break;
                 }
-                if ($record->runId === $protectedRunId || isset($selected[$record->runId])) {
+                if (isset($unselectable[$record->runId]) || isset($selected[$record->runId])) {
                     continue;
                 }
                 $selected[$record->runId] = ['count'];
@@ -271,7 +310,7 @@ final readonly class ArtifactRetention
                 if ($remainingBytes <= $byteLimit) {
                     break;
                 }
-                if ($record->runId === $protectedRunId || isset($selected[$record->runId])) {
+                if (isset($unselectable[$record->runId]) || isset($selected[$record->runId])) {
                     continue;
                 }
                 $selected[$record->runId] = ['size'];
@@ -279,21 +318,14 @@ final readonly class ArtifactRetention
             }
         }
 
-        $items = [];
+        $selection = [];
         foreach ($records as $record) {
-            $reasons = $selected[$record->runId] ?? null;
-            if ($reasons === null) {
-                continue;
+            if (isset($selected[$record->runId])) {
+                $selection[] = [$record, $selected[$record->runId]];
             }
-            $directory = $parent . '/' . $record->runId;
-            if (!$dryRun && !$this->removeClaimed($parent, $directory, $record)) {
-                $warnings[] = \sprintf('Greenlight did not prune artifact run "%s".', $record->runId);
-                continue;
-            }
-            $items[] = new ArtifactPruneItem($record->runId, $directory, $record->bytes, $reasons);
         }
 
-        return new ArtifactPruneReport($items, $warnings, $dryRun);
+        return $selection;
     }
 
     private function removeClaimed(string $parent, string $directory, ArtifactRunRecord $record): bool

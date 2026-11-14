@@ -15,7 +15,7 @@ final class ArtifactRunHandle
 {
     private bool $closed = false;
 
-    /** @var array<non-empty-string, array{bytes: int, sha256: non-empty-string}> */
+    /** @var array<non-empty-string, array{bytes: int, sha256: non-empty-string, mtime: int|false}> */
     private array $published = [];
 
     /**
@@ -31,7 +31,8 @@ final class ArtifactRunHandle
 
     /**
      * Records the digest of a published file, so that completion does not
-     * read the file again.
+     * read the file again. Completion reuses the digest only when the size
+     * and modification time of the file stay the same.
      *
      * @param non-empty-string $sha256
      */
@@ -41,7 +42,12 @@ final class ArtifactRunHandle
             return;
         }
 
-        $this->published[$relativePath] = ['bytes' => $bytes, 'sha256' => $sha256];
+        $path = $this->directory . '/' . $relativePath;
+        $this->published[$relativePath] = [
+            'bytes' => $bytes,
+            'sha256' => $sha256,
+            'mtime' => ErrorTrap::run(static fn() => \filemtime($path)),
+        ];
     }
 
     /** @throws \RuntimeException */
@@ -51,7 +57,15 @@ final class ArtifactRunHandle
             return;
         }
 
-        $files = ArtifactRetention::contentManifest($this->directory, $this->published);
+        $known = [];
+        foreach ($this->published as $relativePath => $file) {
+            $path = $this->directory . '/' . $relativePath;
+            \clearstatcache(true, $path);
+            if ($file['mtime'] !== false && ErrorTrap::run(static fn() => \filemtime($path)) === $file['mtime']) {
+                $known[$relativePath] = ['bytes' => $file['bytes'], 'sha256' => $file['sha256']];
+            }
+        }
+        $files = ArtifactRetention::contentManifest($this->directory, $known);
         ArtifactRetention::writeMetadata($this->directory, [
             'version' => ArtifactRetention::METADATA_VERSION,
             'owner' => ArtifactRetention::OWNER,

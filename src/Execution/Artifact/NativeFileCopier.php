@@ -8,9 +8,9 @@ use Greenlight\Artifact\AttachmentError;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
- * Moves a staged file with `rename()` when the source and destination are on
- * the same filesystem. Otherwise, it copies the file and calculates the
- * digest during the copy.
+ * Moves a staged regular file with `rename()` when the source and destination
+ * are on the same device. Otherwise, it copies the content into a new regular
+ * file and calculates the digest during the copy.
  *
  * @internal
  */
@@ -24,7 +24,9 @@ final readonly class NativeFileCopier implements FileCopier
     #[\Override]
     public function copy(string $sourcePath, string $destinationPath): string
     {
-        if (ErrorTrap::run(static fn() => \rename($sourcePath, $destinationPath))) {
+        if ($this->movable($sourcePath, $destinationPath)
+            && ErrorTrap::run(static fn() => \rename($sourcePath, $destinationPath))
+        ) {
             $digest = ErrorTrap::run(static fn() => \hash_file('sha256', $destinationPath));
 
             if (!\is_string($digest) || $digest === '') {
@@ -74,5 +76,22 @@ final readonly class NativeFileCopier implements FileCopier
         } finally {
             \fclose($source);
         }
+    }
+
+    /**
+     * Tells whether `rename()` can move the source without a copy. The source
+     * must be a regular file, not a symbolic link, on the same device as the
+     * destination directory. Across devices, `rename()` copies the file
+     * itself, so a copy that calculates the digest reads the content once.
+     */
+    private function movable(string $sourcePath, string $destinationPath): bool
+    {
+        $source = ErrorTrap::run(static fn() => \lstat($sourcePath));
+        $directory = ErrorTrap::run(static fn() => \stat(\dirname($destinationPath)));
+
+        return \is_array($source)
+            && \is_array($directory)
+            && ($source['mode'] & 0170000) === 0100000
+            && $source['dev'] === $directory['dev'];
     }
 }
