@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Cli\Plugin;
 
 use Greenlight\Cli\Configuration\ConfigurationLoader;
+use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\Definition;
+use Greenlight\Cli\Input\OptionValue;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
@@ -43,6 +45,16 @@ final readonly class CommandDispatcher
     public function dispatch(array $argv, string $workingDirectory, ?string $binPath): CommandResult
     {
         [$command, $commandIndex] = $this->selectedCommand($argv);
+
+        if ($commandIndex !== null && ($valueOption = $this->valueOptionBefore($argv, $commandIndex)) !== null) {
+            $this->console->error(
+                CliError::optionRequiresValue($valueOption)->getMessage(),
+                \in_array('--no-ansi', $argv, true),
+            );
+
+            return CommandResult::usage();
+        }
+
         $command ??= 'run';
 
         try {
@@ -186,5 +198,33 @@ final readonly class CommandDispatcher
         }
 
         return [null, null];
+    }
+
+    /**
+     * Returns the option name when the word before the command word is an
+     * option that requires a value. In "--workers 4", the 4 is the value
+     * that the user meant, not a command.
+     *
+     * @param list<string> $argv
+     *
+     * @return non-empty-string|null
+     */
+    private function valueOptionBefore(array $argv, int $commandIndex): ?string
+    {
+        $previous = $argv[$commandIndex - 1] ?? '';
+
+        if (!\str_starts_with($previous, '--') || \str_contains($previous, '=')) {
+            return null;
+        }
+
+        $name = \substr($previous, 2);
+
+        foreach ($this->definition->options() as $spec) {
+            if ($spec->name === $name && $spec->value === OptionValue::Required) {
+                return $spec->name;
+            }
+        }
+
+        return null;
     }
 }
