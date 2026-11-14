@@ -103,6 +103,7 @@ final readonly class ArtifactPruneClaimRecoveryTest
             ->toBe('changed content');
         expect($report->warnings)->toBe([
             'Greenlight restored artifact run "run-claimed" after an interrupted prune.',
+            'Greenlight skipped artifact directory "run-claimed" because its content changed after completion.',
         ]);
     }
 
