@@ -72,36 +72,33 @@ final readonly class RunSession
     public function runAttempt(Reporter $reporter, array $priorityClasses, array $classSeconds): RunAttemptResult
     {
         $failedTap = new FailedTestsTap(new ReporterSink($reporter));
-        $result = $this->execute($reporter, $failedTap, $priorityClasses, $classSeconds);
+        $completed = $this->runSequence($reporter, $failedTap, $failedTap, $priorityClasses, $classSeconds, collectCoverage: true);
+        $result = $completed instanceof CompletedRun
+            ? $this->result($completed, $failedTap)
+            : $this->incompleteResult();
 
         return new RunAttemptResult($result, $failedTap->failedTests(), $failedTap->classSeconds());
     }
 
     /**
+     * Watch mode does not write coverage, so the iteration does not collect it.
+     *
      * @param list<non-empty-string> $priorityClasses
      * @return list<non-empty-string>
+     * @throws CoverageError
      * @throws ReportGenerationFailed
      */
     public function watchAttempt(Reporter $reporter, array $priorityClasses): array
     {
         $tap = new ClassFailureTap($failedTap = new FailedTestsTap(new ReporterSink($reporter)));
         $classSeconds = $this->configuration->resolved->order->isRandomized() ? [] : $this->state->classSeconds();
-        $workers = $this->configuration->resolved->workers->count->fixed ?? CpuCores::count();
+        $completed = $this->runSequence($reporter, $tap, $failedTap, $priorityClasses, $classSeconds, collectCoverage: false);
 
-        try {
-            // Watch mode does not write coverage. Collection only makes each
-            // iteration slower.
-            $run = $this->coordinate($reporter, $tap, $priorityClasses, $classSeconds, $workers, null);
-        } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
-            $reporter->finish();
-            $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
-
+        if (!$completed instanceof CompletedRun) {
             return $priorityClasses;
         }
 
-        $reporter->finish();
-        $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
-        $this->reportRunPolicyFailures($run, $failedTap);
+        $this->reportRunPolicyFailures($completed->run, $failedTap);
 
         return $tap->failedClasses();
     }
@@ -118,16 +115,28 @@ final readonly class RunSession
     }
 
     /**
+     * Runs the steps that each attempt shares: coverage setup, coordination,
+     * reporter completion, and saved run state.
+     *
      * @param list<non-empty-string> $priorityClasses
      * @param array<string, float> $classSeconds
+     * @return CompletedRun|null Null when the run stopped with a reported error.
      * @throws CoverageError
      * @throws ReportGenerationFailed
      */
-    private function execute(Reporter $reporter, FailedTestsTap $failedTap, array $priorityClasses, array $classSeconds): CommandResult
-    {
+    private function runSequence(
+        Reporter $reporter,
+        EventSink $sink,
+        FailedTestsTap $failedTap,
+        array $priorityClasses,
+        array $classSeconds,
+        bool $collectCoverage,
+    ): ?CompletedRun {
         $resolved = $this->configuration->resolved;
         $workers = $resolved->workers->count->fixed ?? CpuCores::count();
-        $coverageSettings = CoverageSettingsResolver::resolve($resolved->coverage, $this->workingDirectory);
+        $coverageSettings = $collectCoverage
+            ? CoverageSettingsResolver::resolve($resolved->coverage, $this->workingDirectory)
+            : null;
         $coverageSession = CoverageSession::open(
             $coverageSettings,
             $workers !== 1 && $this->workerBin !== false && !SubprocessCoverage::requested(),
@@ -136,20 +145,12 @@ final readonly class RunSession
 
         try {
             try {
-                $run = $this->coordinate($reporter, $failedTap, $priorityClasses, $classSeconds, $workers, $coverageSettings);
+                $run = $this->coordinate($reporter, $sink, $priorityClasses, $classSeconds, $workers, $coverageSettings);
             } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
                 $reporter->finish();
                 $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
-                $interruptSignal = $this->shutdown->signal();
-                if ($interruptSignal !== null) {
-                    $this->console->err("\n" . $this->console->stderrStyle($this->arguments->has('no-ansi'))->warn(
-                        'Interrupted. Integration fixture teardown was attempted before exit.',
-                    ) . "\n");
-                }
 
-                return $interruptSignal === null
-                    ? CommandResult::failure()
-                    : CommandResult::interrupted($interruptSignal);
+                return null;
             }
             $coverage = $coverageSession->finish($run->coverage);
         } finally {
@@ -158,6 +159,31 @@ final readonly class RunSession
 
         $reporter->finish();
         $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
+
+        return new CompletedRun($run, $coverage);
+    }
+
+    private function incompleteResult(): CommandResult
+    {
+        $interruptSignal = $this->shutdown->signal();
+
+        if ($interruptSignal === null) {
+            return CommandResult::failure();
+        }
+
+        $this->console->err("\n" . $this->console->stderrStyle($this->arguments->has('no-ansi'))->warn(
+            'Interrupted. Integration fixture teardown was attempted before exit.',
+        ) . "\n");
+
+        return CommandResult::interrupted($interruptSignal);
+    }
+
+    /** @throws CoverageError */
+    private function result(CompletedRun $completed, FailedTestsTap $failedTap): CommandResult
+    {
+        $resolved = $this->configuration->resolved;
+        $run = $completed->run;
+        $coverage = $completed->coverage;
         if ($coverage instanceof CoverageMap) {
             $coverage = CoveragePluginRuntime::fromDefinitions($resolved->execution->plugins)
                 ->transform($coverage);
