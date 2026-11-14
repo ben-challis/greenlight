@@ -1132,17 +1132,23 @@ Each poll visits directory entries in a stable lexical order. It does not hash
 an excluded or unmatched file. A poll stops with an error when it exceeds the
 configured file limit.
 
+A poll compares the file stat data. It lists a directory again only when the
+directory stat data changed. It reads file contents only for a file that
+changed in the same second as the previous poll, because the stat times have
+one-second precision. The interval between polls is at least 100 milliseconds
+and at least four times the duration of the last poll.
+
 Greenlight does not follow symlinks in watched trees.
 
 A created file reports an addition. A removed file reports a deletion. A
 rename reports one deletion and one addition.
 
-An unreadable or temporarily absent file is not in that poll. If it was in the
-prior poll, Greenlight reports a deletion. It reports an addition when the file
-becomes readable again.
+A temporarily absent file is not in that poll. If it was in the prior poll,
+Greenlight reports a deletion. It reports an addition when the file is back. A
+change of file permissions changes the stat data, so it reports a change.
 
-Large projects increase poll time. Increase the watch debounce when frequent
-save events cause excess scans.
+Large projects increase poll time and thus the interval between polls.
+Increase the watch debounce when frequent save events cause excess scans.
 
 ### `--detect-leaks`
 
