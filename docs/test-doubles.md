@@ -146,7 +146,19 @@ the plan. A value that the parameter type does not accept produces
 accepts `float` but not `int`. Greenlight applies the same conversion to a
 bare integer, so `with(5)` matches a call with `5` or `5.0`.
 
-Use `withNoArguments()` to require a call that supplies no arguments:
+Greenlight uses the declared default value of each omitted optional argument.
+This applies to the plan and to the call. Thus, `with('a', 2)` and `with('a')`
+both match `find('a')` and `find('a', 2)` when the second parameter has the
+default `2`. A named argument does not change the argument positions.
+
+An object default uses deep equality. A plan that omits an object default
+constructs the default object once, when you declare the plan. A `NAN` default
+matches `NAN`. `callsTo()` and argument captors also receive the default
+values. An `andReturnsUsing()` closure receives only the
+arguments that the caller supplied.
+
+Use `withNoArguments()` to require a call that supplies no variadic values and
+uses the default value of each optional parameter:
 
 <!-- php-example {"example":"test-doubles-example-05","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
