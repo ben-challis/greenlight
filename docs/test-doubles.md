@@ -310,4 +310,6 @@ also requires a class without private constants. These cases produce
 
 Define unqualified constants before you create the double. Greenlight resolves
 these constants in the original namespace, with PHP's global fallback, when it
-generates the proxy. Private scalar and enum constants retain their values.
+generates the proxy. This applies to constant defaults such as `PHP_INT_MAX`
+and to constants inside object default expressions. Private scalar and enum
+constants retain their values.
