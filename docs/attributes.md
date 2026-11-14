@@ -52,7 +52,9 @@ No parameters.
 Marks a public method to run before each test in the class.
 
 If a class has multiple before-hooks, Greenlight runs them in declaration
-order.
+order. Inherited before-hooks run first. Greenlight starts with the root
+ancestor class and ends with the test class. An overriding method runs at the
+position of the class that declares the override.
 
 A before-hook can throw `SkipTest` to skip the test. An `ExpectationFailed`
 from the hook fails the test. Another throwable gives the test an error.
@@ -67,8 +69,9 @@ No parameters.
 Marks a public method to run after each test in the class. The method also runs
 after a test failure or error.
 
-If a class has multiple after-hooks, Greenlight runs them in reverse declaration
-order. Thus, the before-hooks and after-hooks form a stack.
+If a class has multiple after-hooks, Greenlight runs them in the reverse order
+of the before-hook rules. Thus, the after-hooks of the test class run before
+inherited after-hooks, and the before-hooks and after-hooks form a stack.
 
 Greenlight calls each after-hook, even if an earlier hook throws. If the test
 does not have a failure or error, the first throwable becomes its cause.
