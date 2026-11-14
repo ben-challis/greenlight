@@ -16,6 +16,7 @@ use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Event\EventSink;
 use Greenlight\Event\RunFinished;
 use Greenlight\Event\RunStarted;
+use Greenlight\Execution\Artifact\ArtifactPruneReport;
 use Greenlight\Execution\Artifact\ArtifactStore;
 use Greenlight\Execution\Plugin\OrchestratorPluginRuntime;
 use Greenlight\Execution\Plugin\PluginRuntimeError;
@@ -94,9 +95,13 @@ final readonly class RunCoordinator
                 $summary = new ResultSummary();
                 $sink->emit(new RunFinished($runId, $summary, $durationSeconds, \microtime(true)));
 
-                $artifacts->complete();
-
-                return new RunResult($summary, 0, $durationSeconds, $seed);
+                return new RunResult(
+                    $summary,
+                    0,
+                    $durationSeconds,
+                    $seed,
+                    artifactMaintenance: $this->maintenanceReport($artifacts->complete()),
+                );
             }
 
             $fixtures = IntegrationFixtureManager::provision(
@@ -134,14 +139,6 @@ final readonly class RunCoordinator
                     \microtime(true),
                     $outcome->workerTimings,
                 ));
-                $result = new RunResult(
-                    $outcome->summary,
-                    \count($plan),
-                    $durationSeconds,
-                    $seed,
-                    $outcome->coverage,
-                    $outcome->leaks,
-                );
             } catch (\Throwable $failure) {
                 $cleanupFailures = $fixtures->close();
 
@@ -158,12 +155,29 @@ final readonly class RunCoordinator
                 throw IntegrationFixtureError::cleanup($cleanupFailures);
             }
 
-            $artifacts->complete();
-
-            return $result;
+            return new RunResult(
+                $outcome->summary,
+                \count($plan),
+                $durationSeconds,
+                $seed,
+                $outcome->coverage,
+                $outcome->leaks,
+                $this->maintenanceReport($artifacts->complete()),
+            );
         } finally {
             $artifacts->cleanup();
         }
+    }
+
+    private function maintenanceReport(ArtifactPruneReport $report): ArtifactMaintenanceReport
+    {
+        $items = [];
+
+        foreach ($report->items as $item) {
+            $items[] = new ArtifactMaintenanceItem($item->directory, $item->bytes, $item->reasons);
+        }
+
+        return new ArtifactMaintenanceReport($items, $report->warnings, $report->dryRun);
     }
 
     /**

@@ -103,6 +103,7 @@ final readonly class RunSession
 
         $reporter->finish();
         $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
+        $this->reportArtifactMaintenance($run);
         $this->reportRunPolicyFailures($run, $failedTap);
 
         return $tap->failedClasses();
@@ -160,6 +161,7 @@ final readonly class RunSession
 
         $reporter->finish();
         $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
+        $this->reportArtifactMaintenance($run);
         if ($coverage instanceof CoverageMap) {
             $coverage = CoveragePluginRuntime::fromDefinitions($resolved->execution->plugins)
                 ->transform($coverage);
@@ -213,6 +215,26 @@ final readonly class RunSession
         }
 
         return CommandResult::success();
+    }
+
+    /**
+     * Uses the same lines as the artifacts:prune command. Automatic retention
+     * runs after each run, so its deletions and failures must be visible.
+     */
+    private function reportArtifactMaintenance(RunResult $run): void
+    {
+        foreach ($run->artifactMaintenance->items as $item) {
+            $this->console->err(\sprintf(
+                "Pruned %s (%d bytes, %s limit).\n",
+                $item->directory,
+                $item->bytes,
+                \implode(', ', $item->reasons),
+            ));
+        }
+
+        foreach ($run->artifactMaintenance->warnings as $warning) {
+            $this->console->err($warning . "\n");
+        }
     }
 
     /** @throws RunPolicyError */
