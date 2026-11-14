@@ -504,8 +504,11 @@ final readonly class AttachmentsTest
             attachments: [$staged],
         )))->toThrow(
             AttachmentError::class,
-            message: 'Attachment staging content does not match its metadata.',
+            message: 'Attachment content does not match its metadata.',
         );
+        expect(\is_file($store->session()->stagingDirectory . '/' . $staged->storageKey))
+            ->because('a failed publication MUST keep the staged file for crash recovery')
+            ->toBeTrue();
 
     }
 
