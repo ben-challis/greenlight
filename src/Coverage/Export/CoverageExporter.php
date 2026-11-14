@@ -7,18 +7,20 @@ namespace Greenlight\Coverage\Export;
 use Greenlight\Coverage\CoverageMap;
 
 /**
- * export() returns a map of relative file name to full content.
- * A single-document format returns exactly one entry. The HTML exporter
- * returns an index and one page for each covered file.
+ * export() gives pairs of relative file name and full content.
+ * A single-document format gives exactly one pair. The HTML exporter gives an
+ * index and one page for each file.
  *
- * Callers write the files to disk.
+ * An exporter can give the pairs from a generator. Then it creates each file
+ * only when the caller asks for it. Callers write each file to disk before
+ * they ask for the next file. Thus, memory holds one file at a time.
  *
  * @internal
  */
 interface CoverageExporter
 {
     /**
-     * @return non-empty-array<non-empty-string, string> relative file name => content
+     * @return iterable<non-empty-string, string> relative file name => content
      */
-    public function export(CoverageMap $map): array;
+    public function export(CoverageMap $map): iterable;
 }

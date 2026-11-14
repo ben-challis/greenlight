@@ -21,6 +21,9 @@ final readonly class JsonExporter implements CoverageExporter
 
     public const int VERSION = 1;
 
+    /**
+     * @return non-empty-array<non-empty-string, string>
+     */
     #[\Override]
     public function export(CoverageMap $map): array
     {
