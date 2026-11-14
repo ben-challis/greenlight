@@ -12,7 +12,36 @@ $config = require __DIR__ . '/greenlight.php';
 
 return $config
     ->coverage(fn(CoverageBuilder $c) => $c
-        ->include('src')
+        // src/PhpStan and src/Rector run in PHPStan and Rector subprocesses,
+        // and this gate does not collect coverage from those processes.
+        ->include(
+            'src/Artifact',
+            'src/Attribute',
+            'src/Cli',
+            'src/Condition',
+            'src/Config',
+            'src/Coverage',
+            'src/Discovery',
+            'src/Documentation',
+            'src/Doubles',
+            'src/Event',
+            'src/Execution',
+            'src/Expect',
+            'src/Harness',
+            'src/Hyperf',
+            'src/IntegrationFixture',
+            'src/Internal',
+            'src/Laravel',
+            'src/Plugin',
+            'src/Psr11',
+            'src/Psr15',
+            'src/Reporting',
+            'src/Result',
+            'src/Sandbox',
+            'src/Symfony',
+            'src/Tempest',
+            'src/Test',
+        )
         ->driver('xdebug')
         ->export('json', 'build/coverage/coverage.json')
         ->export('cobertura', 'build/coverage/cobertura.xml'));

@@ -7,6 +7,9 @@ namespace Greenlight\Execution\Artifact;
 /**
  * Contains validated ownership and completion metadata for one artifact run.
  *
+ * An active record describes a run that did not complete. Its manifest is
+ * empty, and its completion time is its start time.
+ *
  * @internal
  */
 final readonly class ArtifactRunRecord
@@ -21,5 +24,6 @@ final readonly class ArtifactRunRecord
         public int $completedAt,
         public array $files,
         public int $bytes,
+        public bool $active = false,
     ) {}
 }

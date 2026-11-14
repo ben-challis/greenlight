@@ -159,6 +159,23 @@ scalars strictly. It compares arrays by key and recursively equal values.
 Objects must have the same class and recursively equal properties. This rule
 includes private properties.
 
+Many native PHP classes keep their state outside the properties. Examples are
+`ArrayObject`, `SplObjectStorage`, `SplFixedArray`, `DateTimeZone`, and `GMP`.
+For a class with a native ancestor, `toEqual()` also compares the native state:
+
+* If the class has a `__serialize()` method, the matcher compares its result.
+* For `SplObjectStorage`, the matcher compares the objects and their data in
+  any attach order.
+* For `SplHeap` and `SplPriorityQueue`, the matcher compares the elements of a
+  copy in extraction order. The original object keeps its elements. For equal
+  priorities, the extraction order is part of the compared state.
+* If the native classes keep all state in declared properties, as exceptions
+  do, the matcher compares only the properties.
+
+Other native objects have no comparable state. Examples are `Generator`,
+`WeakMap`, and `DOMDocument`. Such an object is equal only to itself. To
+compare DOM documents, compare their `saveXML()` output.
+
 Object comparisons distinguish shared objects from equal copies. They also
 require equal cycle shapes.
 
@@ -171,6 +188,14 @@ Enum cases compare by identity.
 
 Canonicalizing equality does not inspect object properties. Thus, a list in an
 object property keeps its order.
+
+Failure messages limit the depth, item count, string length, and total size of
+each rendered value. If these limits hide the difference for `toBe()` or
+`toEqual()`, the message also shows the first difference. For arrays and
+objects, it shows the path, such as `['items'][15]`. For strings, it shows the
+character offset and a part of each string around that offset. Floats render
+with full precision. Whitespace other than the ASCII space renders as an
+escape sequence, such as `\u{00A0}`.
 
 ### Type predicates
 

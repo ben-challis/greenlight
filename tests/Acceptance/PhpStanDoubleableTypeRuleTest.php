@@ -81,4 +81,69 @@ final readonly class PhpStanDoubleableTypeRuleTest
             ->toContain('Doubles::spy() cannot double ServiceState because it is an enum')
             ->toContain('Doubles::mock() cannot double ServiceBehavior because it is a trait');
     }
+
+    #[Test]
+    public function factoriesRejectInterfacesThatUserClassesCannotImplement(): void
+    {
+        $probe = PhpStanProbe::analyze(
+            $this->tempDirectory,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Doubles\Doubles;
+
+            /** @extends \IteratorAggregate<int, string> */
+            interface AggregatePort extends \IteratorAggregate {}
+
+            function greenlightImplementableInterfaceProbe(Doubles $doubles): void
+            {
+                $doubles->mock(AggregatePort::class);
+                $doubles->stub(\Countable::class);
+            }
+            PHP,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Doubles\Doubles;
+
+            interface FailurePort extends \Throwable {}
+
+            interface MomentPort extends \DateTimeInterface {}
+
+            interface StatePort extends \BackedEnum {}
+
+            /** @extends \Traversable<int, string> */
+            interface SequencePort extends \Traversable {}
+
+            function greenlightUnimplementableInterfaceProbe(Doubles $doubles): void
+            {
+                $doubles->mock(FailurePort::class);
+                $doubles->stub(MomentPort::class);
+                $doubles->spy(StatePort::class);
+                $doubles->mock(SequencePort::class);
+                $doubles->stub(\Throwable::class);
+            }
+            PHP,
+        );
+
+        expect($probe->exitCode)
+            ->because('PHPStan rejects interfaces that a proxy class cannot implement')
+            ->toBe(1);
+        expect($probe->goodPassed)
+            ->because('PHPStan messages: ' . $probe->messages())
+            ->toBeTrue();
+        expect(\count($probe->errors))
+            ->because('PHPStan messages: ' . $probe->messages())
+            ->toBe(5);
+        expect($probe->messages())
+            ->toContain('Doubles::mock() cannot double FailurePort because only PHP internal classes can implement Throwable')
+            ->toContain('Doubles::stub() cannot double MomentPort because only PHP internal classes can implement DateTimeInterface')
+            ->toContain('Doubles::spy() cannot double StatePort because only PHP internal classes can implement UnitEnum')
+            ->toContain('Doubles::mock() cannot double SequencePort because it extends Traversable, but not Iterator or IteratorAggregate')
+            ->toContain('Doubles::stub() cannot double Throwable because only PHP internal classes can implement Throwable');
+    }
 }

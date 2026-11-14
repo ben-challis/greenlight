@@ -28,7 +28,7 @@ final readonly class RepeatedCallContractTest
 
         $spy->record('last');
 
-        expect($this->doubles->callsTo($spy, 'record'))->toBe([[], ['first'], ['last']]);
+        expect($this->doubles->callsTo($spy, 'record'))->toBe([['default'], ['first'], ['last']]);
         expect($this->doubles->callsTo($spy, 'many'))->toBe([['first', 'second'], []]);
     }
 

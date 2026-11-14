@@ -19,7 +19,7 @@ final readonly class FileDeltaMissingSideTest
         ?float $current,
         float $expected,
     ): void {
-        $delta = new FileDelta('/src/Example.php', $baseline, $current, []);
+        $delta = new FileDelta('/src/Example.php', $baseline, $current);
 
         expect($delta->delta())
             ->because('an absent coverage-map side MUST contribute zero percent')

@@ -45,6 +45,23 @@ final class FrameBuffer
     }
 
     /**
+     * Tells if next() can return a frame body or report an invalid frame
+     * without more bytes.
+     */
+    public function hasFrame(): bool
+    {
+        if (\strlen($this->buffer) < 4) {
+            return false;
+        }
+
+        /** @var array{1: int} $unpacked */
+        $unpacked = \unpack('N', $this->buffer);
+        $length = $unpacked[1];
+
+        return $length > $this->maxFrameBytes || $length === 0 || \strlen($this->buffer) >= 4 + $length;
+    }
+
+    /**
      * @return non-empty-string|null the next complete frame body, or null when more bytes are needed
      *
      * @throws ProtocolError

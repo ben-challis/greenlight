@@ -23,9 +23,14 @@ final readonly class ArtifactMaintenance
         return new self(ArtifactRetention::forConfiguration($configuration, $workingDirectory));
     }
 
-    public function prune(bool $dryRun): ArtifactMaintenanceReport
+    /**
+     * @param positive-int|null $abandonedRunAgeSeconds Also selects each
+     *   incomplete run that no process holds and that started at least this
+     *   many seconds ago.
+     */
+    public function prune(bool $dryRun, ?int $abandonedRunAgeSeconds = null): ArtifactMaintenanceReport
     {
-        $report = $this->retention->prune($dryRun);
+        $report = $this->retention->prune($dryRun, abandonedRunAgeSeconds: $abandonedRunAgeSeconds);
         $items = [];
         foreach ($report->items as $item) {
             $items[] = new ArtifactMaintenanceItem($item->directory, $item->bytes, $item->reasons);

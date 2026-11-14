@@ -75,7 +75,7 @@ final readonly class DoubleableTypeRule implements Rule
     private function unsupportedReason(ClassReflection $class): ?string
     {
         if ($class->isInterface()) {
-            return null;
+            return $this->unsupportedInterfaceReason($class);
         }
 
         if ($class->isEnum()) {
@@ -95,5 +95,28 @@ final readonly class DoubleableTypeRule implements Rule
         }
 
         return null;
+    }
+
+    private function unsupportedInterfaceReason(ClassReflection $class): ?string
+    {
+        foreach ([\Throwable::class, \DateTimeInterface::class, \UnitEnum::class] as $internal) {
+            if ($this->extends($class, $internal)) {
+                return \sprintf('only PHP internal classes can implement %s. Use a different interface', $internal);
+            }
+        }
+
+        if ($this->extends($class, \Traversable::class)
+            && !$this->extends($class, \Iterator::class)
+            && !$this->extends($class, \IteratorAggregate::class)
+        ) {
+            return 'it extends Traversable, but not Iterator or IteratorAggregate. Make the interface extend Iterator or IteratorAggregate';
+        }
+
+        return null;
+    }
+
+    private function extends(ClassReflection $class, string $interface): bool
+    {
+        return \strcasecmp($class->getName(), $interface) === 0 || $class->implementsInterface($interface);
     }
 }

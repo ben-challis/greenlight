@@ -26,10 +26,15 @@ policy, and eventual published path.
 ## Publication
 
 Before a `TestFinished` event reaches reporters, the process that handles it
-decides retention from the terminal result. The process copies retained content
-to a temporary file beside the destination. It then renames the file into place
-atomically. The public `TestResult` contains the published metadata without the
-storage key.
+decides retention from the terminal result. The process links retained content
+to a temporary file beside the destination with `link()`. Sometimes staging is
+on a different device, or the staged entry is not a regular file. Then the
+process copies the content and calculates the SHA-256 digest during the copy.
+The staged file stays until publication succeeds.
+
+The process compares the size and digest with the staged metadata. It then
+renames the file into place atomically. The public `TestResult` contains the
+published metadata without the storage key.
 
 By default, the terminal result retains attachments from earlier retry attempts.
 It also retains attachments when the final outcome is failed or errored, or a
@@ -56,10 +61,27 @@ incomplete run that can be recovered.
 A completed record contains the completion time and an exact file manifest.
 The manifest has each relative path, byte count, and SHA-256 digest. Greenlight
 does not prune a directory when its content does not match the manifest.
+Completion writes the manifest from the digests that publication calculated.
+It reads only files that publication did not record, or that changed size,
+inode, or modification time after publication.
 
-Pruning uses one lock in the canonical artifact parent. It claims a selected
-run with an atomic rename before deletion. Concurrent Greenlight processes can
-safely apply the same policy.
+Pruning uses one lock in the canonical artifact parent. Selection uses run
+metadata and `stat` data only, so it does not read retained content. Pruning
+claims a selected run with an atomic rename before deletion. It then verifies
+the SHA-256 digest of each file against the manifest. If a run fails
+verification, pruning selects again without that run. Concurrent Greenlight
+processes can safely apply the same policy.
+
+An interrupted prune can leave a `.greenlight-prune-` claim. Before it selects
+runs, each prune examines the claims below the parent. It deletes a claim that
+matches its manifest. It renames another claim back to its run ID, or reports
+it. A dry run reports claims and does not change them. If verification fails
+after a claim, pruning renames the claim back.
+
+If deletion fails, the claim stays, and the next prune completes it. Deletion
+removes the run metadata file last, so a partly deleted claim still names its
+run. An empty claim is a deletion that did not finish, and the next prune
+removes it.
 
 Age has first precedence, then count, then total bytes. Each limit selects the
 oldest eligible completed run first. Completion time and run ID give the stable
@@ -67,7 +89,19 @@ order. A future completion time is not old for the age policy.
 
 The current automatic run is not eligible. Unknown, active, incomplete,
 changed, malformed, and future-version directories are not eligible. A
-directory with a symbolic link is not eligible.
+directory with a symbolic link is not eligible. The `artifacts:prune` report
+contains a warning with the reason for each directory that pruning does not
+select. A run that another process holds gets no warning. Automatic retention
+after a run does not report these warnings.
+
+The `artifacts:prune --abandoned-run-age=<seconds>` option also selects
+incomplete runs. It selects a run only if three conditions are true. No
+process holds the run lock. The ownership metadata is valid. The run started at
+least that many seconds ago. Automatic retention never selects an incomplete run.
+
+The run lock is a `flock` lock, so the owner process and the prune must share
+`flock`. Some network filesystems, and a Docker bind mount from a macOS host,
+do not share it.
 
 Retention failures are advisory. They do not change a test result or run exit
 code. A failure that prevents publication of the current run remains fatal.
@@ -107,6 +141,12 @@ copy. It rejects the attachment if either value changes.
 Destination and recovery paths **MUST** stay below their configured roots.
 Attachment files and internal metadata use private permissions on platforms
 that support these permissions.
+
+Greenlight resolves the artifact parent when it opens the run. It removes empty
+and `.` segments. It resolves the deepest existing ancestor with `realpath()`.
+Thus, a symbolic link above the parent is valid, for example a linked `/tmp`.
+A symbolic link at or below the parent is not valid. The run fails before the
+first test when the parent is not valid.
 
 Pruning **MUST** keep the configured parent. It **MUST NOT** follow a symbolic
 link or delete content outside the canonical parent.

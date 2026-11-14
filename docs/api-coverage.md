@@ -79,7 +79,7 @@ PHPDoc:
 
 - `@return int<0, max>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L65)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L69)
 
 ### `executableLineTotal()`
 
@@ -91,7 +91,7 @@ PHPDoc:
 
 - `@return int<0, max>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L77)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L81)
 
 ### `uncoveredLineTotal()`
 
@@ -103,7 +103,7 @@ PHPDoc:
 
 - `@return int<0, max>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L89)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L93)
 
 ### `totalPercentage()`
 
@@ -115,7 +115,7 @@ An empty map has full coverage because it has no executable lines.
 public function totalPercentage(): float
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L105)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Coverage/CoverageMap.php#L109)
 
 ## `FileCoverage`
 

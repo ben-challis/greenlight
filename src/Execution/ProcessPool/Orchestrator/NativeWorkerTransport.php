@@ -144,8 +144,14 @@ final class NativeWorkerTransport implements WorkerTransport
         }
 
         foreach ($this->connections as $connectionId => $channel) {
-            while (($message = $channel->poll()) instanceof Message) {
-                $events[] = WorkerTransportEvent::connectionMessage($connectionId, $message);
+            try {
+                while (($message = $channel->poll()) instanceof Message) {
+                    $events[] = WorkerTransportEvent::connectionMessage($connectionId, $message);
+                }
+            } catch (WireCommunicationFailed) {
+                // An unauthenticated peer cannot stop the run. Close only its
+                // connection.
+                $channel->close();
             }
 
             if ($channel->isEof()) {
@@ -158,15 +164,9 @@ final class NativeWorkerTransport implements WorkerTransport
         foreach ($this->workers as $workerId => $handle) {
             $handle->drainPipes();
 
-            if ($handle->lifecycle === WorkerLifecycle::Active && $handle->channel !== null) {
-                while (($message = $handle->channel->poll()) instanceof Message) {
-                    $events[] = WorkerTransportEvent::workerMessage($workerId, $message);
-                }
-            }
-
             if ($handle->lifecycle === WorkerLifecycle::Active
                 && !isset($this->disconnectReported[$workerId])
-                && (($handle->channel !== null && $handle->channel->isEof()) || !$handle->isRunning())
+                && $this->pollWorker($handle, $events)
             ) {
                 $this->disconnectReported[$workerId] = true;
                 $events[] = WorkerTransportEvent::workerDisconnected($workerId);
@@ -268,6 +268,45 @@ final class NativeWorkerTransport implements WorkerTransport
         $this->workers = [];
         $this->disconnectReported = [];
         $this->server->close();
+    }
+
+    /**
+     * Collects messages from one active worker.
+     *
+     * The process state is read before the channel. A process that had exited
+     * before the read cannot write more bytes. Thus, the read collects all of
+     * its frames, and a disconnect report loses no message. A child process
+     * can keep the socket open after the worker exits. Thus, the exit also
+     * counts as a disconnect without channel EOF.
+     *
+     * @param list<WorkerTransportEvent> $events
+     *
+     * @return bool True when the worker disconnected.
+     * @throws ProtocolError
+     * @throws WireCommunicationFailed
+     */
+    private function pollWorker(WorkerHandle $handle, array &$events): bool
+    {
+        $running = $handle->isRunning();
+        $channel = $handle->channel;
+
+        if (!$channel instanceof SocketChannel) {
+            return !$running;
+        }
+
+        try {
+            while (($message = $channel->poll()) instanceof Message) {
+                $events[] = WorkerTransportEvent::workerMessage($handle->workerId, $message);
+            }
+        } catch (ProtocolError $error) {
+            // A worker that stops in the middle of a frame crashed. Crash
+            // containment handles it.
+            if (!$channel->hasIncompleteFrame()) {
+                throw $error;
+            }
+        }
+
+        return $channel->isEof() || !$running;
     }
 
     private function hasRetiringWorkers(): bool

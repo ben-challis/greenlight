@@ -8,10 +8,25 @@ use Greenlight\Internal\Text\Utf8;
 use Greenlight\Internal\Wire\Wire;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 
-/** Contains a throwable's class, message, source location, and stack trace. */
+/**
+ * Contains a throwable's class, message, source location, and stack trace.
+ *
+ * The message has a limit of 64 KiB. The file and each stack frame have a
+ * limit of 4 KiB. Each limit applies to the JSON-encoded size. Longer text
+ * keeps its first part and a truncation marker.
+ */
 final readonly class ThrowableDetail
 {
     private const int MAX_STACK_FRAMES = 32;
+    private const int MAX_MESSAGE_BYTES = 65_536;
+    private const int MAX_LOCATION_BYTES = 4_096;
+
+    public string $message;
+
+    /**
+     * @var list<string>
+     */
+    public array $stackFrames;
 
     /**
      * @var non-empty-string
@@ -35,10 +50,10 @@ final readonly class ThrowableDetail
      */
     public function __construct(
         string $class,
-        public string $message,
+        string $message,
         string $file,
         int $line,
-        public array $stackFrames = [],
+        array $stackFrames = [],
     ) {
         if ($class === '') {
             throw new \InvalidArgumentException('Throwable detail class must not be empty.');
@@ -53,8 +68,13 @@ final readonly class ThrowableDetail
         }
 
         $this->class = $class;
-        $this->file = $file;
+        $this->message = BoundedText::head($message, self::MAX_MESSAGE_BYTES);
+        $this->file = BoundedText::head($file, self::MAX_LOCATION_BYTES);
         $this->line = $line;
+        $this->stackFrames = \array_map(
+            static fn(string $frame): string => BoundedText::head($frame, self::MAX_LOCATION_BYTES),
+            $stackFrames,
+        );
     }
 
     /**

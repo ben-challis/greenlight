@@ -61,6 +61,11 @@ final class InvalidConfiguration extends \InvalidArgumentException
         return new self('Coverage driver cannot be empty.');
     }
 
+    public static function unknownCoverageDriver(string $driver): self
+    {
+        return new self(\sprintf('Coverage driver "%s" is not supported. Use "pcov" or "xdebug".', $driver));
+    }
+
     public static function coveragePercentageOutOfRange(): self
     {
         return new self('Minimum coverage percentage must be from 0 through 100.');

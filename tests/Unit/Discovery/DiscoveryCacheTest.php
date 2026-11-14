@@ -7,6 +7,8 @@ namespace Greenlight\Tests\Unit\Discovery;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\DiscoveryCache;
+use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Discovery\TestDiscoverer;
 use Greenlight\Expect\Fail;
 use Greenlight\Sandbox\Autoloaders;
@@ -19,6 +21,8 @@ use function Greenlight\expect;
 final readonly class DiscoveryCacheTest
 {
     private const string STATABLE_FILE_SCHEME = 'greenlight-statable-file';
+
+    private const string PLANTED_GROUP = 'planted-from-cache';
 
     public function __construct(
         private Autoloaders $autoloaders,
@@ -40,16 +44,17 @@ final readonly class DiscoveryCacheTest
             $cold = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
             expect($cold->count())->toBe(2);
 
-            // Add an entry to the cached payload without a file change. The entry
+            // Add a group to the cached payload without a file change. The group
             // shows that the second discovery reads the discovery cache.
             $cacheFile = DiscoveryCachePath::forDirectories([$directory]);
             $this->plantCachedTest($cacheFile, 'CachedProbeTest.php');
 
             $warm = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
-            expect($warm->count())->toBe(3);
+            expect($warm->count())->toBe(2);
+            expect($this->plantedCount($warm))->toBe(1);
 
             // Change the file content and size. Discovery MUST parse the file again
-            // and remove the added entry.
+            // and remove the added group.
             \file_put_contents($directory . '/CachedProbeTest.php', \str_replace(
                 'public function two(): void {}',
                 "public function two(): void {}\n\n    // changed",
@@ -58,6 +63,7 @@ final readonly class DiscoveryCacheTest
 
             $reparsed = new TestDiscoverer()->discover([$directory], cache: DiscoveryCache::forDirectories([$directory]));
             expect($reparsed->count())->toBe(2);
+            expect($this->plantedCount($reparsed))->toBe(0);
 
             // A corrupt discovery cache causes discovery to parse the file.
             \file_put_contents($cacheFile, 'not json');
@@ -96,7 +102,7 @@ final readonly class DiscoveryCacheTest
                 ->because('an invalid cache document becomes a cache miss')
                 ->toBe(2);
             expect($rewritten)
-                ->toContain('"version":2')
+                ->toContain('"version":3')
                 ->toContain($className . '.php');
         } finally {
             @\unlink($cacheFile);
@@ -112,9 +118,9 @@ final readonly class DiscoveryCacheTest
     {
         yield 'scalar document' => ['null'];
         yield 'wrong version' => ['{"version":0,"files":{}}'];
-        yield 'files is not a map' => ['{"version":2,"files":"invalid"}'];
-        yield 'file path is not a string' => ['{"version":2,"files":{"0":{}}}'];
-        yield 'file entry is not a map' => ['{"version":2,"files":{"/project/Test.php":"invalid"}}'];
+        yield 'files is not a map' => ['{"version":3,"files":"invalid"}'];
+        yield 'file path is not a string' => ['{"version":3,"files":{"0":{}}}'];
+        yield 'file entry is not a map' => ['{"version":3,"files":{"/project/Test.php":"invalid"}}'];
     }
 
     #[Test]
@@ -244,7 +250,8 @@ final readonly class DiscoveryCacheTest
                 [$directory],
                 cache: DiscoveryCache::forDirectories([$directory]),
             );
-            expect($warm->count())->toBe(2);
+            expect($warm->count())->toBe(1);
+            expect($this->plantedCount($warm))->toBe(1);
 
             \file_put_contents($providerFile, \file_get_contents($providerFile) . "\n// changed");
 
@@ -253,6 +260,7 @@ final readonly class DiscoveryCacheTest
                 cache: DiscoveryCache::forDirectories([$directory]),
             );
             expect($reparsed->count())->toBe(1);
+            expect($this->plantedCount($reparsed))->toBe(0);
         } finally {
             @\unlink(DiscoveryCachePath::forDirectories([$directory]));
             @\unlink($testFile);
@@ -435,6 +443,14 @@ final readonly class DiscoveryCacheTest
         return $directory;
     }
 
+    private function plantedCount(ExecutionPlan $plan): int
+    {
+        return \count(\array_filter(
+            $plan->entries,
+            static fn(PlanEntry $entry): bool => $entry->definition->groups === [self::PLANTED_GROUP],
+        ));
+    }
+
     private function plantCachedTest(string $cacheFile, string $sourceBasename): void
     {
         $decoded = \json_decode((string) \file_get_contents($cacheFile), true, 32, \JSON_THROW_ON_ERROR);
@@ -463,8 +479,8 @@ final readonly class DiscoveryCacheTest
             ));
         }
 
-        $planted['definition']['method'] = 'plantedFromCache';
-        $cachedFile['entries'][] = $planted;
+        $planted['definition']['groups'] = [self::PLANTED_GROUP];
+        $cachedFile['entries'][0] = $planted;
         $decoded['files'][$cachedPath] = $cachedFile;
 
         if (\file_put_contents($cacheFile, \json_encode($decoded, \JSON_THROW_ON_ERROR)) === false) {

@@ -52,6 +52,40 @@ final readonly class CustomCommandTest
     }
 
     #[Test]
+    public function aSpaceSeparatedConfigPathLoadsTheCommandProvider(): void
+    {
+        $project = $this->project('custom-command-config-value', <<<'PHP'
+            final class ConfigValueCommandProvider implements CommandProvider
+            {
+                public function commands(): array
+                {
+                    return [new CommandDefinition(
+                        'company:config',
+                        'Print a config marker',
+                        static function (CommandInvocation $invocation): CommandResult {
+                            $invocation->write("loaded\n");
+
+                            return CommandResult::success();
+                        },
+                    )];
+                }
+            }
+
+            return GreenlightConfig::create()->plugins(
+                static fn(): ConfigValueCommandProvider => new ConfigValueCommandProvider(),
+            );
+            PHP);
+        $elsewhere = $this->tempDirectory->subdirectory('custom-command-config-value-cwd');
+
+        $result = GreenlightCli::run($elsewhere, ['--config', $project->path('greenlight.php'), 'company:config']);
+
+        expect($result->exitCode)
+            ->because('the plugin commands MUST come from the configuration file that --config names')
+            ->toBe(0);
+        expect($result->stdout)->toBe('loaded');
+    }
+
+    #[Test]
     public function customAndBundledCommandsShareOneNameRegistry(): void
     {
         $project = $this->project('duplicate-command', <<<'PHP'

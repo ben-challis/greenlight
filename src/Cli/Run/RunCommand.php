@@ -23,6 +23,7 @@ use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\StorageLayout;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Execution\Worker\LeakDetector;
+use Greenlight\Internal\Process\EmergencyCleanups;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Plugin\CommandOutcome;
 use Greenlight\Plugin\CommandResult;
@@ -68,6 +69,16 @@ final readonly class RunCommand
             return CommandResult::usage();
         }
 
+        // Each watch iteration selects the configured tests again and writes
+        // the reporter streams again. A failed-test selection and a single
+        // JUnit document do not fit that model.
+        if ($arguments->has('watch') && $arguments->has('failed')) {
+            $this->console->error('Do not use --watch with --failed.', $arguments->has('no-ansi'));
+
+            return CommandResult::usage();
+        }
+
+
         if ($arguments->has('dry-run')) {
             $this->console->out(PlanFormatter::format($resolved, $configFile, $workingDirectory));
 
@@ -91,6 +102,7 @@ final readonly class RunCommand
                 version: $this->version,
             );
             $this->assertRepeatOutputsAreCompatible($arguments, $overrides->repeat, $resolved->coverage);
+            $this->assertWatchOutputsAreCompatible($arguments);
             $reporterOutputs = $reporterFactory->outputs($arguments, $reporterCatalog, $workingDirectory);
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
@@ -118,10 +130,11 @@ final readonly class RunCommand
 
         try {
             $shutdown = new GracefulShutdown();
-            SignalHandlers::install($shutdown);
+            $emergencyCleanups = new EmergencyCleanups();
+            SignalHandlers::install($shutdown, cleanups: $emergencyCleanups);
 
             if ($arguments->has('watch')) {
-                return new WatchRuns($this->console)->run($arguments, $workingDirectory, $workerBin, $configuration, $shutdown, $reporterCatalog, $reporterOutputs, $reporter);
+                return new WatchRuns($this->console)->run($arguments, $workingDirectory, $workerBin, $configuration, $shutdown, $reporterCatalog, $reporterOutputs, $reporter, $emergencyCleanups);
             }
 
             $storage = StorageLayout::resolve(
@@ -179,6 +192,7 @@ final readonly class RunCommand
                 $selection,
                 $state,
                 $reporterOutputs->writesReporterToStandardOutput('jsonl'),
+                $emergencyCleanups,
             );
 
             // --repeat=1 specifies one standard run. Show the loop, banners, and
@@ -279,6 +293,14 @@ final readonly class RunCommand
     {
         foreach ($discovery->unmatchedExcludePathWarnings() as $warning) {
             $this->console->err($this->console->stderrStyle($noAnsiFlag)->warn($warning) . "\n");
+        }
+    }
+
+    /** @throws CliError */
+    private function assertWatchOutputsAreCompatible(ParsedArguments $arguments): void
+    {
+        if ($arguments->has('watch') && ReporterOutputPlan::selects($arguments->values('reporter'), 'junit')) {
+            throw CliError::watchWithJunitOutput();
         }
     }
 

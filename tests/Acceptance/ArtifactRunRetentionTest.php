@@ -158,10 +158,11 @@ final readonly class ArtifactRunRetentionTest
     }
 
     #[Test]
-    public function maintenanceCommandReportsANoncanonicalParent(): void
+    public function maintenanceCommandNormalisesTheParentPath(): void
     {
-        $project = AcceptanceProject::create($this->tempDirectory, 'artifact-prune-warning');
-        \mkdir($project->path('artifacts'));
+        $project = AcceptanceProject::create($this->tempDirectory, 'artifact-prune-normalised');
+        $this->writeCompletedRun($project->path('artifacts'), 'run-old', 10);
+        $this->writeCompletedRun($project->path('artifacts'), 'run-new', 20);
         $project->writeFile('greenlight.php', <<<'PHP'
             <?php
 
@@ -172,16 +173,60 @@ final readonly class ArtifactRunRetentionTest
 
             return GreenlightConfig::create()
                 ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts
-                    ->directory(__DIR__ . '/artifacts/.')
+                    ->directory('./artifacts//.')
                     ->maxCompletedRuns(1));
             PHP);
 
-        $result = GreenlightCli::run($project->directory, ['artifacts:prune', '--no-ansi']);
+        $result = GreenlightCli::run($project->directory, ['artifacts:prune', '--dry-run', '--no-ansi']);
 
         expect($result->exitCode)->toBe(0);
-        expect($result->stdout)->toContain('No completed artifact runs were pruned.');
-        expect($result->stderr)
-            ->toContain('Greenlight did not prune artifacts because the artifact parent is not canonical.');
+        expect($result->stdout)
+            ->because('empty and dot segments MUST NOT block retention')
+            ->toContain('Would prune ' . \realpath($project->path('artifacts')) . '/run-old');
+        expect($result->stderr)->toBe('');
+    }
+
+    #[Test]
+    public function maintenanceCommandPrunesAbandonedRunsOnRequest(): void
+    {
+        $project = AcceptanceProject::create($this->tempDirectory, 'artifact-prune-abandoned');
+        $project->writeFile('greenlight.php', <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Config\ArtifactBuilder;
+            use Greenlight\Config\GreenlightConfig;
+
+            return GreenlightConfig::create()
+                ->artifacts(static fn(ArtifactBuilder $artifacts) => $artifacts
+                    ->directory(__DIR__ . '/artifacts'));
+            PHP);
+        $directory = $project->path('artifacts/run-abandoned');
+        \mkdir($directory, 0o700, true);
+        \file_put_contents($directory . '/evidence.txt', 'owned');
+        \file_put_contents($directory . '/.greenlight-run.lock', '');
+        \file_put_contents($directory . '/.greenlight-run.json', \json_encode([
+            'version' => 1,
+            'owner' => 'greenlight',
+            'runId' => 'run-abandoned',
+            'state' => 'active',
+            'startedAt' => 1,
+        ], \JSON_THROW_ON_ERROR));
+
+        $expected = \realpath($directory);
+        $invalid = GreenlightCli::run($project->directory, ['artifacts:prune', '--abandoned-run-age=0', '--no-ansi']);
+        $dryRun = GreenlightCli::run($project->directory, ['artifacts:prune', '--abandoned-run-age=60', '--dry-run', '--no-ansi']);
+        $prune = GreenlightCli::run($project->directory, ['artifacts:prune', '--abandoned-run-age=60', '--no-ansi']);
+
+        expect($invalid->exitCode)->toBe(64);
+        expect($invalid->stderr)->toContain('--abandoned-run-age requires a positive integer. Received "0".');
+        expect($dryRun->stdout)
+            ->because('the explicit option MUST select abandoned runs without a retention policy')
+            ->toContain('Would prune ' . $expected . ' (')
+            ->toContain('abandoned run');
+        expect($prune->exitCode)->toBe(0);
+        expect(\file_exists($directory))->toBeFalse();
     }
 
     private function writeCompletedRun(string $parent, string $runId, int $completedAt): void

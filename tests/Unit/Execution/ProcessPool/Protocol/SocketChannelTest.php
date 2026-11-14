@@ -80,12 +80,8 @@ final readonly class SocketChannelTest
             \fwrite($peer, \pack('N', 10) . 'abc');
             \fclose($peer);
 
-            expect($channel->poll())
-                ->because('the first poll reads the incomplete frame')
-                ->toBeNull();
-
             expect()->calling(static fn(): mixed => $channel->poll())
-                ->because('peer EOF MUST reject an incomplete frame')
+                ->because('one poll MUST read to peer EOF and reject the incomplete frame')
                 ->toThrow(
                     ProtocolError::class,
                     message: 'Malformed frame: peer closed the connection with an incomplete frame.',

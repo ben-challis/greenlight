@@ -9,15 +9,17 @@ use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceResolutionFailed;
-use Greenlight\Plugin\TestContext;
-use Greenlight\Result\TestResult;
+use Greenlight\Result\Outcome;
 use Greenlight\Symfony\SymfonyBridgeError;
 use Greenlight\Symfony\SymfonyPlugin;
+use Greenlight\Tests\Fixture\BridgeAttemptEnd\SymfonyFreshContainerProbe;
+use Greenlight\Tests\Fixture\BridgeAttemptEnd\SymfonyThrowingConstructorProbe;
 use Greenlight\Tests\Fixture\Symfony\BareKernel;
 use Greenlight\Tests\Fixture\Symfony\FixtureKernel;
 use Greenlight\Tests\Fixture\Symfony\Greeter;
 use Greenlight\Tests\Fixture\Symfony\NamedGreeter;
 use Greenlight\Tests\Fixture\Symfony\VisitCounter;
+use Greenlight\Tests\Support\BridgeAttemptRun;
 use Greenlight\Tests\Support\PluginLifecycle;
 use Greenlight\Tests\Support\ServiceResolverProbe;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -199,7 +201,7 @@ final class SymfonyPluginTest
             ->toBeInstanceOf(VisitCounter::class);
 
         $counter->record();
-        $plugin->afterTest($this->context(), $this->result());
+        $this->endAttempt($plugin);
 
         expect($counter->count())->because('waived resets leave state in place')->toBe(1);
     }
@@ -250,7 +252,7 @@ final class SymfonyPluginTest
     }
 
     #[Test]
-    public function afterTestResetsStatefulContainerServices(): void
+    public function attemptEndResetsStatefulContainerServices(): void
     {
         $plugin = $this->plugin();
         $counter = $plugin->resolve(VisitCounter::class, []);
@@ -261,15 +263,13 @@ final class SymfonyPluginTest
 
         $counter->record();
         $counter->record();
-        $result = $this->result();
-        $returned = $plugin->afterTest($this->context(), $result);
+        $this->endAttempt($plugin);
 
         expect($counter->count())->because('after test resets stateful container services')->toBe(0);
-        expect($returned)->toBe($result);
     }
 
     #[Test]
-    public function afterTestWithoutABootedKernelIsANoOp(): void
+    public function attemptEndWithoutABootedKernelIsANoOp(): void
     {
         $booted = false;
         $plugin = new SymfonyPlugin(static function () use (&$booted): KernelInterface {
@@ -278,11 +278,25 @@ final class SymfonyPluginTest
             return new FixtureKernel('test', true);
         });
 
-        $result = $this->result();
-        $returned = $plugin->afterTest($this->context(), $result);
+        $this->endAttempt($plugin);
 
         expect($booted)->because('after test without a booted kernel is a no-op')->toBe(false);
-        expect($returned)->toBe($result);
+    }
+
+    #[Test]
+    public function aConstructorFailureStillReleasesServiceState(): void
+    {
+        $plugin = $this->plugin();
+
+        [$failed, $next] = BridgeAttemptRun::run($plugin, [
+            [SymfonyThrowingConstructorProbe::class, 'neverRuns'],
+            [SymfonyFreshContainerProbe::class, 'seesAFreshService'],
+        ]);
+
+        expect($failed->error?->message)->toBe('constructor failed');
+        expect($next->outcome)
+            ->because($next->failures[0]->message ?? 'the next test MUST receive a fresh service')
+            ->toBe(Outcome::Passed);
     }
 
     private function plugin(): SymfonyPlugin
@@ -290,13 +304,9 @@ final class SymfonyPluginTest
         return new SymfonyPlugin(FixtureKernel::class, env: 'test', debug: true);
     }
 
-    private function context(): TestContext
+    private function endAttempt(SymfonyPlugin $plugin): void
     {
-        return PluginLifecycle::context();
-    }
-
-    private function result(): TestResult
-    {
-        return PluginLifecycle::passedResult();
+        $context = PluginLifecycle::context();
+        $plugin->testAttemptEnded($context->id, $context->definition);
     }
 }

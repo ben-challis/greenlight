@@ -16,6 +16,9 @@ final class RecordingSignalOperations implements SignalOperations, Fake
      */
     public array $registrations = [];
 
+    /** @var list<int> */
+    public array $raised = [];
+
     public function __construct(private readonly bool $available) {}
 
     #[\Override]
@@ -38,5 +41,11 @@ final class RecordingSignalOperations implements SignalOperations, Fake
             'signal' => $signal,
             'handler' => $handler,
         ];
+    }
+
+    #[\Override]
+    public function raise(int $signal): void
+    {
+        $this->raised[] = $signal;
     }
 }

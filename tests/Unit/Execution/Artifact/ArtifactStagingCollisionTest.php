@@ -39,7 +39,7 @@ final readonly class ArtifactStagingCollisionTest
             ->because('a staging collision MUST reject the file attachment')
             ->toThrow(
                 AttachmentError::class,
-                message: 'Greenlight did not create the attachment staging file.',
+                matching: '/^Greenlight\ did\ not\ create\ the\ attachment\ staging\ file(: .+)?\.$/s',
             );
         expect((string) \file_get_contents($part))
             ->because('a rejected file attachment MUST NOT delete the existing staging part')
@@ -80,7 +80,7 @@ final readonly class ArtifactStagingCollisionTest
             ->because('a staging collision MUST reject the byte attachment')
             ->toThrow(
                 AttachmentError::class,
-                message: 'Greenlight did not create the attachment staging file.',
+                matching: '/^Greenlight\ did\ not\ create\ the\ attachment\ staging\ file(: .+)?\.$/s',
             );
         expect((string) \file_get_contents($part))
             ->because('a rejected byte attachment MUST NOT delete the existing staging part')

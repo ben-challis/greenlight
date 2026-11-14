@@ -78,6 +78,8 @@ final readonly class SubprocessCoverage
             \bin2hex(\random_bytes(4)),
         );
 
-        ErrorTrap::run(static fn() => \file_put_contents($file, \reset($export)));
+        foreach ($export as $content) {
+            ErrorTrap::run(static fn() => \file_put_contents($file, $content));
+        }
     }
 }
