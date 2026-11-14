@@ -53,14 +53,12 @@ A class does not convert when it uses:
 * multiple data providers or multiple requirements on one declaration
 * PHPUnit doc-comment annotations, for example `@test`, `@dataProvider`, or
   `@group`, because the rule reads only attributes
-* more than one `#[Before]` or `#[After]` method, or a `#[Before]` method
-  after `setUp()` or an `#[After]` method after `tearDown()`, because PHPUnit
-  and Greenlight run these hooks in a different order
+* hooks that PHPUnit and Greenlight run in a different order, for example
+  two `#[Before]` methods or `setUp()` before a `#[Before]` method
 * a `#[TestWith]` row or a literal data provider row with string keys
 * a public static method with a `test` name prefix that is not a data provider
-* `assertNotEquals()` or `assertNotEqualsCanonicalizing()` when the rule
-  cannot prove that both values have one scalar type, because PHPUnit
-  compares these values loosely and Greenlight compares them strictly
+* `assertNotEquals()` or `assertNotEqualsCanonicalizing()` with values of
+  different or unknown types, because PHPUnit compares them loosely
 * `#[RunClassInSeparateProcess]` or `#[PreserveGlobalState]`
 * other inherited `TestCase` API that the rule cannot prove safe
 
