@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Psr11;
 
+use Greenlight\Bridge\ContainerServiceResolver;
 use Greenlight\Harness\Scope;
-use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
@@ -111,45 +111,25 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
     #[\Override]
     public function resolve(string $type, array $attributes): ?object
     {
-        $id = $type;
-        $explicit = false;
+        return ContainerServiceResolver::resolve(
+            $type,
+            $attributes,
+            fn(string $id): bool => $this->container()->has($id),
+            $this->service(...),
+            Psr11BridgeError::class,
+        );
+    }
 
-        foreach ($attributes as $attribute) {
-            if ($attribute instanceof Service) {
-                $id = $attribute->id ?? $type;
-                $explicit = true;
-            }
-        }
-
-        try {
-            $container = $this->container();
-
-            $hasService = $container->has($id);
-        } catch (ServiceResolutionFailed $error) {
-            throw $error;
-        } catch (\Throwable $threw) {
-            throw Psr11BridgeError::serviceCheckFailed($id, $threw);
-        }
-
-        if (!$hasService) {
-            if ($explicit) {
-                throw Psr11BridgeError::unknownServiceId($id, $type);
-            }
-
-            return null;
-        }
+    /** @throws ServiceResolutionFailed */
+    private function service(string $id): mixed
+    {
+        $container = $this->container();
 
         try {
-            $service = $container->get($id);
-        } catch (\Throwable $threw) {
-            throw Psr11BridgeError::serviceReadFailed($id, $threw);
+            return $container->get($id);
+        } catch (ServiceResolutionFailed $failure) {
+            throw Psr11BridgeError::serviceReadFailed($id, $failure);
         }
-
-        if (!$service instanceof $type) {
-            throw Psr11BridgeError::serviceTypeMismatch($id, $type, $service);
-        }
-
-        return $service;
     }
 
     /**

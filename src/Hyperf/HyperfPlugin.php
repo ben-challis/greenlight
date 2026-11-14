@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Hyperf;
 
+use Greenlight\Bridge\ContainerServiceResolver;
 use Greenlight\Harness\Scope;
-use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
@@ -108,39 +108,13 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
     #[\Override]
     public function resolve(string $type, array $attributes): ?object
     {
-        $id = $type;
-        $explicit = false;
-
-        foreach ($attributes as $attribute) {
-            if ($attribute instanceof Service) {
-                $id = $attribute->id ?? $type;
-                $explicit = true;
-            }
-        }
-
-        try {
-            $container = $this->container();
-
-            if (!$container->has($id)) {
-                if ($explicit) {
-                    throw HyperfBridgeError::unknownServiceId($id, $type);
-                }
-
-                return null;
-            }
-
-            $service = $container->get($id);
-
-            if (!$service instanceof $type) {
-                throw HyperfBridgeError::serviceTypeMismatch($id, $type, $service);
-            }
-
-            return $service;
-        } catch (ServiceResolutionFailed $error) {
-            throw $error;
-        } catch (\Throwable $cause) {
-            throw HyperfBridgeError::serviceResolutionFailed($id, $type, $cause);
-        }
+        return ContainerServiceResolver::resolve(
+            $type,
+            $attributes,
+            fn(string $id): bool => $this->container()->has($id),
+            fn(string $id): mixed => $this->container()->get($id),
+            HyperfBridgeError::class,
+        );
     }
 
     /** @throws ServiceResolutionFailed */

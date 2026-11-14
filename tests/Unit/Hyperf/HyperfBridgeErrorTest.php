@@ -83,6 +83,10 @@ final readonly class HyperfBridgeErrorTest
             HyperfBridgeError::coroutineDidNotStart(...),
             'Swoole did not start the test coroutine. Check the Swoole runtime configuration.',
         ];
+        yield 'service resolution failure' => [
+            static fn(): HyperfBridgeError => HyperfBridgeError::serviceResolutionFailed('clock', \DateTimeInterface::class, new \RuntimeException('boom')),
+            'The Hyperf container failed when it resolved service "clock" for parameter type "DateTimeInterface".',
+        ];
         yield 'missing worker container' => [
             HyperfBridgeError::workerContainerUnavailable(...),
             'The Hyperf worker container is not available. Greenlight cannot start the worker runtime.',
