@@ -25,8 +25,10 @@ use Greenlight\Test\TestId;
  *
  * containCrash() and containTimeout() stop the worker, record a synthetic
  * result for its active test, and queue the rest of its assignment again.
- * The worker stops before the result records. Thus, attachment recovery sees
- * all of the evidence that the worker wrote.
+ * The stop signal goes out before the result records. Thus, attachment
+ * recovery includes evidence that the worker completed before the signal.
+ * The signal does not wait for the exit, so a write that is still in
+ * progress can complete after the recovery.
  *
  * An exit without an active test can repeat for each replacement worker.
  * Thus, consecutive exits of this type stop the run at a small limit.
