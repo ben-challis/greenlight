@@ -143,7 +143,7 @@ final class JUnitReporter implements Reporter
 
     private function attribute(string $value): string
     {
-        return \htmlspecialchars($this->xml($value), \ENT_XML1 | \ENT_COMPAT, 'UTF-8');
+        return \htmlspecialchars(Utf8::xmlCharacters($value), \ENT_XML1 | \ENT_COMPAT, 'UTF-8');
     }
 
     /**
@@ -172,15 +172,15 @@ final class JUnitReporter implements Reporter
         }
 
         $writer->startElement('testcase');
-        $writer->writeAttribute('name', $this->xml($name));
-        $writer->writeAttribute('classname', $this->xml($result->id->class));
+        $writer->writeAttribute('name', Utf8::xmlCharacters($name));
+        $writer->writeAttribute('classname', Utf8::xmlCharacters($result->id->class));
         $writer->writeAttribute('assertions', (string) $result->expectations);
         $writer->writeAttribute('time', $this->time($result->durationSeconds));
 
         $sourceFile = $this->sourceFile($result->id->class, $result->id->method);
 
         if ($sourceFile !== null) {
-            $writer->writeAttribute('file', $this->xml($sourceFile));
+            $writer->writeAttribute('file', Utf8::xmlCharacters($sourceFile));
         }
 
         if ($result->outcome === Outcome::Passed && $result->attempts > 1) {
@@ -203,7 +203,7 @@ final class JUnitReporter implements Reporter
             foreach ($result->failures as $failure) {
                 $writer->startElement('failure');
                 $writer->writeAttribute('type', 'failure');
-                $writer->writeAttribute('message', $this->xml($failure->message));
+                $writer->writeAttribute('message', Utf8::xmlCharacters($failure->message));
 
                 $body = [$failure->message];
 
@@ -219,7 +219,7 @@ final class JUnitReporter implements Reporter
                     $body[] = 'at ' . $failure->location;
                 }
 
-                $writer->text($this->xml(\implode("\n", $body)));
+                $writer->text(Utf8::xmlCharacters(\implode("\n", $body)));
 
                 $writer->endElement();
             }
@@ -231,12 +231,12 @@ final class JUnitReporter implements Reporter
             $writer->startElement('error');
 
             if ($error instanceof ThrowableDetail) {
-                $writer->writeAttribute('type', $this->xml($error->class));
-                $writer->writeAttribute('message', $this->xml($error->message));
+                $writer->writeAttribute('type', Utf8::xmlCharacters($error->class));
+                $writer->writeAttribute('message', Utf8::xmlCharacters($error->message));
 
                 $body = [$error->message, ...$error->stackFrames];
                 $body[] = 'at ' . $error->file . ':' . $error->line;
-                $writer->text($this->xml(\implode("\n", $body)));
+                $writer->text(Utf8::xmlCharacters(\implode("\n", $body)));
             } else {
                 $writer->writeAttribute('type', 'error');
                 $writer->writeAttribute('message', 'errored');
@@ -250,8 +250,8 @@ final class JUnitReporter implements Reporter
             $writer->startElement('skipped');
 
             if ($result->skipReason !== null) {
-                $writer->writeAttribute('message', $this->xml($result->skipReason));
-                $writer->text($this->xml($result->skipReason));
+                $writer->writeAttribute('message', Utf8::xmlCharacters($result->skipReason));
+                $writer->text(Utf8::xmlCharacters($result->skipReason));
             }
 
             $writer->endElement();
@@ -259,7 +259,7 @@ final class JUnitReporter implements Reporter
 
         if ($result->attachments !== []) {
             $writer->startElement('system-out');
-            $writer->text($this->xml(\implode("\n", \array_map(
+            $writer->text(Utf8::xmlCharacters(\implode("\n", \array_map(
                 static fn($attachment): string => '[[ATTACHMENT|' . $attachment->path . ']]',
                 $result->attachments,
             ))));
@@ -301,15 +301,6 @@ final class JUnitReporter implements Reporter
         }
 
         return $this->sourceFilesByClassAndMethod[$class][$method] = $file;
-    }
-
-    private function xml(string $value): string
-    {
-        return (string) \preg_replace(
-            '/[^\x{9}\x{A}\x{D}\x{20}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]/u',
-            "\u{FFFD}",
-            Utf8::scrub($value),
-        );
     }
 
     private function time(float $seconds): string

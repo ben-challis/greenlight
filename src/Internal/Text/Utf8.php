@@ -11,6 +11,9 @@ namespace Greenlight\Internal\Text;
  * messages and rendered values can contain these bytes. scrub() replaces each
  * invalid sequence with U+FFFD.
  *
+ * The xmlCharacters() method also replaces each character that XML 1.0 does
+ * not allow with U+FFFD. It does not escape markup characters.
+ *
  * @internal
  */
 final class Utf8
@@ -81,5 +84,14 @@ final class Utf8
         $decoded = \json_decode($encoded, flags: \JSON_THROW_ON_ERROR);
 
         return \is_string($decoded) ? $decoded : '(unrepresentable binary string)';
+    }
+
+    public static function xmlCharacters(string $value): string
+    {
+        return (string) \preg_replace(
+            '/[^\x{9}\x{A}\x{D}\x{20}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]/u',
+            "\u{FFFD}",
+            self::scrub($value),
+        );
     }
 }

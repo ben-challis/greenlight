@@ -18,13 +18,7 @@ final class XmlEscaper
 
     public static function attribute(string $value): string
     {
-        $value = (string) \preg_replace(
-            '/[^\x{9}\x{A}\x{D}\x{20}-\x{D7FF}\x{E000}-\x{FFFD}\x{10000}-\x{10FFFF}]/u',
-            "\u{FFFD}",
-            Utf8::scrub($value),
-        );
-
-        $value = \htmlspecialchars($value, \ENT_XML1 | \ENT_QUOTES | \ENT_SUBSTITUTE, 'UTF-8');
+        $value = \htmlspecialchars(Utf8::xmlCharacters($value), \ENT_XML1 | \ENT_QUOTES | \ENT_SUBSTITUTE, 'UTF-8');
 
         return \str_replace(
             ["\t", "\n", "\r"],
