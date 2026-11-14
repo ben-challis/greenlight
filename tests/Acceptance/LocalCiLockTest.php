@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Acceptance;
 
+use Greenlight\Attribute\DataRow;
+use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
+use Greenlight\Condition\ExtensionLoaded;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Test\Cleanup;
 use Greenlight\Tests\Support\PhpSubprocess;
@@ -59,6 +62,47 @@ final readonly class LocalCiLockTest
         expect($first->wait(2.0)->exitCode)->toBe(0);
         expect($second->wait(2.0)->exitCode)->toBe(0);
         expect(\file_get_contents($startedMarker))->toBe('started');
+    }
+
+    #[Test]
+    #[SkipUnless(ExtensionLoaded::class, 'pcntl')]
+    #[DataRow([\SIGTERM])]
+    #[DataRow([\SIGHUP])]
+    #[DataRow([\SIGINT])]
+    public function forwardsSignalsToTheCommandAndReleasesTheSlot(int $signal): void
+    {
+        $environment = [
+            'CI' => '0',
+            'GREENLIGHT_LOCAL_CI_LOCK_DIRECTORY' => $this->tempDirectory->subdirectory('signal-locks'),
+            'GREENLIGHT_LOCAL_CI_MAX_PARALLELISM' => '1',
+        ];
+        $first = PhpSubprocess::start(
+            $this->tempDirectory->path(),
+            $this->lockCommand(PhpSubprocess::command([
+                '-r',
+                'fwrite(STDOUT, "ready\\n"); fflush(STDOUT); sleep(30);',
+            ])),
+            $environment,
+        );
+        $this->cleanup->defer($first->terminate(...));
+
+        $first->readStdoutUntil('ready', 10.0);
+        $first->signal($signal);
+
+        expect($first->wait(10.0)->exitCode)
+            ->because('the wrapper MUST forward the signal, wait for the command, and report the signal')
+            ->toBe(128 + $signal);
+
+        $second = PhpSubprocess::start(
+            $this->tempDirectory->path(),
+            $this->lockCommand(PhpSubprocess::command(['-r', 'exit(5);'])),
+            $environment,
+        );
+        $this->cleanup->defer($second->terminate(...));
+
+        expect($second->wait(10.0)->exitCode)
+            ->because('the slot MUST be free after the wrapper exits')
+            ->toBe(5);
     }
 
     #[Test]
