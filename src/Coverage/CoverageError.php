@@ -17,6 +17,11 @@ final class CoverageError extends \RuntimeException
         return new self(\sprintf('Coverage driver "%s" is not available. %s', $driver, $hint));
     }
 
+    public static function lineProbeFailed(string $reason): self
+    {
+        return new self(\sprintf('Greenlight could not measure the source files that no test loaded. %s', $reason));
+    }
+
     public static function invalidJson(string $reason): self
     {
         return new self(\sprintf('Coverage JSON document is invalid: %s', $reason));

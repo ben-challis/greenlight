@@ -199,6 +199,21 @@ Repeated calls to `coverage()` preserve earlier settings.
 When you configure coverage, the run prints the total percentage and writes
 each coverage export.
 
+A coverage driver reports only the files that PHP loads. After the run,
+Greenlight finds each `.php` file in the include paths that no test loaded. It
+adds the executable lines of these files as uncovered lines. Thus, an untested
+file decreases the total percentage. Without include paths, the export contains
+only the files that the driver reports.
+
+To find the executable lines, Greenlight compiles these files in a PHP
+subprocess with the coverage driver of the run. The subprocess includes a copy
+of each file. The copy has a return statement after the `declare` and
+`namespace` statements, so no code of the file executes.
+
+The run fails if the subprocess cannot start the driver. It also fails if the
+subprocess stops while it compiles a file. A file with a syntax error is not
+added.
+
 If no worker can collect coverage because neither pcov nor Xdebug coverage mode
 is available, Greenlight warns on stderr. That warning does not fail the run by
 itself. `requireDriver()` changes the warning to a run failure.
