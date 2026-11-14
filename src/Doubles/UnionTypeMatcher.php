@@ -9,17 +9,32 @@ final readonly class UnionTypeMatcher implements TypedArgumentMatcher
 {
     private ?ArgumentType $argumentType;
 
-    /** @param non-empty-list<string> $types */
+    /** @var non-empty-list<TypeMatcher> */
+    private array $matchers;
+
+    /**
+     * @param non-empty-list<string> $types
+     * @throws InvalidDoubleUsage
+     */
     public function __construct(private array $types)
     {
+        $matchers = [];
+
+        foreach ($types as $type) {
+            TypeMatcher::assertKnown('union', $type);
+            $matchers[] = new TypeMatcher($type);
+        }
+
+        $this->matchers = $matchers;
+
         $this->argumentType = ArgumentType::fromUnionTypeNames($types);
     }
 
     public function matches(mixed $value): bool
     {
         return \array_any(
-            $this->types,
-            static fn(string $type): bool => TypeMatcher::matchesType($value, $type),
+            $this->matchers,
+            static fn(TypeMatcher $matcher): bool => $matcher->matches($value),
         );
     }
 
