@@ -795,7 +795,8 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             }
 
             return (\count($arguments) === $conversion->arity || $this->dropAssertionMessages)
-                && $this->argumentOrderConverts($conversion, $arguments);
+                && $this->argumentOrderConverts($conversion, $arguments)
+                && $this->looseNegationConverts($name, $arguments);
         }
 
         if ($name === self::FAIL) {
@@ -822,6 +823,76 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         }
 
         return false;
+    }
+
+    /**
+     * PHPUnit compares loosely in assertNotEquals() and
+     * assertNotEqualsCanonicalizing(). Greenlight compares strictly, so the
+     * negated matcher accepts more values, for example `false` and `0`. The
+     * negation converts only when both operands have one proven value kind
+     * that both frameworks compare in the same way.
+     *
+     * @param list<Arg> $arguments
+     */
+    private function looseNegationConverts(string $name, array $arguments): bool
+    {
+        if ($name !== 'assertnotequals' && $name !== 'assertnotequalscanonicalizing') {
+            return true;
+        }
+
+        $expected = $this->strictKind($arguments[0]->value);
+        $actual = $this->strictKind($arguments[1]->value);
+
+        if ($expected === null || $expected !== $actual) {
+            return false;
+        }
+
+        if ($name === 'assertnotequals') {
+            return true;
+        }
+
+        // PHPUnit canonicalization sorts each array and drops its keys.
+        // Greenlight keeps the keys of an associative array.
+        return \substr_count($expected, 'array:') === 1
+            && $this->getType($arguments[0]->value)->isList()->yes()
+            && $this->getType($arguments[1]->value)->isList()->yes();
+    }
+
+    /**
+     * Describes a value type that PHPUnit and Greenlight compare in the
+     * same way: one scalar type, or arrays whose values have one such type.
+     * Both frameworks pair array values by key and ignore key order.
+     *
+     * @return non-empty-string|null
+     */
+    private function strictKind(Expr $expression): ?string
+    {
+        $type = $this->getType($expression);
+        $prefix = '';
+
+        for ($depth = 0; $depth < 8; $depth++) {
+            $kind = match (true) {
+                $type->isInteger()->yes() => 'int',
+                $type->isFloat()->yes() => 'float',
+                $type->isString()->yes() => 'string',
+                $type->isBoolean()->yes() => 'bool',
+                $type->isNull()->yes() => 'null',
+                default => null,
+            };
+
+            if ($kind !== null) {
+                return $prefix . $kind;
+            }
+
+            if (!$type->isArray()->yes()) {
+                return null;
+            }
+
+            $prefix .= 'array:';
+            $type = $type->getIterableValueType();
+        }
+
+        return null;
     }
 
     /**
