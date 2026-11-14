@@ -439,8 +439,8 @@ final readonly class ArtifactRetention
      * Applies the age, count, and size limits in that order. Each limit
      * selects the oldest remaining completed run first. Each active record,
      * which a caller supplies only for an explicit request to prune abandoned
-     * runs, is selected after the completed runs, in start order. A run in
-     * $unselectable is never selected, but it counts toward the limits.
+     * runs, is selected after the completed runs, in start order. A completed
+     * run in $unselectable is never selected, but it counts toward the limits.
      *
      * @param list<ArtifactRunRecord> $records
      * @param array<string, true> $unselectable
@@ -449,10 +449,7 @@ final readonly class ArtifactRetention
      */
     private function select(array $records, array $unselectable, int $now): array
     {
-        $abandoned = \array_values(\array_filter(
-            $records,
-            static fn(ArtifactRunRecord $record): bool => $record->active && !isset($unselectable[$record->runId]),
-        ));
+        $abandoned = \array_values(\array_filter($records, static fn(ArtifactRunRecord $record): bool => $record->active));
         $records = \array_values(\array_filter($records, static fn(ArtifactRunRecord $record): bool => !$record->active));
         \usort($abandoned, static fn(ArtifactRunRecord $a, ArtifactRunRecord $b): int => [$a->startedAt, $a->runId] <=> [$b->startedAt, $b->runId]);
         \usort($records, static fn(ArtifactRunRecord $a, ArtifactRunRecord $b): int => [$a->completedAt, $a->runId] <=> [$b->completedAt, $b->runId]);

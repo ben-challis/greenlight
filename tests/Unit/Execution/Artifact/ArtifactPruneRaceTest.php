@@ -30,13 +30,14 @@ final readonly class ArtifactPruneRaceTest
         $retention = $this->abandonedRuns($parent);
         $lockPath = $parent . '/run-second/' . ArtifactRetention::LOCK_FILE;
         $locks = [];
-        $locking = $retention->withPathRemoverForTesting(static function (string $path) use ($lockPath, &$locks): bool {
-            if ($locks === []) {
+        $locked = null;
+        $locking = $retention->withPathRemoverForTesting(static function (string $path) use ($lockPath, &$locks, &$locked): bool {
+            if ($locked === null) {
                 $lock = \fopen($lockPath, 'r+');
-                if ($lock === false || !\flock($lock, \LOCK_EX)) {
-                    throw new \RuntimeException('The test did not lock the run.');
+                if ($lock !== false) {
+                    $locks[] = $lock;
                 }
-                $locks[] = $lock;
+                $locked = $lock !== false && \flock($lock, \LOCK_EX | \LOCK_NB);
             }
 
             return self::remove($path);
@@ -49,6 +50,7 @@ final readonly class ArtifactPruneRaceTest
 
         $report = $locking->prune(now: 100, abandonedRunAgeSeconds: 50);
 
+        expect($locked)->because('the test MUST lock the later run while prune removes the earlier run')->toBeTrue();
         expect(\is_dir($parent . '/run-second'))
             ->because('prune MUST NOT remove a run that a process locked after selection')
             ->toBeTrue();
