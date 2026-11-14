@@ -53,7 +53,7 @@ final readonly class CoverageCollector
 
         return new self(
             $driver,
-            $settings->includePaths === [] ? PathFilter::all() : new PathFilter($settings->includePaths),
+            new PathFilter($settings->includePaths, $settings->excludePaths),
         );
     }
 

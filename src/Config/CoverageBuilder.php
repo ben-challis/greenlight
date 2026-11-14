@@ -13,6 +13,11 @@ final class CoverageBuilder
     private array $includePaths = [];
 
     /**
+     * @var list<non-empty-string>
+     */
+    private array $excludePaths = [];
+
+    /**
      * @var non-empty-string|null
      */
     private ?string $driver = null;
@@ -54,6 +59,36 @@ final class CoverageBuilder
         }
 
         $this->includePaths = [...$this->includePaths, ...$validated];
+
+        return $this;
+    }
+
+    /**
+     * Removes source paths from the coverage filter. Multiple calls add paths.
+     * Relative paths use the command working directory. An excluded directory
+     * removes each file below it, also files in an include path.
+     *
+     * @param non-empty-string ...$paths
+     *
+     * @throws InvalidConfiguration
+     */
+    public function exclude(string ...$paths): self
+    {
+        $validated = [];
+
+        foreach ($paths as $path) {
+            if ($path === '') {
+                throw InvalidConfiguration::emptyCoverageExcludePath();
+            }
+
+            if (\str_contains($path, "\0")) {
+                throw InvalidConfiguration::coverageExcludePathContainsNullByte();
+            }
+
+            $validated[] = $path;
+        }
+
+        $this->excludePaths = [...$this->excludePaths, ...$validated];
 
         return $this;
     }
@@ -153,6 +188,7 @@ final class CoverageBuilder
             $this->minimumPercentage,
             $this->maximumUncoveredLines,
             $this->requireDriver,
+            $this->excludePaths,
         );
     }
 }
