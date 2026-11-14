@@ -52,6 +52,7 @@ final class ConfigurationResolver
                 $coverageOverrides->minimumPercentage ?? $coverage->minimumPercentage,
                 $coverageOverrides->maximumUncoveredLines ?? $coverage->maximumUncoveredLines,
                 $coverage->requireDriver || $coverageOverrides->requireDriver,
+                $coverage->excludePaths,
             );
         }
 

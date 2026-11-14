@@ -8,16 +8,20 @@ use Greenlight\Coverage\Collection\CoverageCollector;
 use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Coverage\Collection\Driver\PcovDriver;
 use Greenlight\Coverage\Collection\Driver\XdebugDriver;
+use Greenlight\Coverage\Collection\PathFilter;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Relay\SharedCoverageDirectory;
+use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Owns and merges the coverage resources for one CLI run.
  *
  * finish() adds each source file in the include paths that no test loaded.
  * These files have only uncovered lines. A probe compiles them in a
- * subprocess with the coverage driver of the run.
+ * subprocess with the coverage driver of the run. Then finish() removes the
+ * files in the exclude paths, also files that a worker or a child process
+ * reported.
  *
  * @internal
  */
@@ -95,10 +99,29 @@ final class CoverageSession
 
         if ($coverage instanceof CoverageMap && $this->settings instanceof CoverageSettings && $this->settings->includePaths !== []) {
             $coverage = new UnloadedFileCoverage($this->probe ?? $this->defaultProbe($this->settings))
-                ->complete($coverage, $this->settings->includePaths);
+                ->complete($coverage, $this->settings->includePaths, $this->settings->excludePaths);
+        }
+
+        if ($coverage instanceof CoverageMap && $this->settings instanceof CoverageSettings && $this->settings->excludePaths !== []) {
+            $coverage = $this->withoutExcluded($coverage, new PathFilter([], $this->settings->excludePaths));
         }
 
         return $coverage;
+    }
+
+    private function withoutExcluded(CoverageMap $coverage, PathFilter $filter): CoverageMap
+    {
+        $files = [];
+
+        foreach ($coverage->files() as $path => $file) {
+            $real = ErrorTrap::run(static fn() => \realpath($path));
+
+            if ($filter->accepts($path) && (!\is_string($real) || $filter->accepts($real))) {
+                $files[] = $file;
+            }
+        }
+
+        return new CoverageMap($files);
     }
 
     /**

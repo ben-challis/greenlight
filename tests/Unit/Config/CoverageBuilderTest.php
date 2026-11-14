@@ -27,6 +27,27 @@ final class CoverageBuilderTest
     }
 
     #[Test]
+    public function excludePathsAccumulateInOrder(): void
+    {
+        expect(new CoverageBuilder()->exclude('src/A')->exclude('src/B', 'src/C')->toConfiguration()->excludePaths)
+            ->toBe(['src/A', 'src/B', 'src/C']);
+    }
+
+    #[Test]
+    public function aRejectedExcludeCallDoesNotPartiallyChangeTheBuilder(): void
+    {
+        $builder = new CoverageBuilder()->exclude('src/A');
+
+        expect()->calling(static fn(): CoverageBuilder => $builder->exclude('src/B', '')) // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
+            ->because('a rejected exclude call does not partially change the builder')
+            ->toThrow(InvalidConfiguration::class, message: 'Coverage exclude paths cannot be empty.');
+        expect()->calling(static fn(): CoverageBuilder => $builder->exclude("src\0hidden"))
+            ->toThrow(InvalidConfiguration::class, message: 'Coverage exclude paths cannot contain a null byte.');
+
+        expect($builder->toConfiguration()->excludePaths)->toBe(['src/A']);
+    }
+
+    #[Test]
     public function aRejectedIncludeCallDoesNotPartiallyChangeTheBuilder(): void
     {
         $builder = new CoverageBuilder()->include('src');

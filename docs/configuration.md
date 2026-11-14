@@ -168,6 +168,8 @@ Repeated calls to `coverage()` preserve earlier settings.
 
 * `include(string ...$paths): self` adds source directories to measure. Default:
   none.
+* `exclude(string ...$paths): self` removes source directories from the
+  measurement, also directories inside an include path. Default: none.
 * `driver(string $driver): self` restricts coverage to `pcov` or `xdebug` when
   you use that value. Other non-empty values have the default behavior:
   Greenlight tries pcov, then Xdebug.

@@ -56,6 +56,16 @@ final class InvalidConfiguration extends \InvalidArgumentException
         return new self('Coverage include paths cannot contain a null byte.');
     }
 
+    public static function emptyCoverageExcludePath(): self
+    {
+        return new self('Coverage exclude paths cannot be empty.');
+    }
+
+    public static function coverageExcludePathContainsNullByte(): self
+    {
+        return new self('Coverage exclude paths cannot contain a null byte.');
+    }
+
     public static function emptyCoverageDriver(): self
     {
         return new self('Coverage driver cannot be empty.');
