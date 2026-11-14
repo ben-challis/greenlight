@@ -82,7 +82,7 @@ final readonly class CoverageDiffOutputTest
             ->because('portable comparison output MUST use the normalized project-relative path')
             ->toBe([
                 'Coverage: baseline 100.00%, current 50.00% (-50.00)',
-                'src/A.php: 100.00% -> 50.00% (-50.00), newly uncovered lines: 2',
+                'src/A.php: 100.00% -> 50.00% (-50.00), uncovered lines: 0 -> 1',
             ]);
     }
 

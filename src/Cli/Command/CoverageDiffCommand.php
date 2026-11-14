@@ -114,7 +114,7 @@ final readonly class CoverageDiffCommand
             ),
         );
         foreach ($report->fileDeltas as $delta) {
-            if ($delta->delta() === 0.0 && $delta->newlyUncoveredLines === []) {
+            if ($delta->delta() === 0.0 && !$delta->uncoveredLinesChanged()) {
                 continue;
             }
             $line = \sprintf(
@@ -124,8 +124,12 @@ final readonly class CoverageDiffCommand
                 $delta->currentPercentage === null ? 'absent' : \sprintf('%.2f%%', $delta->currentPercentage),
                 $delta->delta(),
             );
-            if ($delta->newlyUncoveredLines !== []) {
-                $line .= ', newly uncovered lines: ' . \implode(', ', $delta->newlyUncoveredLines);
+            if ($delta->uncoveredLinesChanged()) {
+                $line .= \sprintf(
+                    ', uncovered lines: %d -> %d',
+                    $delta->baselineUncoveredLines ?? 0,
+                    $delta->currentUncoveredLines ?? 0,
+                );
             }
             $this->console->out($line . "\n");
         }

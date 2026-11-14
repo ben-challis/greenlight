@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Coverage\Diff;
 
-use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Diff\FileDelta;
 
@@ -15,58 +14,51 @@ final readonly class FileDeltaTest
     #[Test]
     public function zeroStringFilePathRetainsDeltaDetails(): void
     {
-        $delta = new FileDelta('0', 75.0, 50.0, [2, 5]);
+        $delta = new FileDelta('0', 75.0, 50.0, 1, 2);
 
         expect($delta->file)
             ->because('a zero-string coverage delta file path is not empty')
             ->toBe('0');
-        expect($delta->newlyUncoveredLines)
-            ->because('a coverage delta MUST retain its newly uncovered lines')
-            ->toBe([2, 5]);
+        expect($delta->uncoveredLinesChanged())
+            ->because('a coverage delta MUST compare its uncovered-line counts')
+            ->toBeTrue();
         expect($delta->delta())
             ->because('a coverage delta MUST calculate the percentage change')
             ->toBe(-25.0);
     }
 
-    /**
-     * @param list<int> $newlyUncoveredLines
-     */
     #[Test]
-    #[DataSet('invalidDeltas')]
-    public function invalidDeltaIdentitiesAreRejected(
-        string $file,
-        array $newlyUncoveredLines,
-        string $message,
-    ): void {
-        expect()->calling(static fn(): FileDelta => new FileDelta(
-            $file,
-            100.0,
-            50.0,
-            $newlyUncoveredLines,
-        ))
-            ->because('coverage deltas MUST identify a file and positive source lines')
-            ->toThrow(\InvalidArgumentException::class, message: $message);
+    public function anEmptyFilePathIsRejected(): void
+    {
+        expect()->calling(static fn(): FileDelta => new FileDelta('', 100.0, 50.0))
+            ->because('coverage deltas MUST identify a file')
+            ->toThrow(\InvalidArgumentException::class, message: 'Use a non-empty coverage delta file path.');
     }
 
-    /**
-     * @return iterable<string, array{string, list<int>, string}>
-     */
-    public static function invalidDeltas(): iterable
+    #[Test]
+    public function moreUncoveredLinesAtTheSamePercentageIsARegression(): void
     {
-        yield 'empty file' => [
-            '',
-            [1],
-            'Use a non-empty coverage delta file path.',
-        ];
-        yield 'zero line' => [
-            '/src/A.php',
-            [0],
-            'Use positive newly uncovered line numbers. Actual value: 0.',
-        ];
-        yield 'negative line' => [
-            '/src/A.php',
-            [-1],
-            'Use positive newly uncovered line numbers. Actual value: -1.',
-        ];
+        expect(new FileDelta('/src/A.php', 50.0, 50.0, 1, 2)->regressed())
+            ->because('an increased uncovered-line count MUST be a regression')
+            ->toBeTrue();
+    }
+
+    #[Test]
+    public function aDifferenceBelowTheDisplayedPrecisionIsNotARegression(): void
+    {
+        expect(new FileDelta('/src/A.php', 66.671, 66.669, 1, 1)->regressed())
+            ->because('percentages MUST compare at the displayed precision')
+            ->toBeFalse();
+    }
+
+    #[Test]
+    public function aFileInOnlyOneMapCannotRegress(): void
+    {
+        expect(new FileDelta('/src/A.php', null, 0.0, null, 5)->regressed())
+            ->because('an added file MUST NOT regress')
+            ->toBeFalse();
+        expect(new FileDelta('/src/A.php', 100.0, null, 0)->regressed())
+            ->because('a removed file MUST NOT regress')
+            ->toBeFalse();
     }
 }
