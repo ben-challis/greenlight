@@ -7,6 +7,7 @@ namespace Greenlight\Tests\Unit\Cli\Signal;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Signal\SignalHandlers;
+use Greenlight\Internal\Process\EmergencyCleanups;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Tests\Fixture\Cli\Signal\RecordingSignalOperations;
 
@@ -55,7 +56,7 @@ final class SignalHandlersTest
     }
 
     #[Test]
-    public function theFirstSignalRequestsShutdownAndRestoresDefaultHandlers(): void
+    public function theFirstSignalRequestsShutdownAndInstallsTheForcedExitHandlers(): void
     {
         $operations = new RecordingSignalOperations(available: true);
         $shutdown = new GracefulShutdown();
@@ -81,12 +82,52 @@ final class SignalHandlersTest
             ->because('the first signal requests graceful shutdown')
             ->toBeTrue();
         expect($shutdown->signal())->toBe(\SIGTERM);
-        expect($operations->registrations[2] ?? null)
-            ->because('the first signal restores the default SIGINT handler')
-            ->toBe(['signal' => \SIGINT, 'handler' => \SIG_DFL]);
-        expect($operations->registrations[3] ?? null)
-            ->because('the first signal restores the default SIGTERM handler')
-            ->toBe(['signal' => \SIGTERM, 'handler' => \SIG_DFL]);
+        expect(\array_column($operations->registrations, 'signal'))
+            ->because('the first signal replaces both handlers')
+            ->toBe([\SIGINT, \SIGTERM, \SIGINT, \SIGTERM]);
+        expect($operations->registrations[2]['handler'] ?? null)
+            ->because('the second SIGINT MUST run the forced exit handler')
+            ->toBeCallable();
+        expect($operations->registrations[3]['handler'] ?? null)
+            ->because('the second SIGTERM MUST run the forced exit handler')
+            ->toBeCallable();
+        expect($operations->raised)
+            ->because('the first signal does not end the process')
+            ->toBe([]);
+    }
+
+    #[Test]
+    public function theSecondSignalRunsEmergencyCleanupsAndRaisesTheSignalWithDefaultHandlers(): void
+    {
+        $operations = new RecordingSignalOperations(available: true);
+        $cleanups = new EmergencyCleanups();
+        $log = [];
+        $cleanups->register(static function () use (&$log, $operations): void {
+            $log[] = 'cleanup after ' . \count($operations->registrations) . ' registrations';
+        });
+
+        SignalHandlers::install(new GracefulShutdown(), $operations, $cleanups);
+
+        $first = $operations->registrations[0]['handler'] ?? null;
+        expect($first)->toBeCallable();
+        $first(\SIGINT);
+
+        $second = $operations->registrations[2]['handler'] ?? null;
+        expect($second)->toBeCallable();
+        $second(\SIGINT);
+
+        expect(\array_slice($operations->registrations, 4))
+            ->because('the forced exit restores the default handlers, so a third signal ends a slow cleanup')
+            ->toBe([
+                ['signal' => \SIGINT, 'handler' => \SIG_DFL],
+                ['signal' => \SIGTERM, 'handler' => \SIG_DFL],
+            ]);
+        expect($log)
+            ->because('the forced exit MUST run the emergency cleanups after the default handlers return')
+            ->toBe(['cleanup after 6 registrations']);
+        expect($operations->raised)
+            ->because('the forced exit MUST end the process with the received signal')
+            ->toBe([\SIGINT]);
     }
 
     /**

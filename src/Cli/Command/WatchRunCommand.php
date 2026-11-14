@@ -14,6 +14,7 @@ use Greenlight\Cli\State\RunState;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\StorageLayout;
 use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Internal\Process\EmergencyCleanups;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\JsonLinesReporter;
@@ -66,7 +67,8 @@ final readonly class WatchRunCommand
             $resolved = $configuration->resolved;
             $storage = StorageLayout::resolve($resolved->storage, $workingDirectory, $resolved->suiteSelection->stateIdentity());
             $shutdown = new GracefulShutdown();
-            SignalHandlers::install($shutdown);
+            $emergencyCleanups = new EmergencyCleanups();
+            SignalHandlers::install($shutdown, cleanups: $emergencyCleanups);
             new RunSession(
                 $this->console,
                 $arguments,
@@ -76,6 +78,7 @@ final readonly class WatchRunCommand
                 $shutdown,
                 $resolved->selection,
                 RunState::forFile($storage->runStateFile),
+                emergencyCleanups: $emergencyCleanups,
             )->watchAttempt(new JsonLinesReporter(new StreamOutput($events)), $classes);
 
             return CommandResult::success();

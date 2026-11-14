@@ -108,6 +108,12 @@ Destination and recovery paths **MUST** stay below their configured roots.
 Attachment files and internal metadata use private permissions on platforms
 that support these permissions.
 
+Greenlight resolves the artifact parent when it opens the run. It removes empty
+and `.` segments. It resolves the deepest existing ancestor with `realpath()`.
+Thus, a symbolic link above the parent is valid, for example a linked `/tmp`.
+A symbolic link at or below the parent is not valid. The run fails before the
+first test when the parent is not valid.
+
 Pruning **MUST** keep the configured parent. It **MUST NOT** follow a symbolic
 link or delete content outside the canonical parent.
 

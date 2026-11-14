@@ -87,4 +87,77 @@ final readonly class PhpStanDoublePlanRuleTest
             ->toContain('matcher for Greenlight\\Tests\\Fixture\\Doubles\\Wide::intersectionType() accepts int|string, '
                 . 'but parameter $value requires Countable&Greenlight\\Tests\\Fixture\\Doubles\\Marker');
     }
+
+    #[Test]
+    public function chainedPlanCallsKeepTheSelectedMethod(): void
+    {
+        $probe = PhpStanProbe::analyze(
+            $this->tempDirectory,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Doubles\Doubles;
+            use Greenlight\Doubles\MockPlan;
+
+            interface ChainedValidPlan
+            {
+                public function find(int $id, string $name): int;
+            }
+
+            function acceptChainedString(string $value): void {}
+
+            function greenlightChainedValidPlanProbe(Doubles $doubles): void
+            {
+                $doubles->mock(ChainedValidPlan::class, static function (MockPlan $plan): void {
+                    $plan->expects('find')->once()->with(1, 'a')->andReturns(1);
+                    $captor = $plan->expects('find')->times(2)->andReturns(2)->captureArgument(1);
+                    acceptChainedString($captor->value());
+                });
+            }
+            PHP,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Doubles\Doubles;
+            use Greenlight\Doubles\MockPlan;
+
+            interface ChainedInvalidPlan
+            {
+                public function find(int $id, string $name): int;
+            }
+
+            function acceptChainedInt(int $value): void {}
+
+            function greenlightChainedInvalidPlanProbe(Doubles $doubles): void
+            {
+                $doubles->mock(ChainedInvalidPlan::class, static function (MockPlan $plan): void {
+                    $plan->expects('find')->once()->andReturns('wrong');
+                    $plan->expects('find')->never()->with('wrong', 'a');
+                    $plan->expects('find')->atLeast(1)->captureArgument(2);
+                    $captor = $plan->expects('find')->once()->andReturns(1)->captureArgument(1);
+                    acceptChainedInt($captor->value());
+                });
+            }
+            PHP,
+        );
+
+        expect($probe->exitCode)
+            ->because('PHPStan checks each call in a fluent mock plan chain')
+            ->toBe(1);
+        expect($probe->goodPassed)
+            ->because('PHPStan messages: ' . $probe->messages())
+            ->toBeTrue();
+        expect(\count($probe->errors))
+            ->because('PHPStan messages: ' . $probe->messages())
+            ->toBe(4);
+        expect($probe->messages())
+            ->toContain('andReturns() value #1 for ChainedInvalidPlan::find() has type string, but the method returns int')
+            ->toContain('parameter $id has type string, but the parameter requires int')
+            ->toContain('captureArgument(2) for ChainedInvalidPlan::find() requires a position from zero to 1')
+            ->toContain('expects int, string given');
+    }
 }

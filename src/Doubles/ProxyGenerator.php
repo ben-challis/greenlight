@@ -27,6 +27,15 @@ final readonly class ProxyGenerator
     private const string HANDLER_PROPERTY = '__greenlightHandler';
 
     /**
+     * PHP lets only internal classes implement these interfaces.
+     */
+    private const array INTERNAL_ONLY_INTERFACES = [
+        \Throwable::class,
+        \DateTimeInterface::class,
+        \UnitEnum::class,
+    ];
+
+    /**
      * @param non-empty-string $directory
      */
     public function __construct(private string $directory) {}
@@ -87,7 +96,22 @@ final readonly class ProxyGenerator
     private function reflectDoubleable(string $type): \ReflectionClass
     {
         if (\interface_exists($type)) {
-            return new \ReflectionClass($type);
+            $reflection = new \ReflectionClass($type);
+
+            foreach (self::INTERNAL_ONLY_INTERFACES as $internal) {
+                if ($reflection->implementsInterface($internal)) {
+                    throw InvalidDoubleUsage::cannotDoubleInternalInterface($type, $internal);
+                }
+            }
+
+            if ($reflection->implementsInterface(\Traversable::class)
+                && !$reflection->implementsInterface(\Iterator::class)
+                && !$reflection->implementsInterface(\IteratorAggregate::class)
+            ) {
+                throw InvalidDoubleUsage::cannotDoubleBareTraversable($type);
+            }
+
+            return $reflection;
         }
 
         if (\enum_exists($type)) {
@@ -166,7 +190,13 @@ final readonly class ProxyGenerator
             }
         }
 
-        if (!$reflection->isInterface() && $reflection->hasMethod('__destruct') && !$reflection->getMethod('__destruct')->isFinal()) {
+        $constructor = $reflection->getConstructor();
+
+        if ($constructor instanceof \ReflectionMethod && $constructor->isAbstract()) {
+            $sections[] = \sprintf("    %s\n    {\n    }\n", $this->renderSignature($constructor, null));
+        }
+
+        if ($reflection->hasMethod('__destruct') && !$reflection->getMethod('__destruct')->isFinal()) {
             $sections[] = "    public function __destruct() {}\n";
         }
 
@@ -224,6 +254,10 @@ final readonly class ProxyGenerator
             || ($method->isProtected() && !$method->isAbstract())
         ) {
             return null;
+        }
+
+        if ($name === '__debuginfo') {
+            return $this->renderDebugInfo($method);
         }
 
         if ($method->isStatic()) {
@@ -350,6 +384,32 @@ final readonly class ProxyGenerator
     /**
      * @throws InvalidDoubleUsage
      */
+    private function renderDebugInfo(\ReflectionMethod $method): string
+    {
+        // Debug output must not depend on a mock plan. The class implementation
+        // can read constructor state that a double never initializes. An
+        // exception from `__debugInfo()` stops the process during var_dump().
+        $body = $method->isAbstract()
+            ? "        return [];\n"
+            : \implode("\n", [
+                '        try {',
+                '            return parent::__debugInfo();',
+                '        } catch (\\Throwable) {',
+                '            return [];',
+                '        }',
+                '',
+            ]);
+
+        return \sprintf(
+            "    %s\n    {\n%s    }\n",
+            $this->renderSignature($method, $method->getReturnType() ?? $method->getTentativeReturnType()),
+            $body,
+        );
+    }
+
+    /**
+     * @throws InvalidDoubleUsage
+     */
     private function renderSignature(\ReflectionMethod $method, ?\ReflectionType $returnType, bool $static = false): string
     {
         $context = $method->getDeclaringClass();
@@ -446,6 +506,11 @@ final readonly class ProxyGenerator
                         return \var_export($value, true);
                     }
                 }
+            }
+
+            if ($separator === false) {
+                // Reflection gives the namespaced name for an unqualified global constant.
+                return ConstantReference::render($constant, true, $parameter);
             }
 
             return '\\' . $constant;

@@ -30,6 +30,15 @@ final class DiscoveryError extends \RuntimeException
         );
     }
 
+    public static function unreadableDirectory(string $directory, ?string $reason = null): self
+    {
+        return new self(\sprintf(
+            'Greenlight cannot read test directory "%s"%s.',
+            $directory,
+            $reason === null ? '' : ': ' . $reason,
+        ));
+    }
+
     public static function unreadableFile(
         string $file,
         ?string $reason = null,
@@ -73,6 +82,17 @@ final class DiscoveryError extends \RuntimeException
             $class,
             $actualFile,
             $file,
+        ));
+    }
+
+    public static function secondTestClassInFile(string $file, string $class, string $expected): self
+    {
+        return new self(\sprintf(
+            'Test file "%s" declares test class "%s" after "%s". Greenlight runs only the class that matches the file name. Move "%s" to its own file.',
+            $file,
+            $class,
+            $expected,
+            $class,
         ));
     }
 

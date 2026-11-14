@@ -23,6 +23,10 @@ use Greenlight\Result\TestResult;
  * completes. --verbose adds a permanent line for each class. Without cursor
  * support, each class adds a line.
  *
+ * A live line wider than the terminal wraps, and the next redraw then moves up
+ * too few rows. Thus, redraw() truncates each live line to one column less
+ * than the terminal width. SGR color sequences do not count toward the width.
+ *
  * @internal
  */
 final class TtyReporter implements Reporter, Ticking
@@ -30,6 +34,8 @@ final class TtyReporter implements Reporter, Ticking
     private const array SPINNER = ['|', '/', '-', '\\'];
 
     private const float REDRAW_INTERVAL_SECONDS = 0.05;
+
+    private const string SGR_PATTERN = '/(\x1b\[[0-9;]*m)/';
 
     /**
      * @var array<string, array{done: int, failed: int, skipped: int, retried: int, duration: float, startedAt: float}>
@@ -109,6 +115,7 @@ final class TtyReporter implements Reporter, Ticking
         bool $extendedSlowTests = false,
         private readonly bool $verbose = false,
         int $terminalRows = 24,
+        private readonly ?int $terminalColumns = null,
     ) {
         $this->style = new Style($color);
         $this->slowTests = new SlowTests($extendedSlowTests);
@@ -428,7 +435,7 @@ final class TtyReporter implements Reporter, Ticking
         }
 
         foreach ($lines as $line) {
-            $frame .= "\x1b[2K" . $line . "\n";
+            $frame .= "\x1b[2K" . $this->fitted($line) . "\n";
         }
 
         if ($this->drawnLines > \count($scrollback) + \count($lines)) {
@@ -437,6 +444,50 @@ final class TtyReporter implements Reporter, Ticking
 
         $this->output->write($frame);
         $this->drawnLines = \count($lines);
+    }
+
+    /**
+     * Truncates a live line to one column less than the terminal width. The
+     * last kept column shows an ellipsis in the active color. Each code point
+     * counts as one column. A truncated line with color ends with an SGR reset.
+     */
+    private function fitted(string $line): string
+    {
+        if ($this->terminalColumns === null) {
+            return $line;
+        }
+
+        $width = \max(1, $this->terminalColumns - 1);
+        $parts = \preg_split(self::SGR_PATTERN, $line, -1, \PREG_SPLIT_DELIM_CAPTURE | \PREG_SPLIT_NO_EMPTY);
+        $plain = \preg_replace(self::SGR_PATTERN, '', $line);
+
+        if ($parts === false || $plain === null || \preg_match_all('/./su', $plain) <= $width) {
+            return $line;
+        }
+
+        $fitted = '';
+        $remaining = $width - 1;
+        $styled = false;
+
+        foreach ($parts as $part) {
+            if (\preg_match(self::SGR_PATTERN, $part) === 1) {
+                $fitted .= $part;
+                $styled = true;
+
+                continue;
+            }
+
+            $characters = \preg_split('//u', $part, -1, \PREG_SPLIT_NO_EMPTY);
+            $kept = \array_slice($characters === false ? \str_split($part) : $characters, 0, $remaining);
+            $fitted .= \implode('', $kept);
+            $remaining -= \count($kept);
+
+            if ($remaining === 0) {
+                break;
+            }
+        }
+
+        return $fitted . '…' . ($styled ? "\x1b[0m" : '');
     }
 
     private function counterLine(string $spinner): string

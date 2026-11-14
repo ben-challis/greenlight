@@ -194,6 +194,11 @@ final class CliError extends \RuntimeException
         return new self(\sprintf('Write reporter output to file "%s" only once.', $path));
     }
 
+    public static function watchWithJunitOutput(): self
+    {
+        return new self('Do not use --watch with JUnit output.');
+    }
+
     /** @param non-empty-list<non-empty-string> $outputs */
     public static function repeatWithSingleRunOutput(array $outputs): self
     {

@@ -18,6 +18,7 @@ use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\RetryDecider;
 use Greenlight\Plugin\TerminalResultTransformer;
+use Greenlight\Plugin\TestAttemptEndSubscriber;
 use Greenlight\Plugin\TestAttemptRunner;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\WorkerBootstrapContext;
@@ -29,6 +30,7 @@ use Greenlight\Result\ThrowableDetail;
 use Greenlight\Test\RetryPolicy;
 use Greenlight\Test\SkipTest;
 use Greenlight\Test\TestDefinition;
+use Greenlight\Test\TestId;
 
 /**
  * Executes the plugin capabilities that one physical worker owns.
@@ -48,6 +50,7 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
         RetryDecider::class,
         ServiceResolver::class,
         TerminalResultTransformer::class,
+        TestAttemptEndSubscriber::class,
         TestAttemptRunner::class,
         WorkerBootstrapSubscriber::class,
         WorkerRuntimeRunner::class,
@@ -215,6 +218,23 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
             }
 
             $result = $this->validatedReplacement($subscriber::class, 'afterTest', $result, $replacement);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Runs every attempt-end subscriber. A failure does not stop the remaining
+     * subscribers.
+     */
+    public function testAttemptEnded(TestId $id, TestDefinition $definition, TestResult $result): TestResult
+    {
+        foreach (\array_reverse($this->ordered(TestAttemptEndSubscriber::class)) as $subscriber) {
+            try {
+                $subscriber->testAttemptEnded($id, $definition);
+            } catch (\Throwable $failure) {
+                $result = $this->hookFailure($subscriber::class, 'testAttemptEnded', $result, $failure);
+            }
         }
 
         return $result;

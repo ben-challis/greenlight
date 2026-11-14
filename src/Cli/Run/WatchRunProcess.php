@@ -10,6 +10,7 @@ use Greenlight\Cli\Reporting\ReporterSink;
 use Greenlight\Cli\Watch\ClassFailureTap;
 use Greenlight\Internal\Event\EventCodec;
 use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Internal\Process\EmergencyCleanups;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\Ticking;
@@ -22,7 +23,13 @@ use Greenlight\Reporting\Ticking;
  */
 final readonly class WatchRunProcess
 {
-    public function __construct(private Console $console, private GracefulShutdown $shutdown) {}
+    private const int FORCED_EXIT_GRACE_MICROSECONDS = 2_000_000;
+
+    public function __construct(
+        private Console $console,
+        private GracefulShutdown $shutdown,
+        private ?EmergencyCleanups $emergencyCleanups = null,
+    ) {}
 
     /**
      * @param non-empty-string $binPath
@@ -60,9 +67,14 @@ final readonly class WatchRunProcess
         }
 
         $events = $pipes[3];
+        $started = ErrorTrap::run(static fn() => \proc_get_status($process));
+        $pid = \is_array($started) ? $started['pid'] : 0;
+        $signaled = false;
+        $cleanup = $this->emergencyCleanups?->register(static function () use ($process, $pid, &$signaled): void {
+            self::forceStop($process, $pid, $signaled);
+        });
         $tap = new ClassFailureTap(new ReporterSink($reporter));
         $buffer = '';
-        $signaled = false;
         $nonBlocking = false;
 
         try {
@@ -73,6 +85,9 @@ final readonly class WatchRunProcess
             $nonBlocking = true;
 
             do {
+                // Read the status before the pipe. When the status shows an
+                // exited child, the read that follows gets its last events.
+                $status = \proc_get_status($process);
                 $signal = $this->shutdown->signal();
 
                 if ($signal !== null && !$signaled) {
@@ -100,8 +115,6 @@ final readonly class WatchRunProcess
                 if ($reporter instanceof Ticking) {
                     $reporter->tick(\microtime(true));
                 }
-
-                $status = \proc_get_status($process);
             } while ($status['running'] || $chunk !== '');
 
             if ($buffer !== '' || $status['exitcode'] !== 0) {
@@ -116,6 +129,10 @@ final readonly class WatchRunProcess
                 ? $failure
                 : WatchRunFailed::operation($failure->getMessage(), $failure);
         } finally {
+            if ($cleanup !== null) {
+                $this->emergencyCleanups?->unregister($cleanup);
+            }
+
             $status = \proc_get_status($process);
 
             if ($status['running']) {
@@ -138,5 +155,44 @@ final readonly class WatchRunProcess
             \fclose($events);
             \proc_close($process);
         }
+    }
+
+    /**
+     * Stops the child after a forced exit request. The child runs in its own
+     * process group, so the terminal does not signal it or its workers. The
+     * child must get two signals: the second makes it kill its workers
+     * before it exits. When the parent did not forward the first signal yet,
+     * the child gets both now. A child that does not exit in time gets
+     * SIGKILL for its whole process group.
+     *
+     * @param resource $process
+     */
+    private static function forceStop(mixed $process, int $pid, bool $forwarded): void
+    {
+        if ($pid < 1 || !\function_exists('posix_kill')) {
+            return;
+        }
+
+        if (!$forwarded) {
+            ErrorTrap::run(static fn(): bool => \posix_kill($pid, \SIGTERM));
+            // The child handles its first signal before the second one.
+            \usleep(50_000);
+        }
+
+        ErrorTrap::run(static fn(): bool => \posix_kill($pid, \SIGTERM));
+        $deadline = \hrtime(true) + self::FORCED_EXIT_GRACE_MICROSECONDS * 1_000;
+
+        while (\hrtime(true) < $deadline) {
+            $status = ErrorTrap::run(static fn() => \proc_get_status($process));
+
+            if (!\is_array($status) || !$status['running']) {
+                break;
+            }
+
+            \usleep(20_000);
+        }
+
+        ErrorTrap::run(static fn(): bool => \posix_kill(-$pid, \SIGKILL));
+        ErrorTrap::run(static fn(): bool => \posix_kill($pid, \SIGKILL));
     }
 }

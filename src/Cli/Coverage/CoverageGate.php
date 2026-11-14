@@ -10,6 +10,9 @@ use Greenlight\Coverage\CoverageMap;
 /**
  * Evaluates total coverage against the configured CI limits.
  *
+ * A configured gate fails when the coverage has no executable lines. An empty
+ * map does not prove coverage.
+ *
  * @internal
  */
 final class CoverageGate
@@ -21,6 +24,13 @@ final class CoverageGate
     public static function failures(CoverageConfiguration $configuration, CoverageMap $coverage): array
     {
         $failures = [];
+
+        if (($configuration->minimumPercentage !== null || $configuration->maximumUncoveredLines !== null)
+            && $coverage->executableLineTotal() === 0
+        ) {
+            return ['Coverage gate failed: the coverage contains no executable lines. Check the coverage include paths.'];
+        }
+
         $percentage = \round($coverage->totalPercentage(), 2, \RoundingMode::HalfAwayFromZero);
 
         if ($configuration->minimumPercentage !== null && $percentage < $configuration->minimumPercentage) {

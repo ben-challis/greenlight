@@ -54,11 +54,7 @@ final class ClassContext
         $before = [];
         $after = [];
 
-        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->isStatic() || $method->isAbstract()) {
-                continue;
-            }
-
+        foreach (self::hookMethods($reflection) as $method) {
             if ($method->getAttributes(Before::class) !== []) {
                 $before[] = $method;
             }
@@ -69,6 +65,44 @@ final class ClassContext
         }
 
         return new self($reflection, $before, \array_reverse($after), $providerBudgetSeconds);
+    }
+
+    /**
+     * Returns the public instance methods of the class from the root ancestor
+     * to the class itself. Each class contributes its own methods in
+     * declaration order, then the methods of its traits. An overriding method
+     * takes the place of the class that declares the override.
+     *
+     * @param \ReflectionClass<object> $reflection
+     *
+     * @return list<\ReflectionMethod>
+     */
+    private static function hookMethods(\ReflectionClass $reflection): array
+    {
+        $hierarchy = [$reflection->getName()];
+        $class = $reflection;
+
+        while (($class = $class->getParentClass()) !== false) {
+            \array_unshift($hierarchy, $class->getName());
+        }
+
+        $byDeclaringClass = \array_fill_keys($hierarchy, []);
+
+        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+            if ($method->isStatic() || $method->isAbstract()) {
+                continue;
+            }
+
+            $byDeclaringClass[$method->getDeclaringClass()->getName()][] = $method;
+        }
+
+        $methods = [];
+
+        foreach ($byDeclaringClass as $declared) {
+            $methods = [...$methods, ...$declared];
+        }
+
+        return $methods;
     }
 
     /**

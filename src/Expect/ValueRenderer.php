@@ -10,6 +10,10 @@ use Greenlight\Internal\Text\Utf8;
  * Produces bounded, single-line failure values. The renderer converts the
  * output to valid UTF-8 because a JSON message contains the failure details.
  *
+ * `render()` applies depth, item, string, and total byte limits.
+ * `renderDifference()` also finds the first difference between two values
+ * when these limits hide it.
+ *
  * @internal
  */
 final class ValueRenderer
@@ -20,9 +24,63 @@ final class ValueRenderer
 
     private const int MAX_STRING_CHARS = 120;
 
+    private const int MAX_RENDERED_BYTES = 2048;
+
+    /**
+     * A UTF-8 character has at most four bytes. A prefix of this length
+     * contains all characters that a truncated string shows.
+     */
+    private const int STRING_SCAN_BYTES = self::MAX_STRING_CHARS * 4 + 4;
+
+    /** Bytes that a string window shows before the first difference. */
+    private const int WINDOW_LEAD_BYTES = 30;
+
+    private const int WINDOW_CHARS = 80;
+
+    private const int MAX_DIFFERENCE_DEPTH = 32;
+
+    private const string MISSING = '(missing)';
+
+    private bool $truncated = false;
+
+    private static ?object $missing = null;
+
     public function render(mixed $value): string
     {
-        return Utf8::scrub($this->renderValue($value, 0));
+        $this->truncated = false;
+        $rendered = Utf8::scrub($this->renderValue($value, 0));
+
+        if (\strlen($rendered) <= self::MAX_RENDERED_BYTES) {
+            return $rendered;
+        }
+
+        $this->truncated = true;
+
+        return Utf8::headBytes($rendered, self::MAX_RENDERED_BYTES - 3) . '...';
+    }
+
+    /**
+     * Renders two values that are not equal. If the rendered values are
+     * identical or truncated, the result also describes the first difference.
+     * For arrays and objects, the description contains the path. For strings,
+     * it contains the character offset and a window around it.
+     *
+     * @param \Closure(mixed, mixed): bool $equal
+     *
+     * @return array{actual: string, expected: string, difference: string|null}
+     */
+    public function renderDifference(mixed $actual, mixed $expected, \Closure $equal): array
+    {
+        $renderedActual = $this->render($actual);
+        $hidden = $this->truncated;
+        $renderedExpected = $this->render($expected);
+        $hidden = $hidden || $this->truncated || $renderedActual === $renderedExpected;
+
+        return [
+            'actual' => $renderedActual,
+            'expected' => $renderedExpected,
+            'difference' => $hidden ? $this->describeDifference($actual, $expected, $equal) : null,
+        ];
     }
 
     private function renderValue(mixed $value, int $depth): string
@@ -55,6 +113,10 @@ final class ValueRenderer
             return $value::class . '::' . $value->name;
         }
 
+        if ($value instanceof CallOutcome) {
+            return $value->render($this);
+        }
+
         if ($value instanceof \DateTimeInterface) {
             return $value::class . '(' . $value->format('Y-m-d\TH:i:s.uP') . ')';
         }
@@ -66,6 +128,11 @@ final class ValueRenderer
         return \get_debug_type($value) . ' (unrendered)';
     }
 
+    /**
+     * Uses the shortest representation that converts back to the same float.
+     * Thus, 0.1 + 0.2 does not render as 0.3. Values with a decimal exponent
+     * from -4 to 16 use fixed notation, as `var_export()` does.
+     */
     private function renderFloat(float $value): string
     {
         if (\is_nan($value)) {
@@ -76,18 +143,61 @@ final class ValueRenderer
             return $value > 0.0 ? 'INF' : '-INF';
         }
 
-        $rendered = (string) $value;
-
-        if (\str_contains($rendered, '.') || \str_contains($rendered, 'E') || \str_contains($rendered, 'e')) {
-            return $rendered;
+        if ($value === 0.0) {
+            return \fdiv(1.0, $value) < 0.0 ? '-0.0' : '0.0';
         }
 
-        return $rendered . '.0';
+        $digits = 1;
+
+        while ($digits < 17 && (float) \sprintf('%.' . ($digits - 1) . 'E', $value) !== $value) {
+            ++$digits;
+        }
+
+        [$mantissa, $exponent] = \explode('E', \sprintf('%.' . ($digits - 1) . 'E', $value));
+        $exponent = (int) $exponent;
+
+        if ($exponent >= -4 && $exponent < 17) {
+            $sign = $value < 0.0 ? '-' : '';
+            $significand = \str_replace(['-', '.'], '', $mantissa);
+
+            return $sign . match (true) {
+                $exponent < 0 => '0.' . \str_repeat('0', -$exponent - 1) . $significand,
+                $exponent >= $digits - 1 => $significand . \str_repeat('0', $exponent - $digits + 1) . '.0',
+                default => \substr($significand, 0, $exponent + 1) . '.' . \substr($significand, $exponent + 1),
+            };
+        }
+
+        return (\str_contains($mantissa, '.') ? $mantissa : $mantissa . '.0')
+            . 'E' . ($exponent < 0 ? '-' : '+') . \abs($exponent);
     }
 
     private function renderString(string $value): string
     {
-        $value = Utf8::scrub($value);
+        $bytes = \strlen($value);
+        $prefix = Utf8::scrub($bytes > self::STRING_SCAN_BYTES ? \substr($value, 0, self::STRING_SCAN_BYTES) : $value);
+        [$printable, $consumed] = $this->escapePrefix($prefix);
+
+        if ($bytes <= self::STRING_SCAN_BYTES && $consumed === \strlen($prefix)) {
+            return "'" . $printable . "'";
+        }
+
+        $this->truncated = true;
+
+        return \sprintf(
+            "'%s...' (truncated from %d characters)",
+            $printable,
+            $this->characterCount($value),
+        );
+    }
+
+    /**
+     * Escapes characters from the start of a valid UTF-8 string until the
+     * printable text reaches the character limit.
+     *
+     * @return array{string, int} The printable text and the consumed bytes
+     */
+    private function escapePrefix(string $value, int $maxCharacters = self::MAX_STRING_CHARS): array
+    {
         $printable = '';
         $printableCharacters = 0;
         $offset = 0;
@@ -102,7 +212,7 @@ final class ValueRenderer
             $escaped = $this->escapeCharacter($character);
             $escapedCharacters = $this->codePointLength($escaped);
 
-            if ($printableCharacters + $escapedCharacters > self::MAX_STRING_CHARS) {
+            if ($printableCharacters + $escapedCharacters > $maxCharacters) {
                 break;
             }
 
@@ -111,15 +221,20 @@ final class ValueRenderer
             $offset += \strlen($character);
         }
 
-        if ($offset === $bytes) {
-            return "'" . $printable . "'";
+        return [$printable, $offset];
+    }
+
+    /**
+     * Counts code points without a scan of each character. A valid UTF-8
+     * string has one non-continuation byte for each code point.
+     */
+    private function characterCount(string $value): int
+    {
+        if (\preg_match('//u', $value) !== 1) {
+            return $this->codePointLength(Utf8::scrub($value));
         }
 
-        return \sprintf(
-            "'%s...' (truncated from %d characters)",
-            $printable,
-            $this->codePointLength($value),
-        );
+        return \strlen($value) - (int) \preg_match_all('/[\x80-\xBF]/', $value);
     }
 
     private function codePointLength(string $value): int
@@ -129,6 +244,11 @@ final class ValueRenderer
         return $length === false ? \strlen($value) : $length;
     }
 
+    /**
+     * Escapes control characters and all whitespace or format characters
+     * except the ASCII space. Thus, a no-break space or a zero-width space
+     * does not look like a space or like nothing.
+     */
     private function escapeCharacter(string $character): string
     {
         $escaped = \strtr($character, [
@@ -140,15 +260,27 @@ final class ValueRenderer
             "\0" => '\0',
         ]);
 
-        if ($escaped !== $character || \preg_match('/^\p{Cc}$/u', $character) !== 1) {
+        if ($escaped !== $character
+            || $character === ' '
+            || \preg_match('/^[\p{Cc}\p{Z}\p{Cf}]$/u', $character) !== 1
+        ) {
             return $escaped;
         }
 
-        $codePoint = \strlen($character) === 1
-            ? \ord($character)
-            : ((\ord($character[0]) & 0x1f) << 6) | (\ord($character[1]) & 0x3f);
+        return \sprintf('\\u{%04X}', $this->codePoint($character));
+    }
 
-        return \sprintf('\\u{%04X}', $codePoint);
+    private function codePoint(string $character): int
+    {
+        $bytes = \array_map(\ord(...), \str_split($character));
+
+        return match (\count($bytes)) {
+            1 => $bytes[0],
+            2 => (($bytes[0] & 0x1F) << 6) | ($bytes[1] & 0x3F),
+            3 => (($bytes[0] & 0x0F) << 12) | (($bytes[1] & 0x3F) << 6) | ($bytes[2] & 0x3F),
+            default => (($bytes[0] & 0x07) << 18) | (($bytes[1] & 0x3F) << 12)
+                | (($bytes[2] & 0x3F) << 6) | ($bytes[3] & 0x3F),
+        };
     }
 
     /**
@@ -161,23 +293,29 @@ final class ValueRenderer
         }
 
         if ($depth >= self::MAX_DEPTH) {
+            $this->truncated = true;
+
             return '[...]';
         }
 
         $isList = \array_is_list($value);
         $parts = [];
         $rendered = 0;
+        $bytes = 0;
 
         foreach ($value as $key => $item) {
-            if ($rendered === self::MAX_ITEMS) {
-                $parts[] = \sprintf('... +%d more', \count($value) - self::MAX_ITEMS);
+            if ($rendered === self::MAX_ITEMS || $bytes > self::MAX_RENDERED_BYTES) {
+                $this->truncated = true;
+                $parts[] = \sprintf('... +%d more', \count($value) - $rendered);
 
                 break;
             }
 
-            $parts[] = $isList
+            $part = $isList
                 ? $this->renderValue($item, $depth + 1)
                 : $this->renderValue($key, $depth + 1) . ' => ' . $this->renderValue($item, $depth + 1);
+            $parts[] = $part;
+            $bytes += \strlen($part) + 2;
             ++$rendered;
         }
 
@@ -187,11 +325,14 @@ final class ValueRenderer
     private function renderObject(object $value, int $depth): string
     {
         if ($depth >= self::MAX_DEPTH) {
+            $this->truncated = true;
+
             return $value::class . ' {...}';
         }
 
         $parts = [];
         $rendered = 0;
+        $bytes = 0;
 
         $reflection = new \ReflectionObject($value);
 
@@ -200,7 +341,8 @@ final class ValueRenderer
                 continue;
             }
 
-            if ($rendered === self::MAX_ITEMS) {
+            if ($rendered === self::MAX_ITEMS || $bytes > self::MAX_RENDERED_BYTES) {
+                $this->truncated = true;
                 $parts[] = '...';
 
                 break;
@@ -211,10 +353,194 @@ final class ValueRenderer
                 !$property->isInitialized($value) => '(uninitialized)',
                 default => $this->renderValue($property->getRawValue($value), $depth + 1),
             };
-            $parts[] = $property->getName() . ': ' . $renderedValue;
+            $part = $property->getName() . ': ' . $renderedValue;
+            $parts[] = $part;
+            $bytes += \strlen($part) + 2;
             ++$rendered;
         }
 
         return $value::class . ' {' . \implode(', ', $parts) . '}';
+    }
+
+    /**
+     * @param \Closure(mixed, mixed): bool $equal
+     */
+    private function describeDifference(mixed $actual, mixed $expected, \Closure $equal): ?string
+    {
+        try {
+            $difference = $this->firstDifference($actual, $expected, $equal, '', 0);
+        } catch (\Throwable) {
+            // The diagnostic must not replace the expectation failure.
+            return null;
+        }
+
+        if ($difference === null) {
+            return null;
+        }
+
+        [$path, $left, $right] = $difference;
+
+        if (\is_string($left) && \is_string($right)) {
+            [$offset, $byte] = $this->stringDifference($left, $right);
+
+            return \sprintf(
+                'first difference at %soffset %d: actual %s, expected %s',
+                $path === '' ? '' : $path . ', ',
+                $offset,
+                $this->renderWindow($left, $byte),
+                $this->renderWindow($right, $byte),
+            );
+        }
+
+        if ($path === '') {
+            return null;
+        }
+
+        return \sprintf(
+            'first difference at %s: actual %s, expected %s',
+            $path,
+            $this->renderMember($left),
+            $this->renderMember($right),
+        );
+    }
+
+    /**
+     * @param \Closure(mixed, mixed): bool $equal
+     *
+     * @return array{string, mixed, mixed}|null
+     */
+    private function firstDifference(mixed $actual, mixed $expected, \Closure $equal, string $path, int $depth): ?array
+    {
+        if ($equal($actual, $expected)) {
+            return null;
+        }
+
+        if ($depth === self::MAX_DIFFERENCE_DEPTH) {
+            return [$path, $actual, $expected];
+        }
+
+        if (\is_array($actual) && \is_array($expected)) {
+            $member = $this->firstMemberDifference($actual, $expected, $equal, $path, $depth, $this->arrayKeyPath(...));
+
+            if ($member !== null) {
+                return $member;
+            }
+
+            if (\array_keys($actual) !== \array_keys($expected)) {
+                return [$path . ' (key order)', \array_keys($actual), \array_keys($expected)];
+            }
+
+            return [$path, $actual, $expected];
+        }
+
+        if (\is_object($actual) && \is_object($expected) && $actual::class === $expected::class
+            && !$actual instanceof \Closure
+        ) {
+            return $this->firstMemberDifference(
+                \get_mangled_object_vars($actual),
+                \get_mangled_object_vars($expected),
+                $equal,
+                $path,
+                $depth,
+                $this->propertyPath(...),
+            ) ?? [$path, $actual, $expected];
+        }
+
+        return [$path, $actual, $expected];
+    }
+
+    /**
+     * @param array<array-key, mixed> $actual
+     * @param array<array-key, mixed> $expected
+     * @param \Closure(mixed, mixed): bool $equal
+     * @param \Closure(int|string): string $memberPath
+     *
+     * @return array{string, mixed, mixed}|null
+     */
+    private function firstMemberDifference(
+        array $actual,
+        array $expected,
+        \Closure $equal,
+        string $path,
+        int $depth,
+        \Closure $memberPath,
+    ): ?array {
+        foreach ($actual as $key => $value) {
+            if (!\array_key_exists($key, $expected)) {
+                return [$path . $memberPath($key), $value, $this->missing()];
+            }
+
+            $difference = $this->firstDifference($value, $expected[$key], $equal, $path . $memberPath($key), $depth + 1);
+
+            if ($difference !== null) {
+                return $difference;
+            }
+        }
+
+        foreach ($expected as $key => $value) {
+            if (!\array_key_exists($key, $actual)) {
+                return [$path . $memberPath($key), $this->missing(), $value];
+            }
+        }
+
+        return null;
+    }
+
+    private function arrayKeyPath(int|string $key): string
+    {
+        return '[' . (\is_int($key) ? $key : $this->renderString($key)) . ']';
+    }
+
+    private function propertyPath(int|string $key): string
+    {
+        $name = (string) $key;
+        $separator = \strrpos($name, "\0");
+
+        return '->' . ($separator === false ? $name : \substr($name, $separator + 1));
+    }
+
+    private function renderMember(mixed $value): string
+    {
+        return $value === $this->missing() ? self::MISSING : $this->render($value);
+    }
+
+    private function missing(): object
+    {
+        return self::$missing ??= new \stdClass();
+    }
+
+    /**
+     * @return array{int, int} The character offset and the byte offset of the
+     *   first difference
+     */
+    private function stringDifference(string $actual, string $expected): array
+    {
+        $length = \min(\strlen($actual), \strlen($expected));
+        $byte = \strspn(\substr($actual, 0, $length) ^ \substr($expected, 0, $length), "\0");
+
+        while ($byte > 0 && $byte < \strlen($actual) && (\ord($actual[$byte]) & 0xC0) === 0x80) {
+            --$byte;
+        }
+
+        return [$this->characterCount(\substr($actual, 0, $byte)), $byte];
+    }
+
+    /**
+     * Renders a bounded part of a string that starts shortly before a byte
+     * offset.
+     */
+    private function renderWindow(string $value, int $byte): string
+    {
+        $start = \max(0, $byte - self::WINDOW_LEAD_BYTES);
+
+        while ($start > 0 && $start < \strlen($value) && (\ord($value[$start]) & 0xC0) === 0x80) {
+            --$start;
+        }
+
+        $slice = \substr($value, $start, self::STRING_SCAN_BYTES);
+        [$printable, $consumed] = $this->escapePrefix(Utf8::scrub($slice), self::WINDOW_CHARS);
+        $complete = \strlen($slice) < self::STRING_SCAN_BYTES && $consumed >= \strlen(Utf8::scrub($slice));
+
+        return ($start > 0 ? "'..." : "'") . $printable . ($complete ? "'" : "...'");
     }
 }

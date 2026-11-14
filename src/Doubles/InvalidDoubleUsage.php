@@ -115,6 +115,25 @@ final class InvalidDoubleUsage extends \LogicException
         return new self(\sprintf('%s is a trait. Doubles cannot create a proxy for a trait. Use a class or interface that uses it.', $type));
     }
 
+    public static function cannotDoubleInternalInterface(string $type, string $internal): self
+    {
+        return new self(\sprintf(
+            '%s extends %s. Only PHP internal classes can implement %s, so Doubles cannot create a proxy. Use a different interface.',
+            $type,
+            $internal,
+            $internal,
+        ));
+    }
+
+    public static function cannotDoubleBareTraversable(string $type): self
+    {
+        return new self(\sprintf(
+            '%s extends Traversable, but not Iterator or IteratorAggregate. Doubles cannot create a proxy for it. '
+            . 'Make the interface extend Iterator or IteratorAggregate.',
+            $type,
+        ));
+    }
+
     public static function notDoubleable(string $type): self
     {
         return new self(\sprintf('Doubles cannot load %s as a class or interface.', $type));

@@ -51,6 +51,8 @@ A class does not convert when it uses:
 * `assertEmpty()` or `assertNotEmpty()`, because Greenlight uses different
   empty-value rules
 * multiple data providers or multiple requirements on one declaration
+* `assertNotEquals()` or `assertNotEqualsCanonicalizing()` with values of
+  different or unknown types, because PHPUnit compares them loosely
 * `#[RunClassInSeparateProcess]` or `#[PreserveGlobalState]`
 * other inherited `TestCase` API that the rule cannot prove safe
 

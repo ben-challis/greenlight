@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Signal;
 
+use Greenlight\Internal\Php\ErrorTrap;
+
 /**
  * Performs signal operations with the installed PCNTL functions.
  *
@@ -28,5 +30,17 @@ final readonly class SystemSignalOperations implements SignalOperations
     public function register(int $signal, callable|int $handler): void
     {
         \pcntl_signal($signal, $handler);
+    }
+
+    #[\Override]
+    public function raise(int $signal): void
+    {
+        if (\function_exists('posix_kill') && \function_exists('posix_getpid')) {
+            ErrorTrap::run(static fn(): bool => \posix_kill(\posix_getpid(), $signal));
+        }
+
+        // The kill can fail, or POSIX functions can be absent. Then exit with
+        // the status that a shell shows for the signal.
+        exit(128 + $signal);
     }
 }

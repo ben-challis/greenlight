@@ -35,6 +35,7 @@ use Greenlight\Execution\RunCoordinator;
 use Greenlight\Execution\RunPolicyError;
 use Greenlight\Execution\RunResult;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
+use Greenlight\Internal\Process\EmergencyCleanups;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\Reporter;
@@ -61,6 +62,7 @@ final readonly class RunSession
         private TestSelection $selection,
         private RunState $state,
         private bool $coverageOutputOnStderr = false,
+        private ?EmergencyCleanups $emergencyCleanups = null,
     ) {}
 
     /**
@@ -87,10 +89,11 @@ final readonly class RunSession
         $tap = new ClassFailureTap($failedTap = new FailedTestsTap(new ReporterSink($reporter)));
         $classSeconds = $this->configuration->resolved->order->isRandomized() ? [] : $this->state->classSeconds();
         $workers = $this->configuration->resolved->workers->count->fixed ?? CpuCores::count();
-        $coverageSettings = CoverageSettingsResolver::resolve($this->configuration->resolved->coverage, $this->workingDirectory);
 
         try {
-            $run = $this->coordinate($reporter, $tap, $priorityClasses, $classSeconds, $workers, $coverageSettings);
+            // Watch mode does not write coverage. Collection only makes each
+            // iteration slower.
+            $run = $this->coordinate($reporter, $tap, $priorityClasses, $classSeconds, $workers, null);
         } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
             $reporter->finish();
             $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
@@ -100,6 +103,7 @@ final readonly class RunSession
 
         $reporter->finish();
         $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
+        $this->reportArtifactMaintenance($run);
         $this->reportRunPolicyFailures($run, $failedTap);
 
         return $tap->failedClasses();
@@ -157,6 +161,7 @@ final readonly class RunSession
 
         $reporter->finish();
         $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
+        $this->reportArtifactMaintenance($run);
         if ($coverage instanceof CoverageMap) {
             $coverage = CoveragePluginRuntime::fromDefinitions($resolved->execution->plugins)
                 ->transform($coverage);
@@ -210,6 +215,26 @@ final readonly class RunSession
         }
 
         return CommandResult::success();
+    }
+
+    /**
+     * Uses the same lines as the artifacts:prune command. Automatic retention
+     * runs after each run, so its deletions and failures must be visible.
+     */
+    private function reportArtifactMaintenance(RunResult $run): void
+    {
+        foreach ($run->artifactMaintenance->items as $item) {
+            $this->console->err(\sprintf(
+                "Pruned %s (%d bytes, %s limit).\n",
+                $item->directory,
+                $item->bytes,
+                \implode(', ', $item->reasons),
+            ));
+        }
+
+        foreach ($run->artifactMaintenance->warnings as $warning) {
+            $this->console->err($warning . "\n");
+        }
     }
 
     /** @throws RunPolicyError */
@@ -271,6 +296,7 @@ final readonly class RunSession
             $this->arguments->has('detect-leaks'),
             $this->shutdown,
             $reporter instanceof Ticking ? $reporter : null,
+            emergencyCleanups: $this->emergencyCleanups,
         );
     }
 }

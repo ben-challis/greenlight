@@ -52,6 +52,7 @@ final class ArtifactStore
         ?\Closure $retainAttachment = null,
     ): self {
         $retention = ArtifactRetention::forConfiguration($configuration, $workingDirectory);
+        $retention->validateParent();
         $output = $retention->runDirectory($runId);
         $temporaryDirectory ??= \sys_get_temp_dir();
         $staging = \rtrim($temporaryDirectory, '/') . '/greenlight-artifacts-'
@@ -149,10 +150,10 @@ final class ArtifactStore
         try {
             $path = $this->preparePath($storageKey);
             $part = $path . '.part';
-            $stream = \fopen($part, 'xb');
+            $stream = ErrorTrap::run(static fn() => \fopen($part, 'xb'), $warning);
 
             if ($stream === false) {
-                throw AttachmentError::storage('Greenlight did not create the attachment staging file');
+                throw AttachmentError::storage($this->withWarning('Greenlight did not create the attachment staging file', $warning));
             }
 
             $stagingFileCreated = true;
@@ -160,13 +161,13 @@ final class ArtifactStore
             try {
                 StreamWriter::writeFully($stream, $bytes);
             } finally {
-                \fclose($stream);
+                ErrorTrap::run(static fn() => \fclose($stream));
             }
 
-            \chmod($part, 0o600);
+            ErrorTrap::run(static fn() => \chmod($part, 0o600));
 
-            if (!\rename($part, $path)) {
-                throw AttachmentError::storage('Failed to finalize attachment staging file');
+            if (!ErrorTrap::run(static fn() => \rename($part, $path), $warning)) {
+                throw AttachmentError::storage($this->withWarning('Failed to finalize attachment staging file', $warning));
             }
 
             $attachment = new StagedAttachment(
@@ -245,10 +246,10 @@ final class ArtifactStore
             try {
                 $path = $this->preparePath($storageKey);
                 $part = $path . '.part';
-                $destination = \fopen($part, 'xb');
+                $destination = ErrorTrap::run(static fn() => \fopen($part, 'xb'), $warning);
 
                 if ($destination === false) {
-                    throw AttachmentError::storage('Greenlight did not create the attachment staging file');
+                    throw AttachmentError::storage($this->withWarning('Greenlight did not create the attachment staging file', $warning));
                 }
 
                 $stagingFileCreated = true;
@@ -276,7 +277,7 @@ final class ArtifactStore
                         StreamWriter::writeFully($destination, $chunk);
                     }
                 } finally {
-                    \fclose($destination);
+                    ErrorTrap::run(static fn() => \fclose($destination));
                 }
 
                 $after = \fstat($source);
@@ -291,10 +292,10 @@ final class ArtifactStore
                     throw AttachmentError::source($sourcePath, 'changed while it was being copied');
                 }
 
-                \chmod($part, 0o600);
+                ErrorTrap::run(static fn() => \chmod($part, 0o600));
 
-                if (!\rename($part, $path)) {
-                    throw AttachmentError::storage('Failed to finalize attachment staging file');
+                if (!ErrorTrap::run(static fn() => \rename($part, $path), $warning)) {
+                    throw AttachmentError::storage($this->withWarning('Failed to finalize attachment staging file', $warning));
                 }
 
                 $attachment = new StagedAttachment(
@@ -321,7 +322,7 @@ final class ArtifactStore
                 throw $error;
             }
         } finally {
-            \fclose($source);
+            ErrorTrap::run(static fn() => \fclose($source));
         }
     }
 
@@ -391,21 +392,25 @@ final class ArtifactStore
                 throw AttachmentError::storage('An attachment output path already exists');
             }
 
-            if (\filesize($source) !== $attachment->sizeBytes || \hash_file('sha256', $source) !== $attachment->sha256) {
+            if (ErrorTrap::run(static fn() => \filesize($source)) !== $attachment->sizeBytes
+                || ErrorTrap::run(static fn() => \hash_file('sha256', $source)) !== $attachment->sha256
+            ) {
                 throw AttachmentError::storage('Attachment staging content does not match its metadata');
             }
 
             try {
                 $this->fileCopier->copy($source, $part);
 
-                if (\filesize($part) !== $attachment->sizeBytes || \hash_file('sha256', $part) !== $attachment->sha256) {
+                if (ErrorTrap::run(static fn() => \filesize($part)) !== $attachment->sizeBytes
+                    || ErrorTrap::run(static fn() => \hash_file('sha256', $part)) !== $attachment->sha256
+                ) {
                     throw AttachmentError::storage('Published attachment content does not match its metadata');
                 }
 
-                \chmod($part, 0o600);
+                ErrorTrap::run(static fn() => \chmod($part, 0o600));
 
-                if (!\rename($part, $destination)) {
-                    throw AttachmentError::storage('Failed to publish attachment');
+                if (!ErrorTrap::run(static fn() => \rename($part, $destination), $warning)) {
+                    throw AttachmentError::storage($this->withWarning('Failed to publish attachment', $warning));
                 }
             } catch (\Throwable $error) {
                 ErrorTrap::run(static fn() => \unlink($part));
@@ -651,25 +656,27 @@ final class ArtifactStore
         $this->ensureStaging();
         $path = $this->session->stagingDirectory . '/.quota';
 
-        if (\is_link($path) || (\file_exists($path) && !\is_file($path))) {
+        if (ErrorTrap::run(static fn() => \is_link($path))
+            || (ErrorTrap::run(static fn() => \file_exists($path)) && !ErrorTrap::run(static fn() => \is_file($path)))
+        ) {
             throw AttachmentError::storage('Attachment quota path is unsafe');
         }
 
-        $stream = \fopen($path, 'c+');
+        $stream = ErrorTrap::run(static fn() => \fopen($path, 'c+'), $warning);
 
         if ($stream === false) {
-            throw AttachmentError::storage('Failed to lock the attachment quota');
+            throw AttachmentError::storage($this->withWarning('Failed to lock the attachment quota', $warning));
         }
 
-        if (!\flock($stream, \LOCK_EX)) {
-            \fclose($stream);
+        if (!ErrorTrap::run(static fn() => \flock($stream, \LOCK_EX), $warning)) {
+            ErrorTrap::run(static fn() => \fclose($stream));
 
-            throw AttachmentError::storage('Failed to lock the attachment quota');
+            throw AttachmentError::storage($this->withWarning('Failed to lock the attachment quota', $warning));
         }
 
         try {
-            \rewind($stream);
-            $raw = \stream_get_contents($stream);
+            ErrorTrap::run(static fn() => \rewind($stream));
+            $raw = ErrorTrap::run(static fn() => \stream_get_contents($stream));
             $raw = \is_string($raw) ? \trim($raw) : '';
 
             if ($raw !== '' && \preg_match('/^\d+\s+\d+$/', $raw) !== 1) {
@@ -685,20 +692,23 @@ final class ArtifactStore
             }
 
             [$count, $bytes] = $update($count, $bytes);
-            \rewind($stream);
             $encoded = \sprintf('%020d %020d' . "\n", $count, $bytes);
+            $updated = ErrorTrap::run(
+                static fn(): bool => \rewind($stream)
+                    && \fwrite($stream, $encoded) === \strlen($encoded)
+                    && \ftruncate($stream, \strlen($encoded))
+                    && \fflush($stream),
+                $warning,
+            );
 
-            if (\fwrite($stream, $encoded) !== \strlen($encoded)
-                || !\ftruncate($stream, \strlen($encoded))
-                || !\fflush($stream)
-            ) {
-                throw AttachmentError::storage('Failed to update the attachment quota');
+            if (!$updated) {
+                throw AttachmentError::storage($this->withWarning('Failed to update the attachment quota', $warning));
             }
 
-            \chmod($path, 0o600);
+            ErrorTrap::run(static fn() => \chmod($path, 0o600));
         } finally {
-            \flock($stream, \LOCK_UN);
-            \fclose($stream);
+            ErrorTrap::run(static fn() => \flock($stream, \LOCK_UN));
+            ErrorTrap::run(static fn() => \fclose($stream));
         }
     }
 
@@ -732,18 +742,18 @@ final class ArtifactStore
             \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_INVALID_UTF8_SUBSTITUTE,
         );
 
-        if (\file_put_contents($part, $encoded . "\n", \LOCK_EX) === false) {
+        if (ErrorTrap::run(static fn() => \file_put_contents($part, $encoded . "\n", \LOCK_EX), $warning) === false) {
             ErrorTrap::run(static fn() => \unlink($part));
 
-            throw AttachmentError::storage('Greenlight did not write attachment recovery metadata');
+            throw AttachmentError::storage($this->withWarning('Greenlight did not write attachment recovery metadata', $warning));
         }
 
-        \chmod($part, 0o600);
+        ErrorTrap::run(static fn() => \chmod($part, 0o600));
 
-        if (!\rename($part, $path)) {
+        if (!ErrorTrap::run(static fn() => \rename($part, $path), $warning)) {
             ErrorTrap::run(static fn() => \unlink($part));
 
-            throw AttachmentError::storage('Failed to finalize attachment recovery metadata');
+            throw AttachmentError::storage($this->withWarning('Failed to finalize attachment recovery metadata', $warning));
         }
     }
 
@@ -765,18 +775,18 @@ final class ArtifactStore
         $path = $directory . '/.attempt';
         $part = $path . '.part-' . \bin2hex(\random_bytes(4));
 
-        if (\file_put_contents($part, $attempt . "\n", \LOCK_EX) === false) {
+        if (ErrorTrap::run(static fn() => \file_put_contents($part, $attempt . "\n", \LOCK_EX), $warning) === false) {
             ErrorTrap::run(static fn() => \unlink($part));
 
-            throw AttachmentError::storage('Failed to record the current test attempt');
+            throw AttachmentError::storage($this->withWarning('Failed to record the current test attempt', $warning));
         }
 
-        \chmod($part, 0o600);
+        ErrorTrap::run(static fn() => \chmod($part, 0o600));
 
-        if (!\rename($part, $path)) {
+        if (!ErrorTrap::run(static fn() => \rename($part, $path), $warning)) {
             ErrorTrap::run(static fn() => \unlink($part));
 
-            throw AttachmentError::storage('Greenlight did not finalize the current test attempt record');
+            throw AttachmentError::storage($this->withWarning('Greenlight did not finalize the current test attempt record', $warning));
         }
     }
 
@@ -798,7 +808,7 @@ final class ArtifactStore
             throw AttachmentError::storage('Failed to create attachment staging directory' . ($warning === null ? '' : ': ' . $warning));
         }
 
-        \chmod($directory, 0o700);
+        ErrorTrap::run(static fn() => \chmod($directory, 0o700));
     }
 
     /**
@@ -831,8 +841,8 @@ final class ArtifactStore
             return;
         }
 
-        if (!\unlink($path)) {
-            throw AttachmentError::storage('Greenlight did not remove ' . $description);
+        if (!ErrorTrap::run(static fn() => \unlink($path), $warning)) {
+            throw AttachmentError::storage($this->withWarning('Greenlight did not remove ' . $description, $warning));
         }
     }
 
@@ -926,5 +936,10 @@ final class ArtifactStore
 
         $runId = \basename($this->session->publicDirectory);
         $this->runHandle = $this->retention->begin($runId);
+    }
+
+    private function withWarning(string $message, ?string $warning): string
+    {
+        return $warning === null ? $message : $message . ': ' . $warning;
     }
 }

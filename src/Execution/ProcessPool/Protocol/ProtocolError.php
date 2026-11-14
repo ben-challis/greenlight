@@ -18,14 +18,28 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
  */
 final class ProtocolError extends WireCommunicationFailed
 {
-    private function __construct(string $message, ?\Throwable $previous = null)
-    {
+    private function __construct(
+        string $message,
+        ?\Throwable $previous = null,
+        private readonly bool $frameTooLarge = false,
+    ) {
         parent::__construct($message, previous: $previous);
     }
 
     public static function frameTooLarge(int $length, int $limit): self
     {
-        return new self(\sprintf('Frame of %d bytes exceeds the %d byte limit.', $length, $limit));
+        return new self(
+            \sprintf('Frame of %d bytes exceeds the %d byte limit.', $length, $limit),
+            frameTooLarge: true,
+        );
+    }
+
+    /**
+     * Tells if a frame was larger than the codec limit.
+     */
+    public function isFrameTooLarge(): bool
+    {
+        return $this->frameTooLarge;
     }
 
     public static function malformedFrame(string $reason, ?string $warning = null): self

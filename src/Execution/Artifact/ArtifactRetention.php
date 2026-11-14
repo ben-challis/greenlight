@@ -29,24 +29,86 @@ final readonly class ArtifactRetention
         public string $parent,
     ) {}
 
-    /** @throws AttachmentError */
+    /**
+     * Resolves the artifact parent directory.
+     *
+     * The method removes empty and `.` segments. It resolves the deepest
+     * existing ancestor of the parent with `realpath()`. Thus, a symbolic link
+     * above the parent is valid. A symbolic link at or below the parent stays
+     * invalid.
+     *
+     * @throws AttachmentError
+     */
     public static function forConfiguration(ArtifactConfiguration $configuration, string $workingDirectory): self
     {
-        $configured = \rtrim($configuration->directory, '/');
+        $configured = $configuration->directory;
         if ($configured === '' || \str_contains($configured, "\0")) {
             throw AttachmentError::storage('Attachment output directory is invalid');
         }
-        if (!\str_starts_with($configured, '/') && \in_array('..', \explode('/', $configured), true)) {
+        $absolute = \str_starts_with($configured, '/');
+        $segments = \array_values(\array_filter(
+            \explode('/', $configured),
+            static fn(string $segment): bool => $segment !== '' && $segment !== '.',
+        ));
+        if (!$absolute && \in_array('..', $segments, true)) {
             throw AttachmentError::storage('Keep a relative attachment output directory inside the working directory');
         }
 
-        $workingReal = ErrorTrap::run(static fn() => \realpath($workingDirectory));
-        $workingDirectory = $workingReal === false ? $workingDirectory : $workingReal;
-        $parent = \str_starts_with($configured, '/')
-            ? $configured
-            : \rtrim($workingDirectory, '/') . '/' . $configured;
+        $base = '';
+        if (!$absolute) {
+            $workingReal = ErrorTrap::run(static fn() => \realpath($workingDirectory));
+            $base = \rtrim($workingReal === false ? $workingDirectory : $workingReal, '/');
+        }
+        if ($segments === []) {
+            // Retention scans and prunes the parent, so the working directory
+            // and the filesystem root cannot be the parent.
+            throw AttachmentError::storage('Attachment output directory is invalid');
+        }
 
-        return new self($configuration, $parent);
+        return new self($configuration, self::resolvedParent($base, $segments));
+    }
+
+    /**
+     * @param non-empty-list<string> $segments
+     *
+     * @return non-empty-string
+     * @throws AttachmentError
+     */
+    private static function resolvedParent(string $base, array $segments): string
+    {
+        for ($depth = \count($segments) - 1; $depth >= 0; --$depth) {
+            $ancestor = $base . '/' . \implode('/', \array_slice($segments, 0, $depth));
+            if (!ErrorTrap::run(static fn() => \is_dir($ancestor))) {
+                continue;
+            }
+            $real = ErrorTrap::run(static fn() => \realpath($ancestor));
+            $missing = \array_slice($segments, $depth);
+            if ($real === false || \in_array('..', $missing, true)) {
+                break;
+            }
+
+            return \rtrim($real, '/') . '/' . \implode('/', $missing);
+        }
+        if (\in_array('..', $segments, true)) {
+            throw AttachmentError::storage('Artifact parent directory is not canonical');
+        }
+
+        return $base . '/' . \implode('/', $segments);
+    }
+
+    /**
+     * Rejects an unsafe artifact parent without a change to the filesystem.
+     *
+     * @throws AttachmentError
+     */
+    public function validateParent(): void
+    {
+        $this->walkParent(false);
+        if (ErrorTrap::run(fn() => \is_dir($this->parent))
+            && ErrorTrap::run(fn() => \realpath($this->parent)) !== $this->parent
+        ) {
+            throw AttachmentError::storage('Artifact parent directory is not canonical');
+        }
     }
 
     /** @return non-empty-string */
@@ -80,7 +142,7 @@ final readonly class ArtifactRetention
             ErrorTrap::run(static fn() => \rmdir($directory));
             throw AttachmentError::storage('Failed to lock artifact run directory' . (($lockWarning ?? $warning) === null ? '' : ': ' . ($lockWarning ?? $warning)));
         }
-        \chmod($lockPath, 0o600);
+        ErrorTrap::run(static fn() => \chmod($lockPath, 0o600));
 
         try {
             self::writeMetadata($directory, [
@@ -115,7 +177,10 @@ final readonly class ArtifactRetention
 
     private function applyPolicy(bool $dryRun, ?string $protectedRunId, int $now): ArtifactPruneReport
     {
-        if (!$this->configuration->hasRetentionPolicy() || !\is_dir($this->parent) || \is_link($this->parent)) {
+        if (!$this->configuration->hasRetentionPolicy()
+            || !ErrorTrap::run(fn() => \is_dir($this->parent))
+            || ErrorTrap::run(fn() => \is_link($this->parent))
+        ) {
             return new ArtifactPruneReport(dryRun: $dryRun);
         }
 
@@ -135,7 +200,8 @@ final readonly class ArtifactRetention
             }
             return new ArtifactPruneReport(warnings: ['Greenlight did not lock the artifact parent for pruning.'], dryRun: $dryRun);
         }
-        \chmod($canonical . '/' . self::PRUNE_LOCK_FILE, 0o600);
+        $pruneLockPath = $canonical . '/' . self::PRUNE_LOCK_FILE;
+        ErrorTrap::run(static fn() => \chmod($pruneLockPath, 0o600));
 
         try {
             if (!$this->canonicalDirectory($canonical, $canonical)) {
@@ -359,7 +425,7 @@ final readonly class ArtifactRetention
             ErrorTrap::run(static fn() => \unlink($part));
             throw new \RuntimeException('Greenlight did not write artifact run metadata.');
         }
-        \chmod($part, 0o600);
+        ErrorTrap::run(static fn() => \chmod($part, 0o600));
         if (!ErrorTrap::run(static fn() => \rename($part, $path))) {
             ErrorTrap::run(static fn() => \unlink($part));
             throw new \RuntimeException('Greenlight did not finalize artifact run metadata.');
@@ -500,7 +566,7 @@ final readonly class ArtifactRetention
     /** @throws AttachmentError */
     private function ensureParent(): string
     {
-        $this->createDirectorySafely($this->parent);
+        $this->walkParent(true);
         $canonical = ErrorTrap::run(fn() => \realpath($this->parent));
         if ($canonical === false || $canonical !== $this->parent) {
             throw AttachmentError::storage('Artifact parent directory is not canonical');
@@ -509,18 +575,17 @@ final readonly class ArtifactRetention
         return $canonical;
     }
 
-    /** @throws AttachmentError */
-    private function createDirectorySafely(string $directory): void
+    /**
+     * Checks each missing or existing path from the parent up to its first
+     * existing directory. When $create is true, the method creates each
+     * missing directory.
+     *
+     * @throws AttachmentError
+     */
+    private function walkParent(bool $create): void
     {
-        if (ErrorTrap::run(static fn() => \is_link($directory))) {
-            throw AttachmentError::storage('Attachment output directory contains a symbolic link');
-        }
-        if (ErrorTrap::run(static fn() => \is_dir($directory))) {
-            return;
-        }
-
         $missing = [];
-        $current = $directory;
+        $current = $this->parent;
         while (true) {
             if (ErrorTrap::run(static fn() => \is_link($current))) {
                 throw AttachmentError::storage('Attachment output directory contains a symbolic link');
@@ -534,11 +599,19 @@ final readonly class ArtifactRetention
             $missing[] = $current;
             $parent = \dirname($current);
             if ($parent === $current) {
+                if (!$create) {
+                    // Restricted filesystem access can hide every ancestor.
+                    // Creation reports the failure if access stays restricted.
+                    return;
+                }
                 throw AttachmentError::storage('Failed to find the artifact output parent');
             }
             $current = $parent;
         }
 
+        if (!$create) {
+            return;
+        }
         foreach (\array_reverse($missing) as $path) {
             if (!ErrorTrap::run(static fn() => \mkdir($path, 0o700), $warning)) {
                 throw AttachmentError::storage('Failed to create attachment output directory' . ($warning === null ? '' : ': ' . $warning));

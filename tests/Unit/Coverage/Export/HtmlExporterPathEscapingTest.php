@@ -17,9 +17,9 @@ final readonly class HtmlExporterPathEscapingTest
     public function filePathsCannotInjectMarkupIntoTheReport(): void
     {
         $path = '/src/"><script>coverage</script>.php';
-        $pages = new HtmlExporter()->export(new CoverageMap([
+        $pages = \iterator_to_array(new HtmlExporter()->export(new CoverageMap([
             new FileCoverage($path, [1], []),
-        ]));
+        ])));
         $escaped = '/src/&quot;&gt;&lt;script&gt;coverage&lt;/script&gt;.php';
         $index = $pages[HtmlExporter::INDEX_FILE_NAME];
         $file = $pages[HtmlExporter::pageName($path)];

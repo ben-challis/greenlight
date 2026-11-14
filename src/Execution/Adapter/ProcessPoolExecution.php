@@ -22,6 +22,7 @@ use Greenlight\Execution\ProcessPool\Orchestrator\Orchestrator;
 use Greenlight\Execution\ProcessPool\Orchestrator\OrchestratorConfiguration;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceScheduler;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerTransport;
+use Greenlight\Internal\Process\EmergencyCleanups;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
@@ -49,6 +50,7 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
         private ?GracefulShutdown $shutdown = null,
         private ?Ticking $ticker = null,
         private ?WorkerTransport $transport = null,
+        private ?EmergencyCleanups $emergencyCleanups = null,
     ) {
         if ($workerCount < 1) {
             throw new \InvalidArgumentException('Process-pool execution requires at least one worker.');
@@ -81,14 +83,21 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
         EventSink $sink,
         ExecutionContext $context,
     ): ExecutionOutcome {
+        $cleanup = null;
+
         try {
             $execution = $context->execution;
+            $transport = $this->transport ?? NativeWorkerTransport::listen(
+                $this->workerCommand,
+                $this->workingDirectory,
+                $context->storage->temporaryDirectory,
+            );
+            // Workers run in their own process groups, so the terminal does
+            // not signal them. A forced exit closes the transport, which
+            // kills each worker process.
+            $cleanup = $this->emergencyCleanups?->register($transport->close(...));
             $orchestrator = new Orchestrator(
-                $this->transport ?? NativeWorkerTransport::listen(
-                    $this->workerCommand,
-                    $this->workingDirectory,
-                    $context->storage->temporaryDirectory,
-                ),
+                $transport,
                 new OrchestratorConfiguration(
                     stopAfterFailures: $execution->stopAfterFailures,
                     coverageSettings: $this->coverageSettings,
@@ -112,6 +121,10 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
             $summary = $orchestrator->run($plan, $sink, $this->workerCount, $context->classSeconds);
         } catch (WireCommunicationFailed $failure) {
             throw ExecutionFailed::processPool($failure);
+        } finally {
+            if ($cleanup !== null) {
+                $this->emergencyCleanups?->unregister($cleanup);
+            }
         }
 
         return new ExecutionOutcome(

@@ -83,6 +83,12 @@ class Coroutine
 
         return 1;
     }
+
+    /** @phpstan-impure */
+    public static function cancel(int $cid): bool
+    {
+        return true;
+    }
 }
 
 class Timer

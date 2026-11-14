@@ -104,6 +104,9 @@ final class Orchestrator
 
     private bool $initialBarrierPassed = false;
 
+    /** @var non-negative-int */
+    private int $spawnedWorkers = 0;
+
     /**
      * @var array<non-empty-string, true> initial workers that have not received their first assignment
      */
@@ -242,8 +245,11 @@ final class Orchestrator
 
             $handle = new WorkerState($workerId, $channelNumber, $this->monotonicTime());
             $this->handles[$workerId] = $handle;
+            ++$this->spawnedWorkers;
 
-            if (\count($this->handles) <= $this->initialWorkerTarget) {
+            // Only the first spawns are initial workers. A replacement does
+            // not close the initial barrier again.
+            if ($this->spawnedWorkers <= $this->initialWorkerTarget) {
                 $this->initialAssignmentsPending[$workerId] = true;
             }
 
@@ -524,13 +530,15 @@ final class Orchestrator
             $readyAt = $this->monotonicTime();
             $handle->timing->ready($readyAt);
 
-            if (!$this->initialBarrierPassed) {
+            if ($this->initialBarrierPassed || $this->draining) {
+                // Progressive initial workers and replacements can
+                // start as soon as their own bootstrap completes. During a
+                // drain, the barrier can stay closed. Thus, assignNext()
+                // drains this worker.
+                $this->assignNext($handle, $sink);
+            } else {
                 $handle->timing->wait(WorkerIdleReason::BootstrapBarrier, $readyAt);
                 $this->openInitialBarrier($sink);
-            } else {
-                // Progressive initial workers and replacements can
-                // start as soon as their own bootstrap completes.
-                $this->assignNext($handle, $sink);
             }
         } elseif ($message instanceof Done) {
             $at = $this->monotonicTime();

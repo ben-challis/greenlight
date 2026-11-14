@@ -115,18 +115,36 @@ container.
 `ContainerLifetime::TestAttempt` uses this lifecycle for each attempt:
 
 1. Start one root Swoole coroutine.
-2. Load `config/container.php` and activate its new container.
-3. Resolve `Hyperf\Contract\ApplicationInterface` to boot the application.
-4. Construct the test and run all hooks, plugins, and the test method.
-5. Close the Greenlight test service scope.
-6. Call the reset callback, then the disposal callback, even if reset fails.
-7. Remove access to the discarded application container.
-8. Clear Swoole timers and resume Hyperf's worker-exit coordinator.
-9. End the coroutine.
+2. Start one child coroutine for the attempt.
+3. Load `config/container.php` and activate its new container.
+4. Resolve `Hyperf\Contract\ApplicationInterface` to boot the application.
+5. Construct the test and run all hooks, plugins, and the test method.
+6. Close the Greenlight test service scope.
+7. Call the reset callback and end the child coroutine.
+8. Call the disposal callback inside the root coroutine, even if reset fails.
+9. Remove access to the discarded application container.
+10. Clear Swoole timers and resume Hyperf's worker-exit coordinator.
+11. End the root coroutine.
 
 In both modes, the complete test attempt runs inside its own coroutine. This
 includes constructor injection, hooks, test-scope disposal, and `afterTest()`
 plugins. Swoole destroys the coroutine context when the attempt ends.
+
+## Blocked coroutines
+
+A test coroutine can wait for an event that does not occur. An example is a
+channel pop with no producer. The root coroutine waits for the test coroutine
+until the test time limit. Set the limit with
+[`#[Timeout]`](attributes.md#timeout).
+
+At the time limit, Greenlight cancels the test coroutine and gives the attempt
+an error that names the coroutine. The reset callback runs, and the next
+attempt starts with the same worker.
+
+Without a time limit, Greenlight waits without a limit. If all coroutines are
+blocked, Swoole ends the runtime. The attempt then gets an error that states
+that the coroutine started but did not finish. The reset and disposal callbacks
+do not run in this case.
 
 ## Container services
 
