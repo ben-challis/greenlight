@@ -1203,8 +1203,13 @@ An unreadable or temporarily absent file is not in that poll. If it was in the
 prior poll, Greenlight reports a deletion. It reports an addition when the file
 becomes readable again.
 
-Large projects increase poll time. Increase the watch debounce when frequent
-save events cause excess scans.
+On Linux with the FFI extension, Greenlight uses inotify. It scans only after
+an event in a watched directory. Each watched directory uses one inotify watch.
+If the system watch limit stops a new watch, Greenlight scans on each poll. To
+raise the limit, increase the `fs.inotify.max_user_watches` kernel setting.
+
+On other systems, Greenlight scans on each poll. Large projects increase scan
+time. Increase the watch debounce when frequent save events cause excess scans.
 
 ### `--detect-leaks`
 

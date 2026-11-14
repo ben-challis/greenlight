@@ -13,6 +13,7 @@ use Greenlight\Cli\Reporting\ReporterFactory;
 use Greenlight\Cli\Reporting\ReporterOutputPlan;
 use Greenlight\Cli\Reporting\ReporterSetupFailed;
 use Greenlight\Cli\Watch\Debouncer;
+use Greenlight\Cli\Watch\NotifiedChangeDetector;
 use Greenlight\Cli\Watch\StatChangeDetector;
 use Greenlight\Cli\Watch\StdinKeyInput;
 use Greenlight\Cli\Watch\SystemWatchClock;
@@ -85,7 +86,7 @@ final readonly class WatchRuns
         try {
             $sources = WatchSourceRuntime::fromDefinitions(
                 $resolved->execution->plugins,
-                [new StatChangeDetector(
+                [NotifiedChangeDetector::create(new StatChangeDetector(
                     directories: $watched,
                     additionalPaths: $additionalPaths,
                     matcher: new WatchPathMatcher(
@@ -94,7 +95,7 @@ final readonly class WatchRuns
                         $resolved->watch->excludePatterns,
                     ),
                     maximumFiles: $resolved->watch->maximumFiles,
-                )],
+                ))],
             );
             new WatchLoop($sources, new Debouncer($resolved->watch->debounceMilliseconds / 1000), $keys, new SystemWatchClock(), $statusOutput, $shutdown)->run($runOnce);
         } catch (ReporterSetupFailed|RunPolicyError|WatchSourceFailed|WatchRunFailed $error) {
