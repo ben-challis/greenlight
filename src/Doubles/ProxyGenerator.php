@@ -27,6 +27,15 @@ final readonly class ProxyGenerator
     private const string HANDLER_PROPERTY = '__greenlightHandler';
 
     /**
+     * PHP lets only internal classes implement these interfaces.
+     */
+    private const array INTERNAL_ONLY_INTERFACES = [
+        \Throwable::class,
+        \DateTimeInterface::class,
+        \UnitEnum::class,
+    ];
+
+    /**
      * @param non-empty-string $directory
      */
     public function __construct(private string $directory) {}
@@ -87,7 +96,22 @@ final readonly class ProxyGenerator
     private function reflectDoubleable(string $type): \ReflectionClass
     {
         if (\interface_exists($type)) {
-            return new \ReflectionClass($type);
+            $reflection = new \ReflectionClass($type);
+
+            foreach (self::INTERNAL_ONLY_INTERFACES as $internal) {
+                if ($reflection->implementsInterface($internal)) {
+                    throw InvalidDoubleUsage::cannotDoubleInternalInterface($type, $internal);
+                }
+            }
+
+            if ($reflection->implementsInterface(\Traversable::class)
+                && !$reflection->implementsInterface(\Iterator::class)
+                && !$reflection->implementsInterface(\IteratorAggregate::class)
+            ) {
+                throw InvalidDoubleUsage::cannotDoubleBareTraversable($type);
+            }
+
+            return $reflection;
         }
 
         if (\enum_exists($type)) {
@@ -166,7 +190,13 @@ final readonly class ProxyGenerator
             }
         }
 
-        if (!$reflection->isInterface() && $reflection->hasMethod('__destruct') && !$reflection->getMethod('__destruct')->isFinal()) {
+        $constructor = $reflection->getConstructor();
+
+        if ($constructor instanceof \ReflectionMethod && $constructor->isAbstract()) {
+            $sections[] = \sprintf("    %s\n    {\n    }\n", $this->renderSignature($constructor, null));
+        }
+
+        if ($reflection->hasMethod('__destruct') && !$reflection->getMethod('__destruct')->isFinal()) {
             $sections[] = "    public function __destruct() {}\n";
         }
 
@@ -224,6 +254,11 @@ final readonly class ProxyGenerator
             || ($method->isProtected() && !$method->isAbstract())
         ) {
             return null;
+        }
+
+        if ($name === '__debuginfo') {
+            // Debug output must not depend on a mock plan.
+            return $method->isAbstract() ? $this->renderDebugInfoStub($method) : null;
         }
 
         if ($method->isStatic()) {
@@ -332,6 +367,17 @@ final readonly class ProxyGenerator
     /**
      * @throws InvalidDoubleUsage
      */
+    private function renderDebugInfoStub(\ReflectionMethod $method): string
+    {
+        return \sprintf(
+            "    %s\n    {\n        return [];\n    }\n",
+            $this->renderSignature($method, $method->getReturnType() ?? $method->getTentativeReturnType()),
+        );
+    }
+
+    /**
+     * @throws InvalidDoubleUsage
+     */
     private function renderStaticStub(\ReflectionMethod $method): string
     {
         $body = \sprintf(
@@ -429,22 +475,25 @@ final readonly class ProxyGenerator
 
             $separator = \strrpos($constant, '::');
 
-            if ($separator !== false) {
-                $owner = \substr($constant, 0, $separator);
+            if ($separator === false) {
+                // Reflection gives the namespaced name for an unqualified global constant.
+                return ConstantReference::render($constant, true, $parameter);
+            }
 
-                if (\class_exists($owner)) {
-                    $member = new \ReflectionClass($owner)->getReflectionConstant(\substr($constant, $separator + 2));
+            $owner = \substr($constant, 0, $separator);
 
-                    if ($member instanceof \ReflectionClassConstant && $member->isPrivate()) {
-                        // A child proxy cannot access the parent's private constant.
-                        $value = $parameter->getDefaultValue();
+            if (\class_exists($owner)) {
+                $member = new \ReflectionClass($owner)->getReflectionConstant(\substr($constant, $separator + 2));
 
-                        if (ParameterDefaultExpression::containsObject($value)) {
-                            throw InvalidDoubleUsage::objectDefaultScopeUnavailable($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
-                        }
+                if ($member instanceof \ReflectionClassConstant && $member->isPrivate()) {
+                    // A child proxy cannot access the parent's private constant.
+                    $value = $parameter->getDefaultValue();
 
-                        return \var_export($value, true);
+                    if (ParameterDefaultExpression::containsObject($value)) {
+                        throw InvalidDoubleUsage::objectDefaultScopeUnavailable($parameter->name, $context->name, $parameter->getDeclaringFunction()->name);
                     }
+
+                    return \var_export($value, true);
                 }
             }
 
