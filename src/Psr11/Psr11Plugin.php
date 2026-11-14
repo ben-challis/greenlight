@@ -10,10 +10,10 @@ use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\ServiceSource;
-use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
-use Greenlight\Plugin\TestContext;
-use Greenlight\Result\TestResult;
+use Greenlight\Plugin\TestAttemptEndSubscriber;
+use Greenlight\Test\TestDefinition;
+use Greenlight\Test\TestId;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -23,7 +23,7 @@ use Psr\Container\ContainerInterface;
  * `#[Service]` selects a service ID or a named source. Isolate external test resources by
  * `GREENLIGHT_CHANNEL`.
  */
-final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver, ServiceSource
+final class Psr11Plugin implements HarnessProvider, ServiceResolver, ServiceSource, TestAttemptEndSubscriber
 {
     /** @var non-empty-string|null */
     private readonly ?string $source;
@@ -158,12 +158,12 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
      * @throws ServiceResolutionFailed
      */
     #[\Override]
-    public function afterTest(TestContext $context, TestResult $result): TestResult
+    public function testAttemptEnded(TestId $id, TestDefinition $definition): void
     {
         $container = $this->activeContainer;
 
         if (!$container instanceof ContainerInterface) {
-            return $result;
+            return;
         }
 
         if ($this->refreshBetweenTests) {
@@ -171,7 +171,7 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
         }
 
         if (!$this->reset instanceof \Closure) {
-            return $result;
+            return;
         }
 
         try {
@@ -181,7 +181,5 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
 
             throw Psr11BridgeError::resetFailed($threw);
         }
-
-        return $result;
     }
 }

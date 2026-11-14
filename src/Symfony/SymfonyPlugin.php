@@ -10,10 +10,10 @@ use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\ServiceSource;
-use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
-use Greenlight\Plugin\TestContext;
-use Greenlight\Result\TestResult;
+use Greenlight\Plugin\TestAttemptEndSubscriber;
+use Greenlight\Test\TestDefinition;
+use Greenlight\Test\TestId;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\ResetInterface;
@@ -29,7 +29,7 @@ use Symfony\Contracts\Service\ResetInterface;
  * `#[Service]` selects a service ID or a named source. Isolate external
  * resources with `GREENLIGHT_CHANNEL`.
  */
-final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver, ServiceSource
+final class SymfonyPlugin implements HarnessProvider, ServiceResolver, ServiceSource, TestAttemptEndSubscriber
 {
     /** @var non-empty-string|null */
     private readonly ?string $source;
@@ -141,13 +141,11 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     }
 
     #[\Override]
-    public function afterTest(TestContext $context, TestResult $result): TestResult
+    public function testAttemptEnded(TestId $id, TestDefinition $definition): void
     {
         // Greenlight assigns the resetter only after a successful boot when
         // the configuration enables resets.
         $this->resetter?->reset();
-
-        return $result;
     }
 
     /**
