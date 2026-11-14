@@ -87,10 +87,11 @@ final readonly class RunSession
         $tap = new ClassFailureTap($failedTap = new FailedTestsTap(new ReporterSink($reporter)));
         $classSeconds = $this->configuration->resolved->order->isRandomized() ? [] : $this->state->classSeconds();
         $workers = $this->configuration->resolved->workers->count->fixed ?? CpuCores::count();
-        $coverageSettings = CoverageSettingsResolver::resolve($this->configuration->resolved->coverage, $this->workingDirectory);
 
         try {
-            $run = $this->coordinate($reporter, $tap, $priorityClasses, $classSeconds, $workers, $coverageSettings);
+            // Watch mode does not write coverage. Collection only makes each
+            // iteration slower.
+            $run = $this->coordinate($reporter, $tap, $priorityClasses, $classSeconds, $workers, null);
         } catch (AttachmentError|DiscoveryError|ExecutionFailed|IntegrationFixtureError $error) {
             $reporter->finish();
             $this->console->error($error->getMessage(), $this->arguments->has('no-ansi'));
