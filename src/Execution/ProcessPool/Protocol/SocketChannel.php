@@ -157,6 +157,14 @@ final class SocketChannel
     }
 
     /**
+     * Tells if the peer closed the connection in the middle of a frame.
+     */
+    public function hasIncompleteFrame(): bool
+    {
+        return $this->eof && $this->buffer->hasPendingBytes();
+    }
+
+    /**
      * @throws ProtocolError
      */
     private function readAvailable(): void
