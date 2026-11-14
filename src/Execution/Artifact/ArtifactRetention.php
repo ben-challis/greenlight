@@ -173,15 +173,20 @@ final readonly class ArtifactRetention
      *
      * When $reportSkipped is true, the report has a warning for each run
      * directory that the method does not select.
+     *
+     * When $abandonedRunAgeSeconds is not null, the method also selects
+     * abandoned runs. An abandoned run is active, no process holds it, and it
+     * started at least that many seconds before $now.
      */
     public function prune(
         bool $dryRun = false,
         ?string $protectedRunId = null,
         ?int $now = null,
+        ?int $abandonedRunAgeSeconds = null,
         bool $reportSkipped = true,
     ): ArtifactPruneReport {
         try {
-            return $this->applyPolicy($dryRun, $protectedRunId, $now ?? \time(), $reportSkipped);
+            return $this->applyPolicy($dryRun, $protectedRunId, $now ?? \time(), $abandonedRunAgeSeconds, $reportSkipped);
         } catch (\Throwable) {
             return new ArtifactPruneReport(
                 warnings: ['Greenlight did not apply the artifact retention policy.'],
@@ -194,9 +199,10 @@ final readonly class ArtifactRetention
         bool $dryRun,
         ?string $protectedRunId,
         int $now,
+        ?int $abandonedRunAgeSeconds,
         bool $reportSkipped,
     ): ArtifactPruneReport {
-        if (!$this->configuration->hasRetentionPolicy()
+        if ((!$this->configuration->hasRetentionPolicy() && $abandonedRunAgeSeconds === null)
             || !\is_dir($this->parent)
             || \is_link($this->parent)
         ) {
@@ -209,7 +215,7 @@ final readonly class ArtifactRetention
         }
 
         if ($dryRun) {
-            return $this->pruneLocked($canonical, true, $protectedRunId, $now, $reportSkipped);
+            return $this->pruneLocked($canonical, true, $protectedRunId, $now, $abandonedRunAgeSeconds, $reportSkipped);
         }
 
         $pruneLock = ErrorTrap::run(fn() => \fopen($canonical . '/' . self::PRUNE_LOCK_FILE, 'c+'));
@@ -228,7 +234,7 @@ final readonly class ArtifactRetention
                 );
             }
 
-            return $this->pruneLocked($canonical, $dryRun, $protectedRunId, $now, $reportSkipped);
+            return $this->pruneLocked($canonical, $dryRun, $protectedRunId, $now, $abandonedRunAgeSeconds, $reportSkipped);
         } finally {
             ErrorTrap::run(static fn() => \flock($pruneLock, \LOCK_UN));
             ErrorTrap::run(static fn() => \fclose($pruneLock));
@@ -243,17 +249,25 @@ final readonly class ArtifactRetention
         bool $dryRun,
         ?string $protectedRunId,
         int $now,
+        ?int $abandonedRunAgeSeconds,
         bool $reportSkipped,
     ): ArtifactPruneReport {
         $warnings = $dryRun ? $this->reportClaims($parent) : $this->recoverClaims($parent);
         $records = [];
+        $abandoned = [];
         foreach ($this->entryNames($parent) as $name) {
             if (\str_starts_with($name, '.')) {
                 continue;
             }
-            $inspection = $this->inspect($parent . '/' . $name, $name);
+            $inspection = $this->inspect($parent . '/' . $name, $name, $now, $abandonedRunAgeSeconds);
             if ($inspection instanceof ArtifactRunRecord) {
-                $records[] = $inspection;
+                if ($inspection->active) {
+                    if ($name !== $protectedRunId) {
+                        $abandoned[] = $inspection;
+                    }
+                } else {
+                    $records[] = $inspection;
+                }
             } elseif ($reportSkipped && $inspection !== null && $name !== $protectedRunId) {
                 $warnings[] = \sprintf('Greenlight skipped artifact directory "%s" because %s.', $name, $inspection);
             }
@@ -265,7 +279,7 @@ final readonly class ArtifactRetention
         do {
             $rejected = false;
             $remaining = \array_values(\array_filter(
-                $records,
+                [...$records, ...$abandoned],
                 static fn(ArtifactRunRecord $record): bool => !isset($excluded[$record->runId]),
             ));
             foreach ($this->select($remaining, $unselectable, $now) as [$record, $reasons]) {
@@ -293,7 +307,7 @@ final readonly class ArtifactRetention
      *   the reason that the entry is not a candidate. Null identifies an entry
      *   that needs no report, such as a file or a run that another process holds.
      */
-    private function inspect(string $directory, string $name): ArtifactRunRecord|string|null
+    private function inspect(string $directory, string $name, int $now, ?int $abandonedRunAgeSeconds): ArtifactRunRecord|string|null
     {
         if (ErrorTrap::run(static fn() => \is_link($directory))) {
             return 'it is a symbolic link';
@@ -320,7 +334,7 @@ final readonly class ArtifactRetention
         }
 
         try {
-            return $this->candidate($directory, $runId);
+            return $this->candidate($directory, $runId, $now, $abandonedRunAgeSeconds);
         } catch (\Throwable $failure) {
             return 'its content is not valid: ' . \rtrim($failure->getMessage(), '.');
         } finally {
@@ -338,7 +352,7 @@ final readonly class ArtifactRetention
      * @return ArtifactRunRecord|non-empty-string
      * @throws \Throwable
      */
-    private function candidate(string $directory, string $runId): ArtifactRunRecord|string
+    private function candidate(string $directory, string $runId, int $now, ?int $abandonedRunAgeSeconds): ArtifactRunRecord|string
     {
         $decoded = self::metadataMap($directory);
         if (($decoded['version'] ?? null) !== self::METADATA_VERSION
@@ -351,7 +365,19 @@ final readonly class ArtifactRetention
         $startedAt = $decoded['startedAt'];
 
         if (($decoded['state'] ?? null) === 'active') {
-            return 'the run did not complete and no process holds it';
+            if ($abandonedRunAgeSeconds === null || $startedAt > $now || $now - $startedAt < $abandonedRunAgeSeconds) {
+                return 'the run did not complete and no process holds it';
+            }
+            $sizes = self::contentSizes($directory, true);
+
+            return new ArtifactRunRecord(
+                $runId,
+                $startedAt,
+                $startedAt,
+                [],
+                $this->withInternalBytes($directory, \array_sum($sizes)),
+                active: true,
+            );
         }
 
         if (($decoded['state'] ?? null) !== 'completed'
@@ -394,16 +420,24 @@ final readonly class ArtifactRetention
 
     /**
      * Applies the age, count, and size limits in that order. Each limit
-     * selects the oldest remaining run first. A run in $unselectable is never
-     * selected, but it counts toward the count and size limits.
+     * selects the oldest remaining completed run first. Each active record,
+     * which a caller supplies only for an explicit request to prune abandoned
+     * runs, is selected after the completed runs, in start order. A run in
+     * $unselectable is never selected, but it counts toward the limits.
      *
      * @param list<ArtifactRunRecord> $records
      * @param array<string, true> $unselectable
      *
-     * @return list<array{ArtifactRunRecord, non-empty-list<'age'|'count'|'size'>}>
+     * @return list<array{ArtifactRunRecord, non-empty-list<'abandoned'|'age'|'count'|'size'>}>
      */
     private function select(array $records, array $unselectable, int $now): array
     {
+        $abandoned = \array_values(\array_filter(
+            $records,
+            static fn(ArtifactRunRecord $record): bool => $record->active && !isset($unselectable[$record->runId]),
+        ));
+        $records = \array_values(\array_filter($records, static fn(ArtifactRunRecord $record): bool => !$record->active));
+        \usort($abandoned, static fn(ArtifactRunRecord $a, ArtifactRunRecord $b): int => [$a->startedAt, $a->runId] <=> [$b->startedAt, $b->runId]);
         \usort($records, static fn(ArtifactRunRecord $a, ArtifactRunRecord $b): int => [$a->completedAt, $a->runId] <=> [$b->completedAt, $b->runId]);
         /** @var array<non-empty-string, non-empty-list<'age'|'count'|'size'>> $selected */
         $selected = [];
@@ -456,6 +490,9 @@ final readonly class ArtifactRetention
             if (isset($selected[$record->runId])) {
                 $selection[] = [$record, $selected[$record->runId]];
             }
+        }
+        foreach ($abandoned as $record) {
+            $selection[] = [$record, ['abandoned']];
         }
 
         return $selection;
@@ -527,12 +564,23 @@ final readonly class ArtifactRetention
         if (!$this->canonicalDirectory($claim, $claim)) {
             return $failure;
         }
-        $claimed = $this->verifiedRecord($claim, $record->runId);
-        if (!$claimed instanceof ArtifactRunRecord || $claimed->files !== $record->files) {
-            return \sprintf(
-                'Greenlight did not prune artifact run "%s" because its content does not match its completion manifest.',
-                $record->runId,
-            );
+        if ($record->active) {
+            $decoded = self::metadataMap($claim);
+            if (($decoded['state'] ?? null) !== 'active'
+                || ($decoded['runId'] ?? null) !== $record->runId
+                || ($decoded['startedAt'] ?? null) !== $record->startedAt
+            ) {
+                return $failure;
+            }
+            self::contentSizes($claim, true);
+        } else {
+            $claimed = $this->verifiedRecord($claim, $record->runId);
+            if (!$claimed instanceof ArtifactRunRecord || $claimed->files !== $record->files) {
+                return \sprintf(
+                    'Greenlight did not prune artifact run "%s" because its content does not match its completion manifest.',
+                    $record->runId,
+                );
+            }
         }
 
         return $this->treeRemovable($claim) ? null : $failure;
@@ -716,10 +764,14 @@ final readonly class ArtifactRetention
      * Returns the size of each content file below a run directory. The
      * method uses `stat` data only and does not read file content.
      *
+     * A directory without a content file is unowned, unless
+     * $allowEmptyDirectories is true. An incomplete run can contain such a
+     * directory when a publication failed after it created the directory.
+     *
      * @return array<non-empty-string, int>
      * @throws \RuntimeException
      */
-    public static function contentSizes(string $directory): array
+    public static function contentSizes(string $directory, bool $allowEmptyDirectories = false): array
     {
         if (ErrorTrap::run(static fn() => \is_link($directory))
             || !ErrorTrap::run(static fn() => \is_dir($directory))
@@ -774,7 +826,7 @@ final readonly class ArtifactRetention
         \sort($directories);
         $expected = \array_keys($expectedDirectories);
         \sort($expected);
-        if ($directories !== $expected) {
+        if (!$allowEmptyDirectories && $directories !== $expected) {
             throw new \RuntimeException('Artifact run content contains an unowned directory.');
         }
 

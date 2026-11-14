@@ -741,8 +741,17 @@ Applies the configured retention policy to completed artifact run directories.
 Use `--dry-run` to list the directories that the command would remove. The
 command reports each directory, its size, and the applicable limit.
 
-If you configure no retention policy, the command exits successfully and does
-not remove a directory.
+The command also reports each directory that it does not select and gives the
+reason. Examples are an incomplete run that no process holds, and a completed
+run with content that changed after completion.
+
+Use `--abandoned-run-age=<seconds>` to also remove incomplete runs. The
+command removes an incomplete run only if no process holds it and if it
+started at least this many seconds ago. This option also applies when you
+configure no retention policy.
+
+If you configure no retention policy and do not use `--abandoned-run-age`, the
+command exits successfully and does not remove a directory.
 
 See [`artifacts()`](#artifactscallable-configurator-self) for the retention
 settings.
@@ -1225,6 +1234,12 @@ Default: `_greenlight_ide_helper.php`.
 Prints a summary of the resolved run settings without test discovery or
 execution. The summary includes additional watch paths, patterns, debounce, and
 the file limit.
+
+### `--abandoned-run-age=<seconds>`
+
+For `artifacts:prune`, also removes incomplete runs. The command removes an
+incomplete run only if no process holds it and if it started at least this
+many seconds ago. See [artifacts:prune](#artifactsprune).
 
 ### `--verbose`
 

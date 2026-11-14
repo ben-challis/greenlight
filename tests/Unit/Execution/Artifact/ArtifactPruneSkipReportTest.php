@@ -58,6 +58,52 @@ final readonly class ArtifactPruneSkipReportTest
         expect(\is_dir($parent . '/run-aborted'))->toBeTrue();
     }
 
+    #[Test]
+    public function anAbandonedRunWithAnEmptyDirectoryIsPruned(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('abandoned-empty-directory');
+        $retention = $this->retention($parent);
+        $abandoned = $retention->begin('run-abandoned');
+        \mkdir($abandoned->directory . '/Example-Test-0123456789ab');
+        $abandoned->close();
+        $this->rewriteMetadata($parent . '/run-abandoned', ['startedAt' => 10]);
+
+        $report = $retention->prune(now: 100, abandonedRunAgeSeconds: 50);
+
+        expect(\array_map(static fn($item): string => $item->runId, $report->items))
+            ->because('a failed publication can leave an empty directory in an abandoned run')
+            ->toBe(['run-abandoned']);
+        expect(\file_exists($parent . '/run-abandoned'))->toBeFalse();
+    }
+
+    #[Test]
+    public function anExplicitAgePrunesAbandonedActiveRuns(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('abandoned-runs');
+        $retention = $this->retention($parent);
+        $abandoned = $retention->begin('run-abandoned');
+        \file_put_contents($abandoned->directory . '/evidence.txt', 'owned');
+        $abandoned->close();
+        $this->rewriteMetadata($parent . '/run-abandoned', ['startedAt' => 10]);
+        $recent = $retention->begin('run-recent');
+        $recent->close();
+        $this->rewriteMetadata($parent . '/run-recent', ['startedAt' => 95]);
+        $held = $retention->begin('run-held');
+        $this->cleanup->defer($held->close(...));
+        $this->rewriteMetadata($parent . '/run-held', ['startedAt' => 10]);
+
+        $withoutOptIn = $retention->prune(now: 100);
+        $report = $retention->prune(now: 100, abandonedRunAgeSeconds: 50);
+
+        expect($withoutOptIn->items)->toBe([]);
+        expect(\array_map(static fn($item): array => [$item->runId, $item->reasons], $report->items))
+            ->because('the explicit option MUST select only old active runs that no process holds')
+            ->toBe([['run-abandoned', ['abandoned']]]);
+        expect(\file_exists($parent . '/run-abandoned'))->toBeFalse();
+        expect(\is_dir($parent . '/run-recent'))->toBeTrue();
+        expect(\is_dir($parent . '/run-held'))->toBeTrue();
+    }
+
     private function retention(
         string $parent,
         ?int $maxCompletedRuns = null,
