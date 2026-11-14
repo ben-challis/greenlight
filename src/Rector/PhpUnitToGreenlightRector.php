@@ -547,6 +547,71 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             }
         }
 
+        return $this->rowKeysConvert($attribute->args[0]->value);
+    }
+
+    /**
+     * Checks each literal row that a data provider returns or yields. A
+     * provider that builds rows another way keeps its rows unchecked.
+     */
+    private function providerRowsConvert(ClassMethod $provider): bool
+    {
+        $finder = new NodeFinder();
+        $stmts = $provider->stmts ?? [];
+        $rows = \array_map(
+            static fn(Expr\Yield_ $yield): ?Expr => $yield->value,
+            $finder->findInstanceOf($stmts, Expr\Yield_::class),
+        );
+        $rowSets = [
+            ...\array_map(
+                static fn(Node\Stmt\Return_ $return): ?Expr => $return->expr,
+                $finder->findInstanceOf($stmts, Node\Stmt\Return_::class),
+            ),
+            ...\array_map(
+                static fn(Expr\YieldFrom $yieldFrom): Expr => $yieldFrom->expr,
+                $finder->findInstanceOf($stmts, Expr\YieldFrom::class),
+            ),
+        ];
+
+        foreach ($rowSets as $rowSet) {
+            if (!$rowSet instanceof Expr\Array_) {
+                continue;
+            }
+
+            foreach ($rowSet->items as $item) {
+                $rows[] = $item?->value;
+            }
+        }
+
+        return \array_all(
+            $rows,
+            fn(?Expr $row): bool => !$row instanceof Expr\Array_ || $this->rowKeysConvert($row),
+        );
+    }
+
+    /**
+     * PHPUnit 11 spreads a data row, so a string key becomes a named
+     * argument. Greenlight passes the row values in order and ignores the
+     * keys. Only integer keys give the same arguments in both.
+     */
+    private function rowKeysConvert(Expr $row): bool
+    {
+        if (!$row instanceof Expr\Array_) {
+            $type = $this->getType($row);
+
+            return $type->isArray()->yes() && $type->getIterableKeyType()->isInteger()->yes();
+        }
+
+        foreach ($row->items as $item) {
+            if (!$item instanceof ArrayItem || $item->unpack) {
+                return false;
+            }
+
+            if ($item->key instanceof Expr && !$item->key instanceof Node\Scalar\Int_) {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -568,6 +633,10 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
                     $provider = $class->getMethod($argument->value->value);
 
                     if (!$provider instanceof ClassMethod || !$provider->isPublic() || !$provider->isStatic()) {
+                        return false;
+                    }
+
+                    if (!$this->providerRowsConvert($provider)) {
                         return false;
                     }
                 }

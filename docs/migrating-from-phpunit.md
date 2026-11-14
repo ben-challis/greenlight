@@ -57,6 +57,7 @@ A class does not convert when it uses:
   `@group`, because the rule reads only attributes
 * hooks that PHPUnit and Greenlight run in a different order, for example
   two `#[Before]` methods or `setUp()` before a `#[Before]` method
+* a `#[TestWith]` row or a literal data provider row with string keys
 * `#[RunClassInSeparateProcess]` or `#[PreserveGlobalState]`
 * other inherited `TestCase` API that the rule cannot prove safe
 
@@ -75,6 +76,11 @@ Two conversions change the code shape. An `expectException()` block becomes a
 `toThrow()` expectation over an arrow function, and the earlier statements do
 not move. `expectExceptionMessage()` finds a substring, so the rule writes a
 quoted `matching:` pattern and not an exact `message:` constraint.
+
+PHPUnit 11 passes a data row with string keys as named arguments. Greenlight
+passes the row values in order and ignores the keys. Thus, the row
+`['expected' => 'b', 'input' => 'a']` gives different arguments in the two
+frameworks. Use integer keys in data rows before you convert a class.
 
 The rule preserves each repeated `#[TestWith]` row. It rejects class-process
 and global-state options that have different Greenlight behavior.
