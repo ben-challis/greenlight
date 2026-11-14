@@ -14,8 +14,6 @@ use Greenlight\Attribute\NoExpectations;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
-use Greenlight\Expect\Fail;
-use Greenlight\Test\SkipTest;
 use PhpParser\Comment\Doc;
 use PhpParser\Modifiers;
 use PhpParser\Node;
@@ -28,10 +26,8 @@ use PhpParser\Node\Expr\ArrowFunction;
 use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
-use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\NullsafeMethodCall;
 use PhpParser\Node\Expr\StaticCall;
-use PhpParser\Node\Expr\Throw_;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
@@ -64,8 +60,6 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
     private const string TEST_CASE_CLASS = 'PHPUnit\Framework\TestCase';
 
-    private const string ASSERT_CLASS = 'PHPUnit\Framework\Assert';
-
     /**
      * TestCase template methods with no attribute-shaped Greenlight
      * equivalent. An override of one of these methods rejects the class.
@@ -81,21 +75,6 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     ];
 
     /**
-     * @var list<string>
-     */
-    private const array EXPECT_EXCEPTION_METHODS = [
-        'expectexception',
-        'expectexceptionmessage',
-        'expectexceptionmessagematches',
-    ];
-
-    private const string EXPECT_NO_ASSERTIONS = 'expectnottoperformassertions';
-
-    private const string MARK_TEST_SKIPPED = 'marktestskipped';
-
-    private const string FAIL = 'fail';
-
-    /**
      * Converted attributes that Greenlight does not permit more than once.
      *
      * @var list<class-string>
@@ -108,6 +87,9 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     ];
 
     private bool $dropAssertionMessages = false;
+
+    private ?OwnCallClassifier $callClassifier = null;
+
 
     /**
      * @param mixed[] $configuration
@@ -208,7 +190,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             return null;
         }
 
-        $defined = $this->definedMethods($class);
+        $this->definedMethods($class);
         $providers = $this->referencedDataProviders($class);
         $hooks = [];
         $hookOrder = ['before' => [], 'after' => []];
@@ -289,11 +271,9 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             return null;
         }
 
-        if (!$this->callsConvert($class, $defined, $sanctioned)) {
-            return null;
-        }
+        $calls = $this->planCalls($class, $sanctioned);
 
-        return new ClassPlan($hooks, $tests, $noExpectations, $throwRewrites);
+        return $calls === null ? null : new ClassPlan($hooks, $tests, $noExpectations, $throwRewrites, $calls);
     }
 
     private function convert(Class_ $class, ClassPlan $plan): void
@@ -329,8 +309,10 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             }
         }
 
-        $defined = $this->definedMethods($class);
-        $this->traverseNodesWithCallable($class->stmts, fn(Node $node): ?Node => $this->convertCall($node, $class, $defined));
+        $this->traverseNodesWithCallable(
+            $class->stmts,
+            static fn(Node $node): ?Node => $plan->calls[\spl_object_id($node)] ?? null,
+        );
     }
 
     /**
@@ -525,7 +507,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             return !$onClass && $attribute->args === [];
         }
 
-        $arguments = $this->positionalArgs($attribute->args);
+        $arguments = OwnCallClassifier::positionalArgs($attribute->args);
 
         if ($short === PhpUnitAttributes::TEST_WITH) {
             return !$onClass && $this->testWithArgsConvert($attribute);
@@ -726,13 +708,13 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
                 continue;
             }
 
-            if (!$this->isSelfReceiver($call)) {
+            if (!OwnCallClassifier::isSelfReceiver($call)) {
                 continue;
             }
 
             $name = $call->name instanceof Identifier ? $call->name->toLowerString() : null;
 
-            if ($name !== null && \in_array($name, self::EXPECT_EXCEPTION_METHODS, true)) {
+            if ($name !== null && \in_array($name, OwnCallClassifier::EXPECT_EXCEPTION_METHODS, true)) {
                 $found[$index] = [$name, $call];
             }
         }
@@ -756,7 +738,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         $matching = null;
 
         foreach ($found as [$name, $call]) {
-            $arguments = $this->positionalArgs($call->args);
+            $arguments = OwnCallClassifier::positionalArgs($call->args);
 
             if ($arguments === null || \count($arguments) !== 1) {
                 return false;
@@ -816,13 +798,13 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
                 continue;
             }
 
-            if (!$this->isSelfReceiver($call)) {
+            if (!OwnCallClassifier::isSelfReceiver($call)) {
                 continue;
             }
 
             $name = $call->name instanceof Identifier ? $call->name->toLowerString() : null;
 
-            if ($name !== self::EXPECT_NO_ASSERTIONS) {
+            if ($name !== OwnCallClassifier::EXPECT_NO_ASSERTIONS) {
                 continue;
             }
 
@@ -835,365 +817,6 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         }
 
         return $found;
-    }
-
-    /**
-     * @param array<string, true> $defined
-     * @param array<int, true> $sanctioned
-     */
-    private function callsConvert(Class_ $class, array $defined, array $sanctioned): bool
-    {
-        $finder = new NodeFinder();
-        $calls = $finder->find($class->stmts, static fn(Node $node): bool => $node instanceof MethodCall
-            || $node instanceof NullsafeMethodCall
-            || $node instanceof StaticCall
-            || $node instanceof FuncCall);
-
-        foreach ($calls as $call) {
-            if ($call instanceof FuncCall) {
-                $name = $call->name instanceof Name ? $this->getName($call->name) : null;
-
-                if ($name !== null && \str_starts_with($name, 'PHPUnit\\')) {
-                    return false;
-                }
-
-                continue;
-            }
-
-            if ($call instanceof NullsafeMethodCall) {
-                if ($this->isOwnInstanceReceiver($call->var, $class)) {
-                    return false;
-                }
-
-                continue;
-            }
-
-            if ($call instanceof MethodCall) {
-                if (!$this->isOwnInstanceReceiver($call->var, $class)) {
-                    continue;
-                }
-
-                if (!$this->ownCallConverts($call, $defined, $sanctioned, allowInstanceApi: true)) {
-                    return false;
-                }
-
-                continue;
-            }
-
-            if (!$call instanceof StaticCall) {
-                continue;
-            }
-
-            $target = $this->staticCallTarget($call, $class);
-
-            if ($target === 'phpunit') {
-                return false;
-            }
-
-            if ($target === 'parent') {
-                if (!isset($sanctioned[\spl_object_id($call)])) {
-                    return false;
-                }
-
-                continue;
-            }
-
-            if ($target === 'own' && !$this->ownCallConverts($call, $defined, $sanctioned, allowInstanceApi: true)) {
-                return false;
-            }
-
-            if ($target === 'assert' && !$this->ownCallConverts($call, $defined, $sanctioned, allowInstanceApi: false)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @param array<string, true> $defined
-     * @param array<int, true> $sanctioned
-     */
-    private function ownCallConverts(
-        MethodCall|StaticCall $call,
-        array $defined,
-        array $sanctioned,
-        bool $allowInstanceApi,
-    ): bool {
-        $name = $call->name instanceof Identifier ? $call->name->toLowerString() : null;
-
-        if ($name === null) {
-            return false;
-        }
-
-        if ($allowInstanceApi && isset($defined[$name])) {
-            return true;
-        }
-
-        $conversion = AssertionMap::lookup($name);
-
-        if ($conversion instanceof AssertionConversion) {
-            $arguments = $this->positionalArgs($call->args);
-
-            if ($arguments === null || \count($arguments) < $conversion->arity) {
-                return false;
-            }
-
-            return (\count($arguments) === $conversion->arity || $this->dropAssertionMessages)
-                && $this->argumentOrderConverts($conversion, $arguments)
-                && $this->looseNegationConverts($name, $arguments);
-        }
-
-        if ($name === self::FAIL) {
-            $arguments = $this->positionalArgs($call->args);
-
-            return $arguments !== null && \count($arguments) <= 1;
-        }
-
-        if (!$allowInstanceApi) {
-            return false;
-        }
-
-        if ($name === self::MARK_TEST_SKIPPED) {
-            $arguments = $this->positionalArgs($call->args);
-
-            return $arguments !== null && \count($arguments) <= 1
-                && ($arguments === []
-                    || $arguments[0]->value instanceof String_
-                    || $this->getType($arguments[0]->value)->isNonEmptyString()->yes());
-        }
-
-        if (\in_array($name, self::EXPECT_EXCEPTION_METHODS, true) || $name === self::EXPECT_NO_ASSERTIONS) {
-            return isset($sanctioned[\spl_object_id($call)]);
-        }
-
-        return false;
-    }
-
-    /**
-     * PHPUnit compares loosely in assertNotEquals() and
-     * assertNotEqualsCanonicalizing(). Greenlight compares strictly, so the
-     * negated matcher accepts more values, for example `false` and `0`. The
-     * negation converts only when both operands have one proven value kind
-     * that both frameworks compare in the same way.
-     *
-     * @param list<Arg> $arguments
-     */
-    private function looseNegationConverts(string $name, array $arguments): bool
-    {
-        if ($name !== 'assertnotequals' && $name !== 'assertnotequalscanonicalizing') {
-            return true;
-        }
-
-        $expected = $this->strictKind($arguments[0]->value);
-        $actual = $this->strictKind($arguments[1]->value);
-
-        if ($expected === null || $expected !== $actual) {
-            return false;
-        }
-
-        if ($name === 'assertnotequals') {
-            return true;
-        }
-
-        // PHPUnit canonicalization sorts each array and drops its keys.
-        // Greenlight keeps the keys of an associative array.
-        return \substr_count($expected, 'array:') === 1
-            && $this->getType($arguments[0]->value)->isList()->yes()
-            && $this->getType($arguments[1]->value)->isList()->yes();
-    }
-
-    /**
-     * Describes a value type that PHPUnit and Greenlight compare in the
-     * same way: one scalar type, or arrays whose values have one such type.
-     * Both frameworks pair array values by key and ignore key order.
-     *
-     * @return non-empty-string|null
-     */
-    private function strictKind(Expr $expression): ?string
-    {
-        $type = $this->getType($expression);
-        $prefix = '';
-
-        for ($depth = 0; $depth < 8; $depth++) {
-            $kind = match (true) {
-                $type->isInteger()->yes() => 'int',
-                $type->isFloat()->yes() => 'float',
-                $type->isString()->yes() => 'string',
-                $type->isBoolean()->yes() => 'bool',
-                $type->isNull()->yes() => 'null',
-                default => null,
-            };
-
-            if ($kind !== null) {
-                return $prefix . $kind;
-            }
-
-            if (!$type->isArray()->yes()) {
-                return null;
-            }
-
-            $prefix .= 'array:';
-            $type = $type->getIterableValueType();
-        }
-
-        return null;
-    }
-
-    /**
-     * @param list<Arg> $arguments
-     */
-    private function argumentOrderConverts(AssertionConversion $conversion, array $arguments): bool
-    {
-        $order = [$conversion->subject, ...$conversion->matcherArguments];
-
-        foreach ($order as $position => $index) {
-            foreach (\array_slice($order, $position + 1) as $laterIndex) {
-                if ($index < $laterIndex) {
-                    continue;
-                }
-
-                $first = $arguments[$index]->value;
-                $second = $arguments[$laterIndex]->value;
-
-                if ($this->isLiteralValue($first) || $this->isLiteralValue($second)) {
-                    continue;
-                }
-
-                if ($first instanceof Variable && \is_string($first->name)
-                    && $second instanceof Variable && \is_string($second->name)
-                ) {
-                    continue;
-                }
-
-                // Calls and property hooks can change the other argument.
-                // Keep the PHPUnit class when their order cannot stay safe.
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private function isLiteralValue(Expr $expression): bool
-    {
-        if ($expression instanceof String_ || $expression instanceof Node\Scalar\Int_
-            || $expression instanceof Node\Scalar\Float_ || $expression instanceof Node\Scalar\MagicConst
-        ) {
-            return true;
-        }
-
-        if ($expression instanceof Expr\ConstFetch) {
-            return \in_array($expression->name->toLowerString(), ['true', 'false', 'null'], true);
-        }
-
-        if ($expression instanceof ClassConstFetch) {
-            return $expression->class instanceof Name
-                && $expression->name instanceof Identifier
-                && $expression->name->toLowerString() === 'class';
-        }
-
-        if ($expression instanceof Expr\UnaryMinus || $expression instanceof Expr\UnaryPlus) {
-            return $this->isLiteralValue($expression->expr);
-        }
-
-        if (!$expression instanceof Expr\Array_) {
-            return false;
-        }
-
-        return \array_all($expression->items, fn(?ArrayItem $item): bool => $item instanceof ArrayItem
-            && !$item->byRef && !$item->unpack
-            && (!$item->key instanceof Expr || $this->isLiteralValue($item->key))
-            && $this->isLiteralValue($item->value));
-    }
-
-    private function isSelfReceiver(MethodCall|StaticCall $call): bool
-    {
-        if ($call instanceof MethodCall) {
-            return $call->var instanceof Variable && $call->var->name === 'this';
-        }
-
-        return $call->class instanceof Name
-            && \in_array($call->class->toLowerString(), ['self', 'static'], true);
-    }
-
-    private function isOwnInstanceReceiver(Expr $receiver, Class_ $class): bool
-    {
-        if ($receiver instanceof Variable && $receiver->name === 'this') {
-            return true;
-        }
-
-        return \in_array($this->classFqcn($class), $this->getType($receiver)->getObjectClassNames(), true);
-    }
-
-    /**
-     * @return 'assert'|'other'|'own'|'parent'|'phpunit'
-     */
-    private function staticCallTarget(StaticCall $call, Class_ $class): string
-    {
-        if (!$call->class instanceof Name) {
-            if ($this->isOwnInstanceReceiver($call->class, $class)) {
-                return 'own';
-            }
-
-            return 'other';
-        }
-
-        $raw = $call->class->toLowerString();
-
-        if ($raw === 'parent') {
-            return 'parent';
-        }
-
-        if ($raw === 'self' || $raw === 'static') {
-            return 'own';
-        }
-
-        $resolved = $this->getName($call->class);
-
-        if ($resolved === $this->classFqcn($class)) {
-            return 'own';
-        }
-
-        if ($resolved === self::ASSERT_CLASS) {
-            return 'assert';
-        }
-
-        if (\str_starts_with($resolved, 'PHPUnit\\')) {
-            return 'phpunit';
-        }
-
-        return 'other';
-    }
-
-    private function classFqcn(Class_ $class): string
-    {
-        if ($class->namespacedName instanceof Name) {
-            return $class->namespacedName->toString();
-        }
-
-        return $class->name instanceof Identifier ? $class->name->toString() : '';
-    }
-
-    /**
-     * @param array<Node> $args
-     *
-     * @return list<Arg>|null Null if an argument is named, unpacked, or a
-     *                        first-class callable placeholder
-     */
-    private function positionalArgs(array $args): ?array
-    {
-        $positional = [];
-
-        foreach ($args as $argument) {
-            if (!$argument instanceof Arg || $argument->name instanceof Identifier || $argument->unpack) {
-                return null;
-            }
-
-            $positional[] = $argument;
-        }
-
-        return $positional;
     }
 
     private function hasPhpUnitAttribute(ClassMethod $method, string $short): bool
@@ -1345,13 +968,13 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
                     return true;
                 }
 
-                if (!$this->isSelfReceiver($call)) {
+                if (!OwnCallClassifier::isSelfReceiver($call)) {
                     return true;
                 }
 
                 $name = $call->name instanceof Identifier ? $call->name->toLowerString() : null;
 
-                return $name !== self::EXPECT_NO_ASSERTIONS;
+                return $name !== OwnCallClassifier::EXPECT_NO_ASSERTIONS;
             },
         ));
     }
@@ -1402,87 +1025,43 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     }
 
     /**
-     * @param array<string, true> $defined
+     * @param array<int, true> $sanctioned
+     *
+     * @return array<int, Expr>|null
      */
-    private function convertCall(Node $node, Class_ $class, array $defined): ?Node
+    private function planCalls(Class_ $class, array $sanctioned): ?array
     {
-        $allowInstanceApi = true;
+        $defined = $this->definedMethods($class);
+        $finder = new NodeFinder();
+        $calls = $finder->find($class->stmts, static fn(Node $node): bool => $node instanceof MethodCall
+            || $node instanceof NullsafeMethodCall
+            || $node instanceof StaticCall
+            || $node instanceof FuncCall);
+        $replacements = [];
 
-        if ($node instanceof StaticCall) {
-            $target = $this->staticCallTarget($node, $class);
-
-            if ($target !== 'own' && $target !== 'assert') {
-                return null;
-            }
-
-            $allowInstanceApi = $target === 'own';
-        } elseif ($node instanceof MethodCall) {
-            if (!$this->isOwnInstanceReceiver($node->var, $class)) {
-                return null;
-            }
-        } else {
-            return null;
-        }
-
-        $name = $node->name instanceof Identifier ? $node->name->toLowerString() : null;
-
-        if ($name === null || isset($defined[$name])) {
-            return null;
-        }
-
-        $arguments = $this->positionalArgs($node->args);
-
-        if ($arguments === null) {
-            return null;
-        }
-
-        $conversion = AssertionMap::lookup($name);
-
-        if ($conversion instanceof AssertionConversion) {
-            return $this->buildExpectation($conversion, $arguments);
-        }
-
-        if ($name === self::FAIL) {
-            return new StaticCall(
-                new FullyQualified(Fail::class),
-                'because',
-                [$arguments[0] ?? new Arg(new String_('Test failed.'))],
+        foreach ($calls as $call) {
+            $replacement = $this->callClassifier()->classify(
+                $call,
+                $class,
+                $defined,
+                $sanctioned,
+                $this->dropAssertionMessages,
             );
+
+            if ($replacement === false) {
+                return null;
+            }
+
+            if ($replacement instanceof Expr) {
+                $replacements[\spl_object_id($call)] = $replacement;
+            }
         }
 
-        if ($allowInstanceApi && $name === self::MARK_TEST_SKIPPED) {
-            // SkipTest requires a non-empty reason. The PHPUnit argument is optional.
-            $emptyReason = $arguments === []
-                || ($arguments[0]->value instanceof String_ && $arguments[0]->value->value === '');
-            $reason = $emptyReason ? [new Arg(new String_('Skipped.'))] : $arguments;
-
-            return new Throw_(new New_(new FullyQualified(SkipTest::class), $reason));
-        }
-
-        return null;
+        return $replacements;
     }
 
-    /**
-     * @param list<Arg> $arguments
-     */
-    private function buildExpectation(AssertionConversion $conversion, array $arguments): MethodCall
+    private function callClassifier(): OwnCallClassifier
     {
-        $chain = new StaticCall(
-            new FullyQualified(Expect::class),
-            'value',
-            [new Arg($arguments[$conversion->subject]->value)],
-        );
-
-        if ($conversion->negated) {
-            $chain = new MethodCall($chain, 'not');
-        }
-
-        $matcherArguments = [];
-
-        foreach ($conversion->matcherArguments as $index) {
-            $matcherArguments[] = new Arg($arguments[$index]->value);
-        }
-
-        return new MethodCall($chain, $conversion->matcher, $matcherArguments);
+        return $this->callClassifier ??= new OwnCallClassifier($this->nodeNameResolver, $this->nodeTypeResolver);
     }
 }
