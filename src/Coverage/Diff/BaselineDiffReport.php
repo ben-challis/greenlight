@@ -9,8 +9,8 @@ namespace Greenlight\Coverage\Diff;
  * Unchanged files appear only when the caller supplies them directly.
  *
  * hasRegressions() reports a file in both maps that has more uncovered lines
- * or a lower percentage. It also reports an added file that has uncovered
- * lines. A removed file cannot cause a regression.
+ * or a lower percentage. An added or removed file cannot cause a regression.
+ * A renamed file is a removed file and an added file.
  *
  * @internal
  */

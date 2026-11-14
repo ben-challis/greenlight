@@ -87,8 +87,24 @@ final class BaselineDiffTest
             ->because('the delta MUST count the uncovered lines of an added file')
             ->toBe(1);
         expect($report->hasRegressions())
-            ->because('an added file with an uncovered line MUST cause a regression')
-            ->toBeTrue();
+            ->because('an added file MUST NOT cause a regression')
+            ->toBeFalse();
+    }
+
+    #[Test]
+    public function aRenamedFileIsNotARegression(): void
+    {
+        $baseline = new CoverageMap([new FileCoverage('/src/Old.php', [1], [2])]);
+        $current = new CoverageMap([new FileCoverage('/src/New.php', [1], [2])]);
+
+        $report = BaselineDiff::between($baseline, $current);
+
+        expect(\array_keys($report->fileDeltas))
+            ->because('a rename MUST appear as a removed file and an added file')
+            ->toBe(['/src/New.php', '/src/Old.php']);
+        expect($report->hasRegressions())
+            ->because('a rename MUST NOT cause a regression')
+            ->toBeFalse();
     }
 
     #[Test]

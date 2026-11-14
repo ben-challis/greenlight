@@ -91,8 +91,8 @@ final readonly class CliTest
             ->toContain('Matching is case-sensitive.')
             ->toContain('Configured deprecation ignore patterns still apply.')
             ->toContain('except tests marked #[NoExpectations].')
-            ->toContain('maps has more uncovered lines or a lower percentage, or if an')
-            ->toContain('added file has uncovered lines. Removed files do not cause a')
+            ->toContain('maps has more uncovered lines or a lower percentage. Added,')
+            ->toContain('removed, and renamed files do not cause a regression.')
             ->toContain('Supply at least two --input')
             ->toContain('options and at least one --export option.');
     }
