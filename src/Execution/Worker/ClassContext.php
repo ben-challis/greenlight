@@ -21,9 +21,9 @@ use Greenlight\Test\DataSet\DataSetExpander;
 final class ClassContext
 {
     /**
-     * Resolved data sets for each test method.
+     * Resolved data sets, or the expansion failure, for each test method.
      *
-     * @var array<string, array<array-key, mixed>>
+     * @var array<string, array<array-key, mixed>|DataSetError>
      */
     private array $dataSets = [];
 
@@ -126,17 +126,7 @@ final class ClassContext
      */
     public function argumentsFor(?string $provider, ?string $providerClass, string $testMethod, string $key): array
     {
-        if (!\array_key_exists($testMethod, $this->dataSets)) {
-            $this->dataSets[$testMethod] = new DataSetExpander()->rowsFor(
-                $this->reflection,
-                $testMethod,
-                $provider,
-                $this->providerBudgetSeconds,
-                $providerClass,
-            );
-        }
-
-        $sets = $this->dataSets[$testMethod];
+        $sets = $this->expand($provider, $providerClass, $testMethod);
 
         if (!\array_key_exists($key, $sets)) {
             throw WorkerError::dataSetMissing(
@@ -158,5 +148,44 @@ final class ClassContext
         }
 
         return \array_values($value);
+    }
+
+    /**
+     * Expands the data sets of one test method. Each method expands one time.
+     * A later call throws the same expansion failure again.
+     *
+     * Call this method before the timed window of the first data set.
+     *
+     * @param non-empty-string|null $provider
+     * @param non-empty-string|null $providerClass
+     * @param non-empty-string $testMethod
+     *
+     * @return array<array-key, mixed>
+     *
+     * @throws DataSetError
+     */
+    public function expand(?string $provider, ?string $providerClass, string $testMethod): array
+    {
+        if (!\array_key_exists($testMethod, $this->dataSets)) {
+            try {
+                $this->dataSets[$testMethod] = new DataSetExpander()->rowsFor(
+                    $this->reflection,
+                    $testMethod,
+                    $provider,
+                    $this->providerBudgetSeconds,
+                    $providerClass,
+                );
+            } catch (DataSetError $failure) {
+                $this->dataSets[$testMethod] = $failure;
+            }
+        }
+
+        $sets = $this->dataSets[$testMethod];
+
+        if ($sets instanceof DataSetError) {
+            throw $sets;
+        }
+
+        return $sets;
     }
 }
