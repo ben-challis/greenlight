@@ -69,6 +69,7 @@ final class MethodExpectation
     }
 
     /**
+     * @return self<TTarget, TMethod>
      * @throws InvalidDoubleUsage
      */
     public function withNoArguments(): self
@@ -77,6 +78,7 @@ final class MethodExpectation
     }
 
     /**
+     * @return self<TTarget, TMethod>
      * @throws InvalidDoubleUsage
      */
     public function with(mixed $first, mixed ...$rest): self
@@ -96,6 +98,9 @@ final class MethodExpectation
         return $this;
     }
 
+    /**
+     * @return self<TTarget, TMethod>
+     */
     public function once(): self
     {
         $this->minimumCalls = 1;
@@ -105,6 +110,7 @@ final class MethodExpectation
     }
 
     /**
+     * @return self<TTarget, TMethod>
      * @throws InvalidDoubleUsage
      */
     public function times(int $count): self
@@ -120,6 +126,7 @@ final class MethodExpectation
     }
 
     /**
+     * @return self<TTarget, TMethod>
      * @throws InvalidDoubleUsage
      */
     public function atLeast(int $count): self
@@ -134,6 +141,9 @@ final class MethodExpectation
         return $this;
     }
 
+    /**
+     * @return self<TTarget, TMethod>
+     */
     public function never(): self
     {
         $this->minimumCalls = 0;
@@ -143,6 +153,7 @@ final class MethodExpectation
     }
 
     /**
+     * @return self<TTarget, TMethod>
      * @throws InvalidDoubleUsage
      */
     public function andReturns(mixed $value): self
@@ -158,6 +169,7 @@ final class MethodExpectation
     /**
      * Each accepted call consumes the next value. A call after the last value
      * causes an error in the test code.
+     * @return self<TTarget, TMethod>
      * @throws InvalidDoubleUsage
      */
     public function andReturnsSequence(mixed ...$values): self
@@ -178,6 +190,7 @@ final class MethodExpectation
     /**
      * The closure receives the call arguments. The call returns the value
      * from the closure.
+     * @return self<TTarget, TMethod>
      * @throws InvalidDoubleUsage
      */
     public function andReturnsUsing(\Closure $answer): self // @phpstan-ignore missingType.callable (The doubled method determines the answer signature.)
@@ -190,6 +203,7 @@ final class MethodExpectation
     }
 
     /**
+     * @return self<TTarget, TMethod>
      * @throws InvalidDoubleUsage
      */
     public function andThrows(\Throwable $throwable): self

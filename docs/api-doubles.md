@@ -844,9 +844,10 @@ public function withNoArguments(): self
 
 PHPDoc:
 
+- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L74)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L75)
 
 ### `with()`
 
@@ -856,9 +857,10 @@ public function with(mixed $first, mixed ...$rest): self
 
 PHPDoc:
 
+- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L82)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L84)
 
 ### `once()`
 
@@ -866,7 +868,11 @@ PHPDoc:
 public function once(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L99)
+PHPDoc:
+
+- `@return self<TTarget, TMethod>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L104)
 
 ### `times()`
 
@@ -876,9 +882,10 @@ public function times(int $count): self
 
 PHPDoc:
 
+- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L110)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L116)
 
 ### `atLeast()`
 
@@ -888,9 +895,10 @@ public function atLeast(int $count): self
 
 PHPDoc:
 
+- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L125)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L132)
 
 ### `never()`
 
@@ -898,7 +906,11 @@ PHPDoc:
 public function never(): self
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L137)
+PHPDoc:
+
+- `@return self<TTarget, TMethod>`
+
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L147)
 
 ### `andReturns()`
 
@@ -908,9 +920,10 @@ public function andReturns(mixed $value): self
 
 PHPDoc:
 
+- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L148)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L159)
 
 ### `andReturnsSequence()`
 
@@ -923,9 +936,10 @@ public function andReturnsSequence(mixed ...$values): self
 
 PHPDoc:
 
+- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L163)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L175)
 
 ### `andReturnsUsing()`
 
@@ -938,9 +952,10 @@ public function andReturnsUsing(\Closure $answer): self
 
 PHPDoc:
 
+- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L183)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L196)
 
 ### `andThrows()`
 
@@ -950,9 +965,10 @@ public function andThrows(\Throwable $throwable): self
 
 PHPDoc:
 
+- `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L195)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L209)
 
 ### `captureArgument()`
 
@@ -970,7 +986,7 @@ PHPDoc:
 - `@return ArgumentCaptor<mixed>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L213)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L227)
 
 ## `MockPlan`
 
