@@ -53,10 +53,7 @@ final readonly class Application
 
     /**
      * @param list<string> $argv the arguments after the script name
-     * @throws CoverageError
      * @throws ProtocolError
-     * @throws ReportGenerationFailed
-     * @throws WireCommunicationFailed
      */
     public function run(array $argv, string $workingDirectory, ?string $binPath = null): int
     {
@@ -87,16 +84,28 @@ final readonly class Application
         // process. A CLI process that inherits them reports its coverage
         // through the shared directory.
         $dump = SubprocessCoverage::begin();
-        $dispatch = fn(): CommandResult => new CommandDispatcher($this->console, self::VERSION)->dispatch($argv, $workingDirectory, $binPath);
-
-        if (!$dump instanceof SubprocessCoverage) {
-            return ExitCode::fromCommandResult($dispatch())->value();
-        }
 
         try {
-            return ExitCode::fromCommandResult($dispatch())->value();
+            return ExitCode::fromCommandResult($this->dispatch($argv, $workingDirectory, $binPath))->value();
         } finally {
-            $dump->write();
+            $dump?->write();
+        }
+    }
+
+    /**
+     * Commands pass these failures up. They end the command, so the user gets
+     * one diagnostic line and the failure exit code, not a PHP fatal error.
+     *
+     * @param list<string> $argv
+     */
+    private function dispatch(array $argv, string $workingDirectory, ?string $binPath): CommandResult
+    {
+        try {
+            return new CommandDispatcher($this->console, self::VERSION)->dispatch($argv, $workingDirectory, $binPath);
+        } catch (CoverageError|ReportGenerationFailed|WireCommunicationFailed $error) {
+            $this->console->error($error->getMessage(), \in_array('--no-ansi', $argv, true));
+
+            return CommandResult::failure();
         }
     }
 }
