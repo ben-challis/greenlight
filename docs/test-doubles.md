@@ -297,7 +297,8 @@ Greenlight does not run the class constructor when it creates a double. Prefer
 an interface at the application boundary.
 
 Greenlight suppresses a non-final destructor. It cannot suppress a final
-destructor, which can run application code.
+destructor, which can run application code. An abstract constructor or
+destructor gets an empty implementation with the declared signature.
 
 ### Object parameter defaults
 
