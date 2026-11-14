@@ -23,6 +23,9 @@ use Greenlight\Reporting\SummaryFormat;
 /**
  * Writes configured coverage exports and their status messages.
  *
+ * write() writes each export file before it asks the exporter for the next
+ * file. Thus, an HTML export does not keep all pages in memory.
+ *
  * @internal
  */
 final readonly class CoverageWriter
@@ -61,8 +64,12 @@ final readonly class CoverageWriter
                 $this->console->err(\sprintf("Unknown coverage export format \"%s\".\n", $export->format));
                 return false;
             }
+            $target = ConfigurationLoader::absolutePath($export->target, $workingDirectory);
+
             try {
-                $files = $exporter->export($coverage);
+                $written = $export->format === 'html'
+                    ? $this->writeDirectory($exporter->export($coverage), $target)
+                    : $this->writeDocument($exporter->export($coverage), $target);
             } catch (\Throwable $error) {
                 $this->console->err(\sprintf(
                     "Greenlight could not create the \"%s\" coverage export: %s\n",
@@ -72,26 +79,11 @@ final readonly class CoverageWriter
 
                 return false;
             }
-            $target = ConfigurationLoader::absolutePath($export->target, $workingDirectory);
-            if ($export->format !== 'html') {
-                ErrorTrap::run(static fn() => \mkdir(\dirname($target), 0o777, true));
-                try {
-                    AtomicFile::write($target, \reset($files));
-                } catch (AtomicFileError $error) {
-                    $this->console->err(\sprintf("Greenlight could not write the coverage export to \"%s\": %s\n", $target, $error->getMessage()));
-                    return false;
-                }
-            } else {
-                ErrorTrap::run(static fn() => \mkdir($target, 0o777, true));
-                foreach ($files as $name => $content) {
-                    try {
-                        AtomicFile::write($target . '/' . $name, $content);
-                    } catch (AtomicFileError $error) {
-                        $this->console->err(\sprintf("Greenlight could not write the coverage export to \"%s\": %s\n", $target . '/' . $name, $error->getMessage()));
-                        return false;
-                    }
-                }
+
+            if (!$written) {
+                return false;
             }
+
             $this->human(SummaryFormat::coverageExport($export->format, $export->target) . "\n");
         }
 
@@ -102,6 +94,53 @@ final readonly class CoverageWriter
         }
 
         return $failures === [];
+    }
+
+    /**
+     * Writes the first file that the exporter gives.
+     *
+     * @param iterable<non-empty-string, string> $files
+     */
+    private function writeDocument(iterable $files, string $target): bool
+    {
+        foreach ($files as $content) {
+            ErrorTrap::run(static fn() => \mkdir(\dirname($target), 0o777, true));
+
+            return $this->writeFile($target, $content);
+        }
+
+        return true;
+    }
+
+    /**
+     * Writes each file before it asks the exporter for the next file.
+     *
+     * @param iterable<non-empty-string, string> $files
+     */
+    private function writeDirectory(iterable $files, string $target): bool
+    {
+        ErrorTrap::run(static fn() => \mkdir($target, 0o777, true));
+
+        foreach ($files as $name => $content) {
+            if (!$this->writeFile($target . '/' . $name, $content)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function writeFile(string $path, string $content): bool
+    {
+        try {
+            AtomicFile::write($path, $content);
+        } catch (AtomicFileError $error) {
+            $this->console->err(\sprintf("Greenlight could not write the coverage export to \"%s\": %s\n", $path, $error->getMessage()));
+
+            return false;
+        }
+
+        return true;
     }
 
     private function human(string $text): void

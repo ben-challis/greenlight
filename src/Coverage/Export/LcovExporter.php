@@ -18,6 +18,9 @@ final readonly class LcovExporter implements CoverageExporter
 {
     public const string FILE_NAME = 'lcov.info';
 
+    /**
+     * @return non-empty-array<non-empty-string, string>
+     */
     #[\Override]
     public function export(CoverageMap $map): array
     {
