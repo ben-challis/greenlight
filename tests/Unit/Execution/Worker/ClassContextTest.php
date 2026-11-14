@@ -9,7 +9,6 @@ use Greenlight\Execution\Worker\ClassContext;
 use Greenlight\Execution\Worker\WorkerError;
 use Greenlight\Tests\Fixture\Execution\Worker\CachedDataSetProbe;
 use Greenlight\Tests\Fixture\Execution\Worker\ClassContextDataProbe;
-use Greenlight\Tests\Fixture\Execution\Worker\HookOrder\ChildHookProbe;
 
 use function Greenlight\expect;
 
@@ -77,22 +76,5 @@ final class ClassContextTest
         expect(CachedDataSetProbe::$providerCalls)
             ->because('the class context MUST evaluate its data provider only once')
             ->toBe(1);
-    }
-
-    #[Test]
-    public function inheritedHooksRunFromTheRootAncestorToTheLeaf(): void
-    {
-        $context = ClassContext::for(ChildHookProbe::class);
-        $names = static fn(array $methods): array => \array_map(
-            static fn(\ReflectionMethod $method): string => $method->getName(),
-            $methods,
-        );
-
-        expect($names($context->beforeHooks))
-            ->because('base #[Before] hooks MUST run before child hooks, in declaration order')
-            ->toBe(['baseFirstBefore', 'baseSecondBefore', 'childBefore']);
-        expect($names($context->afterHooks))
-            ->because('#[After] hooks MUST run in the exact reverse order')
-            ->toBe(['childAfter', 'baseSecondAfter', 'baseFirstAfter']);
     }
 }

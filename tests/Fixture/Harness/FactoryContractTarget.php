@@ -6,7 +6,7 @@ namespace Greenlight\Tests\Fixture\Harness;
 
 use Greenlight\Doubles\Fake;
 
-final class FactoryContractTarget implements Fake
+class FactoryContractTarget implements Fake
 {
     private string $value = 'ready';
 

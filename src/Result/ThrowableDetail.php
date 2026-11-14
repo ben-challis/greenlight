@@ -8,24 +8,10 @@ use Greenlight\Internal\Text\Utf8;
 use Greenlight\Internal\Wire\Wire;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 
-/**
- * Contains a throwable's class, message, source location, and stack trace.
- *
- * The message has a limit of 64 KiB. The file and each stack frame have a
- * limit of 4 KiB. Longer text keeps its first part and a truncation marker.
- */
+/** Contains a throwable's class, message, source location, and stack trace. */
 final readonly class ThrowableDetail
 {
     private const int MAX_STACK_FRAMES = 32;
-    private const int MAX_MESSAGE_BYTES = 65_536;
-    private const int MAX_LOCATION_BYTES = 4_096;
-
-    public string $message;
-
-    /**
-     * @var list<string>
-     */
-    public array $stackFrames;
 
     /**
      * @var non-empty-string
@@ -49,10 +35,10 @@ final readonly class ThrowableDetail
      */
     public function __construct(
         string $class,
-        string $message,
+        public string $message,
         string $file,
         int $line,
-        array $stackFrames = [],
+        public array $stackFrames = [],
     ) {
         if ($class === '') {
             throw new \InvalidArgumentException('Throwable detail class must not be empty.');
@@ -67,14 +53,8 @@ final readonly class ThrowableDetail
         }
 
         $this->class = $class;
-        $this->message = BoundedText::head($message, self::MAX_MESSAGE_BYTES);
-        $boundedFile = BoundedText::head($file, self::MAX_LOCATION_BYTES);
-        $this->file = $boundedFile === '' ? $file : $boundedFile;
+        $this->file = $file;
         $this->line = $line;
-        $this->stackFrames = \array_map(
-            static fn(string $frame): string => BoundedText::head($frame, self::MAX_LOCATION_BYTES),
-            $stackFrames,
-        );
     }
 
     /**

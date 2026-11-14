@@ -220,15 +220,12 @@ final readonly class TestResult
     /**
      * @internal
      *
-     * Each string from the result, except the test ID and attachment
-     * metadata, has a limit of 1 MiB on the wire. The worker sends the result
-     * in one size-limited frame.
-     *
      * @return array<string, mixed>
      */
     public function toWire(): array
     {
-        $payload = BoundedText::wire([
+        return [
+            'id' => $this->id->toWire(),
             'outcome' => $this->outcome->value,
             'durationSeconds' => $this->durationSeconds,
             'memoryDeltaBytes' => $this->memoryDeltaBytes,
@@ -243,11 +240,6 @@ final readonly class TestResult
             'output' => $this->output?->toWire(),
             'risky' => $this->risky,
             'expectations' => $this->expectations,
-        ]);
-
-        return [
-            'id' => $this->id->toWire(),
-            ...$payload,
             'attachments' => \array_map(
                 static fn(Attachment $attachment): array => $attachment->toWire(),
                 $this->attachments,

@@ -21,9 +21,9 @@ use Greenlight\Test\DataSet\DataSetExpander;
 final class ClassContext
 {
     /**
-     * Resolved data sets, or the expansion failure, for each test method.
+     * Resolved data sets for each test method.
      *
-     * @var array<string, array<array-key, mixed>|DataSetError>
+     * @var array<string, array<array-key, mixed>>
      */
     private array $dataSets = [];
 
@@ -54,7 +54,11 @@ final class ClassContext
         $before = [];
         $after = [];
 
-        foreach (self::hookMethods($reflection) as $method) {
+        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+            if ($method->isStatic() || $method->isAbstract()) {
+                continue;
+            }
+
             if ($method->getAttributes(Before::class) !== []) {
                 $before[] = $method;
             }
@@ -65,44 +69,6 @@ final class ClassContext
         }
 
         return new self($reflection, $before, \array_reverse($after), $providerBudgetSeconds);
-    }
-
-    /**
-     * Returns the public instance methods of the class from the root ancestor
-     * to the class itself. Each class contributes its own methods in
-     * declaration order, then the methods of its traits. An overriding method
-     * takes the place of the class that declares the override.
-     *
-     * @param \ReflectionClass<object> $reflection
-     *
-     * @return list<\ReflectionMethod>
-     */
-    private static function hookMethods(\ReflectionClass $reflection): array
-    {
-        $hierarchy = [$reflection->getName()];
-        $class = $reflection;
-
-        while (($class = $class->getParentClass()) !== false) {
-            \array_unshift($hierarchy, $class->getName());
-        }
-
-        $byDeclaringClass = \array_fill_keys($hierarchy, []);
-
-        foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->isStatic() || $method->isAbstract()) {
-                continue;
-            }
-
-            $byDeclaringClass[$method->getDeclaringClass()->getName()][] = $method;
-        }
-
-        $methods = [];
-
-        foreach ($byDeclaringClass as $declared) {
-            $methods = [...$methods, ...$declared];
-        }
-
-        return $methods;
     }
 
     /**
@@ -126,7 +92,17 @@ final class ClassContext
      */
     public function argumentsFor(?string $provider, ?string $providerClass, string $testMethod, string $key): array
     {
-        $sets = $this->expand($provider, $providerClass, $testMethod);
+        if (!\array_key_exists($testMethod, $this->dataSets)) {
+            $this->dataSets[$testMethod] = new DataSetExpander()->rowsFor(
+                $this->reflection,
+                $testMethod,
+                $provider,
+                $this->providerBudgetSeconds,
+                $providerClass,
+            );
+        }
+
+        $sets = $this->dataSets[$testMethod];
 
         if (!\array_key_exists($key, $sets)) {
             throw WorkerError::dataSetMissing(
@@ -148,44 +124,5 @@ final class ClassContext
         }
 
         return \array_values($value);
-    }
-
-    /**
-     * Expands the data sets of one test method. Each method expands one time.
-     * A later call throws the same expansion failure again.
-     *
-     * Call this method before the timed window of the first data set.
-     *
-     * @param non-empty-string|null $provider
-     * @param non-empty-string|null $providerClass
-     * @param non-empty-string $testMethod
-     *
-     * @return array<array-key, mixed>
-     *
-     * @throws DataSetError
-     */
-    public function expand(?string $provider, ?string $providerClass, string $testMethod): array
-    {
-        if (!\array_key_exists($testMethod, $this->dataSets)) {
-            try {
-                $this->dataSets[$testMethod] = new DataSetExpander()->rowsFor(
-                    $this->reflection,
-                    $testMethod,
-                    $provider,
-                    $this->providerBudgetSeconds,
-                    $providerClass,
-                );
-            } catch (DataSetError $failure) {
-                $this->dataSets[$testMethod] = $failure;
-            }
-        }
-
-        $sets = $this->dataSets[$testMethod];
-
-        if ($sets instanceof DataSetError) {
-            throw $sets;
-        }
-
-        return $sets;
     }
 }

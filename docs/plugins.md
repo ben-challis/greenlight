@@ -735,13 +735,8 @@ Harness providers supply services to test constructors.
 
 Give each service a `PerTest`, `PerClass`, or `PerWorker` scope.
 `PerWorker` means the physical worker lifetime. It does not mean the
-orchestrator-owned integration fixture lifetime.
-
-Services of a final class are lazy. Greenlight constructs such a service only
-when a test uses it. A factory for a type that is not final can return a
-subclass. Greenlight constructs these
-services when it resolves them, so that each method call uses the class that
-the factory returned.
+orchestrator-owned integration fixture lifetime. Services are lazy. Greenlight
+constructs a service only when a test uses it.
 
 If a service implements `Greenlight\Harness\Disposable`, Greenlight calls its
 disposal method when the scope closes. Greenlight uses reverse creation order.

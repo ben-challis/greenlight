@@ -36,10 +36,6 @@ final class OutputCapture
     private ?int $bufferLevel = null;
     private bool $bufferClosed = false;
 
-    /** Contains the call site that closed the capture buffer, if known. */
-    private ?string $closedAtFile = null;
-    private int $closedAtLine = 1;
-
     /** @var (\Closure(int, string, string, int): bool)|null */
     private ?\Closure $errorHandler = null;
 
@@ -73,8 +69,6 @@ final class OutputCapture
         $this->diagnostics = [];
         $this->diagnosticsTruncated = false;
         $this->bufferClosed = false;
-        $this->closedAtFile = null;
-        $this->closedAtLine = 1;
 
         $handler = function (int $severity, string $message, string $file = '', int $line = 0): bool {
             $mapped = DiagnosticSeverity::fromErrorLevel($severity);
@@ -97,9 +91,8 @@ final class OutputCapture
 
     private function handleChunk(string $chunk, int $phase): string
     {
-        if (($phase & \PHP_OUTPUT_HANDLER_FINAL) !== 0 && $this->bufferLevel !== null) {
+        if (($phase & \PHP_OUTPUT_HANDLER_FINAL) !== 0) {
             $this->bufferClosed = true;
-            $this->recordCloseSite();
         }
 
         return $this->appendChunk($chunk);
@@ -109,10 +102,6 @@ final class OutputCapture
      * Stops output capture safely from a finally block after buffer-stack
      * changes. The method does not remove a handler that user code installs
      * during output capture.
-     *
-     * If user code closes the capture buffer, stop() removes each buffer that
-     * user code opened above the level before start(). It keeps their text and
-     * records a warning diagnostic.
      *
      * @throws CaptureError when no capture window is active or a nested buffer cannot be removed
      */
@@ -147,25 +136,12 @@ final class OutputCapture
             }
         } finally {
             try {
-                if (\ob_get_level() === $level) {
-                    if ($this->bufferClosed) {
-                        $this->collectReplacementBuffer();
-                    } else {
-                        \ob_end_clean();
-                    }
+                if (!$this->bufferClosed && \ob_get_level() === $level) {
+                    \ob_end_clean();
                 }
             } finally {
                 $this->restoreErrorHandler();
             }
-        }
-
-        if ($this->bufferClosed) {
-            $this->recordDiagnostic(new Diagnostic(
-                DiagnosticSeverity::Warning,
-                'The test closed the output capture buffer. Output that the test wrote while no buffer was open is not in the result.',
-                $this->closedAtFile ?? '[unknown]',
-                $this->closedAtLine,
-            ));
         }
 
         $scrubbedStdout = Utf8::scrub($this->stdout);
@@ -184,40 +160,6 @@ final class OutputCapture
         $this->diagnostics = [];
 
         return $captured;
-    }
-
-    /**
-     * Removes a buffer that user code opened at the capture level after it
-     * closed the capture buffer. The buffer text becomes captured output.
-     *
-     * @throws CaptureError when the buffer cannot be removed
-     */
-    private function collectReplacementBuffer(): void
-    {
-        $previousLevel = \ob_get_level();
-        $text = ErrorTrap::run(static fn() => \ob_get_clean());
-
-        if (\ob_get_level() >= $previousLevel) {
-            throw CaptureError::nestedBufferCannotBeRemoved();
-        }
-
-        if (\is_string($text)) {
-            $this->appendChunk($text);
-        }
-    }
-
-    private function recordCloseSite(): void
-    {
-        foreach (\debug_backtrace(\DEBUG_BACKTRACE_IGNORE_ARGS, 8) as $frame) {
-            $file = $frame['file'] ?? null;
-
-            if (\is_string($file) && $file !== __FILE__) {
-                $this->closedAtFile = Utf8::scrub($file);
-                $this->closedAtLine = \max(1, $frame['line'] ?? 1);
-
-                return;
-            }
-        }
     }
 
     /**

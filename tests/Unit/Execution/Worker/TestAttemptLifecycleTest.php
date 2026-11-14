@@ -11,22 +11,14 @@ use Greenlight\Doubles\Fake;
 use Greenlight\Execution\Plugin\PluginRuntimeError;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
 use Greenlight\Execution\Worker\Worker;
-use Greenlight\Harness\Scope;
-use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\Plugin;
 use Greenlight\Plugin\TestAttemptEndSubscriber;
 use Greenlight\Plugin\TestContext;
-use Greenlight\Result\DiagnosticSeverity;
 use Greenlight\Result\Outcome;
 use Greenlight\Result\TestResult;
-use Greenlight\Test\DataProvider;
-use Greenlight\Test\ExecutionPolicy;
 use Greenlight\Test\TestDefinition;
 use Greenlight\Test\TestId;
-use Greenlight\Tests\Fixture\Execution\Worker\Attempt\DataSetProbe;
-use Greenlight\Tests\Fixture\Execution\Worker\Attempt\NoisyDisposable;
-use Greenlight\Tests\Fixture\Execution\Worker\Attempt\NoisyTeardownProbe;
 use Greenlight\Tests\Fixture\Execution\Worker\Attempt\PassingProbe;
 use Greenlight\Tests\Fixture\Execution\Worker\Attempt\ThrowingConstructorProbe;
 use Greenlight\Tests\Support\CollectingEventSink;
@@ -94,87 +86,17 @@ final readonly class TestAttemptLifecycleTest
             ->toContain('ended ' . PassingProbe::class . '::passes');
     }
 
-    #[Test]
-    public function captureIncludesCleanupAndTestScopeDisposal(): void
-    {
-        [$result] = $this->run(
-            [new PlanEntry(new TestDefinition(NoisyTeardownProbe::class, 'passes'))],
-            definitions: [
-                new ServiceDefinition(
-                    NoisyDisposable::class,
-                    Scope::PerTest,
-                    static fn(): NoisyDisposable => new NoisyDisposable(),
-                ),
-            ],
-        );
-
-        expect($result->output?->stdout)
-            ->because('cleanup and per-test disposal output MUST be part of the test result')
-            ->toBe('cleanup output;disposal output;');
-        expect($result->output->diagnostics ?? [])->toHaveCount(1);
-        expect($result->output?->diagnostics[0]->severity)
-            ->because('a cleanup warning MUST reach the fail-on-warning policy')
-            ->toBe(DiagnosticSeverity::Warning);
-        expect($result->output?->diagnostics[0]->message)->toBe('cleanup warning');
-    }
-
-    #[Test]
-    public function dataProviderExpansionIsOutsideTheTimedWindow(): void
-    {
-        DataSetProbe::$slowCalls = 0;
-        $definition = new TestDefinition(
-            DataSetProbe::class,
-            'accepts',
-            dataProvider: new DataProvider('slowRows'),
-            execution: new ExecutionPolicy(timeoutSeconds: 0.2),
-        );
-        [$first, $second] = $this->run([
-            new PlanEntry($definition, 'first'),
-            new PlanEntry($definition, 'second'),
-        ]);
-
-        expect($first->outcome)
-            ->because('a slow data provider MUST NOT consume the time limit of the first data set')
-            ->toBe(Outcome::Passed);
-        expect($first->durationSeconds)->toBeLessThan(0.2);
-        expect($second->outcome)->toBe(Outcome::Passed);
-        expect(DataSetProbe::$slowCalls)->toBe(1);
-    }
-
-    #[Test]
-    public function aFailedDataProviderExpandsOnlyOnce(): void
-    {
-        DataSetProbe::$failingCalls = 0;
-        $definition = new TestDefinition(
-            DataSetProbe::class,
-            'accepts',
-            dataProvider: new DataProvider('failingRows'),
-        );
-        [$first, $second] = $this->run([
-            new PlanEntry($definition, 'first'),
-            new PlanEntry($definition, 'second'),
-        ]);
-
-        expect($first->outcome)->toBe(Outcome::Errored);
-        expect($second->outcome)->toBe(Outcome::Errored);
-        expect($second->error?->message)->toBe($first->error?->message);
-        expect(DataSetProbe::$failingCalls)
-            ->because('the worker MUST store a failed expansion for the method')
-            ->toBe(1);
-    }
-
     /**
      * @param list<PlanEntry> $entries
      * @param list<Plugin> $plugins
-     * @param list<ServiceDefinition> $definitions
      *
      * @return list<TestResult>
      */
-    private function run(array $entries, array $plugins = [], array $definitions = []): array
+    private function run(array $entries, array $plugins = []): array
     {
         $sink = new CollectingEventSink();
 
-        new Worker($definitions, WorkerPluginRuntime::fromPlugins($plugins))->run(new ExecutionPlan($entries), $sink);
+        new Worker([], WorkerPluginRuntime::fromPlugins($plugins))->run(new ExecutionPlan($entries), $sink);
 
         return $sink->results();
     }
