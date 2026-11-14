@@ -135,13 +135,13 @@ final class Equality
                 return $value::class . '{...}';
             }
 
-            $properties = self::comparableState($value);
+            $seen[] = $id;
+            $properties = self::comparableState($value, $seen);
 
             if ($properties === null) {
                 return $value::class . '#' . $id;
             }
 
-            $seen[] = $id;
             $parts = [];
             self::requireAcyclicArrays($properties);
             \ksort($properties, \SORT_STRING);
@@ -248,8 +248,8 @@ final class Equality
                 return true;
             }
 
-            $leftState = self::comparableState($a);
-            $rightState = self::comparableState($b);
+            $leftState = self::comparableState($a, [$leftId]);
+            $rightState = self::comparableState($b, [$rightId]);
 
             if ($leftState === null || $rightState === null) {
                 return false;
@@ -267,10 +267,14 @@ final class Equality
      * `ArrayObject` and `GMP` keep their values in native storage. A class with
      * a native ancestor therefore adds a native state source to its properties.
      *
+     * @param list<int> $seen Object IDs already in the conversion stack,
+     *   including the object itself. A storage can reach itself through its
+     *   entries, and this list stops the cycle when the entries get a sort key.
+     *
      * @return array<array-key, mixed>|null Null when the object has no
      *   comparable state. Such objects are equal only to themselves.
      */
-    private static function comparableState(object $value): ?array
+    private static function comparableState(object $value, array $seen): ?array
     {
         [$source, $requiredKeys] = self::$stateSources[$value::class] ??= self::stateSource($value::class);
         $properties = \get_mangled_object_vars($value);
@@ -284,7 +288,7 @@ final class Equality
                 ],
                 self::STATE_OBJECT_STORAGE => [
                     'properties' => $properties,
-                    'native' => self::storageEntries($value),
+                    'native' => self::storageEntries($value, $seen),
                 ],
                 self::STATE_HEAP => [
                     'properties' => $properties,
@@ -382,9 +386,11 @@ final class Equality
      * Returns the object and data pairs in a canonical order. A storage is a
      * set, so the attach order has no effect on equality.
      *
+     * @param list<int> $seen Object IDs already in the conversion stack
+     *
      * @return list<array{object, mixed}>
      */
-    private static function storageEntries(object $value): array
+    private static function storageEntries(object $value, array $seen): array
     {
         if (!$value instanceof \SplObjectStorage) {
             throw new \LogicException('An object storage must extend SplObjectStorage.'); // @codeCoverageIgnore
@@ -398,7 +404,7 @@ final class Equality
         foreach ($copy as $object) {
             $entry = [$object, $copy->getInfo()];
             $entries[] = $entry;
-            $keys[] = self::sortKey($entry, []);
+            $keys[] = self::sortKey($entry, $seen);
         }
 
         \asort($keys, \SORT_STRING);

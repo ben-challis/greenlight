@@ -62,6 +62,24 @@ final class NativeObjectEqualityTest
     }
 
     #[Test]
+    public function objectStoragesThatContainThemselvesCompare(): void
+    {
+        expect($this->storageThatContainsItself('a'))
+            ->because('a storage that contains itself MUST compare without endless recursion')
+            ->toEqual($this->storageThatContainsItself('a'));
+        expect($this->storageThatContainsItself('a'))->not()->toEqual($this->storageThatContainsItself('b'));
+    }
+
+    #[Test]
+    public function objectStoragesThatReachThemselvesThroughAnEntryCompare(): void
+    {
+        expect($this->storageThatAnEntryRefersTo('a'))
+            ->because('a storage that an entry refers back to MUST compare without endless recursion')
+            ->toEqual($this->storageThatAnEntryRefersTo('a'));
+        expect($this->storageThatAnEntryRefersTo('a'))->not()->toEqual($this->storageThatAnEntryRefersTo('b'));
+    }
+
+    #[Test]
     public function fixedArraysCompareTheirElements(): void
     {
         $this->expectStateComparison(
@@ -225,6 +243,26 @@ final class NativeObjectEqualityTest
     {
         $storage = new \SplObjectStorage();
         $storage[$key] = $data;
+
+        return $storage;
+    }
+
+    /** @return \SplObjectStorage<object, string> */
+    private function storageThatContainsItself(string $data): \SplObjectStorage
+    {
+        $storage = new \SplObjectStorage();
+        $storage[$storage] = $data;
+
+        return $storage;
+    }
+
+    /** @return \SplObjectStorage<object, string> */
+    private function storageThatAnEntryRefersTo(string $data): \SplObjectStorage
+    {
+        $storage = new \SplObjectStorage();
+        $entry = new \stdClass();
+        $entry->owner = $storage;
+        $storage[$entry] = $data;
 
         return $storage;
     }
