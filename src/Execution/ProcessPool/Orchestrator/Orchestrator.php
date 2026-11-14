@@ -530,13 +530,15 @@ final class Orchestrator
             $readyAt = $this->monotonicTime();
             $handle->timing->ready($readyAt);
 
-            if (!$this->initialBarrierPassed) {
+            if ($this->initialBarrierPassed || $this->draining) {
+                // Progressive initial workers and replacements can
+                // start as soon as their own bootstrap completes. During a
+                // drain, the barrier can stay closed. Thus, assignNext()
+                // drains this worker.
+                $this->assignNext($handle, $sink);
+            } else {
                 $handle->timing->wait(WorkerIdleReason::BootstrapBarrier, $readyAt);
                 $this->openInitialBarrier($sink);
-            } else {
-                // Progressive initial workers and replacements can
-                // start as soon as their own bootstrap completes.
-                $this->assignNext($handle, $sink);
             }
         } elseif ($message instanceof Done) {
             $at = $this->monotonicTime();

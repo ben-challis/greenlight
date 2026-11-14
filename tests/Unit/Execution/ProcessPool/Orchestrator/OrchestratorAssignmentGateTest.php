@@ -7,9 +7,16 @@ namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\TestStarted;
+use Greenlight\Execution\ProcessPool\Orchestrator\InitialWorkerAssignment;
 use Greenlight\Execution\ProcessPool\Orchestrator\Orchestrator;
+use Greenlight\Execution\ProcessPool\Orchestrator\OrchestratorConfiguration;
+use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\Bootstrap;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\Drain;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\EventEnvelope;
+use Greenlight\Execution\ProcessPool\Protocol\Messages\Ready;
+use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\PlanEntryFixture;
 use Greenlight\Tests\Support\ReactiveWorkerTransport;
@@ -18,6 +25,46 @@ use function Greenlight\expect;
 
 final readonly class OrchestratorAssignmentGateTest
 {
+    #[Test]
+    public function aShutdownBeforeTheLastInitialHelloDrainsTheLateWorker(): void
+    {
+        $shutdown = new GracefulShutdown();
+        $transport = new ReactiveWorkerTransport(
+            static function (ReactiveWorkerTransport $transport, string $workerId): void {
+                if ($workerId === 'w-1') {
+                    $transport->hello($workerId);
+                }
+            },
+            static function (ReactiveWorkerTransport $transport, string $workerId, Message $message) use ($shutdown): void {
+                if ($message instanceof Bootstrap) {
+                    $transport->message($workerId, new Ready());
+
+                    if ($workerId === 'w-1') {
+                        // The signal arrives after the first hello and before the second.
+                        $shutdown->request(\SIGINT);
+                        $transport->hello('w-2');
+                    }
+                } elseif ($message instanceof Drain) {
+                    $transport->disconnect($workerId);
+                }
+            },
+            pollLimit: 500,
+        );
+        $orchestrator = new Orchestrator($transport, new OrchestratorConfiguration(
+            shutdown: $shutdown,
+            initialWorkerAssignment: InitialWorkerAssignment::AfterAllReady,
+        ));
+
+        $summary = $orchestrator->run($this->plan(2), new CollectingEventSink(), 2);
+
+        expect($summary->total())
+            ->because('a shutdown before the barrier opens MUST NOT start tests')
+            ->toBe(0);
+        expect($transport->log)
+            ->because('the worker that becomes ready during the drain MUST receive a drain')
+            ->toContain('w-2 drain');
+    }
+
     #[Test]
     public function aReplacementWorkerDoesNotCloseTheInitialBarrier(): void
     {
