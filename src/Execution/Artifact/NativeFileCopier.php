@@ -8,9 +8,11 @@ use Greenlight\Artifact\AttachmentError;
 use Greenlight\Internal\Php\ErrorTrap;
 
 /**
- * Moves a staged regular file with `rename()` when the source and destination
- * are on the same device. Otherwise, it copies the content into a new regular
- * file and calculates the digest during the copy.
+ * Links a staged regular file with `link()` when the source and destination
+ * are on the same device. The staged file stays until publication succeeds,
+ * so crash recovery can still read it. Otherwise, or when the filesystem
+ * rejects the link, the copier copies the content into a new regular file and
+ * calculates the digest during the copy.
  *
  * @internal
  */
@@ -24,8 +26,8 @@ final readonly class NativeFileCopier implements FileCopier
     #[\Override]
     public function copy(string $sourcePath, string $destinationPath): string
     {
-        if ($this->movable($sourcePath, $destinationPath)
-            && ErrorTrap::run(static fn() => \rename($sourcePath, $destinationPath))
+        if ($this->linkable($sourcePath, $destinationPath)
+            && ErrorTrap::run(static fn() => \link($sourcePath, $destinationPath))
         ) {
             $digest = ErrorTrap::run(static fn() => \hash_file('sha256', $destinationPath));
 
@@ -79,12 +81,11 @@ final readonly class NativeFileCopier implements FileCopier
     }
 
     /**
-     * Tells whether `rename()` can move the source without a copy. The source
-     * must be a regular file, not a symbolic link, on the same device as the
-     * destination directory. Across devices, `rename()` copies the file
-     * itself, so a copy that calculates the digest reads the content once.
+     * Tells whether `link()` can publish the source without a copy. The
+     * source must be a regular file, not a symbolic link, on the same device
+     * as the destination directory.
      */
-    private function movable(string $sourcePath, string $destinationPath): bool
+    private function linkable(string $sourcePath, string $destinationPath): bool
     {
         $source = ErrorTrap::run(static fn() => \lstat($sourcePath));
         $directory = ErrorTrap::run(static fn() => \stat(\dirname($destinationPath)));

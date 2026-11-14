@@ -137,7 +137,7 @@ final readonly class ArtifactContentVerificationTest
     }
 
     #[Test]
-    public function aFailedRenameFallsBackToACopyWithItsDigest(): void
+    public function aSourceThatCannotBeLinkedIsCopiedWithItsDigest(): void
     {
         $destination = $this->tempDirectory->subdirectory('copy-digest') . '/destination.txt';
 
@@ -150,17 +150,20 @@ final readonly class ArtifactContentVerificationTest
     }
 
     #[Test]
-    public function aRenameMovesTheSourceAndReturnsItsDigest(): void
+    public function aSameDeviceSourceIsLinkedAndKept(): void
     {
-        $directory = $this->tempDirectory->subdirectory('rename-digest');
+        $directory = $this->tempDirectory->subdirectory('link-digest');
         \file_put_contents($directory . '/source.txt', 'evidence');
 
         $digest = new NativeFileCopier()->copy($directory . '/source.txt', $directory . '/destination.txt');
 
         expect($digest)->toBe(\hash('sha256', 'evidence'));
-        expect(\file_exists($directory . '/source.txt'))
-            ->because('the copier MUST move a source on the same filesystem')
-            ->toBeFalse();
+        expect(\file_get_contents($directory . '/source.txt'))
+            ->because('the staged file MUST stay until publication succeeds')
+            ->toBe('evidence');
+        expect(\fileinode($directory . '/destination.txt'))
+            ->because('a source on the same device MUST be linked, not copied')
+            ->toBe(\fileinode($directory . '/source.txt'));
     }
 
     private function retention(

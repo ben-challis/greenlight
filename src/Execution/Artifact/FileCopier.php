@@ -15,7 +15,7 @@ interface FileCopier
 {
     /**
      * Puts the source content at the destination path. The implementation can
-     * move the source instead of a copy.
+     * create a hard link instead of a copy. The source stays in place.
      *
      * @return non-empty-string The SHA-256 digest of the destination content.
      *   A copy calculates the digest from the bytes that it writes.
