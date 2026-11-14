@@ -551,4 +551,5 @@ Therefore, it does not recognize an aliased import
 The PHPUnit comment annotations work without changes. Put
 `@codeCoverageIgnore` in a docblock before a declaration. Put
 `@codeCoverageIgnoreStart` and `@codeCoverageIgnoreEnd` around a block. Put
-`// @codeCoverageIgnore` at the end of one line.
+`// @codeCoverageIgnore` at the end of one line. A comment after code on its
+line ignores only that line. It does not ignore the next declaration.
