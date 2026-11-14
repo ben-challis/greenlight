@@ -8,6 +8,7 @@ use Greenlight\Artifact\AttachmentError;
 use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Discovery\Plan\ExecutionPlan;
+use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Event\Event;
 use Greenlight\Event\EventSink;
 use Greenlight\Event\TestFinished;
@@ -927,7 +928,7 @@ final class Orchestrator
         foreach ($ids as $id) {
             $entry = $this->ledger->entry($id);
 
-            if ($entry === null) {
+            if (!$entry instanceof PlanEntry) {
                 continue;
             }
 
