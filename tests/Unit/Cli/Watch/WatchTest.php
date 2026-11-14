@@ -140,6 +140,12 @@ final readonly class WatchTest
             {
                 return null;
             }
+
+            #[\Override]
+            public function discardPending(): bool
+            {
+                return false;
+            }
         };
         $clock = new FakeWatchClock();
         $output = '';
@@ -195,6 +201,12 @@ final readonly class WatchTest
 
                 return 'q';
             }
+
+            #[\Override]
+            public function discardPending(): bool
+            {
+                return false;
+            }
         };
 
         new WatchLoop(
@@ -233,6 +245,12 @@ final readonly class WatchTest
             public function poll(): ?string
             {
                 Fail::because('Watch mode MUST not poll for keys after a shutdown request.');
+            }
+
+            #[\Override]
+            public function discardPending(): bool
+            {
+                return false;
             }
         };
         $shutdown = new GracefulShutdown();
@@ -299,6 +317,12 @@ final readonly class WatchTest
                     11 => 'q',
                     default => null,
                 };
+            }
+
+            #[\Override]
+            public function discardPending(): bool
+            {
+                return false;
             }
         };
 

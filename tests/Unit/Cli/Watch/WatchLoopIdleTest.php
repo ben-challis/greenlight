@@ -34,6 +34,12 @@ final class WatchLoopIdleTest
             {
                 return ++$this->polls === 2 ? 'q' : null;
             }
+
+            #[\Override]
+            public function discardPending(): bool
+            {
+                return false;
+            }
         };
         $clock = new FakeWatchClock();
         $runs = 0;
