@@ -8,24 +8,17 @@ use Greenlight\Attribute\After;
 use Greenlight\Attribute\Before;
 use Greenlight\Attribute\NoExpectations;
 use Greenlight\Attribute\Test;
-use Greenlight\Expect\Expect;
 use PhpParser\Comment\Doc;
 use PhpParser\Modifiers;
 use PhpParser\Node;
-use PhpParser\Node\Arg;
 use PhpParser\Node\Attribute;
 use PhpParser\Node\Expr;
-use PhpParser\Node\Expr\ArrowFunction;
-use PhpParser\Node\Expr\ClassConstFetch;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\NullsafeMethodCall;
 use PhpParser\Node\Expr\StaticCall;
-use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
-use PhpParser\Node\Name\FullyQualified;
-use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
@@ -68,6 +61,9 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     ];
 
     private bool $dropAssertionMessages = false;
+
+    private ?ThrowBlockPlanner $throwBlockPlanner = null;
+
 
     private ?PhpUnitAttributeConverter $attributeConverter = null;
 
@@ -183,7 +179,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         $hookOrder = ['before' => [], 'after' => []];
         $tests = [];
         $noExpectations = [];
-        $throwRewrites = [];
+        $statements = [];
         $sanctioned = [];
 
         foreach ($class->getMethods() as $method) {
@@ -236,14 +232,14 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             }
 
             $tests[] = $name;
-            $rewrite = $this->planThrowRewrite($method, $sanctioned);
+            $rewritten = $this->throwBlockPlanner()->plan($method, $sanctioned);
 
-            if ($rewrite === false) {
+            if ($rewritten === false) {
                 return null;
             }
 
-            if ($rewrite instanceof ThrowRewrite) {
-                $throwRewrites[$name] = $rewrite;
+            if (\is_array($rewritten)) {
+                $statements[\spl_object_id($method)] = $rewritten;
             }
 
             $noAssertions = $this->planNoAssertions($method, $sanctioned);
@@ -274,7 +270,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
         return $calls === null
             ? null
-            : new ClassPlan($attributeGroups, $hooks, $tests, $noExpectations, $throwRewrites, $calls);
+            : new ClassPlan($attributeGroups, $hooks, $tests, $noExpectations, $statements, $calls);
     }
 
     private function convert(Class_ $class, ClassPlan $plan): void
@@ -293,10 +289,8 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             }
 
             if (\in_array($name, $plan->tests, true)) {
-                $rewrite = $plan->throwRewrites[$name] ?? null;
-
-                if ($rewrite instanceof ThrowRewrite) {
-                    $this->applyThrowRewrite($method, $rewrite);
+                if (isset($plan->statements[\spl_object_id($method)])) {
+                    $method->stmts = $plan->statements[\spl_object_id($method)];
                 }
 
                 if (\in_array($name, $plan->noExpectations, true)) {
@@ -424,101 +418,6 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     }
 
     /**
-     * Validates the expectException block. The calls must sit consecutively
-     * at the top level. The method body ends with one expression statement,
-     * and that statement becomes the toThrow() subject.
-     *
-     * @param array<int, true> $sanctioned
-     */
-    private function planThrowRewrite(ClassMethod $method, array &$sanctioned): ThrowRewrite|false|null
-    {
-        $stmts = $method->stmts ?? [];
-        $found = [];
-
-        foreach ($stmts as $index => $stmt) {
-            $call = $stmt instanceof Expression ? $stmt->expr : null;
-
-            if (!$call instanceof MethodCall && !$call instanceof StaticCall) {
-                continue;
-            }
-
-            if (!OwnCallClassifier::isSelfReceiver($call)) {
-                continue;
-            }
-
-            $name = $call->name instanceof Identifier ? $call->name->toLowerString() : null;
-
-            if ($name !== null && \in_array($name, OwnCallClassifier::EXPECT_EXCEPTION_METHODS, true)) {
-                $found[$index] = [$name, $call];
-            }
-        }
-
-        if ($found === []) {
-            return null;
-        }
-
-        $indices = \array_keys($found);
-        $first = \min($indices);
-
-        if ($indices !== \range($first, \max($indices))) {
-            return false;
-        }
-
-        if (\max($indices) !== \count($stmts) - 2 || !$stmts[\count($stmts) - 1] instanceof Expression) {
-            return false;
-        }
-
-        $exception = null;
-        $matching = null;
-
-        foreach ($found as [$name, $call]) {
-            $arguments = OwnCallClassifier::positionalArgs($call->args);
-
-            if ($arguments === null || \count($arguments) !== 1) {
-                return false;
-            }
-
-            $value = $arguments[0]->value;
-
-            if ($name === 'expectexception') {
-                if ($exception instanceof Expr) {
-                    return false;
-                }
-
-                $exception = $value;
-
-                continue;
-            }
-
-            if ($matching instanceof Expr) {
-                return false;
-            }
-
-            if ($name === 'expectexceptionmessage') {
-                // PHPUnit checks the message for a substring. The toThrow()
-                // message constraint is exact, so the rule writes a quoted
-                // regex.
-                if (!$value instanceof String_) {
-                    return false;
-                }
-
-                $matching = new String_('/' . \preg_quote($value->value, '/') . '/');
-
-                continue;
-            }
-
-            $matching = $value;
-        }
-
-        foreach ($found as [, $call]) {
-            $sanctioned[\spl_object_id($call)] = true;
-        }
-
-        /** @var int<0, max> $first */
-        return new ThrowRewrite($first, $exception, $matching);
-    }
-
-    /**
      * @param array<int, true> $sanctioned
      */
     private function planNoAssertions(ClassMethod $method, array &$sanctioned): ?bool
@@ -587,51 +486,6 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         ));
     }
 
-    private function applyThrowRewrite(ClassMethod $method, ThrowRewrite $rewrite): void
-    {
-        $stmts = $method->stmts ?? [];
-
-        if ($stmts === []) {
-            return;
-        }
-
-        $act = $stmts[\count($stmts) - 1];
-
-        if (!$act instanceof Expression) {
-            return;
-        }
-
-        $finder = new NodeFinder();
-        $usesThis = $finder->findFirst(
-            [$act->expr],
-            static fn(Node $node): bool => $node instanceof Variable && $node->name === 'this',
-        ) instanceof Node;
-
-        $subject = new ArrowFunction([
-            'static' => !$usesThis,
-            'params' => [],
-            'expr' => $act->expr,
-        ]);
-
-        $exception = $rewrite->exception ?? new ClassConstFetch(new FullyQualified('Throwable'), 'class');
-        $toThrowArgs = [new Arg($exception)];
-
-        if ($rewrite->matching instanceof Expr) {
-            $toThrowArgs[] = new Arg($rewrite->matching, name: new Identifier('matching'));
-        }
-
-        $expectation = new MethodCall(
-            new StaticCall(new FullyQualified(Expect::class), 'calling', [new Arg($subject)]),
-            'toThrow',
-            $toThrowArgs,
-        );
-
-        $method->stmts = [
-            ...\array_slice($stmts, 0, $rewrite->firstExpectationIndex),
-            new Expression($expectation),
-        ];
-    }
-
     /**
      * @param array<int, true> $sanctioned
      *
@@ -676,5 +530,10 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     private function attributeConverter(): PhpUnitAttributeConverter
     {
         return $this->attributeConverter ??= new PhpUnitAttributeConverter($this->nodeNameResolver, $this->nodeTypeResolver);
+    }
+
+    private function throwBlockPlanner(): ThrowBlockPlanner
+    {
+        return $this->throwBlockPlanner ??= new ThrowBlockPlanner();
     }
 }
