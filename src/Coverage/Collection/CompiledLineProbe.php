@@ -212,15 +212,18 @@ final readonly class CompiledLineProbe implements ExecutableLineProbe
             $settings[] = 'xdebug.mode=coverage';
         } else {
             $settings[] = 'pcov.enabled=1';
-            $settings[] = 'pcov.directory=' . self::commonDirectory($files);
+            $settings[] = 'pcov.directory=' . $this->commonDirectory($files);
         }
 
         foreach ($settings as $setting) {
             $command[] = '-d';
             $command[] = $setting;
         }
-
-        \array_push($command, '-r', self::SCRIPT, '--', $list, $this->driver);
+        $command[] = '-r';
+        $command[] = self::SCRIPT;
+        $command[] = '--';
+        $command[] = $list;
+        $command[] = $this->driver;
 
         $environment = \getenv();
 
@@ -254,7 +257,7 @@ final readonly class CompiledLineProbe implements ExecutableLineProbe
     /**
      * @param non-empty-list<non-empty-string> $files
      */
-    private static function commonDirectory(array $files): string
+    private function commonDirectory(array $files): string
     {
         $common = \explode('/', \dirname($files[0]));
 

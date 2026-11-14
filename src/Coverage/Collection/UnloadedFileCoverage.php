@@ -41,12 +41,12 @@ final readonly class UnloadedFileCoverage
         $known = [];
 
         foreach ($map->files() as $file) {
-            $known[self::realPath($file->file) ?? $file->file] = true;
+            $known[$this->realPath($file->file) ?? $file->file] = true;
         }
 
         $missing = [];
 
-        foreach (self::sourceFiles($includePaths) as $file) {
+        foreach ($this->sourceFiles($includePaths) as $file) {
             if (!isset($known[$file])) {
                 $missing[] = $file;
             }
@@ -64,14 +64,14 @@ final readonly class UnloadedFileCoverage
      *
      * @return list<non-empty-string> sorted real paths
      */
-    private static function sourceFiles(array $includePaths): array
+    private function sourceFiles(array $includePaths): array
     {
         $filter = new PathFilter($includePaths);
         $files = [];
 
         foreach ($includePaths as $path) {
-            foreach (self::candidates($path) as $candidate) {
-                $real = self::realPath($candidate);
+            foreach ($this->candidates($path) as $candidate) {
+                $real = $this->realPath($candidate);
 
                 if ($real !== null && \str_ends_with($real, '.php') && $filter->accepts($real)) {
                     $files[$real] = true;
@@ -88,7 +88,7 @@ final readonly class UnloadedFileCoverage
     /**
      * @return iterable<string>
      */
-    private static function candidates(string $path): iterable
+    private function candidates(string $path): iterable
     {
         if (!ErrorTrap::run(static fn() => \is_dir($path))) {
             return [];
@@ -118,7 +118,7 @@ final readonly class UnloadedFileCoverage
     /**
      * @return non-empty-string|null
      */
-    private static function realPath(string $path): ?string
+    private function realPath(string $path): ?string
     {
         $real = ErrorTrap::run(static fn() => \realpath($path));
 

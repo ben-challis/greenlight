@@ -57,7 +57,7 @@ final readonly class FileDeltaTest
         expect(new FileDelta('/src/A.php', null, 0.0, null, 5)->regressed())
             ->because('an added file MUST NOT regress')
             ->toBeFalse();
-        expect(new FileDelta('/src/A.php', 100.0, null, 0, null)->regressed())
+        expect(new FileDelta('/src/A.php', 100.0, null, 0)->regressed())
             ->because('a removed file MUST NOT regress')
             ->toBeFalse();
     }

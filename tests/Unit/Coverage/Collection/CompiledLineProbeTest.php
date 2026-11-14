@@ -43,7 +43,7 @@ final readonly class CompiledLineProbeTest
     #[SkipUnless(ExtensionLoaded::class, 'pcov')]
     public function pcovProbeLinesMatchTheLinesOfALoadedFile(): void
     {
-        $file = self::sample();
+        $file = $this->sample();
 
         $this->assertProbeMatchesLoadedFile(
             'pcov',
@@ -60,11 +60,11 @@ final readonly class CompiledLineProbeTest
         $real = \realpath($broken);
         \assert(\is_string($real));
 
-        $map = new CompiledLineProbe('xdebug', $this->temporaryDirectory->path())->measure([$real, self::sample()]);
+        $map = new CompiledLineProbe('xdebug', $this->temporaryDirectory->path())->measure([$real, $this->sample()]);
 
         expect(\array_keys($map->files()))
             ->because('the probe MUST skip a broken file and measure the other files')
-            ->toBe([self::sample()]);
+            ->toBe([$this->sample()]);
     }
 
     /**
@@ -73,8 +73,8 @@ final readonly class CompiledLineProbeTest
      */
     private function assertProbeMatchesLoadedFile(string $driver, array $arguments): void
     {
-        $file = self::sample();
-        $loaded = self::loadedCoverage($arguments, $file)->files()[$file] ?? null;
+        $file = $this->sample();
+        $loaded = $this->loadedCoverage($arguments, $file)->files()[$file] ?? null;
         $probed = new CompiledLineProbe($driver, $this->temporaryDirectory->path())->measure([$file])->files()[$file] ?? null;
 
         expect($loaded)->because('the driver MUST report the loaded sample file')->not()->toBeNull();
@@ -95,7 +95,7 @@ final readonly class CompiledLineProbeTest
     /**
      * @param list<string> $arguments
      */
-    private static function loadedCoverage(array $arguments, string $file): CoverageMap
+    private function loadedCoverage(array $arguments, string $file): CoverageMap
     {
         $command = [\PHP_BINARY, ...$arguments, '--', $file];
         $process = \proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
@@ -117,7 +117,7 @@ final readonly class CompiledLineProbeTest
     /**
      * @return non-empty-string
      */
-    private static function sample(): string
+    private function sample(): string
     {
         $file = \realpath(\dirname(__DIR__, 3) . '/Fixture/CoverageProbe/ProbeSample.php');
         \assert(\is_string($file));
