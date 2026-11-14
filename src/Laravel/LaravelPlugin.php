@@ -11,10 +11,10 @@ use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
 use Greenlight\Harness\ServiceSource;
 use Greenlight\Internal\Php\ErrorTrap;
-use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
-use Greenlight\Plugin\TestContext;
-use Greenlight\Result\TestResult;
+use Greenlight\Plugin\TestAttemptEndSubscriber;
+use Greenlight\Test\TestDefinition;
+use Greenlight\Test\TestId;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Foundation\Bootstrap\HandleExceptions;
@@ -27,7 +27,7 @@ use Illuminate\Foundation\Bootstrap\RegisterProviders;
  * `#[Service]` selects a binding ID or a named source. Isolate external test resources
  * by `GREENLIGHT_CHANNEL`.
  */
-final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver, ServiceSource
+final class LaravelPlugin implements HarnessProvider, ServiceResolver, ServiceSource, TestAttemptEndSubscriber
 {
     /** @var non-empty-string|null */
     private readonly ?string $source;
@@ -145,15 +145,13 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     }
 
     #[\Override]
-    public function afterTest(TestContext $context, TestResult $result): TestResult
+    public function testAttemptEnded(TestId $id, TestDefinition $definition): void
     {
         if (!$this->refreshBetweenTests || !$this->app instanceof Application) {
-            return $result;
+            return;
         }
 
         $this->releaseApplication();
-
-        return $result;
     }
 
     /**

@@ -10,13 +10,14 @@ use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceSource;
 use Greenlight\Harness\TerminalServiceResolver;
-use Greenlight\Plugin\AfterTestSubscriber;
 use Greenlight\Plugin\BeforeTestSubscriber;
 use Greenlight\Plugin\HarnessProvider;
+use Greenlight\Plugin\TestAttemptEndSubscriber;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\WorkerBootstrapContext;
 use Greenlight\Plugin\WorkerBootstrapSubscriber;
-use Greenlight\Result\TestResult;
+use Greenlight\Test\TestDefinition;
+use Greenlight\Test\TestId;
 use Tempest\Container\Container;
 use Tempest\Container\GenericContainer;
 use Tempest\Core\FrameworkKernel;
@@ -35,7 +36,7 @@ use Tempest\Http\Request;
  * a tagged Tempest binding.
  * Isolate external test resources by `GREENLIGHT_CHANNEL`.
  */
-final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, ServiceSource, TerminalServiceResolver, WorkerBootstrapSubscriber
+final class TempestPlugin implements BeforeTestSubscriber, HarnessProvider, ServiceSource, TerminalServiceResolver, TestAttemptEndSubscriber, WorkerBootstrapSubscriber
 {
     /** @var non-empty-string|null */
     private readonly ?string $source;
@@ -141,10 +142,10 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
      * @throws ServiceResolutionFailed
      */
     #[\Override]
-    public function afterTest(TestContext $context, TestResult $result): TestResult
+    public function testAttemptEnded(TestId $id, TestDefinition $definition): void
     {
         if (!$this->kernel instanceof FrameworkKernel) {
-            return $result;
+            return;
         }
 
         try {
@@ -156,8 +157,6 @@ final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, 
         } finally {
             $this->restoreProcessState();
         }
-
-        return $result;
     }
 
     /**

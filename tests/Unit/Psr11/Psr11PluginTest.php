@@ -9,10 +9,13 @@ use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceResolutionFailed;
-use Greenlight\Plugin\TestContext;
 use Greenlight\Psr11\Psr11BridgeError;
 use Greenlight\Psr11\Psr11Plugin;
-use Greenlight\Result\TestResult;
+use Greenlight\Result\Outcome;
+use Greenlight\Tests\Fixture\BridgeAttemptEnd\AttemptCounter;
+use Greenlight\Tests\Fixture\BridgeAttemptEnd\Psr11FreshContainerProbe;
+use Greenlight\Tests\Fixture\BridgeAttemptEnd\Psr11ThrowingConstructorProbe;
+use Greenlight\Tests\Support\BridgeAttemptRun;
 use Greenlight\Tests\Support\PluginLifecycle;
 use Greenlight\Tests\Support\Psr11\ArrayContainer;
 use Greenlight\Tests\Support\Psr11\Greeter;
@@ -185,7 +188,7 @@ final readonly class Psr11PluginTest
         });
         $first = $plugin->resolve(Greeter::class, []);
 
-        $plugin->afterTest($this->context(), $this->result());
+        $this->endAttempt($plugin);
 
         expect($plugin->resolve(Greeter::class, []))->not()->toBe($first);
         expect($created)->toBe(2);
@@ -205,7 +208,7 @@ final readonly class Psr11PluginTest
         );
         $first = $plugin->resolve(Greeter::class, []);
 
-        $plugin->afterTest($this->context(), $this->result());
+        $this->endAttempt($plugin);
 
         expect($plugin->resolve(Greeter::class, []))->toBe($first);
         expect($created)->toBe(1);
@@ -224,7 +227,7 @@ final readonly class Psr11PluginTest
         );
         $this->containerFrom($plugin);
 
-        $plugin->afterTest($this->context(), $this->result());
+        $this->endAttempt($plugin);
 
         expect($resetContainer)->toBe($container);
     }
@@ -242,8 +245,8 @@ final readonly class Psr11PluginTest
         );
         $this->containerFrom($plugin);
 
-        $plugin->afterTest($this->context(), $this->result());
-        $plugin->afterTest($this->context(), $this->result());
+        $this->endAttempt($plugin);
+        $this->endAttempt($plugin);
 
         expect($resets)
             ->because('an active shared container MUST reset after each test attempt')
@@ -270,7 +273,7 @@ final readonly class Psr11PluginTest
         $error = null;
 
         try {
-            $plugin->afterTest($this->context(), $this->result());
+            $this->endAttempt($plugin);
         } catch (Psr11BridgeError $caught) {
             $error = $caught;
         }
@@ -303,7 +306,7 @@ final readonly class Psr11PluginTest
         $plugin->resolve(Greeter::class, []);
 
         try {
-            $plugin->afterTest($this->context(), $this->result());
+            $this->endAttempt($plugin);
         } catch (Psr11BridgeError $error) {
             expect($error->getPrevious())->toBe($failure);
         }
@@ -417,7 +420,7 @@ final readonly class Psr11PluginTest
     }
 
     #[Test]
-    public function afterTestWithoutAnActiveContainerIsANoOp(): void
+    public function attemptEndWithoutAnActiveContainerIsANoOp(): void
     {
         $created = false;
         $plugin = new Psr11Plugin(static function () use (&$created): ContainerInterface {
@@ -425,9 +428,8 @@ final readonly class Psr11PluginTest
 
             return new ArrayContainer([]);
         });
-        $result = $this->result();
 
-        expect($plugin->afterTest($this->context(), $result))->toBe($result);
+        expect()->calling(fn() => $this->endAttempt($plugin))->not()->toThrow(\Throwable::class);
         expect($created)->toBeFalse();
     }
 
@@ -452,6 +454,24 @@ final readonly class Psr11PluginTest
         });
 
         expect()->calling(static fn(): ?object => $plugin->resolve(Greeter::class, []))->toThrow($failure);
+    }
+
+    #[Test]
+    public function aConstructorFailureStillReleasesTheContainer(): void
+    {
+        $plugin = new Psr11Plugin(static fn(): ContainerInterface => new ArrayContainer([
+            AttemptCounter::class => new AttemptCounter(),
+        ]));
+
+        [$failed, $next] = BridgeAttemptRun::run($plugin, [
+            [Psr11ThrowingConstructorProbe::class, 'neverRuns'],
+            [Psr11FreshContainerProbe::class, 'seesAFreshService'],
+        ]);
+
+        expect($failed->error?->message)->toBe('constructor failed');
+        expect($next->outcome)
+            ->because($next->failures[0]->message ?? 'the next test MUST receive a fresh service')
+            ->toBe(Outcome::Passed);
     }
 
     /**
@@ -496,13 +516,9 @@ final readonly class Psr11PluginTest
         throw new \LogicException('The PSR-11 operation did not fail.');
     }
 
-    private function context(): TestContext
+    private function endAttempt(Psr11Plugin $plugin): void
     {
-        return PluginLifecycle::context();
-    }
-
-    private function result(): TestResult
-    {
-        return PluginLifecycle::passedResult();
+        $context = PluginLifecycle::context();
+        $plugin->testAttemptEnded($context->id, $context->definition);
     }
 }

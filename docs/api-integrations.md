@@ -166,7 +166,7 @@ By default, Greenlight releases the application after each test attempt.
 by `GREENLIGHT_CHANNEL`.
 
 ```php
-final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver, ServiceSource
+final class LaravelPlugin implements HarnessProvider, ServiceResolver, ServiceSource, TestAttemptEndSubscriber
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L30)
@@ -225,10 +225,10 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L110)
 
-### `afterTest()`
+### `testAttemptEnded()`
 
 ```php
-public function afterTest(TestContext $context, TestResult $result): TestResult
+public function testAttemptEnded(TestId $id, TestDefinition $definition): void
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Laravel/LaravelPlugin.php#L148)
@@ -244,7 +244,7 @@ plugin discards the container after each test that uses it.
 `GREENLIGHT_CHANNEL`.
 
 ```php
-final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver, ServiceSource
+final class Psr11Plugin implements HarnessProvider, ServiceResolver, ServiceSource, TestAttemptEndSubscriber
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L26)
@@ -303,10 +303,10 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L112)
 
-### `afterTest()`
+### `testAttemptEnded()`
 
 ```php
-public function afterTest(TestContext $context, TestResult $result): TestResult
+public function testAttemptEnded(TestId $id, TestDefinition $definition): void
 ```
 
 PHPDoc:
@@ -555,7 +555,7 @@ service keeps state between tests, do not disable resets.
 resources with `GREENLIGHT_CHANNEL`.
 
 ```php
-final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, ServiceResolver, ServiceSource
+final class SymfonyPlugin implements HarnessProvider, ServiceResolver, ServiceSource, TestAttemptEndSubscriber
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L32)
@@ -615,10 +615,10 @@ PHPDoc:
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L106)
 
-### `afterTest()`
+### `testAttemptEnded()`
 
 ```php
-public function afterTest(TestContext $context, TestResult $result): TestResult
+public function testAttemptEnded(TestId $id, TestDefinition $definition): void
 ```
 
 [View source](https://github.com/ben-challis/greenlight/blob/main/src/Symfony/SymfonyPlugin.php#L144)
@@ -636,10 +636,10 @@ a tagged Tempest binding.
 Isolate external test resources by `GREENLIGHT_CHANNEL`.
 
 ```php
-final class TempestPlugin implements AfterTestSubscriber, BeforeTestSubscriber, HarnessProvider, ServiceSource, TerminalServiceResolver, WorkerBootstrapSubscriber
+final class TempestPlugin implements BeforeTestSubscriber, HarnessProvider, ServiceSource, TerminalServiceResolver, TestAttemptEndSubscriber, WorkerBootstrapSubscriber
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L38)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L39)
 
 ### `__construct()`
 
@@ -658,7 +658,7 @@ PHPDoc:
 - `@param list<DiscoveryLocation> $discoveryLocations Additional locations for Tempest discovery.`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L54)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L55)
 
 ### `source()`
 
@@ -666,7 +666,7 @@ PHPDoc:
 public function source(): ?string
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L76)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L77)
 
 ### `onWorkerBootstrap()`
 
@@ -674,7 +674,7 @@ public function source(): ?string
 public function onWorkerBootstrap(WorkerBootstrapContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L82)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L83)
 
 ### `services()`
 
@@ -686,7 +686,7 @@ PHPDoc:
 
 - `@return list<ServiceDefinition>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L91)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L92)
 
 ### `resolve()`
 
@@ -700,7 +700,7 @@ PHPDoc:
 - `@param list<object> $attributes`
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L105)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L106)
 
 ### `beforeTest()`
 
@@ -708,16 +708,16 @@ PHPDoc:
 public function beforeTest(TestContext $context): void
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L131)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L132)
 
-### `afterTest()`
+### `testAttemptEnded()`
 
 ```php
-public function afterTest(TestContext $context, TestResult $result): TestResult
+public function testAttemptEnded(TestId $id, TestDefinition $definition): void
 ```
 
 PHPDoc:
 
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L144)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Tempest/TempestPlugin.php#L145)

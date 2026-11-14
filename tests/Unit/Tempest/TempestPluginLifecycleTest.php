@@ -15,12 +15,15 @@ use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\WorkerBootstrapContext;
-use Greenlight\Result\TestResult;
+use Greenlight\Result\Outcome;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tempest\TempestBridgeError;
 use Greenlight\Tempest\TempestPlugin;
 use Greenlight\Test\TestChannel;
+use Greenlight\Tests\Fixture\BridgeAttemptEnd\TempestRestoredEnvironmentProbe;
+use Greenlight\Tests\Fixture\BridgeAttemptEnd\TempestThrowingConstructorProbe;
+use Greenlight\Tests\Support\BridgeAttemptRun;
 use Greenlight\Tests\Support\PluginLifecycle;
 use Greenlight\Tests\Support\ServiceResolverProbe;
 use Tempest\Container\GenericContainer;
@@ -48,7 +51,7 @@ final class TempestPluginLifecycleTest
     public function releaseKernels(): void
     {
         foreach ($this->plugins as $plugin) {
-            $plugin->afterTest($this->context(), $this->result());
+            $this->endAttempt($plugin);
         }
 
         $this->plugins = [];
@@ -186,7 +189,7 @@ final class TempestPluginLifecycleTest
     {
         $plugin = $this->plugin();
         $kernel = $this->kernel($plugin);
-        $plugin->afterTest($this->context(), $this->result());
+        $this->endAttempt($plugin);
 
         $plugin->beforeTest($this->context());
 
@@ -239,7 +242,7 @@ final class TempestPluginLifecycleTest
         $kernel = $this->kernel($plugin);
         $kernel->container->singleton('Tempest\EventBus\EventBus', new \stdClass());
 
-        expect()->calling(fn(): TestResult => $plugin->afterTest($this->context(), $this->result()))
+        expect()->calling(fn() => $this->endAttempt($plugin))
             ->toThrow(
                 TempestBridgeError::class,
                 matching: '/^TempestPlugin could not shut down the application/',
@@ -248,6 +251,23 @@ final class TempestPluginLifecycleTest
         expect($_ENV['ENVIRONMENT'])->toBe('before-tempest');
         expect($_SERVER['ENVIRONMENT'])->toBe('before-tempest');
         expect(GenericContainer::instance())->not()->toBe($kernel->container);
+    }
+
+    #[Test]
+    public function aConstructorFailureStillShutsDownTheApplication(): void
+    {
+        $this->environment->set('ENVIRONMENT', TempestRestoredEnvironmentProbe::ENVIRONMENT);
+        $plugin = $this->plugin();
+
+        [$failed, $next] = BridgeAttemptRun::run($plugin, [
+            [TempestThrowingConstructorProbe::class, 'neverRuns'],
+            [TempestRestoredEnvironmentProbe::class, 'seesTheRestoredEnvironment'],
+        ]);
+
+        expect($failed->error?->message)->toBe('constructor failed');
+        expect($next->outcome)
+            ->because($next->failures[0]->message ?? 'the next test MUST see the restored process environment')
+            ->toBe(Outcome::Passed);
     }
 
     private function plugin(?string $source = null): TempestPlugin
@@ -289,14 +309,15 @@ final class TempestPluginLifecycleTest
         return $kernel;
     }
 
+    private function endAttempt(TempestPlugin $plugin): void
+    {
+        $context = PluginLifecycle::context();
+        $plugin->testAttemptEnded($context->id, $context->definition);
+    }
+
     private function context(): TestContext
     {
         return PluginLifecycle::context();
-    }
-
-    private function result(): TestResult
-    {
-        return PluginLifecycle::passedResult();
     }
 }
 

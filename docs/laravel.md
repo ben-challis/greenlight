@@ -149,6 +149,7 @@ application in its own container.
 ## State between tests
 
 By default, the bridge discards the application after each test attempt.
+This also occurs when the test constructor throws.
 Configuration changes, facade roots, singleton state, and container
 registrations cannot reach the next attempt.
 

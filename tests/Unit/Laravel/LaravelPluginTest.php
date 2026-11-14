@@ -19,13 +19,15 @@ use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Laravel\LaravelBridgeError;
 use Greenlight\Laravel\LaravelFrameworkRequirement;
 use Greenlight\Laravel\LaravelPlugin;
-use Greenlight\Plugin\TestContext;
-use Greenlight\Result\TestResult;
+use Greenlight\Result\Outcome;
 use Greenlight\Sandbox\EnvironmentVariables;
+use Greenlight\Tests\Fixture\BridgeAttemptEnd\LaravelFreshContainerProbe;
+use Greenlight\Tests\Fixture\BridgeAttemptEnd\LaravelThrowingConstructorProbe;
 use Greenlight\Tests\Fixture\Laravel\FixtureApplication;
 use Greenlight\Tests\Fixture\Laravel\Greeter;
 use Greenlight\Tests\Fixture\Laravel\NamedGreeter;
 use Greenlight\Tests\Fixture\Laravel\VisitCounter;
+use Greenlight\Tests\Support\BridgeAttemptRun;
 use Greenlight\Tests\Support\FilesystemRestriction;
 use Greenlight\Tests\Support\FixturePath;
 use Greenlight\Tests\Support\PluginLifecycle;
@@ -94,7 +96,7 @@ final class LaravelPluginTest
     public function releaseLaravelApplications(): void
     {
         foreach ($this->plugins as $plugin) {
-            $plugin->afterTest($this->context(), $this->result());
+            $this->endAttempt($plugin);
         }
 
         $this->plugins = [];
@@ -400,7 +402,7 @@ final class LaravelPluginTest
     }
 
     #[Test]
-    public function afterTestBootsAFreshApplicationForTheNextTest(): void
+    public function attemptEndBootsAFreshApplicationForTheNextTest(): void
     {
         $plugin = $this->plugin();
         $counter = $plugin->resolve(VisitCounter::class, []);
@@ -410,15 +412,13 @@ final class LaravelPluginTest
             ->toBeInstanceOf(VisitCounter::class);
 
         $counter->record();
-        $result = $this->result();
-        $returned = $plugin->afterTest($this->context(), $result);
+        $this->endAttempt($plugin);
         $second = $plugin->resolve(VisitCounter::class, []);
 
         expect($second)
             ->because('LaravelPlugin::resolve() MUST return VisitCounter.')
             ->toBeInstanceOf(VisitCounter::class);
 
-        expect($returned)->toBe($result);
         expect($second->count())->toBe(0);
         expect($second === $counter)->toBe(false);
     }
@@ -438,14 +438,14 @@ final class LaravelPluginTest
             ->toBeInstanceOf(VisitCounter::class);
 
         $counter->record();
-        $plugin->afterTest($this->context(), $this->result());
+        $this->endAttempt($plugin);
 
         expect($counter->count())->toBe(1);
         expect($plugin->resolve(VisitCounter::class, []))->toBe($counter);
     }
 
     #[Test]
-    public function afterTestWithoutABootedApplicationIsANoOp(): void
+    public function attemptEndWithoutABootedApplicationIsANoOp(): void
     {
         $booted = false;
         $plugin = $this->track(new LaravelPlugin(static function () use (&$booted): Application {
@@ -454,15 +454,13 @@ final class LaravelPluginTest
             return FixtureApplication::create();
         }));
 
-        $result = $this->result();
-        $returned = $plugin->afterTest($this->context(), $result);
+        $this->endAttempt($plugin);
 
         expect($booted)->toBe(false);
-        expect($returned)->toBe($result);
     }
 
     #[Test]
-    public function afterTestClearsFacadeAndContainerStatics(): void
+    public function attemptEndClearsFacadeAndContainerStatics(): void
     {
         $this->environment->set('APP_ENV', 'before-laravel');
         $container = Container::getInstance();
@@ -472,7 +470,7 @@ final class LaravelPluginTest
         expect(Facade::getFacadeApplication())->toBe($app);
         expect(Container::getInstance())->toBe($app);
 
-        $plugin->afterTest($this->context(), $this->result());
+        $this->endAttempt($plugin);
 
         expect(Facade::getFacadeApplication())->toBeNull();
         expect(Container::getInstance())->toBe($container);
@@ -482,7 +480,7 @@ final class LaravelPluginTest
     }
 
     #[Test]
-    public function afterTestRemovesAnEnvironmentThatWasInitiallyAbsent(): void
+    public function attemptEndRemovesAnEnvironmentThatWasInitiallyAbsent(): void
     {
         $this->environment->unset('APP_ENV');
         $plugin = $this->plugin();
@@ -497,7 +495,7 @@ final class LaravelPluginTest
         expect($_SERVER['APP_ENV'] ?? null)
             ->toBe('testing');
 
-        $plugin->afterTest($this->context(), $this->result());
+        $this->endAttempt($plugin);
 
         expect(\getenv('APP_ENV'))
             ->because('application release MUST remove an environment that was initially absent')
@@ -550,6 +548,22 @@ final class LaravelPluginTest
         expect(\memory_get_usage() - $memoryBefore)->toBeLessThan(262_144);
     }
 
+    #[Test]
+    public function aConstructorFailureStillReleasesTheApplication(): void
+    {
+        $plugin = $this->plugin();
+
+        [$failed, $next] = BridgeAttemptRun::run($plugin, [
+            [LaravelThrowingConstructorProbe::class, 'neverRuns'],
+            [LaravelFreshContainerProbe::class, 'seesAFreshService'],
+        ]);
+
+        expect($failed->error?->message)->toBe('constructor failed');
+        expect($next->outcome)
+            ->because($next->failures[0]->message ?? 'the next test MUST receive a fresh service')
+            ->toBe(Outcome::Passed);
+    }
+
     private function plugin(): LaravelPlugin
     {
         return $this->track(new LaravelPlugin($this->fixtureDir() . '/bootstrap.php'));
@@ -570,7 +584,7 @@ final class LaravelPluginTest
     private function refreshApplication(LaravelPlugin $plugin): void
     {
         $plugin->resolve(Greeter::class, []);
-        $plugin->afterTest($this->context(), $this->result());
+        $this->endAttempt($plugin);
     }
 
     private function fixtureDir(): string
@@ -578,13 +592,9 @@ final class LaravelPluginTest
         return FixturePath::get('Laravel');
     }
 
-    private function context(): TestContext
+    private function endAttempt(LaravelPlugin $plugin): void
     {
-        return PluginLifecycle::context();
-    }
-
-    private function result(): TestResult
-    {
-        return PluginLifecycle::passedResult();
+        $context = PluginLifecycle::context();
+        $plugin->testAttemptEnded($context->id, $context->definition);
     }
 }
