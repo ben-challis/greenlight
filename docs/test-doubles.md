@@ -151,8 +151,10 @@ This applies to the plan and to the call. Thus, `with('a', 2)` and `with('a')`
 both match `find('a')` and `find('a', 2)` when the second parameter has the
 default `2`. A named argument does not change the argument positions.
 
-An object default uses deep equality. `callsTo()` and argument captors also
-receive the default values. An `andReturnsUsing()` closure receives only the
+An object default uses deep equality. A plan that omits an object default
+constructs the default object once, when you declare the plan. A `NAN` default
+matches `NAN`. `callsTo()` and argument captors also receive the default
+values. An `andReturnsUsing()` closure receives only the
 arguments that the caller supplied.
 
 Use `withNoArguments()` to require a call that supplies no variadic values and

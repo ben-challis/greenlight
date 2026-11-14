@@ -77,4 +77,16 @@ final readonly class DefaultArgumentMatchingTest
             ->because('each call constructs a new default object')
             ->toBe('found');
     }
+
+    #[Test]
+    public function notANumberDefaultsMatchTheirOmittedArguments(): void
+    {
+        $double = $this->doubles->mock(OptionalArguments::class, static function (MockPlan $plan): void {
+            $plan->expects('measure')->with('key')->once()->andReturns('measured');
+        });
+
+        expect($double->measure('key'))
+            ->because('a NAN default MUST match the same omitted argument')
+            ->toBe('measured');
+    }
 }
