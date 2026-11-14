@@ -144,8 +144,14 @@ final class NativeWorkerTransport implements WorkerTransport
         }
 
         foreach ($this->connections as $connectionId => $channel) {
-            while (($message = $channel->poll()) instanceof Message) {
-                $events[] = WorkerTransportEvent::connectionMessage($connectionId, $message);
+            try {
+                while (($message = $channel->poll()) instanceof Message) {
+                    $events[] = WorkerTransportEvent::connectionMessage($connectionId, $message);
+                }
+            } catch (WireCommunicationFailed) {
+                // An unauthenticated peer cannot stop the run. Close only its
+                // connection.
+                $channel->close();
             }
 
             if ($channel->isEof()) {
@@ -288,8 +294,16 @@ final class NativeWorkerTransport implements WorkerTransport
             return !$running;
         }
 
-        while (($message = $channel->poll()) instanceof Message) {
-            $events[] = WorkerTransportEvent::workerMessage($handle->workerId, $message);
+        try {
+            while (($message = $channel->poll()) instanceof Message) {
+                $events[] = WorkerTransportEvent::workerMessage($handle->workerId, $message);
+            }
+        } catch (ProtocolError $error) {
+            // A worker that stops in the middle of a frame crashed. Crash
+            // containment handles it.
+            if (!$channel->hasIncompleteFrame()) {
+                throw $error;
+            }
         }
 
         return $channel->isEof() || !$running;
