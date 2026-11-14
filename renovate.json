@@ -39,7 +39,8 @@
                 "lockFileMaintenance"
             ],
             "additionalBranchPrefix": "{{manager}}-",
-            "commitMessageSuffix": "({{manager}})"
+            "commitMessageSuffix": "({{manager}})",
+            "prPriority": 10
         },
         {
             "description": "Keep TypeScript at version 6 until Astro Check supports the native compiler API",
