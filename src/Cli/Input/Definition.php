@@ -214,10 +214,18 @@ final readonly class Definition
 
         $accepted = [...self::GLOBAL_OPTIONS, ...(self::COMMAND_OPTIONS[$command] ?? [])];
 
-        return new ArgumentParser(\array_values(\array_filter(
-            $this->options(),
-            static fn(OptionSpec $spec): bool => \in_array($spec->name, $accepted, true),
-        )));
+        $specs = [];
+        $others = [];
+
+        foreach ($this->options() as $spec) {
+            if (\in_array($spec->name, $accepted, true)) {
+                $specs[] = $spec;
+            } else {
+                $others[] = $spec->name;
+            }
+        }
+
+        return new ArgumentParser($specs, $others, $command);
     }
 
     /** @return list<OptionSpec> */
