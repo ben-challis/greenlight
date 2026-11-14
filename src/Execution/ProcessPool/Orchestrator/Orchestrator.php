@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Artifact\AttachmentError;
-use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
@@ -115,11 +114,6 @@ final class Orchestrator
     private int $unattributedDeaths = 0;
 
     /**
-     * @var list<string>
-     */
-    private array $warnings = [];
-
-    /**
      * @var array<non-empty-string, true> initial workers that have not received their first assignment
      */
     private array $initialAssignmentsPending = [];
@@ -140,16 +134,6 @@ final class Orchestrator
     public function collectedCoverage(): ?CoverageMap
     {
         return $this->coverage;
-    }
-
-    /**
-     * Returns problems that did not stop the run.
-     *
-     * @return list<string>
-     */
-    public function warnings(): array
-    {
-        return $this->warnings;
     }
 
     /**
@@ -879,9 +863,6 @@ final class Orchestrator
     {
         $inFlight = $handle->inFlight;
         $attempts = $handle->inFlightAttempt;
-        $reportLost = !$inFlight instanceof TestId
-            && $handle->assigned instanceof ExecutionPlan
-            && $handle->unfinished() === [];
         $remainder = $this->retireFailedWorker($handle);
         $diagnostics = \trim($this->transport->diagnostics($handle->workerId));
 
@@ -898,8 +879,6 @@ final class Orchestrator
                     Utf8::tailBytes($diagnostics, 2_048),
                 )),
             ), $attempts);
-        } elseif ($reportLost) {
-            $this->recordLostReport($handle, $diagnostics);
         } elseif (!$this->draining) {
             ++$this->unattributedDeaths;
 
@@ -914,35 +893,6 @@ final class Orchestrator
         }
 
         $this->enqueueRemainder($remainder);
-    }
-
-    /**
-     * Handles a worker that exited after its last test and before Done.
-     *
-     * The test results are complete. Coverage and leak data are lost. Thus,
-     * the run fails only when it collects this data.
-     *
-     * @throws ProtocolError
-     */
-    private function recordLostReport(WorkerState $handle, string $diagnostics): void
-    {
-        $diagnostics = Utf8::tailBytes($diagnostics, 2_048);
-
-        if ($this->configuration->coverageSettings instanceof CoverageSettings || $this->configuration->detectLeaks) {
-            throw ProtocolError::workerReportLost($handle->workerId, $diagnostics);
-        }
-
-        $warning = \sprintf(
-            'Worker "%s" exited after its last test and before it sent its assignment report. '
-            . 'All test results of the assignment are complete.',
-            $handle->workerId,
-        );
-
-        if ($diagnostics !== '') {
-            $warning .= "\nWorker output:\n" . $diagnostics;
-        }
-
-        $this->warnings[] = $warning;
     }
 
     /**
