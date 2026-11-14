@@ -14,7 +14,6 @@ use Greenlight\Execution\Artifact\StagedAttachments;
 use Greenlight\Execution\Artifact\TestArtifactBudget;
 use Greenlight\Execution\Plugin\PluginRuntimeError;
 use Greenlight\Execution\Plugin\WorkerPluginRuntime;
-use Greenlight\Expect\ExpectationFailed;
 use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Harness\HarnessScopes;
 use Greenlight\Harness\Service;
@@ -199,23 +198,21 @@ final readonly class TestExecutor
      */
     private function runAttempt(PlanEntry $entry, int $attempt, TestArtifactBudget $artifactBudget): array
     {
-        $definition = $entry->definition;
-        $execution = $definition->execution;
+        $execution = $entry->definition->execution;
         ExpectationCounter::reset();
         $this->scopes->openTest();
 
-        /** @var list<FailureDetail> $failures */
-        $failures = [];
-        $cause = null;
-        $error = null;
-        $skipReason = null;
-        $context = null;
         $capture = $execution->capture ? new OutputCapture() : null;
         $stagedAttachments = $this->artifactStore?->forAttempt($entry->id, $attempt, $artifactBudget);
-        $attachments = $stagedAttachments ?? new UnavailableAttachments();
         $cleanup = new Cleanup();
         $capture?->start();
-        $dataSetFailure = $this->expandDataSets($entry);
+        $run = new AttemptRun(
+            $entry,
+            $stagedAttachments ?? new UnavailableAttachments(),
+            $cleanup,
+            $capture,
+            $this->expandDataSets($entry),
+        );
         $memoryBefore = \memory_get_usage(true);
         $startedAt = \hrtime(true);
         ExpectationRuntime::enterAttempt(
@@ -224,126 +221,182 @@ final readonly class TestExecutor
                 : $startedAt / 1_000_000_000 + $execution->timeoutSeconds,
         );
 
-        try {
-            $instance = $this->instantiate($definition->class, $attachments, $cleanup);
-            $context = new TestContext($instance, $entry->id, $definition, $this->scopes, $attachments);
-            unset($instance);
-
-            try {
-                $this->plugins->beforeTest($context);
-            } catch (SkipTest $skip) {
-                $skipReason = $skip->reason;
-            } catch (PluginRuntimeError $failure) {
-                $cause = $failure;
-                $error = ThrowableDetail::fromThrowable($failure);
-            }
-
-            if ($skipReason === null && !$cause instanceof PluginRuntimeError) {
-                try {
-                    foreach ($this->context->beforeHooks as $hook) {
-                        $hook->invoke($context->instance);
-                    }
-
-                    if ($dataSetFailure instanceof \Throwable) {
-                        throw $dataSetFailure;
-                    }
-
-                    $arguments = [];
-
-                    if ($entry->id->dataSetKey !== null) {
-                        $arguments = $this->context->argumentsFor(
-                            $definition->dataProvider->method,
-                            $definition->dataProvider->class,
-                            $definition->method,
-                            $entry->id->dataSetKey,
-                        );
-                    }
-
-                    $this->context->reflection->getMethod($definition->method)->invokeArgs($context->instance, $arguments);
-                } catch (SkipTest $skip) {
-                    $skipReason = $skip->reason;
-                } catch (ExpectationFailed $failed) {
-                    $failures = $failed->details;
-                    $cause = $failed;
-                } catch (\Throwable $threw) {
-                    $cause = $threw;
-                    $error = ThrowableDetail::fromThrowable($threw);
-                }
-            }
-
-            foreach ($this->context->afterHooks as $hook) {
-                try {
-                    $hook->invoke($context->instance);
-                } catch (\Throwable $threw) {
-                    if (!$cause instanceof \Throwable) {
-                        $cause = $threw;
-                        $skipReason = null;
-
-                        if ($threw instanceof ExpectationFailed) {
-                            $failures = $threw->details;
-                        } else {
-                            $error = ThrowableDetail::fromThrowable($threw);
-                        }
-                    }
-                }
-            }
-        } catch (\Throwable $threw) {
-            $cause = $threw;
-            $error = ThrowableDetail::fromThrowable($threw);
-        } finally {
-            try {
-                try {
-                    try {
-                        $cleanup->close();
-                    } catch (CleanupFailed $cleanupFailed) {
-                        foreach ($cleanupFailed->failures as $cleanupFailure) {
-                            if (!$cause instanceof \Throwable) {
-                                $cause = $cleanupFailure;
-                                $skipReason = null;
-
-                                if ($cleanupFailure instanceof ExpectationFailed) {
-                                    $failures = $cleanupFailure->details;
-                                } else {
-                                    $error = ThrowableDetail::fromThrowable($cleanupFailure);
-                                }
-
-                                continue;
-                            }
-
-                            if ($cleanupFailure instanceof ExpectationFailed) {
-                                $failures = [...$failures, ...$cleanupFailure->details];
-
-                                continue;
-                            }
-
-                            $failures[] = new FailureDetail(\sprintf(
-                                'Cleanup callback caused an error: %s',
-                                $cleanupFailure->getMessage(),
-                            ));
-                        }
-                    }
-                } finally {
-                    try {
-                        $disposalFailures = $this->scopes->closeTest();
-                    } finally {
-                        ExpectationRuntime::leaveAttempt();
-                    }
-                }
-            } finally {
-                $captured = $capture?->stop();
-            }
-        }
+        $this->runPhases($run);
 
         $durationSeconds = (\hrtime(true) - $startedAt) / 1_000_000_000;
         $memoryDelta = \memory_get_usage(true) - $memoryBefore;
+        $result = $this->result($run, $attempt, $durationSeconds, $memoryDelta);
+        $cause = $run->cause;
 
-        $outcome = match (true) {
-            $error instanceof ThrowableDetail => Outcome::Errored,
-            $failures !== [] => Outcome::Failed,
-            $skipReason !== null => Outcome::Skipped,
-            default => Outcome::Passed,
+        if (!$cause instanceof \Throwable && $run->disposalFailures !== []) {
+            $cause = $run->disposalFailures[0];
+        }
+
+        if ($run->context instanceof TestContext) {
+            $result = $this->plugins->afterTest($run->context, $result);
+            $this->leakDetector?->watch($entry->id, $run->context->instance);
+        }
+
+        return [$result, $cause, $stagedAttachments];
+    }
+
+    /**
+     * Runs each phase in `AttemptPhase` order. A test-body phase runs only
+     * while the attempt is not interrupted. Each teardown phase runs. The last
+     * teardown throwable propagates after all phases, as with nested
+     * `finally` blocks.
+     *
+     * @throws CaptureError
+     */
+    private function runPhases(AttemptRun $run): void
+    {
+        $teardownFailure = null;
+
+        foreach (AttemptPhase::cases() as $phase) {
+            if (!$phase->alwaysRuns()) {
+                if ($run->interrupted()) {
+                    continue;
+                }
+
+                try {
+                    $this->runPhase($phase, $run);
+                } catch (\Throwable $threw) {
+                    $run->errored($threw);
+                }
+
+                continue;
+            }
+
+            try {
+                $this->runPhase($phase, $run);
+            } catch (\Throwable $threw) {
+                $teardownFailure = $threw;
+            }
+        }
+
+        if ($teardownFailure instanceof \Throwable) {
+            throw $teardownFailure;
+        }
+    }
+
+    /**
+     * @throws \Throwable
+     */
+    private function runPhase(AttemptPhase $phase, AttemptRun $run): void
+    {
+        match ($phase) {
+            AttemptPhase::Instantiate => $this->instantiatePhase($run),
+            AttemptPhase::BeforeTestSubscribers => $this->beforeTestPhase($run),
+            AttemptPhase::TestMethod => $this->testMethodPhase($run),
+            AttemptPhase::AfterHooks => $this->afterHooksPhase($run),
+            AttemptPhase::CleanupCallbacks => $this->cleanupPhase($run),
+            AttemptPhase::CloseTestScope => $run->disposalFailures = $this->scopes->closeTest(),
+            AttemptPhase::LeaveExpectationWindow => ExpectationRuntime::leaveAttempt(),
+            AttemptPhase::StopCapture => $run->output = $run->capture?->stop(),
         };
+    }
 
+    /**
+     * @throws UnresolvableService
+     * @throws ServiceResolutionFailed
+     */
+    private function instantiatePhase(AttemptRun $run): void
+    {
+        $definition = $run->entry->definition;
+        $instance = $this->instantiate($definition->class, $run->attachments, $run->cleanup);
+        $run->context = new TestContext($instance, $run->entry->id, $definition, $this->scopes, $run->attachments);
+    }
+
+    private function beforeTestPhase(AttemptRun $run): void
+    {
+        if (!$run->context instanceof TestContext) {
+            return;
+        }
+
+        try {
+            $this->plugins->beforeTest($run->context);
+        } catch (SkipTest $skip) {
+            $run->skipped($skip->reason);
+        } catch (PluginRuntimeError $failure) {
+            $run->errored($failure);
+        }
+    }
+
+    private function testMethodPhase(AttemptRun $run): void
+    {
+        if (!$run->context instanceof TestContext) {
+            return;
+        }
+
+        $instance = $run->context->instance;
+        $entry = $run->entry;
+        $definition = $entry->definition;
+
+        try {
+            foreach ($this->context->beforeHooks as $hook) {
+                $hook->invoke($instance);
+            }
+
+            if ($run->dataSetFailure instanceof \Throwable) {
+                throw $run->dataSetFailure;
+            }
+
+            $arguments = [];
+
+            if ($entry->id->dataSetKey !== null) {
+                $arguments = $this->context->argumentsFor(
+                    $definition->dataProvider->method,
+                    $definition->dataProvider->class,
+                    $definition->method,
+                    $entry->id->dataSetKey,
+                );
+            }
+
+            $this->context->reflection->getMethod($definition->method)->invokeArgs($instance, $arguments);
+        } catch (SkipTest $skip) {
+            $run->skipped($skip->reason);
+        } catch (\Throwable $threw) {
+            $run->failed($threw);
+        }
+    }
+
+    /**
+     * `After` hooks run only if the test instance exists. Each hook runs, also
+     * when an earlier hook throws.
+     */
+    private function afterHooksPhase(AttemptRun $run): void
+    {
+        if (!$run->context instanceof TestContext) {
+            return;
+        }
+
+        foreach ($this->context->afterHooks as $hook) {
+            try {
+                $hook->invoke($run->context->instance);
+            } catch (\Throwable $threw) {
+                $run->teardownFailed($threw);
+            }
+        }
+    }
+
+    private function cleanupPhase(AttemptRun $run): void
+    {
+        try {
+            $run->cleanup->close();
+        } catch (CleanupFailed $cleanupFailed) {
+            foreach ($cleanupFailed->failures as $cleanupFailure) {
+                if (!$run->teardownFailed($cleanupFailure)) {
+                    $run->secondaryCleanupFailure($cleanupFailure);
+                }
+            }
+        }
+    }
+
+    private function result(AttemptRun $run, int $attempt, float $durationSeconds, int $memoryDelta): TestResult
+    {
+        $execution = $run->entry->definition->execution;
+        $outcome = $run->outcome();
+        $failures = $run->failures;
         $budget = $execution->timeoutSeconds;
 
         if ($budget !== null && $durationSeconds > $budget && $outcome === Outcome::Passed) {
@@ -356,23 +409,19 @@ final readonly class TestExecutor
         }
 
         $result = new TestResult(
-            $entry->id,
+            $run->entry->id,
             $outcome,
             \max(0.0, $durationSeconds),
             $memoryDelta,
             $attempt,
             $failures,
-            $error,
-            $skipReason,
-            output: $captured,
+            $run->error,
+            $run->skipReason,
+            output: $run->output,
             expectations: ExpectationCounter::count(),
         );
 
-        $result = HarnessServiceDisposal::applyToTest($result, $disposalFailures);
-
-        if (!$cause instanceof \Throwable && $disposalFailures !== []) {
-            $cause = $disposalFailures[0];
-        }
+        $result = HarnessServiceDisposal::applyToTest($result, $run->disposalFailures);
 
         // The counter includes double verification from scope close. A passed
         // test with no verified expectations is a risky test unless it has
@@ -381,12 +430,7 @@ final readonly class TestExecutor
             $result = $result->asRisky();
         }
 
-        if ($context instanceof TestContext) {
-            $result = $this->plugins->afterTest($context, $result);
-            $this->leakDetector?->watch($entry->id, $context->instance);
-        }
-
-        return [$result, $cause, $stagedAttachments];
+        return $result;
     }
 
     /**
