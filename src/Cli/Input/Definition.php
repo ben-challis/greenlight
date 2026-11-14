@@ -269,6 +269,22 @@ final readonly class Definition
         ];
     }
 
+    /**
+     * Returns the accepted option names for each bundled command.
+     *
+     * @return array<non-empty-string, list<non-empty-string>>
+     */
+    public function commandOptions(): array
+    {
+        $options = [];
+
+        foreach (\array_keys(self::COMMAND_DESCRIPTIONS) as $command) {
+            $options[$command] = [...self::GLOBAL_OPTIONS, ...(self::COMMAND_OPTIONS[$command] ?? [])];
+        }
+
+        return $options;
+    }
+
     /** @return list<non-empty-string> */
     public function commands(): array
     {
