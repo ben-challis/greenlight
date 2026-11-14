@@ -38,7 +38,6 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
     /**
      * @param non-empty-list<non-empty-string> $workerCommand Command prefix that invokes bin/greenlight.
      * @param positive-int $workerCount
-     * @param resource|null $warningStream Receives run warnings. Null selects standard error.
      */
     public function __construct(
         private array $workerCommand,
@@ -52,7 +51,6 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
         private ?Ticking $ticker = null,
         private ?WorkerTransport $transport = null,
         private ?EmergencyCleanups $emergencyCleanups = null,
-        private mixed $warningStream = null,
     ) {
         if ($workerCount < 1) {
             throw new \InvalidArgumentException('Process-pool execution requires at least one worker.');
@@ -129,18 +127,12 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
             }
         }
 
-        $warnings = $orchestrator->warnings();
-
-        foreach ($warnings as $warning) {
-            \fwrite($this->warningStream ?? \STDERR, 'Warning: ' . $warning . "\n");
-        }
-
         return new ExecutionOutcome(
             $summary,
             $orchestrator->collectedCoverage(),
             $orchestrator->detectedLeaks(),
             $orchestrator->workerTimings(),
-            $warnings,
+            $orchestrator->warnings(),
         );
     }
 }

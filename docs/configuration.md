@@ -821,6 +821,11 @@ Uses this configuration file instead of `./greenlight.php`.
 
 Overrides the worker process count.
 
+A worker can exit after its last test and before it sends its assignment
+report. Greenlight then prints a warning, and the run keeps the test results.
+A run with coverage or `--detect-leaks` fails instead, because the lost report
+contains the coverage or leak data.
+
 ### `--resource-limit=<name>=<n>`
 
 Sets a resource limit for this run and overrides `greenlight.php`.

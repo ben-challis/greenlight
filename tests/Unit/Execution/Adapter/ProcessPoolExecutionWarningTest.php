@@ -14,7 +14,6 @@ use Greenlight\Execution\RunCoordinator;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tests\Support\CollectingEventSink;
 use Greenlight\Tests\Support\FixturePath;
-use Greenlight\Tests\Support\MemoryStream;
 use Greenlight\Tests\Support\ReactiveWorkerTransport;
 
 use function Greenlight\expect;
@@ -24,10 +23,9 @@ final readonly class ProcessPoolExecutionWarningTest
     public function __construct(private TemporaryDirectory $tempDirectory) {}
 
     #[Test]
-    public function aWorkerThatExitsBeforeItsReportPrintsAWarning(): void
+    public function aWorkerThatExitsBeforeItsReportReturnsAWarning(): void
     {
         $resolved = ConfigurationResolver::resolve(GreenlightConfig::create()->build(), new CliOverrides());
-        $stream = MemoryStream::open();
         $transport = new ReactiveWorkerTransport(
             ReactiveWorkerTransport::connectAtStart(),
             ReactiveWorkerTransport::passingWorkers(
@@ -51,14 +49,13 @@ final readonly class ProcessPoolExecutionWarningTest
                 1,
                 $resolved->workers,
                 transport: $transport,
-                warningStream: $stream,
             ),
         );
-        \rewind($stream);
 
         expect($result->summary->passed)->toBe(7);
-        expect((string) \stream_get_contents($stream))
-            ->because('a lost assignment report MUST reach the user as a warning')
-            ->toStartWith('Warning: Worker "w-1" exited after its last test and before it sent its assignment report.');
+        expect($result->warnings)->not()->toBeEmpty();
+        expect($result->warnings[0] ?? '')
+            ->because('a lost assignment report MUST reach the run result as a warning')
+            ->toStartWith('Worker "w-1" exited after its last test and before it sent its assignment report.');
     }
 }
