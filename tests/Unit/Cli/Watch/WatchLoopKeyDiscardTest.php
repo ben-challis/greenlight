@@ -55,7 +55,7 @@ final class WatchLoopKeyDiscardTest
                 $keys->pending = ["\n", "\n", "\n"];
 
                 return [];
-            });
+            }, maxIterations: 3);
 
         expect($runs)
             ->because('Enter keys typed during a run MUST NOT queue extra runs')
@@ -90,7 +90,7 @@ final class WatchLoopKeyDiscardTest
 
         new WatchLoop($detector, new Debouncer(0.0), $keys, new FakeWatchClock(), static function (string $text) use (&$output): void {
             $output .= $text;
-        })->run(static fn(array $priorityClasses): array => []);
+        })->run(static fn(array $priorityClasses): array => [], maxIterations: 3);
 
         expect($output)
             ->because('q during the first run stops watch mode before it waits for changes')
