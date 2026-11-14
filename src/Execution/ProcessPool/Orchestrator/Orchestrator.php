@@ -7,6 +7,7 @@ namespace Greenlight\Execution\ProcessPool\Orchestrator;
 use Greenlight\Artifact\AttachmentError;
 use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Coverage\CoverageMap;
+use Greenlight\Coverage\CoverageMapBuilder;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Event\Event;
@@ -90,7 +91,7 @@ final class Orchestrator
 
     private ResultSummary $summary;
 
-    private ?CoverageMap $coverage = null;
+    private ?CoverageMapBuilder $coverage = null;
 
     /**
      * @var list<TestId>
@@ -139,7 +140,7 @@ final class Orchestrator
      */
     public function collectedCoverage(): ?CoverageMap
     {
-        return $this->coverage;
+        return $this->coverage?->build();
     }
 
     /**
@@ -182,7 +183,8 @@ final class Orchestrator
             return;
         }
 
-        $this->coverage = $this->coverage instanceof CoverageMap ? $this->coverage->merge($coverage) : $coverage;
+        $this->coverage ??= new CoverageMapBuilder();
+        $this->coverage->add($coverage);
     }
 
     /**
