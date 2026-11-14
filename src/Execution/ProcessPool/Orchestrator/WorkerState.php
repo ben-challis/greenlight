@@ -13,17 +13,21 @@ use Greenlight\Test\TestId;
  *
  * This state has no native process or socket resources.
  *
+ * One WorkerPhase value gives the lifecycle position. The transition methods
+ * change it: connect(), markReady(), beginAssignment(), finishAssignment(),
+ * requestStop(), and retire(). The worker also records if it connected and
+ * if it reported Ready. A drain before Ready keeps these facts apart from the
+ * phase.
+ *
  * @internal
  */
 final class WorkerState
 {
-    public bool $connected = false;
+    private WorkerPhase $phase = WorkerPhase::Spawned;
 
-    public bool $ready = false;
+    private bool $connected = false;
 
-    public bool $retiring = false;
-
-    public bool $stopRequested = false;
+    private bool $ready = false;
 
     public ?ExecutionPlan $assigned = null;
 
@@ -65,8 +69,43 @@ final class WorkerState
         $this->timing = new WorkerTimingRecorder($spawnedAt);
     }
 
+    public function phase(): WorkerPhase
+    {
+        return $this->phase;
+    }
+
+    /**
+     * Records the authenticated hello. The worker then receives Bootstrap.
+     */
+    public function connect(float $at): void
+    {
+        $this->connected = true;
+        $this->lastProgressAt = $at;
+
+        if ($this->phase === WorkerPhase::Spawned) {
+            $this->phase = WorkerPhase::Bootstrapping;
+        }
+    }
+
+    /**
+     * Records Ready. A worker that received Drain before Ready stays in the
+     * Draining phase.
+     */
+    public function markReady(): void
+    {
+        $this->ready = true;
+
+        if ($this->phase === WorkerPhase::Bootstrapping) {
+            $this->phase = WorkerPhase::Idle;
+        }
+    }
+
     public function beginAssignment(ResourceLease $lease): void
     {
+        if ($this->phase !== WorkerPhase::Draining && $this->phase !== WorkerPhase::Retiring) {
+            $this->phase = WorkerPhase::Assigned;
+        }
+
         $this->lease = $lease;
         $this->assigned = $lease->unit->plan;
         $this->isolatedAssignment = $lease->unit->isolated;
@@ -78,6 +117,10 @@ final class WorkerState
 
     public function finishAssignment(): void
     {
+        if ($this->phase === WorkerPhase::Assigned) {
+            $this->phase = WorkerPhase::Idle;
+        }
+
         $this->hasRunAssignment = true;
         $this->lease = null;
         $this->assigned = null;
@@ -91,15 +134,57 @@ final class WorkerState
         return !$this->hasRunAssignment;
     }
 
-    public function isActive(): bool
-    {
-        return !$this->retiring;
-    }
-
+    /**
+     * Records Drain. The worker can finish its current assignment.
+     */
     public function requestStop(float $at): void
     {
-        $this->stopRequested = true;
+        if ($this->phase !== WorkerPhase::Retiring) {
+            $this->phase = WorkerPhase::Draining;
+        }
+
         $this->lastProgressAt = $at;
+    }
+
+    public function retire(): void
+    {
+        $this->phase = WorkerPhase::Retiring;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->phase !== WorkerPhase::Retiring;
+    }
+
+    public function isConnected(): bool
+    {
+        return $this->connected;
+    }
+
+    public function isReady(): bool
+    {
+        return $this->ready;
+    }
+
+    public function isStopRequested(): bool
+    {
+        return $this->phase === WorkerPhase::Draining;
+    }
+
+    /**
+     * Tells if the worker is ready and waits for an assignment.
+     */
+    public function isIdle(): bool
+    {
+        return $this->phase === WorkerPhase::Idle;
+    }
+
+    /**
+     * Tells if the worker can take an assignment now or after its bootstrap.
+     */
+    public function canTakeAssignment(): bool
+    {
+        return \in_array($this->phase, [WorkerPhase::Spawned, WorkerPhase::Bootstrapping, WorkerPhase::Idle], true);
     }
 
     /** @return list<TestId> */
