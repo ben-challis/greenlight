@@ -9,7 +9,8 @@ namespace Greenlight\Execution\Worker;
  *
  * The capture and timing window opens before the first phase. Data-set
  * expansion occurs after output capture starts and before the attempt clock
- * starts.
+ * starts. `StopCapture` is the last phase, so output capture includes every
+ * other phase.
  *
  * A phase that does not always run is a test-body phase. A test-body phase
  * runs only while the attempt has no skip, failure, or error. A throwable from
@@ -31,11 +32,6 @@ enum AttemptPhase
     case CloseTestScope;
     case LeaveExpectationWindow;
     case StopCapture;
-
-    public function insideWindow(): bool
-    {
-        return $this !== self::StopCapture;
-    }
 
     public function alwaysRuns(): bool
     {

@@ -30,15 +30,12 @@ final class AttemptPhaseTest
     }
 
     #[Test]
-    public function onlyTheCaptureStopIsOutsideTheWindow(): void
+    public function theCaptureStopIsTheLastPhase(): void
     {
-        $outside = \array_values(\array_filter(
-            AttemptPhase::cases(),
-            static fn(AttemptPhase $phase): bool => !$phase->insideWindow(),
-        ));
+        $phases = AttemptPhase::cases();
 
-        expect($outside)
-            ->because('cleanup and test-scope disposal MUST stay inside the capture window')
-            ->toBe([AttemptPhase::StopCapture]);
+        expect($phases[\array_key_last($phases)])
+            ->because('cleanup and test-scope disposal MUST run inside the capture window')
+            ->toBe(AttemptPhase::StopCapture);
     }
 }
