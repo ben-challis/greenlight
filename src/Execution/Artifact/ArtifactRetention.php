@@ -164,10 +164,24 @@ final readonly class ArtifactRetention
         return new ArtifactRunHandle($runId, $directory, $lock);
     }
 
-    public function prune(bool $dryRun = false, ?string $protectedRunId = null, ?int $now = null): ArtifactPruneReport
-    {
+    /**
+     * Applies the configured policy to completed runs below the parent.
+     *
+     * Selection uses run metadata and file sizes only. Before deletion, the
+     * method claims each selected run with a rename and verifies the SHA-256
+     * digest of each file against the completion manifest.
+     *
+     * When $reportSkipped is true, the report has a warning for each run
+     * directory that the method does not select.
+     */
+    public function prune(
+        bool $dryRun = false,
+        ?string $protectedRunId = null,
+        ?int $now = null,
+        bool $reportSkipped = true,
+    ): ArtifactPruneReport {
         try {
-            return $this->applyPolicy($dryRun, $protectedRunId, $now ?? \time());
+            return $this->applyPolicy($dryRun, $protectedRunId, $now ?? \time(), $reportSkipped);
         } catch (\Throwable) {
             return new ArtifactPruneReport(
                 warnings: ['Greenlight did not apply the artifact retention policy.'],
@@ -176,9 +190,16 @@ final readonly class ArtifactRetention
         }
     }
 
-    private function applyPolicy(bool $dryRun, ?string $protectedRunId, int $now): ArtifactPruneReport
-    {
-        if (!$this->configuration->hasRetentionPolicy() || !\is_dir($this->parent) || \is_link($this->parent)) {
+    private function applyPolicy(
+        bool $dryRun,
+        ?string $protectedRunId,
+        int $now,
+        bool $reportSkipped,
+    ): ArtifactPruneReport {
+        if (!$this->configuration->hasRetentionPolicy()
+            || !\is_dir($this->parent)
+            || \is_link($this->parent)
+        ) {
             return new ArtifactPruneReport(dryRun: $dryRun);
         }
 
@@ -188,7 +209,7 @@ final readonly class ArtifactRetention
         }
 
         if ($dryRun) {
-            return $this->pruneLocked($canonical, true, $protectedRunId, $now);
+            return $this->pruneLocked($canonical, true, $protectedRunId, $now, $reportSkipped);
         }
 
         $pruneLock = ErrorTrap::run(fn() => \fopen($canonical . '/' . self::PRUNE_LOCK_FILE, 'c+'));
@@ -207,7 +228,7 @@ final readonly class ArtifactRetention
                 );
             }
 
-            return $this->pruneLocked($canonical, $dryRun, $protectedRunId, $now);
+            return $this->pruneLocked($canonical, $dryRun, $protectedRunId, $now, $reportSkipped);
         } finally {
             ErrorTrap::run(static fn() => \flock($pruneLock, \LOCK_UN));
             ErrorTrap::run(static fn() => \fclose($pruneLock));
@@ -217,18 +238,24 @@ final readonly class ArtifactRetention
     /**
      * @param non-empty-string $parent
      */
-    private function pruneLocked(string $parent, bool $dryRun, ?string $protectedRunId, int $now): ArtifactPruneReport
-    {
-        $records = [];
+    private function pruneLocked(
+        string $parent,
+        bool $dryRun,
+        ?string $protectedRunId,
+        int $now,
+        bool $reportSkipped,
+    ): ArtifactPruneReport {
         $warnings = $dryRun ? $this->reportClaims($parent) : $this->recoverClaims($parent);
-        $iterator = ErrorTrap::run(static fn() => new \FilesystemIterator($parent, \FilesystemIterator::SKIP_DOTS));
-        foreach ($iterator as $entry) {
-            if (!$entry instanceof \SplFileInfo || $entry->isLink() || !$entry->isDir()) {
+        $records = [];
+        foreach ($this->entryNames($parent) as $name) {
+            if (\str_starts_with($name, '.')) {
                 continue;
             }
-            $record = $this->completedRecord($entry->getPathname(), $entry->getFilename());
-            if ($record instanceof ArtifactRunRecord) {
-                $records[] = $record;
+            $inspection = $this->inspect($parent . '/' . $name, $name);
+            if ($inspection instanceof ArtifactRunRecord) {
+                $records[] = $inspection;
+            } elseif ($reportSkipped && $inspection !== null && $name !== $protectedRunId) {
+                $warnings[] = \sprintf('Greenlight skipped artifact directory "%s" because %s.', $name, $inspection);
             }
         }
 
@@ -243,20 +270,126 @@ final readonly class ArtifactRetention
             ));
             foreach ($this->select($remaining, $unselectable, $now) as [$record, $reasons]) {
                 $directory = $parent . '/' . $record->runId;
-                if (!$dryRun && !$this->removeClaimed($parent, $directory, $record)) {
-                    $warnings[] = \sprintf('Greenlight did not prune artifact run "%s".', $record->runId);
+                $failure = $dryRun ? null : $this->removeClaimed($parent, $directory, $record);
+                $excluded[$record->runId] = true;
+                if ($failure !== null) {
                     // A run that fails verification is not a candidate, as a
                     // changed run is not. The selection runs again without it.
-                    $excluded[$record->runId] = true;
+                    $warnings[] = $failure;
                     $rejected = true;
                     continue;
                 }
-                $excluded[$record->runId] = true;
                 $items[] = new ArtifactPruneItem($record->runId, $directory, $record->bytes, $reasons);
             }
         } while ($rejected);
 
         return new ArtifactPruneReport($items, $warnings, $dryRun);
+    }
+
+    /**
+     * Classifies one entry below the artifact parent.
+     *
+     * @return ArtifactRunRecord|non-empty-string|null A candidate record, or
+     *   the reason that the entry is not a candidate. Null identifies an entry
+     *   that needs no report, such as a file or a run that another process holds.
+     */
+    private function inspect(string $directory, string $name): ArtifactRunRecord|string|null
+    {
+        if (ErrorTrap::run(static fn() => \is_link($directory))) {
+            return 'it is a symbolic link';
+        }
+        if (!ErrorTrap::run(static fn() => \is_dir($directory))) {
+            return null;
+        }
+        $runId = $this->validatedRunId($name);
+        if ($runId === null) {
+            return 'its name is not a Greenlight run ID';
+        }
+        $lockPath = $directory . '/' . self::LOCK_FILE;
+        if ($this->pathIsLink($lockPath) || !ErrorTrap::run(static fn() => \is_file($lockPath))) {
+            return 'it has no Greenlight run lock';
+        }
+        $lock = ErrorTrap::run(static fn() => \fopen($lockPath, 'r+'));
+        if ($lock === false) {
+            return 'Greenlight did not open its run lock';
+        }
+        if (!ErrorTrap::run(static fn() => \flock($lock, \LOCK_EX | \LOCK_NB))) {
+            ErrorTrap::run(static fn() => \fclose($lock));
+
+            return null;
+        }
+
+        try {
+            return $this->candidate($directory, $runId);
+        } catch (\Throwable $failure) {
+            return 'its content is not valid: ' . \rtrim($failure->getMessage(), '.');
+        } finally {
+            ErrorTrap::run(static fn() => \flock($lock, \LOCK_UN));
+            ErrorTrap::run(static fn() => \fclose($lock));
+        }
+    }
+
+    /**
+     * Builds a candidate record from metadata and file sizes. This method
+     * does not read file content.
+     *
+     * @param non-empty-string $runId
+     *
+     * @return ArtifactRunRecord|non-empty-string
+     * @throws \Throwable
+     */
+    private function candidate(string $directory, string $runId): ArtifactRunRecord|string
+    {
+        $decoded = self::metadataMap($directory);
+        if (($decoded['version'] ?? null) !== self::METADATA_VERSION
+            || ($decoded['owner'] ?? null) !== self::OWNER
+            || ($decoded['runId'] ?? null) !== $runId
+            || !\is_int($decoded['startedAt'] ?? null) || $decoded['startedAt'] < 0
+        ) {
+            return 'it has no valid Greenlight run metadata';
+        }
+        $startedAt = $decoded['startedAt'];
+
+        if (($decoded['state'] ?? null) === 'active') {
+            return 'the run did not complete and no process holds it';
+        }
+
+        if (($decoded['state'] ?? null) !== 'completed'
+            || !\is_int($decoded['completedAt'] ?? null) || $decoded['completedAt'] < 0
+            || !\is_array($decoded['files'] ?? null)
+        ) {
+            return 'it has no valid Greenlight run metadata';
+        }
+        $files = $this->validatedFiles($decoded['files']);
+        if ($files === null) {
+            return 'it has no valid Greenlight run metadata';
+        }
+        $expected = \array_map(static fn(array $file): int => $file['bytes'], $files);
+        if (self::contentSizes($directory) !== $expected) {
+            return 'its content changed after completion';
+        }
+
+        return new ArtifactRunRecord(
+            $runId,
+            $startedAt,
+            $decoded['completedAt'],
+            $files,
+            $this->withInternalBytes($directory, $this->manifestBytes($files)),
+        );
+    }
+
+    /** @throws \RuntimeException */
+    private function withInternalBytes(string $directory, int $bytes): int
+    {
+        foreach ([self::METADATA_FILE, self::LOCK_FILE] as $internal) {
+            $size = ErrorTrap::run(static fn() => \filesize($directory . '/' . $internal));
+            if (!\is_int($size) || $size < 0) {
+                throw new \RuntimeException('Greenlight did not read artifact run metadata.');
+            }
+            $bytes = $this->saturatingAdd($bytes, $size);
+        }
+
+        return $bytes;
     }
 
     /**
@@ -328,22 +461,27 @@ final readonly class ArtifactRetention
         return $selection;
     }
 
-    private function removeClaimed(string $parent, string $directory, ArtifactRunRecord $record): bool
+    /**
+     * @return non-empty-string|null The warning for a run that the method did
+     *   not remove, or null after removal.
+     */
+    private function removeClaimed(string $parent, string $directory, ArtifactRunRecord $record): ?string
     {
+        $failure = \sprintf('Greenlight did not prune artifact run "%s".', $record->runId);
         if (\dirname($directory) !== $parent || !$this->canonicalDirectory($directory, $directory)) {
-            return false;
+            return $failure;
         }
 
         $lockPath = $directory . '/' . self::LOCK_FILE;
         if ($this->pathIsLink($lockPath)) {
-            return false;
+            return $failure;
         }
         $lock = ErrorTrap::run(static fn() => \fopen($lockPath, 'r+'));
         if ($lock === false || !ErrorTrap::run(static fn() => \flock($lock, \LOCK_EX | \LOCK_NB))) {
             if (\is_resource($lock)) {
                 ErrorTrap::run(static fn() => \fclose($lock));
             }
-            return false;
+            return $failure;
         }
 
         $claim = $parent . '/' . self::CLAIM_PREFIX . \bin2hex(\random_bytes(12));
@@ -352,24 +490,19 @@ final readonly class ArtifactRetention
                 || !$this->canonicalDirectory($parent, $parent)
                 || !$this->canonicalDirectory($directory, $directory)
             ) {
-                return false;
+                return $failure;
             }
             if (!ErrorTrap::run(static fn() => \rename($directory, $claim))) {
-                return false;
+                return $failure;
             }
             try {
-                $claimed = $this->canonicalDirectory($claim, $claim)
-                    ? $this->verifiedRecord($claim, $record->runId)
-                    : null;
+                $verification = $this->claimVerification($claim, $record);
             } catch (\Throwable) {
-                $claimed = null;
+                $verification = $failure;
             }
-            if (!$claimed instanceof ArtifactRunRecord
-                || $claimed->files !== $record->files
-                || !$this->treeRemovable($claim)
-            ) {
+            if ($verification !== null) {
                 ErrorTrap::run(static fn() => \rename($claim, $directory));
-                return false;
+                return $verification;
             }
         } finally {
             ErrorTrap::run(static fn() => \flock($lock, \LOCK_UN));
@@ -378,7 +511,31 @@ final readonly class ArtifactRetention
 
         // A failed deletion keeps the claim, so that the next prune can
         // complete it. A partial tree cannot return to its run ID.
-        return $this->removeTree($claim);
+        return $this->removeTree($claim) ? null : $failure;
+    }
+
+    /**
+     * Verifies a claimed run against its candidate record. For a completed
+     * run, this check reads each file and compares its SHA-256 digest.
+     *
+     * @return non-empty-string|null
+     * @throws \Throwable
+     */
+    private function claimVerification(string $claim, ArtifactRunRecord $record): ?string
+    {
+        $failure = \sprintf('Greenlight did not prune artifact run "%s".', $record->runId);
+        if (!$this->canonicalDirectory($claim, $claim)) {
+            return $failure;
+        }
+        $claimed = $this->verifiedRecord($claim, $record->runId);
+        if (!$claimed instanceof ArtifactRunRecord || $claimed->files !== $record->files) {
+            return \sprintf(
+                'Greenlight did not prune artifact run "%s" because its content does not match its completion manifest.',
+                $record->runId,
+            );
+        }
+
+        return $this->treeRemovable($claim) ? null : $failure;
     }
 
     /**
@@ -657,84 +814,6 @@ final readonly class ArtifactRetention
         return $decoded['startedAt'];
     }
 
-    private function completedRecord(string $directory, string $runId): ?ArtifactRunRecord
-    {
-        if (!$this->safeRunId($runId) || \is_link($directory)) {
-            return null;
-        }
-        $lockPath = $directory . '/' . self::LOCK_FILE;
-        if (\is_link($lockPath) || !\is_file($lockPath)) {
-            return null;
-        }
-        $lock = ErrorTrap::run(static fn() => \fopen($lockPath, 'r+'));
-        if ($lock === false || !ErrorTrap::run(static fn() => \flock($lock, \LOCK_EX | \LOCK_NB))) {
-            if (\is_resource($lock)) {
-                ErrorTrap::run(static fn() => \fclose($lock));
-            }
-            return null;
-        }
-        try {
-            return $this->candidateRecord($directory, $runId);
-        } catch (\Throwable) {
-            return null;
-        } finally {
-            ErrorTrap::run(static fn() => \flock($lock, \LOCK_UN));
-            ErrorTrap::run(static fn() => \fclose($lock));
-        }
-    }
-
-    /**
-     * Builds a candidate record from metadata and file sizes. This method
-     * does not read file content.
-     *
-     * @throws \Throwable
-     */
-    private function candidateRecord(string $directory, string $runId): ?ArtifactRunRecord
-    {
-        $decoded = self::metadataMap($directory);
-        if (($decoded['version'] ?? null) !== self::METADATA_VERSION
-            || ($decoded['owner'] ?? null) !== self::OWNER
-            || ($decoded['runId'] ?? null) !== $runId
-            || ($decoded['state'] ?? null) !== 'completed'
-            || !\is_int($decoded['startedAt'] ?? null) || $decoded['startedAt'] < 0
-            || !\is_int($decoded['completedAt'] ?? null) || $decoded['completedAt'] < 0
-            || !\is_array($decoded['files'] ?? null)
-        ) {
-            return null;
-        }
-        $files = $this->validatedFiles($decoded['files']);
-        $validatedRunId = $this->validatedRunId($runId);
-        if ($files === null || $validatedRunId === null) {
-            return null;
-        }
-        $expected = \array_map(static fn(array $file): int => $file['bytes'], $files);
-        if (self::contentSizes($directory) !== $expected) {
-            return null;
-        }
-
-        return new ArtifactRunRecord(
-            $validatedRunId,
-            $decoded['startedAt'],
-            $decoded['completedAt'],
-            $files,
-            $this->withInternalBytes($directory, $this->manifestBytes($files)),
-        );
-    }
-
-    /** @throws \RuntimeException */
-    private function withInternalBytes(string $directory, int $bytes): int
-    {
-        foreach ([self::METADATA_FILE, self::LOCK_FILE] as $internal) {
-            $size = ErrorTrap::run(static fn() => \filesize($directory . '/' . $internal));
-            if (!\is_int($size) || $size < 0) {
-                throw new \RuntimeException('Greenlight did not read artifact run metadata.');
-            }
-            $bytes = $this->saturatingAdd($bytes, $size);
-        }
-
-        return $bytes;
-    }
-
     /**
      * Reads a completed run record and verifies the SHA-256 digest of each
      * content file against the completion manifest.
@@ -881,11 +960,6 @@ final readonly class ArtifactRetention
                 throw AttachmentError::storage('Failed to create attachment output directory' . ($warning === null ? '' : ': ' . $warning));
             }
         }
-    }
-
-    private function safeRunId(string $runId): bool
-    {
-        return $this->validatedRunId($runId) !== null;
     }
 
     /**

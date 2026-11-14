@@ -84,7 +84,10 @@ order. A future completion time is not old for the age policy.
 
 The current automatic run is not eligible. Unknown, active, incomplete,
 changed, malformed, and future-version directories are not eligible. A
-directory with a symbolic link is not eligible.
+directory with a symbolic link is not eligible. The `artifacts:prune` report
+contains a warning with the reason for each directory that pruning does not
+select. A run that another process holds gets no warning. Automatic retention
+after a run does not report these warnings.
 
 Retention failures are advisory. They do not change a test result or run exit
 code. A failure that prevents publication of the current run remains fatal.
