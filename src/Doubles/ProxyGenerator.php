@@ -166,7 +166,13 @@ final readonly class ProxyGenerator
             }
         }
 
-        if (!$reflection->isInterface() && $reflection->hasMethod('__destruct') && !$reflection->getMethod('__destruct')->isFinal()) {
+        $constructor = $reflection->getConstructor();
+
+        if ($constructor instanceof \ReflectionMethod && $constructor->isAbstract()) {
+            $sections[] = \sprintf("    %s\n    {\n    }\n", $this->renderSignature($constructor, null));
+        }
+
+        if ($reflection->hasMethod('__destruct') && !$reflection->getMethod('__destruct')->isFinal()) {
             $sections[] = "    public function __destruct() {}\n";
         }
 
