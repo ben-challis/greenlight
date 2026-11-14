@@ -58,7 +58,11 @@ final readonly class RunCoordinator
         $seed = $configuration->order->seed;
         $classSeconds = $configuration->order->isRandomized() ? [] : $classSeconds;
         $storage = StorageLayout::resolve($configuration->storage, $this->workingDirectory);
-        $plan = $this->sharded($this->discover($selection, $directories, $seed, $storage), $selection);
+        $discovered = $this->discover($selection, $directories, $seed, $storage);
+        $plan = $this->sharded($discovered, $selection);
+        // Hash sharding can give a shard no tests when the suite has fewer
+        // classes than shards. That shard has no work, which is not an error.
+        $emptyShard = $selection->shard !== null && \count($plan) === 0 && \count($discovered) > 0;
         $orchestratorPlugins = OrchestratorPluginRuntime::fromDefinitions(
             $configuration->execution->plugins,
             $sink,
@@ -101,6 +105,7 @@ final readonly class RunCoordinator
                     $durationSeconds,
                     $seed,
                     artifactMaintenance: $this->maintenanceReport($artifacts->complete()),
+                    emptyShard: $emptyShard,
                 );
             }
 

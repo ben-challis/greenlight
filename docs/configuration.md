@@ -981,6 +981,10 @@ Only whole classes move between shards. Individual methods are not split.
 Combines with `--group` and `--filter`. Greenlight divides the filtered plan
 into shards.
 
+A suite with fewer classes than shards gives some shards no tests. Such a
+shard prints a notice and exits with `0`. A filtered plan with no tests still
+exits with `1`.
+
 Each shard enforces its own resource limits. If four shards each use
 `postgres=2`, up to eight tests can use PostgreSQL across the CI job.
 
