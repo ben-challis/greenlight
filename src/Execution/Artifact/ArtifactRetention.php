@@ -281,9 +281,7 @@ final readonly class ArtifactRetention
             $inspection = $this->inspect($parent . '/' . $name, $name, $now, $abandonedRunAgeSeconds);
             if ($inspection instanceof ArtifactRunRecord) {
                 if ($inspection->active) {
-                    if ($name !== $protectedRunId) {
-                        $abandoned[] = $inspection;
-                    }
+                    $abandoned[] = $inspection;
                 } else {
                     $records[] = $inspection;
                 }
