@@ -30,6 +30,15 @@ final class DiscoveryError extends \RuntimeException
         );
     }
 
+    public static function unreadableDirectory(string $directory, ?string $reason = null): self
+    {
+        return new self(\sprintf(
+            'Greenlight cannot read test directory "%s"%s.',
+            $directory,
+            $reason === null ? '' : ': ' . $reason,
+        ));
+    }
+
     public static function unreadableFile(
         string $file,
         ?string $reason = null,
