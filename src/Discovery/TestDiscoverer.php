@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
+use Greenlight\Attribute\Test;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Internal\Php\ErrorTrap;
@@ -273,6 +274,8 @@ final readonly class TestDiscoverer
                 throw DiscoveryError::classLoadedFromOtherFile($file, $fqcn, $actualFile === false ? '(no file)' : $actualFile);
             }
 
+            $this->rejectOtherTestClasses($file, $fqcn, $declarations);
+
             return $fqcn;
         }
 
@@ -281,6 +284,40 @@ final readonly class TestDiscoverer
         }
 
         throw DiscoveryError::classNameMismatch($file, $declarations[0]->shortName, $expected);
+    }
+
+    /**
+     * Discovery runs only the class that matches the file name. Another
+     * concrete class with test methods in the same file would not run, so
+     * discovery rejects it. The autoload of the expected class declares the
+     * other classes of the file.
+     *
+     * @param non-empty-string $file
+     * @param list<ClassDeclaration> $declarations
+     *
+     * @throws DiscoveryError
+     */
+    private function rejectOtherTestClasses(string $file, string $expected, array $declarations): void
+    {
+        foreach ($declarations as $declaration) {
+            $fqcn = $declaration->fqcn();
+
+            if ($declaration->kind !== 'class' || $fqcn === $expected || !\class_exists($fqcn, false)) {
+                continue;
+            }
+
+            $reflection = new \ReflectionClass($fqcn);
+
+            if ($reflection->isAbstract()) {
+                continue;
+            }
+
+            foreach ($reflection->getMethods() as $method) {
+                if ($method->getAttributes(Test::class) !== []) {
+                    throw DiscoveryError::secondTestClassInFile($file, $fqcn, $expected);
+                }
+            }
+        }
     }
 
     /**
