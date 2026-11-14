@@ -120,6 +120,10 @@ return GreenlightConfig::create()
 The age value is in seconds. Greenlight applies age, count, and byte limits in
 that order. Each limit removes the oldest eligible completed run first.
 
+After each run and each watch iteration, Greenlight prints each removed run
+and each retention warning on standard error. The lines use the
+`artifacts:prune` format.
+
 Use `greenlight artifacts:prune --dry-run` to examine the configured policy.
 Use the command without `--dry-run` to apply the policy.
 
