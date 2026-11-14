@@ -141,6 +141,8 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
 
         try {
             $service = $container->get($id);
+        } catch (ServiceResolutionFailed $error) {
+            throw $error;
         } catch (\Throwable $threw) {
             throw Psr11BridgeError::serviceReadFailed($id, $threw);
         }
