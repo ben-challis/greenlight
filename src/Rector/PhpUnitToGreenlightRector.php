@@ -203,12 +203,14 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             return null;
         }
 
-        if (!$this->attributesConvert($class->attrGroups, onClass: true)) {
+        if (!$this->attributesConvert($class->attrGroups, onClass: true) || $this->hasPhpUnitAnnotation($class)) {
             return null;
         }
 
         $defined = $this->definedMethods($class);
+        $providers = $this->referencedDataProviders($class);
         $hooks = [];
+        $hookOrder = ['before' => [], 'after' => []];
         $tests = [];
         $noExpectations = [];
         $throwRewrites = [];
@@ -221,7 +223,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
                 return null;
             }
 
-            if (!$this->attributesConvert($method->attrGroups, onClass: false)) {
+            if (!$this->attributesConvert($method->attrGroups, onClass: false) || $this->hasPhpUnitAnnotation($method)) {
                 return null;
             }
 
@@ -233,6 +235,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
             if ($kind === 'before' || $kind === 'after') {
                 $hooks[$name] = $kind;
+                $hookOrder[$kind][] = $name;
                 $this->sanctionParentHookCalls($method, $sanctioned);
 
                 continue;
@@ -240,6 +243,12 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
             if ($this->hasAttributeNamed($method->attrGroups, 'Override')) {
                 // #[\Override] on anything but a hook points at the removed parent.
+                return null;
+            }
+
+            if ($kind === 'helper' && $this->isStaticTestNamed($method) && !isset($providers[$name])) {
+                // PHPUnit runs a public static test method. A Greenlight
+                // test must not be static, so the method would stop running.
                 return null;
             }
 
@@ -267,6 +276,12 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             if ($noAssertions) {
                 $noExpectations[] = $name;
             }
+        }
+
+        if (!$this->hookOrderConverts($hookOrder['before'], 'before')
+            || !$this->hookOrderConverts($hookOrder['after'], 'after')
+        ) {
+            return null;
         }
 
         if (!$this->dataProvidersConvert($class)) {
@@ -329,6 +344,66 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         }
 
         return $defined;
+    }
+
+    /**
+     * Compares the hook run order of PHPUnit and Greenlight. PHPUnit runs
+     * `#[Before]` methods in reverse declaration order and then `setUp()`.
+     * It runs `tearDown()` and then `#[After]` methods in declaration order.
+     * Greenlight runs before-hooks in declaration order and after-hooks in
+     * reverse declaration order.
+     *
+     * @param list<string> $declared lowercase hook names in declaration order
+     * @param 'after'|'before' $kind
+     */
+    private function hookOrderConverts(array $declared, string $kind): bool
+    {
+        $template = $kind === 'before' ? 'setup' : 'teardown';
+        $attributed = \array_values(\array_filter($declared, static fn(string $name): bool => $name !== $template));
+        $templates = \in_array($template, $declared, true) ? [$template] : [];
+
+        if ($kind === 'before') {
+            return [...\array_reverse($attributed), ...$templates] === $declared;
+        }
+
+        return [...$templates, ...$attributed] === \array_reverse($declared);
+    }
+
+    private function hasPhpUnitAnnotation(Class_|ClassMethod $node): bool
+    {
+        $docComment = $node->getDocComment();
+
+        return $docComment !== null && \preg_match(PhpUnitAttributes::ANNOTATION_PATTERN, $docComment->getText()) === 1;
+    }
+
+    private function isStaticTestNamed(ClassMethod $method): bool
+    {
+        return $method->isPublic() && $method->isStatic() && \str_starts_with($method->name->toLowerString(), 'test');
+    }
+
+    /**
+     * @return array<string, true> lowercase names from string `#[DataProvider]` arguments
+     */
+    private function referencedDataProviders(Class_ $class): array
+    {
+        $providers = [];
+
+        foreach ($class->getMethods() as $method) {
+            foreach ($method->attrGroups as $group) {
+                foreach ($group->attrs as $attribute) {
+                    $argument = $attribute->args[0] ?? null;
+
+                    if ($this->getName($attribute->name) === PhpUnitAttributes::NAMESPACE_PREFIX . 'DataProvider'
+                        && $argument instanceof Arg
+                        && $argument->value instanceof String_
+                    ) {
+                        $providers[\strtolower($argument->value->value)] = true;
+                    }
+                }
+            }
+        }
+
+        return $providers;
     }
 
     /**
@@ -508,6 +583,71 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             }
         }
 
+        return $this->rowKeysConvert($attribute->args[0]->value);
+    }
+
+    /**
+     * Checks each literal row that a data provider returns or yields. A
+     * provider that builds rows another way keeps its rows unchecked.
+     */
+    private function providerRowsConvert(ClassMethod $provider): bool
+    {
+        $finder = new NodeFinder();
+        $stmts = $provider->stmts ?? [];
+        $rows = \array_map(
+            static fn(Expr\Yield_ $yield): ?Expr => $yield->value,
+            $finder->findInstanceOf($stmts, Expr\Yield_::class),
+        );
+        $rowSets = [
+            ...\array_map(
+                static fn(Node\Stmt\Return_ $return): ?Expr => $return->expr,
+                $finder->findInstanceOf($stmts, Node\Stmt\Return_::class),
+            ),
+            ...\array_map(
+                static fn(Expr\YieldFrom $yieldFrom): Expr => $yieldFrom->expr,
+                $finder->findInstanceOf($stmts, Expr\YieldFrom::class),
+            ),
+        ];
+
+        foreach ($rowSets as $rowSet) {
+            if (!$rowSet instanceof Expr\Array_) {
+                continue;
+            }
+
+            foreach ($rowSet->items as $item) {
+                $rows[] = $item?->value;
+            }
+        }
+
+        return \array_all(
+            $rows,
+            fn(?Expr $row): bool => !$row instanceof Expr\Array_ || $this->rowKeysConvert($row),
+        );
+    }
+
+    /**
+     * PHPUnit 11 spreads a data row, so a string key becomes a named
+     * argument. Greenlight passes the row values in order and ignores the
+     * keys. Only integer keys give the same arguments in both.
+     */
+    private function rowKeysConvert(Expr $row): bool
+    {
+        if (!$row instanceof Expr\Array_) {
+            $type = $this->getType($row);
+
+            return $type->isArray()->yes() && $type->getIterableKeyType()->isInteger()->yes();
+        }
+
+        foreach ($row->items as $item) {
+            if (!$item instanceof ArrayItem || $item->unpack) {
+                return false;
+            }
+
+            if ($item->key instanceof Expr && !$item->key instanceof Node\Scalar\Int_) {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -529,6 +669,10 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
                     $provider = $class->getMethod($argument->value->value);
 
                     if (!$provider instanceof ClassMethod || !$provider->isPublic() || !$provider->isStatic()) {
+                        return false;
+                    }
+
+                    if (!$this->providerRowsConvert($provider)) {
                         return false;
                     }
                 }
@@ -795,7 +939,8 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             }
 
             return (\count($arguments) === $conversion->arity || $this->dropAssertionMessages)
-                && $this->argumentOrderConverts($conversion, $arguments);
+                && $this->argumentOrderConverts($conversion, $arguments)
+                && $this->looseNegationConverts($name, $arguments);
         }
 
         if ($name === self::FAIL) {
@@ -822,6 +967,76 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         }
 
         return false;
+    }
+
+    /**
+     * PHPUnit compares loosely in assertNotEquals() and
+     * assertNotEqualsCanonicalizing(). Greenlight compares strictly, so the
+     * negated matcher accepts more values, for example `false` and `0`. The
+     * negation converts only when both operands have one proven value kind
+     * that both frameworks compare in the same way.
+     *
+     * @param list<Arg> $arguments
+     */
+    private function looseNegationConverts(string $name, array $arguments): bool
+    {
+        if ($name !== 'assertnotequals' && $name !== 'assertnotequalscanonicalizing') {
+            return true;
+        }
+
+        $expected = $this->strictKind($arguments[0]->value);
+        $actual = $this->strictKind($arguments[1]->value);
+
+        if ($expected === null || $expected !== $actual) {
+            return false;
+        }
+
+        if ($name === 'assertnotequals') {
+            return true;
+        }
+
+        // PHPUnit canonicalization sorts each array and drops its keys.
+        // Greenlight keeps the keys of an associative array.
+        return \substr_count($expected, 'array:') === 1
+            && $this->getType($arguments[0]->value)->isList()->yes()
+            && $this->getType($arguments[1]->value)->isList()->yes();
+    }
+
+    /**
+     * Describes a value type that PHPUnit and Greenlight compare in the
+     * same way: one scalar type, or arrays whose values have one such type.
+     * Both frameworks pair array values by key and ignore key order.
+     *
+     * @return non-empty-string|null
+     */
+    private function strictKind(Expr $expression): ?string
+    {
+        $type = $this->getType($expression);
+        $prefix = '';
+
+        for ($depth = 0; $depth < 8; $depth++) {
+            $kind = match (true) {
+                $type->isInteger()->yes() => 'int',
+                $type->isFloat()->yes() => 'float',
+                $type->isString()->yes() => 'string',
+                $type->isBoolean()->yes() => 'bool',
+                $type->isNull()->yes() => 'null',
+                default => null,
+            };
+
+            if ($kind !== null) {
+                return $prefix . $kind;
+            }
+
+            if (!$type->isArray()->yes()) {
+                return null;
+            }
+
+            $prefix .= 'array:';
+            $type = $type->getIterableValueType();
+        }
+
+        return null;
     }
 
     /**
