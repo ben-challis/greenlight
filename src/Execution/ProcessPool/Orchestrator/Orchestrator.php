@@ -799,14 +799,21 @@ final class Orchestrator
     }
 
     /**
+     * Sends the kill signal before it recovers staged attachments. Thus, the
+     * recovery includes evidence that the worker completed before the
+     * signal. The kill does not wait for the exit, so a write that is still
+     * in progress can complete after the recovery.
+     *
      * @throws AttachmentError
      */
     private function containTimeout(WorkerState $handle, EventSink $sink, float $budget): void
     {
         $inFlight = $handle->inFlight;
+        $attempts = $handle->inFlightAttempt;
+        $duration = \max(0.0, $this->monotonicTime() - $handle->inFlightSince);
+        $remainder = $this->retireFailedWorker($handle, true);
 
         if ($inFlight instanceof TestId) {
-            $duration = \max(0.0, $this->monotonicTime() - $handle->inFlightSince);
             $message = \sprintf(
                 'The test exceeded its %.3f-second time limit. Greenlight stopped worker "%s" after %.3f seconds.',
                 $budget,
@@ -819,16 +826,16 @@ final class Orchestrator
                 $message .= "\nWorker output:\n" . Utf8::tailBytes($diagnostics, 2_048);
             }
 
-            $this->recordSyntheticResult($handle, $sink, new TestResult(
+            $this->recordSyntheticResult($sink, new TestResult(
                 $inFlight,
                 Outcome::Failed,
                 $duration,
                 0,
                 failures: [new FailureDetail($message)],
-            ));
+            ), $attempts);
         }
 
-        $this->retireFailedWorker($handle, true);
+        $this->enqueueRemainder($remainder);
     }
 
     /**
@@ -841,7 +848,7 @@ final class Orchestrator
         if ($inFlight instanceof TestId) {
             $diagnostics = \trim($this->transport->diagnostics($handle->workerId));
 
-            $this->recordSyntheticResult($handle, $sink, new TestResult(
+            $this->recordSyntheticResult($sink, new TestResult(
                 $inFlight,
                 Outcome::Errored,
                 0.0,
@@ -851,37 +858,42 @@ final class Orchestrator
                     $reason,
                     Utf8::tailBytes($diagnostics, 2_048),
                 )),
-            ));
+            ), $handle->inFlightAttempt);
         }
 
-        $this->retireFailedWorker($handle);
+        $this->enqueueRemainder($this->retireFailedWorker($handle));
     }
 
     /**
+     * @param non-negative-int $attempts
      * @throws AttachmentError
      */
-    private function recordSyntheticResult(WorkerState $handle, EventSink $sink, TestResult $result): void
+    private function recordSyntheticResult(EventSink $sink, TestResult $result, int $attempts): void
     {
-        $result = $result->withAttempts(\max($result->attempts, $handle->inFlightAttempt));
+        $result = $result->withAttempts(\max($result->attempts, $attempts));
 
         if ($this->configuration->artifactStore instanceof ArtifactStore) {
             $result = $this->configuration->artifactStore->recover($result);
         }
 
-        $handle->inFlight = null;
-        $handle->finished[(string) $result->id] = true;
         unset($this->entriesById[(string) $result->id]);
         $this->summary = $this->summary->add($result->outcome);
         $sink->emit(new TestFinished($result, \microtime(true)));
         $this->enforceFailureLimit();
     }
 
-    private function retireFailedWorker(WorkerState $handle, bool $kill = false): void
+    /**
+     * Stops the worker and releases its assignment.
+     *
+     * @return list<TestId> tests of the assignment that did not finish and were not active
+     */
+    private function retireFailedWorker(WorkerState $handle, bool $kill = false): array
     {
         $remainder = $handle->unfinished();
         $this->releaseAssignment($handle);
         $this->finishHandle($handle, $kill);
-        $this->enqueueRemainder($remainder);
+
+        return $remainder;
     }
 
     /**
