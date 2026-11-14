@@ -151,9 +151,11 @@ final readonly class CommandDispatcher
     {
         $configuredPath = null;
 
-        foreach ($argv as $argument) {
+        foreach ($argv as $index => $argument) {
             if (\str_starts_with($argument, '--config=')) {
                 $configuredPath = \substr($argument, \strlen('--config='));
+            } elseif ($argument === '--config' && isset($argv[$index + 1])) {
+                $configuredPath = $argv[$index + 1];
             }
         }
 
