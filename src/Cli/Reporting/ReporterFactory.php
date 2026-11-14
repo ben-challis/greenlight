@@ -44,6 +44,7 @@ final readonly class ReporterFactory
             $header,
             $arguments,
             TerminalRowsResolver::resolve(),
+            TerminalColumnsResolver::resolve(),
         )->reporters();
 
         foreach ($plugins as $pluginDefinition) {

@@ -1301,6 +1301,10 @@ In an interactive terminal, the `tty` reporter shows a bounded live window:
 * in-flight classes
 * at most ten live lines, clamped to the terminal height
 
+The reporter shortens a live line that is wider than the terminal. The line
+ends with `…`. Greenlight reads the width from `COLUMNS`, then from
+`tput cols`. If neither gives a width, it uses 80 columns.
+
 The reporter prints failures and skips permanently when their class finishes.
 
 Classes that pass only advance the counter unless you enable `--verbose`.

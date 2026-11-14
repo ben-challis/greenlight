@@ -27,12 +27,14 @@ final readonly class BundledReporters implements ReporterProvider
 {
     /**
      * @param positive-int $terminalRows
+     * @param positive-int $terminalColumns
      */
     public function __construct(
         private TerminalCapabilities $capabilities,
         private RunHeader $header,
         private ParsedArguments $arguments,
         private int $terminalRows,
+        private int $terminalColumns = 80,
     ) {}
 
     /** @return list<ReporterDefinition> */
@@ -53,6 +55,7 @@ final readonly class BundledReporters implements ReporterProvider
                     extendedSlowTests: $profile,
                     verbose: $this->arguments->has('verbose'),
                     terminalRows: $this->terminalRows,
+                    terminalColumns: $this->terminalColumns,
                 );
             }),
             new ReporterDefinition('plain', fn(Output $output): Reporter => new PlainReporter($output, $this->header, extendedSlowTests: $profile)),
