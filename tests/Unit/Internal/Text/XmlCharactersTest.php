@@ -7,7 +7,7 @@ namespace Greenlight\Tests\Unit\Internal\Text;
 use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\Test;
 use Greenlight\Coverage\Export\XmlEscaper;
-use Greenlight\Internal\Text\Utf8;
+use Greenlight\Internal\Text\XmlCharacters;
 
 use function Greenlight\expect;
 
@@ -17,7 +17,7 @@ final class XmlCharactersTest
     #[DataSet('values')]
     public function bothXmlEscapersKeepTheirOutput(string $value, string $characters, string $attribute): void
     {
-        expect(Utf8::xmlCharacters($value))
+        expect(XmlCharacters::scrub($value))
             ->because('the JUnit reporter text MUST not change')
             ->toBe($characters);
         expect(XmlEscaper::attribute($value))
