@@ -953,6 +953,10 @@ Only whole classes move between shards. Individual methods are not split.
 Combines with `--group` and `--filter`. Greenlight divides the filtered plan
 into shards.
 
+A suite with fewer classes than shards gives some shards no tests. Such a
+shard prints a notice and exits with `0`. A filtered plan with no tests still
+exits with `1`.
+
 Each shard enforces its own resource limits. If four shards each use
 `postgres=2`, up to eight tests can use PostgreSQL across the CI job.
 
@@ -1276,7 +1280,14 @@ The run then exits with:
 * `130` for SIGINT
 * `143` for SIGTERM
 
-A second signal during shutdown terminates immediately.
+A second signal during shutdown ends Greenlight immediately. Before it exits,
+Greenlight:
+
+* kills the worker processes
+* stops the watch-mode child process
+* restores the terminal
+
+The exit status then shows the signal.
 
 Graceful shutdown requires `ext-pcntl`. Without it, PHP uses its default signal
 behavior and exits immediately.

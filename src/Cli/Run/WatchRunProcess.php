@@ -10,6 +10,7 @@ use Greenlight\Cli\Reporting\ReporterSink;
 use Greenlight\Cli\Watch\ClassFailureTap;
 use Greenlight\Internal\Event\EventCodec;
 use Greenlight\Internal\Php\ErrorTrap;
+use Greenlight\Internal\Process\EmergencyCleanups;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Reporting\Reporter;
 use Greenlight\Reporting\Ticking;
@@ -22,7 +23,13 @@ use Greenlight\Reporting\Ticking;
  */
 final readonly class WatchRunProcess
 {
-    public function __construct(private Console $console, private GracefulShutdown $shutdown) {}
+    private const int FORCED_EXIT_GRACE_MICROSECONDS = 2_000_000;
+
+    public function __construct(
+        private Console $console,
+        private GracefulShutdown $shutdown,
+        private ?EmergencyCleanups $emergencyCleanups = null,
+    ) {}
 
     /**
      * @param non-empty-string $binPath
@@ -60,6 +67,10 @@ final readonly class WatchRunProcess
         }
 
         $events = $pipes[3];
+        $pid = \proc_get_status($process)['pid'];
+        $cleanup = $this->emergencyCleanups?->register(static function () use ($process, $pid): void {
+            self::forceStop($process, $pid);
+        });
         $tap = new ClassFailureTap(new ReporterSink($reporter));
         $buffer = '';
         $signaled = false;
@@ -116,6 +127,10 @@ final readonly class WatchRunProcess
                 ? $failure
                 : WatchRunFailed::operation($failure->getMessage(), $failure);
         } finally {
+            if ($cleanup !== null) {
+                $this->emergencyCleanups?->unregister($cleanup);
+            }
+
             $status = \proc_get_status($process);
 
             if ($status['running']) {
@@ -138,5 +153,37 @@ final readonly class WatchRunProcess
             \fclose($events);
             \proc_close($process);
         }
+    }
+
+    /**
+     * Stops the child after a forced exit request. The child runs in its own
+     * process group, so the terminal does not signal it or its workers. The
+     * child gets SIGTERM again. This is its second signal, so the child kills
+     * its worker groups before it exits. A child that does not exit in time
+     * gets SIGKILL for its whole process group.
+     *
+     * @param resource $process
+     */
+    private static function forceStop(mixed $process, int $pid): void
+    {
+        if ($pid < 1 || !\function_exists('posix_kill')) {
+            return;
+        }
+
+        ErrorTrap::run(static fn(): bool => \posix_kill($pid, \SIGTERM));
+        $deadline = \hrtime(true) + self::FORCED_EXIT_GRACE_MICROSECONDS * 1_000;
+
+        while (\hrtime(true) < $deadline) {
+            $status = ErrorTrap::run(static fn() => \proc_get_status($process));
+
+            if (!\is_array($status) || !$status['running']) {
+                break;
+            }
+
+            \usleep(20_000);
+        }
+
+        ErrorTrap::run(static fn(): bool => \posix_kill(-$pid, \SIGKILL));
+        ErrorTrap::run(static fn(): bool => \posix_kill($pid, \SIGKILL));
     }
 }

@@ -35,6 +35,7 @@ use Greenlight\Execution\RunCoordinator;
 use Greenlight\Execution\RunPolicyError;
 use Greenlight\Execution\RunResult;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
+use Greenlight\Internal\Process\EmergencyCleanups;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\Reporter;
@@ -61,6 +62,7 @@ final readonly class RunSession
         private TestSelection $selection,
         private RunState $state,
         private bool $coverageOutputOnStderr = false,
+        private ?EmergencyCleanups $emergencyCleanups = null,
     ) {}
 
     /**
@@ -100,6 +102,7 @@ final readonly class RunSession
 
         $reporter->finish();
         $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
+        $this->reportArtifactMaintenance($run);
         $this->reportRunPolicyFailures($run, $failedTap);
 
         return $tap->failedClasses();
@@ -157,6 +160,7 @@ final readonly class RunSession
 
         $reporter->finish();
         $this->persist($failedTap->failedTests(), $failedTap->classSeconds());
+        $this->reportArtifactMaintenance($run);
         if ($coverage instanceof CoverageMap) {
             $coverage = CoveragePluginRuntime::fromDefinitions($resolved->execution->plugins)
                 ->transform($coverage);
@@ -168,6 +172,16 @@ final readonly class RunSession
             ) . "\n");
 
             return CommandResult::interrupted($interruptSignal);
+        }
+        if ($run->emptyShard) {
+            $notice = \sprintf(
+                "Shard %d of %d has no tests. The other shards run all selected tests.\n",
+                $this->selection->shard[0] ?? 1,
+                $this->selection->shard[1] ?? 1,
+            );
+            $this->coverageOutputOnStderr ? $this->console->err($notice) : $this->console->out($notice);
+
+            return CommandResult::success();
         }
         if ($run->plannedTests === 0) {
             $this->console->err("Greenlight found no tests. Check the configuration, test paths, and filters.\n");
@@ -210,6 +224,26 @@ final readonly class RunSession
         }
 
         return CommandResult::success();
+    }
+
+    /**
+     * Uses the same lines as the artifacts:prune command. Automatic retention
+     * runs after each run, so its deletions and failures must be visible.
+     */
+    private function reportArtifactMaintenance(RunResult $run): void
+    {
+        foreach ($run->artifactMaintenance->items as $item) {
+            $this->console->err(\sprintf(
+                "Pruned %s (%d bytes, %s limit).\n",
+                $item->directory,
+                $item->bytes,
+                \implode(', ', $item->reasons),
+            ));
+        }
+
+        foreach ($run->artifactMaintenance->warnings as $warning) {
+            $this->console->err($warning . "\n");
+        }
     }
 
     /** @throws RunPolicyError */
@@ -271,6 +305,7 @@ final readonly class RunSession
             $this->arguments->has('detect-leaks'),
             $this->shutdown,
             $reporter instanceof Ticking ? $reporter : null,
+            emergencyCleanups: $this->emergencyCleanups,
         );
     }
 }
