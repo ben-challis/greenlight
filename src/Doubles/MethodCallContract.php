@@ -90,20 +90,19 @@ final readonly class MethodCallContract
     }
 
     /**
+     * Checks the planned arguments against the declared parameters. Then it
+     * converts the arguments to the values that a matching call records.
+     *
      * @param list<mixed> $arguments
+     *
+     * @return list<mixed>
      * @throws InvalidDoubleUsage
      */
-    public function assertPlannedArguments(string $selector, array $arguments): void
+    public function plannedArguments(string $selector, array $arguments): array
     {
         $this->assertPlannedArgumentCount($selector, \count($arguments));
 
         foreach ($arguments as $position => $argument) {
-            if (!$argument instanceof TypedArgumentMatcher) {
-                continue;
-            }
-
-            $argumentType = $argument->argumentType();
-
             $parameter = $this->parameters[\min($position, \count($this->parameters) - 1)];
             $reflectionType = $parameter->getType();
 
@@ -113,20 +112,72 @@ final readonly class MethodCallContract
 
             $parameterType = ArgumentType::fromReflection($reflectionType, $parameter->getDeclaringClass());
 
-            if ($argumentType?->overlaps($parameterType) !== false) {
+            if ($argument instanceof ArgumentMatcher) {
+                if ($argument instanceof TypedArgumentMatcher) {
+                    $this->assertMatcherCompatible($selector, $position, $argument, $parameter, $parameterType);
+                }
+
                 continue;
             }
 
-            throw InvalidDoubleUsage::incompatiblePlannedArgumentMatcher(
-                $selector,
-                $this->type,
-                $this->requestedMethod,
-                $position + 1,
-                $argumentType->describe(),
-                $parameter->getName(),
-                $parameterType->describe(),
-            );
+            $converted = $this->convert($argument, $parameterType);
+
+            if (!$parameterType->accepts($converted)) {
+                throw InvalidDoubleUsage::incompatiblePlannedArgumentValue(
+                    $selector,
+                    $this->type,
+                    $this->requestedMethod,
+                    $position + 1,
+                    \get_debug_type($argument),
+                    $parameter->getName(),
+                    $parameterType->describe(),
+                );
+            }
+
+            $arguments[$position] = $converted;
         }
+
+        return $arguments;
+    }
+
+    /**
+     * @throws InvalidDoubleUsage
+     */
+    private function assertMatcherCompatible(
+        string $selector,
+        int $position,
+        TypedArgumentMatcher $matcher,
+        \ReflectionParameter $parameter,
+        ArgumentType $parameterType,
+    ): void {
+        $argumentType = $matcher->argumentType();
+
+        if ($argumentType?->overlaps($parameterType) !== false) {
+            return;
+        }
+
+        throw InvalidDoubleUsage::incompatiblePlannedArgumentMatcher(
+            $selector,
+            $this->type,
+            $this->requestedMethod,
+            $position + 1,
+            $argumentType->describe(),
+            $parameter->getName(),
+            $parameterType->describe(),
+        );
+    }
+
+    /**
+     * PHP converts an integer argument to float when the parameter does not
+     * accept `int`. This conversion also applies with strict types.
+     */
+    private function convert(mixed $value, ArgumentType $parameterType): mixed
+    {
+        if (\is_int($value) && !$parameterType->accepts($value) && $parameterType->accepts((float) $value)) {
+            return (float) $value;
+        }
+
+        return $value;
     }
 
     /**

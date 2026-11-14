@@ -14,6 +14,21 @@ namespace Greenlight\Doubles;
  */
 final readonly class ArgumentType
 {
+    private const array BUILTIN_NAMES = [
+        'array',
+        'bool',
+        'callable',
+        'false',
+        'float',
+        'int',
+        'iterable',
+        'mixed',
+        'null',
+        'object',
+        'string',
+        'true',
+    ];
+
     /**
      * @param non-empty-list<non-empty-list<non-empty-string>> $alternatives
      */
@@ -63,11 +78,15 @@ final readonly class ArgumentType
         throw InvalidDoubleUsage::unsupportedReflectionType($type::class);
     }
 
+    /**
+     * Gets the type for a built-in type name or a loadable class, interface,
+     * or enum. It returns null for other names.
+     */
     public static function fromTypeName(string $type): ?self
     {
         $type = \ltrim($type, '\\');
 
-        if (\in_array($type, ['array', 'bool', 'float', 'int', 'null', 'string'], true)
+        if (\in_array($type, self::BUILTIN_NAMES, true)
             || \class_exists($type)
             || \interface_exists($type)
             || \enum_exists($type)
