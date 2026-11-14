@@ -95,6 +95,17 @@ final class PhpUnitAttributes
 
     public const string TEST_WITH = 'TestWith';
 
+    /**
+     * Matches a PHPUnit metadata annotation in a doc comment. PHPUnit 10 and
+     * 11 still read these annotations, and the converter reads attributes
+     * only. A match rejects the class.
+     */
+    public const string ANNOTATION_PATTERN = '/(?<![^\s*])@(?:test|testWith|ticket|before|beforeClass|after|afterClass'
+        . '|preCondition|postCondition|dataProvider|depends|group|small|medium|large|requires'
+        . '|doesNotPerformAssertions|covers\w*|runInSeparateProcess|runTestsInSeparateProcesses'
+        . '|runClassInSeparateProcess|preserveGlobalState|backupGlobals|backupStaticAttributes'
+        . '|backupStaticProperties|excludeGlobalVariableFromBackup|excludeStaticPropertyFromBackup)(?![\w-])/i';
+
     /** @codeCoverageIgnore */
     private function __construct() {}
 }
