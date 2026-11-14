@@ -880,7 +880,7 @@ final class ArtifactStore
                 SafeDirectory::check($directory, $this->session->publicDirectory);
             }
         } catch (DirectoryWalkError $error) {
-            throw OutputDirectoryError::from($error);
+            throw OutputDirectoryErrors::from($error);
         }
     }
 
