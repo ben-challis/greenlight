@@ -159,8 +159,7 @@ final class StatChangeDetector implements WatchSource
         array &$files,
         array &$listings,
         array &$visited,
-    ): void
-    {
+    ): void {
         /** @var list<array{string, array<array-key, int>}> $pending */
         $pending = [[$root, $stat]];
 
