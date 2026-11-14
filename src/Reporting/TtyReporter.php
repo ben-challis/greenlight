@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace Greenlight\Reporting;
 
 use Greenlight\Event\Event;
-use Greenlight\Event\RunFinished;
 use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestClassFinished;
 use Greenlight\Event\TestClassStarted;
 use Greenlight\Event\TestFinished;
-use Greenlight\Event\WorkerSpawned;
 use Greenlight\Result\Outcome;
-use Greenlight\Result\TestResult;
 
 /**
  * Shows a bounded live window for active test classes. It updates the window no
@@ -43,31 +40,6 @@ final class TtyReporter implements Reporter, Ticking
     private array $live = [];
 
     /**
-     * @var array<non-empty-string, positive-int>
-     */
-    private array $activeClassAssignments = [];
-
-    /**
-     * @var list<TestResult>
-     */
-    private array $problems = [];
-
-    /**
-     * @var list<TestSummary>
-     */
-    private array $skipped = [];
-
-    /**
-     * @var list<TestSummary>
-     */
-    private array $retriedPasses = [];
-
-    /**
-     * @var list<non-empty-string>
-     */
-    private array $risky = [];
-
-    /**
      * @var list<string>
      */
     private array $successfulAttachments = [];
@@ -78,18 +50,11 @@ final class TtyReporter implements Reporter, Ticking
 
     private int $spinnerFrame = 0;
 
-    private int $workersSpawned = 0;
-
-    /**
-     * @var non-negative-int
-     */
-    private int $expectations = 0;
-
-    private ?RunFinished $runFinished = null;
-
     private readonly Style $style;
 
-    private readonly SlowTests $slowTests;
+    private readonly RunSummary $summary;
+
+    private readonly ClassAssignments $classAssignments;
 
     private int $plannedTests = 0;
 
@@ -118,7 +83,8 @@ final class TtyReporter implements Reporter, Ticking
         private readonly ?int $terminalColumns = null,
     ) {
         $this->style = new Style($color);
-        $this->slowTests = new SlowTests($extendedSlowTests);
+        $this->summary = new RunSummary($this->style, $extendedSlowTests);
+        $this->classAssignments = new ClassAssignments();
         $this->windowCapacity = self::windowCapacity($terminalRows);
     }
 
@@ -136,6 +102,8 @@ final class TtyReporter implements Reporter, Ticking
     #[\Override]
     public function onEvent(Event $event): void
     {
+        $this->summary->onEvent($event);
+
         if ($event instanceof RunStarted) {
             $this->lastEventAt = $event->occurredAt;
             $this->plannedTests = $event->plannedTests;
@@ -151,10 +119,8 @@ final class TtyReporter implements Reporter, Ticking
 
         if ($event instanceof TestClassStarted) {
             $this->lastEventAt = $event->occurredAt;
-            $active = $this->activeClassAssignments[$event->class] ?? 0;
-            $this->activeClassAssignments[$event->class] = $active + 1;
 
-            if ($active === 0) {
+            if ($this->classAssignments->started($event->class)) {
                 $this->live[$event->class] = ['done' => 0, 'failed' => 0, 'skipped' => 0, 'retried' => 0, 'duration' => 0.0, 'startedAt' => $event->occurredAt];
             }
 
@@ -164,9 +130,7 @@ final class TtyReporter implements Reporter, Ticking
         }
 
         if ($event instanceof TestFinished) {
-            $this->slowTests->record($event);
             $result = $event->result;
-            $this->expectations = SaturatingCount::add($this->expectations, $result->expectations);
             $class = $result->id->class;
             $this->lastEventAt = $event->occurredAt;
             ++$this->finishedTests;
@@ -188,24 +152,8 @@ final class TtyReporter implements Reporter, Ticking
                 }
             }
 
-            if (!$result->outcome->isSuccessful()) {
-                $this->problems[] = $result;
-            }
-
-            if ($result->outcome === Outcome::Skipped) {
-                $this->skipped[] = new TestSummary($result);
-            }
-
-            if ($result->outcome === Outcome::Passed && $result->attempts > 1) {
-                $this->retriedPasses[] = new TestSummary($result);
-
-                if (isset($this->live[$class])) {
-                    ++$this->live[$class]['retried'];
-                }
-            }
-
-            if ($result->risky && $result->outcome->isSuccessful() && ($id = (string) $result->id) !== '') {
-                $this->risky[] = $id;
+            if ($result->outcome === Outcome::Passed && $result->attempts > 1 && isset($this->live[$class])) {
+                ++$this->live[$class]['retried'];
             }
 
             if ($result->outcome->isSuccessful() && $result->attachments !== []) {
@@ -220,28 +168,10 @@ final class TtyReporter implements Reporter, Ticking
 
         if ($event instanceof TestClassFinished) {
             $this->lastEventAt = $event->occurredAt;
-            $active = $this->activeClassAssignments[$event->class] ?? 0;
 
-            if ($active > 1) {
-                $this->activeClassAssignments[$event->class] = $active - 1;
-
-                return;
+            if ($this->classAssignments->finished($event->class)) {
+                $this->finalizeClass($event->class);
             }
-
-            unset($this->activeClassAssignments[$event->class]);
-            $this->finalizeClass($event->class);
-
-            return;
-        }
-
-        if ($event instanceof WorkerSpawned) {
-            ++$this->workersSpawned;
-
-            return;
-        }
-
-        if ($event instanceof RunFinished) {
-            $this->runFinished = $event;
         }
     }
 
@@ -268,35 +198,7 @@ final class TtyReporter implements Reporter, Ticking
         }
 
         $this->eraseLiveRegion();
-
-        foreach ($this->problems as $problem) {
-            $this->output->write(\sprintf(
-                "\n%s %s\n%s",
-                $this->style->error(ProblemDetails::outcomeLabel($problem)),
-                $problem->id,
-                ProblemDetails::render($problem),
-            ));
-        }
-
-        $finished = $this->runFinished;
-
-        if ($finished instanceof RunFinished) {
-            $this->output->write(\sprintf(
-                "\n%s\nTime: %.3fs\n",
-                SummaryFormat::tests($finished->summary, $this->expectations, $this->style, \count($this->retriedPasses)),
-                $finished->durationSeconds,
-            ));
-        }
-
-        $workers = SummaryFormat::workers($this->workersSpawned);
-
-        if ($workers !== null) {
-            $this->output->write($workers . "\n");
-        }
-
-        $this->output->write(SummaryFormat::skipped($this->skipped, $this->style));
-        $this->output->write(SummaryFormat::retriedPasses($this->retriedPasses, $this->style));
-        $this->output->write($this->slowTests->render($this->style));
+        $this->output->write($this->summary->problems() . $this->summary->totals());
 
         if ($this->successfulAttachments !== []) {
             $this->output->write("\nRetained attachments from successful tests:\n");
@@ -306,9 +208,7 @@ final class TtyReporter implements Reporter, Ticking
             }
         }
 
-        if ($this->risky !== []) {
-            $this->output->write(SummaryFormat::risky($this->risky));
-        }
+        $this->output->write($this->summary->risky());
     }
 
     /**
