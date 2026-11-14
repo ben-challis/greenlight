@@ -52,7 +52,7 @@ final readonly class ArtifactQuotaPermissionTest
                 ->because('an unreadable quota file MUST reject attachment staging')
                 ->toThrow(
                     AttachmentError::class,
-                    message: 'Failed to lock the attachment quota.',
+                    matching: '/^Failed\ to\ lock\ the\ attachment\ quota(: .+)?\.$/s',
                 );
 
             \chmod($quota, 0o600);
