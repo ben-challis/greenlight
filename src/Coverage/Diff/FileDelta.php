@@ -11,9 +11,9 @@ namespace Greenlight\Coverage\Diff;
  * not contain the file. delta() uses zero percent for an absent file.
  *
  * regressed() compares counts and percentages, not line numbers. Thus, a
- * change that moves lines does not cause a regression. A file in only the
- * current map regresses when it has uncovered lines. A file in only the
- * baseline cannot regress.
+ * change that moves lines does not cause a regression. Only a file in both
+ * maps can regress. A rename gives a file in only one map on each side, so a
+ * rename does not cause a regression.
  *
  * @internal
  */
@@ -54,16 +54,11 @@ final readonly class FileDelta
 
     /**
      * Tells if the uncovered-line count increased or the percentage decreased.
-     * The comparison rounds percentages to two decimal places. An added file
-     * with uncovered lines also regresses.
+     * The comparison rounds percentages to two decimal places.
      */
     public function regressed(): bool
     {
-        if ($this->baselinePercentage === null) {
-            return ($this->currentUncoveredLines ?? 0) > 0;
-        }
-
-        if ($this->currentPercentage === null) {
+        if (!$this->isShared()) {
             return false;
         }
 
