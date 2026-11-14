@@ -6,6 +6,7 @@ namespace Greenlight\Rector;
 
 use PhpParser\Node\AttributeGroup;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Stmt;
 
 /**
  * The validated conversion plan for one PHPUnit test class. A plan exists
@@ -22,7 +23,7 @@ final readonly class ClassPlan
      * @param array<string, 'after'|'before'> $hooks
      * @param list<string> $tests
      * @param list<string> $noExpectations
-     * @param array<string, ThrowRewrite> $throwRewrites
+     * @param array<int, list<Stmt>> $statements replacement test bodies keyed by the object ID of the method
      * @param array<int, Expr> $calls replacement expressions keyed by the object ID of the original call
      */
     public function __construct(
@@ -30,7 +31,7 @@ final readonly class ClassPlan
         public array $hooks,
         public array $tests,
         public array $noExpectations,
-        public array $throwRewrites,
+        public array $statements,
         public array $calls,
     ) {}
 }
