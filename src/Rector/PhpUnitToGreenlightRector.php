@@ -16,6 +16,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Test\SkipTest;
+use PhpParser\Comment\Doc;
 use PhpParser\Modifiers;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
@@ -203,7 +204,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             return null;
         }
 
-        if (!$this->attributesConvert($class->attrGroups, onClass: true)) {
+        if (!$this->attributesConvert($class->attrGroups, onClass: true) || $this->hasPhpUnitAnnotation($class)) {
             return null;
         }
 
@@ -221,7 +222,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
                 return null;
             }
 
-            if (!$this->attributesConvert($method->attrGroups, onClass: false)) {
+            if (!$this->attributesConvert($method->attrGroups, onClass: false) || $this->hasPhpUnitAnnotation($method)) {
                 return null;
             }
 
@@ -329,6 +330,13 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         }
 
         return $defined;
+    }
+
+    private function hasPhpUnitAnnotation(Class_|ClassMethod $node): bool
+    {
+        $docComment = $node->getDocComment();
+
+        return $docComment instanceof Doc && \preg_match(PhpUnitAttributes::ANNOTATION_PATTERN, $docComment->getText()) === 1;
     }
 
     /**

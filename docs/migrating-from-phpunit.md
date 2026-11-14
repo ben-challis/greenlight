@@ -53,6 +53,8 @@ A class does not convert when it uses:
 * multiple data providers or multiple requirements on one declaration
 * `assertNotEquals()` or `assertNotEqualsCanonicalizing()` with values of
   different or unknown types, because PHPUnit compares them loosely
+* PHPUnit doc-comment annotations, for example `@test`, `@dataProvider`, or
+  `@group`, because the rule reads only attributes
 * `#[RunClassInSeparateProcess]` or `#[PreserveGlobalState]`
 * other inherited `TestCase` API that the rule cannot prove safe
 
