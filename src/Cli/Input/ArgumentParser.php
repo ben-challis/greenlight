@@ -114,6 +114,59 @@ final class ArgumentParser
     }
 
     /**
+     * Finds the command word and the known options without validation.
+     *
+     * A command can come from a plugin with its own options. Thus, the scan
+     * skips unknown options and option errors. The selected command parses
+     * its arguments again with its own rules.
+     *
+     * @param list<string> $argv
+     */
+    public function scan(array $argv): ArgumentScan
+    {
+        $command = null;
+        $commandIndex = null;
+        $valueOptionBeforeCommand = null;
+
+        /** @var array<string, list<string|null>> $options */
+        $options = [];
+        $previous = null;
+
+        foreach ($argv as $index => $argument) {
+            if (\str_starts_with($argument, '--') && $argument !== '--') {
+                $body = \substr($argument, 2);
+                $separator = \strpos($body, '=');
+                $name = $separator === false ? $body : \substr($body, 0, $separator);
+                $value = $separator === false ? null : \substr($body, $separator + 1);
+                $spec = $this->byName[$name] ?? null;
+
+                if ($spec instanceof OptionSpec) {
+                    $options[$spec->name][] = $value;
+                }
+
+                $previous = $value === null ? $spec : null;
+            } elseif (\str_starts_with($argument, '-') && $argument !== '-') {
+                $spec = $this->byShort[\substr($argument, 1)] ?? null;
+
+                if ($spec instanceof OptionSpec) {
+                    $options[$spec->name][] = null;
+                }
+
+                $previous = null;
+            } elseif ($command === null) {
+                $command = $argument;
+                $commandIndex = $index;
+
+                if ($previous instanceof OptionSpec && $previous->value === OptionValue::Required) {
+                    $valueOptionBeforeCommand = $previous->name;
+                }
+            }
+        }
+
+        return new ArgumentScan($command, $commandIndex, $options, $valueOptionBeforeCommand);
+    }
+
+    /**
      * @param array<string, list<string|null>> $options
      * @throws CliError
      */

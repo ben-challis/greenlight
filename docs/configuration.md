@@ -785,6 +785,13 @@ vendor/bin/greenlight completion fish > ~/.config/fish/completions/greenlight.fi
 
 ## Options
 
+Each command accepts only the options that apply to it. Another option is a
+usage error with exit code `64`. All commands accept `--help`, `--version`,
+`--ansi`, and `--no-ansi`. The `run` and `list-tests` commands accept the
+run, selection, report, and coverage options.
+
+Give each option value in the `--name=value` form.
+
 ### `--config=<path>`
 
 Uses this configuration file instead of `./greenlight.php`.

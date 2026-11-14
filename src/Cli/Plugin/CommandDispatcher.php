@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Cli\Plugin;
 
 use Greenlight\Cli\Configuration\ConfigurationLoader;
+use Greenlight\Cli\Input\ArgumentScan;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\Definition;
-use Greenlight\Cli\Input\OptionValue;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
@@ -44,27 +44,28 @@ final readonly class CommandDispatcher
      */
     public function dispatch(array $argv, string $workingDirectory, ?string $binPath): CommandResult
     {
-        [$command, $commandIndex] = $this->selectedCommand($argv);
+        $scan = $this->definition->parser()->scan($argv);
+        $noAnsi = $scan->has('no-ansi');
 
-        if ($commandIndex !== null && ($valueOption = $this->valueOptionBefore($argv, $commandIndex)) !== null) {
-            $this->console->error(
-                CliError::optionRequiresValue($valueOption)->getMessage(),
-                \in_array('--no-ansi', $argv, true),
-            );
+        // In "--workers 4", the 4 is the value that the user meant, not a
+        // command.
+        if ($scan->valueOptionBeforeCommand !== null) {
+            $this->console->error(CliError::optionRequiresValue($scan->valueOptionBeforeCommand)->getMessage(), $noAnsi);
 
             return CommandResult::usage();
         }
 
-        $command ??= 'run';
+        $command = $scan->command ?? 'run';
+        $commandIndex = $scan->commandIndex;
 
         try {
             $catalog = $this->catalog([]);
 
             if (!$catalog->has($command)) {
-                $catalog = $this->catalog($this->configuredPlugins($argv, $workingDirectory));
+                $catalog = $this->catalog($this->configuredPlugins($scan, $workingDirectory));
             }
         } catch (ConfigFileError|InvalidConfiguration|CommandSetupFailed $error) {
-            $this->console->error($error->getMessage(), \in_array('--no-ansi', $argv, true));
+            $this->console->error($error->getMessage(), $noAnsi);
 
             return CommandResult::failure();
         }
@@ -74,7 +75,7 @@ final readonly class CommandDispatcher
         if (!$definition instanceof CommandDefinition) {
             $this->console->error(
                 \sprintf("Unknown command '%s'. Use greenlight --help to list commands.", $command),
-                \in_array('--no-ansi', $argv, true),
+                $noAnsi,
             );
 
             return CommandResult::usage();
@@ -103,7 +104,7 @@ final readonly class CommandDispatcher
                 'Command "%s" caused an error: %s',
                 $command,
                 $error->getMessage(),
-            ), \in_array('--no-ansi', $argv, true));
+            ), $noAnsi);
 
             return CommandResult::failure();
         }
@@ -153,21 +154,13 @@ final readonly class CommandDispatcher
     }
 
     /**
-     * @param list<string> $argv
      * @return list<PluginDefinition>
      * @throws ConfigFileError
      * @throws InvalidConfiguration
      */
-    private function configuredPlugins(array $argv, string $workingDirectory): array
+    private function configuredPlugins(ArgumentScan $scan, string $workingDirectory): array
     {
-        $configuredPath = null;
-
-        foreach ($argv as $argument) {
-            if (\str_starts_with($argument, '--config=')) {
-                $configuredPath = \substr($argument, \strlen('--config='));
-            }
-        }
-
+        $configuredPath = $scan->value('config');
         $loader = new ConfigLoader();
 
         if ($configuredPath !== null) {
@@ -183,48 +176,5 @@ final readonly class CommandDispatcher
         }
 
         return $builder->build()->execution->plugins;
-    }
-
-    /**
-     * @param list<string> $argv
-     * @return array{?string, ?int}
-     */
-    private function selectedCommand(array $argv): array
-    {
-        foreach ($argv as $index => $argument) {
-            if (!\str_starts_with($argument, '-') || $argument === '-') {
-                return [$argument, $index];
-            }
-        }
-
-        return [null, null];
-    }
-
-    /**
-     * Returns the option name when the word before the command word is an
-     * option that requires a value. In "--workers 4", the 4 is the value
-     * that the user meant, not a command.
-     *
-     * @param list<string> $argv
-     *
-     * @return non-empty-string|null
-     */
-    private function valueOptionBefore(array $argv, int $commandIndex): ?string
-    {
-        $previous = $argv[$commandIndex - 1] ?? '';
-
-        if (!\str_starts_with($previous, '--') || \str_contains($previous, '=')) {
-            return null;
-        }
-
-        $name = \substr($previous, 2);
-
-        foreach ($this->definition->options() as $spec) {
-            if ($spec->name === $name && $spec->value === OptionValue::Required) {
-                return $spec->name;
-            }
-        }
-
-        return null;
     }
 }

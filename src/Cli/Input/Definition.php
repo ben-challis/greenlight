@@ -28,6 +28,36 @@ final readonly class Definition
         'completion' => 'Print a shell completion script to standard output',
     ];
 
+    /** Options that each command accepts. */
+    public const array GLOBAL_OPTIONS = ['ansi', 'no-ansi', 'help', 'version'];
+
+    /**
+     * Options that one command accepts in addition to the global options. A
+     * command that is not in the map accepts only the global options.
+     *
+     * @var array<non-empty-string, list<non-empty-string>>
+     */
+    public const array COMMAND_OPTIONS = [
+        'run' => self::RUN_OPTIONS,
+        'list-tests' => self::RUN_OPTIONS,
+        'coverage:merge' => ['input', 'input-root', 'project-root', 'export', ...self::COVERAGE_GATE_OPTIONS],
+        'coverage:diff' => ['baseline', 'current', 'baseline-root', 'current-root', ...self::COVERAGE_GATE_OPTIONS],
+        'profile:report' => ['input'],
+        'artifacts:prune' => ['config', 'artifacts-dir', 'dry-run', 'abandoned-run-age'],
+        'ide-helper' => ['config', 'output'],
+    ];
+
+    private const array COVERAGE_GATE_OPTIONS = ['minimum-coverage', 'maximum-uncovered-lines', 'require-coverage-driver'];
+
+    private const array RUN_OPTIONS = [
+        'config', 'workers', 'resource-limit', 'bail', 'suite', 'suite-tag', 'group', 'filter', 'test-id',
+        'exclude-group', 'exclude-class', 'exclude-method', 'exclude-path', 'list-tests', 'list-groups',
+        'list-suites', 'format', 'repeat', 'repeat-until-failure', 'failed', 'shard', 'fail-on-deprecation',
+        'fail-on-notice', 'fail-on-warning', 'fail-on-risky', 'fail-on-skipped', 'fail-on-retried-pass', 'seed',
+        'reporter', 'artifacts-dir', 'minimum-coverage', 'maximum-uncovered-lines', 'require-coverage-driver',
+        'watch', 'detect-leaks', 'dry-run', 'verbose', 'profile',
+    ];
+
     /** @var array<non-empty-string, list<non-empty-string>> */
     public const array COMPLETION_VALUES = [
         'format' => ['text', 'json'],
@@ -170,9 +200,22 @@ final readonly class Definition
 
         HELP;
 
-    public function parser(): ArgumentParser
+    /**
+     * Returns a parser for one command, or for all options when the command is
+     * null. A command parser rejects each option that the command does not use.
+     */
+    public function parser(?string $command = null): ArgumentParser
     {
-        return new ArgumentParser($this->options());
+        if ($command === null) {
+            return new ArgumentParser($this->options());
+        }
+
+        $accepted = [...self::GLOBAL_OPTIONS, ...(self::COMMAND_OPTIONS[$command] ?? [])];
+
+        return new ArgumentParser(\array_values(\array_filter(
+            $this->options(),
+            static fn(OptionSpec $spec): bool => \in_array($spec->name, $accepted, true),
+        )));
     }
 
     /** @return list<OptionSpec> */
