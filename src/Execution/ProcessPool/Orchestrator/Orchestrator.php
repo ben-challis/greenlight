@@ -104,6 +104,9 @@ final class Orchestrator
 
     private bool $initialBarrierPassed = false;
 
+    /** @var non-negative-int */
+    private int $spawnedWorkers = 0;
+
     /**
      * @var array<non-empty-string, true> initial workers that have not received their first assignment
      */
@@ -242,8 +245,11 @@ final class Orchestrator
 
             $handle = new WorkerState($workerId, $channelNumber, $this->monotonicTime());
             $this->handles[$workerId] = $handle;
+            ++$this->spawnedWorkers;
 
-            if (\count($this->handles) <= $this->initialWorkerTarget) {
+            // Only the first spawns are initial workers. A replacement does
+            // not close the initial barrier again.
+            if ($this->spawnedWorkers <= $this->initialWorkerTarget) {
                 $this->initialAssignmentsPending[$workerId] = true;
             }
 
