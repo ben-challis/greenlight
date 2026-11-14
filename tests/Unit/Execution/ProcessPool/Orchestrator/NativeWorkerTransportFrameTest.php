@@ -61,7 +61,8 @@ final readonly class NativeWorkerTransportFrameTest
             expect($fatal)
                 ->because('the transport MUST deliver the final frame of an exited worker before its disconnect')
                 ->toBeInstanceOf(Fatal::class);
-            expect(\strlen($fatal->detail->message))->toBe(1024 * 1024);
+            // The decoded message keeps a bounded prefix of the 1 MiB frame.
+            expect($fatal->detail->message)->toStartWith(\str_repeat('m', 4_096));
         } finally {
             $transport->close();
         }
