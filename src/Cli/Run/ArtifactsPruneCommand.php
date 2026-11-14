@@ -12,6 +12,7 @@ use Greenlight\Cli\Output\Console;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Execution\ArtifactMaintenance;
+use Greenlight\Internal\Text\DecimalInteger;
 use Greenlight\Plugin\CommandResult;
 
 /**
@@ -29,11 +30,10 @@ final readonly class ArtifactsPruneCommand
         $abandonedRunAge = null;
         $rawAbandonedRunAge = $arguments->value('abandoned-run-age');
         if ($rawAbandonedRunAge !== null) {
-            $abandonedRunAge = \preg_match('/^[1-9][0-9]{0,17}$/D', $rawAbandonedRunAge) === 1
-                ? \filter_var($rawAbandonedRunAge, \FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]])
-                : false;
-            if ($abandonedRunAge === false) {
-                $this->console->error('Set --abandoned-run-age to a positive number of seconds.', $arguments->has('no-ansi'));
+            $abandonedRunAge = DecimalInteger::parse($rawAbandonedRunAge);
+            if ($abandonedRunAge === null || $abandonedRunAge < 1) {
+                $error = CliError::notAPositiveInteger('--abandoned-run-age', $rawAbandonedRunAge);
+                $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
                 return CommandResult::usage();
             }
         }

@@ -220,7 +220,7 @@ final readonly class ArtifactRunRetentionTest
         $prune = GreenlightCli::run($project->directory, ['artifacts:prune', '--abandoned-run-age=60', '--no-ansi']);
 
         expect($invalid->exitCode)->toBe(64);
-        expect($invalid->stderr)->toContain('Set --abandoned-run-age to a positive number of seconds.');
+        expect($invalid->stderr)->toContain('--abandoned-run-age requires a positive integer. Received "0".');
         expect($dryRun->stdout)
             ->because('the explicit option MUST select abandoned runs without a retention policy')
             ->toContain('Would prune ' . $expected . ' (')
