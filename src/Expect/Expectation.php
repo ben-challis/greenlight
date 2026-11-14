@@ -29,6 +29,12 @@ namespace Greenlight\Expect;
  *   equal properties. This rule includes private and inherited properties.
  *   The comparison safely processes cyclic object structures.
  *
+ * - Objects with a native ancestor class, such as `ArrayObject` or `GMP`,
+ *   also compare their native state. The comparison uses `__serialize()`
+ *   where it exists, and the elements of a copy for `SplHeap` and
+ *   `SplPriorityQueue`. A native object with no comparable state, such as a
+ *   `Generator`, `WeakMap`, or `DOMDocument`, is equal only to itself.
+ *
  * @template T
  */
 class Expectation
