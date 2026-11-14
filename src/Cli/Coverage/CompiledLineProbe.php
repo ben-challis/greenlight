@@ -12,15 +12,21 @@ use Greenlight\Internal\Php\ErrorTrap;
 /**
  * Compiles source files in a PHP subprocess while the coverage driver runs.
  *
- * measure() starts one subprocess for each batch of files. The subprocess
- * starts the driver and compiles each file with opcache_compile_file(). The
- * driver reports the executable lines of each compiled file. Thus, the
- * result contains the same lines as driver output for a loaded file. The
- * subprocess does not execute the files.
+ * measure() writes a copy of each file with one stop statement in its header
+ * line. The stop statement follows the opening tag and any declare and
+ * namespace statements, and it adds no line.
  *
- * A file that does not compile is not measured. If the subprocess stops
- * before it reports, measure() divides the batch and tries again. If one file
- * alone stops the subprocess, measure() throws an error that names the file.
+ * A subprocess starts the driver and includes each copy. PHP compiles the
+ * complete copy, and the driver records its executable lines. Then the stop
+ * statement returns before any code of the file executes. Thus, the result
+ * contains the same lines as driver output for a loaded file. The stop
+ * statement is the only executed code, so measure() removes each executed
+ * line.
+ *
+ * A file with a syntax error or without an opening tag is not measured. If
+ * the subprocess stops before it reports, measure() divides the batch and
+ * tries again. If one file alone stops the subprocess, measure() throws an
+ * error that names the file.
  *
  * @internal
  */
@@ -30,16 +36,14 @@ final readonly class CompiledLineProbe implements ExecutableLineProbe
 
     private const string MARKER = '#greenlight-line-probe#';
 
-    private const int OPCACHE_UNAVAILABLE = 3;
-
     private const int DRIVER_UNAVAILABLE = 4;
 
+    private const string STOP = ' if (\GREENLIGHT_LINE_PROBE_STOP) { return; }';
+
     private const string SCRIPT = <<<'PHP'
+        \define('GREENLIGHT_LINE_PROBE_STOP', true);
         $files = \explode("\0", (string) \file_get_contents($argv[1]));
         $index = \array_flip($files);
-        if (!\function_exists('opcache_compile_file') || !\is_array(\opcache_get_status(false))) {
-            exit(3);
-        }
         if ($argv[2] === 'xdebug') {
             if (!\function_exists('xdebug_start_code_coverage')) {
                 exit(4);
@@ -52,10 +56,12 @@ final readonly class CompiledLineProbe implements ExecutableLineProbe
             \pcov\start();
         }
         foreach ($files as $file) {
+            \ob_start();
             try {
-                \opcache_compile_file($file);
+                include $file;
             } catch (\Throwable) {
             }
+            \ob_end_clean();
         }
         $lines = [];
         foreach ($argv[2] === 'xdebug' ? \xdebug_get_code_coverage() : \pcov\collect() as $path => $statuses) {
@@ -85,6 +91,105 @@ final readonly class CompiledLineProbe implements ExecutableLineProbe
         }
 
         return new RawCoverage($lines)->toMap();
+    }
+
+    /**
+     * Inserts the stop statement in the header line of a PHP source.
+     *
+     * Returns null for a source without an opening tag.
+     */
+    public static function stopped(string $source): ?string
+    {
+        $tokens = \array_values(\PhpToken::tokenize($source));
+        $count = \count($tokens);
+        $open = null;
+
+        foreach ($tokens as $index => $token) {
+            if ($token->is(\T_OPEN_TAG)) {
+                $open = $index;
+
+                break;
+            }
+
+            if ($token->is(\T_OPEN_TAG_WITH_ECHO)) {
+                return null;
+            }
+        }
+
+        if ($open === null) {
+            return null;
+        }
+
+        $insert = $tokens[$open]->pos + \strlen(\rtrim($tokens[$open]->text, "\r\n"));
+        $i = self::significant($tokens, $open + 1);
+
+        while ($i < $count && $tokens[$i]->is(\T_DECLARE)) {
+            $close = self::closingParenthesis($tokens, $i);
+
+            if ($close === null) {
+                return null;
+            }
+
+            $end = self::significant($tokens, $close + 1);
+
+            if ($end >= $count || $tokens[$end]->text !== ';') {
+                break;
+            }
+
+            $insert = $tokens[$end]->pos + 1;
+            $i = self::significant($tokens, $end + 1);
+        }
+
+        if ($i < $count && $tokens[$i]->is(\T_NAMESPACE)) {
+            $next = self::significant($tokens, $i + 1);
+
+            if ($next < $count && $tokens[$next]->is([\T_STRING, \T_NAME_QUALIFIED])) {
+                $next = self::significant($tokens, $next + 1);
+            }
+
+            if ($next < $count && ($tokens[$next]->text === ';' || $tokens[$next]->text === '{')) {
+                $insert = $tokens[$next]->pos + 1;
+            }
+        }
+
+        return \substr_replace($source, self::STOP, $insert, 0);
+    }
+
+    /**
+     * @param list<\PhpToken> $tokens
+     */
+    private static function significant(array $tokens, int $from): int
+    {
+        $count = \count($tokens);
+
+        while ($from < $count && $tokens[$from]->is([\T_WHITESPACE, \T_COMMENT, \T_DOC_COMMENT])) {
+            ++$from;
+        }
+
+        return $from;
+    }
+
+    /**
+     * @param list<\PhpToken> $tokens
+     */
+    private static function closingParenthesis(array $tokens, int $from): ?int
+    {
+        $depth = 0;
+        $count = \count($tokens);
+
+        for ($i = $from; $i < $count; ++$i) {
+            if ($tokens[$i]->text === '(') {
+                ++$depth;
+            } elseif ($tokens[$i]->text === ')') {
+                --$depth;
+
+                if ($depth === 0) {
+                    return $i;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -130,25 +235,45 @@ final readonly class CompiledLineProbe implements ExecutableLineProbe
     private function run(array $files, ?string &$failure = null): ?array
     {
         $failure = '';
-        $list = $this->temporaryFile('list');
-        $errors = $this->temporaryFile('errors');
+        $directory = $this->temporaryDirectory();
+        $list = $directory . '/files';
+        $errors = $directory . '/errors';
+        $copies = [];
 
         try {
-            if (ErrorTrap::run(static fn() => \file_put_contents($list, \implode("\0", $files))) === false) {
+            foreach ($files as $index => $file) {
+                $source = ErrorTrap::run(static fn() => \file_get_contents($file));
+                $stopped = \is_string($source) ? self::stopped($source) : null;
+
+                if ($stopped === null) {
+                    continue;
+                }
+
+                $copy = $directory . '/' . $index . '.php';
+
+                if (ErrorTrap::run(static fn() => \file_put_contents($copy, $stopped)) === false) {
+                    throw CoverageError::lineProbeFailed(\sprintf('Greenlight could not write a copy of "%s".', $file));
+                }
+
+                $copies[$index] = $copy;
+            }
+
+            if ($copies === []) {
+                return [];
+            }
+
+            if (ErrorTrap::run(static fn() => \file_put_contents($list, \implode("\0", $copies))) === false) {
                 throw CoverageError::lineProbeFailed('Greenlight could not write the file list.');
             }
 
-            [$exitCode, $output] = $this->execute($files, $list, $errors);
+            [$exitCode, $output] = $this->execute($directory, $list, $errors);
             $stderr = \trim((string) ErrorTrap::run(static fn() => \file_get_contents($errors)));
         } finally {
-            ErrorTrap::run(static fn() => \unlink($list));
-            ErrorTrap::run(static fn() => \unlink($errors));
-        }
+            foreach ([...\array_values($copies), $list, $errors] as $path) {
+                ErrorTrap::run(static fn() => \unlink($path));
+            }
 
-        if ($exitCode === self::OPCACHE_UNAVAILABLE) {
-            throw CoverageError::lineProbeFailed(
-                'The subprocess cannot use OPcache. Install the Zend OPcache extension, or load it with zend_extension=opcache.',
-            );
+            ErrorTrap::run(static fn() => \rmdir($directory));
         }
 
         if ($exitCode === self::DRIVER_UNAVAILABLE) {
@@ -168,60 +293,43 @@ final readonly class CompiledLineProbe implements ExecutableLineProbe
             return null;
         }
 
+        $sources = \array_keys($copies);
         $byPath = [];
 
         foreach ($decoded as $key => $statuses) {
-            if (\is_int($key) && isset($files[$key])) {
-                $byPath[$files[$key]] = $statuses;
+            if (\is_int($key) && isset($sources[$key])) {
+                $byPath[$files[$sources[$key]]] = $statuses;
             }
         }
 
         $lines = [];
 
         foreach (new RawCoverage($byPath)->lines as $file => $statuses) {
-            // The subprocess executes no file code, so each line that is not dead code is uncovered.
-            $lines[$file] = \array_map(static fn(int $status): int => $status === -2 ? -2 : -1, $statuses);
+            // Only the stop statement executes, so an executed line is not a line of the file.
+            $lines[$file] = \array_filter($statuses, static fn(int $status): bool => $status < 1);
         }
 
         return $lines;
     }
 
     /**
-     * @param non-empty-list<non-empty-string> $files
-     *
      * @return array{int, string}
      *
      * @throws CoverageError
      */
-    private function execute(array $files, string $list, string $errors): array
+    private function execute(string $directory, string $list, string $errors): array
     {
-        $command = [$this->phpBinary];
-
-        if (!\extension_loaded('Zend OPcache')) {
-            $command[] = '-d';
-            $command[] = 'zend_extension=opcache';
-        }
-
-        $settings = [
-            'display_errors=stderr',
-            'auto_prepend_file=',
-            'auto_append_file=',
-            'opcache.enable=1',
-            'opcache.enable_cli=1',
-            'opcache.optimization_level=0',
-            'opcache.jit=disable',
-            'opcache.file_cache=',
-            'opcache.file_cache_only=0',
-            'opcache.preload=',
-            'opcache.restrict_api=',
-        ];
+        $settings = ['display_errors=stderr', 'auto_prepend_file=', 'auto_append_file='];
 
         if ($this->driver === 'xdebug') {
             $settings[] = 'xdebug.mode=coverage';
         } else {
             $settings[] = 'pcov.enabled=1';
-            $settings[] = 'pcov.directory=' . $this->commonDirectory($files);
+            $settings[] = 'pcov.directory=' . $directory;
+            $settings[] = 'pcov.exclude=';
         }
+
+        $command = [$this->phpBinary];
 
         foreach ($settings as $setting) {
             $command[] = '-d';
@@ -263,45 +371,25 @@ final readonly class CompiledLineProbe implements ExecutableLineProbe
     }
 
     /**
-     * @param non-empty-list<non-empty-string> $files
-     */
-    private function commonDirectory(array $files): string
-    {
-        $common = \explode('/', \dirname($files[0]));
-
-        foreach ($files as $file) {
-            $parts = \explode('/', \dirname($file));
-            $length = 0;
-
-            while ($length < \count($common) && $length < \count($parts) && $common[$length] === $parts[$length]) {
-                ++$length;
-            }
-
-            $common = \array_slice($common, 0, $length);
-        }
-
-        $directory = \implode('/', $common);
-
-        return $directory === '' ? '/' : $directory;
-    }
-
-    /**
      * @return non-empty-string
      *
      * @throws CoverageError
      */
-    private function temporaryFile(string $purpose): string
+    private function temporaryDirectory(): string
     {
-        $file = ErrorTrap::run(fn() => \tempnam($this->temporaryDirectory, 'greenlight-line-probe-' . $purpose . '-'), $warning);
+        $directory = \rtrim($this->temporaryDirectory === '' ? \sys_get_temp_dir() : $this->temporaryDirectory, '/')
+            . '/greenlight-line-probe-' . \bin2hex(\random_bytes(6));
 
-        if (!\is_string($file) || $file === '') {
+        if (!ErrorTrap::run(static fn() => \mkdir($directory, 0o700, true), $warning)) {
             throw CoverageError::lineProbeFailed(\sprintf(
-                'Greenlight could not create a temporary file in "%s"%s.',
-                $this->temporaryDirectory,
+                'Greenlight could not create the directory "%s"%s.',
+                $directory,
                 $warning === null ? '' : ': ' . $warning,
             ));
         }
 
-        return $file;
+        $real = ErrorTrap::run(static fn() => \realpath($directory));
+
+        return \is_string($real) && $real !== '' ? $real : $directory;
     }
 }

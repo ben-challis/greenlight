@@ -679,6 +679,9 @@ jobs:
       - name: "Reject disabled PCOV coverage"
         run: "php bin/greenlight run --ansi --filter='Greenlight\\Tests\\Acceptance\\DisabledPcovTest'"
 
+      - name: "Compare the line probe with PCOV"
+        run: "php bin/greenlight run --ansi --filter='Greenlight\\Tests\\Unit\\Cli\\Coverage\\CompiledLineProbeTest'"
+
   benchmark-harness:
     name: "Benchmark harness smoke (numbers not published)"
     runs-on: "ubuntu-latest"
