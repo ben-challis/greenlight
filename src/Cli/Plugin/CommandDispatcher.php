@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Cli\Plugin;
 
 use Greenlight\Cli\Configuration\ConfigurationLoader;
-use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Input\OptionValue;
 use Greenlight\Cli\Output\Console;
@@ -45,16 +44,6 @@ final readonly class CommandDispatcher
     public function dispatch(array $argv, string $workingDirectory, ?string $binPath): CommandResult
     {
         [$command, $commandIndex] = $this->selectedCommand($argv);
-
-        if ($commandIndex !== null && ($valueOption = $this->valueOptionBefore($argv, $commandIndex)) !== null) {
-            $this->console->error(
-                CliError::optionRequiresValue($valueOption)->getMessage(),
-                \in_array('--no-ansi', $argv, true),
-            );
-
-            return CommandResult::usage();
-        }
-
         $command ??= 'run';
 
         try {
@@ -186,45 +175,38 @@ final readonly class CommandDispatcher
     }
 
     /**
+     * Finds the command word. The word after an option that requires a value
+     * and has no equals sign is that value, not the command.
+     *
      * @param list<string> $argv
      * @return array{?string, ?int}
      */
     private function selectedCommand(array $argv): array
     {
-        foreach ($argv as $index => $argument) {
+        $requiresValue = [];
+
+        foreach ($this->definition->options() as $spec) {
+            if ($spec->value === OptionValue::Required) {
+                $requiresValue['--' . $spec->name] = true;
+            }
+        }
+
+        $count = \count($argv);
+
+        for ($index = 0; $index < $count; ++$index) {
+            $argument = $argv[$index];
+
+            if (isset($requiresValue[$argument])) {
+                ++$index;
+
+                continue;
+            }
+
             if (!\str_starts_with($argument, '-') || $argument === '-') {
                 return [$argument, $index];
             }
         }
 
         return [null, null];
-    }
-
-    /**
-     * Returns the option name when the word before the command word is an
-     * option that requires a value. In "--workers 4", the 4 is the value
-     * that the user meant, not a command.
-     *
-     * @param list<string> $argv
-     *
-     * @return non-empty-string|null
-     */
-    private function valueOptionBefore(array $argv, int $commandIndex): ?string
-    {
-        $previous = $argv[$commandIndex - 1] ?? '';
-
-        if (!\str_starts_with($previous, '--') || \str_contains($previous, '=')) {
-            return null;
-        }
-
-        $name = \substr($previous, 2);
-
-        foreach ($this->definition->options() as $spec) {
-            if ($spec->name === $name && $spec->value === OptionValue::Required) {
-                return $spec->name;
-            }
-        }
-
-        return null;
     }
 }
