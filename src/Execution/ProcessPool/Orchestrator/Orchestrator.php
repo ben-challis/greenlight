@@ -811,8 +811,10 @@ final class Orchestrator
     }
 
     /**
-     * Kills the worker before it recovers staged attachments. Thus, the
-     * recovery sees all of the evidence that the worker wrote.
+     * Sends the kill signal before it recovers staged attachments. Thus, the
+     * recovery includes evidence that the worker completed before the
+     * signal. The kill does not wait for the exit, so a write that is still
+     * in progress can complete after the recovery.
      *
      * @throws AttachmentError
      */
