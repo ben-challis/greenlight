@@ -21,6 +21,7 @@ final readonly class ArtifactRetention
     public const string LOCK_FILE = '.greenlight-run.lock';
 
     private const string PRUNE_LOCK_FILE = '.greenlight-prune.lock';
+    private const string CLAIM_PREFIX = '.greenlight-prune-';
     private const int MAX_METADATA_BYTES = 16 * 1024 * 1024;
 
     /** @param non-empty-string $parent */
@@ -219,7 +220,7 @@ final readonly class ArtifactRetention
     private function pruneLocked(string $parent, bool $dryRun, ?string $protectedRunId, int $now): ArtifactPruneReport
     {
         $records = [];
-        $warnings = [];
+        $warnings = $dryRun ? $this->reportClaims($parent) : $this->recoverClaims($parent);
         $iterator = ErrorTrap::run(static fn() => new \FilesystemIterator($parent, \FilesystemIterator::SKIP_DOTS));
         foreach ($iterator as $entry) {
             if (!$entry instanceof \SplFileInfo || $entry->isLink() || !$entry->isDir()) {
@@ -313,7 +314,7 @@ final readonly class ArtifactRetention
             return false;
         }
 
-        $claim = $parent . '/.greenlight-prune-' . \bin2hex(\random_bytes(12));
+        $claim = $parent . '/' . self::CLAIM_PREFIX . \bin2hex(\random_bytes(12));
         try {
             if ($this->pathIsLink($lockPath)
                 || !$this->canonicalDirectory($parent, $parent)
@@ -324,9 +325,13 @@ final readonly class ArtifactRetention
             if (!ErrorTrap::run(static fn() => \rename($directory, $claim))) {
                 return false;
             }
-            $claimed = $this->canonicalDirectory($claim, $claim)
-                ? $this->recordWithoutLock($claim, $record->runId)
-                : null;
+            try {
+                $claimed = $this->canonicalDirectory($claim, $claim)
+                    ? $this->recordWithoutLock($claim, $record->runId)
+                    : null;
+            } catch (\Throwable) {
+                $claimed = null;
+            }
             if (!$claimed instanceof ArtifactRunRecord
                 || $claimed->files !== $record->files
                 || !$this->treeRemovable($claim)
@@ -345,6 +350,96 @@ final readonly class ArtifactRetention
         ErrorTrap::run(static fn() => \rename($claim, $directory));
 
         return false;
+    }
+
+    /**
+     * Completes or reverses claims that an interrupted prune left. The caller
+     * holds the prune lock, so no other prune owns these claims.
+     *
+     * @param non-empty-string $parent
+     *
+     * @return list<non-empty-string>
+     */
+    private function recoverClaims(string $parent): array
+    {
+        $warnings = [];
+        foreach ($this->claimNames($parent) as $name) {
+            $claim = $parent . '/' . $name;
+            $runId = null;
+            if (!$this->pathIsLink($claim) && ErrorTrap::run(static fn() => \is_dir($claim))) {
+                try {
+                    $recorded = self::metadataMap($claim)['runId'] ?? null;
+                    $runId = \is_string($recorded) ? $this->validatedRunId($recorded) : null;
+                } catch (\Throwable) {
+                    // A claim without readable metadata stays for manual review.
+                }
+            }
+            if ($runId === null) {
+                $warnings[] = \sprintf('Greenlight did not recover the interrupted prune claim "%s".', $name);
+                continue;
+            }
+
+            try {
+                $record = $this->recordWithoutLock($claim, $runId);
+            } catch (\Throwable) {
+                $record = null;
+            }
+            if ($record instanceof ArtifactRunRecord && $this->treeRemovable($claim) && $this->removeTree($claim)) {
+                $warnings[] = \sprintf('Greenlight completed an interrupted prune of artifact run "%s".', $runId);
+                continue;
+            }
+
+            $target = $parent . '/' . $runId;
+            if (!ErrorTrap::run(static fn() => \file_exists($target))
+                && !$this->pathIsLink($target)
+                && ErrorTrap::run(static fn() => \rename($claim, $target))
+            ) {
+                $warnings[] = \sprintf('Greenlight restored artifact run "%s" after an interrupted prune.', $runId);
+                continue;
+            }
+            $warnings[] = \sprintf('Greenlight did not recover the interrupted prune claim "%s".', $name);
+        }
+
+        return $warnings;
+    }
+
+    /**
+     * @param non-empty-string $parent
+     *
+     * @return list<non-empty-string>
+     */
+    private function reportClaims(string $parent): array
+    {
+        return \array_map(
+            static fn(string $name): string => \sprintf(
+                'Greenlight found the interrupted prune claim "%s". A prune without the dry-run option recovers it.',
+                $name,
+            ),
+            $this->claimNames($parent),
+        );
+    }
+
+    /** @return list<string> */
+    private function claimNames(string $parent): array
+    {
+        return \array_values(\array_filter(
+            $this->entryNames($parent),
+            static fn(string $name): bool => \preg_match('/^' . \preg_quote(self::CLAIM_PREFIX, '/') . '[a-f0-9]{24}$/D', $name) === 1,
+        ));
+    }
+
+    /**
+     * @return list<string>
+     * @throws \RuntimeException
+     */
+    private function entryNames(string $parent): array
+    {
+        $names = ErrorTrap::run(static fn() => \scandir($parent));
+        if ($names === false) {
+            throw new \RuntimeException('Greenlight did not read the artifact parent.');
+        }
+
+        return \array_values(\array_filter($names, static fn(string $name): bool => $name !== '.' && $name !== '..'));
     }
 
     /** @return array<non-empty-string, array{bytes: int, sha256: non-empty-string}> */
