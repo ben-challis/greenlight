@@ -144,7 +144,9 @@ final class TempestPlugin implements BeforeTestSubscriber, HarnessProvider, Serv
     #[\Override]
     public function testAttemptEnded(TestId $id, TestDefinition $definition): void
     {
-        if (!$this->kernel instanceof FrameworkKernel) {
+        // An attempt whose constructor fails before it uses Tempest does not
+        // activate the kernel, so it has nothing to shut down.
+        if (!$this->kernel instanceof FrameworkKernel || !$this->processState instanceof TempestProcessState) {
             return;
         }
 

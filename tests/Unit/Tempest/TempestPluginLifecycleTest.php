@@ -21,6 +21,7 @@ use Greenlight\Tempest\TempestBridgeError;
 use Greenlight\Tempest\TempestPlugin;
 use Greenlight\Test\TestChannel;
 use Greenlight\Tests\Fixture\BridgeAttemptEnd\TempestThrowingConstructorProbe;
+use Greenlight\Tests\Fixture\Execution\Worker\Attempt\ThrowingConstructorProbe;
 use Greenlight\Tests\Support\BridgeAttemptRun;
 use Greenlight\Tests\Support\PluginLifecycle;
 use Greenlight\Tests\Support\ServiceResolverProbe;
@@ -267,6 +268,22 @@ final class TempestPluginLifecycleTest
             ->toBe('before-tempest');
         expect($_ENV['ENVIRONMENT'])->toBe('before-tempest');
         expect($_SERVER['ENVIRONMENT'])->toBe('before-tempest');
+    }
+
+    #[Test]
+    public function anAttemptThatDoesNotActivateTheKernelDoesNotShutItDown(): void
+    {
+        $plugin = $this->plugin();
+
+        [, $second] = BridgeAttemptRun::run($plugin, [
+            [TempestThrowingConstructorProbe::class, 'neverRuns'],
+            [ThrowingConstructorProbe::class, 'neverRuns'],
+        ]);
+
+        expect($second->error?->message)->toBe('constructor failed');
+        expect($second->failures)
+            ->because('a second shutdown of an inactive kernel MUST NOT add a failure')
+            ->toBe([]);
     }
 
     private function plugin(?string $source = null): TempestPlugin
