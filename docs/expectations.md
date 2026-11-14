@@ -172,6 +172,14 @@ Enum cases compare by identity.
 Canonicalizing equality does not inspect object properties. Thus, a list in an
 object property keeps its order.
 
+Failure messages limit the depth, item count, string length, and total size of
+each rendered value. If these limits hide the difference for `toBe()` or
+`toEqual()`, the message also shows the first difference. For arrays and
+objects, it shows the path, such as `['items'][15]`. For strings, it shows the
+character offset and a part of each string around that offset. Floats render
+with full precision. Whitespace other than the ASCII space renders as an
+escape sequence, such as `\u{00A0}`.
+
 ### Type predicates
 
 * `toBeInstanceOf(string $class)` requires an instance of the given class or

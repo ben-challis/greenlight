@@ -142,10 +142,11 @@ final class MatcherEvaluation
      */
     public function toBe(mixed $expected): self
     {
-        return $this->verify(
+        return $this->verifyEquality(
             $this->subject === $expected,
-            'to be ' . $this->renderer->render($expected),
-            $this->renderer->render($expected),
+            'to be',
+            $expected,
+            static fn(mixed $actual, mixed $expected): bool => $actual === $expected,
         );
     }
 
@@ -159,10 +160,11 @@ final class MatcherEvaluation
      */
     public function toEqual(mixed $expected): self
     {
-        return $this->verify(
+        return $this->verifyEquality(
             Equality::equals($this->subject, $expected),
-            'to equal ' . $this->renderer->render($expected),
-            $this->renderer->render($expected),
+            'to equal',
+            $expected,
+            Equality::equals(...),
         );
     }
 
@@ -947,6 +949,30 @@ final class MatcherEvaluation
             $actual,
             CallSite::capture(),
         ));
+    }
+
+    /**
+     * Verifies an equality matcher. On failure, the message shows the first
+     * difference when the rendered values hide it.
+     *
+     * @param non-empty-string $verb
+     * @param \Closure(mixed, mixed): bool $equal
+     *
+     * @return self<T>
+     *
+     * @throws ExpectationFailed
+     */
+    private function verifyEquality(bool $matched, string $verb, mixed $expected, \Closure $equal): self
+    {
+        $rendered = $this->renderer->renderDifference($this->subject, $expected, $equal);
+        $difference = $rendered['difference'] === null ? '' : ' (' . $rendered['difference'] . ')';
+
+        return $this->verify(
+            $matched,
+            $verb . ' ' . $rendered['expected'] . $difference,
+            $rendered['expected'],
+            $rendered['actual'],
+        );
     }
 
     /**
