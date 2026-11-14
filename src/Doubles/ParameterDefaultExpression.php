@@ -180,17 +180,7 @@ final readonly class ParameterDefaultExpression
             return '\\' . $constants[$name];
         }
 
-        $qualified = \ltrim($namespace . '\\' . $name, '\\');
-
-        if (\defined($qualified)) {
-            return '\\' . $qualified;
-        }
-
-        if (\defined($name)) {
-            return '\\' . $name;
-        }
-
-        throw InvalidDoubleUsage::defaultConstantUnresolvable($parameter->name);
+        return ConstantReference::render($namespace . '\\' . $name, true, $parameter);
     }
 
     public static function containsObject(mixed $value): bool

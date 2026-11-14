@@ -448,6 +448,11 @@ final readonly class ProxyGenerator
                 }
             }
 
+            if ($separator === false) {
+                // Reflection gives the namespaced name for an unqualified global constant.
+                return ConstantReference::render($constant, true, $parameter);
+            }
+
             return '\\' . $constant;
         }
 
