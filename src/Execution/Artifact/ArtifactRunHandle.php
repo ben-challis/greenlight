@@ -68,13 +68,13 @@ final class ArtifactRunHandle
                 $known[$relativePath] = ['bytes' => $file['bytes'], 'sha256' => $file['sha256']];
             }
         }
-        $files = ArtifactRetention::contentManifest($this->directory, $known);
-        ArtifactRetention::writeMetadata($this->directory, [
-            'version' => ArtifactRetention::METADATA_VERSION,
-            'owner' => ArtifactRetention::OWNER,
+        $files = RunManifest::contentManifest($this->directory, $known);
+        RunManifest::write($this->directory, [
+            'version' => RunManifest::VERSION,
+            'owner' => RunManifest::OWNER,
             'runId' => $this->runId,
             'state' => 'completed',
-            'startedAt' => ArtifactRetention::startedAt($this->directory, $this->runId),
+            'startedAt' => RunManifest::startedAt($this->directory, $this->runId),
             'completedAt' => \time(),
             'files' => $files,
         ]);
