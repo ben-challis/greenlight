@@ -15,7 +15,7 @@ final class ArtifactRunHandle
 {
     private bool $closed = false;
 
-    /** @var array<non-empty-string, array{bytes: int, sha256: non-empty-string, mtime: int|false}> */
+    /** @var array<non-empty-string, array{bytes: int, sha256: non-empty-string, identity: string|null}> */
     private array $published = [];
 
     /**
@@ -31,8 +31,11 @@ final class ArtifactRunHandle
 
     /**
      * Records the digest of a published file, so that completion does not
-     * read the file again. Completion reuses the digest only when the size
-     * and modification time of the file stay the same.
+     * read the file again. Completion reuses the digest only when the size,
+     * the inode, and the modification time of the file stay the same. The
+     * modification time has a resolution of one second. A same-size rewrite in
+     * the same second keeps the recorded digest, and a later prune then
+     * rejects the run when it verifies the content.
      *
      * @param non-empty-string $sha256
      */
@@ -46,7 +49,7 @@ final class ArtifactRunHandle
         $this->published[$relativePath] = [
             'bytes' => $bytes,
             'sha256' => $sha256,
-            'mtime' => ErrorTrap::run(static fn() => \filemtime($path)),
+            'identity' => $this->identity($path),
         ];
     }
 
@@ -61,7 +64,7 @@ final class ArtifactRunHandle
         foreach ($this->published as $relativePath => $file) {
             $path = $this->directory . '/' . $relativePath;
             \clearstatcache(true, $path);
-            if ($file['mtime'] !== false && ErrorTrap::run(static fn() => \filemtime($path)) === $file['mtime']) {
+            if ($file['identity'] !== null && $this->identity($path) === $file['identity']) {
                 $known[$relativePath] = ['bytes' => $file['bytes'], 'sha256' => $file['sha256']];
             }
         }
@@ -76,6 +79,13 @@ final class ArtifactRunHandle
             'files' => $files,
         ]);
         $this->close();
+    }
+
+    private function identity(string $path): ?string
+    {
+        $stat = ErrorTrap::run(static fn() => \stat($path));
+
+        return \is_array($stat) ? $stat['ino'] . ':' . $stat['mtime'] : null;
     }
 
     public function close(): void

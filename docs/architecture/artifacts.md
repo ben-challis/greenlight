@@ -26,10 +26,11 @@ policy, and eventual published path.
 ## Publication
 
 Before a `TestFinished` event reaches reporters, the process that handles it
-decides retention from the terminal result. The process moves retained content
-to a temporary file beside the destination with `rename()`. Sometimes staging
-is on a different device, or the staged entry is not a regular file. Then the
+decides retention from the terminal result. The process links retained content
+to a temporary file beside the destination with `link()`. Sometimes staging is
+on a different device, or the staged entry is not a regular file. Then the
 process copies the content and calculates the SHA-256 digest during the copy.
+The staged file stays until publication succeeds.
 
 The process compares the size and digest with the staged metadata. It then
 renames the file into place atomically. The public `TestResult` contains the
@@ -61,8 +62,8 @@ A completed record contains the completion time and an exact file manifest.
 The manifest has each relative path, byte count, and SHA-256 digest. Greenlight
 does not prune a directory when its content does not match the manifest.
 Completion writes the manifest from the digests that publication calculated.
-It reads only files that publication did not record, or that changed size or
-modification time after publication.
+It reads only files that publication did not record, or that changed size,
+inode, or modification time after publication.
 
 Pruning uses one lock in the canonical artifact parent. Selection uses run
 metadata and `stat` data only, so it does not read retained content. Pruning
