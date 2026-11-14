@@ -85,14 +85,15 @@ diagnostic to a test result. These values originate in user code. The line
 number is greater than zero.
 
 The message has a limit of 2 KiB. The file has a limit of 1 KiB. Longer text
-keeps its first part and a truncation marker. A test result holds at most
-1,000 diagnostics, so these limits also bound the result size.
+keeps its first part and a truncation marker. Output capture keeps at most
+1,000 diagnostics for one attempt, so these limits also bound the result
+size.
 
 ```php
 final readonly class Diagnostic
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L20)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L21)
 
 ### `$message`
 
@@ -100,7 +101,7 @@ final readonly class Diagnostic
 public string $message;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L26)
 
 ### `$file`
 
@@ -108,7 +109,7 @@ public string $message;
 public string $file;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L27)
 
 ### `$line`
 
@@ -120,7 +121,7 @@ PHPDoc:
 
 - `@var positive-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L31)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L32)
 
 ### `$severity`
 
@@ -128,7 +129,7 @@ PHPDoc:
 public DiagnosticSeverity $severity
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L38)
 
 ### `__construct()`
 
@@ -145,7 +146,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L36)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L37)
 
 ## `DiagnosticSeverity`
 

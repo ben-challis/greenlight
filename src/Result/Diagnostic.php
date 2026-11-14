@@ -14,8 +14,9 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
  * number is greater than zero.
  *
  * The message has a limit of 2 KiB. The file has a limit of 1 KiB. Longer text
- * keeps its first part and a truncation marker. A test result holds at most
- * 1,000 diagnostics, so these limits also bound the result size.
+ * keeps its first part and a truncation marker. Output capture keeps at most
+ * 1,000 diagnostics for one attempt, so these limits also bound the result
+ * size.
  */
 final readonly class Diagnostic
 {
