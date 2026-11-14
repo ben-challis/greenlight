@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Hyperf;
 
+use Greenlight\Expect\ExpectationRuntime;
 use Greenlight\Harness\Scope;
 use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
@@ -43,6 +44,9 @@ use function Hyperf\Coroutine\run;
  */
 final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSource, TestAttemptRunner, WorkerBootstrapSubscriber, WorkerRuntimeRunner
 {
+    /** The time, in seconds, that a canceled test coroutine has to run its cleanup. */
+    private const float CANCEL_WAIT_SECONDS = 0.5;
+
     /** @var non-empty-string|null */
     private readonly ?string $source;
 
@@ -234,15 +238,24 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
             return $this->runWorkerAttempt($attempt);
         }
 
-        return $this->runRuntime(function () use ($attempt): mixed {
-            $container = $this->createContainer();
-            $this->rejectReusedContainer($container);
-            $this->activeContainer = $container;
-            ApplicationContext::setContainer($container);
-            $this->bootApplication($container);
+        return $this->runRuntime(fn(): mixed => $this->runInCoroutine(
+            function () use ($attempt): mixed {
+                $container = $this->createContainer();
+                $this->rejectReusedContainer($container);
+                $this->activeContainer = $container;
+                ApplicationContext::setContainer($container);
+                $this->bootApplication($container);
 
-            return $attempt();
-        }, $this->disposeAttemptContainer(...));
+                return $attempt();
+            },
+            function (): void {
+                $container = $this->activeContainer;
+
+                if ($container instanceof ContainerInterface) {
+                    $this->resetContainer($container);
+                }
+            },
+        ), $this->disposeAttemptContainer(...));
     }
 
     /** @throws ServiceResolutionFailed */
@@ -294,41 +307,91 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
 
         $container = $this->workerContainer
             ?? throw HyperfBridgeError::workerContainerUnavailable();
+
+        return $this->runInCoroutine(
+            function () use ($attempt, $container): mixed {
+                $this->activeContainer = $container;
+
+                return $attempt();
+            },
+            function () use ($container): void {
+                try {
+                    $this->resetContainer($container);
+                } finally {
+                    $this->activeContainer = null;
+                }
+            },
+        );
+    }
+
+    /**
+     * Runs an attempt in a child coroutine and waits until the test deadline.
+     *
+     * A blocked coroutine does not return to its `finally` block. At the
+     * deadline, the parent cancels the child and waits a short time for its
+     * cleanup. If the child still does not finish, the parent clears the test
+     * deadline and runs the reset.
+     *
+     * @template T
+     *
+     * @param \Closure(): T $attempt
+     * @param \Closure(): void $reset
+     *
+     * @return T
+     * @throws ServiceResolutionFailed
+     */
+    private function runInCoroutine(\Closure $attempt, \Closure $reset): mixed
+    {
         /** @var array{value: T}|array{} $result */
         $result = [];
         $failure = null;
+        $cleanup = new CoroutineReset($reset);
         $finished = new Channel(1);
         $coroutineId = SwooleCoroutine::create(function () use (
             $attempt,
-            $container,
+            $cleanup,
             $finished,
             &$result,
             &$failure,
         ): void {
             try {
-                $this->activeContainer = $container;
                 $result = ['value' => $attempt()];
             } catch (\Throwable $threw) {
                 $failure = $threw;
             } finally {
-                $this->captureCleanup($failure, function () use ($container): void {
-                    $this->resetContainer($container);
-                });
-                $this->activeContainer = null;
+                $this->captureCleanup($failure, $cleanup->run(...));
                 $finished->push(true);
             }
         });
 
-        if ($coroutineId === false) {
+        if (!\is_int($coroutineId)) {
             $finished->close();
 
             throw HyperfBridgeError::coroutineDidNotStart();
         }
 
-        $didFinish = $finished->pop();
-        $finished->close();
+        try {
+            $didFinish = CoroutineWait::await(
+                static fn(float $timeout): bool => $finished->pop($timeout) === true,
+                ExpectationRuntime::deadline(...),
+                static fn(): float => \hrtime(true) / 1_000_000_000,
+            );
 
-        return $this->coroutineResult($didFinish === true, $result, $failure);
+            if (!$didFinish) {
+                SwooleCoroutine::cancel($coroutineId);
+
+                if ($finished->pop(self::CANCEL_WAIT_SECONDS) !== true) {
+                    ExpectationRuntime::leaveAttempt();
+                    $this->captureCleanup($failure, $cleanup->run(...));
+                }
+
+                throw HyperfBridgeError::coroutineTimedOut($coroutineId, $failure);
+            }
+        } finally {
+            $finished->close();
+        }
+
+        return CoroutineOutcome::value(true, $result, $failure);
     }
 
     /**
@@ -362,7 +425,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
             Runtime::enableCoroutine(0);
         }
 
-        return $this->coroutineResult($started, $result, $failure);
+        return CoroutineOutcome::value($started, $result, $failure);
     }
 
     /** @throws ServiceResolutionFailed */
@@ -411,17 +474,8 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
         $this->activeContainer = null;
 
         try {
-            if ($container instanceof ContainerInterface) {
-                $failure = null;
-                $this->captureCleanup($failure, fn() => $this->resetContainer($container));
-
-                if ($this->dispose instanceof \Closure) {
-                    $this->captureCleanup($failure, fn() => ($this->dispose)($container));
-                }
-
-                if ($failure instanceof \Throwable) {
-                    throw $failure;
-                }
+            if ($container instanceof ContainerInterface && $this->dispose instanceof \Closure) {
+                ($this->dispose)($container);
             }
         } finally {
             ApplicationContext::setContainer(new UnavailableContainer());
@@ -464,31 +518,6 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
         } catch (\Throwable $threw) {
             $failure ??= $threw;
         }
-    }
-
-    /**
-     * @template T
-     *
-     * @param array{value: T}|array{} $result
-     *
-     * @return T
-     * @throws ServiceResolutionFailed
-     */
-    private function coroutineResult(bool $started, array $result, ?\Throwable $failure): mixed
-    {
-        if (!$started) {
-            throw HyperfBridgeError::coroutineDidNotStart();
-        }
-
-        if ($failure instanceof \Throwable) {
-            throw $failure;
-        }
-
-        if (!\array_key_exists('value', $result)) {
-            throw HyperfBridgeError::coroutineDidNotStart();
-        }
-
-        return $result['value'];
     }
 
     /** @throws ServiceResolutionFailed */

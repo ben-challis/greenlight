@@ -125,6 +125,27 @@ final class HyperfBridgeError extends ServiceResolutionFailed
         return new self('Swoole did not start the test coroutine. Check the Swoole runtime configuration.');
     }
 
+    public static function coroutineBlocked(): self
+    {
+        return new self(
+            'The Hyperf test coroutine started but did not finish. All coroutines were blocked, '
+            . 'for example on a channel pop with no producer. Set a test time limit to let Greenlight '
+            . 'cancel the blocked coroutine and run the cleanup callbacks.',
+        );
+    }
+
+    public static function coroutineTimedOut(int $coroutineId, ?\Throwable $previous = null): self
+    {
+        return new self(
+            \sprintf(
+                'The Hyperf test coroutine %d did not finish before the test time limit, so Greenlight '
+                . 'canceled it. The coroutine is blocked, for example on a channel pop with no producer.',
+                $coroutineId,
+            ),
+            $previous,
+        );
+    }
+
     public static function workerContainerUnavailable(): self
     {
         return new self(

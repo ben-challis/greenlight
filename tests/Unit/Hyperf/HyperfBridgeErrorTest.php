@@ -83,6 +83,14 @@ final readonly class HyperfBridgeErrorTest
             HyperfBridgeError::coroutineDidNotStart(...),
             'Swoole did not start the test coroutine. Check the Swoole runtime configuration.',
         ];
+        yield 'blocked coroutine' => [
+            HyperfBridgeError::coroutineBlocked(...),
+            'The Hyperf test coroutine started but did not finish. All coroutines were blocked, for example on a channel pop with no producer. Set a test time limit to let Greenlight cancel the blocked coroutine and run the cleanup callbacks.',
+        ];
+        yield 'timed out coroutine' => [
+            static fn(): HyperfBridgeError => HyperfBridgeError::coroutineTimedOut(7),
+            'The Hyperf test coroutine 7 did not finish before the test time limit, so Greenlight canceled it. The coroutine is blocked, for example on a channel pop with no producer.',
+        ];
         yield 'missing worker container' => [
             HyperfBridgeError::workerContainerUnavailable(...),
             'The Hyperf worker container is not available. Greenlight cannot start the worker runtime.',

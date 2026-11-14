@@ -366,7 +366,7 @@ deptrac:
     Documentation: []
     Symfony: [Harness, Plugin, Result, SymfonyFramework]
     Laravel: [Harness, InternalPhp, InternalProcess, Plugin, Result, LaravelFramework]
-    Hyperf: [Harness, InternalPhp, Plugin, HyperfFramework, PsrContainerFramework, SwooleFramework, ComposerRuntime]
+    Hyperf: [Expect, Harness, InternalPhp, Plugin, HyperfFramework, PsrContainerFramework, SwooleFramework, ComposerRuntime]
     Psr11: [Harness, Plugin, Result, PsrContainerFramework]
     Psr15: [Harness, Plugin, PsrHttpFramework]
     Tempest: [Harness, InternalProcess, Plugin, Result, Test, TempestFramework]
