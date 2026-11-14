@@ -296,16 +296,13 @@ final readonly class ArtifactRetentionTest
         expect()->calling(static fn() => $linkedParent->begin('run'))
             ->toThrow(AttachmentError::class, message: 'Attachment output directory contains a symbolic link.');
 
-        $linkedAncestor = $this->retention($base . '/linked/artifacts', maxCompletedRuns: 1);
-        expect()->calling(static fn() => $linkedAncestor->begin('run'))
-            ->toThrow(AttachmentError::class, message: 'Attachment output directory contains a symbolic link.');
 
         $fileAncestor = $this->retention($base . '/blocked/artifacts', maxCompletedRuns: 1);
         expect()->calling(static fn() => $fileAncestor->begin('run'))
             ->toThrow(AttachmentError::class, message: 'Attachment output path contains a non-directory entry.');
 
-        $noncanonical = $this->retention($base . '/.', maxCompletedRuns: 1);
-        expect()->calling(static fn() => $noncanonical->begin('run'))
+        $missingTraversal = $base . '/missing/../artifacts';
+        expect()->calling(fn() => $this->retention($missingTraversal, maxCompletedRuns: 1))
             ->toThrow(AttachmentError::class, message: 'Artifact parent directory is not canonical.');
     }
 

@@ -52,6 +52,7 @@ final class ArtifactStore
         ?\Closure $retainAttachment = null,
     ): self {
         $retention = ArtifactRetention::forConfiguration($configuration, $workingDirectory);
+        $retention->validateParent();
         $output = $retention->runDirectory($runId);
         $temporaryDirectory ??= \sys_get_temp_dir();
         $staging = \rtrim($temporaryDirectory, '/') . '/greenlight-artifacts-'
