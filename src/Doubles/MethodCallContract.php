@@ -190,7 +190,11 @@ final readonly class MethodCallContract
                 $value = $this->convert($value, ArgumentType::fromReflection($type, $parameter->getDeclaringClass()));
             }
 
-            $defaults[] = ParameterDefaultExpression::containsObject($value) ? new EqualsMatcher($value) : $value;
+            $defaults[] = match (true) {
+                ParameterDefaultExpression::containsObject($value) => new EqualsMatcher($value),
+                NanSafeDefaultMatcher::containsNan($value) => new NanSafeDefaultMatcher($value),
+                default => $value,
+            };
         }
 
         return $defaults;

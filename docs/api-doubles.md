@@ -865,11 +865,15 @@ Bare argument values use strict comparison (`===`). Use
 that accepts `float` but not `int` becomes a float, as PHP converts the call
 argument.
 
+A plan and a call that omit optional arguments use the declared default
+values. Thus, `with('a')` matches `find('a', 2)` when the second parameter
+has the default `2`. An object default uses deep equality.
+
 ```php
 final class MethodExpectation
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L25)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L29)
 
 PHPDoc:
 
@@ -882,7 +886,7 @@ PHPDoc:
 public readonly string $method;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L61)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L65)
 
 ### `withNoArguments()`
 
@@ -895,7 +899,7 @@ PHPDoc:
 - `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L77)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L81)
 
 ### `with()`
 
@@ -908,7 +912,7 @@ PHPDoc:
 - `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L86)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L90)
 
 ### `once()`
 
@@ -920,7 +924,7 @@ PHPDoc:
 
 - `@return self<TTarget, TMethod>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L105)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L109)
 
 ### `times()`
 
@@ -933,7 +937,7 @@ PHPDoc:
 - `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L117)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L121)
 
 ### `atLeast()`
 
@@ -946,7 +950,7 @@ PHPDoc:
 - `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L133)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L137)
 
 ### `never()`
 
@@ -958,7 +962,7 @@ PHPDoc:
 
 - `@return self<TTarget, TMethod>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L148)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L152)
 
 ### `andReturns()`
 
@@ -971,7 +975,7 @@ PHPDoc:
 - `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L160)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L164)
 
 ### `andReturnsSequence()`
 
@@ -987,7 +991,7 @@ PHPDoc:
 - `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L176)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L180)
 
 ### `andReturnsUsing()`
 
@@ -1003,7 +1007,7 @@ PHPDoc:
 - `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L197)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L201)
 
 ### `andThrows()`
 
@@ -1016,7 +1020,7 @@ PHPDoc:
 - `@return self<TTarget, TMethod>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L210)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L214)
 
 ### `captureArgument()`
 
@@ -1034,7 +1038,7 @@ PHPDoc:
 - `@return ArgumentCaptor<mixed>`
 - `@throws InvalidDoubleUsage`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L228)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Doubles/MethodExpectation.php#L232)
 
 ## `MockPlan`
 
