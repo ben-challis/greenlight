@@ -138,4 +138,64 @@ final readonly class PhpStanExpectationTypeSpecifyingExtensionTest
         expect(\count($probe->errors))->toBe(2);
         expect($probe->messages())->toContain('expects string, string|null given');
     }
+
+    #[Test]
+    public function negatedInstanceChecksNarrowOnlyForOneConstantClass(): void
+    {
+        $probe = PhpStanProbe::analyze(
+            $this->tempDirectory,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Expect\Expect;
+
+            class NegatedAnimal
+            {
+                public string $name = '';
+            }
+            final class NegatedDog extends NegatedAnimal {}
+            final class NegatedCat extends NegatedAnimal {}
+
+            /**
+             * @param class-string<NegatedAnimal> $animalClass
+             * @param class-string<NegatedDog>|class-string<NegatedCat> $petClass
+             */
+            function greenlightNegatedInstanceProbe(NegatedAnimal $first, NegatedAnimal $second, string $animalClass, string $petClass): void
+            {
+                Expect::value($first)->not()->toBeInstanceOf($animalClass);
+                echo $first->name;
+                Expect::value($second)->not()->toBeInstanceOf($petClass);
+                echo $second->name;
+            }
+            PHP,
+            <<<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            use Greenlight\Expect\Expect;
+
+            final class NegatedBird {}
+
+            function acceptNegatedBird(NegatedBird $value): void {}
+
+            function greenlightNegatedConstantInstanceProbe(NegatedBird|int $value): void
+            {
+                Expect::value($value)->not()->toBeInstanceOf(NegatedBird::class);
+                acceptNegatedBird($value);
+            }
+            PHP,
+        );
+
+        expect($probe->goodPassed)
+            ->because('a negated check against a class-string variable MUST NOT narrow the subject to never. PHPStan messages: ' . $probe->messages())
+            ->toBeTrue();
+        expect(\count($probe->errors))
+            ->because('PHPStan messages: ' . $probe->messages())
+            ->toBe(1);
+        expect($probe->messages())
+            ->toContain('expects NegatedBird, int given');
+    }
 }
