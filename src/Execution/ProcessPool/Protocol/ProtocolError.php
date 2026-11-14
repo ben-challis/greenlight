@@ -18,14 +18,47 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
  */
 final class ProtocolError extends WireCommunicationFailed
 {
-    private function __construct(string $message, ?\Throwable $previous = null)
-    {
+    private const string KIND_FRAME_TOO_LARGE = 'frame-too-large';
+    private const string KIND_INCOMPLETE_FRAME = 'incomplete-frame';
+
+    private function __construct(
+        string $message,
+        ?\Throwable $previous = null,
+        private readonly ?string $kind = null,
+    ) {
         parent::__construct($message, previous: $previous);
     }
 
     public static function frameTooLarge(int $length, int $limit): self
     {
-        return new self(\sprintf('Frame of %d bytes exceeds the %d byte limit.', $length, $limit));
+        return new self(
+            \sprintf('Frame of %d bytes exceeds the %d byte limit.', $length, $limit),
+            kind: self::KIND_FRAME_TOO_LARGE,
+        );
+    }
+
+    public static function incompleteFrame(): self
+    {
+        return new self(
+            'Malformed frame: peer closed the connection with an incomplete frame.',
+            kind: self::KIND_INCOMPLETE_FRAME,
+        );
+    }
+
+    /**
+     * Tells if a frame was larger than the codec limit.
+     */
+    public function isFrameTooLarge(): bool
+    {
+        return $this->kind === self::KIND_FRAME_TOO_LARGE;
+    }
+
+    /**
+     * Tells if the peer closed the connection in the middle of a frame.
+     */
+    public function isIncompleteFrame(): bool
+    {
+        return $this->kind === self::KIND_INCOMPLETE_FRAME;
     }
 
     public static function malformedFrame(string $reason, ?string $warning = null): self
@@ -166,5 +199,42 @@ final class ProtocolError extends WireCommunicationFailed
             $file,
             $line,
         ), $previous);
+    }
+
+    public static function workerReplacementLoop(
+        string $workerId,
+        int $deaths,
+        string $reason,
+        string $diagnostics,
+    ): self {
+        $message = \sprintf(
+            '%d workers in sequence exited before they finished a test. '
+            . 'Last worker "%s": %s. '
+            . 'Greenlight stopped the run because a replacement worker can fail in the same way.',
+            $deaths,
+            $workerId,
+            $reason,
+        );
+
+        if ($diagnostics !== '') {
+            $message .= "\nWorker output:\n" . $diagnostics;
+        }
+
+        return new self($message);
+    }
+
+    public static function workerReportLost(string $workerId, string $diagnostics): self
+    {
+        $message = \sprintf(
+            'Worker "%s" exited after its last test and before it sent its assignment report. '
+            . 'The report contained coverage or leak data. Greenlight stopped the run because this data is incomplete.',
+            $workerId,
+        );
+
+        if ($diagnostics !== '') {
+            $message .= "\nWorker output:\n" . $diagnostics;
+        }
+
+        return new self($message);
     }
 }

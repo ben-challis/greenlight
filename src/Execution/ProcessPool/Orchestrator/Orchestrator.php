@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Greenlight\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Artifact\AttachmentError;
+use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Coverage\CoverageMap;
+use Greenlight\Coverage\CoverageMapBuilder;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Event\Event;
@@ -62,6 +64,9 @@ final class Orchestrator
     // the complete run, so it permits longer periods.
     private const float TIMEOUT_GRACE_FACTOR = 2.0;
     private const float TIMEOUT_GRACE_FLAT_SECONDS = 2.0;
+    // Workers that exit before they finish a test usually fail in the same
+    // way again, for example after an exit() in a bootstrap file.
+    private const int UNATTRIBUTED_DEATH_LIMIT = 3;
     private ?ResourceScheduler $scheduler = null;
 
     /**
@@ -86,7 +91,7 @@ final class Orchestrator
 
     private ResultSummary $summary;
 
-    private ?CoverageMap $coverage = null;
+    private ?CoverageMapBuilder $coverage = null;
 
     /**
      * @var list<TestId>
@@ -103,6 +108,17 @@ final class Orchestrator
     private int $initialWorkerTarget = 1;
 
     private bool $initialBarrierPassed = false;
+
+    /** @var non-negative-int */
+    private int $spawnedWorkers = 0;
+
+    /** @var non-negative-int consecutive worker exits without a finished or attributed test */
+    private int $unattributedDeaths = 0;
+
+    /**
+     * @var list<string>
+     */
+    private array $warnings = [];
 
     /**
      * @var array<non-empty-string, true> initial workers that have not received their first assignment
@@ -124,7 +140,17 @@ final class Orchestrator
      */
     public function collectedCoverage(): ?CoverageMap
     {
-        return $this->coverage;
+        return $this->coverage?->build();
+    }
+
+    /**
+     * Returns problems that did not stop the run.
+     *
+     * @return list<string>
+     */
+    public function warnings(): array
+    {
+        return $this->warnings;
     }
 
     /**
@@ -157,7 +183,8 @@ final class Orchestrator
             return;
         }
 
-        $this->coverage = $this->coverage instanceof CoverageMap ? $this->coverage->merge($coverage) : $coverage;
+        $this->coverage ??= new CoverageMapBuilder();
+        $this->coverage->add($coverage);
     }
 
     /**
@@ -242,8 +269,11 @@ final class Orchestrator
 
             $handle = new WorkerState($workerId, $channelNumber, $this->monotonicTime());
             $this->handles[$workerId] = $handle;
+            ++$this->spawnedWorkers;
 
-            if (\count($this->handles) <= $this->initialWorkerTarget) {
+            // Only the first spawns are initial workers. A replacement does
+            // not close the initial barrier again.
+            if ($this->spawnedWorkers <= $this->initialWorkerTarget) {
                 $this->initialAssignmentsPending[$workerId] = true;
             }
 
@@ -265,7 +295,7 @@ final class Orchestrator
     }
 
     /**
-     * Returns live workers without a first assignment.
+     * Returns live workers without an assignment that can take one.
      *
      * The orchestrator assigns queued scheduling units to these workers. Thus,
      * it does not start more workers for the same units.
@@ -275,7 +305,7 @@ final class Orchestrator
         $count = 0;
 
         foreach ($this->handles as $handle) {
-            if ($handle->isActive() && $handle->assigned === null) {
+            if ($handle->isActive() && !$handle->stopRequested && $handle->assigned === null) {
                 ++$count;
             }
         }
@@ -366,7 +396,10 @@ final class Orchestrator
         }
     }
 
-    /** @throws AttachmentError */
+    /**
+     * @throws AttachmentError
+     * @throws ProtocolError
+     */
     private function processHello(int $connectionId, Message $message, EventSink $sink): void
     {
         unset($this->awaitingHello[$connectionId]);
@@ -423,18 +456,21 @@ final class Orchestrator
      *
      * If no suitable work remains, drains the worker. A worker can remain
      * connected without an assignment while a resource lease is unavailable.
+     *
+     * @return bool True when the worker waits for resource capacity.
      * @throws AttachmentError
+     * @throws ProtocolError
      */
-    private function assignNext(WorkerState $handle, EventSink $sink): void
+    private function assignNext(WorkerState $handle, EventSink $sink): bool
     {
         if (!$handle->connected || !$handle->ready) {
-            return;
+            return false;
         }
 
         if (!$handle->isFresh() && $this->initialAssignmentsPending !== []) {
             $handle->timing->wait(WorkerIdleReason::BootstrapBarrier, $this->monotonicTime());
 
-            return;
+            return false;
         }
 
         $decision = $this->draining
@@ -444,12 +480,12 @@ final class Orchestrator
         if ($decision->kind === DispatchKind::Wait) {
             $handle->timing->wait(WorkerIdleReason::ResourceCapacity, $this->monotonicTime());
 
-            return;
+            return true;
         }
 
         if ($decision->kind === DispatchKind::Drain) {
             if ($handle->stopRequested) {
-                return;
+                return false;
             }
 
             $at = $this->monotonicTime();
@@ -464,7 +500,7 @@ final class Orchestrator
 
             $handle->requestStop($this->monotonicTime());
 
-            return;
+            return false;
         }
 
         $lease = $decision->lease;
@@ -499,6 +535,8 @@ final class Orchestrator
             // a replacement worker.
             $this->containCrash($handle, $sink, 'the worker exited before receiving its assignment');
         }
+
+        return false;
     }
 
     /**
@@ -524,13 +562,15 @@ final class Orchestrator
             $readyAt = $this->monotonicTime();
             $handle->timing->ready($readyAt);
 
-            if (!$this->initialBarrierPassed) {
+            if ($this->initialBarrierPassed || $this->draining) {
+                // Progressive initial workers and replacements can
+                // start as soon as their own bootstrap completes. During a
+                // drain, the barrier can stay closed. Thus, assignNext()
+                // drains this worker.
+                $this->assignNext($handle, $sink);
+            } else {
                 $handle->timing->wait(WorkerIdleReason::BootstrapBarrier, $readyAt);
                 $this->openInitialBarrier($sink);
-            } else {
-                // Progressive initial workers and replacements can
-                // start as soon as their own bootstrap completes.
-                $this->assignNext($handle, $sink);
             }
         } elseif ($message instanceof Done) {
             $at = $this->monotonicTime();
@@ -568,6 +608,7 @@ final class Orchestrator
 
     /**
      * @throws AttachmentError
+     * @throws ProtocolError
      */
     private function openInitialBarrier(EventSink $sink): void
     {
@@ -614,6 +655,7 @@ final class Orchestrator
         }
 
         if ($event instanceof TestFinished) {
+            $this->unattributedDeaths = 0;
             $handle->inFlight = null;
             $handle->inFlightAttempt = 0;
             $handle->finished[(string) $event->result->id] = true;
@@ -787,14 +829,20 @@ final class Orchestrator
     }
 
     /**
+     * Kills the worker before it recovers staged attachments. Thus, the
+     * recovery sees all of the evidence that the worker wrote.
+     *
      * @throws AttachmentError
      */
     private function containTimeout(WorkerState $handle, EventSink $sink, float $budget): void
     {
         $inFlight = $handle->inFlight;
+        $attempts = $handle->inFlightAttempt;
+        $duration = \max(0.0, $this->monotonicTime() - $handle->inFlightSince);
+        $remainder = $this->retireFailedWorker($handle, true);
 
         if ($inFlight instanceof TestId) {
-            $duration = \max(0.0, $this->monotonicTime() - $handle->inFlightSince);
+            $this->unattributedDeaths = 0;
             $message = \sprintf(
                 'The test exceeded its %.3f-second time limit. Greenlight stopped worker "%s" after %.3f seconds.',
                 $budget,
@@ -807,29 +855,41 @@ final class Orchestrator
                 $message .= "\nWorker output:\n" . Utf8::tailBytes($diagnostics, 2_048);
             }
 
-            $this->recordSyntheticResult($handle, $sink, new TestResult(
+            $this->recordSyntheticResult($sink, new TestResult(
                 $inFlight,
                 Outcome::Failed,
                 $duration,
                 0,
                 failures: [new FailureDetail($message)],
-            ));
+            ), $attempts);
         }
 
-        $this->retireFailedWorker($handle, true);
+        $this->enqueueRemainder($remainder);
     }
 
     /**
+     * Fails the active test of a worker that exited, and queues the rest of
+     * its assignment again.
+     *
+     * An exit without an active test can repeat for each replacement worker.
+     * Thus, consecutive exits of this type stop the run at a small limit.
+     *
      * @throws AttachmentError
+     * @throws ProtocolError
      */
     private function containCrash(WorkerState $handle, EventSink $sink, string $reason): void
     {
         $inFlight = $handle->inFlight;
+        $attempts = $handle->inFlightAttempt;
+        $reportLost = !$inFlight instanceof TestId
+            && $handle->assigned instanceof ExecutionPlan
+            && $handle->unfinished() === [];
+        $remainder = $this->retireFailedWorker($handle);
+        $diagnostics = \trim($this->transport->diagnostics($handle->workerId));
 
         if ($inFlight instanceof TestId) {
-            $diagnostics = \trim($this->transport->diagnostics($handle->workerId));
-
-            $this->recordSyntheticResult($handle, $sink, new TestResult(
+            $this->unattributedDeaths = 0;
+            $this->recordSyntheticResult($sink, new TestResult(
                 $inFlight,
                 Outcome::Errored,
                 0.0,
@@ -839,37 +899,84 @@ final class Orchestrator
                     $reason,
                     Utf8::tailBytes($diagnostics, 2_048),
                 )),
-            ));
+            ), $attempts);
+        } elseif ($reportLost) {
+            $this->recordLostReport($handle, $diagnostics);
+        } elseif (!$this->draining) {
+            ++$this->unattributedDeaths;
+
+            if ($this->unattributedDeaths >= self::UNATTRIBUTED_DEATH_LIMIT) {
+                throw ProtocolError::workerReplacementLoop(
+                    $handle->workerId,
+                    $this->unattributedDeaths,
+                    $reason,
+                    Utf8::tailBytes($diagnostics, 2_048),
+                );
+            }
         }
 
-        $this->retireFailedWorker($handle);
+        $this->enqueueRemainder($remainder);
     }
 
     /**
+     * Handles a worker that exited after its last test and before Done.
+     *
+     * The test results are complete. Coverage and leak data are lost. Thus,
+     * the run fails only when it collects this data.
+     *
+     * @throws ProtocolError
+     */
+    private function recordLostReport(WorkerState $handle, string $diagnostics): void
+    {
+        $diagnostics = Utf8::tailBytes($diagnostics, 2_048);
+
+        if ($this->configuration->coverageSettings instanceof CoverageSettings || $this->configuration->detectLeaks) {
+            throw ProtocolError::workerReportLost($handle->workerId, $diagnostics);
+        }
+
+        $warning = \sprintf(
+            'Worker "%s" exited after its last test and before it sent its assignment report. '
+            . 'All test results of the assignment are complete.',
+            $handle->workerId,
+        );
+
+        if ($diagnostics !== '') {
+            $warning .= "\nWorker output:\n" . $diagnostics;
+        }
+
+        $this->warnings[] = $warning;
+    }
+
+    /**
+     * @param non-negative-int $attempts
      * @throws AttachmentError
      */
-    private function recordSyntheticResult(WorkerState $handle, EventSink $sink, TestResult $result): void
+    private function recordSyntheticResult(EventSink $sink, TestResult $result, int $attempts): void
     {
-        $result = $result->withAttempts(\max($result->attempts, $handle->inFlightAttempt));
+        $result = $result->withAttempts(\max($result->attempts, $attempts));
 
         if ($this->configuration->artifactStore instanceof ArtifactStore) {
             $result = $this->configuration->artifactStore->recover($result);
         }
 
-        $handle->inFlight = null;
-        $handle->finished[(string) $result->id] = true;
         unset($this->entriesById[(string) $result->id]);
         $this->summary = $this->summary->add($result->outcome);
         $sink->emit(new TestFinished($result, \microtime(true)));
         $this->enforceFailureLimit();
     }
 
-    private function retireFailedWorker(WorkerState $handle, bool $kill = false): void
+    /**
+     * Stops the worker and releases its assignment.
+     *
+     * @return list<TestId> tests of the assignment that did not finish and were not active
+     */
+    private function retireFailedWorker(WorkerState $handle, bool $kill = false): array
     {
         $remainder = $handle->unfinished();
         $this->releaseAssignment($handle);
         $this->finishHandle($handle, $kill);
-        $this->enqueueRemainder($remainder);
+
+        return $remainder;
     }
 
     /**
@@ -919,6 +1026,7 @@ final class Orchestrator
 
     /**
      * @throws AttachmentError
+     * @throws ProtocolError
      */
     private function assignWaiting(EventSink $sink): void
     {
@@ -929,11 +1037,17 @@ final class Orchestrator
         $this->retryWaitingWorkers = false;
 
         foreach ($this->handles as $handle) {
-            if (!$handle->isActive() || !$handle->connected || $handle->assigned !== null) {
+            // A worker that received Drain exits. It cannot take work.
+            if (!$handle->isActive() || !$handle->connected || $handle->stopRequested || $handle->assigned !== null) {
                 continue;
             }
 
-            $this->assignNext($handle, $sink);
+            // After one idle worker waits for capacity, the blocked queue
+            // cannot give work to another idle worker. Another scan of the
+            // queue only adds cost. The next release retries the idle workers.
+            if ($this->assignNext($handle, $sink)) {
+                return;
+            }
         }
     }
 
