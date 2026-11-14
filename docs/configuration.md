@@ -167,7 +167,7 @@ Repeated calls to `coverage()` preserve earlier settings.
 `CoverageBuilder` methods:
 
 * `include(string ...$paths): self` adds source directories to measure. Default:
-  none.
+  none. Greenlight warns for a directory that does not exist.
 * `driver(string $driver): self` restricts coverage to `pcov` or `xdebug` when
   you use that value. Other non-empty values have the default behavior:
   Greenlight tries pcov, then Xdebug.
@@ -205,6 +205,9 @@ itself. `requireDriver()` changes the warning to a run failure.
 
 A configured coverage gate also requires coverage. Thus, an unavailable
 coverage driver fails the run when you configure a gate.
+
+A configured gate fails if the coverage contains no executable lines. For
+example, an include path with a spelling error gives no executable lines.
 
 The minimum percentage gate uses the total line coverage. Greenlight rounds
 the calculated percentage to two decimal places before the comparison. It uses
