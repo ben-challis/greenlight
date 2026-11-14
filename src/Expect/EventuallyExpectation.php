@@ -118,6 +118,9 @@ final class EventuallyExpectation extends TemporalExpectation
         }
 
         while (true) {
+            // A probe that starts at or before the deadline can match. The
+            // last probe starts at the deadline, so it always ends after it.
+            $probeStartedAt = $this->clock->now();
             $last = $this->observe($matcher, $negated, $reason, $this->retryOnExceptions);
             $observedAt = $this->clock->now();
             $observations->record($observedAt, $last->rendered);
@@ -127,7 +130,7 @@ final class EventuallyExpectation extends TemporalExpectation
                 $counted = true;
             }
 
-            if ($last->matched && $observedAt <= $deadline) {
+            if ($last->matched && $probeStartedAt <= $deadline) {
                 if (!$last instanceof TemporalValueObservation) {
                     throw new \LogicException('A matched temporal observation must contain a subject.');
                 }

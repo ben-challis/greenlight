@@ -52,8 +52,11 @@ Both methods start with an immediate probe call. If the test deadline has
 already expired, `eventually()` fails before that call. Between calls, the
 methods wait for the configured fixed interval. Probe calls never overlap.
 
-`eventually()` sets its deadline before the first call. It accepts a match only
-when the observation finishes at or before that deadline.
+`eventually()` sets its deadline before the first call. It accepts a match
+when the probe call starts at or before that deadline. The last probe call
+starts at the deadline and always finishes after it. Thus, a rule that uses the
+finish time cannot accept a match from the last call.
+
 `consistently()` requires its first call to match, starts its
 stability period after that call, and fails on the first mismatch.
 The next wait ends at the applicable deadline if a full interval would exceed
@@ -86,6 +89,9 @@ the active test.
 `Error`, `Throwable`, and unrelated types.
 
 ## Failures
+
+A call expectation polls `CallOutcome` objects. The observation log renders
+each outcome as its return value or its throwable class and message.
 
 `ObservationLog` stores rendered strings instead of every value. It keeps the
 first group and the last three groups. It combines repeated values. It also

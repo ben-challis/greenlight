@@ -11,7 +11,7 @@ namespace Greenlight\Expect;
  */
 final readonly class PendingConsistentlyCall
 {
-    /** @var PendingConsistently<\Closure(): T> */
+    /** @var PendingConsistently<CallOutcome<T>> */
     private PendingConsistently $pending;
 
     /**
@@ -26,7 +26,7 @@ final readonly class PendingConsistentlyCall
         private array $extensions,
     ) {
         $this->pending = PendingConsistently::create(
-            static fn() => CallOutcome::capture($call)->replay(...),
+            static fn(): CallOutcome => CallOutcome::capture($call),
             ExpectationRuntime::clock(),
             ExpectationRuntime::deadline(),
             $renderer,
