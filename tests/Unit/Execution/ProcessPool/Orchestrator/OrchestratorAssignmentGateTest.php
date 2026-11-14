@@ -104,6 +104,50 @@ final readonly class OrchestratorAssignmentGateTest
             ->toBeLessThan($transport->logIndex('w-3 bootstrap'));
     }
 
+    #[Test]
+    public function idleWorkersAskTheBlockedQueueOnceForEachRelease(): void
+    {
+        $blockedUnits = 200;
+        $fewWorkers = $this->resourceWaitClockReads($blockedUnits, 2);
+        $manyWorkers = $this->resourceWaitClockReads($blockedUnits, 8);
+
+        // Each extra worker adds a fixed number of lifecycle clock reads. A
+        // queue scan for each idle worker on each release adds a clock read
+        // for each blocked unit and idle worker.
+        expect($manyWorkers - $fewWorkers)
+            ->because('a release MUST NOT scan the blocked queue again for each idle worker')
+            ->toBeLessThan($blockedUnits);
+    }
+
+    /**
+     * @param positive-int $blockedUnits
+     * @param positive-int $workers
+     */
+    private function resourceWaitClockReads(int $blockedUnits, int $workers): int
+    {
+        $entries = [];
+
+        for ($index = 1; $index <= $blockedUnits; ++$index) {
+            $entries[] = PlanEntryFixture::create('Example\\Database' . $index . 'Test', resources: ['database']);
+        }
+
+        for ($index = 1; $index < $workers; ++$index) {
+            $entries[] = PlanEntryFixture::create('Example\\Free' . $index . 'Test');
+        }
+
+        $transport = new ReactiveWorkerTransport(
+            ReactiveWorkerTransport::connectAtStart(),
+            ReactiveWorkerTransport::passingWorkers(),
+        );
+        $summary = new Orchestrator($transport, new OrchestratorConfiguration(resourceLimits: ['database' => 1]))
+            ->run(new ExecutionPlan($entries), new CollectingEventSink(), $workers);
+
+        expect($summary->passed)->toBe(\count($entries));
+        expect($transport->started)->toHaveCount($workers);
+
+        return $transport->nowCalls;
+    }
+
     /**
      * @param positive-int $classes
      */

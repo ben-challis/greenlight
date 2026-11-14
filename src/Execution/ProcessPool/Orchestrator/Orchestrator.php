@@ -429,18 +429,20 @@ final class Orchestrator
      *
      * If no suitable work remains, drains the worker. A worker can remain
      * connected without an assignment while a resource lease is unavailable.
+     *
+     * @return bool True when the worker waits for resource capacity.
      * @throws AttachmentError
      */
-    private function assignNext(WorkerState $handle, EventSink $sink): void
+    private function assignNext(WorkerState $handle, EventSink $sink): bool
     {
         if (!$handle->connected || !$handle->ready) {
-            return;
+            return false;
         }
 
         if (!$handle->isFresh() && $this->initialAssignmentsPending !== []) {
             $handle->timing->wait(WorkerIdleReason::BootstrapBarrier, $this->monotonicTime());
 
-            return;
+            return false;
         }
 
         $decision = $this->draining
@@ -450,12 +452,12 @@ final class Orchestrator
         if ($decision->kind === DispatchKind::Wait) {
             $handle->timing->wait(WorkerIdleReason::ResourceCapacity, $this->monotonicTime());
 
-            return;
+            return true;
         }
 
         if ($decision->kind === DispatchKind::Drain) {
             if ($handle->stopRequested) {
-                return;
+                return false;
             }
 
             $at = $this->monotonicTime();
@@ -470,7 +472,7 @@ final class Orchestrator
 
             $handle->requestStop($this->monotonicTime());
 
-            return;
+            return false;
         }
 
         $lease = $decision->lease;
@@ -505,6 +507,8 @@ final class Orchestrator
             // a replacement worker.
             $this->containCrash($handle, $sink, 'the worker exited before receiving its assignment');
         }
+
+        return false;
     }
 
     /**
@@ -941,7 +945,12 @@ final class Orchestrator
                 continue;
             }
 
-            $this->assignNext($handle, $sink);
+            // After one idle worker waits for capacity, the blocked queue
+            // cannot give work to another idle worker. Another scan of the
+            // queue only adds cost. The next release retries the idle workers.
+            if ($this->assignNext($handle, $sink)) {
+                return;
+            }
         }
     }
 
