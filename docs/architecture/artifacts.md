@@ -145,6 +145,20 @@ link or delete content outside the canonical parent.
 The storage layer does not redact content. Tests and plugins **MUST** remove
 secrets before they add data as an attachment.
 
+## Retention classes
+
+`ArtifactRetention` resolves the parent and creates runs. It delegates to these
+internal classes:
+
+| Class | Responsibility |
+| --- | --- |
+| `RunManifest` | Run metadata: read, write, and digest verification. |
+| `RetentionPolicy` | Selection from run records. It does not use the filesystem. |
+| `RunPruner` | The prune lock, claims, deletion, and claim recovery. |
+
+`SafeDirectory` and `RelativePath` in `src/Internal/Filesystem` hold the
+symbolic-link-safe directory walk and the relative path check.
+
 ## Public and wire formats
 
 The public interface contains `Attachments`, `Attachment`, `AttachmentKind`,
