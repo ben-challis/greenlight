@@ -180,6 +180,7 @@ final readonly class RunSession
                 $this->selection->shard[0] ?? 1,
                 $this->selection->shard[1] ?? 1,
             );
+            // The flag is true when a jsonl reporter owns standard output.
             $this->coverageOutputOnStderr ? $this->console->err($notice) : $this->console->out($notice);
 
             return CommandResult::success();
