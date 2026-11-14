@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Greenlight\Reporting;
 
 use Greenlight\Event\Event;
-use Greenlight\Event\RunStarted;
 use Greenlight\Event\TestFinished;
 use Greenlight\Internal\Text\Utf8;
 use Greenlight\Result\Outcome;
@@ -22,28 +21,25 @@ use Greenlight\Result\ThrowableDetail;
  *
  * @internal
  */
-final class GithubReporter implements Reporter
+final readonly class GithubReporter implements Reporter
 {
-    private ?string $artifactsDirectory = null;
-    private bool $hasAttachments = false;
+    private RetainedArtifacts $retainedArtifacts;
 
-    public function __construct(private readonly Output $output) {}
+    public function __construct(private Output $output)
+    {
+        $this->retainedArtifacts = new RetainedArtifacts();
+    }
 
     #[\Override]
     public function onEvent(Event $event): void
     {
-        if ($event instanceof RunStarted) {
-            $this->artifactsDirectory = $event->artifactsDirectory;
-
-            return;
-        }
+        $this->retainedArtifacts->onEvent($event);
 
         if (!$event instanceof TestFinished) {
             return;
         }
 
         $result = $event->result;
-        $this->hasAttachments = $this->hasAttachments || $result->attachments !== [];
 
         if ($result->outcome === Outcome::Passed && $result->attempts > 1) {
             $this->writeWarning($result);
@@ -65,8 +61,10 @@ final class GithubReporter implements Reporter
     #[\Override]
     public function finish(): void
     {
-        if ($this->hasAttachments && $this->artifactsDirectory !== null) {
-            $this->output->write('::notice::' . $this->escapeData('Greenlight attachments: ' . $this->artifactsDirectory) . "\n");
+        $directory = $this->retainedArtifacts->directory();
+
+        if ($directory !== null) {
+            $this->output->write('::notice::' . $this->escapeData('Greenlight attachments: ' . $directory) . "\n");
         }
     }
 
