@@ -39,12 +39,9 @@ use Greenlight\Test\ExpectationCounter;
  *
  * @template T
  */
-final class MatcherEvaluation
+final readonly class MatcherEvaluation
 {
-    private bool $negated = false;
-
-    /** @var non-empty-string|null */
-    private ?string $reason = null;
+    private MatcherModifiers $modifiers;
 
     /**
      * @internal
@@ -53,10 +50,12 @@ final class MatcherEvaluation
      * @param list<ExpectationExtension> $extensions
      */
     public function __construct(
-        public readonly mixed $subject,
-        private readonly ValueRenderer $renderer,
-        private readonly array $extensions = [],
-    ) {}
+        public mixed $subject,
+        private ValueRenderer $renderer,
+        private array $extensions = [],
+    ) {
+        $this->modifiers = new MatcherModifiers();
+    }
 
     /**
      * Dispatches extension matchers. If an `ExpectationExtension` provides the
@@ -102,7 +101,7 @@ final class MatcherEvaluation
      */
     public function not(): self
     {
-        $this->negated = true;
+        $this->modifiers->negate();
 
         return $this;
     }
@@ -122,13 +121,7 @@ final class MatcherEvaluation
      */
     public function because(string $reason): self
     {
-        $reason = \trim($reason);
-
-        if ($reason === '') {
-            $this->usageFailure('because() requires a non-empty reason.');
-        }
-
-        $this->reason = $reason;
+        $this->modifiers->because($reason, fn(): string => $this->renderer->render($this->subject));
 
         return $this;
     }
@@ -840,7 +833,7 @@ final class MatcherEvaluation
 
         $matched = $constraint->matches(
             $thrown,
-            $this->negated,
+            $this->modifiers->isNegated(),
             static fn(string $pattern, string $subject): bool => ErrorTrap::run(
                 static fn() => \preg_match($pattern, $subject),
             ) === 1,
@@ -877,9 +870,8 @@ final class MatcherEvaluation
         string|\Closure|null $actual = null,
     ): self {
         ExpectationCounter::increment();
-        $negated = $this->negated;
-        $this->negated = false;
-        $reason = $this->reason;
+        $negated = $this->modifiers->takeNegation();
+        $reason = $this->modifiers->reason();
 
         if ($negated ? !$matched : $matched) {
             return $this;
@@ -982,7 +974,7 @@ final class MatcherEvaluation
      */
     private function usageFailure(string $message): never
     {
-        $this->negated = false;
+        $this->modifiers->takeNegation();
 
         throw ExpectationFailed::fromDetail(new FailureDetail(
             $message,

@@ -19,10 +19,7 @@ abstract class TemporalExpectation
     /** @use ValueMatchers<T> */
     use ValueMatchers;
 
-    private bool $negated = false;
-
-    /** @var non-empty-string|null */
-    private ?string $reason = null;
+    private readonly MatcherModifiers $modifiers;
 
     /**
      * @internal Greenlight constructs temporal expectations.
@@ -38,12 +35,14 @@ abstract class TemporalExpectation
         protected readonly float $intervalSeconds,
         protected readonly ValueRenderer $renderer,
         protected readonly array $extensions,
-    ) {}
+    ) {
+        $this->modifiers = new MatcherModifiers();
+    }
 
     /** Negates the next matcher for every value returned by the probe. */
     final public function not(): static
     {
-        $this->negated = true;
+        $this->modifiers->negate();
 
         return $this;
     }
@@ -61,16 +60,7 @@ abstract class TemporalExpectation
      */
     final public function because(string $reason): static
     {
-        $reason = \trim($reason);
-
-        if ($reason === '') {
-            throw ExpectationFailed::fromDetail(new FailureDetail(
-                'because() requires a non-empty reason.',
-                location: CallSite::capture(),
-            ));
-        }
-
-        $this->reason = $reason;
+        $this->modifiers->because($reason);
 
         return $this;
     }
@@ -82,7 +72,7 @@ abstract class TemporalExpectation
      */
     final public function reason(): ?string
     {
-        return $this->reason;
+        return $this->modifiers->reason();
     }
 
     /**
@@ -119,8 +109,10 @@ abstract class TemporalExpectation
 
         $expectation = new Expectation(static fn() => $result->subject, $this->renderer, $this->extensions);
 
-        if ($this->reason !== null) {
-            $expectation->because($this->reason);
+        $reason = $this->modifiers->reason();
+
+        if ($reason !== null) {
+            $expectation->because($reason);
         }
 
         return $expectation;
@@ -151,16 +143,13 @@ abstract class TemporalExpectation
      */
     final protected function apply(\Closure $matcher): MatcherEvaluation
     {
-        $negated = $this->negated;
-        $this->negated = false;
-        $reason = $this->reason;
-
-        return $this->waitFor($matcher, $negated, $reason, CallSite::capture());
+        return $this->waitFor($matcher, $this->modifiers->handOff(), CallSite::capture());
     }
 
     /**
      * @param \Closure(MatcherEvaluation<T>): MatcherEvaluation<T> $matcher
-     * @param non-empty-string|null $reason
+     * @param MatcherModifiers $modifiers The negation and reason that each
+     *   observation applies
      *
      * @return MatcherEvaluation<T>
      *
@@ -168,14 +157,12 @@ abstract class TemporalExpectation
      */
     abstract protected function waitFor(
         \Closure $matcher,
-        bool $negated,
-        ?string $reason,
+        MatcherModifiers $modifiers,
         ?SourceLocation $location,
     ): MatcherEvaluation;
 
     /**
      * @param \Closure(MatcherEvaluation<T>): MatcherEvaluation<T> $matcher
-     * @param non-empty-string|null $reason
      * @param list<class-string<\Exception>> $retryOnExceptions
      *
      * @return TemporalValueObservation<T>|TemporalExceptionObservation
@@ -184,8 +171,7 @@ abstract class TemporalExpectation
      */
     final protected function observe(
         \Closure $matcher,
-        bool $negated,
-        ?string $reason,
+        MatcherModifiers $modifiers,
         array $retryOnExceptions = [],
     ): TemporalObservation {
         try {
@@ -210,13 +196,7 @@ abstract class TemporalExpectation
 
         $expectation = new MatcherEvaluation($subject, $this->renderer, $this->extensions);
 
-        if ($negated) {
-            $expectation->not();
-        }
-
-        if ($reason !== null) {
-            $expectation->because($reason);
-        }
+        $modifiers->applyTo($expectation->not(...), $expectation->because(...));
 
         try {
             ExpectationCounter::withoutCounting(

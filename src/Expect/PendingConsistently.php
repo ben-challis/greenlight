@@ -12,15 +12,12 @@ namespace Greenlight\Expect;
  */
 final class PendingConsistently
 {
-    private bool $negated = false;
-
-    /** @var non-empty-string|null */
-    private ?string $reason = null;
+    private readonly MatcherModifiers $modifiers;
 
     /** @return self<T> */
     public function not(): self
     {
-        $this->negated = true;
+        $this->modifiers->negate();
 
         return $this;
     }
@@ -34,8 +31,7 @@ final class PendingConsistently
      */
     public function because(string $reason): self
     {
-        new MatcherEvaluation(null, $this->renderer)->because($reason);
-        $this->reason = $reason;
+        $this->modifiers->because($reason, static fn(): string => 'null');
 
         return $this;
     }
@@ -56,7 +52,9 @@ final class PendingConsistently
         private readonly ?float $attemptDeadline,
         private readonly ValueRenderer $renderer,
         private readonly array $extensions,
-    ) {}
+    ) {
+        $this->modifiers = new MatcherModifiers();
+    }
 
     /**
      * @internal Use Expect::calling(...)->returnValue()->consistently() instead.
@@ -121,15 +119,7 @@ final class PendingConsistently
             $this->extensions,
         );
 
-        if ($this->negated) {
-            $expectation->not();
-        }
-
-        if ($this->reason !== null) {
-            $expectation->because($this->reason);
-        }
-
-        $this->negated = false;
+        $this->modifiers->passOn($expectation->not(...), $expectation->because(...));
 
         return $expectation;
     }
