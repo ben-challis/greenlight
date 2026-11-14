@@ -152,5 +152,19 @@ final readonly class ArgumentTypeNameTest
             ->toBeTrue();
     }
 
+    #[Test]
+    public function callableValuesMatchCallsToDoublesOfInternalClasses(): void
+    {
+        $double = $this->doubles->mock(\ArrayObject::class, static function (MockPlan $plan): void {
+            // @phpstan-ignore greenlight.mockPlan.answer (PHP declares a true return type. The stub declares void.)
+            $plan->expects('uasort')->with('strcmp')->once()->andReturns(true);
+        });
+
+        // @phpstan-ignore argument.type (The stub requires an int callback result.), method.void (PHP declares a true return type.)
+        expect($double->uasort('strcmp'))
+            ->because('a function name is a callable in the scope of a double of an internal class')
+            ->toBeTrue();
+    }
+
     private static function privateTask(): void {}
 }
