@@ -132,6 +132,7 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
             $orchestrator->collectedCoverage(),
             $orchestrator->detectedLeaks(),
             $orchestrator->workerTimings(),
+            $orchestrator->warnings(),
         );
     }
 }

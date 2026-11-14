@@ -168,6 +168,7 @@ final readonly class RunCoordinator
                 $outcome->coverage,
                 $outcome->leaks,
                 $this->maintenanceReport($artifacts->complete()),
+                warnings: $outcome->warnings,
             );
         } finally {
             $artifacts->cleanup();
