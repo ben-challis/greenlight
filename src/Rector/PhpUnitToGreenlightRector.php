@@ -210,6 +210,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
         $defined = $this->definedMethods($class);
         $hooks = [];
+        $hookOrder = ['before' => [], 'after' => []];
         $tests = [];
         $noExpectations = [];
         $throwRewrites = [];
@@ -234,6 +235,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
             if ($kind === 'before' || $kind === 'after') {
                 $hooks[$name] = $kind;
+                $hookOrder[$kind][] = $name;
                 $this->sanctionParentHookCalls($method, $sanctioned);
 
                 continue;
@@ -268,6 +270,12 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
             if ($noAssertions) {
                 $noExpectations[] = $name;
             }
+        }
+
+        if (!$this->hookOrderConverts($hookOrder['before'], 'before')
+            || !$this->hookOrderConverts($hookOrder['after'], 'after')
+        ) {
+            return null;
         }
 
         if (!$this->dataProvidersConvert($class)) {
@@ -337,6 +345,29 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
         $docComment = $node->getDocComment();
 
         return $docComment instanceof Doc && \preg_match(PhpUnitAttributes::ANNOTATION_PATTERN, $docComment->getText()) === 1;
+    }
+
+    /**
+     * Compares the hook run order of PHPUnit and Greenlight. PHPUnit runs
+     * `#[Before]` methods in reverse declaration order and then `setUp()`.
+     * It runs `tearDown()` and then `#[After]` methods in declaration order.
+     * Greenlight runs before-hooks in declaration order and after-hooks in
+     * reverse declaration order.
+     *
+     * @param list<string> $declared lowercase hook names in declaration order
+     * @param 'after'|'before' $kind
+     */
+    private function hookOrderConverts(array $declared, string $kind): bool
+    {
+        $template = $kind === 'before' ? 'setup' : 'teardown';
+        $attributed = \array_values(\array_filter($declared, static fn(string $name): bool => $name !== $template));
+        $templates = \in_array($template, $declared, true) ? [$template] : [];
+
+        if ($kind === 'before') {
+            return [...\array_reverse($attributed), ...$templates] === $declared;
+        }
+
+        return [...$templates, ...$attributed] === \array_reverse($declared);
     }
 
     /**
