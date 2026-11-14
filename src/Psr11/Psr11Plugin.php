@@ -115,9 +115,21 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
             $type,
             $attributes,
             fn(string $id): bool => $this->container()->has($id),
-            fn(string $id): mixed => $this->container()->get($id),
+            $this->service(...),
             Psr11BridgeError::class,
         );
+    }
+
+    /** @throws ServiceResolutionFailed */
+    private function service(string $id): mixed
+    {
+        $container = $this->container();
+
+        try {
+            return $container->get($id);
+        } catch (ServiceResolutionFailed $failure) {
+            throw Psr11BridgeError::serviceReadFailed($id, $failure);
+        }
     }
 
     /**

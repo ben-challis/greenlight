@@ -431,6 +431,37 @@ final readonly class Psr11PluginTest
         expect($created)->toBeFalse();
     }
 
+    #[Test]
+    public function aResolutionFailureFromTheContainerReadIsWrapped(): void
+    {
+        $failure = Psr11BridgeError::notAContainer(null);
+        $plugin = new Psr11Plugin(static fn(): ContainerInterface => new readonly class ($failure) implements ContainerInterface {
+            public function __construct(private ServiceResolutionFailed $failure) {}
+
+            #[\Override]
+            public function get(string $id): never
+            {
+                throw $this->failure;
+            }
+
+            #[\Override]
+            public function has(string $id): bool
+            {
+                return true;
+            }
+        });
+        $caught = null;
+
+        try {
+            $plugin->resolve(Greeter::class, []);
+        } catch (Psr11BridgeError $error) {
+            $caught = $error;
+        }
+
+        expect($caught?->getMessage())->toBe('The PSR-11 container failed when it read service "' . Greeter::class . '". Check the container configuration.');
+        expect($caught?->getPrevious())->toBe($failure);
+    }
+
     /**
      * @param array<string, mixed> $services
      */

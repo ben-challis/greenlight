@@ -313,7 +313,7 @@ PHPDoc:
 
 - `@throws ServiceResolutionFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L127)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Psr11/Psr11Plugin.php#L139)
 
 ## `HttpHarness`
 
