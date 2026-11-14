@@ -12,10 +12,12 @@ use Greenlight\Cli\Output\Console;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Execution\ArtifactMaintenance;
+use Greenlight\Internal\Text\DecimalInteger;
 use Greenlight\Plugin\CommandResult;
 
 /**
- * Applies configured retention to completed Greenlight artifact runs.
+ * Applies configured retention to completed Greenlight artifact runs and,
+ * when the user selects it, removes abandoned incomplete runs.
  *
  * @internal
  */
@@ -25,6 +27,17 @@ final readonly class ArtifactsPruneCommand
 
     public function run(ParsedArguments $arguments, string $workingDirectory): CommandResult
     {
+        $abandonedRunAge = null;
+        $rawAbandonedRunAge = $arguments->value('abandoned-run-age');
+        if ($rawAbandonedRunAge !== null) {
+            $abandonedRunAge = DecimalInteger::parse($rawAbandonedRunAge);
+            if ($abandonedRunAge === null || $abandonedRunAge < 1) {
+                $error = CliError::notAPositiveInteger('--abandoned-run-age', $rawAbandonedRunAge);
+                $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
+                return CommandResult::usage();
+            }
+        }
+
         try {
             $configuration = new ConfigurationLoader()->load($arguments, $workingDirectory)->resolved->execution->artifacts;
             $maintenance = ArtifactMaintenance::forConfiguration($configuration, $workingDirectory);
@@ -36,21 +49,23 @@ final readonly class ArtifactsPruneCommand
             return CommandResult::failure();
         }
 
-        if (!$configuration->hasRetentionPolicy()) {
+        if (!$configuration->hasRetentionPolicy() && $abandonedRunAge === null) {
             $this->console->out("No artifact retention policy is configured.\n");
             return CommandResult::success();
         }
 
-        $report = $maintenance->prune($arguments->has('dry-run'));
+        $report = $maintenance->prune($arguments->has('dry-run'), $abandonedRunAge);
         foreach ($report->items as $item) {
             $action = $report->dryRun ? 'Would prune' : 'Pruned';
-            $this->console->out(\sprintf(
-                "%s %s (%d bytes, %s limit).\n",
-                $action,
-                $item->directory,
-                $item->bytes,
-                \implode(', ', $item->reasons),
-            ));
+            $this->console->out($item->reasons === ['abandoned']
+                ? \sprintf("%s %s (%d bytes, abandoned run).\n", $action, $item->directory, $item->bytes)
+                : \sprintf(
+                    "%s %s (%d bytes, %s limit).\n",
+                    $action,
+                    $item->directory,
+                    $item->bytes,
+                    \implode(', ', $item->reasons),
+                ));
         }
         if ($report->items === []) {
             $this->console->out($report->dryRun
