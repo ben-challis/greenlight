@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Symfony;
 
+use Greenlight\Bridge\ContainerCall;
+use Greenlight\Bridge\ContainerServiceErrors;
 use Greenlight\Harness\ServiceResolutionFailed;
 
 /**
@@ -11,7 +13,7 @@ use Greenlight\Harness\ServiceResolutionFailed;
  *
  * @internal
  */
-final class SymfonyBridgeError extends ServiceResolutionFailed
+final class SymfonyBridgeError extends ServiceResolutionFailed implements ContainerServiceErrors
 {
     private function __construct(string $message, ?\Throwable $previous = null)
     {
@@ -40,6 +42,7 @@ final class SymfonyBridgeError extends ServiceResolutionFailed
         ));
     }
 
+    #[\Override]
     public static function unknownServiceId(string $id, string $type): self
     {
         return new self(\sprintf(
@@ -51,6 +54,7 @@ final class SymfonyBridgeError extends ServiceResolutionFailed
         ));
     }
 
+    #[\Override]
     public static function serviceTypeMismatch(string $id, string $type, mixed $actual): self
     {
         return new self(\sprintf(
@@ -78,8 +82,13 @@ final class SymfonyBridgeError extends ServiceResolutionFailed
         ));
     }
 
-    public static function serviceResolutionFailed(string $id, string $type, \Throwable $previous): self
-    {
+    #[\Override]
+    public static function serviceResolutionFailed(
+        string $id,
+        string $type,
+        \Throwable $previous,
+        ContainerCall $call = ContainerCall::Get,
+    ): self {
         return new self(
             \sprintf(
                 'The Symfony container failed when it resolved service "%s" for parameter type "%s".',

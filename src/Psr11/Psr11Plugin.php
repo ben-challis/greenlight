@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Psr11;
 
+use Greenlight\Bridge\ContainerServiceResolver;
 use Greenlight\Harness\Scope;
-use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
@@ -111,45 +111,13 @@ final class Psr11Plugin implements AfterTestSubscriber, HarnessProvider, Service
     #[\Override]
     public function resolve(string $type, array $attributes): ?object
     {
-        $id = $type;
-        $explicit = false;
-
-        foreach ($attributes as $attribute) {
-            if ($attribute instanceof Service) {
-                $id = $attribute->id ?? $type;
-                $explicit = true;
-            }
-        }
-
-        try {
-            $container = $this->container();
-
-            $hasService = $container->has($id);
-        } catch (ServiceResolutionFailed $error) {
-            throw $error;
-        } catch (\Throwable $threw) {
-            throw Psr11BridgeError::serviceCheckFailed($id, $threw);
-        }
-
-        if (!$hasService) {
-            if ($explicit) {
-                throw Psr11BridgeError::unknownServiceId($id, $type);
-            }
-
-            return null;
-        }
-
-        try {
-            $service = $container->get($id);
-        } catch (\Throwable $threw) {
-            throw Psr11BridgeError::serviceReadFailed($id, $threw);
-        }
-
-        if (!$service instanceof $type) {
-            throw Psr11BridgeError::serviceTypeMismatch($id, $type, $service);
-        }
-
-        return $service;
+        return ContainerServiceResolver::resolve(
+            $type,
+            $attributes,
+            fn(string $id): bool => $this->container()->has($id),
+            fn(string $id): mixed => $this->container()->get($id),
+            Psr11BridgeError::class,
+        );
     }
 
     /**

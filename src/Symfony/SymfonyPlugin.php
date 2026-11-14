@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Symfony;
 
+use Greenlight\Bridge\ContainerServiceResolver;
 use Greenlight\Harness\Scope;
-use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
@@ -105,39 +105,13 @@ final class SymfonyPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     #[\Override]
     public function resolve(string $type, array $attributes): ?object
     {
-        $id = $type;
-        $explicit = false;
-
-        foreach ($attributes as $attribute) {
-            if ($attribute instanceof Service) {
-                $id = $attribute->id ?? $type;
-                $explicit = true;
-            }
-        }
-
-        try {
-            $container = $this->container();
-
-            if (!$container->has($id)) {
-                if ($explicit) {
-                    throw SymfonyBridgeError::unknownServiceId($id, $type);
-                }
-
-                return null;
-            }
-
-            $service = $container->get($id);
-
-            if (!$service instanceof $type) {
-                throw SymfonyBridgeError::serviceTypeMismatch($id, $type, $service);
-            }
-
-            return $service;
-        } catch (ServiceResolutionFailed $error) {
-            throw $error;
-        } catch (\Throwable $cause) {
-            throw SymfonyBridgeError::serviceResolutionFailed($id, $type, $cause);
-        }
+        return ContainerServiceResolver::resolve(
+            $type,
+            $attributes,
+            fn(string $id): bool => $this->container()->has($id),
+            fn(string $id): mixed => $this->container()->get($id),
+            SymfonyBridgeError::class,
+        );
     }
 
     #[\Override]

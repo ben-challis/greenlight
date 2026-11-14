@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Hyperf;
 
+use Greenlight\Bridge\ContainerCall;
+use Greenlight\Bridge\ContainerServiceErrors;
 use Greenlight\Harness\ServiceResolutionFailed;
 
 /**
@@ -11,7 +13,7 @@ use Greenlight\Harness\ServiceResolutionFailed;
  *
  * @internal
  */
-final class HyperfBridgeError extends ServiceResolutionFailed
+final class HyperfBridgeError extends ServiceResolutionFailed implements ContainerServiceErrors
 {
     private function __construct(string $message, ?\Throwable $previous = null)
     {
@@ -125,6 +127,27 @@ final class HyperfBridgeError extends ServiceResolutionFailed
         return new self('Swoole did not start the test coroutine. Check the Swoole runtime configuration.');
     }
 
+    public static function coroutineBlocked(): self
+    {
+        return new self(
+            'The Hyperf test coroutine started but did not finish. All coroutines were blocked, '
+            . 'for example on a channel pop with no producer. Set a test time limit to let Greenlight '
+            . 'cancel the blocked coroutine and run the cleanup callbacks.',
+        );
+    }
+
+    public static function coroutineTimedOut(int $coroutineId, ?\Throwable $previous = null): self
+    {
+        return new self(
+            \sprintf(
+                'The Hyperf test coroutine %d did not finish before the test time limit, so Greenlight '
+                . 'canceled it. The coroutine is blocked, for example on a channel pop with no producer.',
+                $coroutineId,
+            ),
+            $previous,
+        );
+    }
+
     public static function workerContainerUnavailable(): self
     {
         return new self(
@@ -146,6 +169,7 @@ final class HyperfBridgeError extends ServiceResolutionFailed
         );
     }
 
+    #[\Override]
     public static function unknownServiceId(string $id, string $type): self
     {
         return new self(\sprintf(
@@ -155,6 +179,7 @@ final class HyperfBridgeError extends ServiceResolutionFailed
         ));
     }
 
+    #[\Override]
     public static function serviceTypeMismatch(string $id, string $type, mixed $actual): self
     {
         return new self(\sprintf(
@@ -165,8 +190,13 @@ final class HyperfBridgeError extends ServiceResolutionFailed
         ));
     }
 
-    public static function serviceResolutionFailed(string $id, string $type, \Throwable $previous): self
-    {
+    #[\Override]
+    public static function serviceResolutionFailed(
+        string $id,
+        string $type,
+        \Throwable $previous,
+        ContainerCall $call = ContainerCall::Get,
+    ): self {
         return new self(
             \sprintf(
                 'The Hyperf container failed when it resolved service "%s" for parameter type "%s".',
