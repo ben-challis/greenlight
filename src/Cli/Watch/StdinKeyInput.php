@@ -29,6 +29,8 @@ final class StdinKeyInput implements KeyInput
 
     private const string RESTORE_CANONICAL_MODE_COMMAND = 'stty icanon echo < /dev/tty 2> /dev/null';
 
+    private const int MAXIMUM_DISCARDED_KEYS = 65_536;
+
     private bool $rawMode = false;
 
     private bool $restoreBlocking;
@@ -89,6 +91,18 @@ final class StdinKeyInput implements KeyInput
         $key = ErrorTrap::run($this->read);
 
         return \is_string($key) && $key !== '' ? $key : null;
+    }
+
+    #[\Override]
+    public function discardPending(): bool
+    {
+        $quit = false;
+
+        for ($count = 0; $count < self::MAXIMUM_DISCARDED_KEYS && ($key = $this->poll()) !== null; ++$count) {
+            $quit = $quit || $key === 'q';
+        }
+
+        return $quit;
     }
 
     public function restore(): void

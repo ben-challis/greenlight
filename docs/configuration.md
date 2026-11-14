@@ -1117,6 +1117,8 @@ In watch mode:
 * Enter reruns all selected tests.
 * `q` quits with exit code 0, regardless of the last iteration result.
 
+Greenlight discards keys that you press during a run, except `q`.
+
 Signals use the exit codes in the [interruption](#interruption) section.
 
 ### Configure watch inputs

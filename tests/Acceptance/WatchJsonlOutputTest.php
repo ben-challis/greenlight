@@ -23,12 +23,14 @@ final readonly class WatchJsonlOutputTest
     {
         $project = AcceptanceProject::createWithOnePassingTest($this->directory, 'watch-jsonl');
         $reporter = $fileOutput ? '--reporter=jsonl=events.jsonl' : '--reporter=jsonl';
-        $ready = $fileOutput ? 'Waiting for changes' : 'run-finished';
         $process = GreenlightCli::start($project->directory, ['run', '--watch', $reporter, '--workers=1']);
         $this->cleanup->defer($process->terminate(...));
-        $process->readStdoutUntil($ready, 20.0);
+        // Watch mode discards keys that arrive during a run. Thus, each key
+        // waits for the ready line, which is on standard error with jsonl.
+        $readReady = $fileOutput ? $process->readStdoutUntil(...) : $process->readStderrUntil(...);
+        $readReady('Waiting for changes', 20.0);
         $process->write("\n");
-        $process->readStdoutUntil($ready, 20.0);
+        $readReady('Waiting for changes', 20.0);
         $process->write('q');
         $result = $process->wait(10.0);
         $events = [];

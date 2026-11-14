@@ -148,12 +148,33 @@ final class Subprocess
      */
     public function readStdoutUntil(string $needle, float $timeoutSeconds): string
     {
+        return $this->readUntil('stdout', $needle, $timeoutSeconds);
+    }
+
+    /**
+     * @throws \InvalidArgumentException when the timeout is not finite
+     * @throws \RuntimeException when the expected output is not seen before the deadline
+     */
+    public function readStderrUntil(string $needle, float $timeoutSeconds): string
+    {
+        return $this->readUntil('stderr', $needle, $timeoutSeconds);
+    }
+
+    /**
+     * @param 'stdout'|'stderr' $stream
+     *
+     * @throws \InvalidArgumentException when the timeout is not finite
+     * @throws \RuntimeException when the expected output is not seen before the deadline
+     */
+    private function readUntil(string $stream, string $needle, float $timeoutSeconds): string
+    {
         $deadline = $this->deadline($timeoutSeconds);
-        $offset = \strlen($this->stdout);
+        $offset = \strlen($this->{$stream});
 
         if ($this->finished) {
             throw new \RuntimeException(\sprintf(
-                "Process exited before stdout contained '%s'. Stdout:\n%s\nStderr:\n%s",
+                "Process exited before %s contained '%s'. Stdout:\n%s\nStderr:\n%s",
+                $stream,
                 $needle,
                 $this->stdout,
                 $this->stderr,
@@ -162,7 +183,7 @@ final class Subprocess
 
         while ($this->monotonicTime() < $deadline) {
             $this->pump();
-            $output = \substr($this->stdout, $offset);
+            $output = \substr($this->{$stream}, $offset);
 
             if (\str_contains($output, $needle)) {
                 return $output;
@@ -170,7 +191,8 @@ final class Subprocess
 
             if ($this->outputPipes() === [] && !\proc_get_status($this->process)['running']) {
                 throw new \RuntimeException(\sprintf(
-                    "Process exited before stdout contained '%s'. Stdout:\n%s\nStderr:\n%s",
+                    "Process exited before %s contained '%s'. Stdout:\n%s\nStderr:\n%s",
+                    $stream,
                     $needle,
                     $this->stdout,
                     $this->stderr,
@@ -183,7 +205,7 @@ final class Subprocess
         throw new \RuntimeException(\sprintf(
             "Timed out waiting for '%s'. Output so far:\n%s",
             $needle,
-            \substr($this->stdout, $offset),
+            \substr($this->{$stream}, $offset),
         ));
     }
 
