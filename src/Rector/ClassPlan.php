@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Rector;
 
+use PhpParser\Node\AttributeGroup;
 use PhpParser\Node\Expr;
 
 /**
@@ -17,6 +18,7 @@ use PhpParser\Node\Expr;
 final readonly class ClassPlan
 {
     /**
+     * @param array<int, list<AttributeGroup>> $attributeGroups replacement attributes keyed by the object ID of the class or method
      * @param array<string, 'after'|'before'> $hooks
      * @param list<string> $tests
      * @param list<string> $noExpectations
@@ -24,6 +26,7 @@ final readonly class ClassPlan
      * @param array<int, Expr> $calls replacement expressions keyed by the object ID of the original call
      */
     public function __construct(
+        public array $attributeGroups,
         public array $hooks,
         public array $tests,
         public array $noExpectations,
