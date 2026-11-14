@@ -15,13 +15,11 @@ use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\IntegrationFixture\IntegrationResources;
 use Greenlight\Plugin\TestContext;
 use Greenlight\Plugin\WorkerBootstrapContext;
-use Greenlight\Result\Outcome;
 use Greenlight\Sandbox\EnvironmentVariables;
 use Greenlight\Sandbox\TemporaryDirectory;
 use Greenlight\Tempest\TempestBridgeError;
 use Greenlight\Tempest\TempestPlugin;
 use Greenlight\Test\TestChannel;
-use Greenlight\Tests\Fixture\BridgeAttemptEnd\TempestRestoredEnvironmentProbe;
 use Greenlight\Tests\Fixture\BridgeAttemptEnd\TempestThrowingConstructorProbe;
 use Greenlight\Tests\Support\BridgeAttemptRun;
 use Greenlight\Tests\Support\PluginLifecycle;
@@ -254,20 +252,21 @@ final class TempestPluginLifecycleTest
     }
 
     #[Test]
-    public function aConstructorFailureStillShutsDownTheApplication(): void
+    public function aConstructorFailureStillRestoresTheProcessEnvironment(): void
     {
-        $this->environment->set('ENVIRONMENT', TempestRestoredEnvironmentProbe::ENVIRONMENT);
+        $this->environment->set('ENVIRONMENT', 'before-tempest');
         $plugin = $this->plugin();
 
-        [$failed, $next] = BridgeAttemptRun::run($plugin, [
+        [$failed] = BridgeAttemptRun::run($plugin, [
             [TempestThrowingConstructorProbe::class, 'neverRuns'],
-            [TempestRestoredEnvironmentProbe::class, 'seesTheRestoredEnvironment'],
         ]);
 
         expect($failed->error?->message)->toBe('constructor failed');
-        expect($next->outcome)
-            ->because($next->failures[0]->message ?? 'the next test MUST see the restored process environment')
-            ->toBe(Outcome::Passed);
+        expect(\getenv('ENVIRONMENT'))
+            ->because('the attempt end MUST shut down the application that the failed constructor booted')
+            ->toBe('before-tempest');
+        expect($_ENV['ENVIRONMENT'])->toBe('before-tempest');
+        expect($_SERVER['ENVIRONMENT'])->toBe('before-tempest');
     }
 
     private function plugin(?string $source = null): TempestPlugin
