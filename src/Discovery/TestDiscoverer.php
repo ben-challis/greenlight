@@ -9,6 +9,7 @@ use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Test\DataSet\DataSetError;
 use Greenlight\Test\DataSet\DataSetExpander;
+use Greenlight\Test\TestDefinition;
 use Greenlight\Test\TestSelection;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
@@ -56,16 +57,21 @@ final readonly class TestDiscoverer
         $classOrder = [];
 
         foreach ($this->testFiles($directories) as $file) {
-            $unfiltered = $cache?->lookup($file);
+            $definitions = $cache?->lookup($file);
+            $parsed = $definitions === null;
+            $class = null;
 
-            if ($unfiltered === null) {
-                try {
-                    $unfiltered = $this->entriesForFile($file, $class);
-                } catch (DataSetError $error) {
-                    throw DiscoveryError::invalidDataSet($error);
-                }
+            $definitions ??= $this->definitionsForFile($file, $class);
 
-                $cache?->store($file, $unfiltered, $class);
+            try {
+                $unfiltered = $this->expanded($definitions, $file);
+            } catch (DataSetError $error) {
+                throw DiscoveryError::invalidDataSet($error);
+            }
+
+            // Expansion loads provider classes. The cache can then track their files.
+            if ($parsed) {
+                $cache?->store($file, $definitions, $class);
             }
 
             $entries = $this->filtered($unfiltered, $selection, $file);
@@ -117,19 +123,19 @@ final readonly class TestDiscoverer
     }
 
     /**
-     * Returns all entries that a file declares. The result does not contain
-     * filter decisions. Thus, the cache can use the result with all run
-     * filters.
+     * Returns one entry without a data-set key for each test definition in a
+     * file. The result does not contain filter decisions or data sets. Thus,
+     * the cache can use the result with all run filters, and provider output
+     * stays current.
      *
      * @param non-empty-string $file
      *
      * @param-out class-string|null $class
      *
      * @return list<PlanEntry>
-     * @throws DataSetError
      * @throws DiscoveryError
      */
-    private function entriesForFile(string $file, ?string &$class): array
+    private function definitionsForFile(string $file, ?string &$class): array
     {
         $class = $this->resolveClass($file);
 
@@ -143,9 +149,39 @@ final readonly class TestDiscoverer
             return [];
         }
 
-        $entries = [];
+        return \array_map(
+            static fn(TestDefinition $definition): PlanEntry => new PlanEntry($definition),
+            $this->metadataFactory->forClass($reflection),
+        );
+    }
 
-        foreach ($this->metadataFactory->forClass($reflection) as $definition) {
+    /**
+     * Replaces each definition entry with one entry for each data set.
+     *
+     * @param list<PlanEntry> $definitions
+     * @param non-empty-string $file
+     *
+     * @return list<PlanEntry>
+     * @throws DataSetError
+     * @throws DiscoveryError
+     */
+    private function expanded(array $definitions, string $file): array
+    {
+        $entries = [];
+        $reflections = [];
+
+        foreach ($definitions as $entry) {
+            $definition = $entry->definition;
+
+            if (!isset($reflections[$definition->class])) {
+                if (!\class_exists($definition->class)) {
+                    throw DiscoveryError::classNotAutoloadable($file, $definition->class);
+                }
+
+                $reflections[$definition->class] = new \ReflectionClass($definition->class);
+            }
+
+            $reflection = $reflections[$definition->class];
             $rows = $this->dataSetExpander->rowsFor(
                 $reflection,
                 $definition->method,
