@@ -271,7 +271,7 @@ final class Orchestrator
     }
 
     /**
-     * Returns live workers without a first assignment.
+     * Returns live workers without an assignment that can take one.
      *
      * The orchestrator assigns queued scheduling units to these workers. Thus,
      * it does not start more workers for the same units.
@@ -281,7 +281,7 @@ final class Orchestrator
         $count = 0;
 
         foreach ($this->handles as $handle) {
-            if ($handle->isActive() && $handle->assigned === null) {
+            if ($handle->isActive() && !$handle->stopRequested && $handle->assigned === null) {
                 ++$count;
             }
         }
@@ -941,7 +941,8 @@ final class Orchestrator
         $this->retryWaitingWorkers = false;
 
         foreach ($this->handles as $handle) {
-            if (!$handle->isActive() || !$handle->connected || $handle->assigned !== null) {
+            // A worker that received Drain exits. It cannot take work.
+            if (!$handle->isActive() || !$handle->connected || $handle->stopRequested || $handle->assigned !== null) {
                 continue;
             }
 
