@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Tests\Unit\Cli\Coverage;
 
+use Greenlight\Attribute\DataSet;
 use Greenlight\Attribute\SkipUnless;
 use Greenlight\Attribute\Test;
 use Greenlight\Cli\Coverage\CompiledLineProbe;
@@ -69,6 +70,34 @@ final readonly class CompiledLineProbeTest
     }
 
     #[Test]
+    #[DataSet('headers')]
+    public function theStopStatementGoesInTheHeaderLine(string $source, string $expected): void
+    {
+        expect(CompiledLineProbe::stopped($source))
+            ->because('the stop statement MUST follow the header and MUST NOT add a line')
+            ->toBe($expected);
+    }
+
+    /** @return iterable<string, array{string, string}> */
+    public static function headers(): iterable
+    {
+        $stop = ' if (\\GREENLIGHT_LINE_PROBE_STOP) { return; }';
+
+        yield 'open tag only' => ["<?php\nfinal class A {}\n", "<?php{$stop}\nfinal class A {}\n"];
+        yield 'strict types' => ["<?php\n\ndeclare(strict_types=1);\n\nfinal class A {}\n", "<?php\n\ndeclare(strict_types=1);{$stop}\n\nfinal class A {}\n"];
+        yield 'strict types and namespace' => ["<?php\ndeclare(strict_types=1);\nnamespace App\\Model;\nuse Foo;\n", "<?php\ndeclare(strict_types=1);\nnamespace App\\Model;{$stop}\nuse Foo;\n"];
+        yield 'braced namespace' => ["<?php\nnamespace App {\n    function a() {}\n}\n", "<?php\nnamespace App {{$stop}\n    function a() {}\n}\n"];
+        yield 'global braced namespace' => ["<?php\nnamespace {\n}\n", "<?php\nnamespace {{$stop}\n}\n"];
+    }
+
+    #[Test]
+    public function aSourceWithoutAnOpeningTagIsNotMeasured(): void
+    {
+        expect(CompiledLineProbe::stopped("plain text\n"))->toBeNull();
+        expect(CompiledLineProbe::stopped("<?= 'template' ?>\n"))->toBeNull();
+    }
+
+    #[Test]
     public function aFileThatStopsTheSubprocessFailsTheProbe(): void
     {
         $failing = $this->temporaryDirectory->path() . '/failing-php';
@@ -117,7 +146,7 @@ final readonly class CompiledLineProbeTest
     private function loadedCoverage(array $arguments, string $file): CoverageMap
     {
         $command = [\PHP_BINARY, ...$arguments, '--', $file];
-        $process = \proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        $process = \proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, [...\getenv(), 'XDEBUG_MODE' => 'coverage']);
         \assert(\is_resource($process));
         $output = (string) \stream_get_contents($pipes[1]);
         \stream_get_contents($pipes[2]);
