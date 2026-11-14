@@ -40,7 +40,9 @@ final readonly class Definition
 
         Usage:
           greenlight [command] [options]
-          Supply option values with =, for example --workers=4.
+          Give a required value with = or as the next word, for example
+          --workers=4 or --workers 4. An optional value, such as --bail=<n>,
+          needs =.
           Quote values that contain * or ? to prevent shell expansion.
 
         Commands:

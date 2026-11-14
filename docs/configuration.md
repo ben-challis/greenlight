@@ -794,6 +794,10 @@ vendor/bin/greenlight completion fish > ~/.config/fish/completions/greenlight.fi
 
 ## Options
 
+An option that requires a value accepts `--name=value` and `--name value`.
+The word after the option is its value, also when it starts with `-`. An
+option with an optional value, such as `--bail`, accepts only `--name=value`.
+
 ### `--config=<path>`
 
 Uses this configuration file instead of `./greenlight.php`.

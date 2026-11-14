@@ -43,11 +43,11 @@ final class CliErrorTest
         ];
         yield 'option requires value' => [
             static fn(): CliError => CliError::optionRequiresValue('workers'),
-            'Option --workers requires a value. Use --workers=<value>.',
+            'Option --workers requires a value.',
         ];
         yield 'short option requires value' => [
             static fn(): CliError => CliError::shortOptionRequiresValue('c', 'config'),
-            'Option -c requires a value. Use --config=<value>.',
+            'Option -c requires a value. Use --config=<value> or --config <value>.',
         ];
         yield 'unexpected argument' => [
             static fn(): CliError => CliError::unexpectedArgument('extra'),

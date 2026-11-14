@@ -105,7 +105,7 @@ final class ArgumentParserTest
         ];
         yield 'missing required value' => [
             ['--workers'],
-            'Option --workers requires a value. Use --workers=<value>.',
+            'Option --workers requires a value.',
         ];
         yield 'repeated non-repeatable option' => [
             ['--workers=1', '--workers=2'],
