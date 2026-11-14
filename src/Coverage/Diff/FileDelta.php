@@ -74,8 +74,8 @@ final readonly class FileDelta
             return true;
         }
 
-        return \round($this->currentPercentage ?? 0.0, 2, \RoundingMode::HalfAwayFromZero)
-            < \round($this->baselinePercentage ?? 0.0, 2, \RoundingMode::HalfAwayFromZero);
+        return \round($this->currentPercentage, 2, \RoundingMode::HalfAwayFromZero)
+            < \round($this->baselinePercentage, 2, \RoundingMode::HalfAwayFromZero);
     }
 
     /**

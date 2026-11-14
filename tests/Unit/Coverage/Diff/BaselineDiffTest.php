@@ -53,7 +53,7 @@ final class BaselineDiffTest
 
         expect($delta->baselineUncoveredLines)->because('the delta MUST count baseline uncovered lines')->toBe(1);
         expect($delta->currentUncoveredLines)->because('the delta MUST count current uncovered lines')->toBe(3);
-        expect($delta->regressed())->toBeTrue();
+        expect($delta->regressed())->because('more uncovered lines MUST be a regression')->toBeTrue();
     }
 
     #[Test]
@@ -83,7 +83,9 @@ final class BaselineDiffTest
         expect(\array_keys($report->fileDeltas))->because('files only in one map appear with a null side')->toBe(['/src/Gone.php', '/src/New.php']);
         expect($report->fileDeltas['/src/Gone.php']->currentPercentage)->toBeNull();
         expect($report->fileDeltas['/src/New.php']->baselinePercentage)->toBeNull();
-        expect($report->fileDeltas['/src/New.php']->currentUncoveredLines)->toBe(1);
+        expect($report->fileDeltas['/src/New.php']->currentUncoveredLines)
+            ->because('the delta MUST count the uncovered lines of an added file')
+            ->toBe(1);
         expect($report->hasRegressions())
             ->because('an added file with an uncovered line MUST cause a regression')
             ->toBeTrue();
