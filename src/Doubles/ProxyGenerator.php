@@ -256,6 +256,10 @@ final readonly class ProxyGenerator
             return null;
         }
 
+        if ($name === '__debuginfo') {
+            return $this->renderDebugInfo($method);
+        }
+
         if ($method->isStatic()) {
             return $method->isAbstract() ? $this->renderStaticStub($method) : null;
         }
@@ -373,6 +377,32 @@ final readonly class ProxyGenerator
         return \sprintf(
             "    %s\n    {\n%s    }\n",
             $this->renderSignature($method, $method->getReturnType() ?? $method->getTentativeReturnType(), static: true),
+            $body,
+        );
+    }
+
+    /**
+     * @throws InvalidDoubleUsage
+     */
+    private function renderDebugInfo(\ReflectionMethod $method): string
+    {
+        // Debug output must not depend on a mock plan. The class implementation
+        // can read constructor state that a double never initializes. An
+        // exception from `__debugInfo()` stops the process during var_dump().
+        $body = $method->isAbstract()
+            ? "        return [];\n"
+            : \implode("\n", [
+                '        try {',
+                '            return parent::__debugInfo();',
+                '        } catch (\\Throwable) {',
+                '            return [];',
+                '        }',
+                '',
+            ]);
+
+        return \sprintf(
+            "    %s\n    {\n%s    }\n",
+            $this->renderSignature($method, $method->getReturnType() ?? $method->getTentativeReturnType()),
             $body,
         );
     }
