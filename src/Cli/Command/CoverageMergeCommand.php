@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Command;
 
-use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Configuration\CoverageOverrides;
 use Greenlight\Cli\Coverage\CoverageWriter;
 use Greenlight\Cli\Input\CliError;
@@ -13,6 +12,7 @@ use Greenlight\Cli\Output\Console;
 use Greenlight\Config\CoverageConfiguration;
 use Greenlight\Config\CoverageExport;
 use Greenlight\Config\InvalidConfiguration;
+use Greenlight\Config\WorkingDirectoryPath;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Coverage\Diff\ProjectRootNormalizer;
 use Greenlight\Coverage\Export\JsonExporter;
@@ -71,7 +71,7 @@ final readonly class CoverageMergeCommand
 
         $targetRoot = $projectRoot === null
             ? null
-            : ConfigurationLoader::absolutePath($projectRoot, $workingDirectory);
+            : WorkingDirectoryPath::resolve($projectRoot, $workingDirectory);
         $merged = CoverageMap::empty();
 
         /** @var array<string, string|null> $seenInputs */
@@ -84,12 +84,12 @@ final readonly class CoverageMergeCommand
                 return CommandResult::usage();
             }
 
-            $path = ConfigurationLoader::absolutePath($input, $workingDirectory);
+            $path = WorkingDirectoryPath::resolve($input, $workingDirectory);
             $realPath = \realpath($path);
             $identity = $realPath === false ? $path : $realPath;
             $inputRoot = $inputRoots === []
                 ? null
-                : ConfigurationLoader::absolutePath($inputRoots[$index], $workingDirectory);
+                : WorkingDirectoryPath::resolve($inputRoots[$index], $workingDirectory);
             $rootIdentity = $inputRoot === null ? null : $this->rootIdentity($inputRoot);
 
             if (\array_key_exists($identity, $seenInputs)) {
@@ -180,7 +180,7 @@ final readonly class CoverageMergeCommand
                 \substr($raw, 0, $separator),
                 \substr($raw, $separator + 1),
             );
-            $target = ConfigurationLoader::absolutePath($export->target, $workingDirectory);
+            $target = WorkingDirectoryPath::resolve($export->target, $workingDirectory);
 
             if (isset($targets[$target])) {
                 throw CliError::duplicateCoverageExport($export->target);
