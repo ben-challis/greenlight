@@ -27,7 +27,7 @@ final class CallExpectationTest
     public function projectionIsLazyAndImmediateMatchersShareOneInvocation(): void
     {
         $calls = 0;
-        $call = Expect::calling(static function () use (&$calls): int {
+        $call = Expect::calling(static function () use (&$calls): int { // @phpstan-ignore argument.type (PHPStan infers T from the narrowed body type of a closure with by-reference captures.)
             return ++$calls;
         });
         $value = $call->returnValue();
@@ -87,7 +87,7 @@ final class CallExpectationTest
     {
         $calls = 0;
         ExpectationRuntime::withClock(new FakeClock(), static function () use (&$calls): void {
-            Expect::calling(static function () use (&$calls): int {
+            Expect::calling(static function () use (&$calls): int { // @phpstan-ignore argument.type (PHPStan infers T from the narrowed body type of a closure with by-reference captures.)
                 return ++$calls;
             })->returnValue()->eventually()->within(0.1)->toBe(2)->toBeInt();
         });
@@ -113,7 +113,7 @@ final class CallExpectationTest
     {
         $calls = 0;
         ExpectationRuntime::withClock(new FakeClock(), static function () use (&$calls): void {
-            Expect::calling(static function () use (&$calls): int {
+            Expect::calling(static function () use (&$calls): int { // @phpstan-ignore argument.type (PHPStan infers T from the narrowed body type of a closure with by-reference captures.)
                 return ++$calls;
             })->eventually()->within(0.1)->toReturn(2)->toReturn(2);
         });

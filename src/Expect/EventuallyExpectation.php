@@ -100,7 +100,6 @@ final class EventuallyExpectation extends TemporalExpectation
             : \min($requestedDeadline, $this->attemptDeadline);
         $truncatedByTest = $deadline < $requestedDeadline;
         $observations = new ObservationLog($startedAt);
-        $last = null;
         $lastFailure = null;
         $counted = false;
 
