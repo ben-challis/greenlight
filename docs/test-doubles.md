@@ -282,6 +282,12 @@ A final `__clone()` keeps its implementation and can run application code.
 
 Double targets are interfaces or non-final, non-readonly classes.
 
+PHP lets only internal classes implement `Throwable`, `DateTimeInterface`,
+`UnitEnum`, and `BackedEnum`. Greenlight cannot double an interface that
+extends one of them. An interface that extends `Traversable` must also extend
+`Iterator` or `IteratorAggregate`. These cases produce `InvalidDoubleUsage`.
+The bundled PHPStan extension reports them.
+
 A class double intercepts only overridable public instance methods.
 
 Concrete final, static, and protected methods keep their original

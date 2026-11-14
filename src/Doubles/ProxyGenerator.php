@@ -27,6 +27,15 @@ final readonly class ProxyGenerator
     private const string HANDLER_PROPERTY = '__greenlightHandler';
 
     /**
+     * PHP lets only internal classes implement these interfaces.
+     */
+    private const array INTERNAL_ONLY_INTERFACES = [
+        \Throwable::class,
+        \DateTimeInterface::class,
+        \UnitEnum::class,
+    ];
+
+    /**
      * @param non-empty-string $directory
      */
     public function __construct(private string $directory) {}
@@ -87,7 +96,22 @@ final readonly class ProxyGenerator
     private function reflectDoubleable(string $type): \ReflectionClass
     {
         if (\interface_exists($type)) {
-            return new \ReflectionClass($type);
+            $reflection = new \ReflectionClass($type);
+
+            foreach (self::INTERNAL_ONLY_INTERFACES as $internal) {
+                if ($reflection->implementsInterface($internal)) {
+                    throw InvalidDoubleUsage::cannotDoubleInternalInterface($type, $internal);
+                }
+            }
+
+            if ($reflection->implementsInterface(\Traversable::class)
+                && !$reflection->implementsInterface(\Iterator::class)
+                && !$reflection->implementsInterface(\IteratorAggregate::class)
+            ) {
+                throw InvalidDoubleUsage::cannotDoubleBareTraversable($type);
+            }
+
+            return $reflection;
         }
 
         if (\enum_exists($type)) {
