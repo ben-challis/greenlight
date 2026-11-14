@@ -107,10 +107,7 @@ final class Orchestrator
     /** @var positive-int */
     private int $initialWorkerTarget = 1;
 
-    private bool $initialBarrierPassed = false;
-
-    /** @var non-negative-int */
-    private int $spawnedWorkers = 0;
+    private ?InitialAssignmentGate $gate = null;
 
     /** @var non-negative-int consecutive worker exits without a finished or attributed test */
     private int $unattributedDeaths = 0;
@@ -119,11 +116,6 @@ final class Orchestrator
      * @var list<string>
      */
     private array $warnings = [];
-
-    /**
-     * @var array<non-empty-string, true> initial workers that have not received their first assignment
-     */
-    private array $initialAssignmentsPending = [];
 
     public function __construct(
         private readonly WorkerTransport $transport,
@@ -212,7 +204,10 @@ final class Orchestrator
         }
 
         $this->initialWorkerTarget = $this->resourceScheduler()->initialWorkerTarget($workerCount);
-        $this->initialBarrierPassed = $this->configuration->initialWorkerAssignment === InitialWorkerAssignment::Progressive;
+        $this->gate = new InitialAssignmentGate(
+            $this->initialWorkerTarget,
+            $this->configuration->initialWorkerAssignment,
+        );
 
         $spawnBudget = new WorkerSpawnBudget(\count($plan->entries), $workerCount);
 
@@ -269,13 +264,7 @@ final class Orchestrator
 
             $handle = new WorkerState($workerId, $channelNumber, $this->monotonicTime());
             $this->handles[$workerId] = $handle;
-            ++$this->spawnedWorkers;
-
-            // Only the first spawns are initial workers. A replacement does
-            // not close the initial barrier again.
-            if ($this->spawnedWorkers <= $this->initialWorkerTarget) {
-                $this->initialAssignmentsPending[$workerId] = true;
-            }
+            $this->gate()->spawned($workerId);
 
             $sink->emit(new WorkerSpawned($workerId, $pid, \microtime(true)));
         }
@@ -466,7 +455,7 @@ final class Orchestrator
             return false;
         }
 
-        if (!$handle->isFresh() && $this->initialAssignmentsPending !== []) {
+        if (!$handle->isFresh() && $this->gate()->holdsReturningWorkers()) {
             $handle->timing->wait(WorkerIdleReason::BootstrapBarrier, $this->monotonicTime());
 
             return false;
@@ -510,8 +499,7 @@ final class Orchestrator
 
         $handle->beginAssignment($lease);
 
-        if (isset($this->initialAssignmentsPending[$handle->workerId])) {
-            unset($this->initialAssignmentsPending[$handle->workerId]);
+        if ($this->gate()->release($handle->workerId)) {
             $this->retryWaitingWorkers = true;
         }
 
@@ -561,7 +549,7 @@ final class Orchestrator
             $readyAt = $this->monotonicTime();
             $handle->timing->ready($readyAt);
 
-            if ($this->initialBarrierPassed || $this->draining) {
+            if ($this->gate()->barrierPassed() || $this->draining) {
                 // Progressive initial workers and replacements can
                 // start as soon as their own bootstrap completes. During a
                 // drain, the barrier can stay closed. Thus, assignNext()
@@ -619,11 +607,9 @@ final class Orchestrator
             }
         }
 
-        if ($ready < $this->initialWorkerTarget) {
+        if (!$this->gate()->openBarrier($ready)) {
             return;
         }
-
-        $this->initialBarrierPassed = true;
 
         foreach ($this->handles as $handle) {
             if ($handle->isActive() && $handle->isReady() && $handle->assigned === null) {
@@ -1053,6 +1039,15 @@ final class Orchestrator
         }
     }
 
+    private function gate(): InitialAssignmentGate
+    {
+        if (!$this->gate instanceof InitialAssignmentGate) {
+            throw new \LogicException('The initial assignment gate has not been initialized.');
+        }
+
+        return $this->gate;
+    }
+
     private function resourceScheduler(): ResourceScheduler
     {
         if (!$this->scheduler instanceof ResourceScheduler) {
@@ -1078,8 +1073,7 @@ final class Orchestrator
 
     private function finishHandle(WorkerState $handle, bool $force = false): void
     {
-        if (isset($this->initialAssignmentsPending[$handle->workerId])) {
-            unset($this->initialAssignmentsPending[$handle->workerId]);
+        if ($this->gate()->release($handle->workerId)) {
             $this->retryWaitingWorkers = true;
         }
 
