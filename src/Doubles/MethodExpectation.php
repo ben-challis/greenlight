@@ -15,7 +15,9 @@ use Greenlight\Expect\ValueRenderer;
  * `@internal` tag.
  *
  * Bare argument values use strict comparison (`===`). Use
- * `Argument::equals()` to apply deep equality.
+ * `Argument::equals()` to apply deep equality. An integer for a parameter
+ * that accepts `float` but not `int` becomes a float, as PHP converts the call
+ * argument.
  *
  * @template TTarget of object = object
  * @template TMethod of non-empty-string = non-empty-string
@@ -92,8 +94,7 @@ final class MethodExpectation
      */
     private function withArguments(array $arguments, string $selector): self
     {
-        $this->contract->assertPlannedArguments($selector, $arguments);
-        $this->arguments = $arguments;
+        $this->arguments = $this->contract->plannedArguments($selector, $arguments);
 
         return $this;
     }

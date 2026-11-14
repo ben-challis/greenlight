@@ -14,6 +14,21 @@ namespace Greenlight\Doubles;
  */
 final readonly class ArgumentType
 {
+    private const array BUILTIN_NAMES = [
+        'array',
+        'bool',
+        'callable',
+        'false',
+        'float',
+        'int',
+        'iterable',
+        'mixed',
+        'null',
+        'object',
+        'string',
+        'true',
+    ];
+
     /**
      * @param non-empty-list<non-empty-list<non-empty-string>> $alternatives
      */
@@ -63,11 +78,15 @@ final readonly class ArgumentType
         throw InvalidDoubleUsage::unsupportedReflectionType($type::class);
     }
 
+    /**
+     * Gets the type for a built-in type name or a loadable class, interface,
+     * or enum. It returns null for other names.
+     */
     public static function fromTypeName(string $type): ?self
     {
         $type = \ltrim($type, '\\');
 
-        if (\in_array($type, ['array', 'bool', 'float', 'int', 'null', 'string'], true)
+        if (\in_array($type, self::BUILTIN_NAMES, true)
             || \class_exists($type)
             || \interface_exists($type)
             || \enum_exists($type)
@@ -139,6 +158,27 @@ final readonly class ArgumentType
             static fn(array $alternative): bool => \array_all(
                 $alternative,
                 static fn(string $type): bool => self::acceptsNamed($value, $type),
+            ),
+        );
+    }
+
+    /**
+     * Checks a value as an argument to a proxy of the given class. PHP checks
+     * a `callable` parameter in the scope of the called proxy method. That
+     * scope can call protected methods of the class, but not its private
+     * methods.
+     *
+     * @param class-string $scope
+     */
+    public function acceptsForProxyOf(mixed $value, string $scope): bool
+    {
+        return \array_any(
+            $this->alternatives,
+            static fn(array $alternative): bool => \array_all(
+                $alternative,
+                static fn(string $type): bool => $type === 'callable'
+                    ? self::callableForProxyOf($value, $scope)
+                    : self::acceptsNamed($value, $type),
             ),
         );
     }
@@ -230,6 +270,33 @@ final readonly class ArgumentType
             'iterable' => \is_iterable($value),
             default => $value instanceof $type,
         };
+    }
+
+    /**
+     * @param class-string $scope
+     */
+    private static function callableForProxyOf(mixed $value, string $scope): bool
+    {
+        $name = null;
+        $check = \Closure::bind(
+            static function (mixed $value) use (&$name): bool {
+                return \is_callable($value, false, $name);
+            },
+            null,
+            $scope,
+        );
+
+        if (!$check instanceof \Closure || !$check($value)) {
+            return false;
+        }
+
+        $parts = \explode('::', $name, 2);
+
+        if (\count($parts) !== 2 || !\method_exists($parts[0], $parts[1])) {
+            return true;
+        }
+
+        return !new \ReflectionMethod($parts[0], $parts[1])->isPrivate();
     }
 
     /** @param non-empty-list<non-empty-string> $types */

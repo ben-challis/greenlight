@@ -18,12 +18,14 @@ final readonly class TypeMatcher implements TypedArgumentMatcher
             throw InvalidDoubleUsage::invalidArgumentType();
         }
 
+        self::assertKnown('type', $type);
+
         $this->argumentType = ArgumentType::fromTypeName($type);
     }
 
     public function matches(mixed $value): bool
     {
-        return self::matchesType($value, $this->type);
+        return $this->argumentType?->accepts($value) ?? \get_debug_type($value) === $this->type;
     }
 
     public function describe(): string
@@ -36,8 +38,21 @@ final readonly class TypeMatcher implements TypedArgumentMatcher
         return $this->argumentType;
     }
 
-    public static function matchesType(mixed $value, string $type): bool
+    /**
+     * Accepts a built-in type name, a loadable class, interface, or enum, and
+     * a resource name from `get_debug_type()`. A matcher for another name
+     * cannot accept a value.
+     *
+     * @throws InvalidDoubleUsage
+     */
+    public static function assertKnown(string $factory, string $type): void
     {
-        return $value instanceof $type || \get_debug_type($value) === $type;
+        if (ArgumentType::fromTypeName($type) instanceof ArgumentType
+            || \preg_match('/^resource \([^()]+\)$/', $type) === 1
+        ) {
+            return;
+        }
+
+        throw InvalidDoubleUsage::unknownArgumentType($factory, $type);
     }
 }
