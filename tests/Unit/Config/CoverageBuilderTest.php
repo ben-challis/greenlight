@@ -69,8 +69,7 @@ final class CoverageBuilderTest
     public function anUnknownDriverNameIsRejected(string $driver): void
     {
         expect()->calling(static function () use ($driver): void {
-            // Reflection bypasses the static driver type and exercises the runtime guard.
-            new \ReflectionMethod(CoverageBuilder::class, 'driver')->invoke(new CoverageBuilder(), $driver);
+            new CoverageBuilder()->driver($driver); // @phpstan-ignore argument.type (deliberately invalid: tests runtime validation)
         })
             ->because('an unknown driver name MUST NOT select automatic driver selection')
             ->toThrow(
