@@ -39,6 +39,7 @@
         "symfony/http-kernel": "^6.4 || ^7.0 || ^8.0"
     },
     "suggest": {
+        "ext-ffi": "Lets watch mode use Linux inotify. Without it, watch mode scans the watched paths on each poll",
         "ext-pcntl": "Scans Hyperf classes before 'HyperfPlugin' starts a worker",
         "ext-pcov": "Collects line coverage quickly",
         "ext-swoole": "Runs 'HyperfPlugin' workers and test attempts in Hyperf coroutines",

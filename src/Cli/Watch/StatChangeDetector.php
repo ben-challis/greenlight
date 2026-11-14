@@ -15,12 +15,19 @@ use Greenlight\Plugin\WatchSource;
  *
  * The first poll creates the initial record and reports no changes.
  *
+ * watchDirectories() gives the directories that the last poll listed. It also
+ * gives the nearest existing directory above each missing or file input. A
+ * change that the next poll can report is an event in one of these directories.
+ *
  * @internal
  */
 final class StatChangeDetector implements WatchSource
 {
     /** @var array<string, string>|null path to fingerprint */
     private ?array $snapshot = null;
+
+    /** @var list<non-empty-string> */
+    private array $watchDirectories = [];
 
     private readonly WatchPathMatcher $matcher;
 
@@ -69,23 +76,34 @@ final class StatChangeDetector implements WatchSource
         return $changed;
     }
 
+    /** @return list<non-empty-string> */
+    public function watchDirectories(): array
+    {
+        return $this->watchDirectories;
+    }
+
     /** @return array<string, string> */
     private function scan(): array
     {
         /** @var array<non-empty-string, true> $candidates */
         $candidates = [];
+        /** @var array<non-empty-string, true> $listed */
+        $listed = [];
 
         foreach ($this->directories as $directory) {
-            $this->collectDirectory($directory, false, $candidates);
+            $this->collectDirectory($directory, false, $candidates, $listed);
         }
 
         foreach ($this->additionalPaths as $path) {
             if ($this->isDirectory($path)) {
-                $this->collectDirectory($path, true, $candidates);
+                $this->collectDirectory($path, true, $candidates, $listed);
             } else {
                 $this->collectFile($path, true, true, $candidates);
+                $this->listNearestDirectory(\dirname($path), $listed);
             }
         }
+
+        $this->watchDirectories = \array_keys($listed);
 
         \ksort($candidates, \SORT_STRING);
         $snapshot = [];
@@ -101,10 +119,19 @@ final class StatChangeDetector implements WatchSource
         return $snapshot;
     }
 
-    /** @param array<non-empty-string, true> $candidates */
-    private function collectDirectory(string $directory, bool $additional, array &$candidates): void
+    /**
+     * @param array<non-empty-string, true> $candidates
+     * @param array<non-empty-string, true> $listed
+     */
+    private function collectDirectory(string $directory, bool $additional, array &$candidates, array &$listed): void
     {
-        if ($directory === '' || $this->isLink($directory) || !$this->isDirectory($directory)) {
+        if ($directory === '') {
+            return;
+        }
+
+        if ($this->isLink($directory) || !$this->isDirectory($directory)) {
+            $this->listNearestDirectory(\dirname($directory), $listed);
+
             return;
         }
 
@@ -121,6 +148,8 @@ final class StatChangeDetector implements WatchSource
             if (!\is_array($entries)) {
                 continue;
             }
+
+            $listed[$current] = true;
 
             /** @var list<non-empty-string> $childDirectories */
             $childDirectories = [];
@@ -148,6 +177,31 @@ final class StatChangeDetector implements WatchSource
             for ($offset = \count($childDirectories) - 1; $offset >= 0; --$offset) {
                 $pending[] = $childDirectories[$offset];
             }
+        }
+    }
+
+    /**
+     * Records the path, or the nearest existing directory above it. An input
+     * that appears later changes this directory first.
+     *
+     * @param array<non-empty-string, true> $listed
+     */
+    private function listNearestDirectory(string $path, array &$listed): void
+    {
+        while ($path !== '') {
+            if (!$this->isLink($path) && $this->isDirectory($path)) {
+                $listed[$path] = true;
+
+                return;
+            }
+
+            $parent = \dirname($path);
+
+            if ($parent === $path) {
+                return;
+            }
+
+            $path = $parent;
         }
     }
 

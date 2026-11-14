@@ -281,7 +281,7 @@ jobs:
         uses: "shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962" # v2
         with:
           php-version: "${{ matrix.php-version }}"
-          extensions: "pcntl, sockets"
+          extensions: "ffi, pcntl, sockets"
           coverage: "xdebug"
           ini-values: "memory_limit=-1"
 
