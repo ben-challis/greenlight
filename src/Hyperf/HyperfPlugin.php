@@ -338,7 +338,7 @@ final class HyperfPlugin implements HarnessProvider, ServiceResolver, ServiceSou
             }
         });
 
-        if ($coroutineId === false) {
+        if (!\is_int($coroutineId)) {
             $finished->close();
 
             throw HyperfBridgeError::coroutineDidNotStart();
