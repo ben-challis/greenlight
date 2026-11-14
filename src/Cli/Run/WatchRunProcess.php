@@ -69,12 +69,12 @@ final readonly class WatchRunProcess
         $events = $pipes[3];
         $started = ErrorTrap::run(static fn() => \proc_get_status($process));
         $pid = \is_array($started) ? $started['pid'] : 0;
-        $cleanup = $this->emergencyCleanups?->register(static function () use ($process, $pid): void {
-            self::forceStop($process, $pid);
+        $signaled = false;
+        $cleanup = $this->emergencyCleanups?->register(static function () use ($process, $pid, &$signaled): void {
+            self::forceStop($process, $pid, $signaled);
         });
         $tap = new ClassFailureTap(new ReporterSink($reporter));
         $buffer = '';
-        $signaled = false;
         $nonBlocking = false;
 
         try {
@@ -159,16 +159,23 @@ final readonly class WatchRunProcess
     /**
      * Stops the child after a forced exit request. The child runs in its own
      * process group, so the terminal does not signal it or its workers. The
-     * child gets SIGTERM again. This is its second signal, so the child kills
-     * its worker groups before it exits. A child that does not exit in time
-     * gets SIGKILL for its whole process group.
+     * child must get two signals: the second makes it kill its workers
+     * before it exits. When the parent did not forward the first signal yet,
+     * the child gets both now. A child that does not exit in time gets
+     * SIGKILL for its whole process group.
      *
      * @param resource $process
      */
-    private static function forceStop(mixed $process, int $pid): void
+    private static function forceStop(mixed $process, int $pid, bool $forwarded): void
     {
         if ($pid < 1 || !\function_exists('posix_kill')) {
             return;
+        }
+
+        if (!$forwarded) {
+            ErrorTrap::run(static fn(): bool => \posix_kill($pid, \SIGTERM));
+            // The child handles its first signal before the second one.
+            \usleep(50_000);
         }
 
         ErrorTrap::run(static fn(): bool => \posix_kill($pid, \SIGTERM));

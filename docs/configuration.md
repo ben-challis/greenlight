@@ -1276,7 +1276,8 @@ The run then exits with:
 * `130` for SIGINT
 * `143` for SIGTERM
 
-A second signal during shutdown ends Greenlight immediately. Before it exits,
+A second signal during shutdown ends Greenlight after a short cleanup. In watch
+mode, the cleanup waits up to 2 seconds for the child process. Before it exits,
 Greenlight:
 
 * kills the worker processes

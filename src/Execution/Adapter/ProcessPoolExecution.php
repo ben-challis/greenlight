@@ -92,8 +92,9 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
                 $this->workingDirectory,
                 $context->storage->temporaryDirectory,
             );
-            // Workers run in their own process groups. A forced exit closes the
-            // transport, which kills each worker group.
+            // Workers run in their own process groups, so the terminal does
+            // not signal them. A forced exit closes the transport, which
+            // kills each worker process.
             $cleanup = $this->emergencyCleanups?->register($transport->close(...));
             $orchestrator = new Orchestrator(
                 $transport,
