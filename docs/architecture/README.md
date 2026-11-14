@@ -94,6 +94,7 @@ public.
 | `Cli/Plugin` | Command-owned plugin catalog and dispatch | `Cli/Command`, `Cli/Configuration`, `Cli/Input`, `Cli/Output`, `Cli/Run`, `Config`, `Coverage`, `Plugin`, `Reporting`, and internal utilities |
 | `Documentation` | Build-time validation of documentation examples | Nothing |
 | `PhpStan`, `Rector`, `Symfony`, `Laravel`, `Hyperf`, `Psr11`, `Psr15`, `Tempest` | Optional adapters for external tools and frameworks | Their Greenlight interfaces and development-only frameworks |
+| `Bridge` | Container service resolution shared by the framework bridges | `Harness` |
 
 The table groups responsibilities. Its row order does not define dependency
 rules. Use `deptrac.yaml` for the complete permitted dependencies.

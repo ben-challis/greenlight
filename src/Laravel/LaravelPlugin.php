@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Laravel;
 
+use Greenlight\Bridge\ContainerServiceResolver;
 use Greenlight\Harness\Scope;
-use Greenlight\Harness\Service;
 use Greenlight\Harness\ServiceDefinition;
 use Greenlight\Harness\ServiceResolutionFailed;
 use Greenlight\Harness\ServiceResolver;
@@ -109,39 +109,13 @@ final class LaravelPlugin implements AfterTestSubscriber, HarnessProvider, Servi
     #[\Override]
     public function resolve(string $type, array $attributes): ?object
     {
-        $id = $type;
-        $explicit = false;
-
-        foreach ($attributes as $attribute) {
-            if ($attribute instanceof Service) {
-                $id = $attribute->id ?? $type;
-                $explicit = true;
-            }
-        }
-
-        try {
-            $app = $this->application();
-
-            if (!$app->bound($id)) {
-                if ($explicit) {
-                    throw LaravelBridgeError::unknownServiceId($id, $type);
-                }
-
-                return null;
-            }
-
-            $service = $app->make($id);
-
-            if (!$service instanceof $type) {
-                throw LaravelBridgeError::serviceTypeMismatch($id, $type, $service);
-            }
-
-            return $service;
-        } catch (ServiceResolutionFailed $error) {
-            throw $error;
-        } catch (\Throwable $cause) {
-            throw LaravelBridgeError::serviceResolutionFailed($id, $type, $cause);
-        }
+        return ContainerServiceResolver::resolve(
+            $type,
+            $attributes,
+            fn(string $id): bool => $this->application()->bound($id),
+            fn(string $id): mixed => $this->application()->make($id),
+            LaravelBridgeError::class,
+        );
     }
 
     #[\Override]

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Psr11;
 
+use Greenlight\Bridge\ContainerCall;
+use Greenlight\Bridge\ContainerServiceErrors;
 use Greenlight\Harness\ServiceResolutionFailed;
 
 /**
@@ -11,7 +13,7 @@ use Greenlight\Harness\ServiceResolutionFailed;
  *
  * @internal
  */
-final class Psr11BridgeError extends ServiceResolutionFailed
+final class Psr11BridgeError extends ServiceResolutionFailed implements ContainerServiceErrors
 {
     private function __construct(string $message, ?\Throwable $previous = null)
     {
@@ -34,6 +36,19 @@ final class Psr11BridgeError extends ServiceResolutionFailed
         ));
     }
 
+    #[\Override]
+    public static function serviceResolutionFailed(
+        string $id,
+        string $type,
+        \Throwable $previous,
+        ContainerCall $call = ContainerCall::Get,
+    ): self {
+        return match ($call) {
+            ContainerCall::Has => self::serviceCheckFailed($id, $previous),
+            ContainerCall::Get => self::serviceReadFailed($id, $previous),
+        };
+    }
+
     public static function serviceCheckFailed(string $id, \Throwable $previous): self
     {
         return new self(
@@ -50,6 +65,7 @@ final class Psr11BridgeError extends ServiceResolutionFailed
         );
     }
 
+    #[\Override]
     public static function unknownServiceId(string $id, string $type): self
     {
         return new self(\sprintf(
@@ -59,6 +75,7 @@ final class Psr11BridgeError extends ServiceResolutionFailed
         ));
     }
 
+    #[\Override]
     public static function serviceTypeMismatch(string $id, string $type, mixed $actual): self
     {
         return new self(\sprintf(
