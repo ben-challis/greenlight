@@ -14,7 +14,7 @@ final class SimpleXml
         $attributes = [];
         $xmlAttributes = $element->attributes();
 
-        if ($xmlAttributes === null) {
+        if (!$xmlAttributes instanceof \SimpleXMLElement) {
             return [];
         }
 

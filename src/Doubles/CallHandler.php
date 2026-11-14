@@ -138,7 +138,7 @@ final readonly class CallHandler
     {
         $type = new \ReflectionMethod($double, $method)->getReturnType();
 
-        if ($type === null) {
+        if (!$type instanceof \ReflectionType) {
             return true;
         }
 

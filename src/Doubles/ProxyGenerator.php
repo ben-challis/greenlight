@@ -196,7 +196,7 @@ final readonly class ProxyGenerator
     {
         $visibility = $property->isProtected() ? 'protected' : 'public';
         $type = $property->getType();
-        $rendered = $type === null ? '' : TypeRenderer::render($type, $property->getDeclaringClass()) . ' ';
+        $rendered = $type instanceof \ReflectionType ? TypeRenderer::render($type, $property->getDeclaringClass()) . ' ' : '';
 
         return \sprintf("    %s %s\$%s;\n", $visibility, $rendered, $property->name);
     }
@@ -377,7 +377,7 @@ final readonly class ProxyGenerator
     private function renderParameter(\ReflectionParameter $parameter, \ReflectionClass $context): string
     {
         $type = $parameter->getType();
-        $source = $type === null ? '' : TypeRenderer::render($type, $context) . ' ';
+        $source = $type instanceof \ReflectionType ? TypeRenderer::render($type, $context) . ' ' : '';
 
         if ($parameter->isPassedByReference()) {
             $source .= '&';
