@@ -55,6 +55,8 @@ A class does not convert when it uses:
   different or unknown types, because PHPUnit compares them loosely
 * PHPUnit doc-comment annotations, for example `@test`, `@dataProvider`, or
   `@group`, because the rule reads only attributes
+* hooks that PHPUnit and Greenlight run in a different order, for example
+  two `#[Before]` methods or `setUp()` before a `#[Before]` method
 * `#[RunClassInSeparateProcess]` or `#[PreserveGlobalState]`
 * other inherited `TestCase` API that the rule cannot prove safe
 
