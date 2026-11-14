@@ -10,29 +10,39 @@ use Greenlight\Plugin\WatchSource;
 /**
  * A portable file change detector.
  *
- * poll() records the modification time, size, and content hash for each
- * selected file. It reports changed, new, and removed paths.
+ * poll() reports changed, new, and removed paths. The first poll creates the
+ * initial record and reports no changes.
  *
- * Content hashes are expensive for a large tree. A poll can reuse the previous
- * hash when the modification time, size, change time, and inode are the same.
- * Both times must also be older than the recent-write window. An editor can write
- * twice in one second with the same size, and a tool can set an old
- * modification time again. Inside the window, the times cannot show the
- * second write, so the hash is read again.
+ * A poll does not read file contents in the normal case. It keeps the entry
+ * names of each directory and lists a directory again only when its stat data
+ * changed. A create, delete, or rename in a directory changes that data. Each
+ * known file then gets one lstat() call, and the poll compares its device,
+ * inode, size, modification time, and change time.
  *
- * The first poll creates the initial record and reports no changes.
+ * Stat times have one-second precision. A write in the same second as the
+ * previous poll can thus leave all stat data the same. An entry with a time
+ * that is not older than the start of the previous poll is racy. For a racy
+ * file, the poll also compares a content hash. A racy directory is listed
+ * again.
  *
  * @internal
  */
 final class StatChangeDetector implements WatchSource
 {
-    private const float RECENT_WRITE_SECONDS = 2.0;
+    private const int TYPE_MASK = 0o170000;
 
-    /** @var array<string, string>|null path to fingerprint */
-    private ?array $snapshot = null;
+    private const int TYPE_DIRECTORY = 0o040000;
 
-    /** @var array<string, array{string, string}> path to stat key and content hash */
-    private array $hashes = [];
+    private const int TYPE_FILE = 0o100000;
+
+    /** @var array<string, array{string, string|null}>|null path to stat key and racy content hash */
+    private ?array $files = null;
+
+    /** @var array<string, array{string, list<string>}> directory to stat key and entry names */
+    private array $listings = [];
+
+    /** Start of the previous poll, in whole seconds. */
+    private int $previousStart = \PHP_INT_MIN;
 
     private readonly WatchPathMatcher $matcher;
 
@@ -65,112 +75,130 @@ final class StatChangeDetector implements WatchSource
     #[\Override]
     public function poll(): array
     {
+        $start = (int) \floor(($this->now)());
+
+        // The first poll has no earlier poll. Only entries from this second
+        // are racy then.
+        if ($this->files === null) {
+            $this->previousStart = $start;
+        }
+
         $current = $this->scan();
+        $previous = $this->files;
+        $this->files = $current;
+        $this->previousStart = $start;
 
-        if ($this->snapshot === null) {
-            $this->snapshot = $current;
-
+        if ($previous === null) {
             return [];
         }
 
         $changed = [];
 
-        foreach ($current as $path => $fingerprint) {
-            if (($this->snapshot[$path] ?? null) !== $fingerprint) {
+        foreach ($current as $path => $record) {
+            if ($this->differs($previous[$path] ?? null, $record)) {
                 $changed[] = $path;
             }
         }
 
-        foreach (\array_keys($this->snapshot) as $path) {
+        foreach (\array_keys($previous) as $path) {
             if (!isset($current[$path])) {
                 $changed[] = $path;
             }
         }
 
-        $this->snapshot = $current;
-
         /** @var list<non-empty-string> $changed */
         return $changed;
     }
 
-    /** @return array<string, string> */
+    /** @return array<string, array{string, string|null}> */
     private function scan(): array
     {
-        /** @var array<non-empty-string, true> $candidates */
-        $candidates = [];
+        /** @var array<string, array{string, string|null}> $files */
+        $files = [];
+        $listings = [];
 
         foreach ($this->directories as $directory) {
-            $this->collectDirectory($directory, false, $candidates);
+            $stat = $this->lstat($directory);
+
+            if ($stat !== null && $this->type($stat) === self::TYPE_DIRECTORY) {
+                $this->scanDirectory($directory, $stat, false, $files, $listings);
+            }
         }
 
         foreach ($this->additionalPaths as $path) {
-            if ($this->isDirectory($path)) {
-                $this->collectDirectory($path, true, $candidates);
-            } else {
-                $this->collectFile($path, true, true, $candidates);
+            $stat = $this->lstat($path);
+
+            if ($stat === null) {
+                continue;
+            }
+
+            if ($this->type($stat) === self::TYPE_DIRECTORY) {
+                $this->scanDirectory($path, $stat, true, $files, $listings);
+            } elseif ($this->type($stat) === self::TYPE_FILE && $this->matcher->includesAdditionalFile($path, true)) {
+                $this->record($path, $stat, $files);
             }
         }
 
-        \ksort($candidates, \SORT_STRING);
-        $snapshot = [];
-        $hashes = [];
-        $now = ($this->now)();
+        $this->listings = $listings;
+        \ksort($files, \SORT_STRING);
 
-        foreach (\array_keys($candidates) as $path) {
-            $fingerprint = $this->fingerprint($path, $now, $hashes);
-
-            if ($fingerprint !== null) {
-                $snapshot[$path] = $fingerprint;
-            }
-        }
-
-        $this->hashes = $hashes;
-
-        return $snapshot;
+        return $files;
     }
 
-    /** @param array<non-empty-string, true> $candidates */
-    private function collectDirectory(string $directory, bool $additional, array &$candidates): void
+    /**
+     * @param array<array-key, int> $stat
+     * @param array<string, array{string, string|null}> $files
+     * @param array<string, array{string, list<string>}> $listings
+     */
+    private function scanDirectory(string $root, array $stat, bool $additional, array &$files, array &$listings): void
     {
-        if ($directory === '' || $this->isLink($directory) || !$this->isDirectory($directory)) {
-            return;
-        }
+        /** @var list<array{string, array<array-key, int>}> $pending */
+        $pending = [[$root, $stat]];
 
-        /** @var list<non-empty-string> $pending */
-        $pending = [$directory];
+        while (($next = \array_pop($pending)) !== null) {
+            [$directory, $directoryStat] = $next;
 
-        while (($current = \array_pop($pending)) !== null) {
-            if ($this->matcher->excludesDirectory($current)) {
+            if (isset($listings[$directory]) || $this->matcher->excludesDirectory($directory)) {
                 continue;
             }
 
-            $entries = ErrorTrap::run(static fn() => \scandir($current));
+            $names = $this->entries($directory, $directoryStat);
 
-            if (!\is_array($entries)) {
+            if ($names === null) {
                 continue;
             }
 
-            /** @var list<non-empty-string> $childDirectories */
+            $listings[$directory] = [$this->statKey($directoryStat), $names];
+            $prefix = \rtrim($directory, '/') . '/';
+            $entries = ErrorTrap::run(static function () use ($names, $prefix): array {
+                $stats = [];
+
+                foreach ($names as $name) {
+                    $entryStat = \lstat($prefix . $name);
+
+                    if (\is_array($entryStat)) {
+                        $stats[$prefix . $name] = $entryStat;
+                    }
+                }
+
+                return $stats;
+            });
             $childDirectories = [];
 
-            foreach ($entries as $entry) {
-                if ($entry === '.' || $entry === '..') {
-                    continue;
+            foreach ($entries as $path => $entryStat) {
+                $type = $this->type($entryStat);
+
+                if ($type === self::TYPE_DIRECTORY) {
+                    $childDirectories[] = [$path, $entryStat];
+                } elseif ($type === self::TYPE_FILE) {
+                    $included = $additional
+                        ? $this->matcher->includesAdditionalFile($path, false)
+                        : $this->matcher->includesDefaultPhpFile($path);
+
+                    if ($included) {
+                        $this->record($path, $entryStat, $files);
+                    }
                 }
-
-                $path = \rtrim($current, '/') . '/' . $entry;
-
-                if ($this->isLink($path)) {
-                    continue;
-                }
-
-                if ($this->isDirectory($path)) {
-                    $childDirectories[] = $path;
-
-                    continue;
-                }
-
-                $this->collectFile($path, $additional, false, $candidates);
             }
 
             for ($offset = \count($childDirectories) - 1; $offset >= 0; --$offset) {
@@ -179,77 +207,97 @@ final class StatChangeDetector implements WatchSource
         }
     }
 
-    /** @param array<non-empty-string, true> $candidates */
-    private function collectFile(string $path, bool $additional, bool $explicit, array &$candidates): void
+    /**
+     * Returns the cached entry names while the directory stat data is the
+     * same and not racy. Otherwise, the directory is listed again.
+     *
+     * @param array<array-key, int> $stat
+     *
+     * @return list<string>|null
+     */
+    private function entries(string $directory, array $stat): ?array
     {
-        if ($path === '' || $this->isLink($path) || !$this->isFile($path)) {
+        $cached = $this->listings[$directory] ?? null;
+
+        if ($cached !== null && $cached[0] === $this->statKey($stat) && !$this->isRacy($stat)) {
+            return $cached[1];
+        }
+
+        $entries = ErrorTrap::run(static fn() => \scandir($directory));
+
+        if (!\is_array($entries)) {
+            return null;
+        }
+
+        return \array_values(\array_filter(
+            $entries,
+            static fn(string $entry): bool => $entry !== '.' && $entry !== '..',
+        ));
+    }
+
+    /**
+     * @param array<array-key, int> $stat
+     * @param array<string, array{string, string|null}> $files
+     */
+    private function record(string $path, array $stat, array &$files): void
+    {
+        if (isset($files[$path])) {
             return;
         }
 
-        $included = $additional
-            ? $this->matcher->includesAdditionalFile($path, $explicit)
-            : $this->matcher->includesDefaultPhpFile($path);
+        $files[$path] = [$this->statKey($stat), $this->isRacy($stat) ? $this->hash($path) : null];
 
-        if (!$included || isset($candidates[$path])) {
-            return;
-        }
-
-        $candidates[$path] = true;
-
-        if (\count($candidates) > $this->maximumFiles) {
+        if (\count($files) > $this->maximumFiles) {
             throw WatchScanFailed::fileLimitExceeded($this->maximumFiles);
         }
     }
 
-    /** @param array<string, array{string, string}> $hashes */
-    private function fingerprint(string $path, float $now, array &$hashes): ?string
+    /**
+     * Compares stat data. Compares content hashes only when both polls saw
+     * the file as racy.
+     *
+     * @param array{string, string|null}|null $previous
+     * @param array{string, string|null} $current
+     */
+    private function differs(?array $previous, array $current): bool
     {
-        \clearstatcache(true, $path);
-
-        if ($this->isLink($path) || !$this->isFile($path)) {
-            return null;
+        if ($previous === null || $previous[0] !== $current[0]) {
+            return true;
         }
 
-        $stat = ErrorTrap::run(static fn() => \stat($path));
-
-        if (!\is_array($stat)) {
-            return null;
-        }
-
-        $mtime = $stat['mtime'];
-        $size = $stat['size'];
-        $statKey = $mtime . ':' . $size . ':' . $stat['ctime'] . ':' . $stat['ino'];
-        $previous = $this->hashes[$path] ?? null;
-
-        $lastWrite = \max($mtime, $stat['ctime']);
-
-        if ($previous !== null && $previous[0] === $statKey && $now - $lastWrite >= self::RECENT_WRITE_SECONDS) {
-            $contentHash = $previous[1];
-        } else {
-            $contentHash = ErrorTrap::run(fn() => ($this->hashFile)($path));
-
-            if (!\is_string($contentHash)) {
-                return null;
-            }
-        }
-
-        $hashes[$path] = [$statKey, $contentHash];
-
-        return $mtime . ':' . $size . ':' . $contentHash;
+        return $previous[1] !== null && $current[1] !== null && $previous[1] !== $current[1];
     }
 
-    private function isLink(string $path): bool
+    private function hash(string $path): ?string
     {
-        return ErrorTrap::run(static fn(): bool => \is_link($path));
+        $hash = ErrorTrap::run(fn() => ($this->hashFile)($path));
+
+        return \is_string($hash) ? $hash : null;
     }
 
-    private function isDirectory(string $path): bool
+    /** @param array<array-key, int> $stat */
+    private function isRacy(array $stat): bool
     {
-        return ErrorTrap::run(static fn(): bool => \is_dir($path));
+        return \max($stat['mtime'], $stat['ctime']) >= $this->previousStart;
     }
 
-    private function isFile(string $path): bool
+    /** @param array<array-key, int> $stat */
+    private function statKey(array $stat): string
     {
-        return ErrorTrap::run(static fn(): bool => \is_file($path));
+        return $stat['dev'] . ':' . $stat['ino'] . ':' . $stat['size'] . ':' . $stat['mtime'] . ':' . $stat['ctime'];
+    }
+
+    /** @param array<array-key, int> $stat */
+    private function type(array $stat): int
+    {
+        return $stat['mode'] & self::TYPE_MASK;
+    }
+
+    /** @return array<array-key, int>|null */
+    private function lstat(string $path): ?array
+    {
+        $stat = ErrorTrap::run(static fn() => \lstat($path));
+
+        return \is_array($stat) ? $stat : null;
     }
 }

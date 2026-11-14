@@ -1132,10 +1132,11 @@ Each poll visits directory entries in a stable lexical order. It does not hash
 an excluded or unmatched file. A poll stops with an error when it exceeds the
 configured file limit.
 
-A poll reads the content hash of a file again only when its metadata changed
-or when the file changed in the last 2 seconds. The interval between polls is
-at least 100 milliseconds and at least four times the duration of the last
-poll.
+A poll compares the file stat data. It lists a directory again only when the
+directory stat data changed. It reads file contents only for a file that
+changed in the same second as the previous poll, because the stat times have
+one-second precision. The interval between polls is at least 100 milliseconds
+and at least four times the duration of the last poll.
 
 Greenlight does not follow symlinks in watched trees.
 
