@@ -142,7 +142,7 @@ final readonly class ArtifactRetention
             ErrorTrap::run(static fn() => \rmdir($directory));
             throw AttachmentError::storage('Failed to lock artifact run directory' . (($lockWarning ?? $warning) === null ? '' : ': ' . ($lockWarning ?? $warning)));
         }
-        \chmod($lockPath, 0o600);
+        ErrorTrap::run(static fn() => \chmod($lockPath, 0o600));
 
         try {
             self::writeMetadata($directory, [
@@ -177,7 +177,10 @@ final readonly class ArtifactRetention
 
     private function applyPolicy(bool $dryRun, ?string $protectedRunId, int $now): ArtifactPruneReport
     {
-        if (!$this->configuration->hasRetentionPolicy() || !\is_dir($this->parent) || \is_link($this->parent)) {
+        if (!$this->configuration->hasRetentionPolicy()
+            || !ErrorTrap::run(fn() => \is_dir($this->parent))
+            || ErrorTrap::run(fn() => \is_link($this->parent))
+        ) {
             return new ArtifactPruneReport(dryRun: $dryRun);
         }
 
@@ -197,7 +200,8 @@ final readonly class ArtifactRetention
             }
             return new ArtifactPruneReport(warnings: ['Greenlight did not lock the artifact parent for pruning.'], dryRun: $dryRun);
         }
-        \chmod($canonical . '/' . self::PRUNE_LOCK_FILE, 0o600);
+        $pruneLockPath = $canonical . '/' . self::PRUNE_LOCK_FILE;
+        ErrorTrap::run(static fn() => \chmod($pruneLockPath, 0o600));
 
         try {
             if (!$this->canonicalDirectory($canonical, $canonical)) {
@@ -421,7 +425,7 @@ final readonly class ArtifactRetention
             ErrorTrap::run(static fn() => \unlink($part));
             throw new \RuntimeException('Greenlight did not write artifact run metadata.');
         }
-        \chmod($part, 0o600);
+        ErrorTrap::run(static fn() => \chmod($part, 0o600));
         if (!ErrorTrap::run(static fn() => \rename($part, $path))) {
             ErrorTrap::run(static fn() => \unlink($part));
             throw new \RuntimeException('Greenlight did not finalize artifact run metadata.');

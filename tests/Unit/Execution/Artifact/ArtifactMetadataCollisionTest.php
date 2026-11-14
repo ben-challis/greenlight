@@ -49,7 +49,7 @@ final readonly class ArtifactMetadataCollisionTest
             ->because('a metadata collision MUST report its primary finalization failure')
             ->toThrow(
                 AttachmentError::class,
-                message: 'Failed to finalize attachment recovery metadata.',
+                matching: '/^Failed\ to\ finalize\ attachment\ recovery\ metadata(: .+)?\.$/s',
             );
         expect(\is_dir($metadata))
             ->because('rollback MUST preserve pre-existing metadata blockers')
