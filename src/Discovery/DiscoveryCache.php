@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Discovery;
 
+use Composer\InstalledVersions;
 use Greenlight\Discovery\Plan\PlanEntry;
 use Greenlight\Internal\Filesystem\AtomicFile;
 use Greenlight\Internal\Filesystem\AtomicFileError;
@@ -11,19 +12,27 @@ use Greenlight\Internal\Php\ErrorTrap;
 
 /**
  * Stores one discovery cache entry for each file. The path, modification time,
- * size, content hash, inherited sources, and provider files identify an entry.
- * Entries do not contain filter results. Thus, a filter change does not require
- * another parse operation.
+ * size, and content hash of the file identify an entry. The entry also tracks
+ * the files of parent classes, traits, interfaces, provider classes, and
+ * classes that attribute constant expressions name.
  *
+ * An entry contains one plan entry for each test definition, without data-set
+ * keys. Discovery expands data sets again on each run, because provider output
+ * can change without a change to a tracked file. Entries do not contain filter
+ * results. Thus, a filter change does not require another parse operation.
+ *
+ * The cache identity includes the PHP version and the Greenlight version.
  * Discovery parses the file after a cache miss, stale file, corrupt cache, or
- * version mismatch. A data provider can change output without a file change.
- * In this case, worker validation rejects stale keys.
+ * identity mismatch.
+ *
+ * Each object reads the status of a path one time. The persist() method
+ * writes the file only if the entry set changed.
  *
  * @internal
  */
 final class DiscoveryCache
 {
-    private const int VERSION = 2;
+    private const int VERSION = 3;
 
     /**
      * @var array<string, DiscoveryCacheEntry>
@@ -36,6 +45,13 @@ final class DiscoveryCache
     private array $touched = [];
 
     private bool $loaded = false;
+
+    private bool $changed = false;
+
+    /**
+     * @var array<string, array{mtime: int, size: int, contentHash: ?non-empty-string}|null>
+     */
+    private array $stats = [];
 
     private function __construct(private readonly string $file) {}
 
@@ -57,7 +73,7 @@ final class DiscoveryCache
     }
 
     /**
-     * Returns cached entries without filter results.
+     * Returns cached definition entries without data-set keys or filter results.
      *
      * Returns null if the cache entry is not valid.
      *
@@ -107,7 +123,7 @@ final class DiscoveryCache
 
     /**
      * @param non-empty-string $file
-     * @param list<PlanEntry> $entries
+     * @param list<PlanEntry> $entries One entry for each test definition, without data-set keys.
      * @param class-string|null $class The declared class, including classes with no test entries.
      */
     public function store(string $file, array $entries, ?string $class = null): void
@@ -117,6 +133,8 @@ final class DiscoveryCache
         if ($stat === null) {
             return;
         }
+
+        $this->changed = true;
 
         $this->touched[$file] = new DiscoveryCacheEntry(
             $stat['mtime'],
@@ -155,6 +173,7 @@ final class DiscoveryCache
 
         $seen = [];
         $files = [];
+        $scanned = [];
 
         while ($pending !== []) {
             $reflection = \array_pop($pending);
@@ -167,8 +186,24 @@ final class DiscoveryCache
             $seen[$name] = true;
             $file = $reflection->getFileName();
 
-            if (\is_string($file) && $file !== '' && $file !== $source) {
-                $files[$file] = true;
+            if (\is_string($file) && $file !== '') {
+                if ($file !== $source) {
+                    $files[$file] = true;
+                }
+
+                if (!isset($scanned[$file])) {
+                    $scanned[$file] = true;
+
+                    foreach (AttributeClassReferences::in($file) as $referenced) {
+                        if (
+                            \class_exists($referenced, false)
+                            || \interface_exists($referenced, false)
+                            || \enum_exists($referenced, false)
+                        ) {
+                            $pending[] = new \ReflectionClass($referenced);
+                        }
+                    }
+                }
             }
 
             $parent = $reflection->getParentClass();
@@ -179,6 +214,10 @@ final class DiscoveryCache
 
             foreach ($reflection->getTraits() as $trait) {
                 $pending[] = $trait;
+            }
+
+            foreach ($reflection->getInterfaces() as $interface) {
+                $pending[] = $interface;
             }
         }
 
@@ -202,9 +241,13 @@ final class DiscoveryCache
      */
     private function stat(string $file): ?array
     {
+        if (\array_key_exists($file, $this->stats)) {
+            return $this->stats[$file];
+        }
+
         \clearstatcache(true, $file);
 
-        return ErrorTrap::run(static function () use ($file) {
+        return $this->stats[$file] = ErrorTrap::run(static function () use ($file) {
             $mtime = \filemtime($file);
             $size = \filesize($file);
             $contentHash = \sha1_file($file);
@@ -223,6 +266,7 @@ final class DiscoveryCache
 
     /**
      * Writes entries for files that this discovery reads and removes older entries.
+     * Does nothing if each lookup was a hit for the same set of files.
      *
      * Returns false on write failure.
      */
@@ -232,9 +276,13 @@ final class DiscoveryCache
             return true;
         }
 
+        if (!$this->changed && \count($this->touched) === \count($this->files)) {
+            return true;
+        }
+
         try {
             $encoded = \json_encode(
-                ['version' => self::VERSION, 'files' => $this->touched],
+                ['version' => self::VERSION, 'identity' => $this->identity(), 'files' => $this->touched],
                 \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR,
             );
         } catch (\JsonException) {
@@ -281,7 +329,12 @@ final class DiscoveryCache
             return;
         }
 
-        if (!\is_array($decoded) || ($decoded['version'] ?? null) !== self::VERSION || !\is_array($decoded['files'] ?? null)) {
+        if (
+            !\is_array($decoded)
+            || ($decoded['version'] ?? null) !== self::VERSION
+            || ($decoded['identity'] ?? null) !== $this->identity()
+            || !\is_array($decoded['files'] ?? null)
+        ) {
             return;
         }
 
@@ -296,5 +349,19 @@ final class DiscoveryCache
                 $this->files[$path] = $normalized;
             }
         }
+    }
+
+    /**
+     * Identifies the PHP and Greenlight builds that wrote the cache. Constant
+     * expressions in attributes can branch on PHP_VERSION_ID, and a Greenlight
+     * update can change discovery metadata.
+     */
+    private function identity(): string
+    {
+        $greenlight = InstalledVersions::isInstalled('greenlight/greenlight')
+            ? (InstalledVersions::getPrettyVersion('greenlight/greenlight') ?? '') . '@' . (InstalledVersions::getReference('greenlight/greenlight') ?? '')
+            : 'unknown';
+
+        return \PHP_VERSION . ' ' . $greenlight;
     }
 }

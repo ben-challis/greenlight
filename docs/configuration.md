@@ -1286,10 +1286,22 @@ behavior and exits immediately.
 Greenlight caches discovery results per file in the configured cache directory.
 By default, it uses the system temporary directory.
 
-The cache identity includes the effective discovery paths. The cache key for
-each entry includes the file path, mtime, and size. Greenlight can reuse data
-for an unchanged file. If the cache data is uncertain, Greenlight parses the
+The cache identity includes the effective discovery paths, the PHP version, and
+the Greenlight version. Each entry records the path, mtime, size, and content
+hash of the test file. It also records the same data for these files:
+
+* parent classes, traits, and interfaces
+* data provider classes
+* classes that attribute arguments name in constant expressions, for example
+  `Cases` in `#[Group(Cases::GROUP)]`
+
+A change to one of these files makes the entry stale. Greenlight then parses
+the test file again. If the cache data is uncertain, Greenlight also parses the
 file again.
+
+The cache stores test definitions, not data sets. Greenlight calls each data
+provider on each run. Thus, provider output that reads other classes or
+fixture files stays current.
 
 Watch mode benefits most because every iteration rediscovers the suite.
 
