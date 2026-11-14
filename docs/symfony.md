@@ -123,6 +123,8 @@ mechanism Symfony uses between requests. The resetter resets services with the
 `ManagerRegistry`, cache pools, and the profiler. Implement `ResetInterface` for
 each stateful service that must keep tests isolated.
 
+The reset also occurs when the test constructor throws.
+
 The bridge captures and checks the resetter when the kernel boots. If service
 resets are active without a container resetter, each test that requests the
 kernel or a container service has an error. Tests that use only other harness

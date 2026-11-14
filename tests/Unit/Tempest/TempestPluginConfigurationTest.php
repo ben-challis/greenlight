@@ -7,7 +7,6 @@ namespace Greenlight\Tests\Unit\Tempest;
 use Greenlight\Attribute\Test;
 use Greenlight\Harness\Scope;
 use Greenlight\Plugin\TestContext;
-use Greenlight\Result\TestResult;
 use Greenlight\Tempest\TempestPlugin;
 use Greenlight\Tests\Support\PluginLifecycle;
 use Tempest\Container\Container;
@@ -47,14 +46,11 @@ final readonly class TempestPluginConfigurationTest
     public function lifecycleHooksDoNotBootAnUnusedKernel(): void
     {
         $plugin = new TempestPlugin('/project');
-        $context = $this->context();
-        $result = $this->result();
+        $plugin->beforeTest($this->context());
 
-        $plugin->beforeTest($context);
-
-        expect($plugin->afterTest($context, $result))
-            ->because('an unused Tempest bridge MUST preserve the test result')
-            ->toBe($result);
+        expect()->calling(fn() => $this->endAttempt($plugin))
+            ->because('an unused Tempest bridge MUST end the attempt without a failure')
+            ->not()->toThrow(\Throwable::class);
     }
 
     #[Test]
@@ -71,13 +67,14 @@ final readonly class TempestPluginConfigurationTest
             ->toThrow(\InvalidArgumentException::class, message: 'Tempest environment cannot be empty.');
     }
 
+    private function endAttempt(TempestPlugin $plugin): void
+    {
+        $context = PluginLifecycle::context();
+        $plugin->testAttemptEnded($context->id, $context->definition);
+    }
+
     private function context(): TestContext
     {
         return PluginLifecycle::context();
-    }
-
-    private function result(): TestResult
-    {
-        return PluginLifecycle::passedResult();
     }
 }

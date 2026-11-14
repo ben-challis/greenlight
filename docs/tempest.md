@@ -159,8 +159,8 @@ public function __construct(
 
 ## State between tests
 
-After each test, the bridge calls `Kernel::shutdown()`. Tempest performs these
-operations:
+After each test attempt, the bridge calls `Kernel::shutdown()`. This also
+occurs when the test constructor throws. Tempest performs these operations:
 
 1. Dispatch `KernelEvent::SHUTTING_DOWN`.
 2. Complete deferred tasks.
