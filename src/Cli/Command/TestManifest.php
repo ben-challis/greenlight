@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Command;
 
-use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Config\SuiteConfiguration;
+use Greenlight\Config\WorkingDirectoryPath;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
 
@@ -116,7 +116,7 @@ final class TestManifest
 
         foreach ($suites as $suite) {
             foreach ($suite->paths as $path) {
-                $absolute = ConfigurationLoader::absolutePath($path, $workingDirectory);
+                $absolute = WorkingDirectoryPath::resolve($path, $workingDirectory);
                 $real = \realpath($absolute);
                 $resolved[$suite->name][] = $real === false ? $absolute : $real;
             }
