@@ -139,10 +139,10 @@ final class ArgumentTypeTest
     public function matcherCompositionsExposeTheirKnownAcceptedTypes(): void
     {
         $untyped = new AllOf([Argument::any(), Argument::any()]);
-        $intersection = new IntersectionTypeMatcher(['int', 'unknown type']);
-        $unknownIntersection = new IntersectionTypeMatcher(['first unknown', 'second unknown']);
+        $intersection = new IntersectionTypeMatcher(['int', 'resource (stream)']);
+        $unknownIntersection = new IntersectionTypeMatcher(['resource (stream)', 'resource (closed)']);
         $union = new UnionTypeMatcher(['int', 'string']);
-        $unknownUnion = new UnionTypeMatcher(['int', 'unknown type']);
+        $unknownUnion = new UnionTypeMatcher(['int', 'resource (stream)']);
 
         expect($untyped->argumentType())->toBeNull();
         expect($intersection->argumentType()?->describe())->toBe('int');

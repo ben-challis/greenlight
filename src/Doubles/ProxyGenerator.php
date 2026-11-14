@@ -240,13 +240,12 @@ final readonly class ProxyGenerator
     {
         $returnType = $method->getReturnType() ?? $method->getTentativeReturnType();
         $returnName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : null;
-        $arguments = $this->renderInvocationArguments($method);
-
         $invoke = \sprintf(
-            "\$this->%s->invoke(\$this, '%s', %s);",
+            "\$this->%s->invoke(\$this, '%s', %s, %s);",
             self::HANDLER_PROPERTY,
             $method->name,
-            $arguments,
+            $this->renderDeclaredArguments($method),
+            $this->renderSuppliedArguments($method),
         );
 
         if ($returnName === 'void') {
@@ -279,7 +278,39 @@ final readonly class ProxyGenerator
         );
     }
 
-    private function renderInvocationArguments(\ReflectionMethod $method): string
+    /**
+     * Renders each declared parameter. Thus, the call handler records the
+     * default value of an omitted optional argument. `func_get_args()` omits
+     * trailing defaults. It includes defaults before a named argument.
+     */
+    private function renderDeclaredArguments(\ReflectionMethod $method): string
+    {
+        $parameters = $method->getParameters();
+        $declared = \array_values(\array_filter(
+            $parameters,
+            static fn(\ReflectionParameter $parameter): bool => !$parameter->isVariadic(),
+        ));
+        $list = \sprintf('[%s]', \implode(', ', \array_map(
+            static fn(\ReflectionParameter $parameter): string => ($parameter->isPassedByReference() ? '&' : '') . '$' . $parameter->name,
+            $declared,
+        )));
+
+        if ($method->isVariadic()) {
+            return \sprintf('\\array_merge(%s, $%s)', $list, $parameters[\count($parameters) - 1]->name);
+        }
+
+        if ($declared === []) {
+            return '\\func_get_args()';
+        }
+
+        return \sprintf('\\array_merge(%s, \\array_slice(\\func_get_args(), %d))', $list, \count($declared));
+    }
+
+    /**
+     * Renders the arguments that the caller supplied. An answer callback
+     * receives these arguments, so its own defaults apply to omitted values.
+     */
+    private function renderSuppliedArguments(\ReflectionMethod $method): string
     {
         $arguments = $this->renderPositionalArguments($method);
 

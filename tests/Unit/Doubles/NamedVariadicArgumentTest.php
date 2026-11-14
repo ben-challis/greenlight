@@ -72,6 +72,8 @@ final readonly class NamedVariadicArgumentTest
         });
 
         $double->withPrefix(tail: 'one');
-        expect($this->doubles->callsTo($double, 'withPrefix'))->toBe([['one']]);
+        expect($this->doubles->callsTo($double, 'withPrefix'))
+            ->because('the recorded call contains the default of the omitted fixed argument')
+            ->toBe([['default', 'one']]);
     }
 }

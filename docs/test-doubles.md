@@ -140,7 +140,23 @@ $plan->expects('save')->with($expectedOrder);
 
 Use `Argument::equals($expectedOrder)` to apply deep equality to a value object.
 
-Use `withNoArguments()` to require a call that supplies no arguments:
+Greenlight checks each bare value against the parameter type when you declare
+the plan. A value that the parameter type does not accept produces
+`InvalidDoubleUsage`. PHP converts an integer argument for a parameter that
+accepts `float` but not `int`. Greenlight applies the same conversion to a
+bare integer, so `with(5)` matches a call with `5` or `5.0`.
+
+Greenlight uses the declared default value of each omitted optional argument.
+This applies to the plan and to the call. Thus, `with('a', 2)` and `with('a')`
+both match `find('a')` and `find('a', 2)` when the second parameter has the
+default `2`. A named argument does not change the argument positions.
+
+An object default uses deep equality. `callsTo()` and argument captors also
+receive the default values. An `andReturnsUsing()` closure receives only the
+arguments that the caller supplied.
+
+Use `withNoArguments()` to require a call that supplies no variadic values and
+uses the default value of each optional parameter:
 
 <!-- php-example {"example":"test-doubles-example-05","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
@@ -176,6 +192,12 @@ Available matchers are:
 * `Argument::equals(mixed $value)`
 * `Argument::allOf(ArgumentMatcher $first, ArgumentMatcher $second, ArgumentMatcher ...$rest)`
 * `Argument::captor()`
+
+`Argument::type()`, `Argument::intersection()`, and `Argument::union()` accept
+built-in type names, such as `int`, `callable`, `iterable`, `object`, and
+`mixed`, and classes, interfaces, and enums that PHP can load. They also
+accept a resource name from `get_debug_type()`, such as `resource (stream)`.
+Other names produce `InvalidDoubleUsage`.
 
 Use `Argument::intersection()` when a value must have every specified type.
 Use `Argument::union()` when a value can have one or more specified types:
