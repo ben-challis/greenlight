@@ -114,6 +114,11 @@ The plan contains data-set keys, not argument values. Greenlight invokes the
 provider again once for each worker-side class assignment to create the values
 in that worker. Return every planned key on each invocation.
 
+The worker invokes the provider before the time limit of the first data set
+starts. Provider time does not count toward a `#[Timeout]` budget. If the
+provider fails, each data set of the method gets the same error. Greenlight
+does not invoke the failed provider again in that class assignment.
+
 Keep providers pure, deterministic, and free of I/O and global state. Each
 invocation has a five-second time budget. Greenlight checks elapsed time after the call and as
 it reads rows. This check cannot interrupt a blocked provider.
