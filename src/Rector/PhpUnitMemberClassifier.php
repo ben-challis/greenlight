@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Greenlight\Rector;
 
+use PhpParser\Comment\Doc;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
@@ -233,7 +234,7 @@ final readonly class PhpUnitMemberClassifier
     {
         $docComment = $node->getDocComment();
 
-        return $docComment !== null && \preg_match(PhpUnitAttributes::ANNOTATION_PATTERN, $docComment->getText()) === 1;
+        return $docComment instanceof Doc && \preg_match(PhpUnitAttributes::ANNOTATION_PATTERN, $docComment->getText()) === 1;
     }
 
     private function isStaticTestNamed(ClassMethod $method): bool

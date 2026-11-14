@@ -238,7 +238,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
                 return null;
             }
 
-            if ($replacement !== null) {
+            if ($replacement instanceof Node\Expr) {
                 $replacements[\spl_object_id($call)] = $replacement;
             }
         }
