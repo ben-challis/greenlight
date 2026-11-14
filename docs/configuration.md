@@ -713,10 +713,9 @@ The command compares line counts, not line numbers. An edit that moves lines
 does not cause a regression. The output shows the uncovered-line counts for
 each file that has a changed count.
 
-Added files and removed files do not cause a regression. The command does not
-detect renamed files. A renamed file is a removed file and an added file. Use
-`--minimum-coverage` or `--maximum-uncovered-lines` to limit the coverage of
-added files.
+An added file with an uncovered line also causes a regression. Removed files do
+not cause a regression. The command does not detect renamed files. A renamed
+file is a removed file and an added file.
 
 The displayed total percentages include all files, so their difference alone
 does not determine the exit code.

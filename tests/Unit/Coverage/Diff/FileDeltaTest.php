@@ -52,11 +52,19 @@ final readonly class FileDeltaTest
     }
 
     #[Test]
-    public function aFileInOnlyOneMapCannotRegress(): void
+    public function anAddedFileWithUncoveredLinesRegresses(): void
     {
         expect(new FileDelta('/src/A.php', null, 0.0, null, 5)->regressed())
-            ->because('an added file MUST NOT regress')
+            ->because('an added file with uncovered lines MUST regress')
+            ->toBeTrue();
+        expect(new FileDelta('/src/A.php', null, 100.0, null, 0)->regressed())
+            ->because('a fully covered added file MUST NOT regress')
             ->toBeFalse();
+    }
+
+    #[Test]
+    public function aRemovedFileCannotRegress(): void
+    {
         expect(new FileDelta('/src/A.php', 100.0, null, 0)->regressed())
             ->because('a removed file MUST NOT regress')
             ->toBeFalse();

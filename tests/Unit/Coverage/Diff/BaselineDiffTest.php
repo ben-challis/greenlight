@@ -73,22 +73,6 @@ final class BaselineDiffTest
     }
 
     #[Test]
-    public function aRenamedFileIsNotARegression(): void
-    {
-        $baseline = new CoverageMap([new FileCoverage('/src/Old.php', [1], [2])]);
-        $current = new CoverageMap([new FileCoverage('/src/New.php', [1], [2])]);
-
-        $report = BaselineDiff::between($baseline, $current);
-
-        expect(\array_keys($report->fileDeltas))
-            ->because('a rename MUST appear as a removed file and an added file')
-            ->toBe(['/src/New.php', '/src/Old.php']);
-        expect($report->hasRegressions())
-            ->because('a rename MUST NOT cause a regression')
-            ->toBeFalse();
-    }
-
-    #[Test]
     public function filesOnlyInOneMapAppearWithANullSide(): void
     {
         $baseline = new CoverageMap([new FileCoverage('/src/Gone.php', [1], [])]);
@@ -101,8 +85,8 @@ final class BaselineDiffTest
         expect($report->fileDeltas['/src/New.php']->baselinePercentage)->toBeNull();
         expect($report->fileDeltas['/src/New.php']->currentUncoveredLines)->toBe(1);
         expect($report->hasRegressions())
-            ->because('an added file MUST NOT cause a regression')
-            ->toBeFalse();
+            ->because('an added file with an uncovered line MUST cause a regression')
+            ->toBeTrue();
     }
 
     #[Test]
