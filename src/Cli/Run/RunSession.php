@@ -35,6 +35,7 @@ use Greenlight\Execution\RunCoordinator;
 use Greenlight\Execution\RunPolicyError;
 use Greenlight\Execution\RunResult;
 use Greenlight\IntegrationFixture\IntegrationFixtureError;
+use Greenlight\Internal\Process\EmergencyCleanups;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\Reporter;
@@ -61,6 +62,7 @@ final readonly class RunSession
         private TestSelection $selection,
         private RunState $state,
         private bool $coverageOutputOnStderr = false,
+        private ?EmergencyCleanups $emergencyCleanups = null,
     ) {}
 
     /**
@@ -272,6 +274,7 @@ final readonly class RunSession
             $this->arguments->has('detect-leaks'),
             $this->shutdown,
             $reporter instanceof Ticking ? $reporter : null,
+            emergencyCleanups: $this->emergencyCleanups,
         );
     }
 }

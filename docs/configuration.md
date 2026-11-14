@@ -1293,7 +1293,15 @@ The run then exits with:
 * `130` for SIGINT
 * `143` for SIGTERM
 
-A second signal during shutdown terminates immediately.
+A second signal during shutdown ends Greenlight after a short cleanup. In watch
+mode, the cleanup waits up to 2 seconds for the child process. Before it exits,
+Greenlight:
+
+* kills the worker processes
+* stops the watch-mode child process
+* restores the terminal
+
+The exit status then shows the signal.
 
 Graceful shutdown requires `ext-pcntl`. Without it, PHP uses its default signal
 behavior and exits immediately.

@@ -23,6 +23,7 @@ use Greenlight\Config\InvalidConfiguration;
 use Greenlight\Config\StorageLayout;
 use Greenlight\Coverage\CoverageError;
 use Greenlight\Execution\Worker\LeakDetector;
+use Greenlight\Internal\Process\EmergencyCleanups;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Plugin\CommandOutcome;
 use Greenlight\Plugin\CommandResult;
@@ -129,10 +130,11 @@ final readonly class RunCommand
 
         try {
             $shutdown = new GracefulShutdown();
-            SignalHandlers::install($shutdown);
+            $emergencyCleanups = new EmergencyCleanups();
+            SignalHandlers::install($shutdown, cleanups: $emergencyCleanups);
 
             if ($arguments->has('watch')) {
-                return new WatchRuns($this->console)->run($arguments, $workingDirectory, $workerBin, $configuration, $shutdown, $reporterCatalog, $reporterOutputs, $reporter);
+                return new WatchRuns($this->console)->run($arguments, $workingDirectory, $workerBin, $configuration, $shutdown, $reporterCatalog, $reporterOutputs, $reporter, $emergencyCleanups);
             }
 
             $storage = StorageLayout::resolve(
@@ -190,6 +192,7 @@ final readonly class RunCommand
                 $selection,
                 $state,
                 $reporterOutputs->writesReporterToStandardOutput('jsonl'),
+                $emergencyCleanups,
             );
 
             // --repeat=1 specifies one standard run. Show the loop, banners, and
