@@ -58,7 +58,11 @@ final readonly class CoverageMap
 
     public function merge(self $other): self
     {
-        return new self(\array_merge(\array_values($this->files), \array_values($other->files)));
+        $builder = new CoverageMapBuilder();
+        $builder->add($this);
+        $builder->add($other);
+
+        return $builder->build();
     }
 
     /** @return int<0, max> */
