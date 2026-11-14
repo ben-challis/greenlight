@@ -78,6 +78,65 @@ final readonly class ArtifactContentVerificationTest
     }
 
     #[Test]
+    public function aRejectedRunLetsTheLimitSelectANewerRun(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('rejected-run-reselection');
+        $retention = $this->retention($parent, maxCompletedRuns: 1);
+        $this->completedRun($retention, 'run-changed', 10, 'old');
+        $this->completedRun($retention, 'run-middle', 20, 'mid');
+        $this->completedRun($retention, 'run-newest', 30, 'new');
+        \file_put_contents($parent . '/run-changed/evidence.txt', 'odd');
+
+        $report = $retention->prune(now: 40);
+
+        expect(\array_map(static fn($item): string => $item->runId, $report->items))
+            ->because('a run that fails verification MUST NOT stop the limit from selecting another run')
+            ->toBe(['run-middle']);
+        expect($report->warnings)->toBe(['Greenlight did not prune artifact run "run-changed".']);
+        expect(\file_get_contents($parent . '/run-changed/evidence.txt'))->toBe('odd');
+        expect(\is_dir($parent . '/run-newest'))->toBeTrue();
+    }
+
+    #[Test]
+    public function completionReadsAFileThatChangedAfterPublication(): void
+    {
+        $parent = $this->tempDirectory->subdirectory('recorded-digest-changed');
+        $handle = $this->retention($parent, maxCompletedRuns: 1)->begin('run-1');
+        $path = $handle->directory . '/evidence.txt';
+        \file_put_contents($path, 'owned');
+        $handle->recordPublished('evidence.txt', 5, \str_repeat('f', 64));
+        \file_put_contents($path, 'edits');
+        \touch($path, (int) \filemtime($path) + 10);
+        $handle->complete();
+
+        $metadata = \json_decode(
+            (string) \file_get_contents($handle->directory . '/' . ArtifactRetention::METADATA_FILE),
+            true,
+            flags: \JSON_THROW_ON_ERROR,
+        );
+
+        expect($metadata)
+            ->because('a file with a new modification time MUST get a new digest')
+            ->toContainSubset(['files' => ['evidence.txt' => ['bytes' => 5, 'sha256' => \hash('sha256', 'edits')]]]);
+    }
+
+    #[Test]
+    public function aLinkedStagedFileIsCopiedNotMoved(): void
+    {
+        $directory = $this->tempDirectory->subdirectory('linked-staged-file');
+        \file_put_contents($directory . '/target.txt', 'evidence');
+        \symlink($directory . '/target.txt', $directory . '/source.txt');
+
+        $digest = new NativeFileCopier()->copy($directory . '/source.txt', $directory . '/destination.txt');
+
+        expect($digest)->toBe(\hash('sha256', 'evidence'));
+        expect(\is_link($directory . '/destination.txt'))
+            ->because('publication MUST NOT move a symbolic link into the run directory')
+            ->toBeFalse();
+        expect(\is_file($directory . '/destination.txt'))->toBeTrue();
+    }
+
+    #[Test]
     public function aFailedRenameFallsBackToACopyWithItsDigest(): void
     {
         $destination = $this->tempDirectory->subdirectory('copy-digest') . '/destination.txt';
