@@ -221,8 +221,8 @@ final readonly class TestResult
      * @internal
      *
      * Each string from the result, except the test ID and attachment
-     * metadata, has a limit of 1 MiB on the wire. The worker sends the result
-     * in one size-limited frame.
+     * metadata, has a JSON-encoded limit of 1 MiB on the wire. The worker
+     * sends the result in one size-limited frame.
      *
      * @return array<string, mixed>
      */

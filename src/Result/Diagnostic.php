@@ -13,8 +13,9 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
  * diagnostic to a test result. These values originate in user code. The line
  * number is greater than zero.
  *
- * The message has a limit of 2 KiB. The file has a limit of 1 KiB. Longer text
- * keeps its first part and a truncation marker. Output capture keeps at most
+ * The message has a limit of 2 KiB. The file has a limit of 1 KiB. Each limit
+ * applies to the JSON-encoded size. Longer text keeps its first part and a
+ * truncation marker. Output capture keeps at most
  * 1,000 diagnostics for one attempt, so these limits also bound the result
  * size.
  */

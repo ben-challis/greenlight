@@ -84,8 +84,9 @@ Greenlight converts the message and file to valid UTF-8 before it adds the
 diagnostic to a test result. These values originate in user code. The line
 number is greater than zero.
 
-The message has a limit of 2 KiB. The file has a limit of 1 KiB. Longer text
-keeps its first part and a truncation marker. Output capture keeps at most
+The message has a limit of 2 KiB. The file has a limit of 1 KiB. Each limit
+applies to the JSON-encoded size. Longer text keeps its first part and a
+truncation marker. Output capture keeps at most
 1,000 diagnostics for one attempt, so these limits also bound the result
 size.
 
@@ -93,7 +94,7 @@ size.
 final readonly class Diagnostic
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L21)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L22)
 
 ### `$message`
 
@@ -101,7 +102,7 @@ final readonly class Diagnostic
 public string $message;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L26)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L27)
 
 ### `$file`
 
@@ -109,7 +110,7 @@ public string $message;
 public string $file;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L27)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L28)
 
 ### `$line`
 
@@ -121,7 +122,7 @@ PHPDoc:
 
 - `@var positive-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L32)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L33)
 
 ### `$severity`
 
@@ -129,7 +130,7 @@ PHPDoc:
 public DiagnosticSeverity $severity
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L38)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L39)
 
 ### `__construct()`
 
@@ -146,7 +147,7 @@ PHPDoc:
 
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L37)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/Diagnostic.php#L38)
 
 ## `DiagnosticSeverity`
 
@@ -712,13 +713,14 @@ Namespace: `Greenlight\Result`
 Contains a throwable's class, message, source location, and stack trace.
 
 The message has a limit of 64 KiB. The file and each stack frame have a
-limit of 4 KiB. Longer text keeps its first part and a truncation marker.
+limit of 4 KiB. Each limit applies to the JSON-encoded size. Longer text
+keeps its first part and a truncation marker.
 
 ```php
 final readonly class ThrowableDetail
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L17)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L18)
 
 ### `$message`
 
@@ -726,7 +728,7 @@ final readonly class ThrowableDetail
 public string $message;
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L23)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L24)
 
 ### `$stackFrames`
 
@@ -738,7 +740,7 @@ PHPDoc:
 
 - `@var list<string>`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L28)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L29)
 
 ### `$class`
 
@@ -750,7 +752,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L33)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L34)
 
 ### `$file`
 
@@ -762,7 +764,7 @@ PHPDoc:
 
 - `@var non-empty-string`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L38)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L39)
 
 ### `$line`
 
@@ -774,7 +776,7 @@ PHPDoc:
 
 - `@var positive-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L43)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L44)
 
 ### `__construct()`
 
@@ -793,7 +795,7 @@ PHPDoc:
 - `@param list<string> $stackFrames`
 - `@throws \InvalidArgumentException`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L50)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ThrowableDetail.php#L51)
 
 ### `fromThrowable()`
 

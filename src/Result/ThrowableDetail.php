@@ -12,7 +12,8 @@ use Greenlight\Internal\Wire\WireCommunicationFailed;
  * Contains a throwable's class, message, source location, and stack trace.
  *
  * The message has a limit of 64 KiB. The file and each stack frame have a
- * limit of 4 KiB. Longer text keeps its first part and a truncation marker.
+ * limit of 4 KiB. Each limit applies to the JSON-encoded size. Longer text
+ * keeps its first part and a truncation marker.
  */
 final readonly class ThrowableDetail
 {
@@ -68,8 +69,7 @@ final readonly class ThrowableDetail
 
         $this->class = $class;
         $this->message = BoundedText::head($message, self::MAX_MESSAGE_BYTES);
-        $boundedFile = BoundedText::head($file, self::MAX_LOCATION_BYTES);
-        $this->file = $boundedFile === '' ? $file : $boundedFile;
+        $this->file = BoundedText::head($file, self::MAX_LOCATION_BYTES);
         $this->line = $line;
         $this->stackFrames = \array_map(
             static fn(string $frame): string => BoundedText::head($frame, self::MAX_LOCATION_BYTES),

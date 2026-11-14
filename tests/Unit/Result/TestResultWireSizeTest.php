@@ -89,13 +89,67 @@ final class TestResultWireSizeTest
             ->toBe('expected');
     }
 
+    #[Test]
+    public function controlByteWarningsFitInOneResultFrameAfterEscaping(): void
+    {
+        $diagnostics = [];
+
+        for ($index = 0; $index < 1_000; ++$index) {
+            $diagnostics[] = new Diagnostic(
+                DiagnosticSeverity::Warning,
+                \str_repeat("\x01", 9 * 1024),
+                \str_repeat("\x02", 9 * 1024),
+                $index + 1,
+            );
+        }
+
+        $result = new TestResult(
+            new TestId('ExampleTest', 'warns'),
+            Outcome::Passed,
+            0.0,
+            0,
+            output: new CapturedOutput('', $diagnostics),
+        );
+
+        expect($this->encodedBytes($result))
+            ->because('JSON escapes each control byte to six bytes, and the limits MUST include that')
+            ->toBeLessThan(JsonFrameCodec::DEFAULT_MAX_FRAME_BYTES);
+    }
+
+    #[Test]
+    public function nonAsciiWireStringsFitInOneResultFrameAfterEscaping(): void
+    {
+        $text = \str_repeat('é', 2 * 1024 * 1024);
+        $result = new TestResult(
+            new TestId('ExampleTest', 'fails'),
+            Outcome::Failed,
+            0.0,
+            0,
+            failures: [new FailureDetail($text, $text, $text)],
+            skipReason: $text,
+            output: new CapturedOutput($text),
+        );
+        $restored = TestResult::fromWire($result->toWire());
+
+        expect($this->encodedBytes($result))
+            ->because('JSON escapes each non-ASCII character, and the wire limit MUST include that')
+            ->toBeLessThan(JsonFrameCodec::DEFAULT_MAX_FRAME_BYTES);
+        expect($restored->failures[0]->actual ?? '')
+            ->because('a cut MUST keep whole characters and add the marker')
+            ->toEndWith('é... (truncated)');
+    }
+
     private function errored(ThrowableDetail $detail): TestResult
     {
         return new TestResult(new TestId('ExampleTest', 'throws'), Outcome::Errored, 0.0, 0, error: $detail);
     }
 
+    /**
+     * Measures the frame that the worker protocol codec sends. A codec without
+     * a practical size limit reports the size instead of a frame error.
+     */
     private function encodedBytes(TestResult $result): int
     {
-        return \strlen(\json_encode($result->toWire(), \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE));
+        return \strlen(new JsonFrameCodec(\PHP_INT_MAX)->encode(['result' => $result->toWire()]));
     }
 }
