@@ -15,6 +15,9 @@ final class ArtifactRunHandle
 {
     private bool $closed = false;
 
+    /** @var array<non-empty-string, array{bytes: int, sha256: non-empty-string}> */
+    private array $published = [];
+
     /**
      * @param non-empty-string $runId
      * @param non-empty-string $directory
@@ -26,6 +29,21 @@ final class ArtifactRunHandle
         private readonly mixed $lock,
     ) {}
 
+    /**
+     * Records the digest of a published file, so that completion does not
+     * read the file again.
+     *
+     * @param non-empty-string $sha256
+     */
+    public function recordPublished(string $relativePath, int $bytes, string $sha256): void
+    {
+        if ($relativePath === '') {
+            return;
+        }
+
+        $this->published[$relativePath] = ['bytes' => $bytes, 'sha256' => $sha256];
+    }
+
     /** @throws \RuntimeException */
     public function complete(): void
     {
@@ -33,7 +51,7 @@ final class ArtifactRunHandle
             return;
         }
 
-        $files = ArtifactRetention::contentManifest($this->directory);
+        $files = ArtifactRetention::contentManifest($this->directory, $this->published);
         ArtifactRetention::writeMetadata($this->directory, [
             'version' => ArtifactRetention::METADATA_VERSION,
             'owner' => ArtifactRetention::OWNER,
