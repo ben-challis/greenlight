@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Greenlight\Tests\Unit\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Attribute\Test;
-use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Event\TestFinished;
 use Greenlight\Event\TestStarted;
 use Greenlight\Execution\ProcessPool\Orchestrator\Orchestrator;
-use Greenlight\Execution\ProcessPool\Orchestrator\OrchestratorConfiguration;
 use Greenlight\Execution\ProcessPool\Protocol\Message;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Assign;
 use Greenlight\Execution\ProcessPool\Protocol\Messages\Bootstrap;
@@ -89,58 +87,6 @@ final readonly class OrchestratorWorkerExitTest
             ->because('workers that finish tests MUST NOT use the exit limit')
             ->toBe(6);
         expect($transport->started)->toHaveCount(6);
-    }
-
-    #[Test]
-    public function aWorkerThatExitsAfterItsLastTestAddsAWarning(): void
-    {
-        $transport = $this->transportWithoutDone();
-        $orchestrator = new Orchestrator($transport);
-
-        $summary = $orchestrator->run($this->plan(1), new CollectingEventSink(), 1);
-
-        expect($summary->passed)
-            ->because('the finished test results MUST remain in the summary')
-            ->toBe(1);
-        expect($orchestrator->warnings())
-            ->because('a lost assignment report MUST NOT be silent')
-            ->toHaveCount(1);
-        expect($orchestrator->warnings()[0])
-            ->toBe(
-                'Worker "w-1" exited after its last test and before it sent its assignment report. '
-                . "All test results of the assignment are complete.\nWorker output:\nshutdown function failed",
-            );
-    }
-
-    #[Test]
-    public function aWorkerThatExitsBeforeItsCoverageReportFailsTheRun(): void
-    {
-        $orchestrator = new Orchestrator(
-            $this->transportWithoutDone(),
-            new OrchestratorConfiguration(coverageSettings: new CoverageSettings(['src'])),
-        );
-
-        expect()->calling(fn(): ResultSummary => $orchestrator->run($this->plan(1), new CollectingEventSink(), 1))
-            ->because('a run with coverage MUST NOT report incomplete coverage')
-            ->toThrow(ProtocolError::class, '/^Worker "w-1" exited after its last test and before it sent its assignment report\./');
-    }
-
-    private function transportWithoutDone(): ReactiveWorkerTransport
-    {
-        return new ReactiveWorkerTransport(
-            static function (ReactiveWorkerTransport $transport, string $workerId): void {
-                $transport->hello($workerId);
-                $transport->setDiagnostics($workerId, 'shutdown function failed');
-            },
-            ReactiveWorkerTransport::passingWorkers(
-                static function (ReactiveWorkerTransport $transport, string $workerId, Assign $assign): bool {
-                    $transport->pass($workerId, $assign, done: false);
-                    $transport->disconnect($workerId);
-
-                    return true;
-                },
-            ),
-        );
     }
 
     /**

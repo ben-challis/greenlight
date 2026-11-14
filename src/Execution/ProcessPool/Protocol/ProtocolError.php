@@ -203,19 +203,4 @@ final class ProtocolError extends WireCommunicationFailed
 
         return new self($message);
     }
-
-    public static function workerReportLost(string $workerId, string $diagnostics): self
-    {
-        $message = \sprintf(
-            'Worker "%s" exited after its last test and before it sent its assignment report. '
-            . 'The report contained coverage or leak data. Greenlight stopped the run because this data is incomplete.',
-            $workerId,
-        );
-
-        if ($diagnostics !== '') {
-            $message .= "\nWorker output:\n" . $diagnostics;
-        }
-
-        return new self($message);
-    }
 }
