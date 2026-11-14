@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Greenlight\Rector;
 
+use PhpParser\Node\Expr;
+
 /**
  * The validated conversion plan for one PHPUnit test class. A plan exists
  * only when every member converts, so the conversion itself cannot fail
@@ -19,11 +21,13 @@ final readonly class ClassPlan
      * @param list<string> $tests
      * @param list<string> $noExpectations
      * @param array<string, ThrowRewrite> $throwRewrites
+     * @param array<int, Expr> $calls replacement expressions keyed by the object ID of the original call
      */
     public function __construct(
         public array $hooks,
         public array $tests,
         public array $noExpectations,
         public array $throwRewrites,
+        public array $calls,
     ) {}
 }
