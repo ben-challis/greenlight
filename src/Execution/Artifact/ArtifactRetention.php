@@ -60,11 +60,9 @@ final readonly class ArtifactRetention
             $base = \rtrim($workingReal === false ? $workingDirectory : $workingReal, '/');
         }
         if ($segments === []) {
-            if ($base === '') {
-                throw AttachmentError::storage('Attachment output directory is invalid');
-            }
-
-            return new self($configuration, $base);
+            // Retention scans and prunes the parent, so the working directory
+            // and the filesystem root cannot be the parent.
+            throw AttachmentError::storage('Attachment output directory is invalid');
         }
 
         return new self($configuration, self::resolvedParent($base, $segments));

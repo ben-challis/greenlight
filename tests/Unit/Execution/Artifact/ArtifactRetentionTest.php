@@ -296,7 +296,6 @@ final readonly class ArtifactRetentionTest
         expect()->calling(static fn() => $linkedParent->begin('run'))
             ->toThrow(AttachmentError::class, message: 'Attachment output directory contains a symbolic link.');
 
-
         $fileAncestor = $this->retention($base . '/blocked/artifacts', maxCompletedRuns: 1);
         expect()->calling(static fn() => $fileAncestor->begin('run'))
             ->toThrow(AttachmentError::class, message: 'Attachment output path contains a non-directory entry.');

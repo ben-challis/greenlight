@@ -38,6 +38,18 @@ final readonly class ArtifactParentResolutionTest
     }
 
     #[Test]
+    public function theWorkingDirectoryCannotBeTheParent(): void
+    {
+        $working = $this->tempDirectory->subdirectory('parent-working-directory');
+
+        foreach (['.', './', '/'] as $configured) {
+            expect()->calling(static fn() => ArtifactRetention::forConfiguration(new ArtifactConfiguration($configured), $working))
+                ->because('retention MUST NOT scan the working directory or the filesystem root')
+                ->toThrow(AttachmentError::class, message: 'Attachment output directory is invalid.');
+        }
+    }
+
+    #[Test]
     public function aSymbolicLinkAboveTheParentIsValid(): void
     {
         $working = $this->tempDirectory->subdirectory('parent-linked-ancestor');
