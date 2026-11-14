@@ -20,10 +20,10 @@ final readonly class RectorHookOrderTest
     public function keepsClassesWithADifferentHookOrderOnPhpUnit(): void
     {
         $cases = [
-            'two before hooks' => self::source(['#[Before] public function first', '#[Before] public function second']),
-            'setUp before a before hook' => self::source(['protected function setUp', '#[Before] public function prepare']),
-            'two after hooks' => self::source(['#[After] public function first', '#[After] public function second']),
-            'tearDown before an after hook' => self::source(['protected function tearDown', '#[After] public function clean']),
+            'two before hooks' => $this->source(['#[Before] public function first', '#[Before] public function second']),
+            'setUp before a before hook' => $this->source(['protected function setUp', '#[Before] public function prepare']),
+            'two after hooks' => $this->source(['#[After] public function first', '#[After] public function second']),
+            'tearDown before an after hook' => $this->source(['protected function tearDown', '#[After] public function clean']),
         ];
 
         $probes = RectorProbe::convertBatch($this->tempDirectory, $cases, name: 'different-hook-order');
@@ -38,7 +38,7 @@ final readonly class RectorHookOrderTest
     {
         $probe = RectorProbe::convert(
             $this->tempDirectory,
-            self::source([
+            $this->source([
                 '#[Before] public function prepare',
                 'protected function setUp',
                 '#[After] public function clean',
@@ -57,7 +57,7 @@ final readonly class RectorHookOrderTest
     /**
      * @param list<string> $hooks method declarations without the parameter list
      */
-    private static function source(array $hooks): string
+    private function source(array $hooks): string
     {
         $methods = '';
 

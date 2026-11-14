@@ -22,11 +22,11 @@ final readonly class RectorDocCommentAnnotationTest
         $cases = [];
 
         foreach (['test', 'before', 'after', 'dataProvider values', 'depends testOther', 'group slow', 'requires PHP 8.4', 'doesNotPerformAssertions', 'covers \App\Price', 'coversNothing', 'runInSeparateProcess'] as $tag) {
-            $cases['method @' . $tag] = self::source("/**\n         * @{$tag}\n         */", '');
+            $cases['method @' . $tag] = $this->source("/**\n         * @{$tag}\n         */", '');
         }
 
-        $cases['class @group'] = self::source('', "/**\n * @group slow\n */");
-        $cases['class @coversDefaultClass'] = self::source('', '/** @coversDefaultClass \App\Price */');
+        $cases['class @group'] = $this->source('', "/**\n * @group slow\n */");
+        $cases['class @coversDefaultClass'] = $this->source('', '/** @coversDefaultClass \App\Price */');
 
         $probes = RectorProbe::convertBatch($this->tempDirectory, $cases, name: 'doc-comment-annotations');
 
@@ -40,14 +40,14 @@ final readonly class RectorDocCommentAnnotationTest
     {
         $probe = RectorProbe::convert(
             $this->tempDirectory,
-            self::source("/**\n         * Mail admin@test.example about @testing.\n         */", '/** @codeCoverageIgnore */'),
+            $this->source("/**\n         * Mail admin@test.example about @testing.\n         */", '/** @codeCoverageIgnore */'),
             name: 'plain-doc-comments',
         );
 
         expect($probe->changed)->toBeTrue();
     }
 
-    private static function source(string $methodDocComment, string $classDocComment): string
+    private function source(string $methodDocComment, string $classDocComment): string
     {
         return <<<PHP_WRAP
             <?php

@@ -20,10 +20,10 @@ final readonly class RectorStringKeyDataRowTest
     public function keepsStringKeyedRowsOnPhpUnit(): void
     {
         $cases = [
-            'TestWith row' => self::testWithSource("['expected' => 'b', 'input' => 'a']"),
-            'yielded provider row' => self::providerSource("yield 'swap' => ['expected' => 'b', 'input' => 'a'];"),
-            'returned provider row' => self::providerSource("return [['expected' => 'b', 'input' => 'a']];"),
-            'yield from provider row' => self::providerSource("yield from ['swap' => ['expected' => 'b', 'input' => 'a']];"),
+            'TestWith row' => $this->testWithSource("['expected' => 'b', 'input' => 'a']"),
+            'yielded provider row' => $this->providerSource("yield 'swap' => ['expected' => 'b', 'input' => 'a'];"),
+            'returned provider row' => $this->providerSource("return [['expected' => 'b', 'input' => 'a']];"),
+            'yield from provider row' => $this->providerSource("yield from ['swap' => ['expected' => 'b', 'input' => 'a']];"),
         ];
 
         $probes = RectorProbe::convertBatch($this->tempDirectory, $cases, name: 'string-key-rows');
@@ -37,8 +37,8 @@ final readonly class RectorStringKeyDataRowTest
     public function convertsRowsWithIntegerKeysAndLabels(): void
     {
         $cases = [
-            'TestWith row' => self::testWithSource("['b', 'a']"),
-            'labelled provider rows' => self::providerSource("return ['swap' => ['b', 'a'], 'same' => [0 => 'a', 1 => 'a']];"),
+            'TestWith row' => $this->testWithSource("['b', 'a']"),
+            'labelled provider rows' => $this->providerSource("return ['swap' => ['b', 'a'], 'same' => [0 => 'a', 1 => 'a']];"),
         ];
 
         $probes = RectorProbe::convertBatch($this->tempDirectory, $cases, name: 'integer-key-rows');
@@ -48,7 +48,7 @@ final readonly class RectorStringKeyDataRowTest
         }
     }
 
-    private static function testWithSource(string $row): string
+    private function testWithSource(string $row): string
     {
         return <<<PHP_WRAP
             <?php
@@ -72,7 +72,7 @@ final readonly class RectorStringKeyDataRowTest
             PHP_WRAP;
     }
 
-    private static function providerSource(string $body): string
+    private function providerSource(string $body): string
     {
         return <<<PHP_WRAP
             <?php

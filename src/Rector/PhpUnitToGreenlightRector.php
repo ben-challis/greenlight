@@ -16,6 +16,7 @@ use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\Fail;
 use Greenlight\Test\SkipTest;
+use PhpParser\Comment\Doc;
 use PhpParser\Modifiers;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
@@ -373,7 +374,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
     {
         $docComment = $node->getDocComment();
 
-        return $docComment !== null && \preg_match(PhpUnitAttributes::ANNOTATION_PATTERN, $docComment->getText()) === 1;
+        return $docComment instanceof Doc && \preg_match(PhpUnitAttributes::ANNOTATION_PATTERN, $docComment->getText()) === 1;
     }
 
     private function isStaticTestNamed(ClassMethod $method): bool
