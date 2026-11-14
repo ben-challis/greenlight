@@ -73,6 +73,9 @@ final readonly class WatchRunProcess
             $nonBlocking = true;
 
             do {
+                // Read the status before the pipe. When the status shows an
+                // exited child, the read that follows gets its last events.
+                $status = \proc_get_status($process);
                 $signal = $this->shutdown->signal();
 
                 if ($signal !== null && !$signaled) {
@@ -100,8 +103,6 @@ final readonly class WatchRunProcess
                 if ($reporter instanceof Ticking) {
                     $reporter->tick(\microtime(true));
                 }
-
-                $status = \proc_get_status($process);
             } while ($status['running'] || $chunk !== '');
 
             if ($buffer !== '' || $status['exitcode'] !== 0) {
