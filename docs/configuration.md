@@ -1110,7 +1110,8 @@ After a change, classes that failed in the previous watch iteration run first.
 The `watch()` builder can add templates, YAML, JSON, SQL migrations, fixtures,
 and other inputs. It can also exclude generated output from every watched root.
 
-Watch mode does not publish coverage totals or coverage exports.
+Watch mode does not collect coverage. It does not publish coverage totals or
+coverage exports.
 
 Do not use `--watch` with `--failed` or with a JUnit reporter. Each iteration
 selects the configured tests again, and a JUnit file holds one run.
