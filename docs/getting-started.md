@@ -88,7 +88,8 @@ Tests are PHP classes. Add `#[Test]` to each test method.
 
 Greenlight scans the configured paths for files whose names end in `Test.php`.
 The class short name must match the file name. Composer must be able to
-autoload the class from its namespace.
+autoload the class from its namespace. Put each test class in its own file.
+Discovery fails if a file declares a second class with test methods.
 
 For example, `tests/GreeterTest.php` must declare the class
 `App\Tests\GreeterTest` with the mappings in this guide.

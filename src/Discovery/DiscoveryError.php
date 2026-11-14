@@ -76,6 +76,17 @@ final class DiscoveryError extends \RuntimeException
         ));
     }
 
+    public static function secondTestClassInFile(string $file, string $class, string $expected): self
+    {
+        return new self(\sprintf(
+            'Test file "%s" declares test class "%s" after "%s". Greenlight runs only the class that matches the file name. Move "%s" to its own file.',
+            $file,
+            $class,
+            $expected,
+            $class,
+        ));
+    }
+
     public static function testMethodNotRunnable(string $class, string $method, string $why): self
     {
         return new self(\sprintf('Greenlight cannot run test method %s::%s() because %s.', $class, $method, $why));
