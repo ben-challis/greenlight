@@ -159,6 +159,20 @@ scalars strictly. It compares arrays by key and recursively equal values.
 Objects must have the same class and recursively equal properties. This rule
 includes private properties.
 
+Many native PHP classes keep their state outside the properties. Examples are
+`ArrayObject`, `SplObjectStorage`, `SplFixedArray`, `DateTimeZone`, and `GMP`.
+For a class with a native ancestor, `toEqual()` also compares the native state:
+
+* If the class has a `__serialize()` method, the matcher compares its result.
+* For `SplHeap` and `SplPriorityQueue`, the matcher compares the elements of a
+  copy. The original object keeps its elements.
+* If the native classes keep all state in declared properties, as exceptions
+  do, the matcher compares only the properties.
+
+Other native objects have no comparable state. Examples are `Generator`,
+`WeakMap`, and `DOMDocument`. Such an object is equal only to itself. To
+compare DOM documents, compare their `saveXML()` output.
+
 Object comparisons distinguish shared objects from equal copies. They also
 require equal cycle shapes.
 

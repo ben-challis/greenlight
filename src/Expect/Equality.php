@@ -11,6 +11,30 @@ final class Equality
 {
     private const int ARRAY_CYCLE_CHECK_DEPTH = 64;
 
+    private const string STATE_PROPERTIES = 'properties';
+
+    private const string STATE_SERIALIZE = 'serialize';
+
+    private const string STATE_HEAP = 'heap';
+
+    private const string STATE_DECLARED_PROPERTIES = 'declared-properties';
+
+    /**
+     * Native classes that keep all their state in the property table.
+     */
+    private const array PROPERTY_ONLY_NATIVE_CLASSES = [
+        \stdClass::class,
+        \__PHP_Incomplete_Class::class,
+    ];
+
+    /**
+     * The state source for each class. A declared-properties source also
+     * lists the property-table keys that must exist.
+     *
+     * @var array<class-string, array{string, list<string>}>
+     */
+    private static array $stateSources = [];
+
     /** @codeCoverageIgnore */
     private function __construct() {}
 
@@ -109,9 +133,14 @@ final class Equality
                 return $value::class . '{...}';
             }
 
+            $properties = self::comparableState($value);
+
+            if ($properties === null) {
+                return $value::class . '#' . $id;
+            }
+
             $seen[] = $id;
             $parts = [];
-            $properties = \get_mangled_object_vars($value);
             self::requireAcyclicArrays($properties);
             \ksort($properties, \SORT_STRING);
 
@@ -217,15 +246,146 @@ final class Equality
                 return true;
             }
 
-            return self::compare(
-                \get_mangled_object_vars($a),
-                \get_mangled_object_vars($b),
-                $leftObjects,
-                $rightObjects,
-            );
+            $leftState = self::comparableState($a);
+            $rightState = self::comparableState($b);
+
+            if ($leftState === null || $rightState === null) {
+                return false;
+            }
+
+            return self::compare($leftState, $rightState, $leftObjects, $rightObjects);
         }
 
         return $a === $b;
+    }
+
+    /**
+     * Returns the state that equality compares for an object. The property
+     * table does not contain the state of most native classes. For example,
+     * `ArrayObject` and `GMP` keep their values in native storage. A class with
+     * a native ancestor therefore adds a native state source to its properties.
+     *
+     * @return array<array-key, mixed>|null Null when the object has no
+     *   comparable state. Such objects are equal only to themselves.
+     */
+    private static function comparableState(object $value): ?array
+    {
+        [$source, $requiredKeys] = self::$stateSources[$value::class] ??= self::stateSource($value::class);
+        $properties = \get_mangled_object_vars($value);
+
+        try {
+            return match ($source) {
+                self::STATE_PROPERTIES => $properties,
+                self::STATE_SERIALIZE => [
+                    'properties' => $properties,
+                    'native' => self::serializedState($value),
+                ],
+                self::STATE_HEAP => [
+                    'properties' => $properties,
+                    'native' => self::heapElements($value),
+                ],
+                default => $requiredKeys !== []
+                    && \array_all($requiredKeys, static fn(string $key): bool => \array_key_exists($key, $properties))
+                        ? $properties
+                        : null,
+            };
+        } catch (\Throwable) {
+            // A native state source that cannot be read gives no evidence of
+            // equality.
+            return null;
+        }
+    }
+
+    /**
+     * @param class-string $class
+     *
+     * @return array{string, list<string>}
+     */
+    private static function stateSource(string $class): array
+    {
+        $reflection = new \ReflectionClass($class);
+        $native = [];
+
+        for ($ancestor = $reflection; $ancestor instanceof \ReflectionClass; $ancestor = $ancestor->getParentClass()) {
+            if ($ancestor->isInternal()) {
+                $native[] = $ancestor;
+            }
+        }
+
+        if ($native === [] || \in_array($native[0]->getName(), self::PROPERTY_ONLY_NATIVE_CLASSES, true)) {
+            return [self::STATE_PROPERTIES, []];
+        }
+
+        if ($reflection->isSubclassOf(\SplHeap::class) || $reflection->isSubclassOf(\SplPriorityQueue::class)
+            || $class === \SplPriorityQueue::class
+        ) {
+            return [self::STATE_HEAP, []];
+        }
+
+        if ($reflection->hasMethod('__serialize')) {
+            return [self::STATE_SERIALIZE, []];
+        }
+
+        // Some native classes, such as exceptions, keep all state in declared
+        // properties. A native class without such properties, or with
+        // properties outside the property table, has no comparable state.
+        $requiredKeys = [];
+
+        foreach ($native as $ancestor) {
+            foreach ($ancestor->getProperties() as $property) {
+                if ($property->isStatic() || $property->getDeclaringClass()->getName() !== $ancestor->getName()) {
+                    continue;
+                }
+
+                $requiredKeys[] = match (true) {
+                    $property->isPrivate() => "\0" . $ancestor->getName() . "\0" . $property->getName(),
+                    $property->isProtected() => "\0*\0" . $property->getName(),
+                    default => $property->getName(),
+                };
+            }
+        }
+
+        return [self::STATE_DECLARED_PROPERTIES, $requiredKeys];
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    private static function serializedState(object $value): array
+    {
+        $serialize = [$value, '__serialize'];
+
+        if (!\is_callable($serialize)) {
+            throw new \LogicException('The object has no public __serialize() method.');
+        }
+
+        $state = $serialize();
+
+        if (!\is_array($state)) {
+            throw new \LogicException('__serialize() did not return an array.');
+        }
+
+        return $state;
+    }
+
+    /**
+     * Reads a copy, so the original heap keeps its elements.
+     *
+     * @return list<mixed>
+     */
+    private static function heapElements(object $value): array
+    {
+        $copy = clone $value;
+
+        if ($copy instanceof \SplPriorityQueue) {
+            $copy->setExtractFlags(\SplPriorityQueue::EXTR_BOTH);
+        }
+
+        if (!$copy instanceof \Traversable) {
+            throw new \LogicException('A heap must be traversable.'); // @codeCoverageIgnore
+        }
+
+        return \iterator_to_array($copy, false);
     }
 
     private static function requireAcyclicArrays(mixed $value): void
