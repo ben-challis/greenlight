@@ -16,7 +16,7 @@ use function Greenlight\expect;
 final class ScopeContainerSubclassFactoryTest
 {
     #[Test]
-    public function aFactoryThatReturnsASubclassSuppliesTheSubclassBehaviour(): void
+    public function aFactoryThatReturnsASubclassSuppliesTheSubclassBehavior(): void
     {
         $factoryCalls = 0;
         $container = new ScopeContainer();
