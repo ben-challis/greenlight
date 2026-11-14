@@ -392,15 +392,15 @@ final class ArtifactStore
                 throw AttachmentError::storage('An attachment output path already exists');
             }
 
-            if (\filesize($source) !== $attachment->sizeBytes || \hash_file('sha256', $source) !== $attachment->sha256) {
+            if (ErrorTrap::run(static fn() => \filesize($source)) !== $attachment->sizeBytes) {
                 throw AttachmentError::storage('Attachment staging content does not match its metadata');
             }
 
             try {
-                $this->fileCopier->copy($source, $part);
+                $digest = $this->fileCopier->copy($source, $part);
 
-                if (\filesize($part) !== $attachment->sizeBytes || \hash_file('sha256', $part) !== $attachment->sha256) {
-                    throw AttachmentError::storage('Published attachment content does not match its metadata');
+                if (ErrorTrap::run(static fn() => \filesize($part)) !== $attachment->sizeBytes || $digest !== $attachment->sha256) {
+                    throw AttachmentError::storage('Attachment content does not match its metadata');
                 }
 
                 \chmod($part, 0o600);
@@ -414,6 +414,9 @@ final class ArtifactStore
                 throw $error;
             }
 
+            if ($this->runHandle instanceof ArtifactRunHandle) {
+                $this->runHandle->recordPublished($storageKey, $attachment->sizeBytes, $attachment->sha256);
+            }
             ErrorTrap::run(static fn() => \unlink($source));
             ErrorTrap::run(fn() => \unlink($this->metadataPath($storageKey)));
             $published[] = $attachment->published();

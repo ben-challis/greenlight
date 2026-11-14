@@ -232,13 +232,52 @@ final readonly class ArtifactRetention
             }
         }
 
+        $items = [];
+        $excluded = [];
+        $unselectable = $protectedRunId === null ? [] : [$protectedRunId => true];
+        do {
+            $rejected = false;
+            $remaining = \array_values(\array_filter(
+                $records,
+                static fn(ArtifactRunRecord $record): bool => !isset($excluded[$record->runId]),
+            ));
+            foreach ($this->select($remaining, $unselectable, $now) as [$record, $reasons]) {
+                $directory = $parent . '/' . $record->runId;
+                if (!$dryRun && !$this->removeClaimed($parent, $directory, $record)) {
+                    $warnings[] = \sprintf('Greenlight did not prune artifact run "%s".', $record->runId);
+                    // A run that fails verification is not a candidate, as a
+                    // changed run is not. The selection runs again without it.
+                    $excluded[$record->runId] = true;
+                    $rejected = true;
+                    continue;
+                }
+                $excluded[$record->runId] = true;
+                $items[] = new ArtifactPruneItem($record->runId, $directory, $record->bytes, $reasons);
+            }
+        } while ($rejected);
+
+        return new ArtifactPruneReport($items, $warnings, $dryRun);
+    }
+
+    /**
+     * Applies the age, count, and size limits in that order. Each limit
+     * selects the oldest remaining run first. A run in $unselectable is never
+     * selected, but it counts toward the count and size limits.
+     *
+     * @param list<ArtifactRunRecord> $records
+     * @param array<string, true> $unselectable
+     *
+     * @return list<array{ArtifactRunRecord, non-empty-list<'age'|'count'|'size'>}>
+     */
+    private function select(array $records, array $unselectable, int $now): array
+    {
         \usort($records, static fn(ArtifactRunRecord $a, ArtifactRunRecord $b): int => [$a->completedAt, $a->runId] <=> [$b->completedAt, $b->runId]);
         /** @var array<non-empty-string, non-empty-list<'age'|'count'|'size'>> $selected */
         $selected = [];
         $age = $this->configuration->maxCompletedRunAgeSeconds;
         if ($age !== null) {
             foreach ($records as $record) {
-                if ($record->runId !== $protectedRunId && $record->completedAt <= $now && $now - $record->completedAt >= $age) {
+                if (!isset($unselectable[$record->runId]) && $record->completedAt <= $now && $now - $record->completedAt >= $age) {
                     $selected[$record->runId] = ['age'];
                 }
             }
@@ -251,7 +290,7 @@ final readonly class ArtifactRetention
                 if ($remainingCount <= $countLimit) {
                     break;
                 }
-                if ($record->runId === $protectedRunId || isset($selected[$record->runId])) {
+                if (isset($unselectable[$record->runId]) || isset($selected[$record->runId])) {
                     continue;
                 }
                 $selected[$record->runId] = ['count'];
@@ -271,7 +310,7 @@ final readonly class ArtifactRetention
                 if ($remainingBytes <= $byteLimit) {
                     break;
                 }
-                if ($record->runId === $protectedRunId || isset($selected[$record->runId])) {
+                if (isset($unselectable[$record->runId]) || isset($selected[$record->runId])) {
                     continue;
                 }
                 $selected[$record->runId] = ['size'];
@@ -279,21 +318,14 @@ final readonly class ArtifactRetention
             }
         }
 
-        $items = [];
+        $selection = [];
         foreach ($records as $record) {
-            $reasons = $selected[$record->runId] ?? null;
-            if ($reasons === null) {
-                continue;
+            if (isset($selected[$record->runId])) {
+                $selection[] = [$record, $selected[$record->runId]];
             }
-            $directory = $parent . '/' . $record->runId;
-            if (!$dryRun && !$this->removeClaimed($parent, $directory, $record)) {
-                $warnings[] = \sprintf('Greenlight did not prune artifact run "%s".', $record->runId);
-                continue;
-            }
-            $items[] = new ArtifactPruneItem($record->runId, $directory, $record->bytes, $reasons);
         }
 
-        return new ArtifactPruneReport($items, $warnings, $dryRun);
+        return $selection;
     }
 
     private function removeClaimed(string $parent, string $directory, ArtifactRunRecord $record): bool
@@ -327,7 +359,7 @@ final readonly class ArtifactRetention
             }
             try {
                 $claimed = $this->canonicalDirectory($claim, $claim)
-                    ? $this->recordWithoutLock($claim, $record->runId)
+                    ? $this->verifiedRecord($claim, $record->runId)
                     : null;
             } catch (\Throwable) {
                 $claimed = null;
@@ -491,8 +523,46 @@ final readonly class ArtifactRetention
         return \array_values(\array_filter($names, static fn(string $name): bool => $name !== '.' && $name !== '..'));
     }
 
-    /** @return array<non-empty-string, array{bytes: int, sha256: non-empty-string}> */
-    public static function contentManifest(string $directory): array
+    /**
+     * Returns the SHA-256 manifest of the content below a run directory.
+     *
+     * The method reuses each digest in $known when the file size matches.
+     * It reads all other files.
+     *
+     * @param array<non-empty-string, array{bytes: int, sha256: non-empty-string}> $known
+     *
+     * @return array<non-empty-string, array{bytes: int, sha256: non-empty-string}>
+     * @throws \RuntimeException
+     */
+    public static function contentManifest(string $directory, array $known = []): array
+    {
+        $files = [];
+        foreach (self::contentSizes($directory) as $relative => $size) {
+            $recorded = $known[$relative] ?? null;
+            if ($recorded !== null && $recorded['bytes'] === $size) {
+                $files[$relative] = $recorded;
+
+                continue;
+            }
+            $path = $directory . '/' . $relative;
+            $hash = ErrorTrap::run(static fn() => \hash_file('sha256', $path));
+            if (!\is_string($hash) || $hash === '') {
+                throw new \RuntimeException('Greenlight did not read artifact run content.');
+            }
+            $files[$relative] = ['bytes' => $size, 'sha256' => $hash];
+        }
+
+        return $files;
+    }
+
+    /**
+     * Returns the size of each content file below a run directory. The
+     * method uses `stat` data only and does not read file content.
+     *
+     * @return array<non-empty-string, int>
+     * @throws \RuntimeException
+     */
+    public static function contentSizes(string $directory): array
     {
         if (ErrorTrap::run(static fn() => \is_link($directory))
             || !ErrorTrap::run(static fn() => \is_dir($directory))
@@ -507,11 +577,11 @@ final readonly class ArtifactRetention
             \RecursiveIteratorIterator::SELF_FIRST,
         );
         foreach ($entries as $entry) {
-            if (!$entry instanceof \SplFileInfo || $entry->isLink()) {
-                if ($entry instanceof \SplFileInfo && $entry->isLink()) {
-                    throw new \RuntimeException('Artifact run content contains a symbolic link.');
-                }
+            if (!$entry instanceof \SplFileInfo) {
                 continue;
+            }
+            if ($entry->isLink()) {
+                throw new \RuntimeException('Artifact run content contains a symbolic link.');
             }
             if (!$entry->isFile()) {
                 if ($entry->isDir()) {
@@ -530,11 +600,10 @@ final readonly class ArtifactRetention
                 continue;
             }
             $size = $entry->getSize();
-            $hash = ErrorTrap::run(static fn() => \hash_file('sha256', $entry->getPathname()));
-            if (!\is_int($size) || $size < 0 || !\is_string($hash) || $hash === '') {
+            if (!\is_int($size) || $size < 0) {
                 throw new \RuntimeException('Greenlight did not read artifact run content.');
             }
-            $files[$relative] = ['bytes' => $size, 'sha256' => $hash];
+            $files[$relative] = $size;
         }
         \ksort($files);
         $expectedDirectories = [];
@@ -605,7 +674,7 @@ final readonly class ArtifactRetention
             return null;
         }
         try {
-            return $this->recordWithoutLock($directory, $runId);
+            return $this->candidateRecord($directory, $runId);
         } catch (\Throwable) {
             return null;
         } finally {
@@ -614,7 +683,65 @@ final readonly class ArtifactRetention
         }
     }
 
-    private function recordWithoutLock(string $directory, string $runId): ?ArtifactRunRecord
+    /**
+     * Builds a candidate record from metadata and file sizes. This method
+     * does not read file content.
+     *
+     * @throws \Throwable
+     */
+    private function candidateRecord(string $directory, string $runId): ?ArtifactRunRecord
+    {
+        $decoded = self::metadataMap($directory);
+        if (($decoded['version'] ?? null) !== self::METADATA_VERSION
+            || ($decoded['owner'] ?? null) !== self::OWNER
+            || ($decoded['runId'] ?? null) !== $runId
+            || ($decoded['state'] ?? null) !== 'completed'
+            || !\is_int($decoded['startedAt'] ?? null) || $decoded['startedAt'] < 0
+            || !\is_int($decoded['completedAt'] ?? null) || $decoded['completedAt'] < 0
+            || !\is_array($decoded['files'] ?? null)
+        ) {
+            return null;
+        }
+        $files = $this->validatedFiles($decoded['files']);
+        $validatedRunId = $this->validatedRunId($runId);
+        if ($files === null || $validatedRunId === null) {
+            return null;
+        }
+        $expected = \array_map(static fn(array $file): int => $file['bytes'], $files);
+        if (self::contentSizes($directory) !== $expected) {
+            return null;
+        }
+
+        return new ArtifactRunRecord(
+            $validatedRunId,
+            $decoded['startedAt'],
+            $decoded['completedAt'],
+            $files,
+            $this->withInternalBytes($directory, $this->manifestBytes($files)),
+        );
+    }
+
+    /** @throws \RuntimeException */
+    private function withInternalBytes(string $directory, int $bytes): int
+    {
+        foreach ([self::METADATA_FILE, self::LOCK_FILE] as $internal) {
+            $size = ErrorTrap::run(static fn() => \filesize($directory . '/' . $internal));
+            if (!\is_int($size) || $size < 0) {
+                throw new \RuntimeException('Greenlight did not read artifact run metadata.');
+            }
+            $bytes = $this->saturatingAdd($bytes, $size);
+        }
+
+        return $bytes;
+    }
+
+    /**
+     * Reads a completed run record and verifies the SHA-256 digest of each
+     * content file against the completion manifest.
+     *
+     * @throws \Throwable
+     */
+    private function verifiedRecord(string $directory, string $runId): ?ArtifactRunRecord
     {
         if (ErrorTrap::run(static fn() => \is_link($directory))
             || !ErrorTrap::run(static fn() => \is_dir($directory))
@@ -642,16 +769,13 @@ final readonly class ArtifactRetention
         if ($files === null || self::contentManifest($directory) !== $files) {
             return null;
         }
-        $bytes = $this->manifestBytes($files);
-        foreach ([self::METADATA_FILE, self::LOCK_FILE] as $internal) {
-            $size = ErrorTrap::run(static fn() => \filesize($directory . '/' . $internal));
-            if (!\is_int($size) || $size < 0) {
-                return null;
-            }
-            $bytes = $this->saturatingAdd($bytes, $size);
-        }
-
-        return new ArtifactRunRecord($runId, $decoded['startedAt'], $decoded['completedAt'], $files, $bytes);
+        return new ArtifactRunRecord(
+            $runId,
+            $decoded['startedAt'],
+            $decoded['completedAt'],
+            $files,
+            $this->withInternalBytes($directory, $this->manifestBytes($files)),
+        );
     }
 
     /** @return array<string, mixed> */

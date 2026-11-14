@@ -52,7 +52,7 @@ final readonly class ArtifactPostCopyIntegrityTest
             ->because('post-copy corruption MUST reject attachment publication')
             ->toThrow(
                 AttachmentError::class,
-                message: 'Published attachment content does not match its metadata.',
+                message: 'Attachment content does not match its metadata.',
             );
         expect(\is_file($staged->path))
             ->because('a rejected publication MUST NOT leave the final attachment')
