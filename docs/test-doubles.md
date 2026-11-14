@@ -287,6 +287,9 @@ A class double intercepts only overridable public instance methods.
 Concrete final, static, and protected methods keep their original
 implementations. Calls through these methods can run application code.
 
+Greenlight does not intercept `__debugInfo()`. A class double keeps the class
+implementation. An abstract `__debugInfo()` returns an empty array.
+
 Greenlight does not run the class constructor when it creates a double. Prefer
 an interface at the application boundary.
 

@@ -226,6 +226,11 @@ final readonly class ProxyGenerator
             return null;
         }
 
+        if ($name === '__debuginfo') {
+            // Debug output must not depend on a mock plan.
+            return $method->isAbstract() ? $this->renderDebugInfoStub($method) : null;
+        }
+
         if ($method->isStatic()) {
             return $method->isAbstract() ? $this->renderStaticStub($method) : null;
         }
@@ -344,6 +349,17 @@ final readonly class ProxyGenerator
             "    %s\n    {\n%s    }\n",
             $this->renderSignature($method, $method->getReturnType() ?? $method->getTentativeReturnType(), static: true),
             $body,
+        );
+    }
+
+    /**
+     * @throws InvalidDoubleUsage
+     */
+    private function renderDebugInfoStub(\ReflectionMethod $method): string
+    {
+        return \sprintf(
+            "    %s\n    {\n        return [];\n    }\n",
+            $this->renderSignature($method, $method->getReturnType() ?? $method->getTentativeReturnType()),
         );
     }
 
