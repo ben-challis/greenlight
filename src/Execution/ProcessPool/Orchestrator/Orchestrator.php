@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Greenlight\Execution\ProcessPool\Orchestrator;
 
 use Greenlight\Artifact\AttachmentError;
+use Greenlight\Coverage\Collection\CoverageSettings;
 use Greenlight\Coverage\CoverageMap;
 use Greenlight\Discovery\Plan\ExecutionPlan;
 use Greenlight\Discovery\Plan\PlanEntry;
@@ -62,6 +63,9 @@ final class Orchestrator
     // the complete run, so it permits longer periods.
     private const float TIMEOUT_GRACE_FACTOR = 2.0;
     private const float TIMEOUT_GRACE_FLAT_SECONDS = 2.0;
+    // Workers that exit before they finish a test usually fail in the same
+    // way again, for example after an exit() in a bootstrap file.
+    private const int UNATTRIBUTED_DEATH_LIMIT = 3;
     private ?ResourceScheduler $scheduler = null;
 
     /**
@@ -107,6 +111,14 @@ final class Orchestrator
     /** @var non-negative-int */
     private int $spawnedWorkers = 0;
 
+    /** @var non-negative-int consecutive worker exits without a finished or attributed test */
+    private int $unattributedDeaths = 0;
+
+    /**
+     * @var list<string>
+     */
+    private array $warnings = [];
+
     /**
      * @var array<non-empty-string, true> initial workers that have not received their first assignment
      */
@@ -128,6 +140,16 @@ final class Orchestrator
     public function collectedCoverage(): ?CoverageMap
     {
         return $this->coverage;
+    }
+
+    /**
+     * Returns problems that did not stop the run.
+     *
+     * @return list<string>
+     */
+    public function warnings(): array
+    {
+        return $this->warnings;
     }
 
     /**
@@ -372,7 +394,10 @@ final class Orchestrator
         }
     }
 
-    /** @throws AttachmentError */
+    /**
+     * @throws AttachmentError
+     * @throws ProtocolError
+     */
     private function processHello(int $connectionId, Message $message, EventSink $sink): void
     {
         unset($this->awaitingHello[$connectionId]);
@@ -432,6 +457,7 @@ final class Orchestrator
      *
      * @return bool True when the worker waits for resource capacity.
      * @throws AttachmentError
+     * @throws ProtocolError
      */
     private function assignNext(WorkerState $handle, EventSink $sink): bool
     {
@@ -580,6 +606,7 @@ final class Orchestrator
 
     /**
      * @throws AttachmentError
+     * @throws ProtocolError
      */
     private function openInitialBarrier(EventSink $sink): void
     {
@@ -626,6 +653,7 @@ final class Orchestrator
         }
 
         if ($event instanceof TestFinished) {
+            $this->unattributedDeaths = 0;
             $handle->inFlight = null;
             $handle->inFlightAttempt = 0;
             $handle->finished[(string) $event->result->id] = true;
@@ -812,6 +840,7 @@ final class Orchestrator
         $remainder = $this->retireFailedWorker($handle, true);
 
         if ($inFlight instanceof TestId) {
+            $this->unattributedDeaths = 0;
             $message = \sprintf(
                 'The test exceeded its %.3f-second time limit. Greenlight stopped worker "%s" after %.3f seconds.',
                 $budget,
@@ -837,15 +866,27 @@ final class Orchestrator
     }
 
     /**
+     * Fails the active test of a worker that exited, and queues the rest of
+     * its assignment again.
+     *
+     * An exit without an active test can repeat for each replacement worker.
+     * Thus, consecutive exits of this type stop the run at a small limit.
+     *
      * @throws AttachmentError
+     * @throws ProtocolError
      */
     private function containCrash(WorkerState $handle, EventSink $sink, string $reason): void
     {
         $inFlight = $handle->inFlight;
+        $attempts = $handle->inFlightAttempt;
+        $reportLost = !$inFlight instanceof TestId
+            && $handle->assigned instanceof ExecutionPlan
+            && $handle->unfinished() === [];
+        $remainder = $this->retireFailedWorker($handle);
+        $diagnostics = \trim($this->transport->diagnostics($handle->workerId));
 
         if ($inFlight instanceof TestId) {
-            $diagnostics = \trim($this->transport->diagnostics($handle->workerId));
-
+            $this->unattributedDeaths = 0;
             $this->recordSyntheticResult($sink, new TestResult(
                 $inFlight,
                 Outcome::Errored,
@@ -856,10 +897,52 @@ final class Orchestrator
                     $reason,
                     Utf8::tailBytes($diagnostics, 2_048),
                 )),
-            ), $handle->inFlightAttempt);
+            ), $attempts);
+        } elseif ($reportLost) {
+            $this->recordLostReport($handle, $diagnostics);
+        } elseif (!$this->draining) {
+            ++$this->unattributedDeaths;
+
+            if ($this->unattributedDeaths >= self::UNATTRIBUTED_DEATH_LIMIT) {
+                throw ProtocolError::workerReplacementLoop(
+                    $handle->workerId,
+                    $this->unattributedDeaths,
+                    $reason,
+                    Utf8::tailBytes($diagnostics, 2_048),
+                );
+            }
         }
 
-        $this->enqueueRemainder($this->retireFailedWorker($handle));
+        $this->enqueueRemainder($remainder);
+    }
+
+    /**
+     * Handles a worker that exited after its last test and before Done.
+     *
+     * The test results are complete. Coverage and leak data are lost. Thus,
+     * the run fails only when it collects this data.
+     *
+     * @throws ProtocolError
+     */
+    private function recordLostReport(WorkerState $handle, string $diagnostics): void
+    {
+        $diagnostics = Utf8::tailBytes($diagnostics, 2_048);
+
+        if ($this->configuration->coverageSettings instanceof CoverageSettings || $this->configuration->detectLeaks) {
+            throw ProtocolError::workerReportLost($handle->workerId, $diagnostics);
+        }
+
+        $warning = \sprintf(
+            'Worker "%s" exited after its last test and before it sent its assignment report. '
+            . 'All test results of the assignment are complete.',
+            $handle->workerId,
+        );
+
+        if ($diagnostics !== '') {
+            $warning .= "\nWorker output:\n" . $diagnostics;
+        }
+
+        $this->warnings[] = $warning;
     }
 
     /**
@@ -941,6 +1024,7 @@ final class Orchestrator
 
     /**
      * @throws AttachmentError
+     * @throws ProtocolError
      */
     private function assignWaiting(EventSink $sink): void
     {
