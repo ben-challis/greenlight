@@ -175,7 +175,9 @@ function acquireLock(string $directory, int $maxParallelism)
 
     while (true) {
         for ($slot = 1; $slot <= $maxParallelism; $slot++) {
-            $handle = \fopen($directory . '/slot-' . $slot . '.lock', 'c+');
+            // The "e" flag sets close-on-exec, so the command cannot keep
+            // the slot after the wrapper exits.
+            $handle = \fopen($directory . '/slot-' . $slot . '.lock', 'c+e');
 
             if ($handle === false) {
                 \fail(\sprintf('The local CI lock could not open slot %d.', $slot));
@@ -218,7 +220,56 @@ function run(array $command): int
         \fail(\sprintf('The local CI lock could not start command "%s".', $command[0]));
     }
 
-    return \proc_close($process);
+    if (!\function_exists('pcntl_signal')) {
+        return \proc_close($process);
+    }
+
+    return \waitForwardingSignals($process);
+}
+
+/**
+ * Forwards SIGINT, SIGTERM, and SIGHUP to the command and waits for it.
+ * A signal that the wrapper inherits as ignored stays ignored.
+ * Without this, a signal stops only the wrapper and the command continues
+ * without the lock. After a forwarded signal, the exit code is 128 plus the
+ * signal number.
+ *
+ * @param resource $process
+ */
+function waitForwardingSignals($process): int
+{
+    $received = null;
+    $forward = static function (int $signal) use ($process, &$received): void {
+        $received = $signal;
+        \proc_terminate($process, $signal);
+    };
+
+    \pcntl_async_signals(true);
+
+    foreach ([\SIGINT, \SIGTERM, \SIGHUP] as $signal) {
+        // Keep an inherited ignore disposition, for example from nohup.
+        if (\pcntl_signal_get_handler($signal) !== \SIG_IGN) {
+            \pcntl_signal($signal, $forward);
+        }
+    }
+
+    while (true) {
+        $status = \proc_get_status($process);
+
+        if (!$status['running']) {
+            break;
+        }
+
+        \usleep(20_000);
+    }
+
+    \proc_close($process);
+
+    if (\is_int($received)) {
+        return 128 + $received;
+    }
+
+    return $status['signaled'] ? 128 + $status['termsig'] : $status['exitcode'];
 }
 
 function fail(string $message): never
