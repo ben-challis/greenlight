@@ -46,7 +46,41 @@ final readonly class CoverageDiffZeroPercentageOutputTest
             ->because('a present zero-percent file MUST NOT render as absent')
             ->toBe([
                 'Coverage: baseline 100.00%, current 0.00% (-100.00)',
-                '/project/src/Zero.php: 100.00% -> 0.00% (-100.00), newly uncovered lines: 1',
+                '/project/src/Zero.php: 100.00% -> 0.00% (-100.00), uncovered lines: 0 -> 1',
+            ]);
+    }
+
+    #[Test]
+    public function anAddedFileWithUncoveredLinesIsListed(): void
+    {
+        $directory = $this->tempDirectory->subdirectory('added-uncovered-file-delta');
+        $baseline = new CoverageMap([
+            new FileCoverage('/project/src/A.php', [1], []),
+        ]);
+        $current = new CoverageMap([
+            new FileCoverage('/project/src/A.php', [1], []),
+            new FileCoverage('/project/src/New.php', [], [1, 2]),
+        ]);
+        CoverageJson::write($directory . '/baseline.json', $baseline);
+        CoverageJson::write($directory . '/current.json', $current);
+
+        $result = GreenlightCli::run(
+            $directory,
+            [
+                'coverage:diff',
+                '--baseline=baseline.json',
+                '--current=current.json',
+            ],
+        );
+
+        expect($result->exitCode)
+            ->because('an added file with uncovered lines MUST report a coverage regression')
+            ->toBe(1);
+        expect($result->stdoutLines())
+            ->because('the output MUST name the added file that causes the regression')
+            ->toBe([
+                'Coverage: baseline 100.00%, current 33.33% (-66.67)',
+                '/project/src/New.php: absent -> 0.00% (+0.00), uncovered lines: 0 -> 2',
             ]);
     }
 }

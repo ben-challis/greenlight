@@ -727,12 +727,22 @@ The command also accepts `--minimum-coverage` and
 `--maximum-uncovered-lines`. These gates apply to the current export. A failed
 gate fails the command when the baseline has no regression.
 
-Exits with code 1 if coverage across files present in both exports decreases.
-It also fails if the current export has a newly uncovered line. This rule also
-applies to added files. A coverage gain elsewhere does not hide that line.
+The command compares each file that is in both exports. It exits with code 1
+if a file has more uncovered lines than in the baseline. It also exits with
+code 1 if the percentage of a file decreases. The command compares percentages
+at two decimal places. A coverage gain in a different file does not hide a
+regression.
 
-Removed files do not cause a regression. The displayed total percentages
-include all files, so their difference alone does not determine the exit code.
+The command compares line counts, not line numbers. An edit that moves lines
+does not cause a regression. The output shows the uncovered-line counts for
+each file that has a changed count.
+
+An added file with an uncovered line also causes a regression. Removed files do
+not cause a regression. The command does not detect renamed files. A renamed
+file is a removed file and an added file.
+
+The displayed total percentages include all files, so their difference alone
+does not determine the exit code.
 
 See the [coverage JSON schema](architecture/coverage-json.md) for the required
 format and path rules.
