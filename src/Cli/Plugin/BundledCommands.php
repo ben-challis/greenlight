@@ -7,6 +7,7 @@ namespace Greenlight\Cli\Plugin;
 use Greenlight\Cli\Command\CompletionCommand;
 use Greenlight\Cli\Command\CoverageDiffCommand;
 use Greenlight\Cli\Command\CoverageMergeCommand;
+use Greenlight\Cli\Command\HelpCommand;
 use Greenlight\Cli\Command\IdeHelperCommand;
 use Greenlight\Cli\Command\ListCommand;
 use Greenlight\Cli\Command\ProfileReportCommand;
@@ -14,7 +15,6 @@ use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Cli\Output\HelpFormatter;
 use Greenlight\Cli\Run\ArtifactsPruneCommand;
 use Greenlight\Cli\Run\RunCommand;
 use Greenlight\Coverage\CoverageError;
@@ -68,52 +68,35 @@ final readonly class BundledCommands implements CommandProvider
      */
     private function parsedCommand(CommandInvocation $invocation): CommandResult
     {
+        $command = $invocation->command;
+
         try {
-            $arguments = $this->definition->parser($invocation->command)->parse($invocation->arguments);
+            $arguments = $this->definition->parser($command)->parse($invocation->arguments);
 
             if ($arguments->command !== null) {
                 throw CliError::unexpectedArgument($arguments->command);
             }
 
-            $arguments = new ParsedArguments($invocation->command, $arguments->options);
+            $arguments = new ParsedArguments($command, $arguments->options);
         } catch (CliError $error) {
             $this->console->error($error->getMessage(), \in_array('--no-ansi', $invocation->arguments, true));
 
             return CommandResult::usage();
         }
 
-        if ($arguments->has('help')) {
-            $style = $this->console->stdoutStyle($arguments->has('no-ansi'), $arguments->has('ansi'));
-            $this->console->out(new HelpFormatter($style)->format(Definition::HELP) . "\n");
-
-            return CommandResult::success();
+        if (HelpCommand::selects($arguments)) {
+            return new HelpCommand($this->console, $this->version)->run($arguments);
         }
 
-        if ($arguments->has('version')) {
-            $this->console->out('Greenlight ' . $this->version . "\n");
+        $formatError = ListCommand::formatError($command, $arguments);
 
-            return CommandResult::success();
-        }
-
-        $command = $arguments->command ?? 'run';
-
-        if ($arguments->has('format')
-            && $command !== 'list-tests'
-            && ($command !== 'run' || !$arguments->has('list-tests'))
-        ) {
-            $this->console->error(
-                CliError::formatRequiresTestListing()->getMessage(),
-                $arguments->has('no-ansi'),
-            );
+        if ($formatError instanceof CliError) {
+            $this->console->error($formatError->getMessage(), $arguments->has('no-ansi'));
 
             return CommandResult::usage();
         }
 
-        if ($command === 'list-tests'
-            || ($command === 'run'
-                && !$arguments->has('dry-run')
-                && ($arguments->has('list-tests') || $arguments->has('list-groups') || $arguments->has('list-suites')))
-        ) {
+        if (ListCommand::selects($command, $arguments)) {
             return new ListCommand($this->console)->run($arguments, $invocation->workingDirectory);
         }
 

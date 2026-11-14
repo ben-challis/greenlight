@@ -2,13 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Greenlight\Cli\Command;
+namespace Greenlight\Cli\Run;
 
 use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\Definition;
 use Greenlight\Cli\Output\Console;
-use Greenlight\Cli\Run\RunSession;
-use Greenlight\Cli\Run\WorkerExecutable;
 use Greenlight\Cli\Signal\SignalHandlers;
 use Greenlight\Cli\State\RunState;
 use Greenlight\Config\ConfigFileError;
