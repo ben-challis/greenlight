@@ -13,13 +13,11 @@ final readonly class ArgumentScan
 {
     /**
      * @param array<string, list<string|null>> $options
-     * @param non-empty-string|null $valueOptionBeforeCommand A required-value option directly before the command word.
      */
     public function __construct(
         public ?string $command,
         public ?int $commandIndex,
         public array $options,
-        public ?string $valueOptionBeforeCommand,
     ) {}
 
     public function has(string $name): bool

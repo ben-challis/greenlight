@@ -197,27 +197,8 @@ final readonly class CompletionScripts
         );
         $lines[] = '';
 
-        // Fish completes a long option as a separate word. Greenlight reads
-        // option values only in the --name=value form. Thus, a value option
-        // completes to --name=. The long form of a required-value option is
-        // active only after the =.
-        $valueFlags = $this->valueFlagWords();
-
-        if ($valueFlags !== []) {
-            $lines[] = \sprintf(
-                "complete -c greenlight -f -n 'string match -q -- \"-*\" (commandline -ct)' -a '%s'",
-                \implode(' ', $valueFlags),
-            );
-        }
-
         foreach ($this->specs as $spec) {
-            $line = 'complete -c greenlight';
-
-            if ($spec->value === OptionValue::Required) {
-                $line .= \sprintf(" -n 'string match -q -- \"--%s=*\" (commandline -ct)'", $spec->name);
-            }
-
-            $line .= ' -l ' . $spec->name;
+            $line = 'complete -c greenlight -l ' . $spec->name;
 
             if ($spec->short !== null) {
                 $line .= ' -s ' . $spec->short;

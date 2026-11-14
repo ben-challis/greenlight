@@ -66,7 +66,11 @@ final class ArgumentParser
         /** @var array<string, list<string|null>> $options */
         $options = [];
 
-        foreach ($argv as $argument) {
+        $count = \count($argv);
+
+        for ($index = 0; $index < $count; ++$index) {
+            $argument = $argv[$index];
+
             if (\str_starts_with($argument, '--')) {
                 $body = \substr($argument, 2);
 
@@ -89,8 +93,15 @@ final class ArgumentParser
                     throw CliError::optionTakesNoValue($name);
                 }
 
+                // A required value can also be the next word. An optional
+                // value uses only the equals form, because the next word can
+                // be the command or a path.
                 if ($value === null && $spec->value === OptionValue::Required) {
-                    throw CliError::optionRequiresValue($name);
+                    if ($index + 1 >= $count) {
+                        throw CliError::optionRequiresValue($name);
+                    }
+
+                    $value = $argv[++$index];
                 }
 
                 $this->record($options, $spec, $value);
@@ -126,13 +137,14 @@ final class ArgumentParser
     {
         $command = null;
         $commandIndex = null;
-        $valueOptionBeforeCommand = null;
 
         /** @var array<string, list<string|null>> $options */
         $options = [];
-        $previous = null;
+        $count = \count($argv);
 
-        foreach ($argv as $index => $argument) {
+        for ($index = 0; $index < $count; ++$index) {
+            $argument = $argv[$index];
+
             if (\str_starts_with($argument, '--') && $argument !== '--') {
                 $body = \substr($argument, 2);
                 $separator = \strpos($body, '=');
@@ -140,30 +152,26 @@ final class ArgumentParser
                 $value = $separator === false ? null : \substr($body, $separator + 1);
                 $spec = $this->byName[$name] ?? null;
 
+                if ($spec instanceof OptionSpec && $value === null && $spec->value === OptionValue::Required) {
+                    $value = $argv[++$index] ?? null;
+                }
+
                 if ($spec instanceof OptionSpec) {
                     $options[$spec->name][] = $value;
                 }
-
-                $previous = $value === null ? $spec : null;
             } elseif (\str_starts_with($argument, '-') && $argument !== '-') {
                 $spec = $this->byShort[\substr($argument, 1)] ?? null;
 
                 if ($spec instanceof OptionSpec) {
                     $options[$spec->name][] = null;
                 }
-
-                $previous = null;
             } elseif ($command === null) {
                 $command = $argument;
                 $commandIndex = $index;
-
-                if ($previous instanceof OptionSpec && $previous->value === OptionValue::Required) {
-                    $valueOptionBeforeCommand = $previous->name;
-                }
             }
         }
 
-        return new ArgumentScan($command, $commandIndex, $options, $valueOptionBeforeCommand);
+        return new ArgumentScan($command, $commandIndex, $options);
     }
 
     /**
