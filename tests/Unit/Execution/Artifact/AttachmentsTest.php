@@ -504,7 +504,7 @@ final readonly class AttachmentsTest
             attachments: [$staged],
         )))->toThrow(
             AttachmentError::class,
-            message: 'Attachment staging content does not match its metadata.',
+            message: 'Attachment content does not match its metadata.',
         );
 
     }

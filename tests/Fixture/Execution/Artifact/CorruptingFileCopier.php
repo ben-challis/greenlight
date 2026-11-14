@@ -10,7 +10,7 @@ use Greenlight\Execution\Artifact\FileCopier;
 final readonly class CorruptingFileCopier implements Fake, FileCopier
 {
     #[\Override]
-    public function copy(string $sourcePath, string $destinationPath): void
+    public function copy(string $sourcePath, string $destinationPath): string
     {
         $contents = \file_get_contents($sourcePath);
 
@@ -23,5 +23,7 @@ final readonly class CorruptingFileCopier implements Fake, FileCopier
         if (\file_put_contents($destinationPath, $contents, \LOCK_EX) !== \strlen($contents)) {
             throw new \RuntimeException('The corrupting file copier did not write the destination.');
         }
+
+        return \hash('sha256', $contents);
     }
 }

@@ -26,9 +26,11 @@ policy, and eventual published path.
 ## Publication
 
 Before a `TestFinished` event reaches reporters, the process that handles it
-decides retention from the terminal result. The process copies retained content
-to a temporary file beside the destination. It then renames the file into place
-atomically. The public `TestResult` contains the published metadata without the
+decides retention from the terminal result. The process moves retained content
+to a temporary file beside the destination with `rename()`. If staging is on a
+different filesystem, the process copies the content instead and calculates the
+SHA-256 digest during the copy. The process compares the size and digest with
+the staged metadata. It then renames the file into place atomically. The public `TestResult` contains the published metadata without the
 storage key.
 
 By default, the terminal result retains attachments from earlier retry attempts.
@@ -56,9 +58,13 @@ incomplete run that can be recovered.
 A completed record contains the completion time and an exact file manifest.
 The manifest has each relative path, byte count, and SHA-256 digest. Greenlight
 does not prune a directory when its content does not match the manifest.
+Completion writes the manifest from the digests that publication calculated.
+It reads only files that publication did not record.
 
-Pruning uses one lock in the canonical artifact parent. It claims a selected
-run with an atomic rename before deletion. Concurrent Greenlight processes can
+Pruning uses one lock in the canonical artifact parent. Selection uses run
+metadata and `stat` data only, so it does not read retained content. Pruning
+claims a selected run with an atomic rename before deletion. It then verifies
+the SHA-256 digest of each file against the manifest. Concurrent Greenlight processes can
 safely apply the same policy.
 
 An interrupted prune can leave a `.greenlight-prune-` claim. Before it selects
