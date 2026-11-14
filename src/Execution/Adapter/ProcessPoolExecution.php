@@ -23,7 +23,6 @@ use Greenlight\Execution\ProcessPool\Orchestrator\OrchestratorConfiguration;
 use Greenlight\Execution\ProcessPool\Orchestrator\ResourceScheduler;
 use Greenlight\Execution\ProcessPool\Orchestrator\WorkerTransport;
 use Greenlight\Internal\Process\EmergencyCleanups;
-use Greenlight\Internal\Php\ErrorTrap;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Internal\Wire\WireCommunicationFailed;
 use Greenlight\Reporting\ReportGenerationFailed;
@@ -133,7 +132,7 @@ final readonly class ProcessPoolExecution implements ExecutionAdapter
         $warnings = $orchestrator->warnings();
 
         foreach ($warnings as $warning) {
-            ErrorTrap::run(fn() => \fwrite($this->warningStream ?? \STDERR, 'Warning: ' . $warning . "\n"));
+            \fwrite($this->warningStream ?? \STDERR, 'Warning: ' . $warning . "\n");
         }
 
         return new ExecutionOutcome(
