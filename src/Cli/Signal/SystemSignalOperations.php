@@ -29,4 +29,16 @@ final readonly class SystemSignalOperations implements SignalOperations
     {
         \pcntl_signal($signal, $handler);
     }
+
+    #[\Override]
+    public function raise(int $signal): void
+    {
+        if (\function_exists('posix_kill') && \function_exists('posix_getpid')) {
+            \posix_kill(\posix_getpid(), $signal);
+        }
+
+        // Without POSIX functions, or when the default action does not end the
+        // process, exit with the status that a shell shows for the signal.
+        exit(128 + $signal);
+    }
 }
