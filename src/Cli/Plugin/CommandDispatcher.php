@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Greenlight\Cli\Plugin;
 
 use Greenlight\Cli\Configuration\ConfigurationLoader;
+use Greenlight\Cli\Input\ArgumentScan;
 use Greenlight\Cli\Input\Definition;
-use Greenlight\Cli\Input\OptionValue;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
@@ -43,17 +43,20 @@ final readonly class CommandDispatcher
      */
     public function dispatch(array $argv, string $workingDirectory, ?string $binPath): CommandResult
     {
-        [$command, $commandIndex] = $this->selectedCommand($argv);
-        $command ??= 'run';
+        $scan = $this->definition->parser()->scan($argv);
+        $noAnsi = $scan->has('no-ansi');
+
+        $command = $scan->command ?? 'run';
+        $commandIndex = $scan->commandIndex;
 
         try {
             $catalog = $this->catalog([]);
 
             if (!$catalog->has($command)) {
-                $catalog = $this->catalog($this->configuredPlugins($argv, $workingDirectory));
+                $catalog = $this->catalog($this->configuredPlugins($scan, $workingDirectory));
             }
         } catch (ConfigFileError|InvalidConfiguration|CommandSetupFailed $error) {
-            $this->console->error($error->getMessage(), \in_array('--no-ansi', $argv, true));
+            $this->console->error($error->getMessage(), $noAnsi);
 
             return CommandResult::failure();
         }
@@ -63,7 +66,7 @@ final readonly class CommandDispatcher
         if (!$definition instanceof CommandDefinition) {
             $this->console->error(
                 \sprintf("Unknown command '%s'. Use greenlight --help to list commands.", $command),
-                \in_array('--no-ansi', $argv, true),
+                $noAnsi,
             );
 
             return CommandResult::usage();
@@ -92,7 +95,7 @@ final readonly class CommandDispatcher
                 'Command "%s" caused an error: %s',
                 $command,
                 $error->getMessage(),
-            ), \in_array('--no-ansi', $argv, true));
+            ), $noAnsi);
 
             return CommandResult::failure();
         }
@@ -142,23 +145,13 @@ final readonly class CommandDispatcher
     }
 
     /**
-     * @param list<string> $argv
      * @return list<PluginDefinition>
      * @throws ConfigFileError
      * @throws InvalidConfiguration
      */
-    private function configuredPlugins(array $argv, string $workingDirectory): array
+    private function configuredPlugins(ArgumentScan $scan, string $workingDirectory): array
     {
-        $configuredPath = null;
-
-        foreach ($argv as $index => $argument) {
-            if (\str_starts_with($argument, '--config=')) {
-                $configuredPath = \substr($argument, \strlen('--config='));
-            } elseif ($argument === '--config' && isset($argv[$index + 1])) {
-                $configuredPath = $argv[$index + 1];
-            }
-        }
-
+        $configuredPath = $scan->value('config');
         $loader = new ConfigLoader();
 
         if ($configuredPath !== null) {
@@ -174,41 +167,5 @@ final readonly class CommandDispatcher
         }
 
         return $builder->build()->execution->plugins;
-    }
-
-    /**
-     * Finds the command word. The word after an option that requires a value
-     * and has no equals sign is that value, not the command.
-     *
-     * @param list<string> $argv
-     * @return array{?string, ?int}
-     */
-    private function selectedCommand(array $argv): array
-    {
-        $requiresValue = [];
-
-        foreach ($this->definition->options() as $spec) {
-            if ($spec->value === OptionValue::Required) {
-                $requiresValue['--' . $spec->name] = true;
-            }
-        }
-
-        $count = \count($argv);
-
-        for ($index = 0; $index < $count; ++$index) {
-            $argument = $argv[$index];
-
-            if (isset($requiresValue[$argument])) {
-                ++$index;
-
-                continue;
-            }
-
-            if (!\str_starts_with($argument, '-') || $argument === '-') {
-                return [$argument, $index];
-            }
-        }
-
-        return [null, null];
     }
 }
