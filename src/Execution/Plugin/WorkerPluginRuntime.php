@@ -164,7 +164,7 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
      */
     public function runWorker(\Closure $worker): mixed
     {
-        foreach (\array_reverse($this->ordered(WorkerRuntimeRunner::class)) as $runner) {
+        foreach ($this->orderedReversed(WorkerRuntimeRunner::class) as $runner) {
             $next = $worker;
             $worker = static fn(): mixed => $runner->runWorker($next);
         }
@@ -181,7 +181,13 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
      */
     public function runTestAttempt(\Closure $attempt): mixed
     {
-        foreach (\array_reverse($this->ordered(TestAttemptRunner::class)) as $runner) {
+        $runners = $this->orderedReversed(TestAttemptRunner::class);
+
+        if ($runners === []) {
+            return $attempt();
+        }
+
+        foreach ($runners as $runner) {
             $next = $attempt;
             $attempt = static fn(): mixed => $runner->runTestAttempt($next);
         }
@@ -208,7 +214,7 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
 
     public function afterTest(TestContext $context, TestResult $result): TestResult
     {
-        foreach (\array_reverse($this->ordered(AfterTestSubscriber::class)) as $subscriber) {
+        foreach ($this->orderedReversed(AfterTestSubscriber::class) as $subscriber) {
             try {
                 $replacement = $subscriber->afterTest($context, $result);
             } catch (\Throwable $failure) {
@@ -229,7 +235,7 @@ final readonly class WorkerPluginRuntime extends PluginRuntime
      */
     public function testAttemptEnded(TestId $id, TestDefinition $definition, TestResult $result): TestResult
     {
-        foreach (\array_reverse($this->ordered(TestAttemptEndSubscriber::class)) as $subscriber) {
+        foreach ($this->orderedReversed(TestAttemptEndSubscriber::class) as $subscriber) {
             try {
                 $subscriber->testAttemptEnded($id, $definition);
             } catch (\Throwable $failure) {
