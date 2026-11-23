@@ -30,9 +30,10 @@ final readonly class PlainReporterFirstRetryTest
             ),
             1_750_000_000.5,
         ));
+        $reporter->finish();
 
         expect($output->buffer())
             ->because('the first retry MUST report both attempts')
-            ->toBe("PASS Acme\\RetryTest::passesOnFirstRetry (0.010s) (passed after 2 attempts)\n");
+            ->toStartWith("PASS Acme\\RetryTest::passesOnFirstRetry (0.010s) (passed after 2 attempts)\n");
     }
 }

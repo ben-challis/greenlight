@@ -142,4 +142,39 @@ final class PlainReporterTest
             ->toContain('FAIL Acme\\RiskyTest::failsWithoutExpectations')
             ->not()->toContain('Risky tests:');
     }
+
+    #[Test]
+    public function testLinesWaitForOneWriteUntilTheReporterFinishes(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new PlainReporter($output);
+        $reporter->onEvent(new TestFinished(
+            new TestResult(new TestId('Acme\\QuickTest', 'passes'), Outcome::Passed, 0.001, 0),
+            1.0,
+        ));
+
+        expect($output->buffer())->because('one short test line waits for the next write')->toBe('');
+
+        $reporter->finish();
+
+        expect($output->buffer())
+            ->because('finish() writes each line that waits')
+            ->toStartWith("PASS Acme\\QuickTest::passes (0.001s)\n");
+    }
+
+    #[Test]
+    public function testLinesAreWrittenWhenTheyReachTheSizeLimit(): void
+    {
+        $output = new BufferOutput();
+        $reporter = new PlainReporter($output);
+        $method = \str_repeat('m', 9_000);
+        $reporter->onEvent(new TestFinished(
+            new TestResult(new TestId('Acme\\LongTest', $method), Outcome::Passed, 0.001, 0),
+            1.0,
+        ));
+
+        expect($output->buffer())
+            ->because('lines above the size limit do not wait for finish()')
+            ->toBe('PASS Acme\\LongTest::' . $method . " (0.001s)\n");
+    }
 }

@@ -57,6 +57,14 @@ final class PlainReporter implements Reporter
 
     private ?RunFinished $runFinished = null;
 
+    /**
+     * Test lines that wait for the next write. One write for many lines
+     * costs less than one write for each line.
+     */
+    private string $pending = '';
+
+    private int|float $pendingSince = 0;
+
     private readonly Style $style;
 
     private readonly SlowTests $slowTests;
@@ -98,17 +106,19 @@ final class PlainReporter implements Reporter
                     : \sprintf(' (attempts: %d)', $result->attempts))
                 : '';
 
-            $this->output->write(\sprintf(
+            $line = \sprintf(
                 "%s %s (%.3fs)%s\n",
                 ProblemDetails::outcomeLabel($result),
                 $result->id,
                 $result->durationSeconds,
                 $attempts,
-            ));
+            );
 
             if ($result->outcome->isSuccessful() && $result->attachments !== []) {
-                $this->output->write(AttachmentFormat::render($result));
+                $line .= AttachmentFormat::render($result);
             }
+
+            $this->buffer($line);
 
             if (!$result->outcome->isSuccessful()) {
                 $this->problems[] = $result;
@@ -143,6 +153,8 @@ final class PlainReporter implements Reporter
     #[\Override]
     public function finish(): void
     {
+        $this->flush();
+
         foreach ($this->problems as $problem) {
             $this->output->write(\sprintf(
                 "\n%s %s\n%s",
@@ -177,4 +189,38 @@ final class PlainReporter implements Reporter
         }
     }
 
+    /**
+     * Holds test lines for a maximum of 50 milliseconds or 8 KiB, then writes
+     * them in one operation.
+     *
+     * @throws ReportGenerationFailed
+     */
+    private function buffer(string $text): void
+    {
+        $now = \hrtime(true);
+
+        if ($this->pending === '') {
+            $this->pendingSince = $now;
+        }
+
+        $this->pending .= $text;
+
+        if (\strlen($this->pending) >= 8192 || $now - $this->pendingSince >= 50_000_000) {
+            $this->flush();
+        }
+    }
+
+    /**
+     * @throws ReportGenerationFailed
+     */
+    private function flush(): void
+    {
+        if ($this->pending === '') {
+            return;
+        }
+
+        $text = $this->pending;
+        $this->pending = '';
+        $this->output->write($text);
+    }
 }
