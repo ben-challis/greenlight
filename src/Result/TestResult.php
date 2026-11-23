@@ -114,6 +114,10 @@ final readonly class TestResult
      */
     public function withAttachments(array $attachments): self
     {
+        if ($attachments === $this->attachments) {
+            return $this;
+        }
+
         return $this->with(attachments: $attachments);
     }
 
