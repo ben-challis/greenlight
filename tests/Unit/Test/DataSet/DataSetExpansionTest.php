@@ -312,4 +312,30 @@ final class DataSetExpansionTest
                     . 'Use each key only once for the test method.',
             );
     }
+
+    #[Test]
+    public function reusedProviderRowsNeedOneProviderCallForEachProvider(): void
+    {
+        $expander = new DataSetExpander(new FakeMonotonicClock(0, 0, 0, 0), reuseProviderRows: true);
+        $class = new \ReflectionClass(ProviderKeysTest::class);
+
+        $first = $expander->rowsFor($class, 'withStringKeys', 'stringKeys', 5.0);
+        $second = $expander->rowsFor($class, 'withAwkwardKeys', 'stringKeys', 5.0);
+
+        expect(\array_keys($second))
+            ->because('a second test method gets the keys of the first provider call')
+            ->toBe(\array_keys($first));
+    }
+
+    #[Test]
+    public function providerRowsAreNotReusedByDefault(): void
+    {
+        $expander = new DataSetExpander(new FakeMonotonicClock(0, 0, 0, 0));
+        $class = new \ReflectionClass(ProviderKeysTest::class);
+        $expander->rowsFor($class, 'withStringKeys', 'stringKeys', 5.0);
+
+        expect()->calling(static fn(): array => $expander->rowsFor($class, 'withAwkwardKeys', 'stringKeys', 5.0))
+            ->because('each call invokes the provider again and reads the clock')
+            ->toThrow(\LogicException::class, message: 'No monotonic clock readings remain.');
+    }
 }

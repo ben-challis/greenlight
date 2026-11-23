@@ -29,10 +29,22 @@ final readonly class DataSetExpander
     private \Closure $monotonicTime;
 
     /**
-     * @param (callable(): (int|float))|null $monotonicTime
+     * Provider rows by provider class and method, or null when each call
+     * must invoke the provider again.
+     *
+     * @var \ArrayObject<string, non-empty-array<array-key, mixed>>|null
      */
-    public function __construct(?callable $monotonicTime = null)
+    private ?\ArrayObject $providerRows;
+
+    /**
+     * @param (callable(): (int|float))|null $monotonicTime
+     * @param bool $reuseProviderRows Invoke each provider one time for all test
+     *   methods that use it. Set this option only when the caller reads the
+     *   data set keys and does not pass the rows to a test.
+     */
+    public function __construct(?callable $monotonicTime = null, bool $reuseProviderRows = false)
     {
+        $this->providerRows = $reuseProviderRows ? new \ArrayObject() : null;
         $this->monotonicTime = $monotonicTime === null
             ? static fn(): int|float => \hrtime(true)
             : $monotonicTime(...);
@@ -136,6 +148,11 @@ final readonly class DataSetExpander
     ): array {
         $testClassName = $testClass->getName();
         $providerClassName = $providerClass->getName();
+        $cacheKey = $providerClassName . '::' . $provider;
+
+        if (isset($this->providerRows[$cacheKey])) {
+            return $this->providerRows[$cacheKey];
+        }
 
         if (!$providerClass->hasMethod($provider)) {
             throw DataSetError::providerMissing($testClassName, $testMethod, $providerClassName, $provider);
@@ -182,6 +199,10 @@ final readonly class DataSetExpander
 
         if ($dataSets === []) {
             throw DataSetError::providerYieldedNothing($providerClassName, $provider);
+        }
+
+        if ($this->providerRows instanceof \ArrayObject) {
+            $this->providerRows[$cacheKey] = $dataSets;
         }
 
         return $dataSets;
