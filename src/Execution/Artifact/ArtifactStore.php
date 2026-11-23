@@ -88,7 +88,11 @@ final class ArtifactStore
     /** @throws AttachmentError */
     public function forAttempt(TestId $id, int $attempt, TestArtifactBudget $budget): StagedAttachments
     {
-        $attemptRecorded = $this->staging->hasTestDirectory($id);
+        // A store with a publisher runs tests only in the orchestrator
+        // process. No worker writes to the staging directory during that
+        // time, so an absent directory needs no check for each test.
+        $attemptRecorded = (!$this->publisher instanceof ArtifactPublisher || $this->staging->stagingMayExist())
+            && $this->staging->hasTestDirectory($id);
 
         if ($attemptRecorded) {
             $this->staging->recordAttempt($id, $attempt);

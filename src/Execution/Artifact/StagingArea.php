@@ -34,11 +34,39 @@ final readonly class StagingArea
 
     private RunQuota $quota;
 
+    /**
+     * Remembers that the staging directory was absent at the last check.
+     * The ensureStaging() method clears the entry.
+     */
+    private StagingMemo $memo;
+
     public function __construct(
         public ArtifactSession $session,
         ArtifactConfiguration $configuration,
     ) {
         $this->quota = new RunQuota($session->stagingDirectory, $configuration);
+        $this->memo = new StagingMemo();
+    }
+
+    /**
+     * Reports whether the staging directory can contain a test directory.
+     * Use the result only when no other process writes to the directory.
+     */
+    public function stagingMayExist(): bool
+    {
+        if ($this->memo->absent) {
+            return false;
+        }
+
+        $directory = $this->session->stagingDirectory;
+
+        if (\is_dir($directory) || \is_link($directory)) {
+            return true;
+        }
+
+        $this->memo->absent = true;
+
+        return false;
     }
 
     public static function testDirectory(TestId $id): string
@@ -498,6 +526,7 @@ final readonly class StagingArea
     /** @throws AttachmentError */
     private function ensureStaging(): void
     {
+        $this->memo->absent = false;
         $directory = $this->session->stagingDirectory;
 
         if (\is_link($directory)) {
