@@ -40,6 +40,15 @@ final readonly class TestSelection
     /** @param list<string> $groups */
     public function accepts(string $class, string $method, array $groups, string $path): bool
     {
+        $include = $this->include;
+        $exclude = $this->exclude;
+
+        if ($include->groups === [] && $include->classes === [] && $include->methods === [] && $include->paths === []
+            && $exclude->groups === [] && $exclude->classes === [] && $exclude->methods === [] && $exclude->paths === []
+        ) {
+            return true;
+        }
+
         if ($this->include->groups !== [] && !$this->anyGroupMatches($groups, $this->include->groups)) {
             return false;
         }
