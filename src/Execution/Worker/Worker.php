@@ -114,9 +114,12 @@ final readonly class Worker
 
                     $result = $plugins->terminalResult($entry->definition, $result);
 
-                    $candidateSummary = $summary->add($result->outcome);
-                    $failureLimitReached = $stopAfterFailures !== null
-                        && $candidateSummary->failed + $candidateSummary->errored >= $stopAfterFailures;
+                    $failureLimitReached = false;
+
+                    if ($stopAfterFailures !== null) {
+                        $candidateSummary = $summary->add($result->outcome);
+                        $failureLimitReached = $candidateSummary->failed + $candidateSummary->errored >= $stopAfterFailures;
+                    }
                     $drainReached = $drainRequested instanceof \Closure && $drainRequested();
 
                     if ($index === $lastIndex || $failureLimitReached || $drainReached) {
