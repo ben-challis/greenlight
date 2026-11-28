@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Command;
 
-use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Configuration\CoverageOverrides;
 use Greenlight\Cli\Coverage\CoverageGate;
 use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Config\CoverageConfiguration;
+use Greenlight\Config\WorkingDirectoryPath;
 use Greenlight\Coverage\Diff\BaselineDiff;
 use Greenlight\Coverage\Diff\ProjectRootNormalizer;
 use Greenlight\Coverage\Export\JsonExporter;
@@ -50,7 +50,7 @@ final readonly class CoverageDiffCommand
         }
         $maps = [];
         foreach (['baseline' => $baselinePath, 'current' => $currentPath] as $label => $path) {
-            $absolute = ConfigurationLoader::absolutePath($path, $workingDirectory);
+            $absolute = WorkingDirectoryPath::resolve($path, $workingDirectory);
             $json = ErrorTrap::run(static fn() => \file_get_contents($absolute), $warning);
             if ($json === false) {
                 $this->console->error(
@@ -90,7 +90,7 @@ final readonly class CoverageDiffCommand
                 try {
                     $maps[$label] = ProjectRootNormalizer::normalize(
                         $maps[$label],
-                        ConfigurationLoader::absolutePath($root, $workingDirectory),
+                        WorkingDirectoryPath::resolve($root, $workingDirectory),
                     );
                 } catch (\InvalidArgumentException $error) {
                     $this->console->error(\sprintf(

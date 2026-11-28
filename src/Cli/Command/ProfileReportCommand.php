@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Greenlight\Cli\Command;
 
-use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
+use Greenlight\Config\WorkingDirectoryPath;
 use Greenlight\Internal\Event\EventCodec;
 use Greenlight\Internal\Event\EventCodecFailed;
 use Greenlight\Internal\Event\EventCodecFailureKind;
@@ -32,7 +32,7 @@ final readonly class ProfileReportCommand
             $this->console->err("profile:report requires --input=<path to a JSONL stream>.\n");
             return CommandResult::usage();
         }
-        $path = ConfigurationLoader::absolutePath($input, $workingDirectory);
+        $path = WorkingDirectoryPath::resolve($input, $workingDirectory);
         $stream = ErrorTrap::run(static fn() => \fopen($path, 'rb'), $warning);
         if ($stream === false) {
             $this->console->err(\sprintf("Greenlight could not read \"%s\"%s.\n", $path, $warning === null ? '' : ': ' . $warning));
