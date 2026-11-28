@@ -38,8 +38,8 @@ jobs:
       - name: "Install dependencies"
         run: "npm --prefix website ci"
 
-      - name: "Install browser"
-        run: "npm --prefix website exec -- playwright install --with-deps chromium"
+      - name: "Install Chromium headless shell"
+        run: "npm --prefix website exec -- playwright install --with-deps --only-shell chromium"
 
       - name: "Check and build"
         run: "npm --prefix website run check"
