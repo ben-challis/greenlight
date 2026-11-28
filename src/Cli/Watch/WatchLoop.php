@@ -27,6 +27,10 @@ final readonly class WatchLoop
 {
     private const float POLL_INTERVAL_SECONDS = 0.1;
 
+    // The idle loop sleeps at least this multiple of the last scan time. A
+    // large tree thus uses at most about one fifth of a core while idle.
+    private const float SCAN_TIME_MULTIPLIER = 4.0;
+
     /**
      * @param \Closure(string): void $out
      */
@@ -69,7 +73,9 @@ final readonly class WatchLoop
             }
 
             $runNow = $key === "\n";
+            $scanStarted = $this->clock->now();
             $changes = $this->detector->poll();
+            $scanSeconds = $this->clock->now() - $scanStarted;
 
             if ($changes !== []) {
                 $count = \count($changes);
@@ -92,7 +98,7 @@ final readonly class WatchLoop
                 continue;
             }
 
-            $this->clock->sleep(self::POLL_INTERVAL_SECONDS);
+            $this->clock->sleep(\max(self::POLL_INTERVAL_SECONDS, $scanSeconds * self::SCAN_TIME_MULTIPLIER));
         }
     }
 }
