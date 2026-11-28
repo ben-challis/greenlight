@@ -91,14 +91,17 @@ final class AttachmentReporterTest
         unset($result);
         \gc_collect_cycles();
 
-        expect($output->buffer())
-            ->because('successful attachments are written before the result is released')
-            ->toContain('PASS Example\AttachmentTest::fails')
-            ->toContain('response.json')
-            ->toContain('build/greenlight-artifacts/run-1/response.json');
         expect($reference->get())
             ->because('the plain reporter does not retain successful results')
             ->toBeNull();
+
+        $reporter->finish();
+
+        expect($output->buffer())
+            ->because('successful attachments are rendered from the released result')
+            ->toContain('PASS Example\AttachmentTest::fails')
+            ->toContain('response.json')
+            ->toContain('build/greenlight-artifacts/run-1/response.json');
     }
 
     #[Test]
