@@ -105,8 +105,9 @@ final class MemorySizeTest
     {
         foreach (['K' => 1024, 'M' => 1024 ** 2, 'G' => 1024 ** 3] as $suffix => $multiplier) {
             $number = \intdiv(\PHP_INT_MAX, $multiplier);
+            $expectedBytes = \PHP_INT_MAX - (\PHP_INT_MAX % $multiplier);
 
-            yield $suffix . ' suffix' => [$number . $suffix, $number * $multiplier];
+            yield $suffix . ' suffix' => [$number . $suffix, $expectedBytes];
         }
     }
 
