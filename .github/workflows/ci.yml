@@ -244,6 +244,7 @@ jobs:
         php-version:
           - "8.4"
           - "8.5"
+          - "8.6"
         dependencies:
           - "lowest"
           - "locked"
@@ -259,6 +260,9 @@ jobs:
           - php-version: "8.5"
             dependencies: "lowest"
             symfony-version: "6.4.*"
+          - php-version: "8.6"
+            dependencies: "lowest"
+            symfony-version: "6.4.*"
           - php-version: "8.4"
             dependencies: "highest"
             symfony-version: "6.4.*"
@@ -269,6 +273,9 @@ jobs:
             dependencies: "highest"
             symfony-version: "8.1.*"
           - php-version: "8.5"
+            dependencies: "highest"
+            symfony-version: "8.1.*"
+          - php-version: "8.6"
             dependencies: "highest"
             symfony-version: "8.1.*"
     steps:
@@ -348,6 +355,9 @@ jobs:
 
       - name: "Static analysis"
         if: "matrix.dependencies == 'locked'"
+        env:
+          # PHP CS Fixer supports PHP up to 8.5.
+          COMPOSER_SKIP_SCRIPTS: "${{ matrix.php-version == '8.6' && 'code-style:check' || '' }}"
         run: "composer static-analysis"
 
       - name: "Save static analysis cache"
@@ -494,51 +504,6 @@ jobs:
           path: "build/coverage/cobertura.xml"
           if-no-files-found: "error"
           retention-days: 30
-
-  php-next:
-    name: "PHP 8.6 pre-release compatibility"
-    runs-on: "ubuntu-latest"
-    timeout-minutes: 30
-    permissions:
-      contents: "read"
-    env:
-      XDEBUG_MODE: "off"
-
-    steps:
-      - name: "Checkout"
-        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7
-        with:
-          persist-credentials: false
-
-      - name: "Set up PHP"
-        uses: "shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962" # v2
-        with:
-          php-version: "8.6"
-          extensions: "pcntl, sockets"
-          coverage: "xdebug"
-          ini-values: "memory_limit=-1"
-
-      - name: "Install dependencies"
-        uses: "ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda" # 4.0.0
-        with:
-          composer-options: "--ignore-platform-req=php+"
-          dependency-versions: "locked"
-
-      - name: "Tests"
-        id: "compatibility-tests"
-        continue-on-error: true # Allow failures until PHP 8.6 is stable.
-        run: "composer tests -- --ansi"
-
-      - name: "Report compatibility failure"
-        if: "steps.compatibility-tests.outcome == 'failure'"
-        shell: "bash"
-        run: |
-          echo "::warning title=PHP 8.6 compatibility failure::The PHP 8.6 test suite failed. Review the Tests step."
-          {
-            echo "### PHP 8.6 compatibility failure"
-            echo
-            echo "The PHP 8.6 test suite failed. Review the Tests step."
-          } >> "${GITHUB_STEP_SUMMARY}"
 
   memory:
     name: "Flat-memory gate (10,000 tests, one worker)"
