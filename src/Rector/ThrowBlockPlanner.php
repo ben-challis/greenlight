@@ -14,6 +14,7 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
+use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt;
@@ -97,6 +98,10 @@ final class ThrowBlockPlanner
 
             $value = $arguments[0]->value;
 
+            if (!$this->constraintCanMove($value)) {
+                return false;
+            }
+
             if ($name === 'expectexception') {
                 if ($exception instanceof Expr) {
                     return false;
@@ -135,6 +140,16 @@ final class ThrowBlockPlanner
             ...\array_slice($stmts, 0, $first),
             new Expression($this->expectation($act->expr, $exception, $matching)),
         ];
+    }
+
+    private function constraintCanMove(Expr $value): bool
+    {
+        // The arrow function captures local values before toThrow() gets its
+        // arguments. The class argument also moves before the regex argument.
+        return $value instanceof String_
+            || ($value instanceof Variable && \is_string($value->name))
+            || ($value instanceof ClassConstFetch && $value->class instanceof Name
+                && $value->name instanceof Identifier && $value->name->toLowerString() === 'class');
     }
 
     private function expectation(Expr $act, ?Expr $exception, ?Expr $matching): MethodCall

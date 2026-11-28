@@ -79,6 +79,9 @@ Two conversions change the code shape. An `expectException()` block becomes a
 `toThrow()` expectation over an arrow function, and the earlier statements do
 not move. `expectExceptionMessage()` finds a substring, so the rule writes a
 quoted `matching:` pattern and not an exact `message:` constraint.
+The rule converts class and regex arguments that use string literals, local
+variables, or `::class` references. The substring argument must use a string
+literal.
 
 PHPUnit 11 passes a data row with string keys as named arguments. Greenlight
 passes the row values in order and ignores the keys. Thus, the row
