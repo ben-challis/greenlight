@@ -1,0 +1,25 @@
+name: "Install locked Composer dependencies"
+description: "Share Composer package downloads across PHP versions and install dependencies for the current runtime."
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Find the Composer archive directory"
+      id: "composer_cache"
+      shell: "bash"
+      run: |
+        directory="$(composer config cache-files-dir)"
+        printf 'directory=%s\n' "${directory}" >> "${GITHUB_OUTPUT}"
+
+    - name: "Cache Composer package downloads"
+      uses: "actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
+      with:
+        path: "${{ steps.composer_cache.outputs.directory }}"
+        key: "composer-archives-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('composer.json', 'composer.lock') }}"
+        restore-keys: "composer-archives-v1-${{ runner.os }}-${{ runner.arch }}-"
+
+    - name: "Install dependencies from the lock file"
+      uses: "ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda" # 4.0.0
+      with:
+        dependency-versions: "locked"
+        ignore-cache: "true"
