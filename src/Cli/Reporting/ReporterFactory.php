@@ -8,7 +8,6 @@ use Greenlight\Cli\Input\CliError;
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Cli\Output\TerminalCapabilities;
-use Greenlight\Cli\Output\TerminalRowsResolver;
 use Greenlight\Plugin\PluginDefinition;
 use Greenlight\Plugin\ReporterProvider;
 use Greenlight\Reporting\CompositeReporter;
@@ -43,8 +42,6 @@ final readonly class ReporterFactory
             $capabilities,
             $header,
             $arguments,
-            TerminalRowsResolver::resolve(),
-            TerminalColumnsResolver::resolve(),
         )->reporters();
 
         foreach ($plugins as $pluginDefinition) {
