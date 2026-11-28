@@ -24,9 +24,6 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Class_;
-use PHPStan\Type\FloatType;
-use PHPStan\Type\IntegerType;
-use PHPStan\Type\TypeCombinator;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\NodeTypeResolver;
 
@@ -314,12 +311,16 @@ final readonly class OwnCallClassifier
             return true;
         }
 
-        $number = TypeCombinator::union(new IntegerType(), new FloatType());
+        foreach ([$conversion->subject, ...$conversion->matcherArguments] as $index) {
+            $type = $this->types->getType($arguments[$index]->value);
 
-        return \array_all(
-            [$conversion->subject, ...$conversion->matcherArguments],
-            fn(int $index): bool => $number->isSuperTypeOf($this->types->getType($arguments[$index]->value))->yes(),
-        );
+            // An int or float type stays the same in a numeric conversion.
+            if (!$type->isScalar()->yes() || !$type->equals($type->toNumber())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

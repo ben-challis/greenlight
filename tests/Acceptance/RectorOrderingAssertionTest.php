@@ -29,6 +29,9 @@ final readonly class RectorOrderingAssertionTest
             'string bound' => $this->source(<<<'PHP'
                 $this->assertGreaterThanOrEqual('2', 2);
                 PHP),
+            'boolean bound' => $this->source(<<<'PHP'
+                $this->assertGreaterThan(false, 1);
+                PHP),
         ];
 
         $probes = RectorProbe::convertBatch($this->workspace, $cases, name: 'nonnumeric-ordering');
