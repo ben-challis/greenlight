@@ -45,7 +45,15 @@ final class ReturnValueExpectation extends Expectation
             $this->extensions,
         );
 
-        $this->modifiers->passOn($pending->not(...), $pending->because(...));
+        if ($this->negated) {
+            $pending->not();
+        }
+
+        if ($this->reason !== null) {
+            $pending->because($this->reason);
+        }
+
+        $this->negated = false;
 
         return $pending;
     }
@@ -65,7 +73,15 @@ final class ReturnValueExpectation extends Expectation
             $this->extensions,
         );
 
-        $this->modifiers->passOn($pending->not(...), $pending->because(...));
+        if ($this->negated) {
+            $pending->not();
+        }
+
+        if ($this->reason !== null) {
+            $pending->because($this->reason);
+        }
+
+        $this->negated = false;
 
         return $pending;
     }

@@ -7,7 +7,11 @@ namespace Greenlight\Tests\Unit\Expect;
 use Greenlight\Attribute\Test;
 use Greenlight\Expect\Expect;
 use Greenlight\Expect\ExpectationExtension;
+use Greenlight\Expect\ExpectationRuntime;
+use Greenlight\Expect\MatcherEvaluation;
+use Greenlight\Expect\ValueRenderer;
 use Greenlight\Test\Cleanup;
+use Greenlight\Tests\Fixture\Expect\FakeClock;
 
 use function Greenlight\expect;
 
@@ -117,6 +121,88 @@ final readonly class BecauseTest
         );
 
         expect($blank->message)->because('an empty reason is a usage failure')->toBe('because() requires a non-empty reason.');
+    }
+
+    #[Test]
+    public function anInvalidReasonPreservesThePendingValueNegationAndReason(): void
+    {
+        $expectation = expect(1)->not()->because('the id must change');
+        $invalid = FailureProbe::detailOf(
+            static fn() => $expectation->because(' '), // @phpstan-ignore greenlight.expectationArgument.reason (deliberately invalid: tests runtime validation)
+        );
+
+        expect($invalid->actual)->toBe('null');
+
+        $next = FailureProbe::detailOf(static fn() => $expectation->toBe(1));
+
+        expect($next->message)->toBe('Expected 1 not to be 1 because the id must change.');
+        $expectation->toBe(1);
+    }
+
+    #[Test]
+    public function anInvalidReasonPreservesThePendingCallNegation(): void
+    {
+        $expectation = expect()->calling(static fn(): int => 1)->not();
+        $invalid = FailureProbe::detailOf(
+            static fn() => $expectation->because(' '), // @phpstan-ignore greenlight.expectationArgument.reason (deliberately invalid: tests runtime validation)
+        );
+
+        expect($invalid->actual)->toBe('null');
+        $expectation->toThrow();
+    }
+
+    #[Test]
+    public function anInvalidReasonPreservesThePendingEventuallyNegation(): void
+    {
+        ExpectationRuntime::withClock(new FakeClock(), static function (): void {
+            $pending = expect()->calling(static fn(): int => 1)->returnValue()->eventually()->not();
+            $invalid = FailureProbe::detailOf(
+                static fn() => $pending->because(' '), // @phpstan-ignore greenlight.expectationArgument.reason (deliberately invalid: tests runtime validation)
+            );
+
+            expect($invalid->actual)->toBe('null');
+            $pending->within(0.01)->toBe(2);
+        });
+    }
+
+    #[Test]
+    public function anInvalidReasonPreservesThePendingConsistentlyNegation(): void
+    {
+        ExpectationRuntime::withClock(new FakeClock(), static function (): void {
+            $pending = expect()->calling(static fn(): int => 1)->returnValue()->consistently()->not();
+            $invalid = FailureProbe::detailOf(
+                static fn() => $pending->because(' '), // @phpstan-ignore greenlight.expectationArgument.reason (deliberately invalid: tests runtime validation)
+            );
+
+            expect($invalid->actual)->toBe('null');
+            $pending->for(0.01)->toBe(2);
+        });
+    }
+
+    #[Test]
+    public function anInvalidReasonPreservesTheTemporalNegation(): void
+    {
+        ExpectationRuntime::withClock(new FakeClock(), static function (): void {
+            $expectation = expect()->calling(static fn(): int => 1)->returnValue()->eventually()->within(0.01)->not();
+            $invalid = FailureProbe::detailOf(
+                static fn() => $expectation->because(' '), // @phpstan-ignore greenlight.expectationArgument.reason (deliberately invalid: tests runtime validation)
+            );
+
+            expect($invalid->actual)->toBeNull();
+            $expectation->toBe(2);
+        });
+    }
+
+    #[Test]
+    public function anInvalidReasonClearsTheNegationOnAMatcherEvaluation(): void
+    {
+        $evaluation = new MatcherEvaluation(1, new ValueRenderer())->not();
+        $invalid = FailureProbe::detailOf(
+            static fn() => $evaluation->because(' '),
+        );
+
+        expect($invalid->actual)->toBe('1');
+        $evaluation->toBe(1);
     }
 
     #[Test]

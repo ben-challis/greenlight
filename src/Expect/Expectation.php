@@ -45,7 +45,10 @@ class Expectation
     /** @var MatcherEvaluation<T>|null */
     private ?MatcherEvaluation $evaluation = null;
 
-    protected readonly MatcherModifiers $modifiers;
+    protected bool $negated = false;
+
+    /** @var non-empty-string|null */
+    protected ?string $reason = null;
 
     /**
      * @internal
@@ -57,13 +60,11 @@ class Expectation
         private readonly \Closure $read,
         protected readonly ValueRenderer $renderer,
         protected readonly array $extensions = [],
-    ) {
-        $this->modifiers = new MatcherModifiers();
-    }
+    ) {}
 
     public function not(): static
     {
-        $this->modifiers->negate();
+        $this->negated = true;
 
         return $this;
     }
@@ -79,7 +80,7 @@ class Expectation
     public function because(string $reason): static
     {
         // Validate the reason before a lazy value is read.
-        $this->modifiers->because($reason, static fn(): string => 'null');
+        $this->reason = MatcherReason::validate($reason, 'null');
 
         return $this;
     }
@@ -114,7 +115,15 @@ class Expectation
     {
         $this->evaluation ??= new MatcherEvaluation(($this->read)(), $this->renderer, $this->extensions);
 
-        $this->modifiers->passOn($this->evaluation->not(...), $this->evaluation->because(...));
+        if ($this->negated) {
+            $this->evaluation->not();
+        }
+
+        if ($this->reason !== null) {
+            $this->evaluation->because($this->reason);
+        }
+
+        $this->negated = false;
 
         ExpectationCall::forImmediate($name, $arguments)->invoke($this->evaluation);
 

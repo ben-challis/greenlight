@@ -15,7 +15,10 @@ final class CallExpectation
     /** @var CallOutcome<T>|null */
     private ?CallOutcome $outcome = null;
 
-    private readonly MatcherModifiers $modifiers;
+    protected bool $negated = false;
+
+    /** @var non-empty-string|null */
+    protected ?string $reason = null;
 
     /**
      * @internal
@@ -27,14 +30,12 @@ final class CallExpectation
         private readonly \Closure $call,
         private readonly ValueRenderer $renderer,
         private readonly array $extensions = [],
-    ) {
-        $this->modifiers = new MatcherModifiers();
-    }
+    ) {}
 
     /** @return self<T> */
     public function not(): self
     {
-        $this->modifiers->negate();
+        $this->negated = true;
 
         return $this;
     }
@@ -51,7 +52,7 @@ final class CallExpectation
      */
     public function because(string $reason): self
     {
-        $this->modifiers->because($reason, static fn(): string => 'null');
+        $this->reason = MatcherReason::validate($reason, 'null');
 
         return $this;
     }
@@ -81,7 +82,15 @@ final class CallExpectation
     {
         $value = new ReturnValueExpectation($this->replay(...), $this->call, $this->renderer, $this->extensions);
 
-        $this->modifiers->passOn($value->not(...), $value->because(...));
+        if ($this->negated) {
+            $value->not();
+        }
+
+        if ($this->reason !== null) {
+            $value->because($this->reason);
+        }
+
+        $this->negated = false;
 
         return $value;
     }
@@ -105,7 +114,15 @@ final class CallExpectation
     ): self {
         $evaluation = new MatcherEvaluation($this->replay(...), $this->renderer);
 
-        $this->modifiers->passOn($evaluation->not(...), $evaluation->because(...));
+        if ($this->negated) {
+            $evaluation->not();
+        }
+
+        if ($this->reason !== null) {
+            $evaluation->because($this->reason);
+        }
+
+        $this->negated = false;
 
         $evaluation->toThrow($throwable, $matching, $message);
 
@@ -121,7 +138,15 @@ final class CallExpectation
     {
         $pending = new PendingEventuallyCall($this->call, $this->renderer, $this->extensions);
 
-        $this->modifiers->passOn($pending->not(...), $pending->because(...));
+        if ($this->negated) {
+            $pending->not();
+        }
+
+        if ($this->reason !== null) {
+            $pending->because($this->reason);
+        }
+
+        $this->negated = false;
 
         return $pending;
     }
@@ -135,7 +160,15 @@ final class CallExpectation
     {
         $pending = new PendingConsistentlyCall($this->call, $this->renderer, $this->extensions);
 
-        $this->modifiers->passOn($pending->not(...), $pending->because(...));
+        if ($this->negated) {
+            $pending->not();
+        }
+
+        if ($this->reason !== null) {
+            $pending->because($this->reason);
+        }
+
+        $this->negated = false;
 
         return $pending;
     }

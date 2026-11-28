@@ -80,6 +80,7 @@ final class EventuallyExpectation extends TemporalExpectation
 
     /**
      * @param \Closure(MatcherEvaluation<T>): MatcherEvaluation<T> $matcher
+     * @param non-empty-string|null $reason
      *
      * @return MatcherEvaluation<T>
      *
@@ -88,7 +89,8 @@ final class EventuallyExpectation extends TemporalExpectation
     #[\Override]
     protected function waitFor(
         \Closure $matcher,
-        MatcherModifiers $modifiers,
+        bool $negated,
+        ?string $reason,
         ?SourceLocation $location,
     ): MatcherEvaluation {
         $startedAt = $this->clock->now();
@@ -116,7 +118,7 @@ final class EventuallyExpectation extends TemporalExpectation
         }
 
         while (true) {
-            $last = $this->observe($matcher, $modifiers, $this->retryOnExceptions);
+            $last = $this->observe($matcher, $negated, $reason, $this->retryOnExceptions);
             $observedAt = $this->clock->now();
             $observations->record($observedAt, $last->rendered);
 

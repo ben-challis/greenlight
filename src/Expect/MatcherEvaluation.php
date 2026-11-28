@@ -45,9 +45,12 @@ use Greenlight\Test\ExpectationCounter;
  *
  * @template T
  */
-final readonly class MatcherEvaluation
+final class MatcherEvaluation
 {
-    private MatcherModifiers $modifiers;
+    private bool $negated = false;
+
+    /** @var non-empty-string|null */
+    private ?string $reason = null;
 
     /**
      * @internal
@@ -56,12 +59,10 @@ final readonly class MatcherEvaluation
      * @param list<ExpectationExtension> $extensions
      */
     public function __construct(
-        public mixed $subject,
-        private ValueRenderer $renderer,
-        private array $extensions = [],
-    ) {
-        $this->modifiers = new MatcherModifiers();
-    }
+        public readonly mixed $subject,
+        private readonly ValueRenderer $renderer,
+        private readonly array $extensions = [],
+    ) {}
 
     /**
      * Dispatches extension matchers. If an `ExpectationExtension` provides the
@@ -107,7 +108,7 @@ final readonly class MatcherEvaluation
      */
     public function not(): self
     {
-        $this->modifiers->negate();
+        $this->negated = true;
 
         return $this;
     }
@@ -127,7 +128,15 @@ final readonly class MatcherEvaluation
      */
     public function because(string $reason): self
     {
-        $this->modifiers->because($reason, fn(): string => $this->renderer->render($this->subject));
+        $reason = MatcherReason::normalize($reason);
+
+        if ($reason === null) {
+            $this->negated = false;
+
+            throw MatcherReason::emptyFailure($this->renderer->render($this->subject));
+        }
+
+        $this->reason = $reason;
 
         return $this;
     }
@@ -860,7 +869,9 @@ final readonly class MatcherEvaluation
             try {
                 $result = $this->invokeThrowableCallback($callback, $thrown); // @phpstan-ignore argument.type (Reflection confirms that the callback accepts the matched throwable.)
             } catch (ExpectationFailed $failure) {
-                if (!$this->modifiers->isNegated()) {
+                if (!$this->negated) {
+                    $this->negated = false;
+
                     throw $failure;
                 }
 
@@ -930,8 +941,9 @@ final readonly class MatcherEvaluation
         string|\Closure|null $actual = null,
     ): self {
         ExpectationCounter::increment();
-        $negated = $this->modifiers->takeNegation();
-        $reason = $this->modifiers->reason();
+        $negated = $this->negated;
+        $this->negated = false;
+        $reason = $this->reason;
 
         if ($negated ? !$matched : $matched) {
             return $this;
@@ -1034,7 +1046,7 @@ final readonly class MatcherEvaluation
      */
     private function usageFailure(string $message): never
     {
-        $this->modifiers->takeNegation();
+        $this->negated = false;
 
         throw ExpectationFailed::fromDetail(new FailureDetail(
             $message,
