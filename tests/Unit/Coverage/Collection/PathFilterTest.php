@@ -70,4 +70,27 @@ final class PathFilterTest
                 message: 'Use nonempty paths for coverage include directories.',
             );
     }
+
+    #[Test]
+    public function anExcludedDirectoryRejectsFilesInAnIncludedDirectory(): void
+    {
+        $filter = new PathFilter(['/project/src'], ['/project/src/Generated']);
+
+        expect($filter->accepts('/project/src/Kept.php'))->toBeTrue();
+        expect($filter->accepts('/project/src/Generated/Proxy.php'))
+            ->because('an exclude path MUST win over an include path')
+            ->toBeFalse();
+        expect($filter->accepts('/project/src/GeneratedNot/Kept.php'))
+            ->because('an exclude path MUST match only whole directories')
+            ->toBeTrue();
+    }
+
+    #[Test]
+    public function anExcludeWithoutIncludesRejectsOnlyTheExcludedDirectory(): void
+    {
+        $filter = new PathFilter([], ['/project/vendor']);
+
+        expect($filter->accepts('/project/src/A.php'))->toBeTrue();
+        expect($filter->accepts('/project/vendor/A.php'))->toBeFalse();
+    }
 }

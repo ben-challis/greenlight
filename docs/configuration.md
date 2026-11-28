@@ -168,6 +168,8 @@ Repeated calls to `coverage()` preserve earlier settings.
 
 * `include(string ...$paths): self` adds source directories to measure. Default:
   none. Greenlight warns for a directory that does not exist.
+* `exclude(string ...$paths): self` removes source directories from the
+  measurement, also directories inside an include path. Default: none.
 * `driver(string $driver): self` restricts coverage to `pcov` or `xdebug`.
   The names are case-sensitive. Other values cause an `InvalidConfiguration`
   error. Omit this call to try pcov, then Xdebug.
