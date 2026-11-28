@@ -355,6 +355,9 @@ jobs:
 
       - name: "Static analysis"
         if: "matrix.dependencies == 'locked'"
+        env:
+          # PHP CS Fixer supports PHP up to 8.5.
+          COMPOSER_SKIP_SCRIPTS: "${{ matrix.php-version == '8.6' && 'code-style:check' || '' }}"
         run: "composer static-analysis"
 
       - name: "Save static analysis cache"
