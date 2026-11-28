@@ -7,7 +7,7 @@
             "initial-version": "0.0.1",
             "skip-changelog": true,
             "bump-minor-pre-major": true,
-            "bump-patch-for-minor-pre-major": true,
+            "bump-patch-for-minor-pre-major": false,
             "changelog-sections": [
                 {
                     "type": "feat",
