@@ -128,10 +128,12 @@ final class MatcherEvaluation
      */
     public function because(string $reason): self
     {
-        $reason = \trim($reason);
+        $reason = MatcherReason::normalize($reason);
 
-        if ($reason === '') {
-            $this->usageFailure('because() requires a non-empty reason.');
+        if ($reason === null) {
+            $this->negated = false;
+
+            throw MatcherReason::emptyFailure($this->renderer->render($this->subject));
         }
 
         $this->reason = $reason;

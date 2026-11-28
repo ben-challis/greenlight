@@ -61,16 +61,7 @@ abstract class TemporalExpectation
      */
     final public function because(string $reason): static
     {
-        $reason = \trim($reason);
-
-        if ($reason === '') {
-            throw ExpectationFailed::fromDetail(new FailureDetail(
-                'because() requires a non-empty reason.',
-                location: CallSite::capture(),
-            ));
-        }
-
-        $this->reason = $reason;
+        $this->reason = MatcherReason::validate($reason);
 
         return $this;
     }

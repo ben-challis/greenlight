@@ -34,8 +34,7 @@ final class PendingEventually
      */
     public function because(string $reason): self
     {
-        new MatcherEvaluation(null, $this->renderer)->because($reason);
-        $this->reason = $reason;
+        $this->reason = MatcherReason::validate($reason, 'null');
 
         return $this;
     }
