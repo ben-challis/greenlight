@@ -27,5 +27,6 @@ final readonly class AssertionConversion
         public array $matcherArguments,
         public int $arity,
         public bool $negated = false,
+        public bool $requiresNumericOperands = false,
     ) {}
 }

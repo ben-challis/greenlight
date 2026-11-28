@@ -48,6 +48,8 @@ A class does not convert when it uses:
 * `#[Depends]`, `setUpBeforeClass()`, `tearDownAfterClass()`, or traits
 * assertions without a Greenlight matcher, for example file or XML assertions
 * assertion arguments whose changed evaluation order can change their values
+* greater-than or less-than assertions whose operands can have types other than
+  `int` or `float`
 * `assertEmpty()` or `assertNotEmpty()`, because Greenlight uses different
   empty-value rules
 * multiple data providers or multiple requirements on one declaration

@@ -171,7 +171,10 @@ final readonly class OwnCallClassifier
                 return false;
             }
 
-            if (!$this->argumentOrderConverts($conversion, $arguments) || !$this->looseNegationConverts($name, $arguments)) {
+            if (!$this->argumentOrderConverts($conversion, $arguments)
+                || !$this->looseNegationConverts($name, $arguments)
+                || !$this->numericOperandsConvert($conversion, $arguments)
+            ) {
                 return false;
             }
 
@@ -297,6 +300,27 @@ final readonly class OwnCallClassifier
         }
 
         return null;
+    }
+
+    /**
+     * @param list<Arg> $arguments
+     */
+    private function numericOperandsConvert(AssertionConversion $conversion, array $arguments): bool
+    {
+        if (!$conversion->requiresNumericOperands) {
+            return true;
+        }
+
+        foreach ([$conversion->subject, ...$conversion->matcherArguments] as $index) {
+            $type = $this->types->getType($arguments[$index]->value);
+
+            // An int or float type stays the same in a numeric conversion.
+            if (!$type->isScalar()->yes() || !$type->equals($type->toNumber())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
