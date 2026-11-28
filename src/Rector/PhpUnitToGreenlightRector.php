@@ -149,7 +149,7 @@ final class PhpUnitToGreenlightRector extends AbstractRector implements Configur
 
         $attributes = $this->attributeConverter();
         $members = $this->memberClassifier();
-        $kinds = $members->classify($class, $attributes->referencedDataProviders($class));
+        $kinds = $members->classify($class);
         $classGroups = $attributes->convertGroups($class->attrGroups, onClass: true, dropOverride: false);
 
         if ($kinds === null || $classGroups === null || !$attributes->dataProvidersConvert($class)) {

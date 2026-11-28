@@ -47,7 +47,52 @@ final readonly class RectorStaticTestMethodTest
     }
 
     #[Test]
-    public function convertsAStaticTestNamedDataProvider(): void
+    public function preservesCaseSensitiveTestDiscovery(): void
+    {
+        $probe = RectorProbe::convert($this->tempDirectory, <<<'PHP_WRAP'
+            <?php
+
+            declare(strict_types=1);
+
+            namespace App\Tests;
+
+            use PHPUnit\Framework\Attributes\Test;
+            use PHPUnit\Framework\TestCase;
+
+            final class ProbeTest extends TestCase
+            {
+                public function TestHelper(): int
+                {
+                    return 1;
+                }
+
+                public static function TESTStaticHelper(): int
+                {
+                    return 2;
+                }
+
+                public function testConvention(): void
+                {
+                    $this->assertSame(1, $this->TestHelper());
+                }
+
+                #[Test]
+                public function TestExplicit(): void
+                {
+                    $this->assertSame(2, self::TESTStaticHelper());
+                }
+            }
+
+            PHP_WRAP, name: 'test-method-name-case');
+
+        expect($probe->changed)->toBeTrue();
+        $run = $probe->runConvertedTests();
+        expect($run->exitCode)->toBe(0);
+        expect($run->stdout)->toContain('2 tests, 2 passed');
+    }
+
+    #[Test]
+    public function keepsClassesWithAStaticTestThatIsAlsoADataProviderOnPhpUnit(): void
     {
         $probe = RectorProbe::convert($this->tempDirectory, <<<'PHP_WRAP'
             <?php
@@ -75,7 +120,6 @@ final readonly class RectorStaticTestMethodTest
 
             PHP_WRAP, name: 'static-test-named-provider');
 
-        expect($probe->changed)->toBeTrue();
-        expect($probe->code)->toContain("#[\\Greenlight\\Attribute\\DataSet('testCases')]");
+        expect($probe->changed)->toBeFalse();
     }
 }
