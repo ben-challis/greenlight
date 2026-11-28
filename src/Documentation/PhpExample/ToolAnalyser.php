@@ -11,6 +11,8 @@ namespace Greenlight\Documentation\PhpExample;
  */
 final readonly class ToolAnalyser
 {
+    private const int SYNTAX_BATCH_SIZE = 32;
+
     public function __construct(private ProcessRunner $processRunner = new ProcessRunner()) {}
 
     /**
@@ -22,29 +24,22 @@ final readonly class ToolAnalyser
     {
         $diagnostics = [];
 
-        foreach ($snippets as $snippet) {
-            $result = $this->processRunner->run(
-                $root,
-                [\PHP_BINARY, '-l', $root . '/' . $snippet->generatedPath],
-            );
+        foreach (\array_chunk($snippets, self::SYNTAX_BATCH_SIZE) as $batch) {
+            if (\count($batch) > 1) {
+                $paths = \array_map(static fn(MaterializedSnippet $snippet): string => $snippet->generatedPath, $batch);
 
-            if ($result->exitCode === 0) {
-                continue;
+                if ($this->processRunner->run($root, [\PHP_BINARY, '-l', ...$paths])->exitCode === 0) {
+                    continue;
+                }
             }
 
-            $message = \trim($result->stderr !== '' ? $result->stderr : $result->stdout);
-            $line = $snippet->source->sourceStartLine;
+            foreach ($batch as $snippet) {
+                $diagnostic = $this->syntaxDiagnostic($root, $snippet);
 
-            if (\preg_match('/on line (\d+)/', $message, $match) === 1) {
-                $line = $snippet->sourceLine((int) $match[1]) ?? $snippet->source->fenceLine;
+                if ($diagnostic instanceof Diagnostic) {
+                    $diagnostics[] = $diagnostic;
+                }
             }
-
-            $diagnostics[] = new Diagnostic(
-                sourcePath: $snippet->source->sourcePath,
-                line: $line,
-                tool: 'PHP syntax',
-                message: $message,
-            );
         }
 
         return $diagnostics;
@@ -251,6 +246,32 @@ final readonly class ToolAnalyser
         }
 
         return $diagnostics;
+    }
+
+    private function syntaxDiagnostic(string $root, MaterializedSnippet $snippet): ?Diagnostic
+    {
+        $result = $this->processRunner->run(
+            $root,
+            [\PHP_BINARY, '-l', $root . '/' . $snippet->generatedPath],
+        );
+
+        if ($result->exitCode === 0) {
+            return null;
+        }
+
+        $message = \trim($result->stderr !== '' ? $result->stderr : $result->stdout);
+        $line = $snippet->source->sourceStartLine;
+
+        if (\preg_match('/on line (\d+)/', $message, $match) === 1) {
+            $line = $snippet->sourceLine((int) $match[1]) ?? $snippet->source->fenceLine;
+        }
+
+        return new Diagnostic(
+            sourcePath: $snippet->source->sourcePath,
+            line: $line,
+            tool: 'PHP syntax',
+            message: $message,
+        );
     }
 
     private function firstChangedLine(mixed $diff): ?int
