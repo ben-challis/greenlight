@@ -24,6 +24,12 @@ abstract readonly class PluginRuntime
     private array $orderedPlugins;
 
     /**
+     * Holds the ordered plugins for each capability. The plugin list does not
+     * change after construction, so each capability is filtered one time.
+     */
+    private CapabilityCache $capabilityCache;
+
+    /**
      * @param list<Plugin> $plugins
      */
     protected function __construct(array $plugins)
@@ -39,6 +45,7 @@ abstract readonly class PluginRuntime
         }
 
         $this->plugins = $plugins;
+        $this->capabilityCache = new CapabilityCache();
 
         \usort(
             $indexed,
@@ -100,9 +107,41 @@ abstract readonly class PluginRuntime
      */
     final protected function ordered(string $capability): array
     {
-        return \array_values(\array_filter(
+        $cached = $this->capabilityCache->ordered[$capability] ?? null;
+
+        if ($cached !== null) {
+            /** @var list<Plugin&T> $cached */
+            return $cached;
+        }
+
+        $ordered = \array_values(\array_filter(
             $this->orderedPlugins,
             static fn(Plugin $plugin): bool => $plugin instanceof $capability,
         ));
+        $this->capabilityCache->ordered[$capability] = $ordered;
+
+        return $ordered;
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param class-string<T> $capability
+     *
+     * @return list<Plugin&T>
+     */
+    final protected function orderedReversed(string $capability): array
+    {
+        $cached = $this->capabilityCache->reversed[$capability] ?? null;
+
+        if ($cached !== null) {
+            /** @var list<Plugin&T> $cached */
+            return $cached;
+        }
+
+        $reversed = \array_reverse($this->ordered($capability));
+        $this->capabilityCache->reversed[$capability] = $reversed;
+
+        return $reversed;
     }
 }
