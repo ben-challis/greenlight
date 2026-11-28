@@ -33,6 +33,12 @@ final readonly class CapturedOutput
         public bool $stdoutTruncated = false,
         public bool $diagnosticsTruncated = false,
     ) {
+        if ($diagnostics === []) {
+            $this->diagnostics = [];
+
+            return;
+        }
+
         $validatedDiagnostics = [];
 
         foreach ($diagnostics as $index => $diagnostic) {

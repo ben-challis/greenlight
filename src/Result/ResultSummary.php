@@ -63,12 +63,14 @@ final readonly class ResultSummary
 
     public function add(Outcome $outcome): self
     {
-        return new self(
-            $this->saturatedSum($this->passed, $outcome === Outcome::Passed ? 1 : 0),
-            $this->saturatedSum($this->failed, $outcome === Outcome::Failed ? 1 : 0),
-            $this->saturatedSum($this->errored, $outcome === Outcome::Errored ? 1 : 0),
-            $this->saturatedSum($this->skipped, $outcome === Outcome::Skipped ? 1 : 0),
-        );
+        $max = \PHP_INT_MAX;
+
+        return match ($outcome) {
+            Outcome::Passed => new self($this->passed === $max ? $max : $this->passed + 1, $this->failed, $this->errored, $this->skipped),
+            Outcome::Failed => new self($this->passed, $this->failed === $max ? $max : $this->failed + 1, $this->errored, $this->skipped),
+            Outcome::Errored => new self($this->passed, $this->failed, $this->errored === $max ? $max : $this->errored + 1, $this->skipped),
+            Outcome::Skipped => new self($this->passed, $this->failed, $this->errored, $this->skipped === $max ? $max : $this->skipped + 1),
+        };
     }
 
     /**

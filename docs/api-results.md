@@ -468,7 +468,7 @@ PHPDoc:
 
 - `@return non-negative-int`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L77)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L79)
 
 ### `isSuccessful()`
 
@@ -476,7 +476,7 @@ PHPDoc:
 public function isSuccessful(): bool
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L82)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Result/ResultSummary.php#L84)
 
 ## `SourceLocation`
 

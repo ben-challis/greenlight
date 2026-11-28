@@ -56,7 +56,7 @@ final readonly class TestId implements \Stringable
             return $this->class . '::' . $this->method;
         }
 
-        return \sprintf('%s::%s[%s]', $this->class, $this->method, $this->dataSetKey);
+        return $this->class . '::' . $this->method . '[' . $this->dataSetKey . ']';
     }
 
     /**
