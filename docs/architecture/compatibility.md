@@ -101,7 +101,7 @@ Greenlight uses pre-major version rules before version `1.0.0`.
 | Change | Before `1.0.0` | From `1.0.0` |
 | --- | --- | --- |
 | Fix or performance change | Patch | Patch |
-| Feature | Patch | Minor |
+| Feature | Minor | Minor |
 | Breaking change | Minor | Major |
 
 The `docs`, `refactor`, `test`, `ci`, `build`, `style`, and `chore` types do not
