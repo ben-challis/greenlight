@@ -255,6 +255,8 @@ jobs:
     # XDEBUG_MODE=coverage for each process that they start.
     env:
       XDEBUG_MODE: "off"
+      # Use cached class durations in locked jobs. Other jobs keep random order.
+      GREENLIGHT_CI_USE_RUN_STATE: "${{ matrix.dependencies == 'locked' && '1' || '0' }}"
     strategy:
       fail-fast: false
       matrix:
@@ -343,16 +345,12 @@ jobs:
           SYMFONY_REQUIRE: "${{ matrix.symfony-version }}"
 
       - name: "Restore Greenlight run state"
+        if: "matrix.dependencies == 'locked'"
         uses: "actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
         with:
           path: "build/greenlight-state/run-state.json"
           key: "greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-${{ github.run_id }}-${{ github.run_attempt }}"
           restore-keys: "greenlight-run-state-v1-${{ runner.os }}-php-${{ matrix.php-version }}-${{ matrix.dependencies }}-symfony-${{ matrix.symfony-version || 'default' }}-"
-
-      - name: "Tests"
-        id: "tests_lowest"
-        if: "matrix.dependencies == 'lowest'"
-        run: "composer tests -- --ansi"
 
       - name: "Calculate static analysis cache content hash"
         id: "analysis_cache"
@@ -397,7 +395,7 @@ jobs:
 
       - name: "Tests"
         id: "tests_standard"
-        if: "matrix.analytics != true && matrix.dependencies != 'lowest'"
+        if: "matrix.analytics != true"
         run: "composer tests -- --ansi"
 
       - name: "Tests with JUnit output"
@@ -406,7 +404,7 @@ jobs:
         run: "php bin/greenlight run --ansi --reporter=tty --reporter=junit=build/test-results/greenlight.junit.xml"
 
       - name: "Save Greenlight run state"
-        if: "${{ !cancelled() && (steps.tests_lowest.outcome != 'skipped' || steps.tests_standard.outcome != 'skipped' || steps.tests_analytics.outcome != 'skipped') }}"
+        if: "${{ !cancelled() && matrix.dependencies == 'locked' && (steps.tests_standard.outcome != 'skipped' || steps.tests_analytics.outcome != 'skipped') }}"
         uses: "actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
         with:
           path: "build/greenlight-state/run-state.json"
