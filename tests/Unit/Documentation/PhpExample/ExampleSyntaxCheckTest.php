@@ -38,7 +38,7 @@ final readonly class ExampleSyntaxCheckTest
             ```
             MARKDOWN);
 
-        $result = (new Checker())->check($root, 'phpstan', 'rector');
+        $result = new Checker()->check($root, 'phpstan', 'rector');
 
         expect(\array_map(
             static fn(Diagnostic $diagnostic): array => [$diagnostic->sourcePath, $diagnostic->line, $diagnostic->tool],

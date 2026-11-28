@@ -36,7 +36,7 @@ final readonly class ToolAnalyser
             foreach ($batch as $snippet) {
                 $diagnostic = $this->syntaxDiagnostic($root, $snippet);
 
-                if ($diagnostic !== null) {
+                if ($diagnostic instanceof Diagnostic) {
                     $diagnostics[] = $diagnostic;
                 }
             }
