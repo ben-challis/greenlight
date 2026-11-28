@@ -24,6 +24,9 @@ use PhpParser\Node\Name;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Class_;
+use PHPStan\Type\FloatType;
+use PHPStan\Type\IntegerType;
+use PHPStan\Type\TypeCombinator;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\NodeTypeResolver;
 
@@ -171,7 +174,10 @@ final readonly class OwnCallClassifier
                 return false;
             }
 
-            if (!$this->argumentOrderConverts($conversion, $arguments) || !$this->looseNegationConverts($name, $arguments)) {
+            if (!$this->argumentOrderConverts($conversion, $arguments)
+                || !$this->looseNegationConverts($name, $arguments)
+                || !$this->numericOperandsConvert($conversion, $arguments)
+            ) {
                 return false;
             }
 
@@ -297,6 +303,23 @@ final readonly class OwnCallClassifier
         }
 
         return null;
+    }
+
+    /**
+     * @param list<Arg> $arguments
+     */
+    private function numericOperandsConvert(AssertionConversion $conversion, array $arguments): bool
+    {
+        if (!$conversion->requiresNumericOperands) {
+            return true;
+        }
+
+        $number = TypeCombinator::union(new IntegerType(), new FloatType());
+
+        return \array_all(
+            [$conversion->subject, ...$conversion->matcherArguments],
+            fn(int $index): bool => $number->isSuperTypeOf($this->types->getType($arguments[$index]->value))->yes(),
+        );
     }
 
     /**
