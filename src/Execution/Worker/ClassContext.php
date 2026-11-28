@@ -27,6 +27,9 @@ final class ClassContext
      */
     private array $dataSets = [];
 
+    /** @var array<string, \ReflectionMethod> */
+    private array $methods = [];
+
     /**
      * @param \ReflectionClass<object> $reflection
      * @param list<\ReflectionMethod> $beforeHooks declaration order
@@ -187,5 +190,15 @@ final class ClassContext
         }
 
         return $sets;
+    }
+
+    /**
+     * @param non-empty-string $name
+     *
+     * @throws \ReflectionException
+     */
+    public function method(string $name): \ReflectionMethod
+    {
+        return $this->methods[$name] ??= $this->reflection->getMethod($name);
     }
 }

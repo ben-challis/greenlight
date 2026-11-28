@@ -259,7 +259,7 @@ final readonly class TestExecutor
                         );
                     }
 
-                    $this->context->reflection->getMethod($definition->method)->invokeArgs($context->instance, $arguments);
+                    $this->context->method($definition->method)->invokeArgs($context->instance, $arguments);
                 } catch (SkipTest $skip) {
                     $skipReason = $skip->reason;
                 } catch (ExpectationFailed $failed) {
@@ -422,9 +422,14 @@ final readonly class TestExecutor
     private function instantiate(string $class, Attachments $attachments, Cleanup $cleanup): object
     {
         $constructor = $this->context->reflection->getConstructor();
+
+        if (!$constructor instanceof \ReflectionMethod) {
+            return $this->context->reflection->newInstance();
+        }
+
         $arguments = [];
 
-        foreach ($constructor?->getParameters() ?? [] as $parameter) {
+        foreach ($constructor->getParameters() as $parameter) {
             $type = $parameter->getType();
 
             if (!$type instanceof \ReflectionNamedType || $type->isBuiltin()) {

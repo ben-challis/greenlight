@@ -168,8 +168,8 @@ final class OutputCapture
             ));
         }
 
-        $scrubbedStdout = Utf8::scrub($this->stdout);
-        $boundedStdout = Utf8::headBytes($scrubbedStdout, $this->maxStdoutBytes);
+        $scrubbedStdout = $this->stdout === '' ? '' : Utf8::scrub($this->stdout);
+        $boundedStdout = $scrubbedStdout === '' ? '' : Utf8::headBytes($scrubbedStdout, $this->maxStdoutBytes);
         $this->stdoutTruncated = $this->stdoutTruncated
             || \strlen($boundedStdout) < \strlen($scrubbedStdout);
 
