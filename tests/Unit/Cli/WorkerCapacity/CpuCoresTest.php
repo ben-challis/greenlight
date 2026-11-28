@@ -35,8 +35,9 @@ final readonly class CpuCoresTest
         expect(CpuCores::count())
             ->because('the optional CPU counter supplies the worker count')
             ->toBe(7);
+        expect(CpuCores::count())->toBe(7);
         expect(FakeCpuCoreCounter::$calls)
-            ->because('the optional CPU counter runs once')
+            ->because('the process keeps the first count, so the optional CPU counter runs once')
             ->toBe(1);
     }
 

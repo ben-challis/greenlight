@@ -259,6 +259,7 @@ final readonly class WorkerProcess
             $collector?->start();
 
             $leakDetector = $message->detectLeaks ? new LeakDetector() : null;
+            $events = new SocketEventSink($channel);
 
             $outcome = new Worker(
                 [],
@@ -268,7 +269,7 @@ final readonly class WorkerProcess
                 $artifactStore,
             )->run(
                 $message->slice,
-                new SocketEventSink($channel),
+                $events,
                 $message->stopAfterFailures,
                 static fn(): bool => $channel->poll() instanceof Drain,
                 $scopes,
@@ -280,7 +281,7 @@ final readonly class WorkerProcess
             $coverage = $collector?->stop();
 
             $done = new Done(
-                $outcome->summary,
+                $events->correctSummary($outcome->summary),
                 \memory_get_peak_usage(true),
                 $coverage,
                 $outcome->leaks,

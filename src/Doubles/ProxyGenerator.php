@@ -27,6 +27,15 @@ final readonly class ProxyGenerator
     private const string HANDLER_PROPERTY = '__greenlightHandler';
 
     /**
+     * PHP lets only internal classes implement these interfaces.
+     */
+    private const array INTERNAL_ONLY_INTERFACES = [
+        \Throwable::class,
+        \DateTimeInterface::class,
+        \UnitEnum::class,
+    ];
+
+    /**
      * @param non-empty-string $directory
      */
     public function __construct(private string $directory) {}
@@ -87,7 +96,22 @@ final readonly class ProxyGenerator
     private function reflectDoubleable(string $type): \ReflectionClass
     {
         if (\interface_exists($type)) {
-            return new \ReflectionClass($type);
+            $reflection = new \ReflectionClass($type);
+
+            foreach (self::INTERNAL_ONLY_INTERFACES as $internal) {
+                if ($reflection->implementsInterface($internal)) {
+                    throw InvalidDoubleUsage::cannotDoubleInternalInterface($type, $internal);
+                }
+            }
+
+            if ($reflection->implementsInterface(\Traversable::class)
+                && !$reflection->implementsInterface(\Iterator::class)
+                && !$reflection->implementsInterface(\IteratorAggregate::class)
+            ) {
+                throw InvalidDoubleUsage::cannotDoubleBareTraversable($type);
+            }
+
+            return $reflection;
         }
 
         if (\enum_exists($type)) {
@@ -166,7 +190,13 @@ final readonly class ProxyGenerator
             }
         }
 
-        if (!$reflection->isInterface() && $reflection->hasMethod('__destruct') && !$reflection->getMethod('__destruct')->isFinal()) {
+        $constructor = $reflection->getConstructor();
+
+        if ($constructor instanceof \ReflectionMethod && $constructor->isAbstract()) {
+            $sections[] = \sprintf("    %s\n    {\n    }\n", $this->renderSignature($constructor, null));
+        }
+
+        if ($reflection->hasMethod('__destruct') && !$reflection->getMethod('__destruct')->isFinal()) {
             $sections[] = "    public function __destruct() {}\n";
         }
 
@@ -226,6 +256,10 @@ final readonly class ProxyGenerator
             return null;
         }
 
+        if ($name === '__debuginfo') {
+            return $this->renderDebugInfo($method);
+        }
+
         if ($method->isStatic()) {
             return $method->isAbstract() ? $this->renderStaticStub($method) : null;
         }
@@ -240,13 +274,12 @@ final readonly class ProxyGenerator
     {
         $returnType = $method->getReturnType() ?? $method->getTentativeReturnType();
         $returnName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : null;
-        $arguments = $this->renderInvocationArguments($method);
-
         $invoke = \sprintf(
-            "\$this->%s->invoke(\$this, '%s', %s);",
+            "\$this->%s->invoke(\$this, '%s', %s, %s);",
             self::HANDLER_PROPERTY,
             $method->name,
-            $arguments,
+            $this->renderDeclaredArguments($method),
+            $this->renderSuppliedArguments($method),
         );
 
         if ($returnName === 'void') {
@@ -279,7 +312,39 @@ final readonly class ProxyGenerator
         );
     }
 
-    private function renderInvocationArguments(\ReflectionMethod $method): string
+    /**
+     * Renders each declared parameter. Thus, the call handler records the
+     * default value of an omitted optional argument. `func_get_args()` omits
+     * trailing defaults. It includes defaults before a named argument.
+     */
+    private function renderDeclaredArguments(\ReflectionMethod $method): string
+    {
+        $parameters = $method->getParameters();
+        $declared = \array_values(\array_filter(
+            $parameters,
+            static fn(\ReflectionParameter $parameter): bool => !$parameter->isVariadic(),
+        ));
+        $list = \sprintf('[%s]', \implode(', ', \array_map(
+            static fn(\ReflectionParameter $parameter): string => ($parameter->isPassedByReference() ? '&' : '') . '$' . $parameter->name,
+            $declared,
+        )));
+
+        if ($method->isVariadic()) {
+            return \sprintf('\\array_merge(%s, $%s)', $list, $parameters[\count($parameters) - 1]->name);
+        }
+
+        if ($declared === []) {
+            return '\\func_get_args()';
+        }
+
+        return \sprintf('\\array_merge(%s, \\array_slice(\\func_get_args(), %d))', $list, \count($declared));
+    }
+
+    /**
+     * Renders the arguments that the caller supplied. An answer callback
+     * receives these arguments, so its own defaults apply to omitted values.
+     */
+    private function renderSuppliedArguments(\ReflectionMethod $method): string
     {
         $arguments = $this->renderPositionalArguments($method);
 
@@ -343,6 +408,32 @@ final readonly class ProxyGenerator
         return \sprintf(
             "    %s\n    {\n%s    }\n",
             $this->renderSignature($method, $method->getReturnType() ?? $method->getTentativeReturnType(), static: true),
+            $body,
+        );
+    }
+
+    /**
+     * @throws InvalidDoubleUsage
+     */
+    private function renderDebugInfo(\ReflectionMethod $method): string
+    {
+        // Debug output must not depend on a mock plan. The class implementation
+        // can read constructor state that a double never initializes. An
+        // exception from `__debugInfo()` stops the process during var_dump().
+        $body = $method->isAbstract()
+            ? "        return [];\n"
+            : \implode("\n", [
+                '        try {',
+                '            return parent::__debugInfo();',
+                '        } catch (\\Throwable) {',
+                '            return [];',
+                '        }',
+                '',
+            ]);
+
+        return \sprintf(
+            "    %s\n    {\n%s    }\n",
+            $this->renderSignature($method, $method->getReturnType() ?? $method->getTentativeReturnType()),
             $body,
         );
     }
@@ -446,6 +537,11 @@ final readonly class ProxyGenerator
                         return \var_export($value, true);
                     }
                 }
+            }
+
+            if ($separator === false) {
+                // Reflection gives the namespaced name for an unqualified global constant.
+                return ConstantReference::render($constant, true, $parameter);
             }
 
             return '\\' . $constant;

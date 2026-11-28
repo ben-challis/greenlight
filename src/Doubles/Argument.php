@@ -18,8 +18,10 @@ final class Argument
     }
 
     /**
-     * This matcher accepts instances of the specified class or interface.
-     * It also accepts values when `get_debug_type()` returns `$type`.
+     * This matcher accepts values of the specified built-in type, class,
+     * interface, or enum. For a resource, use the name that
+     * `get_debug_type()` returns, such as `resource (stream)`.
+     * Other type names cause an `InvalidDoubleUsage` error.
      *
      * @template TType of string
      *

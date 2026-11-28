@@ -140,7 +140,28 @@ $plan->expects('save')->with($expectedOrder);
 
 Use `Argument::equals($expectedOrder)` to apply deep equality to a value object.
 
-Use `withNoArguments()` to require a call that supplies no arguments:
+Greenlight checks each bare value against the parameter type when you declare
+the plan. A value that the parameter type does not accept produces
+`InvalidDoubleUsage`. PHP converts an integer argument for a parameter that
+accepts `float` but not `int`. Greenlight applies the same conversion to a
+bare integer, so `with(5)` matches a call with `5` or `5.0`.
+
+Greenlight checks a `callable` value in the scope of the double. The double
+can call a protected method of the doubled class, but not a private method.
+
+Greenlight uses the declared default value of each omitted optional argument.
+This applies to the plan and to the call. Thus, `with('a', 2)` and `with('a')`
+both match `find('a')` and `find('a', 2)` when the second parameter has the
+default `2`. A named argument does not change the argument positions.
+
+An object default uses deep equality. A plan that omits an object default
+constructs the default object once, when you declare the plan. A `NAN` default
+matches `NAN`. `callsTo()` and argument captors also receive the default
+values. An `andReturnsUsing()` closure receives only the
+arguments that the caller supplied.
+
+Use `withNoArguments()` to require a call that supplies no variadic values and
+uses the default value of each optional parameter:
 
 <!-- php-example {"example":"test-doubles-example-05","file":"snippet.php","mode":"statements","tools":["rector"]} -->
 ```php
@@ -176,6 +197,12 @@ Available matchers are:
 * `Argument::equals(mixed $value)`
 * `Argument::allOf(ArgumentMatcher $first, ArgumentMatcher $second, ArgumentMatcher ...$rest)`
 * `Argument::captor()`
+
+`Argument::type()`, `Argument::intersection()`, and `Argument::union()` accept
+built-in type names, such as `int`, `callable`, `iterable`, `object`, and
+`mixed`, and classes, interfaces, and enums that PHP can load. They also
+accept a resource name from `get_debug_type()`, such as `resource (stream)`.
+Other names produce `InvalidDoubleUsage`.
 
 Use `Argument::intersection()` when a value must have every specified type.
 Use `Argument::union()` when a value can have one or more specified types:
@@ -282,16 +309,29 @@ A final `__clone()` keeps its implementation and can run application code.
 
 Double targets are interfaces or non-final, non-readonly classes.
 
+PHP lets only internal classes implement `Throwable`, `DateTimeInterface`,
+`UnitEnum`, and `BackedEnum`. Greenlight cannot double an interface that
+extends one of them. An interface that extends `Traversable` must also extend
+`Iterator` or `IteratorAggregate`. These cases produce `InvalidDoubleUsage`.
+The bundled PHPStan extension reports them.
+
 A class double intercepts only overridable public instance methods.
 
 Concrete final, static, and protected methods keep their original
 implementations. Calls through these methods can run application code.
 
+Greenlight does not intercept `__debugInfo()`. A class double uses the class
+implementation. If that implementation throws, for example because it reads
+constructor state, the double returns an empty array. An abstract
+`__debugInfo()` also returns an empty array. A final `__debugInfo()` keeps its
+implementation and can fail.
+
 Greenlight does not run the class constructor when it creates a double. Prefer
 an interface at the application boundary.
 
 Greenlight suppresses a non-final destructor. It cannot suppress a final
-destructor, which can run application code.
+destructor, which can run application code. An abstract constructor or
+destructor gets an empty implementation with the declared signature.
 
 ### Object parameter defaults
 
@@ -310,4 +350,6 @@ also requires a class without private constants. These cases produce
 
 Define unqualified constants before you create the double. Greenlight resolves
 these constants in the original namespace, with PHP's global fallback, when it
-generates the proxy. Private scalar and enum constants retain their values.
+generates the proxy. This applies to constant defaults such as `PHP_INT_MAX`
+and to constants inside object default expressions. Private scalar and enum
+constants retain their values.

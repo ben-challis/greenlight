@@ -48,6 +48,18 @@ final class DiscoveryErrorTest
     }
 
     #[Test]
+    public function unreadableDirectoryErrorsNameTheDirectory(): void
+    {
+        expect([
+            DiscoveryError::unreadableDirectory('/project/tests/private')->getMessage(),
+            DiscoveryError::unreadableDirectory('/project/tests/private', 'permission denied')->getMessage(),
+        ])->toBe([
+            'Greenlight cannot read test directory "/project/tests/private".',
+            'Greenlight cannot read test directory "/project/tests/private": permission denied.',
+        ]);
+    }
+
+    #[Test]
     public function unreadableFilesPreserveAZeroStringReason(): void
     {
         expect(DiscoveryError::unreadableFile('/project/tests/ExampleTest.php', '0')->getMessage())

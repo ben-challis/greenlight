@@ -6,6 +6,7 @@ namespace Greenlight\Cli\Reporting;
 
 use Greenlight\Cli\Input\ParsedArguments;
 use Greenlight\Cli\Output\TerminalCapabilities;
+use Greenlight\Cli\Output\TerminalRowsResolver;
 use Greenlight\Plugin\ReporterProvider;
 use Greenlight\Reporting\GithubReporter;
 use Greenlight\Reporting\JsonLinesReporter;
@@ -26,13 +27,18 @@ use Greenlight\Reporting\TtyReporter;
 final readonly class BundledReporters implements ReporterProvider
 {
     /**
-     * @param positive-int $terminalRows
+     * A null size is resolved when the tty reporter is created. The other
+     * reporters do not use the terminal size, so they do not probe it.
+     *
+     * @param positive-int|null $terminalRows
+     * @param positive-int|null $terminalColumns
      */
     public function __construct(
         private TerminalCapabilities $capabilities,
         private RunHeader $header,
         private ParsedArguments $arguments,
-        private int $terminalRows,
+        private ?int $terminalRows = null,
+        private ?int $terminalColumns = null,
     ) {}
 
     /** @return list<ReporterDefinition> */
@@ -52,7 +58,8 @@ final readonly class BundledReporters implements ReporterProvider
                     $this->header,
                     extendedSlowTests: $profile,
                     verbose: $this->arguments->has('verbose'),
-                    terminalRows: $this->terminalRows,
+                    terminalRows: $this->terminalRows ?? TerminalRowsResolver::resolve(),
+                    terminalColumns: $this->terminalColumns ?? TerminalColumnsResolver::resolve(),
                 );
             }),
             new ReporterDefinition('plain', fn(Output $output): Reporter => new PlainReporter($output, $this->header, extendedSlowTests: $profile)),

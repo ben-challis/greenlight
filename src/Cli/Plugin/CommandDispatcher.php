@@ -6,6 +6,7 @@ namespace Greenlight\Cli\Plugin;
 
 use Greenlight\Cli\Configuration\ConfigurationLoader;
 use Greenlight\Cli\Input\Definition;
+use Greenlight\Cli\Input\OptionValue;
 use Greenlight\Cli\Output\Console;
 use Greenlight\Config\ConfigFileError;
 use Greenlight\Config\ConfigLoader;
@@ -150,9 +151,11 @@ final readonly class CommandDispatcher
     {
         $configuredPath = null;
 
-        foreach ($argv as $argument) {
+        foreach ($argv as $index => $argument) {
             if (\str_starts_with($argument, '--config=')) {
                 $configuredPath = \substr($argument, \strlen('--config='));
+            } elseif ($argument === '--config' && isset($argv[$index + 1])) {
+                $configuredPath = $argv[$index + 1];
             }
         }
 
@@ -174,12 +177,33 @@ final readonly class CommandDispatcher
     }
 
     /**
+     * Finds the command word. The word after an option that requires a value
+     * and has no equals sign is that value, not the command.
+     *
      * @param list<string> $argv
      * @return array{?string, ?int}
      */
     private function selectedCommand(array $argv): array
     {
-        foreach ($argv as $index => $argument) {
+        $requiresValue = [];
+
+        foreach ($this->definition->options() as $spec) {
+            if ($spec->value === OptionValue::Required) {
+                $requiresValue['--' . $spec->name] = true;
+            }
+        }
+
+        $count = \count($argv);
+
+        for ($index = 0; $index < $count; ++$index) {
+            $argument = $argv[$index];
+
+            if (isset($requiresValue[$argument])) {
+                ++$index;
+
+                continue;
+            }
+
             if (!\str_starts_with($argument, '-') || $argument === '-') {
                 return [$argument, $index];
             }

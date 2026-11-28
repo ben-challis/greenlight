@@ -19,11 +19,17 @@ use Greenlight\Internal\Text\DecimalInteger;
  *
  * If the platform gives no count, the method uses a conservative default.
  *
+ * The count does not change during a process. The first call stores it,
+ * because a probe can start a subprocess.
+ *
  * @internal
  */
 final class CpuCores
 {
     private const int FALLBACK = 4;
+
+    /** @var positive-int|null */
+    private static ?int $count = null;
 
     #[CoverageIgnore]
     private function __construct() {}
@@ -32,6 +38,14 @@ final class CpuCores
      * @return positive-int
      */
     public static function count(): int
+    {
+        return self::$count ??= self::detect();
+    }
+
+    /**
+     * @return positive-int
+     */
+    private static function detect(): int
     {
         if (\class_exists(CpuCoreCounter::class)) {
             try {

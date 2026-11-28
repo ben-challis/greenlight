@@ -17,7 +17,7 @@ final readonly class ArgumentCaptureTest
     public function __construct(private Doubles $doubles) {}
 
     #[Test]
-    public function captureArgumentIgnoresOmittedOptionalAndVariadicPositions(): void
+    public function captureArgumentRecordsOmittedDefaultsAndIgnoresOmittedVariadicPositions(): void
     {
         $optionalCaptor = null;
         $variadicCaptor = null;
@@ -27,7 +27,7 @@ final readonly class ArgumentCaptureTest
         });
 
         expect($wide->withDefaults())
-            ->because('capture argument ignores omitted optional and variadic positions')
+            ->because('capture argument records omitted defaults and ignores omitted variadic positions')
             ->toBe('defaults');
         expect($wide->variadic('head'))->toBe([]);
 
@@ -38,7 +38,7 @@ final readonly class ArgumentCaptureTest
             ->because('The variadic captureArgument() call MUST return ArgumentCaptor.')
             ->toBeInstanceOf(ArgumentCaptor::class);
 
-        expect($optionalCaptor->values())->toBe([]);
+        expect($optionalCaptor->values())->toBe(['fast']);
         expect($variadicCaptor->values())->toBe([]);
     }
 }

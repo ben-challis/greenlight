@@ -89,6 +89,11 @@ final class ExpectationTypeSpecifyingExtension implements MethodTypeSpecifyingEx
             return new SpecifiedTypes();
         }
 
+        if ($negated && $methodReflection->getName() === 'toBeInstanceOf' && !$this->namesOneClass($node, $scope)) {
+            // A failed check against a class-string variable excludes only the runtime class, not its upper bound.
+            return new SpecifiedTypes();
+        }
+
         return $this->typeSpecifier->create(
             $subject,
             $asserted,
@@ -157,6 +162,19 @@ final class ExpectationTypeSpecifyingExtension implements MethodTypeSpecifyingEx
             'toBeIterable' => new IterableType($mixed, $mixed),
             default => null,
         };
+    }
+
+    private function namesOneClass(MethodCall $call, Scope $scope): bool
+    {
+        $argument = $call->getArgs()[0] ?? null;
+
+        if (!$argument instanceof Arg) {
+            return false;
+        }
+
+        $type = $scope->getType($argument->value);
+
+        return \count($type->getConstantStrings()) === 1 && $type->isConstantScalarValue()->yes();
     }
 
     private function isNegated(MethodCall $call): ?bool

@@ -22,6 +22,9 @@ final readonly class CoberturaExporter implements CoverageExporter
 
     public function __construct(private int $timestamp = 0) {}
 
+    /**
+     * @return non-empty-array<non-empty-string, string>
+     */
     #[\Override]
     public function export(CoverageMap $map): array
     {

@@ -167,10 +167,10 @@ Repeated calls to `coverage()` preserve earlier settings.
 `CoverageBuilder` methods:
 
 * `include(string ...$paths): self` adds source directories to measure. Default:
-  none.
-* `driver(string $driver): self` restricts coverage to `pcov` or `xdebug` when
-  you use that value. Other non-empty values have the default behavior:
-  Greenlight tries pcov, then Xdebug.
+  none. Greenlight warns for a directory that does not exist.
+* `driver(string $driver): self` restricts coverage to `pcov` or `xdebug`.
+  The names are case-sensitive. Other values cause an `InvalidConfiguration`
+  error. Omit this call to try pcov, then Xdebug.
 * `requireDriver(bool $required = true): self` fails the run when the selected
   coverage driver is not available. Default: `false`.
 * `minimumPercentage(float $percentage): self` sets the minimum total line
@@ -199,12 +199,30 @@ Repeated calls to `coverage()` preserve earlier settings.
 When you configure coverage, the run prints the total percentage and writes
 each coverage export.
 
+A coverage driver reports only the files that PHP loads. After the run,
+Greenlight finds each `.php` file in the include paths that no test loaded. It
+adds the executable lines of these files as uncovered lines. Thus, an untested
+file decreases the total percentage. Without include paths, the export contains
+only the files that the driver reports.
+
+To find the executable lines, Greenlight compiles these files in a PHP
+subprocess with the coverage driver of the run. The subprocess includes a copy
+of each file. The copy has a return statement after the `declare` and
+`namespace` statements, so no code of the file executes.
+
+The run fails if the subprocess cannot start the driver. It also fails if the
+subprocess stops while it compiles a file. A file with a syntax error is not
+added.
+
 If no worker can collect coverage because neither pcov nor Xdebug coverage mode
 is available, Greenlight warns on stderr. That warning does not fail the run by
 itself. `requireDriver()` changes the warning to a run failure.
 
 A configured coverage gate also requires coverage. Thus, an unavailable
 coverage driver fails the run when you configure a gate.
+
+A configured gate fails if the coverage contains no executable lines. For
+example, an include path with a spelling error gives no executable lines.
 
 The minimum percentage gate uses the total line coverage. Greenlight rounds
 the calculated percentage to two decimal places before the comparison. It uses
@@ -217,6 +235,12 @@ must pass.
 Greenlight writes all configured coverage exports before it evaluates the
 gates. Thus, a failed gate keeps the coverage evidence. A failed gate uses exit
 code `1`.
+
+Greenlight writes the HTML export one page at a time. If an error stops the
+HTML export, the target directory keeps the pages that Greenlight wrote before
+the error. Other files in the directory stay unchanged. Thus, the directory can
+contain a mix of new and old pages. The run reports the error and uses exit code
+`1`.
 
 Reporters continue to report test results. They do not add a coverage-gate
 result to JUnit, JSONL, or other machine formats. Use the process exit code for
@@ -703,12 +727,23 @@ The command also accepts `--minimum-coverage` and
 `--maximum-uncovered-lines`. These gates apply to the current export. A failed
 gate fails the command when the baseline has no regression.
 
-Exits with code 1 if coverage across files present in both exports decreases.
-It also fails if the current export has a newly uncovered line. This rule also
-applies to added files. A coverage gain elsewhere does not hide that line.
+The command compares each file that is in both exports. It exits with code 1
+if a file has more uncovered lines than in the baseline. It also exits with
+code 1 if the percentage of a file decreases. The command compares percentages
+at two decimal places. A coverage gain in a different file does not hide a
+regression.
 
-Removed files do not cause a regression. The displayed total percentages
-include all files, so their difference alone does not determine the exit code.
+The command compares line counts, not line numbers. An edit that moves lines
+does not cause a regression. The output shows the uncovered-line counts for
+each file that has a changed count.
+
+Added files and removed files do not cause a regression. The command does not
+detect renamed files. A renamed file is a removed file and an added file, so a
+rename does not cause a regression. Use `--minimum-coverage` or
+`--maximum-uncovered-lines` to limit the coverage of added files.
+
+The displayed total percentages include all files, so their difference alone
+does not determine the exit code.
 
 See the [coverage JSON schema](architecture/coverage-json.md) for the required
 format and path rules.
@@ -732,8 +767,20 @@ Applies the configured retention policy to completed artifact run directories.
 Use `--dry-run` to list the directories that the command would remove. The
 command reports each directory, its size, and the applicable limit.
 
-If you configure no retention policy, the command exits successfully and does
-not remove a directory.
+The command also reports each directory that it does not select and gives the
+reason. Examples are an incomplete run that no process holds, and a completed
+run with content that changed after completion.
+
+Use `--abandoned-run-age=<seconds>` to also remove incomplete runs. The
+command removes an incomplete run only if no process holds it and if it
+started at least this many seconds ago. This option also applies when you
+configure no retention policy. The command uses `flock` to find the process
+that holds a run. Run it only where that process shares `flock` with the
+command. Some network filesystems, and a Docker bind mount from a macOS host,
+do not share it.
+
+If you configure no retention policy and do not use `--abandoned-run-age`, the
+command exits successfully and does not remove a directory.
 
 See [`artifacts()`](#artifactscallable-configurator-self) for the retention
 settings.
@@ -785,6 +832,10 @@ vendor/bin/greenlight completion fish > ~/.config/fish/completions/greenlight.fi
 
 ## Options
 
+An option that requires a value accepts `--name=value` and `--name value`.
+The word after the option is its value, also when it starts with `-`. An
+option with an optional value, such as `--bail`, accepts only `--name=value`.
+
 ### `--config=<path>`
 
 Uses this configuration file instead of `./greenlight.php`.
@@ -792,6 +843,11 @@ Uses this configuration file instead of `./greenlight.php`.
 ### `--workers=<n|auto>`
 
 Overrides the worker process count.
+
+A worker can exit after its last test and before it sends its assignment
+report. Greenlight then prints a warning, and the run keeps the test results.
+A run with coverage or `--detect-leaks` fails instead, because the lost report
+contains the coverage or leak data.
 
 ### `--resource-limit=<name>=<n>`
 
@@ -953,6 +1009,10 @@ Only whole classes move between shards. Individual methods are not split.
 Combines with `--group` and `--filter`. Greenlight divides the filtered plan
 into shards.
 
+A suite with fewer classes than shards gives some shards no tests. Such a
+shard prints a notice and exits with `0`. It writes no coverage file. A
+filtered plan with no tests still exits with `1`.
+
 Each shard enforces its own resource limits. If four shards each use
 `postgres=2`, up to eight tests can use PostgreSQL across the CI job.
 
@@ -1110,7 +1170,11 @@ After a change, classes that failed in the previous watch iteration run first.
 The `watch()` builder can add templates, YAML, JSON, SQL migrations, fixtures,
 and other inputs. It can also exclude generated output from every watched root.
 
-Watch mode does not publish coverage totals or coverage exports.
+Watch mode does not collect coverage. It does not publish coverage totals or
+coverage exports.
+
+Do not use `--watch` with `--failed` or with a JUnit reporter. Each iteration
+selects the configured tests again, and a JUnit file holds one run.
 
 In watch mode:
 
@@ -1221,6 +1285,12 @@ Prints a summary of the resolved run settings without test discovery or
 execution. The summary includes additional watch paths, patterns, debounce, and
 the file limit.
 
+### `--abandoned-run-age=<seconds>`
+
+For `artifacts:prune`, also removes incomplete runs. The command removes an
+incomplete run only if no process holds it and if it started at least this
+many seconds ago. See [artifacts:prune](#artifactsprune).
+
 ### `--verbose`
 
 In interactive output, prints a permanent line for every completed class.
@@ -1284,7 +1354,15 @@ The run then exits with:
 * `130` for SIGINT
 * `143` for SIGTERM
 
-A second signal during shutdown terminates immediately.
+A second signal during shutdown ends Greenlight after a short cleanup. In watch
+mode, the cleanup waits up to 2 seconds for the child process. Before it exits,
+Greenlight:
+
+* kills the worker processes
+* stops the watch-mode child process
+* restores the terminal
+
+The exit status then shows the signal.
 
 Graceful shutdown requires `ext-pcntl`. Without it, PHP uses its default signal
 behavior and exits immediately.
@@ -1294,10 +1372,25 @@ behavior and exits immediately.
 Greenlight caches discovery results per file in the configured cache directory.
 By default, it uses the system temporary directory.
 
-The cache identity includes the effective discovery paths. The cache key for
-each entry includes the file path, mtime, and size. Greenlight can reuse data
-for an unchanged file. If the cache data is uncertain, Greenlight parses the
+The cache identity includes the effective discovery paths, the PHP version, and
+a hash of the Greenlight discovery code. A Greenlight update that changes
+discovery uses a new cache.
+
+Each entry records the path, mtime, size, and content hash of the test file. It
+also records the same data for these files:
+
+* parent classes, traits, and interfaces
+* data provider classes
+* classes that attribute arguments name in constant expressions, for example
+  `Cases` in `#[Group(Cases::GROUP)]`
+
+A change to one of these files makes the entry stale. Greenlight then parses
+the test file again. If the cache data is uncertain, Greenlight also parses the
 file again.
+
+The cache stores test definitions, not data sets. Greenlight calls each data
+provider on each run. Thus, provider output that reads other classes or
+fixture files stays current.
 
 Watch mode benefits most because every iteration rediscovers the suite.
 
@@ -1308,6 +1401,10 @@ In an interactive terminal, the `tty` reporter shows a bounded live window:
 * a progress counter
 * in-flight classes
 * at most ten live lines, clamped to the terminal height
+
+The reporter shortens a live line that is wider than the terminal. The line
+ends with `…`. Greenlight reads the width from `COLUMNS`, then from
+`tput cols`. If neither gives a width, it uses 80 columns.
 
 The reporter prints failures and skips permanently when their class finishes.
 

@@ -40,7 +40,9 @@ final readonly class Definition
 
         Usage:
           greenlight [command] [options]
-          Supply option values with =, for example --workers=4.
+          Give a required value with = or as the next word, for example
+          --workers=4 or --workers 4. An optional value, such as --bail=<n>,
+          needs =.
           Quote values that contain * or ? to prevent shell expansion.
 
         Commands:
@@ -49,9 +51,9 @@ final readonly class Definition
                          Use --format=json for a machine-readable test manifest.
           coverage:merge Merge coverage JSON exports. Supply at least two --input
                          options and at least one --export option.
-          coverage:diff  Compare two coverage JSON exports. Fail if coverage across
-                         files in both maps decreases or a line becomes newly uncovered.
-                         Removed files do not cause a regression.
+          coverage:diff  Compare two coverage JSON exports. Fail if a file in both
+                         maps has more uncovered lines or a lower percentage. Added,
+                         removed, and renamed files do not cause a regression.
           profile:report Create a run profile from a saved JSONL stream (--input)
           artifacts:prune Apply configured retention to completed artifact runs.
                          Use --dry-run to list selected runs without deletion.
@@ -165,6 +167,10 @@ final readonly class Definition
                              Use with --baseline-root.
           --dry-run          For run, print settings without test discovery or execution.
                              For artifacts:prune, list selected runs without deletion.
+          --abandoned-run-age=<seconds>
+                             For artifacts:prune, also remove each incomplete run that
+                             no process holds and that started at least this many
+                             seconds ago.
           -h, --help         Show this help
           -V, --version      Show the version
 
@@ -210,6 +216,7 @@ final readonly class Definition
             new OptionSpec('project-root', OptionValue::Required),
             new OptionSpec('export', OptionValue::Required, repeatable: true),
             new OptionSpec('watch'), new OptionSpec('detect-leaks'), new OptionSpec('dry-run'),
+            new OptionSpec('abandoned-run-age', OptionValue::Required),
             new OptionSpec('ansi'), new OptionSpec('no-ansi'), new OptionSpec('verbose'), new OptionSpec('profile'),
             new OptionSpec('input', OptionValue::Required, repeatable: true), new OptionSpec('output', OptionValue::Required),
             new OptionSpec('help', short: 'h'), new OptionSpec('version', short: 'V'),

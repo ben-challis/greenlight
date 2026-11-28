@@ -127,7 +127,10 @@ final class EventuallyExpectation extends TemporalExpectation
                 $counted = true;
             }
 
-            if ($last->matched && $observedAt <= $deadline) {
+            // The loop starts a probe only while time remains. The last probe is
+            // scheduled at the deadline, but a real sleep ends after it.
+            // Thus, a match from each probe counts.
+            if ($last->matched) {
                 if (!$last instanceof TemporalValueObservation) {
                     throw new \LogicException('A matched temporal observation must contain a subject.');
                 }

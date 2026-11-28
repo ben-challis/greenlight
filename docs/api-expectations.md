@@ -1282,11 +1282,17 @@ Use `Expect::value()` to create an expectation.
   equal properties. This rule includes private and inherited properties.
   The comparison safely processes cyclic object structures.
 
+- Objects with a native ancestor class, such as `ArrayObject` or `GMP`,
+  also compare their native state. The comparison uses `__serialize()`
+  where it exists, and the elements of a copy for `SplHeap` and
+  `SplPriorityQueue`. A native object with no comparable state, such as a
+  `Generator`, `WeakMap`, or `DOMDocument`, is equal only to itself.
+
 ```php
 class Expectation
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L34)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L40)
 
 PHPDoc:
 
@@ -1772,7 +1778,7 @@ PHPDoc:
 public function not(): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L59)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L65)
 
 ### `because()`
 
@@ -1788,7 +1794,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L74)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L80)
 
 ### `__call()`
 
@@ -1803,7 +1809,7 @@ PHPDoc:
 - `@throws \BadMethodCallException`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L91)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L97)
 
 ## `ExpectationBuilder`
 
@@ -2731,7 +2737,7 @@ PHPDoc:
 public function not(): static
 ```
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L59)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L65)
 
 ### `because()`
 
@@ -2747,7 +2753,7 @@ PHPDoc:
 - `@param non-empty-string $reason`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L74)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L80)
 
 ### `__call()`
 
@@ -2762,7 +2768,7 @@ PHPDoc:
 - `@throws \BadMethodCallException`
 - `@throws ExpectationFailed`
 
-[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L91)
+[View source](https://github.com/ben-challis/greenlight/blob/main/src/Expect/Expectation.php#L97)
 
 ### `eventually()`
 

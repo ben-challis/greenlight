@@ -19,6 +19,9 @@ use Greenlight\Internal\Php\ErrorTrap;
  * If Greenlight cannot read a source file, the page shows only known coverage
  * line numbers and statuses. It omits gaps between those lines.
  *
+ * export() gives the index first and then one page for each file. It creates
+ * each page only when the caller asks for it.
+ *
  * @internal
  */
 final readonly class HtmlExporter implements CoverageExporter
@@ -68,16 +71,17 @@ final readonly class HtmlExporter implements CoverageExporter
 
     public function __construct(private string $projectRoot = '') {}
 
+    /**
+     * @return \Generator<non-empty-string, string>
+     */
     #[\Override]
-    public function export(CoverageMap $map): array
+    public function export(CoverageMap $map): \Generator
     {
-        $pages = [self::INDEX_FILE_NAME => $this->indexPage($map)];
+        yield self::INDEX_FILE_NAME => $this->indexPage($map);
 
         foreach ($map->files() as $path => $file) {
-            $pages[self::pageName($path)] = $this->filePage($file);
+            yield self::pageName($path) => $this->filePage($file);
         }
-
-        return $pages;
     }
 
     /**

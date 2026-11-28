@@ -66,7 +66,11 @@ final class ArgumentParser
         /** @var array<string, list<string|null>> $options */
         $options = [];
 
-        foreach ($argv as $argument) {
+        $count = \count($argv);
+
+        for ($index = 0; $index < $count; ++$index) {
+            $argument = $argv[$index];
+
             if (\str_starts_with($argument, '--')) {
                 $body = \substr($argument, 2);
 
@@ -89,8 +93,15 @@ final class ArgumentParser
                     throw CliError::optionTakesNoValue($name);
                 }
 
+                // A required value can also be the next word. An optional
+                // value uses only the equals form, because the next word can
+                // be the command or a path.
                 if ($value === null && $spec->value === OptionValue::Required) {
-                    throw CliError::optionRequiresValue($name);
+                    if ($index + 1 >= $count) {
+                        throw CliError::optionRequiresValue($name);
+                    }
+
+                    $value = $argv[++$index];
                 }
 
                 $this->record($options, $spec, $value);

@@ -13,7 +13,7 @@ final class CoverageBuilder
     private array $includePaths = [];
 
     /**
-     * @var non-empty-string|null
+     * @var 'pcov'|'xdebug'|null
      */
     private ?string $driver = null;
 
@@ -61,8 +61,9 @@ final class CoverageBuilder
     /**
      * Selects `pcov` or `xdebug` without fallback to the other driver.
      * Omit this call for automatic selection, which tries pcov before Xdebug.
+     * The names are case-sensitive. Other names cause an error.
      *
-     * @param non-empty-string $driver
+     * @param 'pcov'|'xdebug' $driver
      *
      * @throws InvalidConfiguration
      */
@@ -70,6 +71,10 @@ final class CoverageBuilder
     {
         if ($driver === '') {
             throw InvalidConfiguration::emptyCoverageDriver();
+        }
+
+        if ($driver !== 'pcov' && $driver !== 'xdebug') {
+            throw InvalidConfiguration::unknownCoverageDriver($driver);
         }
 
         $this->driver = $driver;

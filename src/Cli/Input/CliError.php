@@ -33,12 +33,12 @@ final class CliError extends \RuntimeException
 
     public static function optionRequiresValue(string $name): self
     {
-        return new self(\sprintf('Option --%s requires a value. Use --%s=<value>.', $name, $name));
+        return new self(\sprintf('Option --%s requires a value.', $name));
     }
 
     public static function shortOptionRequiresValue(string $short, string $name): self
     {
-        return new self(\sprintf('Option -%s requires a value. Use --%s=<value>.', $short, $name));
+        return new self(\sprintf('Option -%s requires a value. Use --%s=<value> or --%s <value>.', $short, $name, $name));
     }
 
     public static function unexpectedArgument(string $argument): self
@@ -187,6 +187,11 @@ final class CliError extends \RuntimeException
     public static function duplicateReporterOutput(string $path): self
     {
         return new self(\sprintf('Write reporter output to file "%s" only once.', $path));
+    }
+
+    public static function watchWithJunitOutput(): self
+    {
+        return new self('Do not use --watch with JUnit output.');
     }
 
     /** @param non-empty-list<non-empty-string> $outputs */

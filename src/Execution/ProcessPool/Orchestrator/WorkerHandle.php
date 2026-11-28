@@ -135,11 +135,35 @@ final class WorkerHandle
 
     private function sendKillSignal(): void
     {
-        if (\is_resource($this->process)) {
-            ErrorTrap::run(fn() => \proc_terminate($this->process, 9));
+        $this->killProcessGroup();
+        $this->lifecycle = WorkerLifecycle::Killing;
+    }
+
+    /**
+     * Kills the worker and the processes that it started.
+     *
+     * A worker leads its own process group. Thus, a signal to the group also
+     * stops test subprocesses. A worker without its own group gets the signal
+     * only for its own process.
+     */
+    private function killProcessGroup(): void
+    {
+        if (!\is_resource($this->process)) {
+            return;
         }
 
-        $this->lifecycle = WorkerLifecycle::Killing;
+        $status = \proc_get_status($this->process);
+        $pid = $status['pid'];
+
+        if ($status['running']
+            && $pid > 1
+            && \function_exists('posix_kill')
+            && ErrorTrap::run(static fn(): bool => \posix_kill(-$pid, 9))
+        ) {
+            return;
+        }
+
+        ErrorTrap::run(fn() => \proc_terminate($this->process, 9));
     }
 
     private function closeDiagnosticPipes(): void
@@ -260,10 +284,8 @@ final class WorkerHandle
         $this->channel?->close();
 
         if (\is_resource($this->process)) {
-            ErrorTrap::run(function () {
-                \proc_terminate($this->process, 9);
-                \proc_close($this->process);
-            });
+            $this->killProcessGroup();
+            ErrorTrap::run(fn() => \proc_close($this->process));
         }
 
         $this->lifecycle = WorkerLifecycle::Reaped;

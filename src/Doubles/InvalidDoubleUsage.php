@@ -115,6 +115,25 @@ final class InvalidDoubleUsage extends \LogicException
         return new self(\sprintf('%s is a trait. Doubles cannot create a proxy for a trait. Use a class or interface that uses it.', $type));
     }
 
+    public static function cannotDoubleInternalInterface(string $type, string $internal): self
+    {
+        return new self(\sprintf(
+            '%s extends %s. Only PHP internal classes can implement %s, so Doubles cannot create a proxy. Use a different interface.',
+            $type,
+            $internal,
+            $internal,
+        ));
+    }
+
+    public static function cannotDoubleBareTraversable(string $type): self
+    {
+        return new self(\sprintf(
+            '%s extends Traversable, but not Iterator or IteratorAggregate. Doubles cannot create a proxy for it. '
+            . 'Make the interface extend Iterator or IteratorAggregate.',
+            $type,
+        ));
+    }
+
     public static function notDoubleable(string $type): self
     {
         return new self(\sprintf('Doubles cannot load %s as a class or interface.', $type));
@@ -281,6 +300,30 @@ final class InvalidDoubleUsage extends \LogicException
     /**
      * @param class-string $type
      */
+    public static function incompatiblePlannedArgumentValue(
+        string $selector,
+        string $type,
+        string $method,
+        int $position,
+        string $valueType,
+        string $parameter,
+        string $parameterType,
+    ): self {
+        return new self(\sprintf(
+            'The value in %s() argument %d has type "%s", but parameter "$%s" of "%s::%s()" requires "%s". No call can match it.',
+            $selector,
+            $position,
+            $valueType,
+            $parameter,
+            $type,
+            $method,
+            $parameterType,
+        ));
+    }
+
+    /**
+     * @param class-string $type
+     */
     public static function tooFewCallArguments(string $type, string $method, int $actual, int $required): self
     {
         return new self(\sprintf(
@@ -342,6 +385,15 @@ final class InvalidDoubleUsage extends \LogicException
     public static function invalidArgumentType(): self
     {
         return new self('Argument::type() requires a type name that contains a non-space character.');
+    }
+
+    public static function unknownArgumentType(string $factory, string $type): self
+    {
+        return new self(\sprintf(
+            'Argument::%s() does not know the type "%s". Use a built-in type, or a class, interface, or enum that PHP can load.',
+            $factory,
+            $type,
+        ));
     }
 
     public static function invalidArgumentTypeCombination(string $factory): self

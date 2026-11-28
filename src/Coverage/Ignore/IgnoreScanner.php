@@ -18,6 +18,8 @@ use Greenlight\Internal\Php\ErrorTrap;
  * ignores its range. A start marker without an end marker ignores to the
  * end of the file. An end marker without a start marker has no effect. An
  * "@codeCoverageIgnore" comment without a declaration ignores its own line.
+ * A comment after code on the same line, for example
+ * `} // @codeCoverageIgnore`, also ignores only its own line.
  *
  * The scanner compares a bare or qualified attribute name. It does not load
  * user code. An import alias does not match. An unreadable file gives an
@@ -68,7 +70,7 @@ final readonly class IgnoreScanner
                 }
 
                 if ($rangeMarkers === [] && \str_contains($token->text, self::IGNORE)) {
-                    $declaration = $this->declarationRange($tokens, $i + 1);
+                    $declaration = $this->startsLine($tokens, $i) ? $this->declarationRange($tokens, $i + 1) : null;
 
                     if ($declaration === null) {
                         $ignored[$token->line] = true;
@@ -100,6 +102,30 @@ final readonly class IgnoreScanner
         }
 
         return $ignored;
+    }
+
+    /**
+     * Tells if only whitespace or comments occur before the token on its line.
+     *
+     * @param list<\PhpToken> $tokens
+     */
+    private function startsLine(array $tokens, int $index): bool
+    {
+        for ($i = $index - 1; $i >= 0; $i--) {
+            $token = $tokens[$i];
+
+            if ($token->is([\T_WHITESPACE, \T_COMMENT, \T_DOC_COMMENT])) {
+                if (\str_contains($token->text, "\n")) {
+                    return true;
+                }
+
+                continue;
+            }
+
+            return $token->is(\T_OPEN_TAG);
+        }
+
+        return true;
     }
 
     /**

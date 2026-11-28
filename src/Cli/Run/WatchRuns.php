@@ -22,6 +22,7 @@ use Greenlight\Cli\Watch\WatchSourceFailed;
 use Greenlight\Cli\Watch\WatchSourceRuntime;
 use Greenlight\Execution\RunPolicyError;
 use Greenlight\Execution\Worker\LeakDetector;
+use Greenlight\Internal\Process\EmergencyCleanups;
 use Greenlight\Internal\Process\GracefulShutdown;
 use Greenlight\Plugin\CommandResult;
 use Greenlight\Reporting\Reporter;
@@ -36,7 +37,7 @@ final readonly class WatchRuns
     public function __construct(private Console $console) {}
 
     /** @param non-empty-string|false $workerBin */
-    public function run(ParsedArguments $arguments, string $workingDirectory, string|false $workerBin, LoadedConfiguration $configuration, GracefulShutdown $shutdown, ReporterCatalog $reporterCatalog, ReporterOutputPlan $reporterOutputs, Reporter $initialReporter): CommandResult
+    public function run(ParsedArguments $arguments, string $workingDirectory, string|false $workerBin, LoadedConfiguration $configuration, GracefulShutdown $shutdown, ReporterCatalog $reporterCatalog, ReporterOutputPlan $reporterOutputs, Reporter $initialReporter, ?EmergencyCleanups $emergencyCleanups = null): CommandResult
     {
         if ($workerBin === false) {
             $this->console->error(WatchRunFailed::unavailable()->getMessage(), $arguments->has('no-ansi'));
@@ -66,7 +67,7 @@ final readonly class WatchRuns
             $this->console->err($this->console->stderrStyle($arguments->has('no-ansi'))->warn($warning) . "\n");
         }
         $nextReporter = $initialReporter;
-        $process = new WatchRunProcess($this->console, $shutdown);
+        $process = new WatchRunProcess($this->console, $shutdown, $emergencyCleanups);
         $runOnce = function (array $priorityClasses) use ($arguments, $reporterCatalog, $reporterOutputs, $process, $workerBin, $workingDirectory, $resolved, &$nextReporter): array {
             $priorityClasses = \array_values(\array_filter($priorityClasses, static fn(mixed $class): bool => \is_string($class) && $class !== ''));
             $reporter = $nextReporter ?? new ReporterFactory($this->console)->create($arguments, $reporterCatalog, $reporterOutputs);
@@ -75,6 +76,9 @@ final readonly class WatchRuns
             return $process->run($workerBin, $arguments, $workingDirectory, $reporter, $priorityClasses, $resolved->order->seed);
         };
         $keys = new StdinKeyInput();
+        // A forced exit skips the finally block below. The terminal must not
+        // stay in raw mode.
+        $restoreKeys = $emergencyCleanups?->register($keys->restore(...));
         $statusOutput = $reporterOutputs->writesReporterToStandardOutput('jsonl')
             ? $this->console->err(...)
             : $this->console->out(...);
@@ -97,6 +101,9 @@ final readonly class WatchRuns
             $this->console->error($error->getMessage(), $arguments->has('no-ansi'));
             return CommandResult::failure();
         } finally {
+            if ($restoreKeys !== null) {
+                $emergencyCleanups?->unregister($restoreKeys);
+            }
             $keys->restore();
         }
         $interruptSignal = $shutdown->signal();

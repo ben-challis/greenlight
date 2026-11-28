@@ -34,21 +34,30 @@ use Greenlight\Test\TestId;
 /**
  * Each test attempt can have these operations, in this order:
  *
+ * - Data-set expansion
  * - Constructor injection
  * - `beforeTest()` subscribers
  * - `Before` hooks
  * - The test method
  * - `After` hooks
- * - Deferred cleanup callbacks
+ * - Cleanup callbacks
  * - Test-scope teardown
  * - Timeout enforcement
  * - `afterTest()` subscribers
+ * - Attempt-end subscribers
+ *
+ * Data-set expansion occurs before the timed window starts.
  *
  * `Before` hooks use declaration order. `After` hooks use reverse declaration
  * order.
  *
+ * Output capture includes cleanup callbacks and test-scope teardown.
+ *
  * An `After` hook runs if constructor injection created a test instance. It
  * runs even when a previous test-body operation did not complete.
+ * The `afterTest()` subscribers run only if the test instance exists.
+ * Attempt-end subscribers run for each attempt.
+ *
  * The plugin runtime preserves the test identity when it applies `afterTest()`
  * results. It validates each outcome change against the transformation log.
  * The executor releases its test-instance references when the attempt ends.
@@ -155,11 +164,40 @@ final readonly class TestExecutor
     }
 
     /**
+     * Runs one attempt and then the attempt-end subscribers. The subscribers
+     * run for each attempt, also when the attempt fails before Greenlight
+     * creates the test instance.
+     *
+     * @return array{TestResult, ?\Throwable, ?StagedAttachments}
+     */
+    private function attempt(PlanEntry $entry, int $attempt, TestArtifactBudget $artifactBudget): array
+    {
+        try {
+            [$result, $cause, $attachments] = $this->runAttempt($entry, $attempt, $artifactBudget);
+        } catch (\Throwable $threw) {
+            $cause = $threw;
+            $attachments = null;
+            $result = new TestResult(
+                $entry->id,
+                Outcome::Errored,
+                0.0,
+                0,
+                $attempt,
+                error: ThrowableDetail::fromThrowable($threw),
+            );
+        }
+
+        $result = $this->plugins->testAttemptEnded($entry->id, $entry->definition, $result);
+
+        return [$result, $cause, $attachments];
+    }
+
+    /**
      * @return array{TestResult, ?\Throwable, ?StagedAttachments}
      * @throws CaptureError
      * @throws AttachmentError
      */
-    private function attempt(PlanEntry $entry, int $attempt, TestArtifactBudget $artifactBudget): array
+    private function runAttempt(PlanEntry $entry, int $attempt, TestArtifactBudget $artifactBudget): array
     {
         $definition = $entry->definition;
         $execution = $definition->execution;
@@ -176,9 +214,10 @@ final readonly class TestExecutor
         $stagedAttachments = $this->artifactStore?->forAttempt($entry->id, $attempt, $artifactBudget);
         $attachments = $stagedAttachments ?? new UnavailableAttachments();
         $cleanup = new Cleanup();
+        $capture?->start();
+        $dataSetFailure = $this->expandDataSets($entry);
         $memoryBefore = \memory_get_usage(true);
         $startedAt = \hrtime(true);
-        $capture?->start();
         ExpectationRuntime::enterAttempt(
             $execution->timeoutSeconds === null
                 ? null
@@ -205,6 +244,10 @@ final readonly class TestExecutor
                         $hook->invoke($context->instance);
                     }
 
+                    if ($dataSetFailure instanceof \Throwable) {
+                        throw $dataSetFailure;
+                    }
+
                     $arguments = [];
 
                     if ($entry->id->dataSetKey !== null) {
@@ -216,7 +259,7 @@ final readonly class TestExecutor
                         );
                     }
 
-                    $this->context->reflection->getMethod($definition->method)->invokeArgs($context->instance, $arguments);
+                    $this->context->method($definition->method)->invokeArgs($context->instance, $arguments);
                 } catch (SkipTest $skip) {
                     $skipReason = $skip->reason;
                 } catch (ExpectationFailed $failed) {
@@ -249,8 +292,6 @@ final readonly class TestExecutor
             $error = ThrowableDetail::fromThrowable($threw);
         } finally {
             try {
-                $captured = $capture?->stop();
-            } finally {
                 try {
                     try {
                         $cleanup->close();
@@ -288,6 +329,8 @@ final readonly class TestExecutor
                         ExpectationRuntime::leaveAttempt();
                     }
                 }
+            } finally {
+                $captured = $capture?->stop();
             }
         }
 
@@ -347,6 +390,31 @@ final readonly class TestExecutor
     }
 
     /**
+     * Expands the data sets before the timed window starts. A failure becomes
+     * the test error after the `Before` hooks.
+     */
+    private function expandDataSets(PlanEntry $entry): ?\Throwable
+    {
+        if ($entry->id->dataSetKey === null) {
+            return null;
+        }
+
+        $definition = $entry->definition;
+
+        try {
+            $this->context->expand(
+                $definition->dataProvider->method,
+                $definition->dataProvider->class,
+                $definition->method,
+            );
+        } catch (\Throwable $failure) {
+            return $failure;
+        }
+
+        return null;
+    }
+
+    /**
      * @param non-empty-string $class
      * @throws UnresolvableService
      * @throws ServiceResolutionFailed
@@ -354,9 +422,14 @@ final readonly class TestExecutor
     private function instantiate(string $class, Attachments $attachments, Cleanup $cleanup): object
     {
         $constructor = $this->context->reflection->getConstructor();
+
+        if (!$constructor instanceof \ReflectionMethod) {
+            return $this->context->reflection->newInstance();
+        }
+
         $arguments = [];
 
-        foreach ($constructor?->getParameters() ?? [] as $parameter) {
+        foreach ($constructor->getParameters() as $parameter) {
             $type = $parameter->getType();
 
             if (!$type instanceof \ReflectionNamedType || $type->isBuiltin()) {
