@@ -25,7 +25,7 @@ final readonly class ServiceAttributeTest
     #[Test]
     public function preservesAZeroStringServiceIdentifier(): void
     {
-        expect((new Service('0'))->id)
+        expect(new Service('0')->id)
             ->because('a zero-string service identifier is not empty')
             ->toBe('0');
     }
@@ -49,6 +49,6 @@ final readonly class ServiceAttributeTest
     #[Test]
     public function preservesAZeroStringSourceName(): void
     {
-        expect((new Service(source: '0'))->source)->toBe('0');
+        expect(new Service(source: '0')->source)->toBe('0');
     }
 }
