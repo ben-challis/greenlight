@@ -39,7 +39,7 @@ final readonly class TestDiscoverer
         }
 
         $this->metadataFactory = new MetadataFactory();
-        $this->dataSetExpander = new DataSetExpander();
+        $this->dataSetExpander = new DataSetExpander(reuseProviderRows: true);
     }
 
     /**
