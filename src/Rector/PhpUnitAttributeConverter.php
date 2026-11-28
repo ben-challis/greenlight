@@ -66,17 +66,26 @@ final readonly class PhpUnitAttributeConverter
     public function convertGroups(array $attrGroups, bool $onClass, bool $dropOverride): ?array
     {
         $singleAttributes = [];
+        $phpUnitDataSources = [];
         $converted = [];
 
         foreach ($attrGroups as $group) {
             $kept = [];
 
             foreach ($group->attrs as $attribute) {
-                if (!$this->attributeConverts($attribute, $onClass)) {
+                $resolvedName = $this->name($attribute->name);
+
+                if (!$this->attributeConverts($attribute, $resolvedName, $onClass)) {
                     return null;
                 }
 
-                $singleAttribute = $this->singleAttributeOutput($attribute);
+                if ($resolvedName === PhpUnitAttributes::NAMESPACE_PREFIX . 'DataProvider'
+                    || $resolvedName === PhpUnitAttributes::NAMESPACE_PREFIX . PhpUnitAttributes::TEST_WITH
+                ) {
+                    $phpUnitDataSources[$resolvedName] = true;
+                }
+
+                $singleAttribute = $this->singleAttributeOutput($resolvedName);
 
                 if ($singleAttribute !== null) {
                     if (isset($singleAttributes[$singleAttribute])) {
@@ -86,7 +95,7 @@ final readonly class PhpUnitAttributeConverter
                     $singleAttributes[$singleAttribute] = true;
                 }
 
-                $replacement = $this->convertAttribute($attribute, $dropOverride);
+                $replacement = $this->convertAttribute($attribute, $resolvedName, $dropOverride);
 
                 if ($replacement instanceof Attribute) {
                     $kept[] = $replacement;
@@ -98,7 +107,8 @@ final readonly class PhpUnitAttributeConverter
             }
         }
 
-        return $converted;
+        // PHPUnit uses only provider rows when both attributes occur.
+        return \count($phpUnitDataSources) < 2 ? $converted : null;
     }
 
     /**
@@ -200,10 +210,8 @@ final readonly class PhpUnitAttributeConverter
      *
      * @return class-string|null
      */
-    private function singleAttributeOutput(Attribute $attribute): ?string
+    private function singleAttributeOutput(string $resolved): ?string
     {
-        $resolved = $this->name($attribute->name);
-
         if (\in_array($resolved, self::SINGLE_GREENLIGHT_ATTRIBUTES, true)) {
             return $resolved;
         }
@@ -225,10 +233,8 @@ final readonly class PhpUnitAttributeConverter
             : null;
     }
 
-    private function attributeConverts(Attribute $attribute, bool $onClass): bool
+    private function attributeConverts(Attribute $attribute, string $resolved, bool $onClass): bool
     {
-        $resolved = $this->name($attribute->name);
-
         if (!\str_starts_with($resolved, PhpUnitAttributes::NAMESPACE_PREFIX)) {
             return true;
         }
@@ -370,10 +376,8 @@ final readonly class PhpUnitAttributeConverter
         return true;
     }
 
-    private function convertAttribute(Attribute $attribute, bool $dropOverride): ?Attribute
+    private function convertAttribute(Attribute $attribute, string $resolved, bool $dropOverride): ?Attribute
     {
-        $resolved = $this->name($attribute->name);
-
         if ($dropOverride && $resolved === 'Override') {
             return null;
         }

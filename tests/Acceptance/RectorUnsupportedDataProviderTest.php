@@ -117,6 +117,33 @@ final readonly class RectorUnsupportedDataProviderTest
                 }
 
                 PHP_WRAP,
+            'provider with an inline row' => <<<'PHP_WRAP'
+                <?php
+
+                declare(strict_types=1);
+
+                namespace App\Tests;
+
+                use PHPUnit\Framework\Attributes\DataProvider;
+                use PHPUnit\Framework\Attributes\TestWith;
+                use PHPUnit\Framework\TestCase;
+
+                final class ProbeTest extends TestCase
+                {
+                    #[DataProvider('values')]
+                    #[TestWith([2])]
+                    public function testValue(int $value): void
+                    {
+                        $this->assertSame(1, $value);
+                    }
+
+                    public static function values(): iterable
+                    {
+                        yield [1];
+                    }
+                }
+
+                PHP_WRAP,
             'named TestWith data' => <<<'PHP_WRAP'
                 <?php
 
