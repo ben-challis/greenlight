@@ -27,6 +27,31 @@ final readonly class ListCommand
 {
     public function __construct(private Console $console) {}
 
+    /**
+     * Returns true when the command line asks for a listing. The list-tests
+     * command and the run listing options select a listing. The run dry-run
+     * option prints the plan instead.
+     */
+    public static function selects(string $command, ParsedArguments $arguments): bool
+    {
+        return $command === 'list-tests'
+            || ($command === 'run'
+                && !$arguments->has('dry-run')
+                && ($arguments->has('list-tests') || $arguments->has('list-groups') || $arguments->has('list-suites')));
+    }
+
+    /**
+     * Returns the usage error for --format outside a test listing.
+     */
+    public static function formatError(string $command, ParsedArguments $arguments): ?CliError
+    {
+        return $arguments->has('format')
+            && $command !== 'list-tests'
+            && ($command !== 'run' || !$arguments->has('list-tests'))
+            ? CliError::formatRequiresTestListing()
+            : null;
+    }
+
     public function run(ParsedArguments $arguments, string $workingDirectory): CommandResult
     {
         $format = $arguments->value('format') ?? 'text';

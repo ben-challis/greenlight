@@ -347,7 +347,7 @@ deptrac:
     ExecutionProcessProtocol: [Attribute, Config, Coverage, DiscoveryPlan, Event, ExecutionArtifact, IntegrationFixture, InternalEvent, InternalPhp, InternalWire, Result, Test]
     ExecutionProcessWorker: [Config, CoverageCollection, Event, ExecutionArtifact, ExecutionPlugin, ExecutionProcessProtocol, ExecutionWorker, Harness, InternalPhp, InternalWire, Plugin, Result, Test]
     ExecutionProcessOrchestrator: [Artifact, Config, Coverage, CoverageCollection, DiscoveryPlan, Event, ExecutionArtifact, ExecutionProcessProtocol, ExecutionWorker, IntegrationFixture, InternalPhp, InternalProcess, InternalText, InternalWire, Reporting, Result, Test]
-    Cli: [CliCommand, CliOutput, CliPlugin, Coverage, CoverageRelay, ExecutionProcessProtocol, ExecutionProcessWorker, InternalWire, Plugin, Reporting]
+    Cli: [CliCommand, CliOutput, CliPlugin, CliRun, Coverage, CoverageRelay, ExecutionProcessProtocol, ExecutionProcessWorker, InternalWire, Plugin, Reporting]
     CliInput: []
     CliConfiguration: [CliInput, Config, InternalPhp, InternalText, Result, Test]
     CliDiscovery: [CliConfiguration, CliInput, CliState, Config, Discovery, DiscoveryPlan, Test]
