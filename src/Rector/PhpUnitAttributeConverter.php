@@ -35,7 +35,7 @@ use Rector\NodeTypeResolver\NodeTypeResolver;
  * faithful Greenlight equivalent.
  *
  * `dataProvidersConvert()` checks each `#[DataProvider]` target and its
- * literal rows. `referencedDataProviders()` lists the provider names.
+ * literal rows.
  *
  * @internal
  */
@@ -135,22 +135,6 @@ final readonly class PhpUnitAttributeConverter
     public function hasPhpUnitAttribute(ClassMethod $method, string $short): bool
     {
         return $this->hasAttributeNamed($method->attrGroups, PhpUnitAttributes::NAMESPACE_PREFIX . $short);
-    }
-
-    /**
-     * @return array<string, true> lowercase names from string `#[DataProvider]` arguments
-     */
-    public function referencedDataProviders(Class_ $class): array
-    {
-        $providers = [];
-
-        foreach ($this->dataProviderArguments($class) as $argument) {
-            if ($argument instanceof Arg && $argument->value instanceof String_) {
-                $providers[\strtolower($argument->value->value)] = true;
-            }
-        }
-
-        return $providers;
     }
 
     public function dataProvidersConvert(Class_ $class): bool

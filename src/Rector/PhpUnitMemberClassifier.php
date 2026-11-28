@@ -47,12 +47,10 @@ final readonly class PhpUnitMemberClassifier
     public function __construct(private PhpUnitAttributeConverter $attributes) {}
 
     /**
-     * @param array<string, true> $providers lowercase data provider names
-     *
      * @return array<int, 'after'|'before'|'helper'|'test'>|null method kinds
      *   keyed by object ID, or null if a member rejects the class
      */
-    public function classify(Class_ $class, array $providers): ?array
+    public function classify(Class_ $class): ?array
     {
         if ($this->hasPhpUnitAnnotation($class)) {
             return null;
@@ -84,12 +82,6 @@ final readonly class PhpUnitMemberClassifier
 
             if ($this->attributes->hasAttributeNamed($method->attrGroups, 'Override')) {
                 // #[\Override] on anything but a hook points at the removed parent.
-                return null;
-            }
-
-            if ($kind === 'helper' && $this->isStaticTestNamed($method) && !isset($providers[$name])) {
-                // PHPUnit runs a public static test method. A Greenlight
-                // test must not be static, so the method would stop running.
                 return null;
             }
         }
@@ -177,7 +169,7 @@ final readonly class PhpUnitMemberClassifier
         $isBefore = $name === 'setup' || $this->attributes->hasPhpUnitAttribute($method, 'Before');
         $isAfter = $name === 'teardown' || $this->attributes->hasPhpUnitAttribute($method, 'After');
         $hasTestAttribute = $this->attributes->hasPhpUnitAttribute($method, 'Test');
-        $isTestNamed = \str_starts_with($name, 'test');
+        $isTestNamed = \str_starts_with($method->name->toString(), 'test');
 
         if ($isBefore || $isAfter) {
             if ($isBefore && $isAfter) {
@@ -191,20 +183,12 @@ final readonly class PhpUnitMemberClassifier
             return $isBefore ? 'before' : 'after';
         }
 
-        $isTest = ($isTestNamed || $hasTestAttribute) && $method->isPublic() && !$method->isStatic();
-
-        if ($isTest) {
-            return 'test';
+        if ($method->isPublic() && ($isTestNamed || $hasTestAttribute)) {
+            // PHPUnit also discovers static methods that are data providers.
+            return $method->isStatic() ? null : 'test';
         }
 
-        if ($hasTestAttribute) {
-            // A #[Test] attribute on a static or non-public method is not a
-            // runnable PHPUnit test. Without this check, conversion drops the
-            // method without an error.
-            return null;
-        }
-
-        return 'helper';
+        return $hasTestAttribute ? null : 'helper';
     }
 
     /**
@@ -235,11 +219,6 @@ final readonly class PhpUnitMemberClassifier
         $docComment = $node->getDocComment();
 
         return $docComment instanceof Doc && \preg_match(PhpUnitAttributes::ANNOTATION_PATTERN, $docComment->getText()) === 1;
-    }
-
-    private function isStaticTestNamed(ClassMethod $method): bool
-    {
-        return $method->isPublic() && $method->isStatic() && \str_starts_with($method->name->toLowerString(), 'test');
     }
 
     private function isParentHookCall(StaticCall $call): bool
